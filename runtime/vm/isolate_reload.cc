@@ -1025,7 +1025,7 @@ void IsolateReloadContext::FindModifiedSources(
     return;
   }
 
-  *modified_sources = new (zone_) Dart_SourceFile[*count];
+  *modified_sources = zone_->Alloc<Dart_SourceFile>(*count);
   for (intptr_t i = 0; i < *count; ++i) {
     (*modified_sources)[i].uri = modified_sources_uris[i];
     (*modified_sources)[i].source = NULL;
