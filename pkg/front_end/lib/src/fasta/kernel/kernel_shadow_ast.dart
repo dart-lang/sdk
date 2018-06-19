@@ -835,6 +835,16 @@ abstract class ExpressionJudgment implements Expression {
       DartType typeContext);
 }
 
+/// Concrete shadow object representing an empty statement in kernel form.
+class EmptyStatementJudgment extends EmptyStatement
+    implements StatementJudgment {
+  @override
+  void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer> factory) {
+    // No inference needs to be done.
+  }
+}
+
 /// Concrete shadow object representing an expression statement in kernel form.
 class ShadowExpressionStatement extends ExpressionStatement
     implements StatementJudgment {

@@ -78,6 +78,7 @@ import 'kernel_shadow_ast.dart'
         ShadowConditionalExpression,
         ShadowDoStatement,
         ShadowDoubleLiteral,
+        EmptyStatementJudgment,
         ShadowExpressionStatement,
         ShadowForStatement,
         ShadowIfStatement,
@@ -384,7 +385,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   Statement emptyStatement(Token semicolon) {
-    return new EmptyStatement();
+    return new EmptyStatementJudgment();
   }
 
   @override
