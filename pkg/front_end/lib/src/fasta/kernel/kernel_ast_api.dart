@@ -65,7 +65,7 @@ export 'package:kernel/ast.dart'
 export 'kernel_shadow_ast.dart'
     show
         ShadowAssertInitializer,
-        ShadowAssertStatement,
+        AssertStatementJudgment,
         ShadowBreakStatement,
         ShadowCascadeExpression,
         ShadowComplexAssignment,

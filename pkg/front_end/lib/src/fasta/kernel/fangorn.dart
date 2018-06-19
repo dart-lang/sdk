@@ -69,7 +69,7 @@ import 'kernel_shadow_ast.dart'
         ShadowArguments,
         AsJudgment,
         ShadowAssertInitializer,
-        ShadowAssertStatement,
+        AssertStatementJudgment,
         AwaitJudgment,
         ShadowBlock,
         BoolJudgment,
@@ -308,7 +308,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
         endOffset = conditionLastToken.offset + conditionLastToken.length;
       }
     }
-    return new ShadowAssertStatement(condition,
+    return new AssertStatementJudgment(condition,
         conditionStartOffset: startOffset,
         conditionEndOffset: endOffset,
         message: message);

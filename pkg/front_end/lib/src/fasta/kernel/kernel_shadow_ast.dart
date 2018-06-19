@@ -180,25 +180,32 @@ class ShadowAssertInitializer extends AssertInitializer
 }
 
 /// Concrete shadow object representing an assertion statement in kernel form.
-class ShadowAssertStatement extends AssertStatement
+class AssertStatementJudgment extends AssertStatement
     implements StatementJudgment {
-  ShadowAssertStatement(Expression condition,
+  AssertStatementJudgment(Expression condition,
       {Expression message, int conditionStartOffset, int conditionEndOffset})
       : super(condition,
             message: message,
             conditionStartOffset: conditionStartOffset,
             conditionEndOffset: conditionEndOffset);
 
+  ExpressionJudgment get conditionJudgment => condition;
+
+  ExpressionJudgment get messageJudgment => message;
+
   @override
   void infer<Expression, Statement, Initializer>(ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer> factory) {
+    var conditionJudgment = this.conditionJudgment;
+    var messageJudgment = this.messageJudgment;
     var expectedType = inferrer.coreTypes.boolClass.rawType;
-    var actualType = inferrer.inferExpression(
-        factory, condition, expectedType, !inferrer.isTopLevel);
-    inferrer.ensureAssignable(
-        expectedType, actualType, condition, condition.fileOffset);
-    if (message != null) {
-      inferrer.inferExpression(factory, message, const UnknownType(), false);
+    inferrer.inferExpression(
+        factory, conditionJudgment, expectedType, !inferrer.isTopLevel);
+    inferrer.ensureAssignable(expectedType, conditionJudgment.inferredType,
+        conditionJudgment, conditionJudgment.fileOffset);
+    if (messageJudgment != null) {
+      inferrer.inferExpression(
+          factory, messageJudgment, const UnknownType(), false);
     }
   }
 }
