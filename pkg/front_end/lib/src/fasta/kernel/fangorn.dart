@@ -70,7 +70,7 @@ import 'kernel_shadow_ast.dart'
         AsJudgment,
         ShadowAssertInitializer,
         ShadowAssertStatement,
-        ShadowAwaitExpression,
+        AwaitJudgment,
         ShadowBlock,
         BoolJudgment,
         ShadowBreakStatement,
@@ -316,8 +316,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   Expression awaitExpression(Expression operand, Token token) {
-    return new ShadowAwaitExpression(operand)
-      ..fileOffset = offsetForToken(token);
+    return new AwaitJudgment(operand)..fileOffset = offsetForToken(token);
   }
 
   @override

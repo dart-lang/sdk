@@ -204,11 +204,12 @@ class ShadowAssertStatement extends AssertStatement
 }
 
 /// Shadow object for [AwaitExpression].
-class ShadowAwaitExpression extends AwaitExpression
-    implements ExpressionJudgment {
+class AwaitJudgment extends AwaitExpression implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowAwaitExpression(Expression operand) : super(operand);
+  AwaitJudgment(Expression operand) : super(operand);
+
+  ExpressionJudgment get judgment => operand;
 
   @override
   DartType infer<Expression, Statement, Initializer>(
@@ -218,9 +219,11 @@ class ShadowAwaitExpression extends AwaitExpression
     if (!inferrer.typeSchemaEnvironment.isEmptyContext(typeContext)) {
       typeContext = inferrer.wrapFutureOrType(typeContext);
     }
-    var inferredType =
-        inferrer.inferExpression(factory, operand, typeContext, true);
-    return inferrer.typeSchemaEnvironment.unfutureType(inferredType);
+    var judgment = this.judgment;
+    inferrer.inferExpression(factory, judgment, typeContext, true);
+    inferredType =
+        inferrer.typeSchemaEnvironment.unfutureType(judgment.inferredType);
+    return inferredType;
   }
 }
 
