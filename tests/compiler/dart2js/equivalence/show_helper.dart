@@ -49,8 +49,8 @@ show(ArgResults argResults, ComputeMemberDataFunction computeKernelData,
   }
 
   options = new List<String>.from(options);
-  if (strongMode) {
-    options.add(Flags.strongMode);
+  if (!strongMode) {
+    options.add(Flags.noPreviewDart2);
   }
   if (trustTypeAnnotations) {
     options.add(Flags.trustTypeAnnotations);

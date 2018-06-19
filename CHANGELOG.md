@@ -36,6 +36,21 @@ allowed when `exp` has type `void`.
 
 #### Pub
 
+#### Dart2js
+
+* Dart2js now compiles programs by default with Dart 2.0 semantics. Apps are
+  expected to be bigger than before, because Dart 2.0 has many more implicit
+  checks (similar to the `--checked` flag in Dart 1.0). Other relevant flags:
+
+  * `--omit-implicit-checks`: is a flag that removes most of the extra implicit
+    checks. Only use this if you have enough test coverage to know that the app
+    will work well without the checks. If a check would have failed and it is
+    omitted, your app may crash or behave in unexpected ways.
+
+  * `--no-preview-dart-2`: a temporary flag to revert to Dart 1.0. This flag is
+    temporary and only meant to help users in the migration process. The flag
+    will go away in a future dev release, when we no longer support Dart 1.0.
+
 #### Other Tools
 
 ### Core library changes

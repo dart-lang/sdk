@@ -1259,6 +1259,13 @@ class StandardTestSuite extends TestSuite {
     if (options != null) args.addAll(options);
     options = optionsFromFile['dart2jsOptions'] as List<String>;
     if (options != null) args.addAll(options);
+    if (configuration.compiler == Compiler.dart2js) {
+      if (configuration.noPreviewDart2) {
+        args.add("--no-preview-dart-2");
+      } else {
+        args.add("--preview-dart-2");
+      }
+    }
 
     return Command.compilation(Compiler.dart2js.name, outputFile,
         dart2JsBootstrapDependencies, compilerPath, args, environmentOverrides,
@@ -1294,6 +1301,14 @@ class StandardTestSuite extends TestSuite {
           filePath.directoryPath.segments().last.contains('html_common')) {
         args.add("--use-dart2js-libraries");
       }
+      if (configuration.noPreviewDart2) {
+        args.add("--no-preview-dart-2");
+      } else {
+        args.add("--preview-dart-2");
+      }
+    }
+
+    if (configuration.compiler == Compiler.dart2js) {
       if (configuration.noPreviewDart2) {
         args.add("--no-preview-dart-2");
       } else {

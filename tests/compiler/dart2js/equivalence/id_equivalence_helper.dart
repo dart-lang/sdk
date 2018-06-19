@@ -577,7 +577,7 @@ Future checkTests(
       print('--skipped for kernel--------------------------------------------');
     } else {
       print('--from kernel---------------------------------------------------');
-      List<String> options = []..addAll(testOptions);
+      List<String> options = [Flags.noPreviewDart2]..addAll(testOptions);
       if (trustTypeAnnotations) {
         options.add(Flags.trustTypeAnnotations);
       }

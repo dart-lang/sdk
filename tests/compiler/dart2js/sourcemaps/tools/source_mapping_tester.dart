@@ -131,7 +131,7 @@ bool parseArgument(String argument, Set<String> configurations,
 }
 
 const Map<String, List<String>> TEST_CONFIGURATIONS = const {
-  'kernel': const [],
+  'kernel': const [Flags.noPreviewDart2],
 };
 
 final Map<String, Uri> TEST_FILES = _computeTestFiles();

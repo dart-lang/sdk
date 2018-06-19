@@ -51,7 +51,7 @@ runTests({bool strongMode: false}) async {
         new F();
         new G();
       }
-      """, options: strongMode ? [Flags.strongMode] : []);
+      """, options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2]);
   KClosedWorld world = env.kClosedWorld;
 
   ClassEntity A = env.getElement("A");

@@ -30,9 +30,9 @@ callLoadLibrary() => expect.loadLibrary();
 main() async {
   asyncTest(() async {
     print('--test Dart 1 ----------------------------------------------------');
-    await runTest([], trust: false);
+    await runTest([Flags.noPreviewDart2], trust: false);
     print('--test Dart 1 --trust-type-annotations ---------------------------');
-    await runTest([Flags.trustTypeAnnotations]);
+    await runTest([Flags.noPreviewDart2, Flags.trustTypeAnnotations]);
     print('--test Dart 2 ----------------------------------------------------');
     await runTest([Flags.strongMode], trust: false);
     print('--test Dart 2 --omit-implicit-checks -----------------------------');

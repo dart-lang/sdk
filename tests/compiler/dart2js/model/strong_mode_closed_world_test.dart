@@ -140,7 +140,7 @@ main() {
   r = new R(); // Create R after call.
 }
 '''
-  }, options: strongMode ? [Flags.strongMode] : []);
+  }, options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2]);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
 

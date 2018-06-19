@@ -124,7 +124,8 @@ Future<api.CompilationResult> compile(List<String> argv,
   bool analyzeOnly = false;
   bool trustTypeAnnotations = false;
   bool checkedMode = false;
-  bool strongMode = false;
+  bool strongMode = true;
+  bool forceStrongMode = true;
   List<String> hints = <String>[];
   bool verbose;
   bool throwOnError;
@@ -219,9 +220,14 @@ Future<api.CompilationResult> compile(List<String> argv,
     passThrough(argument);
   }
 
-  void setStrongMode(_) {
-    strongMode = true;
+  void setForceStrongMode(_) {
+    strongMode = forceStrongMode = true;
     passThrough(Flags.strongMode);
+  }
+
+  void setLegacyMode(_) {
+    if (!forceStrongMode) strongMode = false;
+    passThrough(Flags.noPreviewDart2);
   }
 
   void addInEnvironment(String argument) {
@@ -357,9 +363,14 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.useContentSecurityPolicy, passThrough),
     new OptionHandler(Flags.enableExperimentalMirrors, passThrough),
     new OptionHandler(Flags.enableAssertMessage, passThrough),
-    new OptionHandler(Flags.strongMode, setStrongMode),
-    new OptionHandler(Flags.previewDart2, setStrongMode),
-    new OptionHandler(Flags.noPreviewDart2, ignoreOption),
+    // TODO(sigmund): ignore this option after we update our test bot
+    // configurations or stop testing Dart1.
+    // At the time this was added, some bots invoked dart2js with
+    // --no-preview-dart-2, but some test files contain extra dart2js options,
+    // including --strong. We want to make sure --strong takes precedence.
+    new OptionHandler(Flags.strongMode, setForceStrongMode),
+    new OptionHandler(Flags.previewDart2, setForceStrongMode),
+    new OptionHandler(Flags.noPreviewDart2, setLegacyMode),
     new OptionHandler(Flags.omitImplicitChecks, passThrough),
     new OptionHandler(Flags.laxRuntimeTypeToString, passThrough),
     new OptionHandler(Flags.benchmarkingProduction, passThrough),
@@ -653,9 +664,13 @@ Supported options:
     Produce JavaScript that can be parsed more quickly by VMs. This option
     usually results in larger JavaScript files with faster startup.
 
-  --preview-dart-2
-    Preview of all Dart 2.0 semantics, this includes generic methods and strong
-    mode type checks. This will be enabled by default very soon.
+  --no-preview-dart-2
+    Temporarily revert to Dart 1.0 semantics.
+
+    By default dart2js compiles programs in Dart 2.0 semantics, which includes
+    generic methods and strong mode type checks. Since apps may have additional
+    checks that fail at runtime, this temporary flag may help in the migration
+    process. See also '--omit-implicit-checks'.
 
 The following advanced options can help reduce the size of the generated code,
 but they may cause programs to behave unexpectedly if assumptions are not met.

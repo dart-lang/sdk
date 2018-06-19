@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/universe/call_structure.dart';
@@ -47,7 +48,9 @@ testClassSets() async {
     testMode = '$instantiated';
 
     var env = await TypeEnvironment.create(CLASSES,
-        mainSource: main.toString(), testBackendWorld: true);
+        mainSource: main.toString(),
+        testBackendWorld: true,
+        options: [Flags.noPreviewDart2]);
     foo = new Selector.call(const PublicName('foo'), CallStructure.NO_ARGS);
     bar = new Selector.call(const PublicName('bar'), CallStructure.NO_ARGS);
     baz = new Selector.call(const PublicName('baz'), CallStructure.NO_ARGS);

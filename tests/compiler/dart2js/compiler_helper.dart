@@ -49,7 +49,11 @@ Future<String> compile(String code,
     void check(String generatedEntry),
     bool returnAll: false}) async {
   OutputCollector outputCollector = returnAll ? new OutputCollector() : null;
-  List<String> options = <String>[Flags.disableTypeInference];
+  // TODO(sigmund): use strong-mode.
+  List<String> options = <String>[
+    Flags.noPreviewDart2,
+    Flags.disableTypeInference
+  ];
   if (enableTypeAssertions) {
     options.add(Flags.enableCheckedMode);
   }
@@ -101,7 +105,7 @@ Future<String> compileAll(String code,
     int expectedWarnings}) async {
   OutputCollector outputCollector = new OutputCollector();
   DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
-  List<String> options = <String>[];
+  List<String> options = <String>[Flags.noPreviewDart2];
   if (disableInlining) {
     options.add(Flags.disableInlining);
   }

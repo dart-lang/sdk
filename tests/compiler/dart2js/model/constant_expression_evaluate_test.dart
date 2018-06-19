@@ -671,7 +671,8 @@ Future testData(TestData data) async {
   if (!skipKernelList.contains(data.name) && !data.strongModeOnly) {
     print(
         '--test kernel-------------------------------------------------------');
-    await runTest([], (Compiler compiler, FieldEntity field) {
+    await runTest([Flags.noPreviewDart2],
+        (Compiler compiler, FieldEntity field) {
       KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
       KernelToElementMap elementMap = frontendStrategy.elementMap;
       return new KernelEvaluationEnvironment(elementMap, null, field,
