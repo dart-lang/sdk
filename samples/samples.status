@@ -5,6 +5,9 @@
 [ $arch == arm ]
 sample_extension/test/*: Skip # Issue 14705
 
+[ $builder_tag == optimization_counter_threshold ]
+sample_extension/test/sample_extension_app_snapshot_test: SkipByDesign # This test is too slow for testing with low optimization counter threshold.
+
 [ $compiler == app_jit ]
 sample_extension/test/sample_extension_app_snapshot_test: RuntimeError
 
