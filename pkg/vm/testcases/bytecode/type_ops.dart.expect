@@ -66,25 +66,39 @@ ConstantPool {
     ;
 }
 class D<P extends core::Object = dynamic, Q extends core::Object = dynamic> extends self::C<core::int, self::D::Q, self::D::P> {
-  generic-covariant-impl field core::Map<self::D::P, self::D::Q> foo = null;
+  generic-covariant-impl field core::Map<self::D::P, self::D::Q> foo;
 [@vm.bytecode=
 Bytecode {
   Entry                0
   CheckStack
+  Push                 FP[-6]
   Push                 FP[-5]
+  Push                 FP[-6]
+  LoadFieldTOS         CP#0
   PushConstant         CP#1
-  IndirectStaticCall   1, CP#0
-  Drop1
   PushConstant         CP#2
+  PushConstant         CP#3
+  AssertAssignable     0, CP#4
+  StoreFieldTOS        CP#5
+  Push                 FP[-6]
+  PushConstant         CP#7
+  IndirectStaticCall   1, CP#6
+  Drop1
+  PushConstant         CP#1
   ReturnTOS
 }
 ConstantPool {
-  [0] = ArgDesc num-args 1, num-type-args 0, names []
-  [1] = StaticICData target '#lib::C::', arg-desc CP#0
-  [2] = Null
+  [0] = TypeArgumentsFieldOffset #lib::D
+  [1] = Null
+  [2] = Type dart.core::Map<#lib::D::P, #lib::D::Q>
+  [3] = String ''
+  [4] = SubtypeTestCache
+  [5] = FieldOffset #lib::D::foo
+  [6] = ArgDesc num-args 1, num-type-args 0, names []
+  [7] = StaticICData target '#lib::C::', arg-desc CP#6
 }
-]  synthetic constructor •() → void
-    : super self::C::•()
+]  constructor •(dynamic tt) → void
+    : self::D::foo = tt as{TypeError} core::Map<self::D::P, self::D::Q>, super self::C::•()
     ;
 [@vm.bytecode=
 Bytecode {
@@ -120,8 +134,14 @@ L1:
 L2:
   Push                 FP[-6]
   Push                 FP[-5]
+  Push                 FP[-6]
+  LoadFieldTOS         CP#0
+  PushConstant         CP#1
+  PushConstant         CP#13
+  PushConstant         CP#14
+  AssertAssignable     0, CP#15
   StoreLocal           r0
-  InstanceCall1        2, CP#14
+  InstanceCall1        2, CP#17
   Drop1
   Push                 r0
   Drop1
@@ -142,8 +162,11 @@ ConstantPool {
   [10] = ICData target-name 'dart.core::_instanceOf', arg-desc CP#3
   [11] = String '22'
   [12] = StaticICData target 'dart.core::print', arg-desc CP#7
-  [13] = ArgDesc num-args 2, num-type-args 0, names []
-  [14] = ICData set target-name 'foo', arg-desc CP#13
+  [13] = Type dart.core::Map<#lib::D::P, #lib::D::Q>
+  [14] = String ''
+  [15] = SubtypeTestCache
+  [16] = ArgDesc num-args 2, num-type-args 0, names []
+  [17] = ICData set target-name 'foo', arg-desc CP#16
 }
 ]  method foo2(dynamic y) → dynamic {
     if(y is self::A<self::D::P>) {
@@ -223,7 +246,119 @@ ConstantPool {
     }
     return (z as core::Map<self::D::foo3::T2, self::D::Q>).{core::Map::values};
   }
+[@vm.bytecode=
+Bytecode {
+  Entry                2
+  CheckStack
+  Push                 FP[-6]
+  LoadFieldTOS         CP#0
+  PushConstant         CP#1
+  InstantiateTypeArgumentsTOS 1, CP#2
+  StoreLocal           r1
+  Push                 r1
+  PushConstant         CP#3
+  CreateArrayTOS
+  StoreLocal           r1
+  Push                 r1
+  PushConstant         CP#4
+  Push                 FP[-5]
+  Push                 FP[-6]
+  LoadFieldTOS         CP#0
+  PushConstant         CP#1
+  PushConstant         CP#5
+  PushConstant         CP#6
+  AssertAssignable     0, CP#7
+  StoreIndexedTOS
+  PushConstant         CP#9
+  IndirectStaticCall   2, CP#8
+  PopLocal             r0
+  Push                 FP[-5]
+  Push                 FP[-6]
+  LoadFieldTOS         CP#0
+  PushConstant         CP#1
+  PushConstant         CP#5
+  PushConstant         CP#6
+  AssertAssignable     0, CP#10
+  ReturnTOS
+  PushConstant         CP#1
+  ReturnTOS
 }
+ConstantPool {
+  [0] = TypeArgumentsFieldOffset #lib::D
+  [1] = Null
+  [2] = TypeArgs [dart.core::Map<#lib::D::P, #lib::D::Q>]
+  [3] = Int 1
+  [4] = Int 0
+  [5] = Type dart.core::Map<#lib::D::P, #lib::D::Q>
+  [6] = String ''
+  [7] = SubtypeTestCache
+  [8] = ArgDesc num-args 1, num-type-args 1, names []
+  [9] = StaticICData target 'dart.core::List::_fromLiteral', arg-desc CP#8
+  [10] = SubtypeTestCache
+}
+]  method foo4(dynamic w) → core::Map<self::D::P, self::D::Q> {
+    core::List<core::Map<self::D::P, self::D::Q>> list = <core::Map<self::D::P, self::D::Q>>[w as{TypeError} core::Map<self::D::P, self::D::Q>];
+    return w as{TypeError} core::Map<self::D::P, self::D::Q>;
+  }
+}
+class E<P extends core::String = core::String> extends core::Object {
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#0
+  ReturnTOS
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Null
+}
+]  static factory •<P extends core::String = dynamic>() → self::E<self::E::•::P>
+    return null;
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  Push                 FP[-6]
+  LoadFieldTOS         CP#0
+  Push                 FP[-7]
+  PushConstant         CP#1
+  PushConstant         CP#2
+  PushConstant         CP#3
+  AssertSubtype
+  PushConstant         CP#4
+  Push                 FP[-7]
+  PushConstant         CP#5
+  PushConstant         CP#6
+  PushConstant         CP#7
+  AssertSubtype
+  Push                 FP[-5]
+  PushConstant         CP#4
+  Push                 FP[-7]
+  PushConstant         CP#8
+  PushConstant         CP#9
+  AssertAssignable     0, CP#10
+  Drop1
+  PushConstant         CP#4
+  ReturnTOS
+}
+ConstantPool {
+  [0] = TypeArgumentsFieldOffset #lib::E
+  [1] = Type #lib::E::foo6::T
+  [2] = Type #lib::E::P
+  [3] = String 'T'
+  [4] = Null
+  [5] = Type #lib::E::foo6::U
+  [6] = Type dart.core::List<#lib::E::foo6::T>
+  [7] = String 'U'
+  [8] = Type dart.core::Map<#lib::E::foo6::T, #lib::E::foo6::U>
+  [9] = String 'map'
+  [10] = SubtypeTestCache
+}
+]  method foo6<generic-covariant-impl T extends self::E::P = self::E::P, U extends core::List<self::E::foo6::T> = core::List<self::E::P>>(core::Map<self::E::foo6::T, self::E::foo6::U> map) → void {}
+}
+static field core::List<core::Iterable<dynamic>> globalVar;
 [@vm.bytecode=
 Bytecode {
   Entry                0
@@ -287,6 +422,33 @@ ConstantPool {
     core::print("12");
   }
   return x as self::A<core::int>;
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                1
+  CheckStack
+  Push                 FP[-5]
+  PushConstant         CP#0
+  PushConstant         CP#0
+  PushConstant         CP#1
+  PushConstant         CP#2
+  AssertAssignable     0, CP#3
+  StoreLocal           r0
+  Push                 r0
+  StoreStaticTOS       CP#4
+  Drop1
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Null
+  [1] = Type dart.core::List<dart.core::Iterable<dynamic>>
+  [2] = String ''
+  [3] = SubtypeTestCache
+  [4] = Field #lib::globalVar
+}
+]static method foo5(dynamic x) → void {
+  self::globalVar = x as{TypeError} core::List<core::Iterable<dynamic>>;
 }
 [@vm.bytecode=
 Bytecode {

@@ -158,6 +158,10 @@ type ConstantNativeEntry extends ConstantPoolEntry {
   StringReference nativeName;
 }
 
+type ConstantSubtypeTestCache extends ConstantPoolEntry {
+  Byte tag = 24;
+}
+
 */
 
 enum ConstantTag {
@@ -185,6 +189,7 @@ enum ConstantTag {
   kClosureFunction,
   kEndClosureFunctionScope,
   kNativeEntry,
+  kSubtypeTestCache,
 }
 
 abstract class ConstantPoolEntry {
@@ -251,6 +256,8 @@ abstract class ConstantPoolEntry {
         return new ConstantEndClosureFunctionScope.readFromBinary(source);
       case ConstantTag.kNativeEntry:
         return new ConstantNativeEntry.readFromBinary(source);
+      case ConstantTag.kSubtypeTestCache:
+        return new ConstantSubtypeTestCache.readFromBinary(source);
     }
     throw 'Unexpected constant tag $tag';
   }
@@ -1039,6 +1046,31 @@ class ConstantNativeEntry extends ConstantPoolEntry {
   @override
   bool operator ==(other) =>
       other is ConstantNativeEntry && this.nativeName == other.nativeName;
+}
+
+class ConstantSubtypeTestCache extends ConstantPoolEntry {
+  ConstantSubtypeTestCache();
+
+  @override
+  ConstantTag get tag => ConstantTag.kSubtypeTestCache;
+
+  @override
+  void writeValueToBinary(BinarySink sink) {}
+
+  ConstantSubtypeTestCache.readFromBinary(BinarySource source);
+
+  @override
+  String toString() => 'SubtypeTestCache';
+
+  // ConstantSubtypeTestCache entries are created per subtype test site and
+  // should not be merged, so ConstantSubtypeTestCache class uses identity
+  // [hashCode] and [operator ==].
+
+  @override
+  int get hashCode => identityHashCode(this);
+
+  @override
+  bool operator ==(other) => identical(this, other);
 }
 
 class ConstantPool {
