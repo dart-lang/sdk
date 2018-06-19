@@ -9279,7 +9279,18 @@ It is a compile-time error if the contents of the URI are not a valid part decla
 It is a static warning if the referenced part declaration $p$ names a library other than the current library as the library to which $p$ belongs.
 
 \LMHash{}
-It's a compile-time error if the same library contains two part directives with the same URI.
+Let $L$ be a library.
+It is a compile-time error if $L$ contains two part directives with the same URI.
+Furthermore,
+let $L_1$ be $L$ or any library which is directly or indirectly imported by $L$,
+and let $L_2$ be any library distinct from $L_1$ which is directly or indirectly imported by $L$
+(\ref{imports}).
+It is a compile-time error if $L_1$ and $L_2$ both contain a part directive with the same URI.
+
+\commentary{
+In particular, it is an error to use the same part twice in the same program
+(\ref{scripts}).
+}
 
 
 \subsection{Scripts}
