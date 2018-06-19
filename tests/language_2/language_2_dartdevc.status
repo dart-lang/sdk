@@ -553,6 +553,9 @@ string_split_test: CompileTimeError # Issue 31616
 string_supertype_checked_test: CompileTimeError # Issue 31616
 super_bound_closure_test/none: CompileTimeError # Issue 31533
 super_call4_test/01: MissingCompileTimeError
+super_operator_index6_test: CompileTimeError # Issue 33498
+super_operator_index7_test: CompileTimeError # Issue 33498
+super_operator_index8_test: CompileTimeError # Issue 33498
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError

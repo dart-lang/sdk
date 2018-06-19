@@ -385,13 +385,10 @@ abstract class KernelClassBuilder
     }
   }
 
-  // TODO(dmitryas): Find a better place for this routine.
-  static bool hasUserDefinedNoSuchMethod(
-      Class klass, ClassHierarchy hierarchy) {
+  bool hasUserDefinedNoSuchMethod(
+      Class klass, ClassHierarchy hierarchy, Class objectClass) {
     Member noSuchMethod = hierarchy.getDispatchTarget(klass, noSuchMethodName);
-    // `Object` doesn't have a superclass reference.
-    return noSuchMethod != null &&
-        noSuchMethod.enclosingClass.superclass != null;
+    return noSuchMethod != null && noSuchMethod.enclosingClass != objectClass;
   }
 
   void transformProcedureToNoSuchMethodForwarder(
@@ -439,56 +436,46 @@ abstract class KernelClassBuilder
   /// class was modified.
   bool addNoSuchMethodForwarders(
       KernelTarget target, ClassHierarchy hierarchy) {
-    if (!hasUserDefinedNoSuchMethod(cls, hierarchy)) {
+    if (cls.isAbstract ||
+        !hasUserDefinedNoSuchMethod(cls, hierarchy, target.objectClass)) {
       return false;
     }
 
     Set<Name> existingForwardersNames = new Set<Name>();
     Set<Name> existingSetterForwardersNames = new Set<Name>();
-    if (cls.superclass != null &&
-        hasUserDefinedNoSuchMethod(cls.superclass, hierarchy)) {
-      List<Member> concrete = hierarchy.getDispatchTargets(cls.superclass);
-      for (Member member in hierarchy.getInterfaceMembers(cls.superclass)) {
+    Class leastConcreteSuperclass = cls.superclass;
+    while (
+        leastConcreteSuperclass != null && leastConcreteSuperclass.isAbstract) {
+      leastConcreteSuperclass = leastConcreteSuperclass.superclass;
+    }
+    if (leastConcreteSuperclass != null &&
+        hasUserDefinedNoSuchMethod(
+            leastConcreteSuperclass, hierarchy, target.objectClass)) {
+      List<Member> concrete =
+          hierarchy.getDispatchTargets(leastConcreteSuperclass);
+      for (Member member
+          in hierarchy.getInterfaceMembers(leastConcreteSuperclass)) {
         if (ClassHierarchy.findMemberByName(concrete, member.name) == null) {
           existingForwardersNames.add(member.name);
         }
       }
 
       List<Member> concreteSetters =
-          hierarchy.getDispatchTargets(cls.superclass, setters: true);
-      for (Member member
-          in hierarchy.getInterfaceMembers(cls.superclass, setters: true)) {
+          hierarchy.getDispatchTargets(leastConcreteSuperclass, setters: true);
+      for (Member member in hierarchy
+          .getInterfaceMembers(leastConcreteSuperclass, setters: true)) {
         if (ClassHierarchy.findMemberByName(concreteSetters, member.name) ==
             null) {
           existingSetterForwardersNames.add(member.name);
         }
       }
     }
-    if (cls.mixedInClass != null &&
-        hasUserDefinedNoSuchMethod(cls.mixedInClass, hierarchy)) {
-      List<Member> concrete = hierarchy.getDispatchTargets(cls.mixedInClass);
-      for (Member member in hierarchy.getInterfaceMembers(cls.mixedInClass)) {
-        if (ClassHierarchy.findMemberByName(concrete, member.name) == null) {
-          existingForwardersNames.add(member.name);
-        }
-      }
-
-      List<Member> concreteSetters =
-          hierarchy.getDispatchTargets(cls.superclass, setters: true);
-      for (Member member
-          in hierarchy.getInterfaceMembers(cls.superclass, setters: true)) {
-        if (ClassHierarchy.findMemberByName(concreteSetters, member.name) ==
-            null) {
-          existingSetterForwardersNames.add(member.name);
-        }
-      }
-    }
-
-    List<Member> concrete = hierarchy.getDispatchTargets(cls);
-    List<Member> declared = hierarchy.getDeclaredMembers(cls);
 
     Member noSuchMethod = ClassHierarchy.findMemberByName(
         hierarchy.getInterfaceMembers(cls), noSuchMethodName);
+
+    List<Member> concrete = hierarchy.getDispatchTargets(cls);
+    List<Member> declared = hierarchy.getDeclaredMembers(cls);
 
     bool changed = false;
     for (Member member in hierarchy.getInterfaceMembers(cls)) {

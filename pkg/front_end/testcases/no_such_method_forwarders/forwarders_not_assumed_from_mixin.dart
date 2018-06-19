@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This test checks that the noSuchMethod forwarder is not duplicated in classes
-// that mix in the classes that already have the forwarder.
+// This test checks that the noSuchMethod forwarder is not assumed to be mixed
+// in and is generated for classes that mix in a user-defined noSuchMethod and
+// have an abstract method.
 
 abstract class I {
   void foo();
