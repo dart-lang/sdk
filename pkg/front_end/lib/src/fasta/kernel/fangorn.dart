@@ -75,7 +75,7 @@ import 'kernel_shadow_ast.dart'
         BoolJudgment,
         ShadowBreakStatement,
         CheckLibraryIsLoadedJudgment,
-        ShadowConditionalExpression,
+        ConditionalJudgment,
         ShadowDoStatement,
         ShadowDoubleLiteral,
         EmptyStatementJudgment,
@@ -360,8 +360,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   @override
   Expression conditionalExpression(Expression condition, Token question,
       Expression thenExpression, Token colon, Expression elseExpression) {
-    return new ShadowConditionalExpression(
-        condition, thenExpression, elseExpression)
+    return new ConditionalJudgment(condition, thenExpression, elseExpression)
       ..fileOffset = offsetForToken(question);
   }
 

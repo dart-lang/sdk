@@ -611,11 +611,17 @@ abstract class ShadowComplexAssignmentWithReceiver
 
 /// Concrete shadow object representing a conditional expression in kernel form.
 /// Shadow object for [ConditionalExpression].
-class ShadowConditionalExpression extends ConditionalExpression
+class ConditionalJudgment extends ConditionalExpression
     implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowConditionalExpression(
+  ExpressionJudgment get conditionJudgment => condition;
+
+  ExpressionJudgment get thenJudgment => then;
+
+  ExpressionJudgment get otherwiseJudgment => otherwise;
+
+  ConditionalJudgment(
       Expression condition, Expression then, Expression otherwise)
       : super(condition, then, otherwise, null);
 
@@ -624,24 +630,25 @@ class ShadowConditionalExpression extends ConditionalExpression
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
+    var conditionJudgment = this.conditionJudgment;
+    var thenJudgment = this.thenJudgment;
+    var otherwiseJudgment = this.otherwiseJudgment;
     var expectedType = inferrer.coreTypes.boolClass.rawType;
-    var conditionType = inferrer.inferExpression(
-        factory, condition, expectedType, !inferrer.isTopLevel);
-    inferrer.ensureAssignable(
-        expectedType, conditionType, condition, condition.fileOffset);
-    DartType thenType =
-        inferrer.inferExpression(factory, then, typeContext, true);
+    inferrer.inferExpression(
+        factory, conditionJudgment, expectedType, !inferrer.isTopLevel);
+    inferrer.ensureAssignable(expectedType, conditionJudgment.inferredType,
+        condition, condition.fileOffset);
+    inferrer.inferExpression(factory, thenJudgment, typeContext, true);
     bool useLub = _forceLub || typeContext == null;
-    DartType otherwiseType =
-        inferrer.inferExpression(factory, otherwise, typeContext, useLub);
-    DartType type = useLub
-        ? inferrer.typeSchemaEnvironment
-            .getLeastUpperBound(thenType, otherwiseType)
+    inferrer.inferExpression(factory, otherwiseJudgment, typeContext, useLub);
+    inferredType = useLub
+        ? inferrer.typeSchemaEnvironment.getLeastUpperBound(
+            thenJudgment.inferredType, otherwiseJudgment.inferredType)
         : greatestClosure(inferrer.coreTypes, typeContext);
     if (inferrer.strongMode) {
-      staticType = type;
+      staticType = inferredType;
     }
-    return type;
+    return inferredType;
   }
 }
 
