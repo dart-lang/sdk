@@ -175,6 +175,9 @@ template("aot_assembly") {
     abs_output = rebase_path(output, root_build_dir)
 
     vm_args = [
+      # TODO(asiva): For not use --no-preview-dart-2, need to flip this to use
+      # gen_kernel to generate a kernel file before creating an app snapshot.
+      "--no-preview-dart-2",
       "--deterministic",
       "--packages=$dot_packages",
       "--snapshot-kind=app-aot",
