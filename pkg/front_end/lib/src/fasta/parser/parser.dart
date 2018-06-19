@@ -1189,6 +1189,12 @@ class Parser {
             // Scanner has already reported a missing `)` error,
             // but placed the `)` in the wrong location, so move it.
             token = rewriter.moveSynthetic(token, begin.endGroup);
+          } else if (next.kind == IDENTIFIER_TOKEN &&
+              next.next.kind == IDENTIFIER_TOKEN) {
+            // Looks like a missing comma
+            Token comma = new SyntheticToken(TokenType.COMMA, next.charOffset);
+            token = rewriter.insertTokenAfter(token, comma).next;
+            continue;
           } else {
             reportRecoverableError(
                 next, fasta.templateExpectedButGot.withArguments(')'));
