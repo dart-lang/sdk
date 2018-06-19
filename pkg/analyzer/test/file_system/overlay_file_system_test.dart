@@ -215,73 +215,73 @@ class FileTest extends OverlayTestSupport {
 
   test_renameSync_existingFile_conflictsWithFile() {
     String oldPath = '/foo/bar/file.txt';
-    String newPath = '/foo/bar/new-file.txt';
+    String newPath = baseProvider.convertPath('/foo/bar/new-file.txt');
     File oldFile = _file(content: 'old', exists: true, path: oldPath);
     File newFile = _file(content: 'new', exists: true, path: newPath);
     oldFile.renameSync(newPath);
     expect(oldFile.path, baseProvider.convertPath(oldPath));
     expect(oldFile.exists, isFalse);
-    expect(newFile.path, baseProvider.convertPath(newPath));
+    expect(newFile.path, newPath);
     expect(newFile.exists, isTrue);
     expect(newFile.readAsStringSync(), 'old');
   }
 
   test_renameSync_existingFile_conflictsWithFolder() {
     String oldPath = '/foo/bar/file.txt';
-    String newPath = '/foo/bar/new-baz';
+    String newPath = baseProvider.convertPath('/foo/bar/new-baz');
     File oldFile = _file(exists: true, path: oldPath);
     Folder newFolder = _folder(exists: true, path: newPath);
     expect(() => oldFile.renameSync(newPath), throwsA(_isFileSystemException));
     expect(oldFile.path, baseProvider.convertPath(oldPath));
     expect(oldFile.exists, isTrue);
-    expect(newFolder.path, baseProvider.convertPath(newPath));
+    expect(newFolder.path, newPath);
     expect(newFolder.exists, isTrue);
   }
 
   test_renameSync_existingFile_withoutOverlay() {
     String oldPath = '/foo/bar/file.txt';
-    String newPath = '/foo/bar/new-file.txt';
+    String newPath = baseProvider.convertPath('/foo/bar/new-file.txt');
     File oldFile = _file(exists: true, path: oldPath);
     File newFile = oldFile.renameSync(newPath);
     expect(oldFile.path, baseProvider.convertPath(oldPath));
     expect(oldFile.exists, isFalse);
-    expect(newFile.path, baseProvider.convertPath(newPath));
+    expect(newFile.path, newPath);
     expect(newFile.exists, isTrue);
     expect(newFile.readAsStringSync(), 'a');
   }
 
   test_renameSync_existingFile_withOverlay() {
     String oldPath = '/foo/bar/file.txt';
-    String newPath = '/foo/bar/new-file.txt';
+    String newPath = baseProvider.convertPath('/foo/bar/new-file.txt');
     File oldFile = _file(exists: true, path: oldPath, withOverlay: true);
     File newFile = oldFile.renameSync(newPath);
     expect(oldFile.path, baseProvider.convertPath(oldPath));
     expect(oldFile.exists, isFalse);
-    expect(newFile.path, baseProvider.convertPath(newPath));
+    expect(newFile.path, newPath);
     expect(newFile.exists, isTrue);
     expect(newFile.readAsStringSync(), 'bbb');
   }
 
   test_renameSync_notExisting_withoutOverlay() {
     String oldPath = '/foo/bar/file.txt';
-    String newPath = '/foo/bar/new-file.txt';
+    String newPath = baseProvider.convertPath('/foo/bar/new-file.txt');
     File oldFile = _file(exists: true, path: oldPath);
     File newFile = oldFile.renameSync(newPath);
     expect(oldFile.path, baseProvider.convertPath(oldPath));
     expect(oldFile.exists, isFalse);
-    expect(newFile.path, baseProvider.convertPath(newPath));
+    expect(newFile.path, newPath);
     expect(newFile.exists, isTrue);
     expect(newFile.readAsStringSync(), 'a');
   }
 
   test_renameSync_notExisting_withOverlay() {
     String oldPath = '/foo/bar/file.txt';
-    String newPath = '/foo/bar/new-file.txt';
+    String newPath = baseProvider.convertPath('/foo/bar/new-file.txt');
     File oldFile = _file(exists: false, path: oldPath, withOverlay: true);
     File newFile = oldFile.renameSync(newPath);
     expect(oldFile.path, baseProvider.convertPath(oldPath));
     expect(oldFile.exists, isFalse);
-    expect(newFile.path, baseProvider.convertPath(newPath));
+    expect(newFile.path, newPath);
     expect(newFile.exists, isTrue);
     expect(newFile.readAsStringSync(), 'bbb');
   }
