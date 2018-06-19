@@ -243,15 +243,17 @@ class AwaitJudgment extends AwaitExpression implements ExpressionJudgment {
 }
 
 /// Concrete shadow object representing a statement block in kernel form.
-class ShadowBlock extends Block implements StatementJudgment {
-  ShadowBlock(List<Statement> statements) : super(statements);
+class BlockJudgment extends Block implements StatementJudgment {
+  BlockJudgment(List<Statement> statements) : super(statements);
+
+  List<Statement> get judgments => statements;
 
   @override
   void infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory) {
-    for (var statement in statements) {
-      inferrer.inferStatement(factory, statement);
+    for (var judgment in judgments) {
+      inferrer.inferStatement(factory, judgment);
     }
   }
 }

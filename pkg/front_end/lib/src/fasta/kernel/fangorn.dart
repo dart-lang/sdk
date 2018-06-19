@@ -71,7 +71,7 @@ import 'kernel_shadow_ast.dart'
         AssertInitializerJudgment,
         AssertStatementJudgment,
         AwaitJudgment,
-        ShadowBlock,
+        BlockJudgment,
         BoolJudgment,
         BreakJudgment,
         ContinueJudgment,
@@ -334,7 +334,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
         copy.add(statement);
       }
     }
-    return new ShadowBlock(copy ?? statements)
+    return new BlockJudgment(copy ?? statements)
       ..fileOffset = offsetForToken(openBrace);
   }
 
@@ -513,10 +513,10 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   @override
   Statement wrapVariables(Statement statement) {
     if (statement is _VariablesDeclaration) {
-      return new ShadowBlock(statement.declarations)
+      return new BlockJudgment(statement.declarations)
         ..fileOffset = statement.fileOffset;
     } else if (statement is VariableDeclaration) {
-      return new ShadowBlock(<Statement>[statement])
+      return new BlockJudgment(<Statement>[statement])
         ..fileOffset = statement.fileOffset;
     } else {
       return statement;
