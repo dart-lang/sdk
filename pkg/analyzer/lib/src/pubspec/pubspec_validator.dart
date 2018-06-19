@@ -74,6 +74,13 @@ class PubspecValidator {
    * [assetPath] or in a subdirectory of the parent of the file.
    */
   bool _assetExistsAtPath(String assetPath) {
+    // Check for asset directories.
+    Folder assetDirectory = provider.getFolder(assetPath);
+    if (assetDirectory.exists) {
+      return true;
+    }
+
+    // Else, check for an asset file.
     File assetFile = provider.getFile(assetPath);
     if (assetFile.exists) {
       return true;
@@ -159,15 +166,16 @@ class PubspecValidator {
               if (entry.startsWith('packages/')) {
                 // TODO(brianwilkerson) Add validation of package references.
               } else {
+                bool isDirectoryEntry = entry.endsWith("/");
                 String normalizedEntry =
                     context.joinAll(path.posix.split(entry));
                 String assetPath = context.join(packageRoot, normalizedEntry);
                 if (!_assetExistsAtPath(assetPath)) {
+                  ErrorCode errorCode = isDirectoryEntry
+                      ? PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST
+                      : PubspecWarningCode.ASSET_DOES_NOT_EXIST;
                   _reportErrorForNode(
-                      reporter,
-                      entryValue,
-                      PubspecWarningCode.ASSET_DOES_NOT_EXIST,
-                      [entryValue.value]);
+                      reporter, entryValue, errorCode, [entryValue.value]);
                 }
               }
             } else {

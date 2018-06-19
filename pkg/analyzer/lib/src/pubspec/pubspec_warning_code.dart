@@ -23,6 +23,18 @@ class PubspecWarningCode extends ErrorCode {
           correction: "Try creating the file or fixing the path to the file.");
 
   /**
+   * A code indicating that a specified asset directory does not exist.
+   *
+   * Parameters:
+   * 0: the path to the asset directory as given in the file.
+   */
+  static const PubspecWarningCode ASSET_DIRECTORY_DOES_NOT_EXIST =
+      const PubspecWarningCode('ASSET_DIRECTORY_DOES_NOT_EXIST',
+          "The asset directory {0} does not exist.",
+          correction: "Try creating the directory or fixing the path to the "
+              "directory.");
+
+  /**
    * A code indicating that the value of the asset field is not a list.
    */
   static const PubspecWarningCode ASSET_FIELD_NOT_LIST = const PubspecWarningCode(
