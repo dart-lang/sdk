@@ -66,7 +66,7 @@ import 'kernel_expression_generator.dart'
 
 import 'kernel_shadow_ast.dart'
     show
-        ShadowArguments,
+        ArgumentsJudgment,
         AsJudgment,
         AssertInitializerJudgment,
         AssertStatementJudgment,
@@ -121,14 +121,14 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   const Fangorn();
 
   @override
-  ShadowArguments arguments(List<Expression> positional, Token token,
+  ArgumentsJudgment arguments(List<Expression> positional, Token token,
       {List<DartType> types, List<NamedExpression> named}) {
-    return new ShadowArguments(positional, types: types, named: named)
+    return new ArgumentsJudgment(positional, types: types, named: named)
       ..fileOffset = offsetForToken(token);
   }
 
   @override
-  ShadowArguments argumentsEmpty(Token token) {
+  ArgumentsJudgment argumentsEmpty(Token token) {
     return arguments(<Expression>[], token);
   }
 
@@ -149,7 +149,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   void argumentsSetTypeArguments(Arguments arguments, List<DartType> types) {
-    ShadowArguments.setNonInferrableArgumentTypes(arguments, types);
+    ArgumentsJudgment.setNonInferrableArgumentTypes(arguments, types);
   }
 
   @override

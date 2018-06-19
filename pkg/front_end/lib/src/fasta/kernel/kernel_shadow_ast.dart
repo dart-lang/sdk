@@ -98,7 +98,7 @@ InterfaceType computeConstructorReturnType(Member constructor) {
 }
 
 List<DartType> getExplicitTypeArguments(Arguments arguments) {
-  if (arguments is ShadowArguments) {
+  if (arguments is ArgumentsJudgment) {
     return arguments._hasExplicitTypeArguments ? arguments.types : null;
   } else {
     // This code path should only be taken in situations where there are no
@@ -127,22 +127,26 @@ class ClassInferenceInfo {
 }
 
 /// Concrete shadow object representing a set of invocation arguments.
-class ShadowArguments extends Arguments {
+class ArgumentsJudgment extends Arguments {
   bool _hasExplicitTypeArguments;
 
-  ShadowArguments(List<Expression> positional,
+  List<ExpressionJudgment> get positionalJudgments => positional.cast();
+
+  List<NamedExpressionJudgment> get namedJudgments => named.cast();
+
+  ArgumentsJudgment(List<Expression> positional,
       {List<DartType> types, List<NamedExpression> named})
       : _hasExplicitTypeArguments = types != null && types.isNotEmpty,
         super(positional, types: types, named: named);
 
   static void setNonInferrableArgumentTypes(
-      ShadowArguments arguments, List<DartType> types) {
+      ArgumentsJudgment arguments, List<DartType> types) {
     arguments.types.clear();
     arguments.types.addAll(types);
     arguments._hasExplicitTypeArguments = true;
   }
 
-  static void removeNonInferrableArgumentTypes(ShadowArguments arguments) {
+  static void removeNonInferrableArgumentTypes(ArgumentsJudgment arguments) {
     arguments.types.clear();
     arguments._hasExplicitTypeArguments = false;
   }
@@ -1949,11 +1953,11 @@ class ShadowRedirectingInitializer extends RedirectingInitializer
     for (int i = 0; i < typeArguments.length; i++) {
       typeArguments[i] = new TypeParameterType(classTypeParameters[i]);
     }
-    ShadowArguments.setNonInferrableArgumentTypes(arguments, typeArguments);
+    ArgumentsJudgment.setNonInferrableArgumentTypes(arguments, typeArguments);
     inferrer.inferInvocation(factory, null, fileOffset,
         target.function.functionType, target.enclosingClass.thisType, arguments,
         skipTypeArgumentInference: true);
-    ShadowArguments.removeNonInferrableArgumentTypes(arguments);
+    ArgumentsJudgment.removeNonInferrableArgumentTypes(arguments);
   }
 }
 
