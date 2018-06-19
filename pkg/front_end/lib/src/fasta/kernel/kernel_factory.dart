@@ -24,47 +24,66 @@ import 'kernel_shadow_ast.dart'
 /// Implementation of [Factory] that builds source code into a kernel
 /// representation.
 class KernelFactory
-    implements Factory<Expression, Statement, Initializer, DartType> {
+    implements Factory<Expression, Statement, Initializer, void> {
   @override
   Expression asExpression(
       ExpressionJudgment judgment,
       int fileOffset,
       Expression expression,
       Token asOperator,
-      DartType type,
+      void literalType,
       DartType inferredType) {
     return judgment;
   }
 
   @override
-  Initializer assertInitializer(InitializerJudgment judgment, int fileOffset) {
+  Initializer assertInitializer(
+      InitializerJudgment judgment,
+      int fileOffset,
+      Token assertKeyword,
+      Token leftParenthesis,
+      Expression condition,
+      Token comma,
+      Expression message,
+      Token rightParenthesis) {
     return judgment;
   }
 
   @override
-  Statement assertStatement(StatementJudgment judgment, int fileOffset) {
+  Statement assertStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token assertKeyword,
+      Token leftParenthesis,
+      Expression condition,
+      Token comma,
+      Expression message,
+      Token rightParenthesis,
+      Token semicolon) {
     return judgment;
   }
 
   @override
-  Expression awaitExpression(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {
+  Expression awaitExpression(ExpressionJudgment judgment, int fileOffset,
+      Token awaitKeyword, Expression expression, DartType inferredType) {
     return judgment;
   }
 
   @override
-  Statement block(StatementJudgment judgment, int fileOffset) {
+  Statement block(StatementJudgment judgment, int fileOffset, Token leftBracket,
+      List<Statement> statements, Token rightBracket) {
     return judgment;
   }
 
   @override
-  Expression boolLiteral(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {
+  Expression boolLiteral(ExpressionJudgment judgment, int fileOffset,
+      Token literal, DartType inferredType) {
     return judgment;
   }
 
   @override
-  Statement breakStatement(StatementJudgment judgment, int fileOffset) {
+  Statement breakStatement(StatementJudgment judgment, int fileOffset,
+      Token breakKeyword, Expression label, Token semicolon) {
     return judgment;
   }
 
@@ -88,7 +107,14 @@ class KernelFactory
 
   @override
   Expression conditionalExpression(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {
+      ExpressionJudgment judgment,
+      int fileOffset,
+      Expression condition,
+      Token question,
+      Expression thenExpression,
+      Token colon,
+      Expression elseExpression,
+      DartType inferredType) {
     return judgment;
   }
 
@@ -111,18 +137,28 @@ class KernelFactory
   }
 
   @override
-  Statement doStatement(StatementJudgment judgment, int fileOffset) {
+  Statement doStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token doKeyword,
+      Statement body,
+      Token whileKeyword,
+      Token leftParenthesis,
+      Expression condition,
+      Token rightParenthesis,
+      Token semicolon) {
     return judgment;
   }
 
   @override
-  Expression doubleLiteral(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {
+  Expression doubleLiteral(ExpressionJudgment judgment, int fileOffset,
+      Token literal, DartType inferredType) {
     return judgment;
   }
 
   @override
-  Statement expressionStatement(StatementJudgment judgment, int fileOffset) {
+  Statement expressionStatement(StatementJudgment judgment, int fileOffset,
+      Expression expression, Token semicolon) {
     return judgment;
   }
 
@@ -169,7 +205,16 @@ class KernelFactory
   }
 
   @override
-  Statement ifStatement(StatementJudgment judgment, int fileOffset) {
+  Statement ifStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token ifKeyword,
+      Token leftParenthesis,
+      Expression condition,
+      Token rightParenthesis,
+      Statement thenStatement,
+      Token elseKeyword,
+      Statement elseStatement) {
     return judgment;
   }
 
@@ -180,8 +225,8 @@ class KernelFactory
   }
 
   @override
-  Expression intLiteral(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {
+  Expression intLiteral(ExpressionJudgment judgment, int fileOffset,
+      Token literal, DartType inferredType) {
     return judgment;
   }
 
@@ -191,14 +236,27 @@ class KernelFactory
   }
 
   @override
-  Expression isExpression(ExpressionJudgment judgment, int fileOffset,
-      DartType testedType, DartType inferredType) {
+  Expression isExpression(
+      ExpressionJudgment judgment,
+      int fileOffset,
+      Expression expression,
+      Token isOperator,
+      void literalType,
+      DartType testedType,
+      DartType inferredType) {
     return judgment;
   }
 
   @override
-  Expression isNotExpression(ExpressionJudgment judgment, int fileOffset,
-      DartType type, DartType inferredType) {
+  Expression isNotExpression(
+      ExpressionJudgment judgment,
+      int fileOffset,
+      Expression expression,
+      Token isOperator,
+      Token notOperator,
+      void literalType,
+      DartType testedType,
+      DartType inferredType) {
     return judgment;
   }
 
@@ -264,7 +322,7 @@ class KernelFactory
 
   @override
   Expression nullLiteral(ExpressionJudgment judgment, int fileOffset,
-      bool isSynthetic, DartType inferredType) {
+      Token literal, bool isSynthetic, DartType inferredType) {
     return judgment;
   }
 
@@ -304,13 +362,14 @@ class KernelFactory
   }
 
   @override
-  Expression rethrow_(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {
+  Expression rethrow_(ExpressionJudgment judgment, int fileOffset,
+      Token rethrowKeyword, DartType inferredType) {
     return judgment;
   }
 
   @override
-  Statement returnStatement(StatementJudgment judgment, int fileOffset) {
+  Statement returnStatement(StatementJudgment judgment, int fileOffset,
+      Token returnKeyword, Expression expression, Token semicolon) {
     return judgment;
   }
 
@@ -378,14 +437,14 @@ class KernelFactory
   }
 
   @override
-  Expression thisExpression(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {
+  Expression thisExpression(ExpressionJudgment judgment, int fileOffset,
+      Token thisKeyword, DartType inferredType) {
     return judgment;
   }
 
   @override
-  Expression throw_(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {
+  Expression throw_(ExpressionJudgment judgment, int fileOffset,
+      Token throwKeyword, Expression expression, DartType inferredType) {
     return judgment;
   }
 
@@ -439,12 +498,20 @@ class KernelFactory
   }
 
   @override
-  Statement whileStatement(StatementJudgment judgment, int fileOffset) {
+  Statement whileStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token whileKeyword,
+      Token leftParenthesis,
+      Expression condition,
+      Token rightParenthesis,
+      Statement body) {
     return judgment;
   }
 
   @override
-  Statement yieldStatement(StatementJudgment judgment, int fileOffset) {
+  Statement yieldStatement(StatementJudgment judgment, int fileOffset,
+      Token yieldKeyword, Token star, Expression expression, Token semicolon) {
     return judgment;
   }
 }

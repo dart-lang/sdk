@@ -20,28 +20,52 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
   const ToplevelInferenceFactory();
 
   @override
-  void asExpression(ExpressionJudgment judgment, int fileOffset,
-      void expression, Token asOperator, void type, DartType inferredType) {}
+  void asExpression(
+      ExpressionJudgment judgment,
+      int fileOffset,
+      void expression,
+      Token asOperator,
+      void literalType,
+      DartType inferredType) {}
 
   @override
-  void assertInitializer(InitializerJudgment judgment, int fileOffset) {}
+  void assertInitializer(
+      InitializerJudgment judgment,
+      int fileOffset,
+      Token assertKeyword,
+      Token leftParenthesis,
+      void condition,
+      Token comma,
+      void message,
+      Token rightParenthesis) {}
 
   @override
-  void assertStatement(StatementJudgment judgment, int fileOffset) {}
+  void assertStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token assertKeyword,
+      Token leftParenthesis,
+      void condition,
+      Token comma,
+      void message,
+      Token rightParenthesis,
+      Token semicolon) {}
 
   @override
-  void awaitExpression(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
+  void awaitExpression(ExpressionJudgment judgment, int fileOffset,
+      Token awaitKeyword, void expression, DartType inferredType) {}
 
   @override
-  void block(StatementJudgment judgment, int fileOffset) {}
+  void block(StatementJudgment judgment, int fileOffset, Token leftBracket,
+      void statements, Token rightBracket) {}
 
   @override
-  void boolLiteral(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
+  void boolLiteral(ExpressionJudgment judgment, int fileOffset, Token literal,
+      DartType inferredType) {}
 
   @override
-  void breakStatement(StatementJudgment judgment, int fileOffset) {}
+  void breakStatement(StatementJudgment judgment, int fileOffset,
+      Token breakKeyword, void label, Token semicolon) {}
 
   @override
   void cascadeExpression(
@@ -61,7 +85,14 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
 
   @override
   void conditionalExpression(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
+      ExpressionJudgment judgment,
+      int fileOffset,
+      void condition,
+      Token question,
+      void thenExpression,
+      Token colon,
+      void elseExpression,
+      DartType inferredType) {}
 
   @override
   void constructorInvocation(ExpressionJudgment judgment, int fileOffset,
@@ -75,14 +106,24 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
 
   @override
-  void doStatement(StatementJudgment judgment, int fileOffset) {}
+  void doStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token doKeyword,
+      void body,
+      Token whileKeyword,
+      Token leftParenthesis,
+      void condition,
+      Token rightParenthesis,
+      Token semicolon) {}
 
   @override
-  void doubleLiteral(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
+  void doubleLiteral(ExpressionJudgment judgment, int fileOffset, Token literal,
+      DartType inferredType) {}
 
   @override
-  void expressionStatement(StatementJudgment judgment, int fileOffset) {}
+  void expressionStatement(StatementJudgment judgment, int fileOffset,
+      void expression, Token semicolon) {}
 
   @override
   void fieldInitializer(
@@ -115,26 +156,48 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
 
   @override
-  void ifStatement(StatementJudgment judgment, int fileOffset) {}
+  void ifStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token ifKeyword,
+      Token leftParenthesis,
+      void condition,
+      Token rightParenthesis,
+      void thenStatement,
+      Token elseKeyword,
+      void elseStatement) {}
 
   @override
   void indexAssign(ExpressionJudgment judgment, int fileOffset,
       Node writeMember, Node combiner, DartType inferredType) {}
 
   @override
-  void intLiteral(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
+  void intLiteral(ExpressionJudgment judgment, int fileOffset, Token literal,
+      DartType inferredType) {}
 
   @override
   void invalidInitializer(InitializerJudgment judgment, int fileOffset) {}
 
   @override
-  void isExpression(ExpressionJudgment judgment, int fileOffset,
-      DartType testedType, DartType inferredType) {}
+  void isExpression(
+      ExpressionJudgment judgment,
+      int fileOffset,
+      void expression,
+      Token isOperator,
+      void literalType,
+      DartType testedType,
+      DartType inferredType) {}
 
   @override
-  void isNotExpression(ExpressionJudgment judgment, int fileOffset,
-      DartType type, DartType inferredType) {}
+  void isNotExpression(
+      ExpressionJudgment judgment,
+      int fileOffset,
+      void expression,
+      Token isOperator,
+      Token notOperator,
+      void literalType,
+      DartType testedType,
+      DartType inferredType) {}
 
   @override
   void labeledStatement(StatementJudgment judgment, int fileOffset) {}
@@ -181,7 +244,7 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
 
   @override
-  void nullLiteral(ExpressionJudgment judgment, int fileOffset,
+  void nullLiteral(ExpressionJudgment judgment, int fileOffset, Token literal,
       bool isSynthetic, DartType inferredType) {}
 
   @override
@@ -210,11 +273,12 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       InitializerJudgment judgment, int fileOffset, Node initializerTarget) {}
 
   @override
-  void rethrow_(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
+  void rethrow_(ExpressionJudgment judgment, int fileOffset,
+      Token rethrowKeyword, DartType inferredType) {}
 
   @override
-  void returnStatement(StatementJudgment judgment, int fileOffset) {}
+  void returnStatement(StatementJudgment judgment, int fileOffset,
+      Token returnKeyword, void expression, Token semicolon) {}
 
   @override
   void staticAssign(
@@ -264,12 +328,12 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
 
   @override
-  void thisExpression(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
+  void thisExpression(ExpressionJudgment judgment, int fileOffset,
+      Token thisKeyword, DartType inferredType) {}
 
   @override
-  void throw_(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
+  void throw_(ExpressionJudgment judgment, int fileOffset, Token throwKeyword,
+      void expression, DartType inferredType) {}
 
   @override
   void tryCatch(StatementJudgment judgment, int fileOffset) {}
@@ -307,10 +371,18 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
 
   @override
-  void whileStatement(StatementJudgment judgment, int fileOffset) {}
+  void whileStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token whileKeyword,
+      Token leftParenthesis,
+      void condition,
+      Token rightParenthesis,
+      void body) {}
 
   @override
-  void yieldStatement(StatementJudgment judgment, int fileOffset) {}
+  void yieldStatement(StatementJudgment judgment, int fileOffset,
+      Token yieldKeyword, Token star, void expression, Token semicolon) {}
 }
 
 const toplevelInferenceFactory = const ToplevelInferenceFactory();

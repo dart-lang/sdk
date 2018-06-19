@@ -20,22 +20,41 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       int fileOffset,
       Expression expression,
       Token asOperator,
-      Type type,
+      Type literalType,
       DartType inferredType);
 
-  Initializer assertInitializer(InitializerJudgment judgment, int fileOffset);
+  Initializer assertInitializer(
+      InitializerJudgment judgment,
+      int fileOffset,
+      Token assertKeyword,
+      Token leftParenthesis,
+      Expression condition,
+      Token comma,
+      Expression message,
+      Token rightParenthesis);
 
-  Statement assertStatement(StatementJudgment judgment, int fileOffset);
+  Statement assertStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token assertKeyword,
+      Token leftParenthesis,
+      Expression condition,
+      Token comma,
+      Expression message,
+      Token rightParenthesis,
+      Token semicolon);
 
-  Expression awaitExpression(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType);
+  Expression awaitExpression(ExpressionJudgment judgment, int fileOffset,
+      Token awaitKeyword, Expression expression, DartType inferredType);
 
-  Statement block(StatementJudgment judgment, int fileOffset);
+  Statement block(StatementJudgment judgment, int fileOffset, Token leftBracket,
+      List<Statement> statements, Token rightBracket);
 
-  Expression boolLiteral(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType);
+  Expression boolLiteral(ExpressionJudgment judgment, int fileOffset,
+      Token literal, DartType inferredType);
 
-  Statement breakStatement(StatementJudgment judgment, int fileOffset);
+  Statement breakStatement(StatementJudgment judgment, int fileOffset,
+      Token breakKeyword, Expression label, Token semicolon);
 
   Expression cascadeExpression(
       ExpressionJudgment judgment, int fileOffset, DartType inferredType);
@@ -50,7 +69,14 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       DartType stackTraceType);
 
   Expression conditionalExpression(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType);
+      ExpressionJudgment judgment,
+      int fileOffset,
+      Expression condition,
+      Token question,
+      Expression thenExpression,
+      Token colon,
+      Expression elseExpression,
+      DartType inferredType);
 
   Expression constructorInvocation(ExpressionJudgment judgment, int fileOffset,
       Node expressionTarget, DartType inferredType);
@@ -60,12 +86,22 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Expression deferredCheck(
       ExpressionJudgment judgment, int fileOffset, DartType inferredType);
 
-  Statement doStatement(StatementJudgment judgment, int fileOffset);
+  Statement doStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token doKeyword,
+      Statement body,
+      Token whileKeyword,
+      Token leftParenthesis,
+      Expression condition,
+      Token rightParenthesis,
+      Token semicolon);
 
-  Expression doubleLiteral(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType);
+  Expression doubleLiteral(ExpressionJudgment judgment, int fileOffset,
+      Token literal, DartType inferredType);
 
-  Statement expressionStatement(StatementJudgment judgment, int fileOffset);
+  Statement expressionStatement(StatementJudgment judgment, int fileOffset,
+      Expression expression, Token semicolon);
 
   Initializer fieldInitializer(
       InitializerJudgment judgment, int fileOffset, Node initializerField);
@@ -91,21 +127,43 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Expression ifNull(
       ExpressionJudgment judgment, int fileOffset, DartType inferredType);
 
-  Statement ifStatement(StatementJudgment judgment, int fileOffset);
+  Statement ifStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token ifKeyword,
+      Token leftParenthesis,
+      Expression condition,
+      Token rightParenthesis,
+      Statement thenStatement,
+      Token elseKeyword,
+      Statement elseStatement);
 
   Expression indexAssign(ExpressionJudgment judgment, int fileOffset,
       Node writeMember, Node combiner, DartType inferredType);
 
-  Expression intLiteral(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType);
+  Expression intLiteral(ExpressionJudgment judgment, int fileOffset,
+      Token literal, DartType inferredType);
 
   Initializer invalidInitializer(InitializerJudgment judgment, int fileOffset);
 
-  Expression isExpression(ExpressionJudgment judgment, int fileOffset,
-      DartType testedType, DartType inferredType);
+  Expression isExpression(
+      ExpressionJudgment judgment,
+      int fileOffset,
+      Expression expression,
+      Token isOperator,
+      Type literalType,
+      DartType testedType,
+      DartType inferredType);
 
-  Expression isNotExpression(ExpressionJudgment judgment, int fileOffset,
-      DartType type, DartType inferredType);
+  Expression isNotExpression(
+      ExpressionJudgment judgment,
+      int fileOffset,
+      Expression expression,
+      Token isOperator,
+      Token notOperator,
+      Type literalType,
+      DartType testedType,
+      DartType inferredType);
 
   Statement labeledStatement(StatementJudgment judgment, int fileOffset);
 
@@ -144,7 +202,7 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       ExpressionJudgment judgment, int fileOffset, DartType inferredType);
 
   Expression nullLiteral(ExpressionJudgment judgment, int fileOffset,
-      bool isSynthetic, DartType inferredType);
+      Token literal, bool isSynthetic, DartType inferredType);
 
   Expression propertyAssign(
       ExpressionJudgment judgment,
@@ -166,10 +224,11 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Initializer redirectingInitializer(
       InitializerJudgment judgment, int fileOffset, Node initializerTarget);
 
-  Expression rethrow_(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType);
+  Expression rethrow_(ExpressionJudgment judgment, int fileOffset,
+      Token rethrowKeyword, DartType inferredType);
 
-  Statement returnStatement(StatementJudgment judgment, int fileOffset);
+  Statement returnStatement(StatementJudgment judgment, int fileOffset,
+      Token returnKeyword, Expression expression, Token semicolon);
 
   Expression staticAssign(
       ExpressionJudgment judgment,
@@ -204,11 +263,11 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Expression symbolLiteral(
       ExpressionJudgment judgment, int fileOffset, DartType inferredType);
 
-  Expression thisExpression(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType);
+  Expression thisExpression(ExpressionJudgment judgment, int fileOffset,
+      Token thisKeyword, DartType inferredType);
 
-  Expression throw_(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType);
+  Expression throw_(ExpressionJudgment judgment, int fileOffset,
+      Token throwKeyword, Expression expression, DartType inferredType);
 
   Statement tryCatch(StatementJudgment judgment, int fileOffset);
 
@@ -238,9 +297,17 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Expression variableSet(
       ExpressionJudgment judgment, int fileOffset, DartType inferredType);
 
-  Statement whileStatement(StatementJudgment judgment, int fileOffset);
+  Statement whileStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token whileKeyword,
+      Token leftParenthesis,
+      Expression condition,
+      Token rightParenthesis,
+      Statement body);
 
-  Statement yieldStatement(StatementJudgment judgment, int fileOffset);
+  Statement yieldStatement(StatementJudgment judgment, int fileOffset,
+      Token yieldKeyword, Token star, Expression expression, Token semicolon);
 
   /// TODO(paulberry): this isn't really shaped properly for a factory class.
   void storePrefixInfo(int fileOffset, int prefixImportIndex);
