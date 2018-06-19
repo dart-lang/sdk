@@ -1827,7 +1827,7 @@ class ShadowNullAwarePropertyGet extends Let implements ExpressionJudgment {
 }
 
 /// Concrete shadow object representing a null literal in kernel form.
-class ShadowNullLiteral extends NullLiteral implements ExpressionJudgment {
+class NullJudgment extends NullLiteral implements ExpressionJudgment {
   DartType inferredType;
 
   @override
@@ -1835,7 +1835,7 @@ class ShadowNullLiteral extends NullLiteral implements ExpressionJudgment {
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    return inferrer.coreTypes.nullClass.rawType;
+    return inferredType = inferrer.coreTypes.nullClass.rawType;
   }
 }
 

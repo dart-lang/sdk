@@ -92,7 +92,7 @@ import 'kernel_shadow_ast.dart'
         ShadowLogicalExpression,
         ShadowMapLiteral,
         ShadowNot,
-        ShadowNullLiteral,
+        NullJudgment,
         ShadowRethrow,
         ShadowReturnStatement,
         ShadowStringConcatenation,
@@ -205,8 +205,8 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
-  ShadowNullLiteral literalNull(Token token) {
-    return new ShadowNullLiteral()..fileOffset = offsetForToken(token);
+  NullJudgment literalNull(Token token) {
+    return new NullJudgment()..fileOffset = offsetForToken(token);
   }
 
   @override
