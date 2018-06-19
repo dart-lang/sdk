@@ -46,6 +46,9 @@ mirrors/reflected_type_test/02: MissingCompileTimeError
 mirrors/reflected_type_test/03: MissingCompileTimeError
 mirrors/variable_is_const_test/01: MissingCompileTimeError
 
+[ $arch == simarm64 && $compiler == dartk && $strong ]
+isolate/mint_maker_test: Timeout # Please triage.
+
 [ $arch == simdbc64 && $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
 isolate/isolate_complex_messages_test: Crash # http://dartbug.com/33128
 
