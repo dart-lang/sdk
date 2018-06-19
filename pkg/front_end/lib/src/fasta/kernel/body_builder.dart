@@ -4166,7 +4166,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       }
 
       receiver = toExpression(
-          new ShadowSuperPropertyGet(name, target)..fileOffset = offset);
+          new SuperPropertyGetJudgment(name, target)..fileOffset = offset);
       return toExpression(new ShadowMethodInvocation(
           toKernelExpression(receiver),
           callName,

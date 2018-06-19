@@ -1799,10 +1799,10 @@ class ShadowNullAwareMethodInvocation extends Let
 /// expression:
 ///
 ///     let v = a in v == null ? null : v.b
-class ShadowNullAwarePropertyGet extends Let implements ExpressionJudgment {
+class NullAwarePropertyGetJudgment extends Let implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowNullAwarePropertyGet(
+  NullAwarePropertyGetJudgment(
       VariableDeclaration variable, ConditionalExpression body)
       : super(variable, body);
 
@@ -1811,13 +1811,15 @@ class ShadowNullAwarePropertyGet extends Let implements ExpressionJudgment {
 
   PropertyGet get _desugaredGet => body.otherwise;
 
+  ExpressionJudgment get receiverJudgment => variable.initializer;
+
   @override
   DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    var inferredType = inferrer.inferPropertyGet(
-        factory, this, variable.initializer, fileOffset, typeContext,
+    inferrer.inferPropertyGet(
+        factory, this, receiverJudgment, fileOffset, typeContext,
         receiverVariable: variable, desugaredGet: _desugaredGet);
     if (inferrer.strongMode) {
       body.staticType = inferredType;
@@ -1932,24 +1934,27 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
 }
 
 /// Shadow object for [PropertyGet].
-class ShadowPropertyGet extends PropertyGet implements ExpressionJudgment {
+class PropertyGetJudgment extends PropertyGet implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowPropertyGet(Expression receiver, Name name, [Member interfaceTarget])
+  PropertyGetJudgment(Expression receiver, Name name, [Member interfaceTarget])
       : super(receiver, name, interfaceTarget);
 
-  ShadowPropertyGet.byReference(
+  PropertyGetJudgment.byReference(
       Expression receiver, Name name, Reference interfaceTargetReference)
       : super.byReference(receiver, name, interfaceTargetReference);
+
+  ExpressionJudgment get receiverJudgment => receiver;
 
   @override
   DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    return inferrer.inferPropertyGet(
-        factory, this, receiver, fileOffset, typeContext,
+    inferrer.inferPropertyGet(
+        factory, this, receiverJudgment, fileOffset, typeContext,
         desugaredGet: this);
+    return inferredType;
   }
 }
 
@@ -2199,11 +2204,11 @@ class ShadowSuperMethodInvocation extends SuperMethodInvocation
 }
 
 /// Shadow object for [SuperPropertyGet].
-class ShadowSuperPropertyGet extends SuperPropertyGet
+class SuperPropertyGetJudgment extends SuperPropertyGet
     implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowSuperPropertyGet(Name name, [Member interfaceTarget])
+  SuperPropertyGetJudgment(Name name, [Member interfaceTarget])
       : super(name, interfaceTarget);
 
   @override
@@ -2215,9 +2220,9 @@ class ShadowSuperPropertyGet extends SuperPropertyGet
       inferrer.instrumentation?.record(inferrer.uri, fileOffset, 'target',
           new InstrumentationValueForMember(interfaceTarget));
     }
-    return inferrer.inferPropertyGet(
-        factory, this, null, fileOffset, typeContext,
+    inferrer.inferPropertyGet(factory, this, null, fileOffset, typeContext,
         interfaceMember: interfaceTarget, propertyName: name);
+    return inferredType;
   }
 }
 

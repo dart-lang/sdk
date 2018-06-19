@@ -68,13 +68,14 @@ import '../kernel/kernel_expression_generator.dart' show buildIsNull;
 
 import '../kernel/kernel_shadow_ast.dart'
     show
-        getExplicitTypeArguments,
+        ExpressionJudgment,
         ShadowClass,
         ShadowConstructorInvocation,
         ShadowField,
         ShadowMember,
         NullJudgment,
-        ShadowVariableDeclaration;
+        ShadowVariableDeclaration,
+        getExplicitTypeArguments;
 
 import '../names.dart' show callName;
 
@@ -1447,10 +1448,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Performs the core type inference algorithm for property gets (this handles
   /// both null-aware and non-null-aware property gets).
-  DartType inferPropertyGet<Expression, Statement, Initializer, Type>(
+  void inferPropertyGet<Expression, Statement, Initializer, Type>(
       Factory<Expression, Statement, Initializer, Type> factory,
-      kernel.Expression expression,
-      kernel.Expression receiver,
+      ExpressionJudgment expression,
+      ExpressionJudgment receiver,
       int fileOffset,
       DartType typeContext,
       {VariableDeclaration receiverVariable,
@@ -1458,9 +1459,13 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       Object interfaceMember,
       Name propertyName}) {
     // First infer the receiver so we can look up the getter that was invoked.
-    var receiverType = receiver == null
-        ? thisType
-        : inferExpression(factory, receiver, const UnknownType(), true);
+    DartType receiverType;
+    if (receiver == null) {
+      receiverType = thisType;
+    } else {
+      inferExpression(factory, receiver, const UnknownType(), true);
+      receiverType = receiver.inferredType;
+    }
     if (strongMode) {
       receiverVariable?.type = receiverType;
     }
@@ -1487,7 +1492,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       inferredType =
           instantiateTearOff(inferredType, typeContext, replacedExpression);
     }
-    return inferredType;
+    expression.inferredType = inferredType;
   }
 
   /// Modifies a type as appropriate when inferring a closure return type.
