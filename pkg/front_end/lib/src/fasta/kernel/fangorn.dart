@@ -78,7 +78,7 @@ import 'kernel_shadow_ast.dart'
         CheckLibraryIsLoadedJudgment,
         ConditionalJudgment,
         DoJudgment,
-        ShadowDoubleLiteral,
+        DoubleJudgment,
         EmptyStatementJudgment,
         ShadowExpressionStatement,
         ShadowForStatement,
@@ -162,8 +162,8 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
-  ShadowDoubleLiteral literalDouble(double value, Token token) {
-    return new ShadowDoubleLiteral(value)..fileOffset = offsetForToken(token);
+  DoubleJudgment literalDouble(double value, Token token) {
+    return new DoubleJudgment(value)..fileOffset = offsetForToken(token);
   }
 
   @override

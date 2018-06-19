@@ -842,17 +842,17 @@ class DoJudgment extends DoStatement implements StatementJudgment {
 }
 
 /// Concrete shadow object representing a double literal in kernel form.
-class ShadowDoubleLiteral extends DoubleLiteral implements ExpressionJudgment {
+class DoubleJudgment extends DoubleLiteral implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowDoubleLiteral(double value) : super(value);
+  DoubleJudgment(double value) : super(value);
 
   @override
   DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    return inferrer.coreTypes.doubleClass.rawType;
+    return inferredType = inferrer.coreTypes.doubleClass.rawType;
   }
 }
 
