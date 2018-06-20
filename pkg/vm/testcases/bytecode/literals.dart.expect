@@ -553,7 +553,7 @@ Bytecode {
   Drop1
   PushConstant         CP#16
   Push                 FP[-8]
-  InstantiateTypeArgumentsTOS 1, CP#17
+  InstantiateTypeArgumentsTOS 0, CP#17
   PushConstant         CP#18
   PushConstant         CP#19
   IndirectStaticCall   2, CP#7
@@ -562,7 +562,7 @@ Bytecode {
   Drop1
   PushConstant         CP#16
   Push                 FP[-8]
-  InstantiateTypeArgumentsTOS 1, CP#21
+  InstantiateTypeArgumentsTOS 0, CP#21
   PushConstant         CP#1
   PushConstant         CP#5
   CreateArrayTOS

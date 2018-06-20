@@ -338,7 +338,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         _genPushInstantiatorTypeArguments();
       } else {
         _genPushInstantiatorAndFunctionTypeArguments(typeArgs);
-        asm.emitInstantiateTypeArgumentsTOS(1, typeArgsCPIndex());
+        // TODO(alexmarkov): Optimize type arguments instantiation
+        // by passing rA = 1 in InstantiateTypeArgumentsTOS.
+        // For this purpose, we need to detect if type arguments
+        // would be all-dynamic in case of all-dynamic instantiator and
+        // function type arguments.
+        // Corresponding check is implemented in VM in
+        // TypeArguments::IsRawWhenInstantiatedFromRaw.
+        asm.emitInstantiateTypeArgumentsTOS(0, typeArgsCPIndex());
       }
     }
   }

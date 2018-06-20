@@ -362,7 +362,7 @@ Closure CP#12 {
   LoadFieldTOS         CP#1
   LoadFieldTOS         CP#17
   Push                 r0
-  InstantiateTypeArgumentsTOS 1, CP#34
+  InstantiateTypeArgumentsTOS 0, CP#34
   PushConstant         CP#36
   IndirectStaticCall   1, CP#35
   Drop1

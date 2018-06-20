@@ -294,7 +294,7 @@ Bytecode {
   CheckStack
   Push                 FP[-5]
   PushConstant         CP#1
-  InstantiateTypeArgumentsTOS 1, CP#3
+  InstantiateTypeArgumentsTOS 0, CP#3
   PushConstant         CP#0
   AllocateT
   StoreLocal           r0
@@ -475,7 +475,7 @@ Bytecode {
   CheckStack
   PushConstant         CP#1
   Push                 FP[-5]
-  InstantiateTypeArgumentsTOS 1, CP#3
+  InstantiateTypeArgumentsTOS 0, CP#3
   PushConstant         CP#0
   AllocateT
   StoreLocal           r0
