@@ -29,8 +29,8 @@ class ErrorGetHandler extends AbstractGetHandler {
   @override
   void handleGetRequest(HttpRequest request) {
     HttpResponse response = request.response;
-    response.statusCode = HttpStatus.NOT_FOUND;
-    response.headers.contentType = ContentType.TEXT;
+    response.statusCode = HttpStatus.notFound;
+    response.headers.contentType = ContentType.text;
     response.write(message);
     response.close();
   }
@@ -146,7 +146,7 @@ class HttpAnalysisServer {
     httpServer.listen((HttpRequest request) async {
       // TODO(brianwilkerson) Determine whether this await is necessary.
       await null;
-      List<String> updateValues = request.headers[HttpHeaders.UPGRADE];
+      List<String> updateValues = request.headers[HttpHeaders.upgradeHeader];
       if (request.method == 'GET') {
         await _handleGetRequest(request);
       } else if (updateValues != null &&
@@ -154,8 +154,8 @@ class HttpAnalysisServer {
         // We no longer support serving analysis server communications over
         // WebSocket connections.
         HttpResponse response = request.response;
-        response.statusCode = HttpStatus.NOT_FOUND;
-        response.headers.contentType = ContentType.TEXT;
+        response.statusCode = HttpStatus.notFound;
+        response.headers.contentType = ContentType.text;
         response.write(
             'WebSocket connections not supported (${request.uri.path}).');
         response.close();
@@ -171,8 +171,8 @@ class HttpAnalysisServer {
    */
   void _returnUnknownRequest(HttpRequest request) {
     HttpResponse response = request.response;
-    response.statusCode = HttpStatus.NOT_FOUND;
-    response.headers.contentType = ContentType.TEXT;
+    response.statusCode = HttpStatus.notFound;
+    response.headers.contentType = ContentType.text;
     response.write('Not found');
     response.close();
   }
