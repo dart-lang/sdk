@@ -103,7 +103,7 @@ export 'kernel_shadow_ast.dart'
         ShadowSwitchStatement,
         ShadowSyntheticExpression,
         VariableAssignmentJudgment,
-        ShadowVariableDeclaration,
+        VariableDeclarationJudgment,
         VariableGetJudgment,
         YieldJudgment,
         NamedExpressionJudgment;

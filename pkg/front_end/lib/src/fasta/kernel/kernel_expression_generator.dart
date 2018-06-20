@@ -86,7 +86,7 @@ import 'kernel_ast_api.dart'
         SuperPropertyGetJudgment,
         VariableAssignmentJudgment,
         ShadowSyntheticExpression,
-        ShadowVariableDeclaration,
+        VariableDeclarationJudgment,
         VariableGetJudgment,
         StaticSet,
         SuperMethodInvocation,
@@ -206,7 +206,7 @@ abstract class KernelExpressionGenerator
         offset: offset);
     complexAssignment?.combiner = combiner;
     complexAssignment?.isPostIncDec = true;
-    var dummy = new ShadowVariableDeclaration.forValue(
+    var dummy = new VariableDeclarationJudgment.forValue(
         _makeWrite(combiner, true, complexAssignment),
         helper.functionNestingLevel);
     return _finish(
@@ -768,7 +768,7 @@ class KernelIndexedAccessGenerator extends KernelGenerator
         interfaceTarget: setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
-    var dummy = new ShadowVariableDeclaration.forValue(
+    var dummy = new VariableDeclarationJudgment.forValue(
         write, helper.functionNestingLevel);
     return makeLet(
         valueVariable, makeLet(dummy, new VariableGet(valueVariable)));

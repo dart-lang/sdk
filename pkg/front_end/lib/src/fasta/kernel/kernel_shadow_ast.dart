@@ -343,7 +343,7 @@ class ShadowCascadeExpression extends Let implements ExpressionJudgment {
   /// variable.  Caller is responsible for ensuring that [variable]'s
   /// initializer is the expression preceding the first `..` of the cascade
   /// expression.
-  ShadowCascadeExpression(ShadowVariableDeclaration variable)
+  ShadowCascadeExpression(VariableDeclarationJudgment variable)
       : super(
             variable,
             makeLet(new VariableDeclaration.forValue(new _UnfinishedCascade()),
@@ -1079,7 +1079,7 @@ class ShadowForInStatement extends ForInStatement implements StatementJudgment {
     DartType context;
     bool typeNeeded = false;
     bool typeChecksNeeded = !inferrer.isTopLevel;
-    ShadowVariableDeclaration variable;
+    VariableDeclarationJudgment variable;
     var syntheticAssignment = _syntheticAssignment;
     kernel.Expression syntheticWrite;
     DartType syntheticWriteType;
@@ -2773,7 +2773,7 @@ class ShadowTypePromoter extends TypePromoterImpl {
 
   @override
   int getVariableFunctionNestingLevel(VariableDeclaration variable) {
-    if (variable is ShadowVariableDeclaration) {
+    if (variable is VariableDeclarationJudgment) {
       return variable._functionNestingLevel;
     } else {
       // Hack to deal with the fact that BodyBuilder still creates raw
@@ -2786,8 +2786,8 @@ class ShadowTypePromoter extends TypePromoterImpl {
 
   @override
   bool isPromotionCandidate(VariableDeclaration variable) {
-    assert(variable is ShadowVariableDeclaration);
-    ShadowVariableDeclaration kernelVariableDeclaration = variable;
+    assert(variable is VariableDeclarationJudgment);
+    VariableDeclarationJudgment kernelVariableDeclaration = variable;
     return !kernelVariableDeclaration._isLocalFunction;
   }
 
@@ -2798,7 +2798,7 @@ class ShadowTypePromoter extends TypePromoterImpl {
 
   @override
   void setVariableMutatedAnywhere(VariableDeclaration variable) {
-    if (variable is ShadowVariableDeclaration) {
+    if (variable is VariableDeclarationJudgment) {
       variable._mutatedAnywhere = true;
     } else {
       // Hack to deal with the fact that BodyBuilder still creates raw
@@ -2810,7 +2810,7 @@ class ShadowTypePromoter extends TypePromoterImpl {
 
   @override
   void setVariableMutatedInClosure(VariableDeclaration variable) {
-    if (variable is ShadowVariableDeclaration) {
+    if (variable is VariableDeclarationJudgment) {
       variable._mutatedInClosure = true;
     } else {
       // Hack to deal with the fact that BodyBuilder still creates raw
@@ -2822,7 +2822,7 @@ class ShadowTypePromoter extends TypePromoterImpl {
 
   @override
   bool wasVariableMutatedAnywhere(VariableDeclaration variable) {
-    if (variable is ShadowVariableDeclaration) {
+    if (variable is VariableDeclarationJudgment) {
       return variable._mutatedAnywhere;
     } else {
       // Hack to deal with the fact that BodyBuilder still creates raw
@@ -2875,7 +2875,7 @@ class VariableAssignmentJudgment extends ShadowComplexAssignment {
 }
 
 /// Concrete shadow object representing a variable declaration in kernel form.
-class ShadowVariableDeclaration extends VariableDeclaration
+class VariableDeclarationJudgment extends VariableDeclaration
     implements StatementJudgment {
   final bool _implicitlyTyped;
 
@@ -2887,7 +2887,7 @@ class ShadowVariableDeclaration extends VariableDeclaration
 
   final bool _isLocalFunction;
 
-  ShadowVariableDeclaration(String name, this._functionNestingLevel,
+  VariableDeclarationJudgment(String name, this._functionNestingLevel,
       {Expression initializer,
       DartType type,
       bool isFinal: false,
@@ -2905,25 +2905,29 @@ class ShadowVariableDeclaration extends VariableDeclaration
             isFieldFormal: isFieldFormal,
             isCovariant: isCovariant);
 
-  ShadowVariableDeclaration.forEffect(
+  VariableDeclarationJudgment.forEffect(
       Expression initializer, this._functionNestingLevel)
       : _implicitlyTyped = false,
         _isLocalFunction = false,
         super.forValue(initializer);
 
-  ShadowVariableDeclaration.forValue(
+  VariableDeclarationJudgment.forValue(
       Expression initializer, this._functionNestingLevel)
       : _implicitlyTyped = true,
         _isLocalFunction = false,
         super.forValue(initializer);
+
+  List<Expression> get annotationJudgments => annotations;
+
+  ExpressionJudgment get initializerJudgment => initializer;
 
   @override
   void infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory) {
     inferrer.listener.variableDeclarationEnter(fileOffset);
-    if (annotations.isNotEmpty) {
-      inferrer.inferMetadataKeepingHelper(factory, annotations);
+    if (annotationJudgments.isNotEmpty) {
+      inferrer.inferMetadataKeepingHelper(factory, annotationJudgments);
 
       // After the inference was done on the annotations, we may clone them for
       // this instance of VariableDeclaration in order to avoid having the same
@@ -2944,12 +2948,14 @@ class ShadowVariableDeclaration extends VariableDeclaration
       }
     }
 
+    var initializerJudgment = this.initializerJudgment;
     var declaredType = _implicitlyTyped ? const UnknownType() : type;
     DartType inferredType;
     DartType initializerType;
-    if (initializer != null) {
-      initializerType = inferrer.inferExpression(factory, initializer,
-          declaredType, !inferrer.isTopLevel || _implicitlyTyped);
+    if (initializerJudgment != null) {
+      inferrer.inferExpression(factory, initializerJudgment, declaredType,
+          !inferrer.isTopLevel || _implicitlyTyped);
+      initializerType = initializerJudgment.inferredType;
       inferredType = inferrer.inferDeclarationType(initializerType);
     } else {
       inferredType = const DynamicType();
@@ -2970,20 +2976,20 @@ class ShadowVariableDeclaration extends VariableDeclaration
         fileOffset, type, _implicitlyTyped ? inferredType : type);
   }
 
-  /// Determine whether the given [ShadowVariableDeclaration] had an implicit
+  /// Determine whether the given [VariableDeclarationJudgment] had an implicit
   /// type.
   ///
   /// This is static to avoid introducing a method that would be visible to
   /// the kernel.
-  static bool isImplicitlyTyped(ShadowVariableDeclaration variable) =>
+  static bool isImplicitlyTyped(VariableDeclarationJudgment variable) =>
       variable._implicitlyTyped;
 
-  /// Determines whether the given [ShadowVariableDeclaration] represents a
+  /// Determines whether the given [VariableDeclarationJudgment] represents a
   /// local function.
   ///
   /// This is static to avoid introducing a method that would be visible to the
   /// kernel.
-  static bool isLocalFunction(ShadowVariableDeclaration variable) =>
+  static bool isLocalFunction(VariableDeclarationJudgment variable) =>
       variable._isLocalFunction;
 }
 
@@ -3016,7 +3022,7 @@ class VariableGetJudgment extends VariableGet implements ExpressionJudgment {
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    ShadowVariableDeclaration variable = this.variable;
+    VariableDeclarationJudgment variable = this.variable;
     bool mutatedInClosure = variable._mutatedInClosure;
     DartType declaredOrInferredType = variable.type;
 

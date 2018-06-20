@@ -64,7 +64,7 @@ import 'kernel/kernel_incremental_target.dart'
 
 import 'kernel/kernel_library_builder.dart' show KernelLibraryBuilder;
 
-import 'kernel/kernel_shadow_ast.dart' show ShadowVariableDeclaration;
+import 'kernel/kernel_shadow_ast.dart' show VariableDeclarationJudgment;
 
 import 'library_graph.dart' show LibraryGraph;
 
@@ -493,7 +493,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       FunctionNode parameters = new FunctionNode(null,
           typeParameters: typeDefinitions,
           positionalParameters: definitions.keys
-              .map((name) => new ShadowVariableDeclaration(name, 0))
+              .map((name) => new VariableDeclarationJudgment(name, 0))
               .toList());
 
       debugLibrary.build(userCode.loader.coreLibrary, modifyTarget: false);

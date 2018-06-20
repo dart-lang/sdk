@@ -992,7 +992,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
           this, token, expression.variable));
       expression.extend();
     } else {
-      VariableDeclaration variable = new ShadowVariableDeclaration.forValue(
+      VariableDeclaration variable = new VariableDeclarationJudgment.forValue(
           toKernelExpression(expression), functionNestingLevel);
       push(new ShadowCascadeExpression(variable));
       push(new VariableUseGenerator<Expression, Statement, Arguments>(
@@ -1748,7 +1748,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     bool isConst = (currentLocalVariableModifiers & constMask) != 0;
     bool isFinal = (currentLocalVariableModifiers & finalMask) != 0;
     assert(isConst == (constantContext == ConstantContext.inferred));
-    push(new ShadowVariableDeclaration(identifier.name, functionNestingLevel,
+    push(new VariableDeclarationJudgment(identifier.name, functionNestingLevel,
         initializer: toKernelExpression(initializer),
         type: currentLocalVariableType,
         isFinal: isFinal,
@@ -1889,11 +1889,11 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     if (variableOrExpression is VariableDeclaration) {
       return <VariableDeclaration>[variableOrExpression];
     } else if (variableOrExpression is Expression) {
-      VariableDeclaration variable = new ShadowVariableDeclaration.forEffect(
+      VariableDeclaration variable = new VariableDeclarationJudgment.forEffect(
           toKernelExpression(variableOrExpression), functionNestingLevel);
       return <VariableDeclaration>[variable];
     } else if (variableOrExpression is ExpressionStatement) {
-      VariableDeclaration variable = new ShadowVariableDeclaration.forEffect(
+      VariableDeclaration variable = new VariableDeclarationJudgment.forEffect(
           variableOrExpression.expression, functionNestingLevel);
       return <VariableDeclaration>[variable];
     } else if (forest.isVariablesDeclaration(variableOrExpression)) {
@@ -2296,7 +2296,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
         variable.initializer = name.initializer;
       }
     } else {
-      variable = new ShadowVariableDeclaration(name?.name, functionNestingLevel,
+      variable = new VariableDeclarationJudgment(
+          name?.name, functionNestingLevel,
           type: type,
           initializer: name?.initializer,
           isFinal: isFinal,
@@ -3037,7 +3038,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   void endFunctionName(Token beginToken, Token token) {
     debugEvent("FunctionName");
     Identifier name = pop();
-    VariableDeclaration variable = new ShadowVariableDeclaration(
+    VariableDeclaration variable = new VariableDeclarationJudgment(
         name.name, functionNestingLevel,
         isFinal: true, isLocalFunction: true)
       ..fileOffset = offsetForToken(name.token);
@@ -3141,12 +3142,12 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
           // This must have been a compile-time error.
           assert(isErroneousNode(toKernelExpression(oldInitializer)));
 
-          push(new Let(
+          push(new ShadowSyntheticExpression(new Let(
               new VariableDeclaration.forValue(
                   toKernelExpression(oldInitializer))
                 ..fileOffset = forest.readOffset(expression),
               toKernelExpression(expression))
-            ..fileOffset = forest.readOffset(expression));
+            ..fileOffset = forest.readOffset(expression)));
         } else {
           push(expression);
         }
@@ -3285,7 +3286,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       ///       body;
       ///     }
       variable =
-          new ShadowVariableDeclaration.forValue(null, functionNestingLevel);
+          new VariableDeclarationJudgment.forValue(null, functionNestingLevel);
       TypePromotionFact fact =
           typePromoter.getFactForAccess(variable, functionNestingLevel);
       TypePromotionScope scope = typePromoter.currentScope;
