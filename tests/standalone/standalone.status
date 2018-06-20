@@ -18,6 +18,7 @@ io/raw_datagram_socket_test: SkipByDesign
 
 # Overriding these flags are not supported in product mode.
 [ $mode == product ]
+app_snapshot_share_test: Skip # This test needs to generate a kernel file.
 verbose_gc_to_bmu_test: SkipByDesign # No verbose_gc in product mode
 
 [ $runtime == dart_precompiled ]
