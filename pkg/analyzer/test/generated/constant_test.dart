@@ -189,10 +189,9 @@ class C {
   void test_constructorInvocation_noArgs() {
     EvaluationResult result =
         _getExpressionValue("const C()", context: 'class C {}');
-    expect(result.isValid, isTrue);
+    expect(result.isValid, isFalse);
     DartObject value = result.value;
-    expect(value, isNotNull);
-    expect(value.type.name, 'C');
+    expect(value, isNull);
   }
 
   void test_constructorInvocation_simpleArgs() {
