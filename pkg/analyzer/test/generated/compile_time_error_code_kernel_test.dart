@@ -539,6 +539,13 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  test_constWithNonConst_in_const_context() async {
+    // Bad state: No data for () at 58
+    await super.test_constWithNonConst_in_const_context();
+  }
+
+  @override
+  @failingTest
   test_constWithNonConstantArgument_annotation() async {
     // Expected 1 errors of type CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, found 0
     await super.test_constWithNonConstantArgument_annotation();
