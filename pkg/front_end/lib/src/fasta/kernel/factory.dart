@@ -117,7 +117,14 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       Expression expression, Token semicolon);
 
   Initializer fieldInitializer(
-      InitializerJudgment judgment, int fileOffset, Node initializerField);
+      InitializerJudgment judgment,
+      int fileOffset,
+      Token thisKeyword,
+      Token period,
+      Token fieldName,
+      Token equals,
+      Expression expression,
+      Node initializerField);
 
   Statement forInStatement(
       StatementJudgment judgment,
@@ -245,7 +252,13 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       ExpressionJudgment judgment, int fileOffset, DartType inferredType);
 
   Initializer redirectingInitializer(
-      InitializerJudgment judgment, int fileOffset, Node initializerTarget);
+      InitializerJudgment judgment,
+      int fileOffset,
+      Token thisKeyword,
+      Token period,
+      Token constructorName,
+      covariant Object argumentList,
+      Node initializerTarget);
 
   Expression rethrow_(ExpressionJudgment judgment, int fileOffset,
       Token rethrowKeyword, DartType inferredType);
@@ -279,7 +292,13 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Expression stringLiteral(ExpressionJudgment judgment, int fileOffset,
       Token literal, String value, DartType inferredType);
 
-  Initializer superInitializer(InitializerJudgment judgment, int fileOffset);
+  Initializer superInitializer(
+      InitializerJudgment judgment,
+      int fileOffset,
+      Token superKeyword,
+      Token period,
+      Token constructorName,
+      covariant Object argumentList);
 
   Statement switchStatement(StatementJudgment judgment, int fileOffset);
 

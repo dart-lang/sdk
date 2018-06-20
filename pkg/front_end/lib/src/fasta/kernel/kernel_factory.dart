@@ -179,7 +179,14 @@ class KernelFactory
 
   @override
   Initializer fieldInitializer(
-      InitializerJudgment judgment, int fileOffset, Node initializerField) {
+      InitializerJudgment judgment,
+      int fileOffset,
+      Token thisKeyword,
+      Token period,
+      Token fieldName,
+      Token equals,
+      Expression expression,
+      Node initializerField) {
     return judgment;
   }
 
@@ -382,7 +389,13 @@ class KernelFactory
 
   @override
   Initializer redirectingInitializer(
-      InitializerJudgment judgment, int fileOffset, Node initializerTarget) {
+      InitializerJudgment judgment,
+      int fileOffset,
+      Token thisKeyword,
+      Token period,
+      Token constructorName,
+      Object argumentList,
+      Node initializerTarget) {
     return judgment;
   }
 
@@ -446,7 +459,13 @@ class KernelFactory
   }
 
   @override
-  Initializer superInitializer(InitializerJudgment judgment, int fileOffset) {
+  Initializer superInitializer(
+      InitializerJudgment judgment,
+      int fileOffset,
+      Token superKeyword,
+      Token period,
+      Token constructorName,
+      Object argumentList) {
     return judgment;
   }
 
