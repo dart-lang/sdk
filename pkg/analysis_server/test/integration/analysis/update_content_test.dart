@@ -11,9 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UpdateContentTest);
-    // TODO(scheglov): Restore similar test coverage when the front-end API
-    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
-    // defineReflectiveTests(UpdateContentTest_UseCFE);
+    defineReflectiveTests(UpdateContentTest_UseCFE);
   });
 }
 
@@ -112,4 +110,16 @@ void main() {
 class UpdateContentTest_UseCFE extends UpdateContentTest {
   @override
   bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_updateContent() {
+    return super.test_updateContent();
+  }
+
+  @failingTest
+  @override
+  test_updateContent_multipleAdds() {
+    return super.test_updateContent_multipleAdds();
+  }
 }

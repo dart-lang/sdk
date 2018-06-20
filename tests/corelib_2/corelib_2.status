@@ -16,6 +16,7 @@ unicode_test: RuntimeError
 bigint_from_test: CompileTimeError # Issue 32585
 compare_to2_test: CompileTimeError # invalid test
 int_parse_radix_bad_handler_test: MissingCompileTimeError
+int_try_parse_test: CompileTimeError # Issue 32585
 iterable_element_at_test/static: Pass
 num_sign_test: Crash, Pass # Issue 31768
 
@@ -93,6 +94,7 @@ symbol_test/03: MissingCompileTimeError
 
 [ !$strong ]
 cast_test: SkipByDesign # Uses generic method parameters.
+regress_33166_test: SkipByDesign # Not a Dart 1 test
 
 [ $arch == simarmv5te && ($runtime == dart_precompiled || $runtime == vm) ]
 int_parse_radix_test/*: Pass, Slow
@@ -213,7 +215,6 @@ symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') sho
 cast_test: RuntimeError
 error_stack_trace1_test: RuntimeError
 growable_list_test: RuntimeError
-int_parse_radix_test/02: RuntimeError
 integer_to_radix_string_test/01: RuntimeError
 integer_to_radix_string_test/02: RuntimeError
 integer_to_radix_string_test/none: RuntimeError
@@ -222,25 +223,17 @@ iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
 list_concurrent_modify_test: RuntimeError
 main_test: RuntimeError
 nan_infinity_test/01: RuntimeError
-string_split_test/checkedstore: RuntimeError
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
 uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 
 [ $compiler == dart2js && $fasta ]
-int_from_environment_int64_test: RuntimeError # WontFix: Int not precisely representable in JS
-int_parse_radix_int64_test/01: RuntimeError # WontFix: Int not precisely representable in JS
 int_parse_radix_int64_test/02: RuntimeError # WontFix: Int not precisely representable in JS
-int_parse_radix_int64_test/none: RuntimeError # WontFix: Int not precisely representable in JS
 int_parse_radix_test/01: RuntimeError
-int_parse_radix_test/badTypes: RuntimeError # Issue 33351
-int_parse_radix_test/none: RuntimeError # Issue 33351
-int_try_parse_int64_test: RuntimeError # WontFix: Int not precisely representable in JS
 
 [ $compiler == dart2js && $fasta && $host_checked && $strong ]
 cast_test: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
 growable_list_test: RuntimeError # Concurrent modifications test always runs
-int_parse_radix_test/02: RuntimeError
 integer_to_radix_string_test/01: RuntimeError
 integer_to_radix_string_test/02: RuntimeError
 integer_to_radix_string_test/none: RuntimeError
@@ -251,7 +244,6 @@ list_unmodifiable_test: RuntimeError
 main_test: RuntimeError
 nan_infinity_test/01: RuntimeError
 regexp/pcre_test: RuntimeError
-string_split_test/checkedstore: RuntimeError # Issue 30548: does not check stores into List<String>
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
 uri_base_test: RuntimeError
 
@@ -261,7 +253,6 @@ dynamic_nosuchmethod_test: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
 growable_list_test: RuntimeError # Concurrent modifications test always runs
 hash_set_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_CustomHashSet.#x), local(_CustomHashSet.#)) for j:closure_call(_CustomHashSet__CustomHashSet_closure.call).
-int_parse_radix_test/02: RuntimeError
 integer_to_radix_string_test/01: RuntimeError
 integer_to_radix_string_test/02: RuntimeError
 integer_to_radix_string_test/none: RuntimeError
@@ -273,7 +264,6 @@ main_test: RuntimeError
 nan_infinity_test/01: RuntimeError
 nsm_invocation_test: RuntimeError # Symbols don't match due to minifiaction.
 regexp/pcre_test: RuntimeError
-string_split_test/checkedstore: RuntimeError # Issue 30548: does not check stores into List<String>
 symbol_operator_test/03: RuntimeError
 symbol_operator_test/none: RuntimeError
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
@@ -292,6 +282,7 @@ string_from_environment3_test/03: MissingCompileTimeError
 [ $compiler == dartdevc && $runtime != none ]
 bigint_from_test: CompileTimeError # Issue 32585
 compare_to2_test: CompileTimeError # invalid test
+int_try_parse_test: CompileTimeError # Issue 32585
 symbol_operator_test: RuntimeError # Issue 29921
 
 [ $compiler != dartdevc && $compiler != dartdevk && $checked && !$strong ]

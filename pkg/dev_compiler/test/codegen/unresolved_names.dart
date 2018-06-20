@@ -3,8 +3,8 @@
 class C {}
 
 main() {
-  new Foo();
-  new C.bar();
+  Foo();
+  C.bar();
   print(baz);
   print(C.quux);
 }

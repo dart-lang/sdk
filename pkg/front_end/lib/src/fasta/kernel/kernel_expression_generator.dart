@@ -78,15 +78,16 @@ import 'kernel_ast_api.dart'
         ShadowIllegalAssignment,
         ShadowIndexAssign,
         ShadowMethodInvocation,
-        ShadowNullAwarePropertyGet,
+        NullAwarePropertyGetJudgment,
         ShadowPropertyAssign,
-        ShadowPropertyGet,
+        PropertyGetJudgment,
         ShadowStaticAssignment,
         ShadowSuperMethodInvocation,
-        ShadowSuperPropertyGet,
-        ShadowVariableAssignment,
-        ShadowVariableDeclaration,
-        ShadowVariableGet,
+        SuperPropertyGetJudgment,
+        VariableAssignmentJudgment,
+        ShadowSyntheticExpression,
+        VariableDeclarationJudgment,
+        VariableGetJudgment,
         StaticSet,
         SuperMethodInvocation,
         SuperPropertySet,
@@ -205,7 +206,7 @@ abstract class KernelExpressionGenerator
         offset: offset);
     complexAssignment?.combiner = combiner;
     complexAssignment?.isPostIncDec = true;
-    var dummy = new ShadowVariableDeclaration.forValue(
+    var dummy = new VariableDeclarationJudgment.forValue(
         _makeWrite(combiner, true, complexAssignment),
         helper.functionNestingLevel);
     return _finish(
@@ -278,7 +279,7 @@ class KernelVariableUseGenerator extends KernelGenerator
     var fact = helper.typePromoter
         .getFactForAccess(variable, helper.functionNestingLevel);
     var scope = helper.typePromoter.currentScope;
-    var read = new ShadowVariableGet(variable, fact, scope)
+    var read = new VariableGetJudgment(variable, fact, scope)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
     return read;
@@ -305,7 +306,7 @@ class KernelVariableUseGenerator extends KernelGenerator
 
   @override
   ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
-      new ShadowVariableAssignment(rhs);
+      new VariableAssignmentJudgment(rhs);
 
   @override
   void printOn(StringSink sink) {
@@ -372,8 +373,9 @@ class KernelPropertyAccessGenerator extends KernelGenerator
   }
 
   @override
-  Expression _makeSimpleRead() => new ShadowPropertyGet(receiver, name, getter)
-    ..fileOffset = offsetForToken(token);
+  Expression _makeSimpleRead() =>
+      new PropertyGetJudgment(receiver, name, getter)
+        ..fileOffset = offsetForToken(token);
 
   @override
   Expression _makeSimpleWrite(Expression value, bool voidContext,
@@ -386,7 +388,7 @@ class KernelPropertyAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeRead(ShadowComplexAssignment complexAssignment) {
-    var read = new ShadowPropertyGet(receiverAccess(), name, getter)
+    var read = new PropertyGetJudgment(receiverAccess(), name, getter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
     return read;
@@ -432,8 +434,9 @@ class KernelThisPropertyAccessGenerator extends KernelGenerator
     if (getter == null) {
       helper.warnUnresolvedGet(name, offsetForToken(token));
     }
-    var read = new ShadowPropertyGet(forest.thisExpression(token), name, getter)
-      ..fileOffset = offsetForToken(token);
+    var read =
+        new PropertyGetJudgment(forest.thisExpression(token), name, getter)
+          ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
     return read;
   }
@@ -515,7 +518,7 @@ class KernelNullAwarePropertyAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeRead(ShadowComplexAssignment complexAssignment) {
-    var read = new ShadowPropertyGet(receiverAccess(), name, getter)
+    var read = new PropertyGetJudgment(receiverAccess(), name, getter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
     return read;
@@ -549,7 +552,7 @@ class KernelNullAwarePropertyAccessGenerator extends KernelGenerator
       kernelPropertyAssign.desugared = body;
       return kernelPropertyAssign;
     } else {
-      return new ShadowNullAwarePropertyGet(receiver, nullAwareGuard)
+      return new NullAwarePropertyGetJudgment(receiver, nullAwareGuard)
         ..fileOffset = offset;
     }
   }
@@ -606,7 +609,7 @@ class KernelSuperPropertyAccessGenerator extends KernelGenerator
       helper.warnUnresolvedGet(name, offsetForToken(token), isSuper: true);
     }
     // TODO(ahe): Use [DirectPropertyGet] when possible.
-    var read = new ShadowSuperPropertyGet(name, getter)
+    var read = new SuperPropertyGetJudgment(name, getter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
     return read;
@@ -765,7 +768,7 @@ class KernelIndexedAccessGenerator extends KernelGenerator
         interfaceTarget: setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
-    var dummy = new ShadowVariableDeclaration.forValue(
+    var dummy = new VariableDeclarationJudgment.forValue(
         write, helper.functionNestingLevel);
     return makeLet(
         valueVariable, makeLet(dummy, new VariableGet(valueVariable)));
@@ -1238,6 +1241,7 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
 
   /// The offset at which the [declaration] is referenced by this generator,
   /// or `-1` if the reference is implicit.
+  @override
   final int declarationReferenceOffset;
 
   @override
@@ -1260,9 +1264,9 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
         KernelInvalidTypeBuilder declaration = this.declaration;
         helper.addProblemErrorIfConst(
             declaration.message.messageObject, offset, token.length);
-        super.expression =
+        super.expression = new ShadowSyntheticExpression(
             new Throw(forest.literalString(declaration.message.message, token))
-              ..fileOffset = offset;
+              ..fileOffset = offset);
       } else {
         super.expression = forest.literalType(
             buildTypeWithBuiltArguments(null, nonInstanceAccessIsError: true),
@@ -1488,7 +1492,7 @@ class KernelUnlinkedGenerator extends KernelGenerator
 
   @override
   Expression buildSimpleRead() {
-    return new ShadowPropertyGet(receiver, name)
+    return new PropertyGetJudgment(receiver, name)
       ..fileOffset = offsetForToken(token);
   }
 

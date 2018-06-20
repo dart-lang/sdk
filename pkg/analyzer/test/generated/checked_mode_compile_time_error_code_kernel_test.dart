@@ -8,9 +8,7 @@ import 'checked_mode_compile_time_error_code_driver_test.dart';
 
 main() {
   defineReflectiveSuite(() {
-    // TODO(scheglov): Restore similar test coverage when the front-end API
-    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
-    // defineReflectiveTests(CheckedModeCompileTimeErrorCodeTest_Kernel);
+    defineReflectiveTests(CheckedModeCompileTimeErrorCodeTest_Kernel);
   });
 }
 
@@ -172,12 +170,30 @@ class CheckedModeCompileTimeErrorCodeTest_Kernel
   }
 
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31936')
+  @override
+  test_listLiteral_inferredElementType() async =>
+      super.test_listLiteral_inferredElementType();
+
+  @failingTest
   @override
   test_mapKeyTypeNotAssignable() async {
     // Expected 1 errors of type CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, found 0;
     //          1 errors of type StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, found 0
     await super.test_mapKeyTypeNotAssignable();
   }
+
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31936')
+  @override
+  test_mapLiteral_inferredKeyType() async =>
+      super.test_mapLiteral_inferredKeyType();
+
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31936')
+  @override
+  test_mapLiteral_inferredValueType() async =>
+      super.test_mapLiteral_inferredValueType();
 
   @failingTest
   @override

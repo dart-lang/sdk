@@ -4,18 +4,13 @@
 
 part of $LIBRARYNAME;
 
-@DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS {
 $!MEMBERS
 
   @JSName('canvas')
-  @DomName('WebGLCanvas.canvas')
-  @DocsEditable()
   final CanvasElement canvas;
 
   @JSName('canvas')
-  @DomName('WebGLCanvas.offscreenCanvas')
-  @DocsEditable()
   final OffscreenCanvas offscreenCanvas;
 }
 

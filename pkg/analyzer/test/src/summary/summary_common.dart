@@ -8760,10 +8760,15 @@ D d;''');
     serializeLibraryText('@a(-b=""c');
     expect(unlinkedUnits, hasLength(1));
     List<UnlinkedVariable> variables = unlinkedUnits[0].variables;
-    expect(variables, hasLength(1));
-    List<UnlinkedExpr> annotations = variables[0].annotations;
-    expect(annotations, hasLength(1));
-    expect(annotations[0].isValidConst, isFalse);
+    if (Parser.useFasta) {
+      // Fasta recovers by appending `)` after `c`
+      expect(variables, isEmpty);
+    } else {
+      expect(variables, hasLength(1));
+      List<UnlinkedExpr> annotations = variables[0].annotations;
+      expect(annotations, hasLength(1));
+      expect(annotations[0].isValidConst, isFalse);
+    }
   }
 
   test_metadata_invalid_instanceCreation_argument_super() {

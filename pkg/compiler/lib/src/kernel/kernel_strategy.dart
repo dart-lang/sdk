@@ -136,9 +136,12 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
       SelectorConstraintsStrategy selectorConstraintsStrategy,
       ClassHierarchyBuilder classHierarchyBuilder,
       ClassQueries classQueries) {
-    return new KernelResolutionWorldBuilder(
+    return new ResolutionWorldBuilderImpl(
         _options,
         elementMap,
+        elementMap.elementEnvironment,
+        elementMap.types,
+        elementMap.commonElements,
         nativeBasicData,
         nativeDataBuilder,
         interceptorDataBuilder,

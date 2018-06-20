@@ -4,12 +4,17 @@
 
 library fasta.named_type_builder;
 
-import '../fasta_codes.dart' show Message, templateTypeArgumentMismatch;
+import '../fasta_codes.dart'
+    show
+        Message,
+        templateMissingExplicitTypeArguments,
+        templateTypeArgumentMismatch;
 
 import 'builder.dart'
     show
         Declaration,
         InvalidTypeBuilder,
+        LibraryBuilder,
         PrefixBuilder,
         QualifiedName,
         Scope,
@@ -34,7 +39,8 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
   }
 
   @override
-  void resolveIn(Scope scope, int charOffset, Uri fileUri) {
+  void resolveIn(
+      Scope scope, int charOffset, Uri fileUri, LibraryBuilder library) {
     if (declaration != null) return;
     final name = this.name;
     Declaration member;
@@ -48,6 +54,14 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
     }
     if (member is TypeDeclarationBuilder) {
       declaration = member.origin;
+      if (arguments == null && declaration.typeVariablesCount != 0) {
+        library.addProblem(
+            templateMissingExplicitTypeArguments
+                .withArguments(declaration.typeVariablesCount),
+            charOffset,
+            "$name".length,
+            fileUri);
+      }
       return;
     }
     declaration = buildInvalidType(charOffset, fileUri);

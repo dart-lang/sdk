@@ -12,7 +12,7 @@ import os
 import re
 import shutil
 from generator import *
-from idlnode import IDLType, resolveTypedef
+from idlnode import IDLType, IDLInterface, resolveTypedef
 
 _logger = logging.getLogger('dartgenerator')
 
@@ -176,6 +176,10 @@ class DartGenerator(object):
         continue
       interfaces.append(interface)
 
+    # All web_gl constants from WebGLRenderingContextBase, WebGL2RenderingContextBase, WebGLDrawBuffers are generated
+    # in a synthesized class WebGL.  Those IDLConstants are in web_gl_constants.
+    web_gl_constants = []
+
     # Render all interfaces into Dart and save them in files.
     for interface in self._PreOrderInterfaces(interfaces):
       interface_name = interface.id
@@ -186,7 +190,13 @@ class DartGenerator(object):
         continue
 
       _logger.info('Generating %s' % interface.id)
-      generate_interface(interface)
+      generate_interface(interface, gl_constants = web_gl_constants)
+
+    # Generate the WEB_GL constants
+    web_gl_constants_interface = IDLInterface(None, "WebGL")
+    web_gl_constants_interface.constants = web_gl_constants
+    self._database._all_interfaces['WebGL'] = web_gl_constants_interface
+    generate_interface(web_gl_constants_interface)
 
   def _PreOrderInterfaces(self, interfaces):
     """Returns the interfaces in pre-order, i.e. parents first."""

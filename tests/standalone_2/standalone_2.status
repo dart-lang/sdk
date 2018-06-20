@@ -15,6 +15,7 @@ package/scenarios/empty_packages_file/empty_packages_file_discovery_test: Fail, 
 package/scenarios/empty_packages_file/empty_packages_file_option_test: Fail, OK # CompileTimeErrors intentionally
 package/scenarios/invalid/invalid_package_name_test: RuntimeError, CompileTimeError # Errors intentionally
 package/scenarios/invalid/same_package_twice_test.dart: RuntimeError, CompileTimeError # Errors intentionally
+package/scenarios/packages_dir_only/packages_dir_only_test: Fail # Confirm this no longer works for now. TODO(mfairhurst): delete this test.
 package/scenarios/packages_file_strange_formatting/empty_package_dir_test: Fail, OK # CompileTimeErrors intentionally
 packages_file_test: Skip # Issue 26715
 packages_file_test/none: Skip # contains no tests.
@@ -74,11 +75,6 @@ io/*: Skip # Issue 30618
 [ $compiler != app_jitk && $compiler != dart2analyzer && $compiler != dartdevc && $compiler != dartk && $compiler != dartkp && $runtime != none && $strong ]
 float_array_static_test: MissingCompileTimeError
 
-# We want to confirm that this behavior no longer works. Works in kernel though.
-# TODO(mfairhurst) delete this test.
-[ $compiler != dartk && !$fasta ]
-package/scenarios/packages_dir_only/packages_dir_only_test: Fail
-
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
 
@@ -94,6 +90,12 @@ io/named_pipe_script_test: Pass, RuntimeError # Issue 28737
 
 [ $runtime == none && !$strong ]
 io/process_exit_negative_test: Fail, OK # Must be run to exit with non-zero exit code.
+
+# These tests spawn a process that imports using a http URL, since
+# spawned processes now run in Dart2 mode the tests fail as http URL imports
+# is not supported by the front end.
+[ $runtime == vm && ($compiler == app_jit || $compiler == none) ]
+http_launch_test: RuntimeError # Issue 33388
 
 [ $system == linux && ($runtime == flutter || $runtime == vm) ]
 io/http_basic_test: Pass, Slow, Timeout # Issue 28046, These tests might be slow on an opt counter threshold bot. They also time out on the bot occasionally => flaky test issue 28046
@@ -174,6 +176,10 @@ package/scenarios/invalid/same_package_twice_test: Pass # Issue 24119
 deferred_transitive_import_error_test: Crash
 fragmentation_test: Pass, Crash # Issue 31421
 io/addlatexhash_test: Pass, Crash # Issue 31252
+io/non_utf8_directory_test: Skip # Issue 33519
+io/non_utf8_file_test: Skip # Issue 33519
+io/non_utf8_link_test: Skip # Issue 33519
+io/non_utf8_output_test: Skip # Issue 33519
 io/raw_datagram_read_all_test: Pass, Fail # Timing dependent.
 io/skipping_dart2js_compilations_test: Pass, Slow # Slow.
 io/test_runner_test: Pass, Slow # Slow.

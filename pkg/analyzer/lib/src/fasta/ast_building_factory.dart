@@ -192,8 +192,8 @@ class AstBuildingForest
       Generator<Expression, Statement, Arguments> generator,
       Expression value,
       String assignmentOperator) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    return new AnalyzerDelayedAssignmentGenerator(
+        helper, astFactory, token, generator, assignmentOperator, value);
   }
 
   @override
@@ -203,8 +203,8 @@ class AstBuildingForest
       Generator<Expression, Statement, Arguments> generator,
       kernel.Name binaryOperator,
       kernel.Procedure interfaceTarget) {
-    // TODO(brianwilkerson) Implement this.
-    throw new UnimplementedError();
+    return new AnalyzerDelayedPostfixIncrementGenerator(
+        helper, astFactory, token, generator, binaryOperator, interfaceTarget);
   }
 
   @override

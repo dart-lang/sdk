@@ -233,6 +233,14 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           .registerTypeUse(new TypeUse.instantiation(listLiteralUse.type));
     }
 
+    for (RuntimeTypeUse runtimeTypeUse in worldImpact.runtimeTypeUses) {
+      // Enable runtime type support if we discover a getter called
+      // runtimeType. We have to enable runtime type before hitting the
+      // codegen, so that constructors know whether they need to generate code
+      // for runtime type.
+      _backendUsageBuilder.registerRuntimeTypeUse(runtimeTypeUse);
+    }
+
     if (worldImpact.constSymbolNames.isNotEmpty) {
       registerImpact(_impacts.constSymbol);
     }

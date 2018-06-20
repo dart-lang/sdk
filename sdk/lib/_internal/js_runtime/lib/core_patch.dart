@@ -2947,3 +2947,14 @@ class _BigIntClassic implements _BigIntReduction {
     return _reduce(resultDigits, resultUsed);
   }
 }
+
+/// Creates an invocation object used in noSuchMethod forwarding stubs.
+///
+/// The signature is hardwired to the kernel nodes generated in the
+/// `Dart2jsTarget` and read in the `KernelSsaGraphBuilder`.
+external Invocation _createInvocationMirror(
+    String memberName,
+    List typeArguments,
+    List positionalArguments,
+    Map<String, dynamic> namedArguments,
+    int kind);

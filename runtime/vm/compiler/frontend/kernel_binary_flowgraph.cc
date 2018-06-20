@@ -998,6 +998,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
     kClosureFunction,
     kEndClosureFunctionScope,
     kNativeEntry,
+    kSubtypeTestCache,
   };
 
   enum InvocationKind {
@@ -1100,7 +1101,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
           }
           field = H.LookupFieldByKernelField(target);
           cls = field.Owner();
-          elem = cls.LookupStaticFunction(name);
+          elem = cls.LookupFunctionAllowPrivate(name);
         } else {
           if ((kind == InvocationKind::method) && H.IsGetter(target)) {
             UNIMPLEMENTED();  // TODO(regis): Revisit.
@@ -1339,6 +1340,9 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
       case ConstantPoolTag::kNativeEntry: {
         name = H.DartString(builder_->ReadStringReference()).raw();
         obj = NativeEntry(function, name);
+      } break;
+      case ConstantPoolTag::kSubtypeTestCache: {
+        obj = SubtypeTestCache::New();
       } break;
       default:
         UNREACHABLE();

@@ -44,7 +44,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     return e;
   }
 
-  @DomName('KeyboardEvent.initKeyboardEvent')
   void _initKeyboardEvent(String type, bool canBubble, bool cancelable,
       Window view, String keyIdentifier, int location, bool ctrlKey,
       bool altKey, bool shiftKey, bool metaKey) {
@@ -64,13 +63,10 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
   }
 
-  @DomName('KeyboardEvent.keyCode')
   final int keyCode;
 
-  @DomName('KeyboardEvent.charCode')
   final int charCode;
 
-  @DomName('KeyboardEvent.which')
   int get which => _which;
 $!MEMBERS
 }

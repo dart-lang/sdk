@@ -2537,7 +2537,8 @@ class CheckStackOverflowSlowPath
     // pending_deoptimization_env_ is needed to generate a runtime call that
     // may throw an exception.
     ASSERT(compiler->pending_deoptimization_env_ == NULL);
-    Environment* env = compiler->SlowPathEnvironmentFor(instruction());
+    Environment* env = compiler->SlowPathEnvironmentFor(
+        instruction(), /*num_slow_path_args=*/0);
     compiler->pending_deoptimization_env_ = env;
     compiler->GenerateRuntimeCall(
         instruction()->token_pos(), instruction()->deopt_id(),

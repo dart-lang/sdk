@@ -30,18 +30,18 @@ class HashMap<K, V> {
       if (hashCode == null) {
         if (equals == null) {
           if (identical(K, String) || identical(K, int)) {
-            return new IdentityMap<K, V>();
+            return IdentityMap<K, V>();
           }
-          return new LinkedMap<K, V>();
+          return LinkedMap<K, V>();
         }
         hashCode = dart.hashCode;
       } else if (identical(identityHashCode, hashCode) &&
           identical(identical, equals)) {
-        return new IdentityMap<K, V>();
+        return IdentityMap<K, V>();
       }
-      return new CustomHashMap<K, V>(equals ?? dart.equals, hashCode);
+      return CustomHashMap<K, V>(equals ?? dart.equals, hashCode);
     }
-    return new CustomKeyHashMap<K, V>(
+    return CustomKeyHashMap<K, V>(
         equals ?? dart.equals, hashCode ?? dart.hashCode, isValidKey);
   }
 
@@ -60,18 +60,18 @@ class LinkedHashMap<K, V> {
       if (hashCode == null) {
         if (equals == null) {
           if (identical(K, String) || identical(K, int)) {
-            return new IdentityMap<K, V>();
+            return IdentityMap<K, V>();
           }
-          return new LinkedMap<K, V>();
+          return LinkedMap<K, V>();
         }
         hashCode = dart.hashCode;
       } else if (identical(identityHashCode, hashCode) &&
           identical(identical, equals)) {
-        return new IdentityMap<K, V>();
+        return IdentityMap<K, V>();
       }
-      return new CustomHashMap<K, V>(equals ?? dart.equals, hashCode);
+      return CustomHashMap<K, V>(equals ?? dart.equals, hashCode);
     }
-    return new CustomKeyHashMap<K, V>(
+    return CustomKeyHashMap<K, V>(
         equals ?? dart.equals, hashCode ?? dart.hashCode, isValidKey);
   }
 
@@ -90,19 +90,19 @@ class HashSet<E> {
       if (hashCode == null) {
         if (equals == null) {
           if (identical(E, String) || identical(E, int)) {
-            return new _IdentityHashSet<E>();
+            return _IdentityHashSet<E>();
           }
-          return new _HashSet<E>();
+          return _HashSet<E>();
         }
         hashCode = dart.hashCode;
       } else if (identical(identityHashCode, hashCode) &&
           identical(identical, equals)) {
-        return new _IdentityHashSet<E>();
+        return _IdentityHashSet<E>();
       }
-      return new _CustomHashSet<E>(
+      return _CustomHashSet<E>(
           equals ?? dart.equals, hashCode ?? dart.hashCode);
     }
-    return new _CustomKeyHashSet<E>(
+    return _CustomKeyHashSet<E>(
         equals ?? dart.equals, hashCode ?? dart.hashCode, isValidKey);
   }
 
@@ -121,19 +121,19 @@ class LinkedHashSet<E> {
       if (hashCode == null) {
         if (equals == null) {
           if (identical(E, String) || identical(E, int)) {
-            return new _IdentityHashSet<E>();
+            return _IdentityHashSet<E>();
           }
-          return new _HashSet<E>();
+          return _HashSet<E>();
         }
         hashCode = dart.hashCode;
       } else if (identical(identityHashCode, hashCode) &&
           identical(identical, equals)) {
-        return new _IdentityHashSet<E>();
+        return _IdentityHashSet<E>();
       }
-      return new _CustomHashSet<E>(
+      return _CustomHashSet<E>(
           equals ?? dart.equals, hashCode ?? dart.hashCode);
     }
-    return new _CustomKeyHashSet<E>(
+    return _CustomKeyHashSet<E>(
         equals ?? dart.equals, hashCode ?? dart.hashCode, isValidKey);
   }
 
@@ -173,9 +173,9 @@ class _HashSet<E> extends _InternalSet<E>
 
   _HashSet();
 
-  Set<E> _newSet() => new _HashSet<E>();
+  Set<E> _newSet() => _HashSet<E>();
 
-  Set<R> _newSimilarSet<R>() => new _HashSet<R>();
+  Set<R> _newSimilarSet<R>() => _HashSet<R>();
 
   bool contains(Object key) {
     if (key == null) {
@@ -313,9 +313,9 @@ class _IdentityHashSet<E> extends _InternalSet<E>
 
   _IdentityHashSet();
 
-  Set<E> _newSet() => new _IdentityHashSet<E>();
+  Set<E> _newSet() => _IdentityHashSet<E>();
 
-  Set<R> _newSimilarSet<R>() => new _IdentityHashSet<R>();
+  Set<R> _newSimilarSet<R>() => _IdentityHashSet<R>();
 
   bool contains(Object element) {
     return JS('', '#.has(#)', _map, element);
@@ -366,9 +366,9 @@ class _CustomKeyHashSet<E> extends _CustomHashSet<E> {
   _CustomKeyHashSet(_Equality<E> equals, _Hasher<E> hashCode, this._validKey)
       : super(equals, hashCode);
 
-  Set<E> _newSet() => new _CustomKeyHashSet<E>(_equals, _hashCode, _validKey);
+  Set<E> _newSet() => _CustomKeyHashSet<E>(_equals, _hashCode, _validKey);
 
-  Set<R> _newSimilarSet<R>() => new _HashSet<R>();
+  Set<R> _newSimilarSet<R>() => _HashSet<R>();
 
   bool contains(Object element) {
     // TODO(jmesserly): there is a subtle difference here compared to Dart 1.
@@ -417,8 +417,8 @@ class _CustomHashSet<E> extends _InternalSet<E>
 
   _CustomHashSet(this._equals, this._hashCode);
 
-  Set<E> _newSet() => new _CustomHashSet<E>(_equals, _hashCode);
-  Set<R> _newSimilarSet<R>() => new _HashSet<R>();
+  Set<E> _newSet() => _CustomHashSet<E>(_equals, _hashCode);
+  Set<R> _newSimilarSet<R>() => _HashSet<R>();
 
   bool contains(Object key) {
     if (key is E) {
@@ -525,7 +525,7 @@ abstract class _InternalSet<E> extends _HashSetBase<E> {
   @notNull
   bool get isNotEmpty => JS('bool', '#.size != 0', _map);
 
-  Iterator<E> get iterator => new DartIterator<E>(_jsIterator());
+  Iterator<E> get iterator => DartIterator<E>(_jsIterator());
 
   @JSExportName('Symbol.iterator')
   _jsIterator() {
@@ -544,7 +544,7 @@ abstract class _InternalSet<E> extends _HashSetBase<E> {
     }''',
         modifications,
         self._modifications,
-        new ConcurrentModificationError(self),
+        ConcurrentModificationError(self),
         iterator);
   }
 }

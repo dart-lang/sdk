@@ -8,7 +8,7 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/cpu.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/instructions.h"
 #include "vm/memory_region.h"
 #include "vm/runtime_entry.h"
@@ -98,6 +98,14 @@ void Assembler::CallToRuntime() {
   movq(TMP, Address(THR, Thread::call_to_runtime_entry_point_offset()));
   movq(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
   call(TMP);
+}
+
+void Assembler::CallNullErrorShared(bool save_fpu_registers) {
+  uword entry_point_offset =
+      save_fpu_registers
+          ? Thread::null_error_shared_with_fpu_regs_entry_point_offset()
+          : Thread::null_error_shared_without_fpu_regs_entry_point_offset();
+  call(Address(THR, entry_point_offset));
 }
 
 void Assembler::pushq(Register reg) {

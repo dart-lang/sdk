@@ -22,65 +22,61 @@ void main() {
 
   group('ClosureType', () {
     test('supports simple types', () {
-      expectToString(new ClosureType.number(), "number",
+      expectToString(ClosureType.number(), "number",
           nullable: "?number", nonNullable: "number");
-      expectToString(new ClosureType.boolean(), "boolean",
+      expectToString(ClosureType.boolean(), "boolean",
           nullable: "?boolean", nonNullable: "boolean");
-      expectToString(new ClosureType.string(), "string",
+      expectToString(ClosureType.string(), "string",
           nullable: "string", nonNullable: "!string");
-      expectToString(new ClosureType.type("foo.Bar"), "foo.Bar",
+      expectToString(ClosureType.type("foo.Bar"), "foo.Bar",
           nullable: "foo.Bar", nonNullable: "!foo.Bar");
     });
 
     test('supports array types', () {
-      expectToString(new ClosureType.array(), "Array<*>",
+      expectToString(ClosureType.array(), "Array<*>",
           nullable: "Array<*>", nonNullable: "!Array<*>");
-      expectToString(
-          new ClosureType.array(new ClosureType.type("Foo")), "Array<Foo>",
+      expectToString(ClosureType.array(ClosureType.type("Foo")), "Array<Foo>",
           nullable: "Array<Foo>", nonNullable: "!Array<Foo>");
     });
 
     test('supports map types', () {
       expectToString(
-          new ClosureType.map(
-              new ClosureType.type("Foo"), new ClosureType.type("Bar")),
+          ClosureType.map(ClosureType.type("Foo"), ClosureType.type("Bar")),
           "Object<Foo, Bar>",
           nullable: "Object<Foo, Bar>",
           nonNullable: "!Object<Foo, Bar>");
-      expectToString(new ClosureType.map(), "Object<*, *>",
+      expectToString(ClosureType.map(), "Object<*, *>",
           nullable: "Object<*, *>", nonNullable: "!Object<*, *>");
     });
 
     test('supports function types', () {
-      expectToString(new ClosureType.function(), "Function",
+      expectToString(ClosureType.function(), "Function",
           nullable: "Function", nonNullable: "!Function");
-      expectToString(new ClosureType.function([new ClosureType.number()]),
-          "function(number)");
-      expectToString(new ClosureType.function(null, new ClosureType.number()),
+      expectToString(
+          ClosureType.function([ClosureType.number()]), "function(number)");
+      expectToString(ClosureType.function(null, ClosureType.number()),
           "function(...*):number");
       expectToString(
-          new ClosureType.function(
-              [new ClosureType.number(), new ClosureType.string()],
-              new ClosureType.boolean()),
+          ClosureType.function([ClosureType.number(), ClosureType.string()],
+              ClosureType.boolean()),
           "function(number, string):boolean");
     });
 
     test('supports union types', () {
-      expectToString(new ClosureType.number().or(new ClosureType.boolean()),
-          "(number|boolean)");
       expectToString(
-          new ClosureType.number().orUndefined(), "(number|undefined)");
+          ClosureType.number().or(ClosureType.boolean()), "(number|boolean)");
+      expectToString(ClosureType.number().orUndefined(), "(number|undefined)");
     });
 
     test('supports record types', () {
       expectToString(
-          new ClosureType.record(
-              {'x': new ClosureType.number(), 'y': new ClosureType.boolean()}),
+          ClosureType.record(
+              {'x': ClosureType.number(), 'y': ClosureType.boolean()}),
           "{x: number, y: boolean}");
     });
 
     test('supports optional pseudo-types', () {
-      expectToString(new ClosureType.number().toOptional(), "number=");
+      expectToString(ClosureType.number().toOptional(), "number=");
     });
   });
 }

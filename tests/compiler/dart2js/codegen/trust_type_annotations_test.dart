@@ -51,7 +51,7 @@ main () {
 
 void main() {
   runTest() async {
-    var options = [Flags.trustTypeAnnotations];
+    var options = [Flags.noPreviewDart2, Flags.trustTypeAnnotations];
     var result = await runCompiler(
         memorySourceFiles: {'main.dart': TEST}, options: options);
     var compiler = result.compiler;

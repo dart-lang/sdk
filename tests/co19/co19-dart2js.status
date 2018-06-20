@@ -76,6 +76,7 @@ LayoutTests/fast/borders/border-color-visited_t01: RuntimeError # See issue 143
 LayoutTests/fast/canvas/fillText-shadow_t01: RuntimeError # See issue 143
 LayoutTests/fast/css/content/content-quotes-01_t01: Pass, RuntimeError
 LayoutTests/fast/css/font-face-cache-bug_t01: Pass, RuntimeError
+LayoutTests/fast/css/font-shorthand-mix-inherit_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-loadingdone_t01: Pass, RuntimeError
 LayoutTests/fast/css/misplaced-charset_t01: RuntimeError # See issue 143
 LayoutTests/fast/css/pseudo-empty-dynamic-empty_t01: RuntimeError # See issue 143
@@ -118,6 +119,7 @@ LayoutTests/fast/table/fixed-table-layout-toggle-colwidth_t01: Pass, RuntimeErro
 LayoutTests/fast/table/fixed-table-with-percent-width-inside-extra-large-div_t01: Pass, RuntimeError
 LayoutTests/fast/table/hittest-tablecell-right-edge_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/table/hittest-tablecell-with-borders-right-edge_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
+LayoutTests/fast/table/resize-table-cell_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/table/table-all-rowspans-height-distribution-in-rows-except-overlapped_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/table/table-colgroup-present-after-table-row_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/table/table-rowspan-height-distribution-in-rows_t02: Skip # https://github.com/dart-lang/sdk/issues/28873
@@ -183,6 +185,7 @@ LibTest/core/int/operator_subtraction_A01_t01: RuntimeError # Large integer lite
 LibTest/core/int/operator_truncating_division_A01_t01: RuntimeError # Large integer literal. Not valid dart 2.
 LibTest/core/int/toDouble_A01_t01: RuntimeError, OK # co19 issue 200
 LibTest/html/Element/addEventListener_A01_t04: Skip # https://github.com/dart-lang/sdk/issues/28873
+LibTest/html/Element/mouseEnterEvent_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/html/Element/queryAll_A01_t01: RuntimeError # See issue 143
 LibTest/html/Element/query_A01_t01: RuntimeError # See issue 143
 LibTest/html/HttpRequest/responseType_A01_t03: CompileTimeError # co19-roll r706: Please triage this failure
@@ -1484,7 +1487,6 @@ Language/Generics/malformed_t02: Crash
 [ $compiler == dart2js && $runtime == d8 && $fasta ]
 LayoutTests/*: SkipByDesign
 LibTest/html/*: SkipByDesign
-LibTest/html/Element/mouseEnterEvent_A01_t01: RuntimeError
 WebPlatformTest/*: SkipByDesign
 
 [ $compiler == dart2js && $runtime != d8 && $runtime != drt && $checked ]
@@ -2491,7 +2493,6 @@ LayoutTests/fast/css/first-child-display-change-inverse_t01: RuntimeError # Plea
 LayoutTests/fast/css/focus-display-block-inline_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-insert-link_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-property-priority_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/font-shorthand-mix-inherit_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Uses FontFace class, not defined for this browser.
 LayoutTests/fast/css/getComputedStyle/computed-style-border-image_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/getComputedStyle/computed-style-cross-fade_t01: RuntimeError # Please triage this failure
@@ -3655,9 +3656,7 @@ Language/Classes/Constructors/Factories/return_type_t05: Pass, Slow # Issue 2594
 Language/Classes/Constructors/Factories/return_wrong_type_t02: Pass, Slow # Issue 25940
 LayoutTests/fast/canvas/webgl/draw-webgl-to-canvas-2d_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/drawingbuffer-test_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/device-aspect-ratio_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/media-rule-screenDepthPerComponent_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/submit-form-attributes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/media/color-does-not-include-alpha_t01: RuntimeError # Issue 31161
 LayoutTests/fast/media/media-query-list_t01: Pass, RuntimeError # Issue 32257
@@ -4913,7 +4912,6 @@ LayoutTests/fast/table/min-width-html-inline-table_t01: RuntimeError # Please tr
 LayoutTests/fast/table/nested-tables-with-div-offset_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/padding-height-and-override-height_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/resize-table-binding-cell_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/table/resize-table-cell_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/table-all-rowspans-height-distribution-in-rows-except-overlapped_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/table-all-rowspans-height-distribution-in-rows_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/table-cell-offset-width_t01: RuntimeError # Please triage this failure
@@ -6998,14 +6996,12 @@ Language/Expressions/Assignment/no_such_method_t08: RuntimeError
 Language/Expressions/Assignment/no_such_method_t09: RuntimeError
 Language/Expressions/Constants/bitwise_operators_t05: MissingCompileTimeError
 Language/Expressions/Constants/depending_on_itself_t03: Crash
-Language/Expressions/Constants/exception_t01: MissingCompileTimeError # Larger than 64 bit int
 Language/Expressions/Constants/exception_t02: Pass
 Language/Expressions/Constants/literal_number_t01: CompileTimeError # Larger than 64 bit int
 Language/Expressions/Constants/logical_expression_t04: MissingCompileTimeError
 Language/Expressions/Constants/math_operators_t01: CompileTimeError # Larger than 64 bit int
 Language/Expressions/Constants/math_operators_t06: CompileTimeError # Larger than 64 bit int
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: Crash
-Language/Expressions/Instance_Creation/Const/exception_t01: MissingCompileTimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/evaluation_t08: RuntimeError
 Language/Expressions/Method_Invocation/Super_Invocation/accessible_instance_member_t02: Crash
 Language/Expressions/Method_Invocation/Super_Invocation/evaluation_t05: RuntimeError
@@ -7050,7 +7046,6 @@ LayoutTests/fast/canvas/gradient-addColorStop-with-invalid-color_t01: Pass, Runt
 LayoutTests/fast/canvas/rgba-parsing_t01: Pass, RuntimeError
 LibTest/core/Invocation/namedArguments_A01_t01: RuntimeError
 LibTest/core/double/isInfinite_A01_t03: CompileTimeError # Larger than 64 bit int
-LibTest/core/double/operator_GE_A01_t02: RuntimeError # WontFix: Not representable in JS.
 LibTest/core/int/abs_A01_t01: CompileTimeError # Larger than 64 bit int
 LibTest/core/int/ceilToDouble_A01_t01: CompileTimeError # Larger than 64 bit int
 LibTest/core/int/ceil_A01_t01: CompileTimeError # Larger than 64 bit int
@@ -7103,7 +7098,6 @@ LibTest/html/Window/postMessage_A01_t02: Crash
 LibTest/html/Window/requestFileSystem_A01_t01: Crash
 LibTest/html/Window/requestFileSystem_A01_t02: Crash
 LibTest/html/Window/requestFileSystem_A02_t01: Crash
-LibTest/math/pow_A09_t01: RuntimeError # WontFix: Not representable in JS.
 LibTest/math/pow_A10_t01: CompileTimeError # Larger than 64 bit int
 WebPlatformTest/html/semantics/embedded-content/the-audio-element/audio_constructor_t01: RuntimeError
 

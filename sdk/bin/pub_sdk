@@ -41,10 +41,10 @@ fi
 
 # Run the pub snapshot.
 DART="$BIN_DIR/dart"
-if array_contains "--preview-dart-2" "${VM_OPTIONS[@]}"; then
-  SNAPSHOT="$BIN_DIR/snapshots/pub2.dart.snapshot"
+if array_contains "--no-preview-dart-2" "${VM_OPTIONS[@]}"; then
+  SNAPSHOT="$BIN_DIR/snapshots/pub.dart.snapshot"
   exec "$DART" "${VM_OPTIONS[@]}" "$SNAPSHOT" "$@"
 else
-  SNAPSHOT="$BIN_DIR/snapshots/pub.dart.snapshot"
+  SNAPSHOT="$BIN_DIR/snapshots/pub2.dart.snapshot"
   exec "$DART" "${VM_OPTIONS[@]}" "$SNAPSHOT" "$@"
 fi

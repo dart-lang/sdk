@@ -297,7 +297,7 @@ abstract class StackListener extends Listener {
     debugEvent("endLiteralString");
     if (interpolationCount == 0) {
       Token token = pop();
-      push(unescapeString(token.lexeme));
+      push(unescapeString(token.lexeme, token, this));
     } else {
       unimplemented("string interpolation", endToken.charOffset, uri);
     }
@@ -354,6 +354,12 @@ abstract class StackListener extends Listener {
   @override
   Token handleUnrecoverableError(Token token, Message message) {
     throw deprecated_inputError(uri, token.charOffset, message.message);
+  }
+
+  @override
+  void handleUnescapeError(
+      Message message, Token token, int stringOffset, int length) {
+    addCompileTimeError(message, token.charOffset + stringOffset, length);
   }
 
   void addCompileTimeError(Message message, int charOffset, int length);

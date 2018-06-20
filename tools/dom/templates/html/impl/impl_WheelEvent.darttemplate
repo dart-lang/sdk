@@ -54,7 +54,6 @@ $!MEMBERS
    *
    * * [WheelEvent.deltaY](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaY) from the W3C.
    */
-  @DomName('WheelEvent.deltaY')
   num get deltaY {
     if (JS('bool', '#.deltaY !== undefined', this)) {
       // W3C WheelEvent
@@ -72,7 +71,6 @@ $!MEMBERS
    *
    * * [WheelEvent.deltaX](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaX) from the W3C.
    */
-  @DomName('WheelEvent.deltaX')
   num get deltaX {
     if (JS('bool', '#.deltaX !== undefined', this)) {
       // W3C WheelEvent
@@ -82,7 +80,6 @@ $!MEMBERS
         'deltaX is not supported');
   }
 
-  @DomName('WheelEvent.deltaMode')
   int get deltaMode {
     if (JS('bool', '!!(#.deltaMode)', this)) {
       return JS('int', '#.deltaMode', this);

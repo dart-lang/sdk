@@ -2424,6 +2424,8 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   @override
   LineInfo lineInfo;
 
+  Map<int, AstNode> localDeclarations;
+
   /**
    * Initialize a newly created compilation unit to have the given directives
    * and declarations. The [scriptTag] can be `null` if there is no script tag

@@ -2573,11 +2573,7 @@ import 'dart:async';
 FutureOr<void> f(Future f) async {}
 ''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(source, [HintCode.MISSING_RETURN]);
-    } else {
-      assertNoErrors(source);
-    }
+    assertNoErrors(source);
     verify([source]);
   }
 

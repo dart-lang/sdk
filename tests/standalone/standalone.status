@@ -23,6 +23,9 @@ verbose_gc_to_bmu_test: SkipByDesign # No verbose_gc in product mode
 [ $runtime == dart_precompiled ]
 verbose_gc_to_bmu_test: Skip # These tests attempt to spawn another script using the precompiled runtime.
 
+[ $runtime == vm ]
+verbose_gc_to_bmu_test: Skip # spawns a process which runs in Dart2 mode.
+
 [ $system == windows ]
 io/sleep_test: Pass, Fail # Issue 25757
 verbose_gc_to_bmu_test: Skip

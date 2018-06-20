@@ -1144,6 +1144,15 @@ class BinaryConstantExpression extends ConstantExpression {
           });
           isValid = false;
         }
+        if (isValid &&
+            (operator.kind == BinaryOperatorKind.IDIV ||
+                operator.kind == BinaryOperatorKind.MOD)) {
+          if (rightValue.isZero) {
+            environment.reportError(right, MessageKind.INVALID_CONSTANT_DIV,
+                {'left': left, 'right': right, 'operator': operator});
+            isValid = false;
+          }
+        }
         break;
       case BinaryOperatorKind.SHL:
       case BinaryOperatorKind.SHR:
@@ -1167,6 +1176,16 @@ class BinaryConstantExpression extends ConstantExpression {
             'operator': operator
           });
           isValid = false;
+        }
+        if (isValid &&
+            (operator.kind == BinaryOperatorKind.SHL ||
+                operator.kind == BinaryOperatorKind.SHR)) {
+          IntConstantValue shift = rightValue;
+          if (shift.intValue < BigInt.zero) {
+            environment.reportError(right, MessageKind.INVALID_CONSTANT_SHIFT,
+                {'left': left, 'right': right, 'operator': operator});
+            isValid = false;
+          }
         }
         break;
       case BinaryOperatorKind.LOGICAL_AND:
@@ -1229,6 +1248,8 @@ class BinaryConstantExpression extends ConstantExpression {
           if (value != null) {
             return value;
           }
+          environment
+              .reportError(this, MessageKind.NOT_A_COMPILE_TIME_CONSTANT, {});
       }
     }
     return new NonConstantValue();

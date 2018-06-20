@@ -9,9 +9,9 @@
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
+#include "vm/heap/verifier.h"
 #include "vm/resolver.h"
 #include "vm/unit_test.h"
-#include "vm/verifier.h"
 #include "vm/zone.h"
 
 namespace dart {

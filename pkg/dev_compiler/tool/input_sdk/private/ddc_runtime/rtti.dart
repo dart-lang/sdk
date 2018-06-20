@@ -4,7 +4,7 @@
 
 /// This library defines the association between runtime objects and
 /// runtime types.
-part of dart._runtime;
+part of "runtime.dart";
 
 /// Runtime type information.  This module defines the mapping from
 /// runtime objects to their runtime type information.  See the types
@@ -121,7 +121,7 @@ Type wrapType(type) {
   if (JS('!', '#.hasOwnProperty(#)', type, _typeObject)) {
     return JS('', '#[#]', type, _typeObject);
   }
-  return JS('Type', '#[#] = #', type, _typeObject, new WrappedType(type));
+  return JS('Type', '#[#] = #', type, _typeObject, WrappedType(type));
 }
 
 /// The symbol used to store the cached `Type` object associated with a class.

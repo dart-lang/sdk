@@ -17,7 +17,7 @@ Library getLibrary(NamedNode node) {
   return null;
 }
 
-final Pattern _syntheticTypeCharacters = new RegExp('[&^#.]');
+final Pattern _syntheticTypeCharacters = RegExp('[&^#.]');
 
 String _escapeIdentifier(String identifier) {
   // Remove the special characters used to encode mixin application class names
@@ -138,7 +138,7 @@ bool isMixinAliasClass(Class c) =>
 
 List<Class> getSuperclasses(Class c) {
   var result = <Class>[];
-  var visited = new HashSet<Class>();
+  var visited = HashSet<Class>();
   while (c != null && visited.add(c)) {
     for (var m = c.mixedInClass; m != null; m = m.mixedInClass) {
       result.add(m);

@@ -38,7 +38,7 @@ class Setup extends Step<TestDescription, Data, ChainContext> {
   String get name => "setup";
 
   Future<Result<Data>> run(TestDescription input, ChainContext context) async {
-    Data data = new Data()..uri = input.uri;
+    Data data = Data()..uri = input.uri;
     if (context is ChainContextWithCleanupHelper) {
       context.cleanupHelper[input] = data;
     }
@@ -89,7 +89,7 @@ File findInOutDir(String relative) {
   var outerDir = sdkRoot.path;
   for (var outDir in const ["out/ReleaseX64", "xcodebuild/ReleaseX64"]) {
     var tryPath = path.join(outerDir, outDir, relative);
-    File file = new File(tryPath);
+    File file = File(tryPath);
     if (file.existsSync()) return file;
   }
   throw "Couldn't find $relative. Try building more targets.";

@@ -67,11 +67,11 @@ const int _POW2_32 = 0x100000000;
 
 @patch
 class Random {
-  static final _secureRandom = new _JSSecureRandom();
+  static final _secureRandom = _JSSecureRandom();
 
   @patch
   factory Random([int seed]) =>
-      (seed == null) ? const _JSRandom() : new _Random(seed);
+      (seed == null) ? const _JSRandom() : _Random(seed);
 
   @patch
   factory Random.secure() => _secureRandom;
@@ -84,7 +84,7 @@ class _JSRandom implements Random {
   @notNull
   int nextInt(int max) {
     if (max <= 0 || max > _POW2_32) {
-      throw new RangeError("max must be in range 0 < max ≤ 2^32, was $max");
+      throw RangeError("max must be in range 0 < max ≤ 2^32, was $max");
     }
     return JS("int", "(Math.random() * #) >>> 0", max);
   }
@@ -225,7 +225,7 @@ class _Random implements Random {
   @notNull
   int nextInt(@nullCheck int max) {
     if (max <= 0 || max > _POW2_32) {
-      throw new RangeError("max must be in range 0 < max ≤ 2^32, was $max");
+      throw RangeError("max must be in range 0 < max ≤ 2^32, was $max");
     }
     if ((max & (max - 1)) == 0) {
       // Fast case for powers of two.
@@ -261,7 +261,7 @@ class _Random implements Random {
 
 class _JSSecureRandom implements Random {
   // Reused buffer with room enough for a double.
-  final _buffer = new ByteData(8);
+  final _buffer = ByteData(8);
 
   _JSSecureRandom() {
     var crypto = JS("", "self.crypto");
@@ -271,7 +271,7 @@ class _JSSecureRandom implements Random {
         return;
       }
     }
-    throw new UnsupportedError(
+    throw UnsupportedError(
         "No source of cryptographically secure random numbers available.");
   }
 
@@ -311,7 +311,7 @@ class _JSSecureRandom implements Random {
   @notNull
   int nextInt(@nullCheck int max) {
     if (max <= 0 || max > _POW2_32) {
-      throw new RangeError("max must be in range 0 < max ≤ 2^32, was $max");
+      throw RangeError("max must be in range 0 < max ≤ 2^32, was $max");
     }
     int byteCount = 1;
     if (max > 0xFF) {

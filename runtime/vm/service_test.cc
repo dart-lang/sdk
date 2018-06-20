@@ -10,12 +10,12 @@
 #include "vm/debugger.h"
 #include "vm/debugger_api_impl_test.h"
 #include "vm/globals.h"
+#include "vm/heap/safepoint.h"
 #include "vm/message_handler.h"
 #include "vm/object_id_ring.h"
 #include "vm/os.h"
 #include "vm/port.h"
 #include "vm/profiler.h"
-#include "vm/safepoint.h"
 #include "vm/service.h"
 #include "vm/unit_test.h"
 
@@ -76,7 +76,7 @@ class ServiceTestMessageHandler : public MessageHandler {
 
 static RawArray* Eval(Dart_Handle lib, const char* expr) {
   const String& dummy_isolate_id = String::Handle(String::New("isolateId"));
-  Dart_Handle expr_val = Dart_EvaluateExpr(lib, NewString(expr));
+  Dart_Handle expr_val = Dart_EvaluateStaticExpr(lib, NewString(expr));
   EXPECT_VALID(expr_val);
   Zone* zone = Thread::Current()->zone();
   const GrowableObjectArray& value =

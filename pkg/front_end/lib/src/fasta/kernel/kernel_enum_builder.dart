@@ -230,10 +230,12 @@ class KernelEnumBuilder extends SourceClassBuilder
   @override
   Class build(KernelLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary) {
     cls.isEnum = true;
-    intType.resolveIn(coreLibrary.scope, charOffset, fileUri);
-    stringType.resolveIn(coreLibrary.scope, charOffset, fileUri);
-    objectType.resolveIn(coreLibrary.scope, charOffset, fileUri);
-    listType.resolveIn(coreLibrary.scope, charOffset, fileUri);
+    intType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
+    stringType.resolveIn(
+        coreLibrary.scope, charOffset, fileUri, libraryBuilder);
+    objectType.resolveIn(
+        coreLibrary.scope, charOffset, fileUri, libraryBuilder);
+    listType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
 
     KernelFieldBuilder indexFieldBuilder = this["index"];
     Field indexField = indexFieldBuilder.build(libraryBuilder);

@@ -16,8 +16,7 @@ import 'package:package_config/packages.dart' show Packages;
 
 import 'package:package_config/packages_file.dart' as package_config;
 
-import 'package:package_config/src/packages_impl.dart'
-    show NonFilePackagesDirectoryPackages, MapPackages;
+import 'package:package_config/src/packages_impl.dart' show MapPackages;
 
 import 'package:source_span/source_span.dart' show SourceSpan, SourceLocation;
 
@@ -492,10 +491,9 @@ class ProcessedOptions {
   /// the [FileSystem].
   ///
   /// This function first tries to locate a `.packages` file in the `scriptUri`
-  /// directory. If that is not found, it instead checks for the presence of a
-  /// `packages/` directory in the same place.  If that also fails, it starts
-  /// checking parent directories for a `.packages` file, and stops if it finds
-  /// it.  Otherwise it gives up and returns [Packages.noPackages].
+  /// directory. If that is not found, it starts checking parent directories for
+  /// a `.packages` file, and stops if it finds it. Otherwise it gives up and
+  /// returns [Packages.noPackages].
   ///
   /// Note: this is a fork from `package:package_config/discovery.dart` to adapt
   /// it to use [FileSystem]. The logic here is a mix of the logic in the
@@ -504,9 +502,8 @@ class ProcessedOptions {
   ///    * Like `findPackagesFromFile` resolution searches for parent
   ///    directories
   ///
-  ///    * Like `findPackagesFromNonFile` if we resolve packages as the
-  ///    `packages/` directory, we can't provide a list of packages that are
-  ///    visible.
+  ///    * Unlike package:package_config, it does not look for a `packages/`
+  ///    directory, as that won't be supported in Dart 2.
   Future<Packages> _findPackages(Uri scriptUri) async {
     var dir = scriptUri.resolve('.');
     if (!dir.isAbsolute) {
@@ -526,12 +523,6 @@ class ProcessedOptions {
     // Check for $cwd/.packages
     var candidate = await checkInDir(dir);
     if (candidate != null) return createPackagesFromFile(candidate);
-
-    // Check for $cwd/packages/
-    var packagesDir = dir.resolve("packages/");
-    if (await fileSystem.entityForUri(packagesDir).exists()) {
-      return new NonFilePackagesDirectoryPackages(packagesDir);
-    }
 
     // Check for cwd(/..)+/.packages
     var parentDir = dir.resolve('..');

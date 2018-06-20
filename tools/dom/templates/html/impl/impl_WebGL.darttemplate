@@ -1,0 +1,15 @@
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+/// Amalgamation of the WebGL constants from the IDL interfaces in
+/// WebGLRenderingContextBase, WebGL2RenderingContextBase, & WebGLDrawBuffers.
+/// Because the RenderingContextBase interfaces are hidden they would be
+/// replicated in more than one class (e.g., RenderingContext and
+/// RenderingContext2) to prevent that duplication these 600+ constants are
+/// defined in one abstract class (WebGL).
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)abstract class $CLASSNAME {
+$!MEMBERS
+}

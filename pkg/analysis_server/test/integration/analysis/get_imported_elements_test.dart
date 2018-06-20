@@ -15,9 +15,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisGetImportedElementsIntegrationTest);
-    // TODO(scheglov): Restore similar test coverage when the front-end API
-    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
-    // defineReflectiveTests(AnalysisGetImportedElementsIntegrationTest_UseCFE);
+    defineReflectiveTests(AnalysisGetImportedElementsIntegrationTest_UseCFE);
   });
 }
 
@@ -147,4 +145,16 @@ class AnalysisGetImportedElementsIntegrationTest_UseCFE
     extends AnalysisGetImportedElementsIntegrationTest {
   @override
   bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_getImportedElements_none() {
+    return super.test_getImportedElements_none();
+  }
+
+  @failingTest
+  @override
+  test_getImportedElements_some() {
+    return super.test_getImportedElements_some();
+  }
 }

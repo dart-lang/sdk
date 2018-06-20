@@ -13,7 +13,7 @@ import 'package:bazel_worker/testing.dart';
 import 'package:path/path.dart' show join, joinAll;
 import 'package:test/test.dart';
 
-File file(String path) => new File(joinAll(path.split('/'))).absolute;
+File file(String path) => File(joinAll(path.split('/'))).absolute;
 
 main() {
   var dartdevc = join('bin', 'dartdevc.dart');
@@ -49,9 +49,9 @@ main() {
     test('can compile in worker mode', () async {
       var args = executableArgs.toList()..add('--persistent_worker');
       var process = await Process.start(Platform.executable, args);
-      var messageGrouper = new AsyncMessageGrouper(process.stdout);
+      var messageGrouper = AsyncMessageGrouper(process.stdout);
 
-      var request = new WorkRequest();
+      var request = WorkRequest();
       request.arguments.addAll(compilerArgs);
       process.stdin.add(protoToDelimitedBuffer(request));
 
@@ -89,7 +89,7 @@ main() {
     });
 
     test('unknown options', () {
-      var args = new List<String>.from(executableArgs)
+      var args = List<String>.from(executableArgs)
         ..add('--does-not-exist')
         ..addAll(compilerArgs);
       var result = Process.runSync(Platform.executable, args);
@@ -102,7 +102,7 @@ main() {
     });
 
     test('unknown options ignored', () {
-      var args = new List<String>.from(executableArgs)
+      var args = List<String>.from(executableArgs)
         ..add('--does-not-exist')
         ..add('--ignore-unrecognized-flags')
         ..addAll(compilerArgs);
@@ -367,7 +367,7 @@ main() {
 Future<WorkResponse> _readResponse(MessageGrouper messageGrouper) async {
   var buffer = (await messageGrouper.next) as List<int>;
   try {
-    return new WorkResponse.fromBuffer(buffer);
+    return WorkResponse.fromBuffer(buffer);
   } catch (_) {
     var bufferAsString =
         buffer == null ? '' : 'String: ${utf8.decode(buffer)}\n';

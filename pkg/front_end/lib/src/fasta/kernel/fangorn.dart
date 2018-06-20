@@ -66,44 +66,46 @@ import 'kernel_expression_generator.dart'
 
 import 'kernel_shadow_ast.dart'
     show
-        ShadowArguments,
-        ShadowAsExpression,
-        ShadowAssertInitializer,
-        ShadowAssertStatement,
-        ShadowAwaitExpression,
-        ShadowBlock,
-        ShadowBoolLiteral,
-        ShadowBreakStatement,
-        ShadowCheckLibraryIsLoaded,
-        ShadowConditionalExpression,
-        ShadowDoStatement,
-        ShadowDoubleLiteral,
+        ArgumentsJudgment,
+        AsJudgment,
+        AssertInitializerJudgment,
+        AssertStatementJudgment,
+        AwaitJudgment,
+        BlockJudgment,
+        BoolJudgment,
+        BreakJudgment,
+        CheckLibraryIsLoadedJudgment,
+        ConditionalJudgment,
+        ContinueJudgment,
+        DoJudgment,
+        DoubleJudgment,
+        EmptyStatementJudgment,
+        IntJudgment,
+        IsJudgment,
+        IsNotJudgment,
+        LabeledStatementJudgment,
+        LoadLibraryJudgment,
+        NullJudgment,
         ShadowExpressionStatement,
         ShadowForStatement,
-        ShadowIfStatement,
-        ShadowIntLiteral,
-        ShadowIsExpression,
-        ShadowIsNotExpression,
-        ShadowLabeledStatement,
+        IfJudgment,
         ShadowListLiteral,
-        ShadowLoadLibrary,
         ShadowLogicalExpression,
         ShadowMapLiteral,
         ShadowNot,
-        ShadowNullLiteral,
         ShadowRethrow,
-        ShadowReturnStatement,
+        ReturnJudgment,
         ShadowStringConcatenation,
         ShadowStringLiteral,
         ShadowSymbolLiteral,
         ShadowSyntheticExpression,
-        ShadowThisExpression,
-        ShadowThrow,
         ShadowTryCatch,
         ShadowTryFinally,
-        ShadowTypeLiteral,
         ShadowWhileStatement,
-        ShadowYieldStatement;
+        YieldJudgment,
+        ThisJudgment,
+        ThrowJudgment,
+        TypeLiteralJudgment;
 
 import 'forest.dart'
     show
@@ -120,14 +122,14 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   const Fangorn();
 
   @override
-  ShadowArguments arguments(List<Expression> positional, Token token,
+  ArgumentsJudgment arguments(List<Expression> positional, Token token,
       {List<DartType> types, List<NamedExpression> named}) {
-    return new ShadowArguments(positional, types: types, named: named)
+    return new ArgumentsJudgment(positional, types: types, named: named)
       ..fileOffset = offsetForToken(token);
   }
 
   @override
-  ShadowArguments argumentsEmpty(Token token) {
+  ArgumentsJudgment argumentsEmpty(Token token) {
     return arguments(<Expression>[], token);
   }
 
@@ -148,25 +150,25 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   void argumentsSetTypeArguments(Arguments arguments, List<DartType> types) {
-    ShadowArguments.setNonInferrableArgumentTypes(arguments, types);
+    ArgumentsJudgment.setNonInferrableArgumentTypes(arguments, types);
   }
 
   @override
   ShadowStringLiteral asLiteralString(Expression value) => value;
 
   @override
-  ShadowBoolLiteral literalBool(bool value, Token token) {
-    return new ShadowBoolLiteral(value)..fileOffset = offsetForToken(token);
+  BoolJudgment literalBool(bool value, Token token) {
+    return new BoolJudgment(value)..fileOffset = offsetForToken(token);
   }
 
   @override
-  ShadowDoubleLiteral literalDouble(double value, Token token) {
-    return new ShadowDoubleLiteral(value)..fileOffset = offsetForToken(token);
+  DoubleJudgment literalDouble(double value, Token token) {
+    return new DoubleJudgment(value)..fileOffset = offsetForToken(token);
   }
 
   @override
-  ShadowIntLiteral literalInt(int value, Token token) {
-    return new ShadowIntLiteral(value)..fileOffset = offsetForToken(token);
+  IntJudgment literalInt(int value, Token token) {
+    return new IntJudgment(value)..fileOffset = offsetForToken(token);
   }
 
   @override
@@ -203,8 +205,8 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
-  ShadowNullLiteral literalNull(Token token) {
-    return new ShadowNullLiteral()..fileOffset = offsetForToken(token);
+  NullJudgment literalNull(Token token) {
+    return new NullJudgment()..fileOffset = offsetForToken(token);
   }
 
   @override
@@ -223,8 +225,8 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
-  ShadowTypeLiteral literalType(DartType type, Token token) {
-    return new ShadowTypeLiteral(type)..fileOffset = offsetForToken(token);
+  TypeLiteralJudgment literalType(DartType type, Token token) {
+    return new TypeLiteralJudgment(type)..fileOffset = offsetForToken(token);
   }
 
   @override
@@ -248,18 +250,17 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   Expression loadLibrary(LibraryDependency dependency) {
-    return new ShadowLoadLibrary(dependency);
+    return new LoadLibraryJudgment(dependency);
   }
 
   @override
   Expression checkLibraryIsLoaded(LibraryDependency dependency) {
-    return new ShadowCheckLibraryIsLoaded(dependency);
+    return new CheckLibraryIsLoadedJudgment(dependency);
   }
 
   @override
   Expression asExpression(Expression expression, covariant type, Token token) {
-    return new ShadowAsExpression(expression, type)
-      ..fileOffset = offsetForToken(token);
+    return new AsJudgment(expression, type)..fileOffset = offsetForToken(token);
   }
 
   @override
@@ -269,7 +270,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       Expression condition,
       Token comma,
       Expression message) {
-    return new ShadowAssertInitializer(assertStatement(
+    return new AssertInitializerJudgment(assertStatement(
         assertKeyword, leftParenthesis, condition, comma, message, null));
   }
 
@@ -309,7 +310,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
         endOffset = conditionLastToken.offset + conditionLastToken.length;
       }
     }
-    return new ShadowAssertStatement(condition,
+    return new AssertStatementJudgment(condition,
         conditionStartOffset: startOffset,
         conditionEndOffset: endOffset,
         message: message);
@@ -317,8 +318,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   Expression awaitExpression(Expression operand, Token token) {
-    return new ShadowAwaitExpression(operand)
-      ..fileOffset = offsetForToken(token);
+    return new AwaitJudgment(operand)..fileOffset = offsetForToken(token);
   }
 
   @override
@@ -334,13 +334,13 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
         copy.add(statement);
       }
     }
-    return new ShadowBlock(copy ?? statements)
+    return new BlockJudgment(copy ?? statements)
       ..fileOffset = offsetForToken(openBrace);
   }
 
   @override
   Statement breakStatement(Token breakKeyword, Object label, Token semicolon) {
-    return new ShadowBreakStatement(null)..fileOffset = breakKeyword.charOffset;
+    return new BreakJudgment(null)..fileOffset = breakKeyword.charOffset;
   }
 
   @override
@@ -361,23 +361,20 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   @override
   Expression conditionalExpression(Expression condition, Token question,
       Expression thenExpression, Token colon, Expression elseExpression) {
-    return new ShadowConditionalExpression(
-        condition, thenExpression, elseExpression)
+    return new ConditionalJudgment(condition, thenExpression, elseExpression)
       ..fileOffset = offsetForToken(question);
   }
 
   @override
   Statement continueStatement(
       Token continueKeyword, Object label, Token semicolon) {
-    return new ShadowBreakStatement(null)
-      ..fileOffset = continueKeyword.charOffset;
+    return new ContinueJudgment(null)..fileOffset = continueKeyword.charOffset;
   }
 
   @override
   Statement doStatement(Token doKeyword, Statement body, Token whileKeyword,
       Expression condition, Token semicolon) {
-    return new ShadowDoStatement(body, condition)
-      ..fileOffset = doKeyword.charOffset;
+    return new DoJudgment(body, condition)..fileOffset = doKeyword.charOffset;
   }
 
   Statement expressionStatement(Expression expression, Token semicolon) {
@@ -386,7 +383,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   Statement emptyStatement(Token semicolon) {
-    return new EmptyStatement();
+    return new EmptyStatementJudgment();
   }
 
   @override
@@ -408,7 +405,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   @override
   Statement ifStatement(Token ifKeyword, Expression condition,
       Statement thenStatement, Token elseKeyword, Statement elseStatement) {
-    return new ShadowIfStatement(condition, thenStatement, elseStatement)
+    return new IfJudgment(condition, thenStatement, elseStatement)
       ..fileOffset = ifKeyword.charOffset;
   }
 
@@ -417,9 +414,9 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       Expression operand, isOperator, Token notOperator, covariant type) {
     int offset = offsetForToken(isOperator);
     if (notOperator != null) {
-      return new ShadowIsNotExpression(operand, type, offset);
+      return new IsNotJudgment(operand, type, offset);
     }
-    return new ShadowIsExpression(operand, type)..fileOffset = offset;
+    return new IsJudgment(operand, type)..fileOffset = offset;
   }
 
   @override
@@ -460,7 +457,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   @override
   Statement returnStatement(
       Token returnKeyword, Expression expression, Token semicolon) {
-    return new ShadowReturnStatement(expression)
+    return new ReturnJudgment(expression)
       ..fileOffset = returnKeyword.charOffset;
   }
 
@@ -473,17 +470,17 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   Statement syntheticLabeledStatement(Statement statement) {
-    return new ShadowLabeledStatement(statement);
+    return new LabeledStatementJudgment(statement);
   }
 
   @override
   Expression thisExpression(Token token) {
-    return new ShadowThisExpression()..fileOffset = offsetForToken(token);
+    return new ThisJudgment()..fileOffset = offsetForToken(token);
   }
 
   @override
   Expression throwExpression(Token throwKeyword, Expression expression) {
-    return new ShadowThrow(expression)
+    return new ThrowJudgment(expression)
       ..fileOffset = offsetForToken(throwKeyword);
   }
 
@@ -515,10 +512,10 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   @override
   Statement wrapVariables(Statement statement) {
     if (statement is _VariablesDeclaration) {
-      return new ShadowBlock(statement.declarations)
+      return new BlockJudgment(statement.declarations)
         ..fileOffset = statement.fileOffset;
     } else if (statement is VariableDeclaration) {
-      return new ShadowBlock(<Statement>[statement])
+      return new BlockJudgment(<Statement>[statement])
         ..fileOffset = statement.fileOffset;
     } else {
       return statement;
@@ -535,7 +532,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   @override
   Statement yieldStatement(
       Token yieldKeyword, Token star, Expression expression, Token semicolon) {
-    return new ShadowYieldStatement(expression, isYieldStar: star != null)
+    return new YieldJudgment(expression, isYieldStar: star != null)
       ..fileOffset = yieldKeyword.charOffset;
   }
 

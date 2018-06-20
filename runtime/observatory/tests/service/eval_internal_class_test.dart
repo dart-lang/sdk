@@ -12,24 +12,38 @@ var tests = <IsolateTest>[
 
     Class classLibrary = await root.clazz.load();
     print(classLibrary);
-    dynamic result = await classLibrary.evaluate('3 + 4');
-    print(result);
-    expect(result is DartError, isTrue);
-    expect(result.message, contains('can be evaluated only'));
+    {
+      bool caughtExceptions = false;
+      try {
+        dynamic result = await classLibrary.evaluate('3 + 4');
+        print(result);
+      } on ServerRpcException catch (e) {
+        expect(e.toString(), contains('can be evaluated only'));
+        caughtExceptions = true;
+      }
+      expect(caughtExceptions, isTrue);
+    }
 
     Class classClass = await classLibrary.clazz.load();
     print(classClass);
-    result = await classClass.evaluate('3 + 4');
-    print(result);
-    expect(result is DartError, isTrue);
-    expect(result.message, contains('can be evaluated only'));
+    {
+      bool caughtExceptions = false;
+      try {
+        dynamic result = await classClass.evaluate('3 + 4');
+        print(result);
+      } on ServerRpcException catch (e) {
+        expect(e.toString(), contains('can be evaluated only'));
+        caughtExceptions = true;
+      }
+      expect(caughtExceptions, isTrue);
+    }
 
     Instance someArray = await root.evaluate("new List(2)");
     print(someArray);
     expect(someArray is Instance, isTrue);
     Class classArray = await someArray.clazz.load();
     print(classArray);
-    result = await classArray.evaluate('3 + 4');
+    dynamic result = await classArray.evaluate('3 + 4');
     print(result);
     expect(result is Instance, isTrue);
     expect(result.valueAsString, equals('7'));

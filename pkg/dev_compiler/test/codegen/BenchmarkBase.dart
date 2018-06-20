@@ -56,7 +56,7 @@ class BenchmarkBase {
   static double measureFor(Function f, int timeMinimum) {
     int time = 0;
     int iter = 0;
-    Stopwatch watch = new Stopwatch();
+    Stopwatch watch = Stopwatch();
     watch.start();
     int elapsed = 0;
     while (elapsed < timeMinimum) {

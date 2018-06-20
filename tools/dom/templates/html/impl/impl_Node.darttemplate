@@ -199,7 +199,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   /**
    * Removes this node from the DOM.
    */
-  @DomName('Node.removeChild')
   void remove() {
     // TODO(jacobr): should we throw an exception if parent is already null?
     // TODO(vsm): Use the native remove when available.
@@ -212,7 +211,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   /**
    * Replaces this node with another node.
    */
-  @DomName('Node.replaceChild')
   Node replaceWith(Node otherNode) {
     try {
       final Node parent = this.parentNode;
@@ -270,8 +268,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * * [Node.childNodes](https://developer.mozilla.org/en-US/docs/Web/API/Node.childNodes)
    *   from MDN.
    */
-  @DomName('Node.childNodes')
-  @DocsEditable()
   @Returns('NodeList')
   @Creates('NodeList')
   final List<Node> childNodes;

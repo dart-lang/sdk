@@ -22,7 +22,7 @@ import 'constness.dart' show Constness;
 
 import 'forest.dart' show Forest;
 
-import 'kernel_builder.dart' show PrefixBuilder;
+import 'kernel_builder.dart' show KernelTypeBuilder, PrefixBuilder;
 
 import 'kernel_ast_api.dart'
     show
@@ -130,7 +130,7 @@ abstract class ExpressionGeneratorHelper<Expression, Statement, Arguments>
       Member interfaceTarget});
 
   Expression buildConstructorInvocation(
-      TypeDeclarationBuilder type,
+      TypeDeclarationBuilder<KernelTypeBuilder, DartType> type,
       Token nameToken,
       Arguments arguments,
       String name,

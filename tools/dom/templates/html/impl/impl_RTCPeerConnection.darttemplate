@@ -50,9 +50,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     return completer.future;
   }
 
-  @DomName('RTCPeerConnection.generateCertificate')
-  @DocsEditable()
-  @Experimental() // untriaged
   static Future generateCertificate(/*AlgorithmIdentifier*/ keygenAlgorithm) =>
       JS('dynamic', 'generateCertificate(#)', keygenAlgorithm);
 

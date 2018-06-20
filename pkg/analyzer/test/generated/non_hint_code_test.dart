@@ -44,7 +44,7 @@ import 'dart:async';
 Future<Object> f() async {}
 ''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    assertErrors(source, [HintCode.MISSING_RETURN]);
     verify([source]);
   }
 

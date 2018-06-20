@@ -27,7 +27,7 @@ int _callRecordSampleSize = 5000;
 
 /// If the number of dynamic calls exceeds [_callRecordSampleSize] this list
 /// will represent a random sample of the dynamic calls made.
-List<_CallMethodRecord> _callMethodRecords = new List();
+List<_CallMethodRecord> _callMethodRecords = List();
 
 /// If the number of dynamic calls exceeds [_callRecordSampleSize] this value
 /// will be greater than [_callMethodRecords.length].
@@ -43,7 +43,7 @@ num _minCount = 2;
 /// speedup lookup of source map frames when running the profiler.
 /// The number of source map entries looked up makes caching more important
 /// in this case than for typical source map use cases.
-Map<String, String> _frameMappingCache = new Map();
+Map<String, String> _frameMappingCache = Map();
 
 List<List<Object>> getDynamicStats() {
   // Process the accumulated method stats. This may be quite slow as processing
@@ -54,7 +54,7 @@ List<List<Object>> getDynamicStats() {
   // raw number of dynamic calls so that the magnitude of the dynamic call
   // performance hit is clear to users.
 
-  Map<String, _MethodStats> callMethodStats = new Map();
+  Map<String, _MethodStats> callMethodStats = Map();
   if (_callMethodRecords.length > 0) {
     // Ratio between total record count and sampled records count.
     var recordRatio = _totalCallRecords / _callMethodRecords.length;
@@ -71,8 +71,8 @@ List<List<Object>> getDynamicStats() {
 
       var actualTypeName = dart.typeName(record.type);
       callMethodStats
-          .putIfAbsent("$actualTypeName <$src>",
-              () => new _MethodStats(actualTypeName, src))
+          .putIfAbsent(
+              "$actualTypeName <$src>", () => _MethodStats(actualTypeName, src))
           .count += recordRatio;
     }
 
@@ -126,7 +126,7 @@ trackCall(obj) {
     if (index >= _callMethodRecords.length) return; // don't sample
   }
   var record =
-      new _CallMethodRecord(JS('', 'new Error()'), dart.getReifiedType(obj));
+      _CallMethodRecord(JS('', 'new Error()'), dart.getReifiedType(obj));
   if (index == -1) {
     _callMethodRecords.add(record);
   } else {

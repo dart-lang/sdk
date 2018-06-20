@@ -1093,8 +1093,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
       return CompileType::FromCid(kSmiCid);
-
     case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
       return CompileType::Int();
 
     default:
@@ -1124,6 +1124,7 @@ Representation LoadIndexedInstr::representation() const {
     case kTypedDataUint32ArrayCid:
       return kUnboxedUint32;
     case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
       return kUnboxedInt64;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
@@ -1229,7 +1230,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   if (representation() == kUnboxedInt64) {
-    ASSERT(class_id() == kTypedDataInt64ArrayCid);
+    ASSERT(class_id() == kTypedDataInt64ArrayCid ||
+           class_id() == kTypedDataUint64ArrayCid);
     if ((index_scale() == 1) && index.IsRegister()) {
       __ SmiUntag(index.reg());
     }
@@ -1361,6 +1363,7 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
     case kTypedDataUint32ArrayCid:
       return kUnboxedUint32;
     case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
       return kUnboxedInt64;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
@@ -1421,6 +1424,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
     case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
       locs->set_in(2, Location::RequiresRegister());
       break;
     case kTypedDataFloat32ArrayCid:
@@ -1525,7 +1529,8 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movl(element_address, value);
       break;
     }
-    case kTypedDataInt64ArrayCid: {
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid: {
       Register value = locs()->in(2).reg();
       __ movq(element_address, value);
       break;
@@ -2612,6 +2617,8 @@ LocationSummary* CheckStackOverflowInstr::MakeLocationSummary(Zone* zone,
 class CheckStackOverflowSlowPath
     : public TemplateSlowPathCode<CheckStackOverflowInstr> {
  public:
+  static constexpr intptr_t kNumSlowPathArgs = 0;
+
   explicit CheckStackOverflowSlowPath(CheckStackOverflowInstr* instruction)
       : TemplateSlowPathCode(instruction) {}
 
@@ -2628,11 +2635,12 @@ class CheckStackOverflowSlowPath
     // pending_deoptimization_env_ is needed to generate a runtime call that
     // may throw an exception.
     ASSERT(compiler->pending_deoptimization_env_ == NULL);
-    Environment* env = compiler->SlowPathEnvironmentFor(instruction());
+    Environment* env =
+        compiler->SlowPathEnvironmentFor(instruction(), kNumSlowPathArgs);
     compiler->pending_deoptimization_env_ = env;
     compiler->GenerateRuntimeCall(
         instruction()->token_pos(), instruction()->deopt_id(),
-        kStackOverflowRuntimeEntry, 0, instruction()->locs());
+        kStackOverflowRuntimeEntry, kNumSlowPathArgs, instruction()->locs());
 
     if (compiler->isolate()->use_osr() && !compiler->is_optimizing() &&
         instruction()->in_loop()) {
@@ -2798,6 +2806,8 @@ class CheckedSmiSlowPath : public TemplateSlowPathCode<CheckedSmiOpInstr> {
   CheckedSmiSlowPath(CheckedSmiOpInstr* instruction, intptr_t try_index)
       : TemplateSlowPathCode(instruction), try_index_(try_index) {}
 
+  static constexpr intptr_t kNumSlowPathArgs = 2;
+
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     if (Assembler::EmittingComments()) {
       __ Comment("slow path smi operation");
@@ -2809,7 +2819,8 @@ class CheckedSmiSlowPath : public TemplateSlowPathCode<CheckedSmiOpInstr> {
 
     compiler->SaveLiveRegisters(locs);
     if (instruction()->env() != NULL) {
-      Environment* env = compiler->SlowPathEnvironmentFor(instruction());
+      Environment* env =
+          compiler->SlowPathEnvironmentFor(instruction(), kNumSlowPathArgs);
       compiler->pending_deoptimization_env_ = env;
     }
     __ pushq(locs->in(0).reg());
@@ -2820,8 +2831,7 @@ class CheckedSmiSlowPath : public TemplateSlowPathCode<CheckedSmiOpInstr> {
         Array::Handle(instruction()->call()->ic_data()->arguments_descriptor());
     compiler->EmitMegamorphicInstanceCall(
         selector, arguments_descriptor, instruction()->call()->deopt_id(),
-        instruction()->call()->token_pos(), locs, try_index_,
-        /* slow_path_argument_count = */ 2);
+        instruction()->call()->token_pos(), locs, try_index_, kNumSlowPathArgs);
     __ MoveRegister(result, RAX);
     compiler->RestoreLiveRegisters(locs);
     __ jmp(exit_label());
@@ -2954,6 +2964,8 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 class CheckedSmiComparisonSlowPath
     : public TemplateSlowPathCode<CheckedSmiComparisonInstr> {
  public:
+  static constexpr intptr_t kNumSlowPathArgs = 2;
+
   CheckedSmiComparisonSlowPath(CheckedSmiComparisonInstr* instruction,
                                intptr_t try_index,
                                BranchLabels labels,
@@ -2974,7 +2986,8 @@ class CheckedSmiComparisonSlowPath
 
     compiler->SaveLiveRegisters(locs);
     if (instruction()->env() != NULL) {
-      Environment* env = compiler->SlowPathEnvironmentFor(instruction());
+      Environment* env =
+          compiler->SlowPathEnvironmentFor(instruction(), kNumSlowPathArgs);
       compiler->pending_deoptimization_env_ = env;
     }
     __ pushq(locs->in(0).reg());
@@ -2985,8 +2998,7 @@ class CheckedSmiComparisonSlowPath
         Array::Handle(instruction()->call()->ic_data()->arguments_descriptor());
     compiler->EmitMegamorphicInstanceCall(
         selector, arguments_descriptor, instruction()->call()->deopt_id(),
-        instruction()->call()->token_pos(), locs, try_index_,
-        /* slow_path_argument_count = */ 2);
+        instruction()->call()->token_pos(), locs, try_index_, kNumSlowPathArgs);
     __ MoveRegister(result, RAX);
     compiler->RestoreLiveRegisters(locs);
     compiler->pending_deoptimization_env_ = NULL;

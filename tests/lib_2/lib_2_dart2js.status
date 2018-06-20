@@ -535,7 +535,6 @@ html/dom_constructors_test: Crash # NoSuchMethodError: Class 'JMethod' has no in
 html/domparser_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/element_add_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/element_animate_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/element_classes_svg_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/element_constructor_1_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/element_dimensions_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/element_offset_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
@@ -778,6 +777,9 @@ async/future_or_bad_type_test: MissingCompileTimeError
 
 [ $compiler == dart2js && $minified ]
 html/canvas_pixel_array_type_alias_test/types2_runtimeTypeName: Fail, OK # Issue 12605
+
+[ $compiler == dart2js && !$strong ]
+html/element_classes_svg_test: RuntimeError # Expected runtime type check only in strong mode.
 
 [ $compiler == dart2js && ($runtime == chrome || $runtime == ff) ]
 async/slow_consumer2_test: SkipSlow # Times out. Issue 22050

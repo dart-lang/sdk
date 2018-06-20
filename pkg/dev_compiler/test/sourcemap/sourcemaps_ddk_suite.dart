@@ -15,7 +15,7 @@ import 'ddc_common.dart';
 
 Future<ChainContext> createContext(
     Chain suite, Map<String, String> environment) async {
-  return new SourceMapContext(environment);
+  return SourceMapContext(environment);
 }
 
 class SourceMapContext extends ChainContextWithCleanupHelper
@@ -30,9 +30,9 @@ class SourceMapContext extends ChainContextWithCleanupHelper
   List<Step> get steps {
     return _steps ??= <Step>[
       const Setup(),
-      new Compile(new DevCompilerRunner(this, debugging())),
+      Compile(DevCompilerRunner(this, debugging())),
       const StepWithD8(),
-      new CheckSteps(debugging()),
+      CheckSteps(debugging()),
     ];
   }
 
@@ -82,8 +82,8 @@ class DevCompilerRunner implements CompilerRunner {
           "${args.reduce((value, element) => '$value "$element"')}";
     }
 
-    var jsContent = new File.fromUri(outputFile).readAsStringSync();
-    new File.fromUri(outputFile).writeAsStringSync(jsContent.replaceFirst(
+    var jsContent = File.fromUri(outputFile).readAsStringSync();
+    File.fromUri(outputFile).writeAsStringSync(jsContent.replaceFirst(
         "from 'dart_sdk'", "from '${uriPathForwardSlashed(jsSdkPath)}'"));
 
     if (debugging) {
@@ -94,7 +94,7 @@ class DevCompilerRunner implements CompilerRunner {
     var inputFileName = inputFile.pathSegments.last;
     var inputFileNameNoExt =
         inputFileName.substring(0, inputFileName.lastIndexOf("."));
-    new File.fromUri(outWrapperFile).writeAsStringSync(
+    File.fromUri(outWrapperFile).writeAsStringSync(
         getWrapperContent(jsSdkPath, inputFileNameNoExt, outputFilename));
   }
 }

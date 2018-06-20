@@ -147,8 +147,44 @@ testing/test/analyze_test: SkipByDesign
 [ $jscl ]
 kernel/test/*: SkipByDesign # Uses dart:io and bigints.
 
+[ $no_preview_dart_2 ]
+dev_compiler/*: SkipByDesign # uses Dart 2.
+
 [ $arch == x64 && $runtime == vm && $system == windows && $checked ]
 analyzer/test/src/task/strong/inferred_type_test: Pass, Slow
+
+# analyzer using the fasta parser
+[ $builder_tag == analyzer_use_fasta && $runtime == vm ]
+analysis_server/test/analysis/get_errors_test: Fail
+analysis_server/test/completion_test: Fail
+analysis_server/test/domain_completion_test: Fail
+analysis_server/test/edit/fixes_test: Fail
+analysis_server/test/integration/analysis/package_root_test: Pass, RuntimeError # Issue 33382
+analysis_server/test/services/completion/dart/keyword_contributor_test: Fail
+analysis_server/test/services/completion/dart/override_contributor_test: Fail
+analysis_server/test/services/completion/statement/statement_completion_test: Fail
+analysis_server/test/services/correction/fix_test: Fail
+analysis_server/test/services/refactoring/extract_local_test: Fail
+analyzer/test/generated/compile_time_error_code_driver_test: Fail
+analyzer/test/generated/compile_time_error_code_test: Fail
+analyzer/test/generated/declaration_resolver_test: Fail
+analyzer/test/generated/hint_code_driver_test: Fail
+analyzer/test/generated/hint_code_test: Fail
+analyzer/test/generated/invalid_code_driver_test: Fail
+analyzer/test/generated/non_error_resolver_driver_test: Fail
+analyzer/test/generated/non_error_resolver_test: Fail
+analyzer/test/generated/parser_test: Fail
+analyzer/test/generated/resolver_test: Fail
+analyzer/test/generated/utilities_test: Fail
+analyzer/test/src/context/context_test: Fail
+analyzer/test/src/dart/constant/evaluation_test: Fail
+analyzer/test/src/summary/prelinker_test: Fail
+analyzer/test/src/summary/summarize_ast_strong_test: Fail
+analyzer/test/src/summary/summarize_ast_test: Fail
+analyzer_plugin/test/src/utilities/completion/completion_target_test: Fail
+analyzer_plugin/test/src/utilities/completion/optype_test: Fail
+analyzer_plugin/test/src/utilities/visitors/local_declaration_visitor_test: Fail
+analyzer_plugin/test/utilities/completion/completion_target_test: Fail
 
 [ $builder_tag != dart2js_analyzer && $compiler == dart2js ]
 analysis_server/test/*: Skip # Issue 26813
@@ -163,7 +199,6 @@ analyzer/test/src/summary/expr_builder_test: StaticWarning, Pass
 analyzer/test/src/summary/resynthesize_ast_test: StaticWarning, Pass
 analyzer/test/src/summary/resynthesize_kernel_test: StaticWarning, Pass
 front_end/test/incremental_dart2js_load_from_dill_test: StaticWarning, Pass
-front_end/test/incremental_load_from_dill_test: StaticWarning, Pass
 
 # ILLEGAL_ASYNC_RETURN_TYPE warnings
 [ $compiler == dart2analyzer && !$preview_dart_2 && !$strong && ($system == macos || $system == windows) ]
@@ -172,7 +207,6 @@ analyzer/test/src/summary/expr_builder_test: StaticWarning
 analyzer/test/src/summary/resynthesize_ast_test: StaticWarning
 analyzer/test/src/summary/resynthesize_kernel_test: StaticWarning
 front_end/test/incremental_dart2js_load_from_dill_test: StaticWarning
-front_end/test/incremental_load_from_dill_test: StaticWarning
 
 # Analyze dev_compiler but only run its tests on the vm
 [ $compiler != dart2analyzer && $runtime != vm ]
@@ -221,6 +255,7 @@ analyzer/tool/task_dependency_graph/check_test: Slow, Pass
 front_end/tool/perf_test: Slow, Pass
 
 [ $runtime == vm && $checked ]
+analysis_server/test/benchmarks_test: Pass, Slow
 analysis_server/test/completion_test: Pass, Slow
 analysis_server/test/integration/edit/sort_members_test: Pass, Slow
 analysis_server/test/services/correction/fix_test: Pass, Slow

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  Bar bar = new Bar();
+  Bar bar = Bar();
   bar.doStuff();
 }
 

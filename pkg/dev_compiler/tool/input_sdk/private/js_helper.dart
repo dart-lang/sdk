@@ -30,13 +30,13 @@ class _Patch {
   const _Patch();
 }
 
-const _Patch patch = const _Patch();
+const _Patch patch = _Patch();
 
 /// Adapts a JS `[Symbol.iterator]` to a Dart `get iterator`.
-/// 
+///
 /// This is the inverse of `JsIterator`, for classes where we can more
 /// efficiently obtain a JS iterator instead of a Dart one.
-/// 
+///
 // TODO(jmesserly): this adapter is to work around
 // https://github.com/dart-lang/sdk/issues/28320
 class DartIterator<E> implements Iterator<E> {
@@ -62,14 +62,13 @@ class SyncIterable<E> extends IterableBase<E> {
   @JSExportName('Symbol.iterator')
   _jsIterator() => _initGenerator();
 
-  get iterator => new DartIterator(_initGenerator());
+  get iterator => DartIterator(_initGenerator());
 }
 
 class Primitives {
-
   @NoInline()
   static int _parseIntError(String source, int handleError(String source)) {
-    if (handleError == null) throw new FormatException(source);
+    if (handleError == null) throw FormatException(source);
     return handleError(source);
   }
 
@@ -100,9 +99,10 @@ class Primitives {
       }
       return _parseIntError(source, handleError);
     }
-    @notNull var radix = _radix;
+    @notNull
+    var radix = _radix;
     if (radix < 2 || radix > 36) {
-      throw new RangeError.range(radix, 2, 36, 'radix');
+      throw RangeError.range(radix, 2, 36, 'radix');
     }
     if (radix == 10 && decimalMatch != null) {
       // Cannot fail because we know that the digits are all decimal.
@@ -147,12 +147,13 @@ class Primitives {
   static double _parseDoubleError(
       String source, double handleError(String source)) {
     if (handleError == null) {
-      throw new FormatException('Invalid double', source);
+      throw FormatException('Invalid double', source);
     }
     return handleError(source);
   }
 
-  static double parseDouble(@nullCheck String source, double handleError(String source)) {
+  static double parseDouble(
+      @nullCheck String source, double handleError(String source)) {
     // Notice that JS parseFloat accepts garbage at the end of the string.
     // Accept only:
     // - [+/-]NaN
@@ -224,9 +225,11 @@ class Primitives {
 
   // This is to avoid stack overflows due to very large argument arrays in
   // apply().  It fixes http://dartbug.com/6919
-  @notNull static String _fromCharCodeApply(List<int> array) {
+  @notNull
+  static String _fromCharCodeApply(List<int> array) {
     const kMaxApply = 500;
-    @nullCheck int end = array.length;
+    @nullCheck
+    int end = array.length;
     if (end <= kMaxApply) {
       return JS('String', r'String.fromCharCode.apply(null, #)', array);
     }
@@ -244,7 +247,8 @@ class Primitives {
     return result;
   }
 
-  @notNull static String stringFromCodePoints(JSArray<int> codePoints) {
+  @notNull
+  static String stringFromCodePoints(JSArray<int> codePoints) {
     List<int> a = <int>[];
     for (@nullCheck var i in codePoints) {
       if (i <= 0xffff) {
@@ -259,7 +263,8 @@ class Primitives {
     return _fromCharCodeApply(a);
   }
 
-  @notNull static String stringFromCharCodes(JSArray<int> charCodes) {
+  @notNull
+  static String stringFromCharCodes(JSArray<int> charCodes) {
     for (@nullCheck var i in charCodes) {
       if (i < 0) throw argumentErrorValue(i);
       if (i > 0xffff) return stringFromCodePoints(charCodes);
@@ -268,7 +273,8 @@ class Primitives {
   }
 
   // [start] and [end] are validated.
-  @notNull static String stringFromNativeUint8List(
+  @notNull
+  static String stringFromNativeUint8List(
       NativeUint8List charCodes, @nullCheck int start, @nullCheck int end) {
     const kMaxApply = 500;
     if (end <= kMaxApply && start == 0 && end == charCodes.length) {
@@ -288,7 +294,8 @@ class Primitives {
     return result;
   }
 
-  @notNull static String stringFromCharCode(@nullCheck int charCode) {
+  @notNull
+  static String stringFromCharCode(@nullCheck int charCode) {
     if (0 <= charCode) {
       if (charCode <= 0xffff) {
         return JS('String', 'String.fromCharCode(#)', charCode);
@@ -300,7 +307,7 @@ class Primitives {
         return JS('String', 'String.fromCharCode(#, #)', high, low);
       }
     }
-    throw new RangeError.range(charCode, 0, 0x10ffff);
+    throw RangeError.range(charCode, 0, 0x10ffff);
   }
 
   static String stringConcatUnchecked(String string1, String string2) {
@@ -351,10 +358,15 @@ class Primitives {
     return -JS('int', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
   }
 
-  static num valueFromDecomposedDate(@nullCheck int years, @nullCheck int month,
-                                     @nullCheck int day, @nullCheck int hours,
-      @nullCheck int minutes, @nullCheck int seconds, @nullCheck int milliseconds,
-                                     @nullCheck bool isUtc) {
+  static num valueFromDecomposedDate(
+      @nullCheck int years,
+      @nullCheck int month,
+      @nullCheck int day,
+      @nullCheck int hours,
+      @nullCheck int minutes,
+      @nullCheck int seconds,
+      @nullCheck int milliseconds,
+      @nullCheck bool isUtc) {
     final int MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
     var jsMonth = month - 1;
     num value;
@@ -479,10 +491,10 @@ Error diagnoseIndexError(indexable, int index) {
   // The following returns the same error that would be thrown by calling
   // [RangeError.checkValidIndex] with no optional parameters provided.
   if (index < 0 || index >= length) {
-    return new RangeError.index(index, indexable, 'index', null, length);
+    return RangeError.index(index, indexable, 'index', null, length);
   }
   // The above should always match, but if it does not, use the following.
-  return new RangeError.value(index, 'index');
+  return RangeError.value(index, 'index');
 }
 
 /**
@@ -492,27 +504,28 @@ Error diagnoseIndexError(indexable, int index) {
 @NoInline()
 Error diagnoseRangeError(int start, int end, int length) {
   if (start == null) {
-    return new ArgumentError.value(start, 'start');
+    return ArgumentError.value(start, 'start');
   }
   if (start < 0 || start > length) {
-    return new RangeError.range(start, 0, length, 'start');
+    return RangeError.range(start, 0, length, 'start');
   }
   if (end != null) {
     if (end < start || end > length) {
-      return new RangeError.range(end, start, length, 'end');
+      return RangeError.range(end, start, length, 'end');
     }
   }
   // The above should always match, but if it does not, use the following.
-  return new ArgumentError.value(end, "end");
+  return ArgumentError.value(end, "end");
 }
 
-@notNull int stringLastIndexOfUnchecked(receiver, element, start) =>
+@notNull
+int stringLastIndexOfUnchecked(receiver, element, start) =>
     JS('int', r'#.lastIndexOf(#, #)', receiver, element, start);
 
 /// 'factory' for constructing ArgumentError.value to keep the call sites small.
 @NoInline()
 ArgumentError argumentErrorValue(object) {
-  return new ArgumentError.value(object);
+  return ArgumentError.value(object);
 }
 
 void throwArgumentErrorValue(value) {
@@ -525,16 +538,16 @@ checkInt(value) {
 }
 
 throwRuntimeError(message) {
-  throw new RuntimeError(message);
+  throw RuntimeError(message);
 }
 
 throwAbstractClassInstantiationError(className) {
-  throw new AbstractClassInstantiationError(className);
+  throw AbstractClassInstantiationError(className);
 }
 
 @NoInline()
 throwConcurrentModificationError(collection) {
-  throw new ConcurrentModificationError(collection);
+  throw ConcurrentModificationError(collection);
 }
 
 class JsNoSuchMethodError extends Error implements NoSuchMethodError {
@@ -641,7 +654,7 @@ jsPropertyAccess(var jsObject, String property) {
  * Called at the end of unaborted switch cases to get the singleton
  * FallThroughError exception that will be thrown.
  */
-getFallThroughError() => new FallThroughErrorImplementation();
+getFallThroughError() => FallThroughErrorImplementation();
 
 /**
  * A metadata annotation describing the types instantiated by a native element.

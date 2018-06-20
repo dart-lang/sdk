@@ -949,6 +949,34 @@ Message _withArgumentsConstEvalInvalidType(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        String string,
+        String string2,
+        String
+            string3)> templateConstEvalNegativeShift = const Template<
+        Message Function(String string, String string2, String string3)>(
+    messageTemplate:
+        r"""Binary operator '#string' on '#string2' requires non-negative operand, but was '#string3'.""",
+    withArguments: _withArgumentsConstEvalNegativeShift);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2, String string3)>
+    codeConstEvalNegativeShift =
+    const Code<Message Function(String string, String string2, String string3)>(
+        "ConstEvalNegativeShift", templateConstEvalNegativeShift,
+        dart2jsCode: "INVALID_CONSTANT_SHIFT");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalNegativeShift(
+    String string, String string2, String string3) {
+  return new Message(codeConstEvalNegativeShift,
+      message:
+          """Binary operator '${string}' on '${string2}' requires non-negative operand, but was '${string3}'.""",
+      arguments: {'string': string, 'string2': string2, 'string3': string3});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
         String
             string)> templateConstEvalNonConstantLiteral = const Template<
         Message Function(String string)>(
@@ -968,6 +996,33 @@ Message _withArgumentsConstEvalNonConstantLiteral(String string) {
       message:
           """Can't have a non-constant ${string} literal within a const context.""",
       arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        String
+            string2)> templateConstEvalZeroDivisor = const Template<
+        Message Function(String string, String string2)>(
+    messageTemplate:
+        r"""Binary operator '#string' on '#string2' requires non-zero divisor, but divisor was '0'.""",
+    withArguments: _withArgumentsConstEvalZeroDivisor);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeConstEvalZeroDivisor =
+    const Code<Message Function(String string, String string2)>(
+        "ConstEvalZeroDivisor", templateConstEvalZeroDivisor,
+        analyzerCode: "CONST_EVAL_THROWS_IDBZE",
+        dart2jsCode: "INVALID_CONSTANT_DIV");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalZeroDivisor(String string, String string2) {
+  return new Message(codeConstEvalZeroDivisor,
+      message:
+          """Binary operator '${string}' on '${string2}' requires non-zero divisor, but divisor was '0'.""",
+      arguments: {'string': string, 'string2': string2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2833,6 +2888,60 @@ const MessageCode messageInheritedMembersConflictCause2 = const MessageCode(
     message: r"""This is the other inherited member.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            string)> templateInitializeFromDillNotSelfContained = const Template<
+        Message Function(String string)>(
+    messageTemplate:
+        r"""Tried to initialize from a previous compilation (#string), but the file was not self-contained. This might be a bug. The Dart team would greatly appreciate if you would take a moment to report this problem at http://dartbug.com/new.""",
+    withArguments: _withArgumentsInitializeFromDillNotSelfContained);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)>
+    codeInitializeFromDillNotSelfContained =
+    const Code<Message Function(String string)>(
+        "InitializeFromDillNotSelfContained",
+        templateInitializeFromDillNotSelfContained,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInitializeFromDillNotSelfContained(String string) {
+  return new Message(codeInitializeFromDillNotSelfContained,
+      message:
+          """Tried to initialize from a previous compilation (${string}), but the file was not self-contained. This might be a bug. The Dart team would greatly appreciate if you would take a moment to report this problem at http://dartbug.com/new.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        String
+            string2)> templateInitializeFromDillUnknownProblem = const Template<
+        Message Function(String string, String string2)>(
+    messageTemplate:
+        r"""Tried to initialize from a previous compilation (#string), but couldn't. Error message was '#string2'. This might be a bug. The Dart team would greatly appreciate if you would take a moment to report this problem at http://dartbug.com/new.""",
+    withArguments: _withArgumentsInitializeFromDillUnknownProblem);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeInitializeFromDillUnknownProblem =
+    const Code<Message Function(String string, String string2)>(
+        "InitializeFromDillUnknownProblem",
+        templateInitializeFromDillUnknownProblem,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInitializeFromDillUnknownProblem(
+    String string, String string2) {
+  return new Message(codeInitializeFromDillUnknownProblem,
+      message:
+          """Tried to initialize from a previous compilation (${string}), but couldn't. Error message was '${string2}'. This might be a bug. The Dart team would greatly appreciate if you would take a moment to report this problem at http://dartbug.com/new.""",
+      arguments: {'string': string, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInitializedVariableInForEach =
     messageInitializedVariableInForEach;
 
@@ -3660,6 +3769,28 @@ Message _withArgumentsInvalidCastTopLevelFunction(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidCodePoint = messageInvalidCodePoint;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidCodePoint = const MessageCode(
+    "InvalidCodePoint",
+    analyzerCode: "INVALID_CODE_POINT",
+    dart2jsCode: "*fatal*",
+    message:
+        r"""The escape sequence starting with '\u' isn't a valid code point.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidHexEscape = messageInvalidHexEscape;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidHexEscape = const MessageCode(
+    "InvalidHexEscape",
+    analyzerCode: "INVALID_HEX_ESCAPE",
+    dart2jsCode: "*fatal*",
+    message:
+        r"""An escape sequence starting with '\x' must be followed by 2 hexidecimal digits.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidInitializer = messageInvalidInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3733,6 +3864,17 @@ const MessageCode messageInvalidSyncModifier = const MessageCode(
     dart2jsCode: "INVALID_SYNC_MODIFIER",
     message: r"""Invalid modifier 'sync'.""",
     tip: r"""Try replacing 'sync' with 'sync*'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidUnicodeEscape = messageInvalidUnicodeEscape;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidUnicodeEscape = const MessageCode(
+    "InvalidUnicodeEscape",
+    analyzerCode: "INVALID_UNICODE_ESCAPE",
+    dart2jsCode: "*fatal*",
+    message:
+        r"""An escape sequence starting with '\u' must be followed by 4 hexidecimal digits or from 1 to 6 digits between '{' and '}'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidVoid = messageInvalidVoid;
@@ -3956,6 +4098,26 @@ const MessageCode messageMissingConstFinalVarOrType = const MessageCode(
         r"""Variables must be declared using the keywords 'const', 'final', 'var' or a type name.""",
     tip:
         r"""Try adding the name of the type of the variable or the keyword 'var'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(int count)>
+    templateMissingExplicitTypeArguments =
+    const Template<Message Function(int count)>(
+        messageTemplate: r"""No type arguments provided, #count possible.""",
+        withArguments: _withArgumentsMissingExplicitTypeArguments);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(int count)> codeMissingExplicitTypeArguments =
+    const Code<Message Function(int count)>(
+        "MissingExplicitTypeArguments", templateMissingExplicitTypeArguments,
+        severity: Severity.ignored);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMissingExplicitTypeArguments(int count) {
+  return new Message(codeMissingExplicitTypeArguments,
+      message: """No type arguments provided, ${count} possible.""",
+      arguments: {'count': count});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMissingExponent = messageMissingExponent;

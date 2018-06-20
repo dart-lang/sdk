@@ -15,7 +15,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
         'window.mozIndexedDB)');
   }
 
-  @DomName('IDBFactory.open')
   Future<Database> open(String name,
       {int version, void onUpgradeNeeded(VersionChangeEvent event),
       void onBlocked(Event event)}) {
@@ -43,7 +42,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
   }
 
-  @DomName('IDBFactory.deleteDatabase')
   Future<IdbFactory> deleteDatabase(String name,
       {void onBlocked(Event e)}) {
     try {

@@ -11,12 +11,12 @@ class int {
   const factory int.fromEnvironment(String name, {int defaultValue})
       native "Integer_fromEnvironment";
 
-  int _shrFromInt(int other);
-  int _shlFromInt(int other);
   int _bitAndFromSmi(_Smi other);
   int _bitAndFromInteger(int other);
   int _bitOrFromInteger(int other);
   int _bitXorFromInteger(int other);
+  int _shrFromInteger(int other);
+  int _shlFromInteger(int other);
 
   static int _tryParseSmi(String str, int first, int last) {
     assert(first <= last);
@@ -90,7 +90,7 @@ class int {
           if (index == end) {
             return _throwFormatException(onError, source, index, null);
           }
-          int result = _parseRadix(source, 16, index, end, sign);
+          int result = _parseRadix(source, 16, index, end, sign, sign > 0);
           if (result == null) {
             return _throwFormatException(onError, source, null, null);
           }
@@ -99,7 +99,7 @@ class int {
       }
       radix = 10;
     }
-    int result = _parseRadix(source, radix, start, end, sign);
+    int result = _parseRadix(source, radix, start, end, sign, false);
     if (result == null) {
       return _throwFormatException(onError, source, null, radix);
     }
@@ -131,7 +131,7 @@ class int {
   }
 
   static int _parseRadix(
-      String source, int radix, int start, int end, int sign) {
+      String source, int radix, int start, int end, int sign, bool allowU64) {
     int tableIndex = (radix - 2) * 4 + (is64Bit ? 2 : 0);
     int blockSize = _PARSE_LIMITS[tableIndex];
     int length = end - start;
@@ -174,7 +174,7 @@ class int {
           // platform, the multiplier and block size, which are used to
           // compute it, do.
           int X = is64Bit ? 1 : 0;
-          if (radix == 16 &&
+          if (allowU64 &&
               !(result >= _int64UnsignedOverflowLimits[X] &&
                   (result > _int64UnsignedOverflowLimits[X] ||
                       smi > _int64UnsignedSmiOverflowLimits[X])) &&

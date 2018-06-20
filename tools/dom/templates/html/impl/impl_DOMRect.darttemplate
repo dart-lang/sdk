@@ -4,7 +4,6 @@
 
 part of $LIBRARYNAME;
 
-@DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements Rectangle$IMPLEMENTS {
 
   // NOTE! All code below should be common with RectangleBase.

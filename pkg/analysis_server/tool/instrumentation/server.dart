@@ -102,7 +102,9 @@ class WebServer {
    */
   void serveHttp(int port) {
     _server = HttpServer.bind(InternetAddress.loopbackIPv4, port);
-    _server.then(_handleServer).catchError((_) {/* Ignore errors. */});
+    _server.then(_handleServer).catchError((_) {
+      /* Ignore errors. */
+    });
   }
 
   /**
@@ -127,7 +129,7 @@ class WebServer {
       return;
     } catch (exception, stackTrace) {
       HttpResponse response = request.response;
-      response.statusCode = HttpStatus.OK;
+      response.statusCode = HttpStatus.ok;
       response.headers.contentType = _htmlContent;
       StringBuffer buffer = new StringBuffer();
       buffer.write('<p><b>Exception while composing page:</b></p>');
@@ -141,7 +143,7 @@ class WebServer {
     }
 
     HttpResponse response = request.response;
-    response.statusCode = HttpStatus.OK;
+    response.statusCode = HttpStatus.ok;
     response.headers.contentType = _htmlContent;
     response.write(buffer.toString());
     response.close();
@@ -176,11 +178,11 @@ class WebServer {
    */
   void _returnUnknownRequest(HttpRequest request) {
     HttpResponse response = request.response;
-    response.statusCode = HttpStatus.NOT_FOUND;
+    response.statusCode = HttpStatus.notFound;
     response.headers.contentType =
         new ContentType("text", "html", charset: "utf-8");
-    response.write(
-        '<html><head></head><body><h3>Page not found: "${request.uri.path}".</h3></body></html>');
+    response.write('<html><head></head><body><h3>Page not found: "${request.uri
+            .path}".</h3></body></html>');
     response.close();
   }
 

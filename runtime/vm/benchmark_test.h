@@ -9,7 +9,6 @@
 
 #include "vm/dart.h"
 #include "vm/globals.h"
-#include "vm/heap.h"
 #include "vm/isolate.h"
 #include "vm/malloc_hooks.h"
 #include "vm/object.h"

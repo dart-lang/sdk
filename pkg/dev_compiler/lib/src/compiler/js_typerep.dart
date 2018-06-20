@@ -19,12 +19,12 @@ abstract class JSType {
   /// The JS `typeof` value, if unambiguous.
   String get primitiveTypeOf => null;
 
-  static const jsBoolean = const JSBoolean();
-  static const jsNumber = const JSNumber();
-  static const jsNull = const JSNull();
-  static const jsObject = const JSObject();
-  static const jsString = const JSString();
-  static const jsUnknown = const JSUnknown();
+  static const jsBoolean = JSBoolean();
+  static const jsNumber = JSNumber();
+  static const jsNull = JSNull();
+  static const jsObject = JSObject();
+  static const jsString = JSString();
+  static const jsUnknown = JSUnknown();
   // TODO(jmesserly): add JSFunction that maps to Dart's `Function` type.
 }
 

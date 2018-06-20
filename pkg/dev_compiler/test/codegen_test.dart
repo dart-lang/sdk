@@ -36,7 +36,7 @@ import '../tool/build_sdk.dart' as build_sdk;
 import 'multitest.dart' show extractTestsFromMultitest, isMultiTest;
 import 'testing.dart' show repoDirectory, testDirectory;
 
-final ArgParser argParser = new ArgParser()
+final ArgParser argParser = ArgParser()
   ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null);
 
 /// The `test/codegen` directory.
@@ -65,19 +65,19 @@ RegExp filePattern;
 main(List<String> arguments) {
   if (arguments == null) arguments = [];
   ArgResults args = argParser.parse(arguments);
-  filePattern = new RegExp(args.rest.length > 0 ? args.rest[0] : '.');
+  filePattern = RegExp(args.rest.length > 0 ? args.rest[0] : '.');
 
   var sdkDir = path.join(repoDirectory, 'gen', 'patched_sdk');
   var sdkSummaryFile =
       path.join(testDirectory, '..', 'gen', 'sdk', 'ddc_sdk.sum');
 
-  var summaryPaths = new Directory(path.join(codegenOutputDir, 'pkg'))
+  var summaryPaths = Directory(path.join(codegenOutputDir, 'pkg'))
       .listSync()
       .map((e) => e.path)
       .where((p) => p.endsWith('.sum'))
       .toList();
 
-  var sharedCompiler = new ModuleCompiler(new AnalyzerOptions.basic(
+  var sharedCompiler = ModuleCompiler(AnalyzerOptions.basic(
       dartSdkSummaryPath: sdkSummaryFile, summaryPaths: summaryPaths));
 
   var testDirs = ['language', 'corelib_2', 'lib'];
@@ -89,14 +89,14 @@ main(List<String> arguments) {
 
   // Our default compiler options. Individual tests can override these.
   var defaultOptions = ['--no-source-map', '--no-summarize'];
-  var compileArgParser = new ArgParser();
+  var compileArgParser = ArgParser();
   defineAnalysisArguments(compileArgParser, ddc: true);
   AnalyzerOptions.addArguments(compileArgParser);
   CompilerOptions.addArguments(compileArgParser);
   addModuleFormatOptions(compileArgParser);
 
   var testFileOptionsMatcher =
-      new RegExp(r'// (compile options: |SharedOptions=)(.*)', multiLine: true);
+      RegExp(r'// (compile options: |SharedOptions=)(.*)', multiLine: true);
 
   // Ignore dart2js options that we don't support in DDC.
   var ignoreOptions = [
@@ -122,7 +122,7 @@ main(List<String> arguments) {
     var name = path.withoutExtension(relativePath);
     test('dartdevc $name', () {
       // Check if we need to use special compile options.
-      var contents = new File(testFile).readAsStringSync();
+      var contents = File(testFile).readAsStringSync();
       var match = testFileOptionsMatcher.firstMatch(contents);
 
       var args = defaultOptions.toList();
@@ -132,22 +132,22 @@ main(List<String> arguments) {
       }
 
       ArgResults argResults = compileArgParser.parse(args);
-      var analyzerOptions = new AnalyzerOptions.fromArguments(argResults,
+      var analyzerOptions = AnalyzerOptions.fromArguments(argResults,
           dartSdkSummaryPath: sdkSummaryFile, summaryPaths: summaryPaths);
 
-      var options = new CompilerOptions.fromArguments(argResults);
+      var options = CompilerOptions.fromArguments(argResults);
 
       var moduleFormat = parseModuleFormatOption(argResults).first;
 
       // Collect any other files we've imported.
-      var files = new Set<String>();
+      var files = Set<String>();
       _collectTransitiveImports(contents, files, from: testFile);
-      var unit = new BuildUnit(
+      var unit = BuildUnit(
           name, path.dirname(testFile), files.toList(), _moduleForLibrary);
 
       var compiler = sharedCompiler;
       if (analyzerOptions.declaredVariables.isNotEmpty) {
-        compiler = new ModuleCompiler(analyzerOptions);
+        compiler = ModuleCompiler(analyzerOptions);
       }
       JSModuleFile module = null;
       var exception, stackTrace;
@@ -220,14 +220,14 @@ void _writeModule(String outPath, String expectPath, ModuleFormat format,
 
   String errors = result.errors.join('\n');
   if (errors.isNotEmpty && !errors.endsWith('\n')) errors += '\n';
-  new File(outPath + '.txt').writeAsStringSync(errors);
+  File(outPath + '.txt').writeAsStringSync(errors);
 
   if (result.isValid) {
     result.writeCodeSync(format, outPath + '.js');
   }
 
   if (result.summaryBytes != null) {
-    new File(outPath + '.sum').writeAsBytesSync(result.summaryBytes);
+    File(outPath + '.sum').writeAsBytesSync(result.summaryBytes);
   }
 
   // Write the expectation file if needed.
@@ -236,7 +236,7 @@ void _writeModule(String outPath, String expectPath, ModuleFormat format,
   if (expectPath != null) {
     _ensureDirectory(path.dirname(expectPath));
 
-    var expectFile = new File(expectPath + '.js');
+    var expectFile = File(expectPath + '.js');
     if (result.isValid) {
       result.writeCodeSync(format, expectFile.path);
     } else {
@@ -251,8 +251,8 @@ void _buildSunflower(
   var files = ['sunflower', 'circle', 'painter']
       .map((f) => path.join(baseDir, '$f.dart'))
       .toList();
-  var input = new BuildUnit('sunflower', baseDir, files, _moduleForLibrary);
-  var options = new CompilerOptions(summarizeApi: false);
+  var input = BuildUnit('sunflower', baseDir, files, _moduleForLibrary);
+  var options = CompilerOptions(summarizeApi: false);
 
   var built = compiler.compile(input, options);
   _writeModule(path.join(outputDir, 'sunflower', 'sunflower'),
@@ -264,7 +264,7 @@ String _moduleForLibrary(Source source) {
   if (scheme == 'package') {
     return source.uri.pathSegments.first;
   }
-  throw new Exception('Module not found for library "${source.fullName}"');
+  throw Exception('Module not found for library "${source.fullName}"');
 }
 
 void _writeRuntimeStatus(Map<String, Set<Expectation>> testFiles) {
@@ -294,7 +294,7 @@ void _writeRuntimeStatus(Map<String, Set<Expectation>> testFiles) {
 
     runtimeStatus[name] = status.map((s) => '$s').join(',');
   });
-  new File(path.join(codegenOutputDir, 'test_status.js')).writeAsStringSync('''
+  File(path.join(codegenOutputDir, 'test_status.js')).writeAsStringSync('''
 define([], function() {
   'use strict';
   return ${new JsonEncoder.withIndent(' ').convert(runtimeStatus)};
@@ -316,17 +316,17 @@ Map<String, Set<Expectation>> _setUpTests(List<String> testDirs) {
           'tests', dirParts[0] + suffix, path.joinAll(dirParts.skip(1)));
       var inputPath = path.join(testDirectory, '..', '..', '..', sdkTestDir);
 
-      if (!new Directory(inputPath).existsSync()) continue;
+      if (!Directory(inputPath).existsSync()) continue;
 
       var browsers = Platform.environment['DDC_BROWSERS'];
       var runtime = browsers == 'Firefox' ? 'firefox' : 'chrome';
-      var config = new OptionsParser()
+      var config = OptionsParser()
           .parse('-m release -c dartdevc --use-sdk --strong'.split(' ')
             ..addAll(['-r', runtime, '--suite_dir', sdkTestDir]))
           .single;
 
-      var testSuite = new StandardTestSuite.forDirectory(
-          config, new test_dart.Path(sdkTestDir));
+      var testSuite =
+          StandardTestSuite.forDirectory(config, test_dart.Path(sdkTestDir));
       var expectations = testSuite.readExpectations();
 
       for (var file in _listFiles(inputPath, recursive: true)) {
@@ -347,10 +347,10 @@ Map<String, Set<Expectation>> _setUpTests(List<String> testDirs) {
               // integration.
               contents += '\nfinal _usesUnittestPackage = true;\n';
             }
-            new File(outputPath).writeAsStringSync(contents);
+            File(outputPath).writeAsStringSync(contents);
           }
 
-          var contents = new File(file).readAsStringSync();
+          var contents = File(file).readAsStringSync();
           if (isMultiTest(contents)) {
             // It's a multitest, so expand it and add all of the variants.
             var tests = <String, String>{};
@@ -378,7 +378,7 @@ Map<String, Set<Expectation>> _setUpTests(List<String> testDirs) {
           _writeTest(outputPath, contents);
         } else {
           // Copy the non-test file over, in case it is used as an import.
-          new File(file).copySync(outputPath);
+          File(file).copySync(outputPath);
         }
       }
     }
@@ -389,9 +389,9 @@ Map<String, Set<Expectation>> _setUpTests(List<String> testDirs) {
     var relativePath = path.relative(file, from: codegenDir);
     var outputPath = path.join(codegenTestDir, relativePath);
 
-    new File(file).copySync(outputPath);
+    File(file).copySync(outputPath);
     if (file.endsWith(".dart")) {
-      testFiles[outputPath] = new Set()..add(Expectation.pass);
+      testFiles[outputPath] = Set()..add(Expectation.pass);
     }
   }
 
@@ -400,12 +400,12 @@ Map<String, Set<Expectation>> _setUpTests(List<String> testDirs) {
 
 /// Recursively creates [dir] if it doesn't exist.
 void _ensureDirectory(String dir) {
-  new Directory(dir).createSync(recursive: true);
+  Directory(dir).createSync(recursive: true);
 }
 
 /// Lists all of the files within [dir] that match [filePattern].
-Iterable<String> _listFiles(String dir, {bool recursive: false}) {
-  return new Directory(dir)
+Iterable<String> _listFiles(String dir, {bool recursive = false}) {
+  return Directory(dir)
       .listSync(recursive: recursive, followLinks: false)
       .where((e) => e is File && filePattern.hasMatch(e.path))
       .map((f) => f.path);
@@ -433,7 +433,7 @@ void _collectTransitiveImports(String contents, Set<String> libraries,
         continue;
       }
 
-      var f = new File(path.join(path.dirname(from), uri));
+      var f = File(path.join(path.dirname(from), uri));
       if (f.existsSync()) {
         _collectTransitiveImports(f.readAsStringSync(), libraries,
             packageRoot: packageRoot, from: f.path);

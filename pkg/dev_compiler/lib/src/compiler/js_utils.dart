@@ -17,7 +17,7 @@ Fun simplifyPassThroughArrowFunCallBody(Fun fn) {
           innerFun.params.isEmpty) {
         var body = innerFun.body;
         if (body is Block) {
-          return new Fun(fn.params, body,
+          return Fun(fn.params, body,
               typeParams: fn.typeParams, returnType: fn.returnType);
         }
       }
@@ -27,13 +27,13 @@ Fun simplifyPassThroughArrowFunCallBody(Fun fn) {
 }
 
 Set<Identifier> findMutatedVariables(Node scope) {
-  var v = new MutationVisitor();
+  var v = MutationVisitor();
   scope.accept(v);
   return v.mutated;
 }
 
 class MutationVisitor extends BaseVisitor {
-  final mutated = new Set<Identifier>();
+  final mutated = Set<Identifier>();
   @override
   visitAssignment(node) {
     var id = node.leftHandSide;

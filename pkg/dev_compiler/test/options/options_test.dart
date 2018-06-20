@@ -24,20 +24,20 @@ final sdkSummaryArgs = ['--$sdkSummaryPathOption', sdkSummaryFile];
 
 main() {
   test('basic', () {
-    var options = new AnalyzerOptions.basic();
-    var compiler = new ModuleCompiler(options, analysisRoot: optionsDir);
+    var options = AnalyzerOptions.basic();
+    var compiler = ModuleCompiler(options, analysisRoot: optionsDir);
     var processors = compiler.context.analysisOptions.errorProcessors;
     expect(processors, hasLength(1));
     expect(processors[0].code, CompileTimeErrorCode.UNDEFINED_CLASS.name);
   });
 
   test('basic sdk summary', () {
-    expect(new File(sdkSummaryFile).existsSync(), isTrue);
-    var options = new AnalyzerOptions.basic(dartSdkSummaryPath: sdkSummaryFile);
-    var compiler = new ModuleCompiler(options, analysisRoot: optionsDir);
+    expect(File(sdkSummaryFile).existsSync(), isTrue);
+    var options = AnalyzerOptions.basic(dartSdkSummaryPath: sdkSummaryFile);
+    var compiler = ModuleCompiler(options, analysisRoot: optionsDir);
     var context = compiler.context;
     var sdk = context.sourceFactory.dartSdk;
-    expect(sdk, new isInstanceOf<SummaryBasedDartSdk>());
+    expect(sdk, isInstanceOf<SummaryBasedDartSdk>());
     var processors = context.analysisOptions.errorProcessors;
     expect(processors, hasLength(1));
     expect(processors[0].code, CompileTimeErrorCode.UNDEFINED_CLASS.name);
@@ -48,8 +48,8 @@ main() {
     //TODO(danrubel) remove sdkSummaryArgs once all SDKs have summary file
     args.addAll(sdkSummaryArgs);
     var argResults = ddcArgParser().parse(args);
-    var options = new AnalyzerOptions.fromArguments(argResults);
-    var compiler = new ModuleCompiler(options, analysisRoot: optionsDir);
+    var options = AnalyzerOptions.fromArguments(argResults);
+    var compiler = ModuleCompiler(options, analysisRoot: optionsDir);
     var processors = compiler.context.analysisOptions.errorProcessors;
     expect(processors, hasLength(1));
     expect(processors[0].code, CompileTimeErrorCode.UNDEFINED_CLASS.name);
@@ -57,13 +57,13 @@ main() {
 
   test('fromArgs options file 2', () {
     var optionsFile2 = path.join(optionsDir, 'analysis_options_2.yaml');
-    expect(new File(optionsFile2).existsSync(), isTrue);
+    expect(File(optionsFile2).existsSync(), isTrue);
     var args = <String>['--$analysisOptionsFileOption', optionsFile2];
     //TODO(danrubel) remove sdkSummaryArgs once all SDKs have summary file
     args.addAll(sdkSummaryArgs);
     var argResults = ddcArgParser().parse(args);
-    var options = new AnalyzerOptions.fromArguments(argResults);
-    var compiler = new ModuleCompiler(options, analysisRoot: optionsDir);
+    var options = AnalyzerOptions.fromArguments(argResults);
+    var compiler = ModuleCompiler(options, analysisRoot: optionsDir);
     var processors = compiler.context.analysisOptions.errorProcessors;
     expect(processors, hasLength(1));
     expect(processors[0].code, CompileTimeErrorCode.DUPLICATE_DEFINITION.name);
@@ -78,7 +78,7 @@ main() {
     ];
 
     var argResults = ddcArgParser().parse(args);
-    var options = new AnalyzerOptions.fromArguments(argResults);
+    var options = AnalyzerOptions.fromArguments(argResults);
     expect(options.summaryPaths,
         orderedEquals(['normal', 'custom/path', 'another', 'custom/path2']));
     expect(options.customSummaryModules['custom/path'], equals('module'));

@@ -46,6 +46,9 @@ mirrors/reflected_type_test/02: MissingCompileTimeError
 mirrors/reflected_type_test/03: MissingCompileTimeError
 mirrors/variable_is_const_test/01: MissingCompileTimeError
 
+[ $arch == simarm64 && $compiler == dartk && $strong ]
+isolate/mint_maker_test: Timeout # Please triage.
+
 [ $arch == simdbc64 && $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
 isolate/isolate_complex_messages_test: Crash # http://dartbug.com/33128
 
@@ -198,15 +201,11 @@ mirrors/typevariable_mirror_metadata_test: RuntimeError
 isolate/ping_pause_test: Skip # Issues 32137 and 32138
 
 [ $compiler == dartk && $hot_reload ]
-async/stream_state_nonzero_timer_test: Crash
-async/stream_subscription_as_future_test: Crash
-async/stream_subscription_cancel_test: Crash
 isolate/message4_test: Pass, Timeout
-isolate/spawn_uri_multi_test/01: Crash
-isolate/spawn_uri_multi_test/none: Crash
 
 [ $compiler == dartk && $hot_reload_rollback ]
 isolate/illegal_msg_function_test: Skip # Timeout
+isolate/message4_test: Pass, Timeout
 isolate/pause_test: Skip # Timeout
 
 [ $compiler == dartk && $strong ]

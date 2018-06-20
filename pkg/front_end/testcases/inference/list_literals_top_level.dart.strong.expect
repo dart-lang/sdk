@@ -5,11 +5,11 @@ import "dart:core" as core;
 static field core::List<core::int> x1 = <core::int>[1, 2, 3];
 static field core::List<core::num> x2 = <core::num>[1, 2.0, 3];
 static method test1() → dynamic {
-  self::x1.{core::List::add}(let final dynamic #t1 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/list_literals_top_level.dart:10:72: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+  self::x1.{core::List::add}(let dynamic _ = null in let final dynamic #t1 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/list_literals_top_level.dart:10:72: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
   x1. /*@target=List::add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi');
                                                                        ^" in let final dynamic #t2 = "hi" in null);
-  self::x1.{core::List::add}(let final dynamic #t3 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/list_literals_top_level.dart:11:72: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'dart.core::int'.
+  self::x1.{core::List::add}(let dynamic _ = null in let final dynamic #t3 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/list_literals_top_level.dart:11:72: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'dart.core::int'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
   x1. /*@target=List::add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 4.0);
                                                                        ^" in let final dynamic #t4 = 4.0 in null);
@@ -17,7 +17,7 @@ Try changing the type of the left hand side, or casting the right hand side to '
   core::List<core::num> y = self::x1;
 }
 static method test2() → dynamic {
-  self::x2.{core::List::add}(let final dynamic #t5 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/list_literals_top_level.dart:18:72: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::num'.
+  self::x2.{core::List::add}(let dynamic _ = null in let final dynamic #t5 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/list_literals_top_level.dart:18:72: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::num'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.core::num'.
   x2. /*@target=List::add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi');
                                                                        ^" in let final dynamic #t6 = "hi" in null);

@@ -13,13 +13,13 @@
 #include "vm/flags.h"
 #include "vm/growable_array.h"
 #include "vm/handles.h"
+#include "vm/heap/weak_table.h"
 #include "vm/object.h"
 #include "vm/os.h"
 #include "vm/os_thread.h"
 #include "vm/raw_object.h"
 #include "vm/thread_pool.h"
 #include "vm/visitor.h"
-#include "vm/weak_table.h"
 
 #include "vm/handles_impl.h"
 

@@ -9,7 +9,7 @@ class MyType {
 main() {
   confuse('').trim(); // includes some code above the interceptors
   confuse([]).length;
-  confuse(new MyType()).length;
+  confuse(MyType()).length;
   confuse(null). /*1:main*/ length; // called through the interceptor
 }
 

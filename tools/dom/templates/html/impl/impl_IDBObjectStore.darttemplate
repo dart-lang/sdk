@@ -6,7 +6,6 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
-  @DomName('IDBObjectStore.add')
   Future add(value, [key]) {
     try {
       var request;
@@ -21,7 +20,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
   }
 
-  @DomName('IDBObjectStore.clear')
   Future clear() {
     try {
       return _completeRequest(_clear());
@@ -30,7 +28,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
   }
 
-  @DomName('IDBObjectStore.delete')
   Future delete(key_OR_keyRange){
     try {
       return _completeRequest(_delete(key_OR_keyRange));
@@ -39,7 +36,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
   }
 
-  @DomName('IDBObjectStore.count')
   Future<int> count([key_OR_range]) {
    try {
       var request = _count(key_OR_range);
@@ -49,7 +45,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
   }
 
-  @DomName('IDBObjectStore.put')
   Future put(value, [key]) {
     try {
       var request;
@@ -64,7 +59,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     }
   }
 
-  @DomName('IDBObjectStore.get')
   Future getObject(key) {
     try {
       var request = _get(key);
@@ -96,7 +90,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * must be done synchronously unless they are additional async requests to
    * the current transaction.
    */
-  @DomName('IDBObjectStore.openCursor')
   Stream<CursorWithValue> openCursor({key, KeyRange range, String direction,
       bool autoAdvance}) {
     var key_OR_range = null;
@@ -119,7 +112,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     return _cursorStreamFromResult(request, autoAdvance);
   }
 
-  @DomName('IDBObjectStore.createIndex')
   Index createIndex(String name, keyPath, {bool unique, bool multiEntry}) {
     var options = {};
     if (unique != null) {

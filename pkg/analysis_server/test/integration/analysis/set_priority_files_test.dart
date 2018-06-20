@@ -34,4 +34,10 @@ class SetPriorityFilesTest extends AbstractAnalysisServerIntegrationTest {
 class SetPriorityFilesTest_UseCFE extends SetPriorityFilesTest {
   @override
   bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_options() {
+    fail('This test crashes under the CFE');
+  }
 }

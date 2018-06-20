@@ -255,8 +255,7 @@ class Address : public ValueObject {
         return kUnsignedWord;
       case kTypedDataInt64ArrayCid:
       case kTypedDataUint64ArrayCid:
-        UNREACHABLE();
-        return kByte;
+        return kDWord;
       case kTypedDataFloat32ArrayCid:
         return kSWord;
       case kTypedDataFloat64ArrayCid:
@@ -1379,6 +1378,8 @@ class Assembler : public ValueObject {
 
   void BranchLinkPatchable(const StubEntry& stub_entry);
   void BranchLinkToRuntime();
+
+  void CallNullErrorShared(bool save_fpu_registers) { UNREACHABLE(); }
 
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.

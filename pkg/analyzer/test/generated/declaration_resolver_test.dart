@@ -247,7 +247,12 @@ const b = null;
     // analyzer.  TODO(paulberry): is this a bug?
     FunctionDeclaration node = EngineTestCase.findNode(
         unit, code, 'g', (AstNode n) => n is FunctionDeclaration);
-    expect((node as FunctionDeclarationImpl).metadata, isEmpty);
+    NodeList<Annotation> metadata = (node as FunctionDeclarationImpl).metadata;
+    if (usingFastaParser) {
+      expect(metadata, hasLength(1));
+    } else {
+      expect(metadata, isEmpty);
+    }
   }
 
   test_metadata_localVariableDeclaration() async {
@@ -814,6 +819,8 @@ class StrongModeDeclarationResolverTest extends ResolverTestCase {
   }
 
   test_genericFunction_typeParameter() async {
+    // Fasta ignores generic type comments
+    if (usingFastaParser) return;
     String code = r'''
 /*=T*/ max/*<T>*/(/*=T*/ x, /*=T*/ y) => null;
 ''';
@@ -836,6 +843,8 @@ class StrongModeDeclarationResolverTest extends ResolverTestCase {
   }
 
   test_genericMethod_typeParameter() async {
+    // Fasta ignores generic type comments
+    if (usingFastaParser) return;
     String code = r'''
 class C {
   /*=T*/ max/*<T>*/(/*=T*/ x, /*=T*/ y) => null;

@@ -349,6 +349,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             StrongModeCode.INVALID_CAST_NEW_EXPR, offset, length);
         return;
+      case "INVALID_CODE_POINT":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.INVALID_CODE_POINT, offset, length, ['\\u{...}']);
+        return;
       case "INVALID_CONSTRUCTOR_NAME":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, offset, length);
@@ -356,6 +360,10 @@ class FastaErrorReporter {
       case "INVALID_GENERIC_FUNCTION_TYPE":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE, offset, length);
+        return;
+      case "INVALID_HEX_ESCAPE":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.INVALID_HEX_ESCAPE, offset, length);
         return;
       case "INVALID_METHOD_OVERRIDE":
         errorReporter?.reportErrorForOffset(
@@ -372,6 +380,10 @@ class FastaErrorReporter {
       case "INVALID_OPERATOR_FOR_SUPER":
         _reportByCode(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, message,
             offset, length);
+        return;
+      case "INVALID_UNICODE_ESCAPE":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.INVALID_UNICODE_ESCAPE, offset, length);
         return;
       case "LIBRARY_DIRECTIVE_NOT_FIRST":
         errorReporter?.reportErrorForOffset(

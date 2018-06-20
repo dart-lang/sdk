@@ -10,6 +10,10 @@ library fasta.command_line_reporting;
 
 import 'dart:io' show exitCode;
 
+import 'dart:math' show min;
+
+import 'dart:typed_data' show Uint8List;
+
 import 'package:kernel/ast.dart' show Location;
 
 import 'colors.dart' show green, magenta, red;
@@ -26,6 +30,8 @@ import 'messages.dart' show getLocation, getSourceLine, isVerbose;
 import 'problems.dart' show unhandled;
 
 import 'severity.dart' show Severity;
+
+import 'scanner/characters.dart' show $CARET, $SPACE, $TAB;
 
 import 'util/relativize.dart' show relativizeUri;
 
@@ -75,8 +81,21 @@ String format(LocatedMessage message, Severity severity, {Location location}) {
       if (sourceLine == null) {
         sourceLine = "";
       } else if (sourceLine.isNotEmpty) {
-        String indentation = " " * (location.column - 1);
-        String pointer = indentation + ("^" * length);
+        // TODO(askesc): Much more could be done to indent properly in the
+        // presence of all sorts of unicode weirdness.
+        // This handling covers the common case of single-width characters
+        // indented with spaces and/or tabs, using no surrogates.
+        int indentLength = location.column - 1;
+        Uint8List indentation = new Uint8List(indentLength + length)
+          ..fillRange(0, indentLength, $SPACE)
+          ..fillRange(indentLength, indentLength + length, $CARET);
+        int lengthInSourceLine = min(indentation.length, sourceLine.length);
+        for (int i = 0; i < lengthInSourceLine; i++) {
+          if (sourceLine.codeUnitAt(i) == $TAB) {
+            indentation[i] = $TAB;
+          }
+        }
+        String pointer = new String.fromCharCodes(indentation);
         if (pointer.length > sourceLine.length) {
           // Truncate the carets to handle messages that span multiple lines.
           int pointerLength = sourceLine.length;

@@ -6,7 +6,6 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
-#include "vm/become.h"
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
@@ -31,7 +30,9 @@
 #include "vm/growable_array.h"
 #include "vm/hash.h"
 #include "vm/hash_table.h"
-#include "vm/heap.h"
+#include "vm/heap/become.h"
+#include "vm/heap/heap.h"
+#include "vm/heap/weak_code.h"
 #include "vm/isolate_reload.h"
 #include "vm/kernel.h"
 #include "vm/kernel_isolate.h"
@@ -54,7 +55,6 @@
 #include "vm/type_table.h"
 #include "vm/type_testing_stubs.h"
 #include "vm/unicode.h"
-#include "vm/weak_code.h"
 #include "vm/zone_text_buffer.h"
 
 namespace dart {
@@ -1215,6 +1215,8 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
           reinterpret_cast<RawTypedData*>(RawObject::FromAddr(addr));
       uword new_tags = RawObject::ClassIdTag::update(kTypedDataInt8ArrayCid, 0);
       new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
+      new_tags = RawObject::VMHeapObjectTag::update(obj.raw()->IsVMHeapObject(),
+                                                    new_tags);
       uint32_t tags = raw->ptr()->tags_;
       uint32_t old_tags;
       // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.
@@ -1235,6 +1237,8 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       RawObject* raw = reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
       uword new_tags = RawObject::ClassIdTag::update(kInstanceCid, 0);
       new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
+      new_tags = RawObject::VMHeapObjectTag::update(
+          obj.raw()->ptr()->IsVMHeapObject(), new_tags);
       uint32_t tags = raw->ptr()->tags_;
       uint32_t old_tags;
       // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.
@@ -3188,15 +3192,6 @@ static RawString* BuildClosureSource(const Array& formal_params,
   src_pieces.Add(Symbols::Semicolon());
   return String::ConcatAll(Array::Handle(Array::MakeFixedLength(src_pieces)));
 }
-
-static RawObject* EvaluateWithDFEHelper(const String& expression,
-                                        const Array& definitions,
-                                        const Array& type_definitions,
-                                        const String& library_url,
-                                        const String& klass,
-                                        bool is_static,
-                                        const Array& arguments,
-                                        const TypeArguments& type_arguments);
 
 RawFunction* Function::EvaluateHelper(const Class& cls,
                                       const String& expr,
@@ -11404,16 +11399,12 @@ RawObject* Library::Evaluate(const String& expr,
                              const Array& param_values,
                              const Array& type_param_names,
                              const TypeArguments& type_param_values) const {
-  if (kernel_data() == TypedData::null() ||
-      !FLAG_enable_kernel_expression_compilation) {
-    // Evaluate the expression as a static function of the toplevel class.
-    Class& top_level_class = Class::Handle(toplevel_class());
-    ASSERT(top_level_class.is_finalized());
-    return top_level_class.Evaluate(expr, param_names, param_values);
-  }
-  return EvaluateWithDFEHelper(expr, param_names, type_param_names,
-                               String::Handle(url()), String::Handle(), false,
-                               param_values, type_param_values);
+  ASSERT(kernel_data() == TypedData::null() ||
+         !FLAG_enable_kernel_expression_compilation);
+  // Evaluate the expression as a static function of the toplevel class.
+  Class& top_level_class = Class::Handle(toplevel_class());
+  ASSERT(top_level_class.is_finalized());
+  return top_level_class.Evaluate(expr, param_names, param_values);
 }
 
 RawObject* Library::EvaluateCompiledExpression(
@@ -11480,135 +11471,6 @@ class LibraryLookupTraits {
   static RawObject* NewKey(const String& str) { return str.raw(); }
 };
 typedef UnorderedHashMap<LibraryLookupTraits> LibraryLookupMap;
-
-static RawObject* EvaluateWithDFEHelper(const String& expression,
-                                        const Array& definitions,
-                                        const Array& type_definitions,
-                                        const String& library_url,
-                                        const String& klass,
-                                        bool is_static,
-                                        const Array& arguments,
-                                        const TypeArguments& type_arguments) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  const String& error_str = String::Handle(
-      String::New("Kernel service isolate not available in precompiled mode."));
-  return ApiError::New(error_str);
-#else
-  Isolate* I = Isolate::Current();
-  Thread* T = Thread::Current();
-
-  Dart_KernelCompilationResult compilation_result;
-  {
-    TransitionVMToNative transition(T);
-    compilation_result = KernelIsolate::CompileExpressionToKernel(
-        expression.ToCString(), definitions, type_definitions,
-        library_url.ToCString(), klass.IsNull() ? NULL : klass.ToCString(),
-        is_static);
-  }
-
-  GrowableObjectArray& libraries =
-      GrowableObjectArray::Handle(T->zone(), I->object_store()->libraries());
-
-  Function& callee = Function::Handle();
-  intptr_t num_cids = I->class_table()->NumCids();
-  intptr_t num_libs = libraries.Length();
-
-  if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
-    const String& prefix =
-        String::Handle(String::New("Kernel isolate rejected this request:\n"));
-    const String& error_str = String::Handle(String::Concat(
-        prefix, String::Handle(String::New(compilation_result.error))));
-    free(compilation_result.error);
-    return ApiError::New(error_str);
-  }
-
-  const uint8_t* kernel_file = compilation_result.kernel;
-  intptr_t kernel_length = compilation_result.kernel_size;
-  ASSERT(kernel_file != NULL);
-
-  kernel::Program* kernel_pgm =
-      kernel::Program::ReadFromBuffer(kernel_file, kernel_length, true);
-
-  if (kernel_pgm == NULL) {
-    return ApiError::New(String::Handle(
-        String::New("Kernel isolate returned ill-formed kernel.")));
-  }
-
-  kernel_pgm->set_release_buffer_callback(ReleaseFetchedBytes);
-
-  // Load the program with the debug procedure as a regular, independent
-  // program.
-  kernel::KernelLoader loader(kernel_pgm);
-  const Object& result = Object::Handle(loader.LoadProgram());
-  if (result.IsError()) return result.raw();
-  ASSERT(I->class_table()->NumCids() > num_cids &&
-         libraries.Length() == num_libs + 1);
-  const Library& loaded =
-      Library::Handle(Library::LookupLibrary(T, Symbols::EvalSourceUri()));
-  ASSERT(!loaded.IsNull());
-
-  String& debug_name = String::Handle(
-      String::New(Symbols::Symbol(Symbols::kDebugProcedureNameId)));
-  Class& fake_class = Class::Handle();
-  if (!klass.IsNull()) {
-    fake_class = loaded.LookupClass(Symbols::DebugClassName());
-    ASSERT(!fake_class.IsNull());
-    callee = fake_class.LookupFunctionAllowPrivate(debug_name);
-  } else {
-    callee = loaded.LookupFunctionAllowPrivate(debug_name);
-  }
-  ASSERT(!callee.IsNull());
-
-  // Save the loaded library's kernel data to the generic "data" field of the
-  // callee, so it doesn't require access it's parent library during
-  // compilation.
-  callee.SetKernelDataAndScript(Script::Handle(callee.script()),
-                                TypedData::Handle(loaded.kernel_data()),
-                                loaded.kernel_offset());
-
-  // Reparent the callee to the real enclosing class so we can remove the fake
-  // class and library from the object store.
-  const Library& real_library =
-      Library::Handle(Library::LookupLibrary(T, library_url));
-  ASSERT(!real_library.IsNull());
-  Class& real_class = Class::Handle();
-  if (!klass.IsNull()) {
-    real_class = real_library.LookupClassAllowPrivate(klass);
-  } else {
-    real_class = real_library.toplevel_class();
-  }
-  ASSERT(!real_class.IsNull());
-
-  callee.set_owner(real_class);
-
-  // Unlink the fake library and class from the object store.
-  libraries.SetLength(num_libs);
-  I->class_table()->SetNumCids(num_cids);
-  if (!fake_class.IsNull()) {
-    fake_class.set_id(kIllegalCid);
-  }
-  LibraryLookupMap libraries_map(I->object_store()->libraries_map());
-  bool removed = libraries_map.Remove(Symbols::EvalSourceUri());
-  ASSERT(removed);
-  I->object_store()->set_libraries_map(libraries_map.Release());
-
-  if (type_definitions.Length() == 0) {
-    return DartEntry::InvokeFunction(callee, arguments);
-  }
-
-  intptr_t num_type_args = type_arguments.Length();
-  Array& real_arguments = Array::Handle(Array::New(arguments.Length() + 1));
-  real_arguments.SetAt(0, type_arguments);
-  Object& arg = Object::Handle();
-  for (intptr_t i = 0; i < arguments.Length(); ++i) {
-    arg = arguments.At(i);
-    real_arguments.SetAt(i + 1, arg);
-  }
-  const Array& args_desc = Array::Handle(
-      ArgumentsDescriptor::New(num_type_args, arguments.Length()));
-  return DartEntry::InvokeFunction(callee, real_arguments, args_desc);
-#endif
-}
 
 static RawObject* EvaluateCompiledExpressionHelper(
     const uint8_t* kernel_bytes,
@@ -19287,18 +19149,11 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
         return Integer::New(left_value + right_value, space);
       case Token::kSUB:
         return Integer::New(left_value - right_value, space);
-      case Token::kMUL: {
-        if (Smi::kBits < 32) {
-          // In 32-bit mode, the product of two Smis fits in a 64-bit result.
-          return Integer::New(static_cast<int64_t>(left_value) *
-                                  static_cast<int64_t>(right_value),
-                              space);
-        } else {
-          ASSERT(sizeof(intptr_t) == sizeof(int64_t));
-          return Integer::New(Utils::MulWithWrapAround(left_value, right_value),
-                              space);
-        }
-      }
+      case Token::kMUL:
+        return Integer::New(
+            Utils::MulWithWrapAround(static_cast<int64_t>(left_value),
+                                     static_cast<int64_t>(right_value)),
+            space);
       case Token::kTRUNCDIV:
         return Integer::New(left_value / right_value, space);
       case Token::kMOD: {
@@ -19396,40 +19251,21 @@ RawInteger* Integer::BitOp(Token::Kind kind,
   }
 }
 
-// TODO(srdjan): Clarify handling of negative right operand in a shift op.
-RawInteger* Smi::ShiftOp(Token::Kind kind,
-                         const Smi& other,
-                         Heap::Space space) const {
-  intptr_t result = 0;
-  const intptr_t left_value = Value();
-  const intptr_t right_value = other.Value();
-  ASSERT(right_value >= 0);
+RawInteger* Integer::ShiftOp(Token::Kind kind,
+                             const Integer& other,
+                             Heap::Space space) const {
+  int64_t a = AsInt64Value();
+  int64_t b = other.AsInt64Value();
+  ASSERT(b >= 0);
   switch (kind) {
-    case Token::kSHL: {
-      if ((left_value == 0) || (right_value == 0)) {
-        return raw();
-      }
-      {  // Check for overflow.
-        int cnt = Utils::BitLength(left_value);
-        if (right_value > (Smi::kBits - cnt)) {
-          return Integer::New(
-              Utils::ShiftLeftWithTruncation(left_value, right_value), space);
-        }
-      }
-      result = left_value << right_value;
-      break;
-    }
-    case Token::kSHR: {
-      const intptr_t shift_amount =
-          (right_value >= kBitsPerWord) ? (kBitsPerWord - 1) : right_value;
-      result = left_value >> shift_amount;
-      break;
-    }
+    case Token::kSHL:
+      return Integer::New(Utils::ShiftLeftWithTruncation(a, b), space);
+    case Token::kSHR:
+      return Integer::New(a >> Utils::Minimum<int64_t>(b, Mint::kBits), space);
     default:
       UNIMPLEMENTED();
+      return Integer::null();
   }
-  ASSERT(Smi::IsValid(result));
-  return Smi::New(result);
 }
 
 bool Smi::Equals(const Instance& other) const {

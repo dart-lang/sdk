@@ -36,4 +36,10 @@ class Foo {
 class SetAnalysisRootsTest_UseCFE extends SetAnalysisRootsTest {
   @override
   bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_options() {
+    return super.test_options();
+  }
 }

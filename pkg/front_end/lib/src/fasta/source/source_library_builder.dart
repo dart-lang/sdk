@@ -279,7 +279,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       bool deferred,
       int charOffset,
       int prefixCharOffset,
-      int uriOffset) {
+      int uriOffset,
+      int importIndex) {
     if (configurations != null) {
       for (Configuration config in configurations) {
         if (lookupImportCondition(config.dottedName) == config.condition) {
@@ -308,7 +309,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     }
 
     imports.add(new Import(this, builder, deferred, prefix, combinators,
-        configurations, charOffset, prefixCharOffset,
+        configurations, charOffset, prefixCharOffset, importIndex,
         nativeImportUri: builder == null ? resolvedUri : null));
   }
 
@@ -712,7 +713,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   int resolveTypes() {
     int typeCount = types.length;
     for (UnresolvedType<T> t in types) {
-      t.resolveIn(scope);
+      t.resolveIn(scope, this);
       if (loader.target.strongMode) {
         t.checkType();
       } else {

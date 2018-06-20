@@ -17,7 +17,6 @@ js_function_getter_trust_types_test: Skip # dart2js specific flags.
 js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759
 localstorage_test: StaticWarning
 mutationobserver_test: StaticWarning
-queryall_test: Fail
 track_element_constructor_test: StaticWarning
 transferables_test: StaticWarning
 typed_arrays_range_checks_test: StaticWarning

@@ -32,22 +32,22 @@ class ClosureAnnotation {
 
   ClosureAnnotation(
       {this.comment,
-      this.interfaces: const [],
-      this.isConst: false,
-      this.isConstructor: false,
-      this.isFinal: false,
-      this.isNoCollapse: false,
-      this.isNoSideEffects: false,
-      this.isOverride: false,
-      this.isPrivate: false,
-      this.isProtected: false,
-      this.isStruct: false,
-      this.isTypedef: false,
+      this.interfaces = const [],
+      this.isConst = false,
+      this.isConstructor = false,
+      this.isFinal = false,
+      this.isNoCollapse = false,
+      this.isNoSideEffects = false,
+      this.isOverride = false,
+      this.isPrivate = false,
+      this.isProtected = false,
+      this.isStruct = false,
+      this.isTypedef = false,
       this.lendsToType,
-      this.paramTypes: const {},
+      this.paramTypes = const {},
       this.returnType,
       this.superType,
-      this.templates: const [],
+      this.templates = const [],
       this.thisType,
       this.throwsType,
       this.type});
@@ -63,8 +63,7 @@ class ClosureAnnotation {
   String toString([String indent = '']) =>
       _cachedString.replaceAll('\n', '\n$indent');
 
-  String _print(JS.TypeRef t) =>
-      (new JS.ClosureTypePrinter()..visit(t)).toString();
+  String _print(JS.TypeRef t) => (JS.ClosureTypePrinter()..visit(t)).toString();
 
   String __cachedString;
   String get _cachedString {

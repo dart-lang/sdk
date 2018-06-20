@@ -46,7 +46,6 @@ io/stdio_implicit_close_test: Skip
 io/stdio_nonblocking_test: Skip
 io/test_extension_fail_test: Skip
 io/test_extension_test: Skip
-io/test_runner_test: RuntimeError # Issue 33168
 io/windows_environment_test: Skip
 
 [ $arch == arm && $mode == release && $runtime == dart_precompiled && $system == android ]

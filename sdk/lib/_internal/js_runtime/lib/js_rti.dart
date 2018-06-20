@@ -1343,6 +1343,8 @@ bool isGenericFunctionTypeParameter(var type) {
 /// Called from generated code.
 @NoInline()
 instantiatedGenericFunctionType(genericFunctionRti, parameters) {
+  if (genericFunctionRti == null) return null;
+
   assert(isDartFunctionType(genericFunctionRti));
 
   var genericBoundsTag =

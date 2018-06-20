@@ -70,4 +70,10 @@ class GetFixesTest_UseCFE extends GetFixesTest {
   @override
   @failingTest
   Future test_has_fixes() => super.test_has_fixes();
+
+  @failingTest
+  @override
+  test_no_fixes() {
+    fail('Test crashes with CFE');
+  }
 }

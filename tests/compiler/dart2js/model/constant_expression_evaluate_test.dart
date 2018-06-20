@@ -153,6 +153,10 @@ const List<TestData> DATA = const [
     const ConstantData('-(1)', 'IntConstant(-1)'),
     const ConstantData('1 == 2', 'BoolConstant(false)'),
     const ConstantData('1 != 2', 'BoolConstant(true)'),
+    const ConstantData('1 / 0', 'DoubleConstant(Infinity)'),
+    const ConstantData('0 / 0', 'DoubleConstant(NaN)'),
+    const ConstantData('1 << 0', 'IntConstant(1)'),
+    const ConstantData('1 >> 0', 'IntConstant(1)'),
     const ConstantData('"foo".length', 'IntConstant(3)'),
     const ConstantData('identical(0, 1)', 'BoolConstant(false)'),
     const ConstantData('"a" "b"', 'StringConstant("ab")'),
@@ -419,6 +423,18 @@ class B extends A {
         expectedErrors: MessageKind.INVALID_CONSTANT_BINARY_INT_TYPE),
     const ConstantData('0 << string', 'NonConstant',
         expectedErrors: MessageKind.INVALID_CONSTANT_BINARY_INT_TYPE),
+    const ConstantData('1 ~/ 0', 'NonConstant',
+        expectedErrors: MessageKind.INVALID_CONSTANT_DIV),
+    const ConstantData('1 ~/ 0.0', 'NonConstant',
+        expectedErrors: MessageKind.INVALID_CONSTANT_DIV),
+    const ConstantData('1 % 0', 'NonConstant',
+        expectedErrors: MessageKind.INVALID_CONSTANT_DIV),
+    const ConstantData('1 % 0.0', 'NonConstant',
+        expectedErrors: MessageKind.INVALID_CONSTANT_DIV),
+    const ConstantData('1 << -1', 'NonConstant',
+        expectedErrors: MessageKind.INVALID_CONSTANT_SHIFT),
+    const ConstantData('1 >> -1', 'NonConstant',
+        expectedErrors: MessageKind.INVALID_CONSTANT_SHIFT),
     const ConstantData('null[0]', 'NonConstant',
         expectedErrors: MessageKind.INVALID_CONSTANT_INDEX),
     const ConstantData('const bool.fromEnvironment(0)', 'NonConstant',
@@ -655,7 +671,8 @@ Future testData(TestData data) async {
   if (!skipKernelList.contains(data.name) && !data.strongModeOnly) {
     print(
         '--test kernel-------------------------------------------------------');
-    await runTest([], (Compiler compiler, FieldEntity field) {
+    await runTest([Flags.noPreviewDart2],
+        (Compiler compiler, FieldEntity field) {
       KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
       KernelToElementMap elementMap = frontendStrategy.elementMap;
       return new KernelEvaluationEnvironment(elementMap, null, field,

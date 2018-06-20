@@ -1560,11 +1560,6 @@ class ErrorParserTest_Forest extends FastaBodyBuilderTestCase
   }
 
   @failingTest
-  void test_invalidCodePoint() {
-    super.test_invalidCodePoint();
-  }
-
-  @failingTest
   void test_invalidCommentReference__new_nonIdentifier() {
     super.test_invalidCommentReference__new_nonIdentifier();
   }
@@ -1592,16 +1587,6 @@ class ErrorParserTest_Forest extends FastaBodyBuilderTestCase
   @failingTest
   void test_invalidConstructorName_with() {
     super.test_invalidConstructorName_with();
-  }
-
-  @failingTest
-  void test_invalidHexEscape_invalidDigit() {
-    super.test_invalidHexEscape_invalidDigit();
-  }
-
-  @failingTest
-  void test_invalidHexEscape_tooFewDigits() {
-    super.test_invalidHexEscape_tooFewDigits();
   }
 
   @failingTest

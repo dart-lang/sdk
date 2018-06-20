@@ -7,7 +7,7 @@
 #include "vm/compiler/jit/compiler.h"
 #include "vm/flags.h"
 #include "vm/hash_table.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/isolate.h"
 #include "vm/kernel_loader.h"
 #include "vm/log.h"

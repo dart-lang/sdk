@@ -564,7 +564,6 @@ f(x) {
     verify([source]);
   }
 
-  @failingTest
   test_awaitInWrongContext_syncStar() async {
     // This test requires better error recovery than we currently have. In
     // particular, we need to be able to distinguish between an await expression
@@ -574,7 +573,9 @@ f(x) sync* {
   yield await x;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT]);
+    if (usingFastaParser) {
+      assertErrors(source, [CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT]);
+    }
     verify([source]);
   }
 
@@ -588,10 +589,18 @@ class B {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      ParserErrorCode.EXPECTED_CLASS_MEMBER,
-      ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
-    ]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE,
+                ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE,
+                ParserErrorCode.EXPECTED_TOKEN
+              ]
+            : [
+                ParserErrorCode.EXPECTED_CLASS_MEMBER,
+                ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
+              ]);
     verify([source]);
   }
 
@@ -655,7 +664,15 @@ f() {
   typedef x;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                StaticWarningCode.UNDEFINED_IDENTIFIER,
+                StaticWarningCode.UNDEFINED_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN
+              ]
+            : [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
     verify([source]);
   }
 
@@ -2203,17 +2220,32 @@ class C = a.A with M;'''
   test_extendsDisallowedClass_class_double() async {
     Source source = addSource("class A extends double {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   test_extendsDisallowedClass_class_int() async {
     Source source = addSource("class A extends int {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-      CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+              ]);
     verify([source]);
   }
 
@@ -2230,17 +2262,32 @@ class C = a.A with M;'''
   test_extendsDisallowedClass_class_num() async {
     Source source = addSource("class A extends num {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   test_extendsDisallowedClass_class_String() async {
     Source source = addSource("class A extends String {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-      CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+              ]);
     verify([source]);
   }
 
@@ -2265,7 +2312,14 @@ class C = bool with M;''');
 class M {}
 class C = double with M;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -2279,7 +2333,8 @@ class C = int with M;''');
         useCFE
             ? [
                 CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-                CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+                CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
               ]
             : [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
@@ -2299,7 +2354,14 @@ class C = Null with M;''');
 class M {}
 class C = num with M;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -2313,7 +2375,8 @@ class C = String with M;''');
         useCFE
             ? [
                 CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-                CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+                CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
               ]
             : [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
@@ -2738,22 +2801,28 @@ class C = B with M implements a.A;'''
   test_implementsDisallowedClass_class_double() async {
     Source source = addSource("class A implements double {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      useCFE
-          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   test_implementsDisallowedClass_class_int() async {
     Source source = addSource("class A implements int {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      useCFE
-          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -2771,22 +2840,28 @@ class C = B with M implements a.A;'''
   test_implementsDisallowedClass_class_num() async {
     Source source = addSource("class A implements num {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      useCFE
-          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   test_implementsDisallowedClass_class_String() async {
     Source source = addSource("class A implements String {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      useCFE
-          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -2824,11 +2899,14 @@ class A {}
 class M {}
 class C = A with M implements double;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      useCFE
-          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -2838,11 +2916,14 @@ class A {}
 class M {}
 class C = A with M implements int;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      useCFE
-          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -2866,11 +2947,14 @@ class A {}
 class M {}
 class C = A with M implements num;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      useCFE
-          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -2880,11 +2964,14 @@ class A {}
 class M {}
 class C = A with M implements String;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      useCFE
-          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -4370,22 +4457,28 @@ class C = Object with B;''');
   test_mixinOfDisallowedClass_class_double() async {
     Source source = addSource("class A extends Object with double {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      useCFE
-          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   test_mixinOfDisallowedClass_class_int() async {
     Source source = addSource("class A extends Object with int {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      useCFE
-          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -4403,22 +4496,28 @@ class C = Object with B;''');
   test_mixinOfDisallowedClass_class_num() async {
     Source source = addSource("class A extends Object with num {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      useCFE
-          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   test_mixinOfDisallowedClass_class_String() async {
     Source source = addSource("class A extends Object with String {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      useCFE
-          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -4440,11 +4539,14 @@ class C = A with bool;''');
 class A {}
 class C = A with double;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      useCFE
-          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -4453,11 +4555,14 @@ class C = A with double;''');
 class A {}
 class C = A with int;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      useCFE
-          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -4479,11 +4584,14 @@ class C = A with Null;''');
 class A {}
 class C = A with num;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      useCFE
-          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -4492,11 +4600,14 @@ class C = A with num;''');
 class A {}
 class C = A with String;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      useCFE
-          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -5105,7 +5216,23 @@ f() {
 }''');
     await computeAnalysisResult(source);
     assertErrors(
-        source, [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT]);
+        source,
+        usingFastaParser
+            ? [
+                // TODO(danrubel): Consider improving recovery
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+              ]
+            : [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT]);
     verify([source]);
   }
 
@@ -5116,7 +5243,21 @@ f() {
 }''');
     await computeAnalysisResult(source);
     assertErrors(
-        source, [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT]);
+        source,
+        usingFastaParser
+            ? [
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+              ]
+            : [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT]);
     verify([source]);
   }
 
@@ -6494,7 +6635,14 @@ f() async* {
   return 0;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.RETURN_IN_GENERATOR]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                CompileTimeErrorCode.RETURN_IN_GENERATOR,
+                CompileTimeErrorCode.RETURN_IN_GENERATOR
+              ]
+            : [CompileTimeErrorCode.RETURN_IN_GENERATOR]);
     verify([source]);
   }
 
@@ -6504,7 +6652,14 @@ f() sync* {
   return 0;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.RETURN_IN_GENERATOR]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                CompileTimeErrorCode.RETURN_IN_GENERATOR,
+                CompileTimeErrorCode.RETURN_IN_GENERATOR
+              ]
+            : [CompileTimeErrorCode.RETURN_IN_GENERATOR]);
     verify([source]);
   }
 
@@ -6680,10 +6835,14 @@ var s5 = const Symbol('x', foo: 'x');''');
 f(this.x(y)) {}
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
-      CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
-    ]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR]
+            : [
+                ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
+                CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
+              ]);
     verify([source]);
   }
 

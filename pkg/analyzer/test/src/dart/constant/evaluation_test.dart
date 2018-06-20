@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -449,12 +450,16 @@ const int i = 5;''');
 
   test_dependencyOnFactoryRedirect() async {
     // a depends on A.foo() depends on A.bar()
-    await _assertProperDependencies(r'''
+    await _assertProperDependencies(
+        r'''
 const A a = const A.foo();
 class A {
   factory const A.foo() = A.bar;
   const A.bar();
-}''');
+}''',
+        Parser.useFasta
+            ? const <ErrorCode>[ParserErrorCode.CONST_AFTER_FACTORY]
+            : const <ErrorCode>[]);
   }
 
   test_dependencyOnFactoryRedirectWithTypeParams() async {

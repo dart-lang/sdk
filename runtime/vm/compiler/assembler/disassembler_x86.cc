@@ -11,7 +11,7 @@
 
 #include "platform/utils.h"
 #include "vm/allocation.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/instructions.h"
 #include "vm/os.h"
 #include "vm/stack_frame.h"

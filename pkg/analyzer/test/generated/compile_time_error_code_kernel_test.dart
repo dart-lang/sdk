@@ -8,9 +8,7 @@ import 'compile_time_error_code_driver_test.dart';
 
 main() {
   defineReflectiveSuite(() {
-    // TODO(scheglov): Restore similar test coverage when the front-end API
-    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
-    // defineReflectiveTests(CompileTimeErrorCodeTest_Kernel);
+    defineReflectiveTests(CompileTimeErrorCodeTest_Kernel);
   });
 }
 
@@ -32,6 +30,11 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
     // 'package:analyzer/src/dart/analysis/library_analyzer.dart': Failed assertion: line 1082 pos 18: 'memberElement != null': is not true.
     await super.test_accessPrivateEnumField();
   }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/12916')
+  test_ambiguousExport() async => super.test_ambiguousExport();
 
   @override
   @failingTest
@@ -66,6 +69,13 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_async_used_as_identifier_in_continue_statement() async {
     // Bad state: No reference information for async at 42
     await super.test_async_used_as_identifier_in_continue_statement();
+  }
+
+  @override
+  @failingTest
+  test_async_used_as_identifier_in_prefix() {
+    // NoSuchMethodError: The getter 'element' was called on null.
+    return super.test_async_used_as_identifier_in_prefix();
   }
 
   @override
@@ -434,22 +444,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_constInitializedWithNonConstValue_finalField() async {
     // Expected 1 errors of type CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, found 0
     await super.test_constInitializedWithNonConstValue_finalField();
-  }
-
-  @override
-  @failingTest
-  test_constInitializedWithNonConstValue_missingConstInListLiteral() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, found 0
-    await super
-        .test_constInitializedWithNonConstValue_missingConstInListLiteral();
-  }
-
-  @override
-  @failingTest
-  test_constInitializedWithNonConstValue_missingConstInMapLiteral() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, found 0
-    await super
-        .test_constInitializedWithNonConstValue_missingConstInMapLiteral();
   }
 
   @override
@@ -965,21 +959,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_fieldInitializerOutsideConstructor_defaultParameter() async {
-    // Expected 1 errors of type CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, found 0
-    await super.test_fieldInitializerOutsideConstructor_defaultParameter();
-  }
-
-  @override
-  @failingTest
-  test_fieldInitializerOutsideConstructor_inFunctionTypeParameter() async {
-    // Expected 1 errors of type CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, found 0
-    await super
-        .test_fieldInitializerOutsideConstructor_inFunctionTypeParameter();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30982')
   test_fieldInitializerRedirectingConstructor_afterRedirection() async {
     return super.test_fieldInitializerRedirectingConstructor_afterRedirection();
@@ -1021,20 +1000,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
     // Expected 1 errors of type CompileTimeErrorCode.DUPLICATE_DEFINITION, found 0;
     //          1 errors of type CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES, found 0
     await super.test_finalInitializedMultipleTimes_initializingFormals();
-  }
-
-  @override
-  @failingTest
-  test_finalNotInitialized_instanceField_const_static() async {
-    // Bad state: Some types were not consumed, starting at offset 26
-    await super.test_finalNotInitialized_instanceField_const_static();
-  }
-
-  @override
-  @failingTest
-  test_finalNotInitialized_library_const() async {
-    // Bad state: Some types were not consumed, starting at offset 7
-    await super.test_finalNotInitialized_library_const();
   }
 
   @override
@@ -2724,13 +2689,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_referencedBeforeDeclaration_hideInBlock_function() async {
-    // Bad state: No declaration information for v() {} at 34
-    await super.test_referencedBeforeDeclaration_hideInBlock_function();
-  }
-
-  @override
-  @failingTest
   test_referencedBeforeDeclaration_hideInBlock_local() async {
     // Bad state: No type information for v at 38
     await super.test_referencedBeforeDeclaration_hideInBlock_local();
@@ -2755,13 +2713,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_referencedBeforeDeclaration_inInitializer_directly() async {
     // Bad state: No type information for v at 15
     await super.test_referencedBeforeDeclaration_inInitializer_directly();
-  }
-
-  @override
-  @failingTest
-  test_referencedBeforeDeclaration_type_localFunction() async {
-    // Bad state: No declaration information for int String(int x) => x + 1; at 40
-    await super.test_referencedBeforeDeclaration_type_localFunction();
   }
 
   @override

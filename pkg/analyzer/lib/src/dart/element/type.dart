@@ -1447,9 +1447,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   DartType flattenFutures(TypeSystem typeSystem) {
-    // Implement the case: "If T = Future<S> then flatten(T) = flatten(S)."
-    if (isDartAsyncFuture && typeArguments.isNotEmpty) {
-      return typeArguments[0].flattenFutures(typeSystem);
+    // Implement the cases:
+    //  - "If T = FutureOr<S> then flatten(T) = S."
+    //  - "If T = Future<S> then flatten(T) = S."
+    if (isDartAsyncFutureOr || isDartAsyncFuture) {
+      return typeArguments.isNotEmpty
+          ? typeArguments[0]
+          : DynamicTypeImpl.instance;
     }
 
     // Implement the case: "Otherwise if T <: Future then let S be a type

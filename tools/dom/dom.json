@@ -3306,6 +3306,1790 @@
     },
     "support_level": "untriaged"
   },
+  "Constants": {
+    "members": {
+      "ACTIVE_ATTRIBUTES": {
+        "support_level": "untriaged"
+      },
+      "ACTIVE_TEXTURE": {
+        "support_level": "untriaged"
+      },
+      "ACTIVE_UNIFORMS": {
+        "support_level": "untriaged"
+      },
+      "ACTIVE_UNIFORM_BLOCKS": {
+        "support_level": "untriaged"
+      },
+      "ALIASED_LINE_WIDTH_RANGE": {
+        "support_level": "untriaged"
+      },
+      "ALIASED_POINT_SIZE_RANGE": {
+        "support_level": "untriaged"
+      },
+      "ALPHA": {
+        "support_level": "untriaged"
+      },
+      "ALPHA_BITS": {
+        "support_level": "untriaged"
+      },
+      "ALREADY_SIGNALED": {
+        "support_level": "untriaged"
+      },
+      "ALWAYS": {
+        "support_level": "untriaged"
+      },
+      "ANY_SAMPLES_PASSED": {
+        "support_level": "untriaged"
+      },
+      "ANY_SAMPLES_PASSED_CONSERVATIVE": {
+        "support_level": "untriaged"
+      },
+      "ARRAY_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "ARRAY_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "ATTACHED_SHADERS": {
+        "support_level": "untriaged"
+      },
+      "BACK": {
+        "support_level": "untriaged"
+      },
+      "BLEND": {
+        "support_level": "untriaged"
+      },
+      "BLEND_COLOR": {
+        "support_level": "untriaged"
+      },
+      "BLEND_DST_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "BLEND_DST_RGB": {
+        "support_level": "untriaged"
+      },
+      "BLEND_EQUATION": {
+        "support_level": "untriaged"
+      },
+      "BLEND_EQUATION_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "BLEND_EQUATION_RGB": {
+        "support_level": "untriaged"
+      },
+      "BLEND_SRC_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "BLEND_SRC_RGB": {
+        "support_level": "untriaged"
+      },
+      "BLUE_BITS": {
+        "support_level": "untriaged"
+      },
+      "BOOL": {
+        "support_level": "untriaged"
+      },
+      "BOOL_VEC2": {
+        "support_level": "untriaged"
+      },
+      "BOOL_VEC3": {
+        "support_level": "untriaged"
+      },
+      "BOOL_VEC4": {
+        "support_level": "untriaged"
+      },
+      "BROWSER_DEFAULT_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "BUFFER_SIZE": {
+        "support_level": "untriaged"
+      },
+      "BUFFER_USAGE": {
+        "support_level": "untriaged"
+      },
+      "BYTE": {
+        "support_level": "untriaged"
+      },
+      "CCW": {
+        "support_level": "untriaged"
+      },
+      "CLAMP_TO_EDGE": {
+        "support_level": "untriaged"
+      },
+      "COLOR": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT0": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT0_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT1": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT10": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT10_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT11": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT11_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT12": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT12_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT13": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT13_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT14": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT14_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT15": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT15_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT1_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT2": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT2_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT3": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT3_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT4": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT4_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT5": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT5_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT6": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT6_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT7": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT7_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT8": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT8_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT9": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT9_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_BUFFER_BIT": {
+        "support_level": "untriaged"
+      },
+      "COLOR_CLEAR_VALUE": {
+        "support_level": "untriaged"
+      },
+      "COLOR_WRITEMASK": {
+        "support_level": "untriaged"
+      },
+      "COMPARE_REF_TO_TEXTURE": {
+        "support_level": "untriaged"
+      },
+      "COMPILE_STATUS": {
+        "support_level": "untriaged"
+      },
+      "COMPRESSED_TEXTURE_FORMATS": {
+        "support_level": "untriaged"
+      },
+      "CONDITION_SATISFIED": {
+        "support_level": "untriaged"
+      },
+      "CONSTANT_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "CONSTANT_COLOR": {
+        "support_level": "untriaged"
+      },
+      "CONTEXT_LOST_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COPY_READ_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "COPY_READ_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "COPY_WRITE_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "COPY_WRITE_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "CULL_FACE": {
+        "support_level": "untriaged"
+      },
+      "CULL_FACE_MODE": {
+        "support_level": "untriaged"
+      },
+      "CURRENT_PROGRAM": {
+        "support_level": "untriaged"
+      },
+      "CURRENT_QUERY": {
+        "support_level": "untriaged"
+      },
+      "CURRENT_VERTEX_ATTRIB": {
+        "support_level": "untriaged"
+      },
+      "CW": {
+        "support_level": "untriaged"
+      },
+      "DECR": {
+        "support_level": "untriaged"
+      },
+      "DECR_WRAP": {
+        "support_level": "untriaged"
+      },
+      "DELETE_STATUS": {
+        "support_level": "untriaged"
+      },
+      "DEPTH": {
+        "support_level": "untriaged"
+      },
+      "DEPTH24_STENCIL8": {
+        "support_level": "untriaged"
+      },
+      "DEPTH32F_STENCIL8": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_ATTACHMENT": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_BITS": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_BUFFER_BIT": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_CLEAR_VALUE": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_COMPONENT": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_COMPONENT16": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_COMPONENT24": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_COMPONENT32F": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_FUNC": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_RANGE": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_STENCIL": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_STENCIL_ATTACHMENT": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_TEST": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_WRITEMASK": {
+        "support_level": "untriaged"
+      },
+      "DITHER": {
+        "support_level": "untriaged"
+      },
+      "DONT_CARE": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER0": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER0_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER1": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER10": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER10_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER11": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER11_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER12": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER12_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER13": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER13_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER14": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER14_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER15": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER15_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER1_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER2": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER2_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER3": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER3_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER4": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER4_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER5": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER5_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER6": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER6_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER7": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER7_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER8": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER8_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER9": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER9_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_FRAMEBUFFER": {
+        "support_level": "untriaged"
+      },
+      "DRAW_FRAMEBUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "DST_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "DST_COLOR": {
+        "support_level": "untriaged"
+      },
+      "DYNAMIC_COPY": {
+        "support_level": "untriaged"
+      },
+      "DYNAMIC_DRAW": {
+        "support_level": "untriaged"
+      },
+      "DYNAMIC_READ": {
+        "support_level": "untriaged"
+      },
+      "ELEMENT_ARRAY_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "ELEMENT_ARRAY_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "EQUAL": {
+        "support_level": "untriaged"
+      },
+      "FASTEST": {
+        "support_level": "untriaged"
+      },
+      "FLOAT": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_32_UNSIGNED_INT_24_8_REV": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT2": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT2x3": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT2x4": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT3": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT3x2": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT3x4": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT4": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT4x2": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT4x3": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_VEC2": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_VEC3": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_VEC4": {
+        "support_level": "untriaged"
+      },
+      "FRAGMENT_SHADER": {
+        "support_level": "untriaged"
+      },
+      "FRAGMENT_SHADER_DERIVATIVE_HINT": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_ALPHA_SIZE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_BLUE_SIZE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_GREEN_SIZE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_OBJECT_NAME": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_RED_SIZE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_COMPLETE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_DEFAULT": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_INCOMPLETE_ATTACHMENT": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_INCOMPLETE_DIMENSIONS": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_INCOMPLETE_MULTISAMPLE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_UNSUPPORTED": {
+        "support_level": "untriaged"
+      },
+      "FRONT": {
+        "support_level": "untriaged"
+      },
+      "FRONT_AND_BACK": {
+        "support_level": "untriaged"
+      },
+      "FRONT_FACE": {
+        "support_level": "untriaged"
+      },
+      "FUNC_ADD": {
+        "support_level": "untriaged"
+      },
+      "FUNC_REVERSE_SUBTRACT": {
+        "support_level": "untriaged"
+      },
+      "FUNC_SUBTRACT": {
+        "support_level": "untriaged"
+      },
+      "GENERATE_MIPMAP_HINT": {
+        "support_level": "untriaged"
+      },
+      "GEQUAL": {
+        "support_level": "untriaged"
+      },
+      "GREATER": {
+        "support_level": "untriaged"
+      },
+      "GREEN_BITS": {
+        "support_level": "untriaged"
+      },
+      "HALF_FLOAT": {
+        "support_level": "untriaged"
+      },
+      "HIGH_FLOAT": {
+        "support_level": "untriaged"
+      },
+      "HIGH_INT": {
+        "support_level": "untriaged"
+      },
+      "IMPLEMENTATION_COLOR_READ_FORMAT": {
+        "support_level": "untriaged"
+      },
+      "IMPLEMENTATION_COLOR_READ_TYPE": {
+        "support_level": "untriaged"
+      },
+      "INCR": {
+        "support_level": "untriaged"
+      },
+      "INCR_WRAP": {
+        "support_level": "untriaged"
+      },
+      "INT": {
+        "support_level": "untriaged"
+      },
+      "INTERLEAVED_ATTRIBS": {
+        "support_level": "untriaged"
+      },
+      "INT_2_10_10_10_REV": {
+        "support_level": "untriaged"
+      },
+      "INT_SAMPLER_2D": {
+        "support_level": "untriaged"
+      },
+      "INT_SAMPLER_2D_ARRAY": {
+        "support_level": "untriaged"
+      },
+      "INT_SAMPLER_3D": {
+        "support_level": "untriaged"
+      },
+      "INT_SAMPLER_CUBE": {
+        "support_level": "untriaged"
+      },
+      "INT_VEC2": {
+        "support_level": "untriaged"
+      },
+      "INT_VEC3": {
+        "support_level": "untriaged"
+      },
+      "INT_VEC4": {
+        "support_level": "untriaged"
+      },
+      "INVALID_ENUM": {
+        "support_level": "untriaged"
+      },
+      "INVALID_FRAMEBUFFER_OPERATION": {
+        "support_level": "untriaged"
+      },
+      "INVALID_INDEX": {
+        "support_level": "untriaged"
+      },
+      "INVALID_OPERATION": {
+        "support_level": "untriaged"
+      },
+      "INVALID_VALUE": {
+        "support_level": "untriaged"
+      },
+      "INVERT": {
+        "support_level": "untriaged"
+      },
+      "KEEP": {
+        "support_level": "untriaged"
+      },
+      "LEQUAL": {
+        "support_level": "untriaged"
+      },
+      "LESS": {
+        "support_level": "untriaged"
+      },
+      "LINEAR": {
+        "support_level": "untriaged"
+      },
+      "LINEAR_MIPMAP_LINEAR": {
+        "support_level": "untriaged"
+      },
+      "LINEAR_MIPMAP_NEAREST": {
+        "support_level": "untriaged"
+      },
+      "LINES": {
+        "support_level": "untriaged"
+      },
+      "LINE_LOOP": {
+        "support_level": "untriaged"
+      },
+      "LINE_STRIP": {
+        "support_level": "untriaged"
+      },
+      "LINE_WIDTH": {
+        "support_level": "untriaged"
+      },
+      "LINK_STATUS": {
+        "support_level": "untriaged"
+      },
+      "LOW_FLOAT": {
+        "support_level": "untriaged"
+      },
+      "LOW_INT": {
+        "support_level": "untriaged"
+      },
+      "LUMINANCE": {
+        "support_level": "untriaged"
+      },
+      "LUMINANCE_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "MAX": {
+        "support_level": "untriaged"
+      },
+      "MAX_3D_TEXTURE_SIZE": {
+        "support_level": "untriaged"
+      },
+      "MAX_ARRAY_TEXTURE_LAYERS": {
+        "support_level": "untriaged"
+      },
+      "MAX_CLIENT_WAIT_TIMEOUT_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "MAX_COLOR_ATTACHMENTS": {
+        "support_level": "untriaged"
+      },
+      "MAX_COLOR_ATTACHMENTS_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS": {
+        "support_level": "untriaged"
+      },
+      "MAX_COMBINED_TEXTURE_IMAGE_UNITS": {
+        "support_level": "untriaged"
+      },
+      "MAX_COMBINED_UNIFORM_BLOCKS": {
+        "support_level": "untriaged"
+      },
+      "MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS": {
+        "support_level": "untriaged"
+      },
+      "MAX_CUBE_MAP_TEXTURE_SIZE": {
+        "support_level": "untriaged"
+      },
+      "MAX_DRAW_BUFFERS": {
+        "support_level": "untriaged"
+      },
+      "MAX_DRAW_BUFFERS_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "MAX_ELEMENTS_INDICES": {
+        "support_level": "untriaged"
+      },
+      "MAX_ELEMENTS_VERTICES": {
+        "support_level": "untriaged"
+      },
+      "MAX_ELEMENT_INDEX": {
+        "support_level": "untriaged"
+      },
+      "MAX_FRAGMENT_INPUT_COMPONENTS": {
+        "support_level": "untriaged"
+      },
+      "MAX_FRAGMENT_UNIFORM_BLOCKS": {
+        "support_level": "untriaged"
+      },
+      "MAX_FRAGMENT_UNIFORM_COMPONENTS": {
+        "support_level": "untriaged"
+      },
+      "MAX_FRAGMENT_UNIFORM_VECTORS": {
+        "support_level": "untriaged"
+      },
+      "MAX_PROGRAM_TEXEL_OFFSET": {
+        "support_level": "untriaged"
+      },
+      "MAX_RENDERBUFFER_SIZE": {
+        "support_level": "untriaged"
+      },
+      "MAX_SAMPLES": {
+        "support_level": "untriaged"
+      },
+      "MAX_SERVER_WAIT_TIMEOUT": {
+        "support_level": "untriaged"
+      },
+      "MAX_TEXTURE_IMAGE_UNITS": {
+        "support_level": "untriaged"
+      },
+      "MAX_TEXTURE_LOD_BIAS": {
+        "support_level": "untriaged"
+      },
+      "MAX_TEXTURE_SIZE": {
+        "support_level": "untriaged"
+      },
+      "MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS": {
+        "support_level": "untriaged"
+      },
+      "MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS": {
+        "support_level": "untriaged"
+      },
+      "MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS": {
+        "support_level": "untriaged"
+      },
+      "MAX_UNIFORM_BLOCK_SIZE": {
+        "support_level": "untriaged"
+      },
+      "MAX_UNIFORM_BUFFER_BINDINGS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VARYING_COMPONENTS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VARYING_VECTORS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VERTEX_ATTRIBS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VERTEX_OUTPUT_COMPONENTS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VERTEX_TEXTURE_IMAGE_UNITS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VERTEX_UNIFORM_BLOCKS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VERTEX_UNIFORM_COMPONENTS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VERTEX_UNIFORM_VECTORS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VIEWPORT_DIMS": {
+        "support_level": "untriaged"
+      },
+      "MEDIUM_FLOAT": {
+        "support_level": "untriaged"
+      },
+      "MEDIUM_INT": {
+        "support_level": "untriaged"
+      },
+      "MIN": {
+        "support_level": "untriaged"
+      },
+      "MIN_PROGRAM_TEXEL_OFFSET": {
+        "support_level": "untriaged"
+      },
+      "MIRRORED_REPEAT": {
+        "support_level": "untriaged"
+      },
+      "NEAREST": {
+        "support_level": "untriaged"
+      },
+      "NEAREST_MIPMAP_LINEAR": {
+        "support_level": "untriaged"
+      },
+      "NEAREST_MIPMAP_NEAREST": {
+        "support_level": "untriaged"
+      },
+      "NEVER": {
+        "support_level": "untriaged"
+      },
+      "NICEST": {
+        "support_level": "untriaged"
+      },
+      "NONE": {
+        "support_level": "untriaged"
+      },
+      "NOTEQUAL": {
+        "support_level": "untriaged"
+      },
+      "NO_ERROR": {
+        "support_level": "untriaged"
+      },
+      "OBJECT_TYPE": {
+        "support_level": "untriaged"
+      },
+      "ONE": {
+        "support_level": "untriaged"
+      },
+      "ONE_MINUS_CONSTANT_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "ONE_MINUS_CONSTANT_COLOR": {
+        "support_level": "untriaged"
+      },
+      "ONE_MINUS_DST_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "ONE_MINUS_DST_COLOR": {
+        "support_level": "untriaged"
+      },
+      "ONE_MINUS_SRC_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "ONE_MINUS_SRC_COLOR": {
+        "support_level": "untriaged"
+      },
+      "OUT_OF_MEMORY": {
+        "support_level": "untriaged"
+      },
+      "PACK_ALIGNMENT": {
+        "support_level": "untriaged"
+      },
+      "PACK_ROW_LENGTH": {
+        "support_level": "untriaged"
+      },
+      "PACK_SKIP_PIXELS": {
+        "support_level": "untriaged"
+      },
+      "PACK_SKIP_ROWS": {
+        "support_level": "untriaged"
+      },
+      "PIXEL_PACK_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "PIXEL_PACK_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "PIXEL_UNPACK_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "PIXEL_UNPACK_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "POINTS": {
+        "support_level": "untriaged"
+      },
+      "POLYGON_OFFSET_FACTOR": {
+        "support_level": "untriaged"
+      },
+      "POLYGON_OFFSET_FILL": {
+        "support_level": "untriaged"
+      },
+      "POLYGON_OFFSET_UNITS": {
+        "support_level": "untriaged"
+      },
+      "QUERY_RESULT": {
+        "support_level": "untriaged"
+      },
+      "QUERY_RESULT_AVAILABLE": {
+        "support_level": "untriaged"
+      },
+      "R11F_G11F_B10F": {
+        "support_level": "untriaged"
+      },
+      "R16F": {
+        "support_level": "untriaged"
+      },
+      "R16I": {
+        "support_level": "untriaged"
+      },
+      "R16UI": {
+        "support_level": "untriaged"
+      },
+      "R32F": {
+        "support_level": "untriaged"
+      },
+      "R32I": {
+        "support_level": "untriaged"
+      },
+      "R32UI": {
+        "support_level": "untriaged"
+      },
+      "R8": {
+        "support_level": "untriaged"
+      },
+      "R8I": {
+        "support_level": "untriaged"
+      },
+      "R8UI": {
+        "support_level": "untriaged"
+      },
+      "R8_SNORM": {
+        "support_level": "untriaged"
+      },
+      "RASTERIZER_DISCARD": {
+        "support_level": "untriaged"
+      },
+      "READ_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "READ_FRAMEBUFFER": {
+        "support_level": "untriaged"
+      },
+      "READ_FRAMEBUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "RED": {
+        "support_level": "untriaged"
+      },
+      "RED_BITS": {
+        "support_level": "untriaged"
+      },
+      "RED_INTEGER": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_ALPHA_SIZE": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_BLUE_SIZE": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_DEPTH_SIZE": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_GREEN_SIZE": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_HEIGHT": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_INTERNAL_FORMAT": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_RED_SIZE": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_SAMPLES": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_STENCIL_SIZE": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_WIDTH": {
+        "support_level": "untriaged"
+      },
+      "RENDERER": {
+        "support_level": "untriaged"
+      },
+      "REPEAT": {
+        "support_level": "untriaged"
+      },
+      "REPLACE": {
+        "support_level": "untriaged"
+      },
+      "RG": {
+        "support_level": "untriaged"
+      },
+      "RG16F": {
+        "support_level": "untriaged"
+      },
+      "RG16I": {
+        "support_level": "untriaged"
+      },
+      "RG16UI": {
+        "support_level": "untriaged"
+      },
+      "RG32F": {
+        "support_level": "untriaged"
+      },
+      "RG32I": {
+        "support_level": "untriaged"
+      },
+      "RG32UI": {
+        "support_level": "untriaged"
+      },
+      "RG8": {
+        "support_level": "untriaged"
+      },
+      "RG8I": {
+        "support_level": "untriaged"
+      },
+      "RG8UI": {
+        "support_level": "untriaged"
+      },
+      "RG8_SNORM": {
+        "support_level": "untriaged"
+      },
+      "RGB": {
+        "support_level": "untriaged"
+      },
+      "RGB10_A2": {
+        "support_level": "untriaged"
+      },
+      "RGB10_A2UI": {
+        "support_level": "untriaged"
+      },
+      "RGB16F": {
+        "support_level": "untriaged"
+      },
+      "RGB16I": {
+        "support_level": "untriaged"
+      },
+      "RGB16UI": {
+        "support_level": "untriaged"
+      },
+      "RGB32F": {
+        "support_level": "untriaged"
+      },
+      "RGB32I": {
+        "support_level": "untriaged"
+      },
+      "RGB32UI": {
+        "support_level": "untriaged"
+      },
+      "RGB565": {
+        "support_level": "untriaged"
+      },
+      "RGB5_A1": {
+        "support_level": "untriaged"
+      },
+      "RGB8": {
+        "support_level": "untriaged"
+      },
+      "RGB8I": {
+        "support_level": "untriaged"
+      },
+      "RGB8UI": {
+        "support_level": "untriaged"
+      },
+      "RGB8_SNORM": {
+        "support_level": "untriaged"
+      },
+      "RGB9_E5": {
+        "support_level": "untriaged"
+      },
+      "RGBA": {
+        "support_level": "untriaged"
+      },
+      "RGBA16F": {
+        "support_level": "untriaged"
+      },
+      "RGBA16I": {
+        "support_level": "untriaged"
+      },
+      "RGBA16UI": {
+        "support_level": "untriaged"
+      },
+      "RGBA32F": {
+        "support_level": "untriaged"
+      },
+      "RGBA32I": {
+        "support_level": "untriaged"
+      },
+      "RGBA32UI": {
+        "support_level": "untriaged"
+      },
+      "RGBA4": {
+        "support_level": "untriaged"
+      },
+      "RGBA8": {
+        "support_level": "untriaged"
+      },
+      "RGBA8I": {
+        "support_level": "untriaged"
+      },
+      "RGBA8UI": {
+        "support_level": "untriaged"
+      },
+      "RGBA8_SNORM": {
+        "support_level": "untriaged"
+      },
+      "RGBA_INTEGER": {
+        "support_level": "untriaged"
+      },
+      "RGB_INTEGER": {
+        "support_level": "untriaged"
+      },
+      "RG_INTEGER": {
+        "support_level": "untriaged"
+      },
+      "SAMPLER_2D": {
+        "support_level": "untriaged"
+      },
+      "SAMPLER_2D_ARRAY": {
+        "support_level": "untriaged"
+      },
+      "SAMPLER_2D_ARRAY_SHADOW": {
+        "support_level": "untriaged"
+      },
+      "SAMPLER_2D_SHADOW": {
+        "support_level": "untriaged"
+      },
+      "SAMPLER_3D": {
+        "support_level": "untriaged"
+      },
+      "SAMPLER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "SAMPLER_CUBE": {
+        "support_level": "untriaged"
+      },
+      "SAMPLER_CUBE_SHADOW": {
+        "support_level": "untriaged"
+      },
+      "SAMPLES": {
+        "support_level": "untriaged"
+      },
+      "SAMPLE_ALPHA_TO_COVERAGE": {
+        "support_level": "untriaged"
+      },
+      "SAMPLE_BUFFERS": {
+        "support_level": "untriaged"
+      },
+      "SAMPLE_COVERAGE": {
+        "support_level": "untriaged"
+      },
+      "SAMPLE_COVERAGE_INVERT": {
+        "support_level": "untriaged"
+      },
+      "SAMPLE_COVERAGE_VALUE": {
+        "support_level": "untriaged"
+      },
+      "SCISSOR_BOX": {
+        "support_level": "untriaged"
+      },
+      "SCISSOR_TEST": {
+        "support_level": "untriaged"
+      },
+      "SEPARATE_ATTRIBS": {
+        "support_level": "untriaged"
+      },
+      "SHADER_TYPE": {
+        "support_level": "untriaged"
+      },
+      "SHADING_LANGUAGE_VERSION": {
+        "support_level": "untriaged"
+      },
+      "SHORT": {
+        "support_level": "untriaged"
+      },
+      "SIGNALED": {
+        "support_level": "untriaged"
+      },
+      "SIGNED_NORMALIZED": {
+        "support_level": "untriaged"
+      },
+      "SRC_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "SRC_ALPHA_SATURATE": {
+        "support_level": "untriaged"
+      },
+      "SRC_COLOR": {
+        "support_level": "untriaged"
+      },
+      "SRGB": {
+        "support_level": "untriaged"
+      },
+      "SRGB8": {
+        "support_level": "untriaged"
+      },
+      "SRGB8_ALPHA8": {
+        "support_level": "untriaged"
+      },
+      "STATIC_COPY": {
+        "support_level": "untriaged"
+      },
+      "STATIC_DRAW": {
+        "support_level": "untriaged"
+      },
+      "STATIC_READ": {
+        "support_level": "untriaged"
+      },
+      "STENCIL": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_ATTACHMENT": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BACK_FAIL": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BACK_FUNC": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BACK_PASS_DEPTH_FAIL": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BACK_PASS_DEPTH_PASS": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BACK_REF": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BACK_VALUE_MASK": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BACK_WRITEMASK": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BITS": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BUFFER_BIT": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_CLEAR_VALUE": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_FAIL": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_FUNC": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_INDEX8": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_PASS_DEPTH_FAIL": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_PASS_DEPTH_PASS": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_REF": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_TEST": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_VALUE_MASK": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_WRITEMASK": {
+        "support_level": "untriaged"
+      },
+      "STREAM_COPY": {
+        "support_level": "untriaged"
+      },
+      "STREAM_DRAW": {
+        "support_level": "untriaged"
+      },
+      "STREAM_READ": {
+        "support_level": "untriaged"
+      },
+      "SUBPIXEL_BITS": {
+        "support_level": "untriaged"
+      },
+      "SYNC_CONDITION": {
+        "support_level": "untriaged"
+      },
+      "SYNC_FENCE": {
+        "support_level": "untriaged"
+      },
+      "SYNC_FLAGS": {
+        "support_level": "untriaged"
+      },
+      "SYNC_FLUSH_COMMANDS_BIT": {
+        "support_level": "untriaged"
+      },
+      "SYNC_GPU_COMMANDS_COMPLETE": {
+        "support_level": "untriaged"
+      },
+      "SYNC_STATUS": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE0": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE1": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE10": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE11": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE12": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE13": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE14": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE15": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE16": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE17": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE18": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE19": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE2": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE20": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE21": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE22": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE23": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE24": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE25": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE26": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE27": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE28": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE29": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE3": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE30": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE31": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE4": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE5": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE6": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE7": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE8": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE9": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_2D": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_2D_ARRAY": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_3D": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_BASE_LEVEL": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_BINDING_2D": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_BINDING_2D_ARRAY": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_BINDING_3D": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_BINDING_CUBE_MAP": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_COMPARE_FUNC": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_COMPARE_MODE": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_CUBE_MAP": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_CUBE_MAP_NEGATIVE_X": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_CUBE_MAP_NEGATIVE_Y": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_CUBE_MAP_NEGATIVE_Z": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_CUBE_MAP_POSITIVE_X": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_CUBE_MAP_POSITIVE_Y": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_CUBE_MAP_POSITIVE_Z": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_IMMUTABLE_FORMAT": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_IMMUTABLE_LEVELS": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_MAG_FILTER": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_MAX_LEVEL": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_MAX_LOD": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_MIN_FILTER": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_MIN_LOD": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_WRAP_R": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_WRAP_S": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_WRAP_T": {
+        "support_level": "untriaged"
+      },
+      "TIMEOUT_EXPIRED": {
+        "support_level": "untriaged"
+      },
+      "TIMEOUT_IGNORED": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_ACTIVE": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_BINDING": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_BUFFER_MODE": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_BUFFER_SIZE": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_BUFFER_START": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_PAUSED": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_VARYINGS": {
+        "support_level": "untriaged"
+      },
+      "TRIANGLES": {
+        "support_level": "untriaged"
+      },
+      "TRIANGLE_FAN": {
+        "support_level": "untriaged"
+      },
+      "TRIANGLE_STRIP": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_ARRAY_STRIDE": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BLOCK_ACTIVE_UNIFORMS": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BLOCK_BINDING": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BLOCK_DATA_SIZE": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BLOCK_INDEX": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BUFFER_OFFSET_ALIGNMENT": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BUFFER_SIZE": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BUFFER_START": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_IS_ROW_MAJOR": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_MATRIX_STRIDE": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_OFFSET": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_SIZE": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_TYPE": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_ALIGNMENT": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_COLORSPACE_CONVERSION_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_FLIP_Y_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_IMAGE_HEIGHT": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_PREMULTIPLY_ALPHA_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_ROW_LENGTH": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_SKIP_IMAGES": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_SKIP_PIXELS": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_SKIP_ROWS": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNALED": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_BYTE": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_10F_11F_11F_REV": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_24_8": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_2_10_10_10_REV": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_5_9_9_9_REV": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_SAMPLER_2D": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_SAMPLER_2D_ARRAY": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_SAMPLER_3D": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_SAMPLER_CUBE": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_VEC2": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_VEC3": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_VEC4": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_NORMALIZED": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_SHORT": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_SHORT_4_4_4_4": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_SHORT_5_5_5_1": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_SHORT_5_6_5": {
+        "support_level": "untriaged"
+      },
+      "VALIDATE_STATUS": {
+        "support_level": "untriaged"
+      },
+      "VENDOR": {
+        "support_level": "untriaged"
+      },
+      "VERSION": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ARRAY_BINDING": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_DIVISOR": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_ENABLED": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_INTEGER": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_NORMALIZED": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_POINTER": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_SIZE": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_STRIDE": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_TYPE": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_SHADER": {
+        "support_level": "untriaged"
+      },
+      "VIEWPORT": {
+        "support_level": "untriaged"
+      },
+      "WAIT_FAILED": {
+        "support_level": "untriaged"
+      },
+      "ZERO": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "ConvolverNode": {
     "comment": "https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#ConvolverNode",
     "members": {
@@ -21801,7 +23585,7 @@
     "members": {},
     "support_level": "experimental"
   },
-  "WebGL2RenderingContext": {
+  "WebGL": {
     "members": {
       "ACTIVE_ATTRIBUTES": {
         "support_level": "untriaged"
@@ -21810,6 +23594,9 @@
         "support_level": "untriaged"
       },
       "ACTIVE_UNIFORMS": {
+        "support_level": "untriaged"
+      },
+      "ACTIVE_UNIFORM_BLOCKS": {
         "support_level": "untriaged"
       },
       "ALIASED_LINE_WIDTH_RANGE": {
@@ -21824,7 +23611,16 @@
       "ALPHA_BITS": {
         "support_level": "untriaged"
       },
+      "ALREADY_SIGNALED": {
+        "support_level": "untriaged"
+      },
       "ALWAYS": {
+        "support_level": "untriaged"
+      },
+      "ANY_SAMPLES_PASSED": {
+        "support_level": "untriaged"
+      },
+      "ANY_SAMPLES_PASSED_CONSERVATIVE": {
         "support_level": "untriaged"
       },
       "ARRAY_BUFFER": {
@@ -21899,7 +23695,103 @@
       "CLAMP_TO_EDGE": {
         "support_level": "untriaged"
       },
+      "COLOR": {
+        "support_level": "untriaged"
+      },
       "COLOR_ATTACHMENT0": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT0_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT1": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT10": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT10_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT11": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT11_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT12": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT12_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT13": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT13_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT14": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT14_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT15": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT15_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT1_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT2": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT2_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT3": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT3_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT4": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT4_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT5": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT5_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT6": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT6_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT7": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT7_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT8": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT8_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT9": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT9_WEBGL": {
         "support_level": "untriaged"
       },
       "COLOR_BUFFER_BIT": {
@@ -21911,10 +23803,16 @@
       "COLOR_WRITEMASK": {
         "support_level": "untriaged"
       },
+      "COMPARE_REF_TO_TEXTURE": {
+        "support_level": "untriaged"
+      },
       "COMPILE_STATUS": {
         "support_level": "untriaged"
       },
       "COMPRESSED_TEXTURE_FORMATS": {
+        "support_level": "untriaged"
+      },
+      "CONDITION_SATISFIED": {
         "support_level": "untriaged"
       },
       "CONSTANT_ALPHA": {
@@ -21926,6 +23824,18 @@
       "CONTEXT_LOST_WEBGL": {
         "support_level": "untriaged"
       },
+      "COPY_READ_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "COPY_READ_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "COPY_WRITE_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "COPY_WRITE_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
       "CULL_FACE": {
         "support_level": "untriaged"
       },
@@ -21933,6 +23843,9 @@
         "support_level": "untriaged"
       },
       "CURRENT_PROGRAM": {
+        "support_level": "untriaged"
+      },
+      "CURRENT_QUERY": {
         "support_level": "untriaged"
       },
       "CURRENT_VERTEX_ATTRIB": {
@@ -21948,6 +23861,15 @@
         "support_level": "untriaged"
       },
       "DELETE_STATUS": {
+        "support_level": "untriaged"
+      },
+      "DEPTH": {
+        "support_level": "untriaged"
+      },
+      "DEPTH24_STENCIL8": {
+        "support_level": "untriaged"
+      },
+      "DEPTH32F_STENCIL8": {
         "support_level": "untriaged"
       },
       "DEPTH_ATTACHMENT": {
@@ -21966,6 +23888,12 @@
         "support_level": "untriaged"
       },
       "DEPTH_COMPONENT16": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_COMPONENT24": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_COMPONENT32F": {
         "support_level": "untriaged"
       },
       "DEPTH_FUNC": {
@@ -21992,13 +23920,121 @@
       "DONT_CARE": {
         "support_level": "untriaged"
       },
+      "DRAW_BUFFER0": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER0_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER1": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER10": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER10_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER11": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER11_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER12": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER12_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER13": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER13_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER14": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER14_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER15": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER15_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER1_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER2": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER2_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER3": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER3_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER4": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER4_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER5": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER5_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER6": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER6_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER7": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER7_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER8": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER8_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER9": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER9_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "DRAW_FRAMEBUFFER": {
+        "support_level": "untriaged"
+      },
+      "DRAW_FRAMEBUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
       "DST_ALPHA": {
         "support_level": "untriaged"
       },
       "DST_COLOR": {
         "support_level": "untriaged"
       },
+      "DYNAMIC_COPY": {
+        "support_level": "untriaged"
+      },
       "DYNAMIC_DRAW": {
+        "support_level": "untriaged"
+      },
+      "DYNAMIC_READ": {
         "support_level": "untriaged"
       },
       "ELEMENT_ARRAY_BUFFER": {
@@ -22016,13 +24052,34 @@
       "FLOAT": {
         "support_level": "untriaged"
       },
+      "FLOAT_32_UNSIGNED_INT_24_8_REV": {
+        "support_level": "untriaged"
+      },
       "FLOAT_MAT2": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT2x3": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT2x4": {
         "support_level": "untriaged"
       },
       "FLOAT_MAT3": {
         "support_level": "untriaged"
       },
+      "FLOAT_MAT3x2": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT3x4": {
+        "support_level": "untriaged"
+      },
       "FLOAT_MAT4": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT4x2": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT4x3": {
         "support_level": "untriaged"
       },
       "FLOAT_VEC2": {
@@ -22037,7 +24094,28 @@
       "FRAGMENT_SHADER": {
         "support_level": "untriaged"
       },
+      "FRAGMENT_SHADER_DERIVATIVE_HINT": {
+        "support_level": "untriaged"
+      },
       "FRAMEBUFFER": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_ALPHA_SIZE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_BLUE_SIZE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_GREEN_SIZE": {
         "support_level": "untriaged"
       },
       "FRAMEBUFFER_ATTACHMENT_OBJECT_NAME": {
@@ -22046,7 +24124,16 @@
       "FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE": {
         "support_level": "untriaged"
       },
+      "FRAMEBUFFER_ATTACHMENT_RED_SIZE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE": {
+        "support_level": "untriaged"
+      },
       "FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER": {
         "support_level": "untriaged"
       },
       "FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL": {
@@ -22058,6 +24145,9 @@
       "FRAMEBUFFER_COMPLETE": {
         "support_level": "untriaged"
       },
+      "FRAMEBUFFER_DEFAULT": {
+        "support_level": "untriaged"
+      },
       "FRAMEBUFFER_INCOMPLETE_ATTACHMENT": {
         "support_level": "untriaged"
       },
@@ -22065,6 +24155,9 @@
         "support_level": "untriaged"
       },
       "FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_INCOMPLETE_MULTISAMPLE": {
         "support_level": "untriaged"
       },
       "FRAMEBUFFER_UNSUPPORTED": {
@@ -22100,6 +24193,9 @@
       "GREEN_BITS": {
         "support_level": "untriaged"
       },
+      "HALF_FLOAT": {
+        "support_level": "untriaged"
+      },
       "HIGH_FLOAT": {
         "support_level": "untriaged"
       },
@@ -22121,6 +24217,24 @@
       "INT": {
         "support_level": "untriaged"
       },
+      "INTERLEAVED_ATTRIBS": {
+        "support_level": "untriaged"
+      },
+      "INT_2_10_10_10_REV": {
+        "support_level": "untriaged"
+      },
+      "INT_SAMPLER_2D": {
+        "support_level": "untriaged"
+      },
+      "INT_SAMPLER_2D_ARRAY": {
+        "support_level": "untriaged"
+      },
+      "INT_SAMPLER_3D": {
+        "support_level": "untriaged"
+      },
+      "INT_SAMPLER_CUBE": {
+        "support_level": "untriaged"
+      },
       "INT_VEC2": {
         "support_level": "untriaged"
       },
@@ -22134,6 +24248,9 @@
         "support_level": "untriaged"
       },
       "INVALID_FRAMEBUFFER_OPERATION": {
+        "support_level": "untriaged"
+      },
+      "INVALID_INDEX": {
         "support_level": "untriaged"
       },
       "INVALID_OPERATION": {
@@ -22190,22 +24307,103 @@
       "LUMINANCE_ALPHA": {
         "support_level": "untriaged"
       },
+      "MAX": {
+        "support_level": "untriaged"
+      },
+      "MAX_3D_TEXTURE_SIZE": {
+        "support_level": "untriaged"
+      },
+      "MAX_ARRAY_TEXTURE_LAYERS": {
+        "support_level": "untriaged"
+      },
+      "MAX_CLIENT_WAIT_TIMEOUT_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "MAX_COLOR_ATTACHMENTS": {
+        "support_level": "untriaged"
+      },
+      "MAX_COLOR_ATTACHMENTS_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS": {
+        "support_level": "untriaged"
+      },
       "MAX_COMBINED_TEXTURE_IMAGE_UNITS": {
+        "support_level": "untriaged"
+      },
+      "MAX_COMBINED_UNIFORM_BLOCKS": {
+        "support_level": "untriaged"
+      },
+      "MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS": {
         "support_level": "untriaged"
       },
       "MAX_CUBE_MAP_TEXTURE_SIZE": {
         "support_level": "untriaged"
       },
+      "MAX_DRAW_BUFFERS": {
+        "support_level": "untriaged"
+      },
+      "MAX_DRAW_BUFFERS_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "MAX_ELEMENTS_INDICES": {
+        "support_level": "untriaged"
+      },
+      "MAX_ELEMENTS_VERTICES": {
+        "support_level": "untriaged"
+      },
+      "MAX_ELEMENT_INDEX": {
+        "support_level": "untriaged"
+      },
+      "MAX_FRAGMENT_INPUT_COMPONENTS": {
+        "support_level": "untriaged"
+      },
+      "MAX_FRAGMENT_UNIFORM_BLOCKS": {
+        "support_level": "untriaged"
+      },
+      "MAX_FRAGMENT_UNIFORM_COMPONENTS": {
+        "support_level": "untriaged"
+      },
       "MAX_FRAGMENT_UNIFORM_VECTORS": {
+        "support_level": "untriaged"
+      },
+      "MAX_PROGRAM_TEXEL_OFFSET": {
         "support_level": "untriaged"
       },
       "MAX_RENDERBUFFER_SIZE": {
         "support_level": "untriaged"
       },
+      "MAX_SAMPLES": {
+        "support_level": "untriaged"
+      },
+      "MAX_SERVER_WAIT_TIMEOUT": {
+        "support_level": "untriaged"
+      },
       "MAX_TEXTURE_IMAGE_UNITS": {
         "support_level": "untriaged"
       },
+      "MAX_TEXTURE_LOD_BIAS": {
+        "support_level": "untriaged"
+      },
       "MAX_TEXTURE_SIZE": {
+        "support_level": "untriaged"
+      },
+      "MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS": {
+        "support_level": "untriaged"
+      },
+      "MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS": {
+        "support_level": "untriaged"
+      },
+      "MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS": {
+        "support_level": "untriaged"
+      },
+      "MAX_UNIFORM_BLOCK_SIZE": {
+        "support_level": "untriaged"
+      },
+      "MAX_UNIFORM_BUFFER_BINDINGS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VARYING_COMPONENTS": {
         "support_level": "untriaged"
       },
       "MAX_VARYING_VECTORS": {
@@ -22214,7 +24412,16 @@
       "MAX_VERTEX_ATTRIBS": {
         "support_level": "untriaged"
       },
+      "MAX_VERTEX_OUTPUT_COMPONENTS": {
+        "support_level": "untriaged"
+      },
       "MAX_VERTEX_TEXTURE_IMAGE_UNITS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VERTEX_UNIFORM_BLOCKS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VERTEX_UNIFORM_COMPONENTS": {
         "support_level": "untriaged"
       },
       "MAX_VERTEX_UNIFORM_VECTORS": {
@@ -22227,6 +24434,12 @@
         "support_level": "untriaged"
       },
       "MEDIUM_INT": {
+        "support_level": "untriaged"
+      },
+      "MIN": {
+        "support_level": "untriaged"
+      },
+      "MIN_PROGRAM_TEXEL_OFFSET": {
         "support_level": "untriaged"
       },
       "MIRRORED_REPEAT": {
@@ -22256,6 +24469,9 @@
       "NO_ERROR": {
         "support_level": "untriaged"
       },
+      "OBJECT_TYPE": {
+        "support_level": "untriaged"
+      },
       "ONE": {
         "support_level": "untriaged"
       },
@@ -22283,6 +24499,27 @@
       "PACK_ALIGNMENT": {
         "support_level": "untriaged"
       },
+      "PACK_ROW_LENGTH": {
+        "support_level": "untriaged"
+      },
+      "PACK_SKIP_PIXELS": {
+        "support_level": "untriaged"
+      },
+      "PACK_SKIP_ROWS": {
+        "support_level": "untriaged"
+      },
+      "PIXEL_PACK_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "PIXEL_PACK_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "PIXEL_UNPACK_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "PIXEL_UNPACK_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
       "POINTS": {
         "support_level": "untriaged"
       },
@@ -22295,7 +24532,64 @@
       "POLYGON_OFFSET_UNITS": {
         "support_level": "untriaged"
       },
+      "QUERY_RESULT": {
+        "support_level": "untriaged"
+      },
+      "QUERY_RESULT_AVAILABLE": {
+        "support_level": "untriaged"
+      },
+      "R11F_G11F_B10F": {
+        "support_level": "untriaged"
+      },
+      "R16F": {
+        "support_level": "untriaged"
+      },
+      "R16I": {
+        "support_level": "untriaged"
+      },
+      "R16UI": {
+        "support_level": "untriaged"
+      },
+      "R32F": {
+        "support_level": "untriaged"
+      },
+      "R32I": {
+        "support_level": "untriaged"
+      },
+      "R32UI": {
+        "support_level": "untriaged"
+      },
+      "R8": {
+        "support_level": "untriaged"
+      },
+      "R8I": {
+        "support_level": "untriaged"
+      },
+      "R8UI": {
+        "support_level": "untriaged"
+      },
+      "R8_SNORM": {
+        "support_level": "untriaged"
+      },
+      "RASTERIZER_DISCARD": {
+        "support_level": "untriaged"
+      },
+      "READ_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "READ_FRAMEBUFFER": {
+        "support_level": "untriaged"
+      },
+      "READ_FRAMEBUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "RED": {
+        "support_level": "untriaged"
+      },
       "RED_BITS": {
+        "support_level": "untriaged"
+      },
+      "RED_INTEGER": {
         "support_level": "untriaged"
       },
       "RENDERBUFFER": {
@@ -22325,6 +24619,9 @@
       "RENDERBUFFER_RED_SIZE": {
         "support_level": "untriaged"
       },
+      "RENDERBUFFER_SAMPLES": {
+        "support_level": "untriaged"
+      },
       "RENDERBUFFER_STENCIL_SIZE": {
         "support_level": "untriaged"
       },
@@ -22340,7 +24637,64 @@
       "REPLACE": {
         "support_level": "untriaged"
       },
+      "RG": {
+        "support_level": "untriaged"
+      },
+      "RG16F": {
+        "support_level": "untriaged"
+      },
+      "RG16I": {
+        "support_level": "untriaged"
+      },
+      "RG16UI": {
+        "support_level": "untriaged"
+      },
+      "RG32F": {
+        "support_level": "untriaged"
+      },
+      "RG32I": {
+        "support_level": "untriaged"
+      },
+      "RG32UI": {
+        "support_level": "untriaged"
+      },
+      "RG8": {
+        "support_level": "untriaged"
+      },
+      "RG8I": {
+        "support_level": "untriaged"
+      },
+      "RG8UI": {
+        "support_level": "untriaged"
+      },
+      "RG8_SNORM": {
+        "support_level": "untriaged"
+      },
       "RGB": {
+        "support_level": "untriaged"
+      },
+      "RGB10_A2": {
+        "support_level": "untriaged"
+      },
+      "RGB10_A2UI": {
+        "support_level": "untriaged"
+      },
+      "RGB16F": {
+        "support_level": "untriaged"
+      },
+      "RGB16I": {
+        "support_level": "untriaged"
+      },
+      "RGB16UI": {
+        "support_level": "untriaged"
+      },
+      "RGB32F": {
+        "support_level": "untriaged"
+      },
+      "RGB32I": {
+        "support_level": "untriaged"
+      },
+      "RGB32UI": {
         "support_level": "untriaged"
       },
       "RGB565": {
@@ -22349,16 +24703,88 @@
       "RGB5_A1": {
         "support_level": "untriaged"
       },
+      "RGB8": {
+        "support_level": "untriaged"
+      },
+      "RGB8I": {
+        "support_level": "untriaged"
+      },
+      "RGB8UI": {
+        "support_level": "untriaged"
+      },
+      "RGB8_SNORM": {
+        "support_level": "untriaged"
+      },
+      "RGB9_E5": {
+        "support_level": "untriaged"
+      },
       "RGBA": {
+        "support_level": "untriaged"
+      },
+      "RGBA16F": {
+        "support_level": "untriaged"
+      },
+      "RGBA16I": {
+        "support_level": "untriaged"
+      },
+      "RGBA16UI": {
+        "support_level": "untriaged"
+      },
+      "RGBA32F": {
+        "support_level": "untriaged"
+      },
+      "RGBA32I": {
+        "support_level": "untriaged"
+      },
+      "RGBA32UI": {
         "support_level": "untriaged"
       },
       "RGBA4": {
         "support_level": "untriaged"
       },
+      "RGBA8": {
+        "support_level": "untriaged"
+      },
+      "RGBA8I": {
+        "support_level": "untriaged"
+      },
+      "RGBA8UI": {
+        "support_level": "untriaged"
+      },
+      "RGBA8_SNORM": {
+        "support_level": "untriaged"
+      },
+      "RGBA_INTEGER": {
+        "support_level": "untriaged"
+      },
+      "RGB_INTEGER": {
+        "support_level": "untriaged"
+      },
+      "RG_INTEGER": {
+        "support_level": "untriaged"
+      },
       "SAMPLER_2D": {
         "support_level": "untriaged"
       },
+      "SAMPLER_2D_ARRAY": {
+        "support_level": "untriaged"
+      },
+      "SAMPLER_2D_ARRAY_SHADOW": {
+        "support_level": "untriaged"
+      },
+      "SAMPLER_2D_SHADOW": {
+        "support_level": "untriaged"
+      },
+      "SAMPLER_3D": {
+        "support_level": "untriaged"
+      },
+      "SAMPLER_BINDING": {
+        "support_level": "untriaged"
+      },
       "SAMPLER_CUBE": {
+        "support_level": "untriaged"
+      },
+      "SAMPLER_CUBE_SHADOW": {
         "support_level": "untriaged"
       },
       "SAMPLES": {
@@ -22385,6 +24811,9 @@
       "SCISSOR_TEST": {
         "support_level": "untriaged"
       },
+      "SEPARATE_ATTRIBS": {
+        "support_level": "untriaged"
+      },
       "SHADER_TYPE": {
         "support_level": "untriaged"
       },
@@ -22392,6 +24821,12 @@
         "support_level": "untriaged"
       },
       "SHORT": {
+        "support_level": "untriaged"
+      },
+      "SIGNALED": {
+        "support_level": "untriaged"
+      },
+      "SIGNED_NORMALIZED": {
         "support_level": "untriaged"
       },
       "SRC_ALPHA": {
@@ -22403,7 +24838,25 @@
       "SRC_COLOR": {
         "support_level": "untriaged"
       },
+      "SRGB": {
+        "support_level": "untriaged"
+      },
+      "SRGB8": {
+        "support_level": "untriaged"
+      },
+      "SRGB8_ALPHA8": {
+        "support_level": "untriaged"
+      },
+      "STATIC_COPY": {
+        "support_level": "untriaged"
+      },
       "STATIC_DRAW": {
+        "support_level": "untriaged"
+      },
+      "STATIC_READ": {
+        "support_level": "untriaged"
+      },
+      "STENCIL": {
         "support_level": "untriaged"
       },
       "STENCIL_ATTACHMENT": {
@@ -22445,9 +24898,6 @@
       "STENCIL_FUNC": {
         "support_level": "untriaged"
       },
-      "STENCIL_INDEX": {
-        "support_level": "untriaged"
-      },
       "STENCIL_INDEX8": {
         "support_level": "untriaged"
       },
@@ -22469,10 +24919,34 @@
       "STENCIL_WRITEMASK": {
         "support_level": "untriaged"
       },
+      "STREAM_COPY": {
+        "support_level": "untriaged"
+      },
       "STREAM_DRAW": {
         "support_level": "untriaged"
       },
+      "STREAM_READ": {
+        "support_level": "untriaged"
+      },
       "SUBPIXEL_BITS": {
+        "support_level": "untriaged"
+      },
+      "SYNC_CONDITION": {
+        "support_level": "untriaged"
+      },
+      "SYNC_FENCE": {
+        "support_level": "untriaged"
+      },
+      "SYNC_FLAGS": {
+        "support_level": "untriaged"
+      },
+      "SYNC_FLUSH_COMMANDS_BIT": {
+        "support_level": "untriaged"
+      },
+      "SYNC_GPU_COMMANDS_COMPLETE": {
+        "support_level": "untriaged"
+      },
+      "SYNC_STATUS": {
         "support_level": "untriaged"
       },
       "TEXTURE": {
@@ -22577,10 +25051,31 @@
       "TEXTURE_2D": {
         "support_level": "untriaged"
       },
+      "TEXTURE_2D_ARRAY": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_3D": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_BASE_LEVEL": {
+        "support_level": "untriaged"
+      },
       "TEXTURE_BINDING_2D": {
         "support_level": "untriaged"
       },
+      "TEXTURE_BINDING_2D_ARRAY": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_BINDING_3D": {
+        "support_level": "untriaged"
+      },
       "TEXTURE_BINDING_CUBE_MAP": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_COMPARE_FUNC": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_COMPARE_MODE": {
         "support_level": "untriaged"
       },
       "TEXTURE_CUBE_MAP": {
@@ -22604,16 +25099,73 @@
       "TEXTURE_CUBE_MAP_POSITIVE_Z": {
         "support_level": "untriaged"
       },
+      "TEXTURE_IMMUTABLE_FORMAT": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_IMMUTABLE_LEVELS": {
+        "support_level": "untriaged"
+      },
       "TEXTURE_MAG_FILTER": {
         "support_level": "untriaged"
       },
+      "TEXTURE_MAX_LEVEL": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_MAX_LOD": {
+        "support_level": "untriaged"
+      },
       "TEXTURE_MIN_FILTER": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_MIN_LOD": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_WRAP_R": {
         "support_level": "untriaged"
       },
       "TEXTURE_WRAP_S": {
         "support_level": "untriaged"
       },
       "TEXTURE_WRAP_T": {
+        "support_level": "untriaged"
+      },
+      "TIMEOUT_EXPIRED": {
+        "support_level": "untriaged"
+      },
+      "TIMEOUT_IGNORED": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_ACTIVE": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_BINDING": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_BUFFER_MODE": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_BUFFER_SIZE": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_BUFFER_START": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_PAUSED": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_VARYINGS": {
         "support_level": "untriaged"
       },
       "TRIANGLES": {
@@ -22625,6 +25177,60 @@
       "TRIANGLE_STRIP": {
         "support_level": "untriaged"
       },
+      "UNIFORM_ARRAY_STRIDE": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BLOCK_ACTIVE_UNIFORMS": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BLOCK_BINDING": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BLOCK_DATA_SIZE": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BLOCK_INDEX": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BUFFER_OFFSET_ALIGNMENT": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BUFFER_SIZE": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BUFFER_START": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_IS_ROW_MAJOR": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_MATRIX_STRIDE": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_OFFSET": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_SIZE": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_TYPE": {
+        "support_level": "untriaged"
+      },
       "UNPACK_ALIGNMENT": {
         "support_level": "untriaged"
       },
@@ -22634,13 +25240,67 @@
       "UNPACK_FLIP_Y_WEBGL": {
         "support_level": "untriaged"
       },
+      "UNPACK_IMAGE_HEIGHT": {
+        "support_level": "untriaged"
+      },
       "UNPACK_PREMULTIPLY_ALPHA_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_ROW_LENGTH": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_SKIP_IMAGES": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_SKIP_PIXELS": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_SKIP_ROWS": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNALED": {
         "support_level": "untriaged"
       },
       "UNSIGNED_BYTE": {
         "support_level": "untriaged"
       },
       "UNSIGNED_INT": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_10F_11F_11F_REV": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_24_8": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_2_10_10_10_REV": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_5_9_9_9_REV": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_SAMPLER_2D": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_SAMPLER_2D_ARRAY": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_SAMPLER_3D": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_SAMPLER_CUBE": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_VEC2": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_VEC3": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_VEC4": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_NORMALIZED": {
         "support_level": "untriaged"
       },
       "UNSIGNED_SHORT": {
@@ -22664,10 +25324,19 @@
       "VERSION": {
         "support_level": "untriaged"
       },
+      "VERTEX_ARRAY_BINDING": {
+        "support_level": "untriaged"
+      },
       "VERTEX_ATTRIB_ARRAY_BUFFER_BINDING": {
         "support_level": "untriaged"
       },
+      "VERTEX_ATTRIB_ARRAY_DIVISOR": {
+        "support_level": "untriaged"
+      },
       "VERTEX_ATTRIB_ARRAY_ENABLED": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_INTEGER": {
         "support_level": "untriaged"
       },
       "VERTEX_ATTRIB_ARRAY_NORMALIZED": {
@@ -22689,6 +25358,1694 @@
         "support_level": "untriaged"
       },
       "VIEWPORT": {
+        "support_level": "untriaged"
+      },
+      "WAIT_FAILED": {
+        "support_level": "untriaged"
+      },
+      "ZERO": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "WebGL2RenderingContext": {
+    "members": {
+      "ACTIVE_ATTRIBUTES": {
+        "support_level": "untriaged"
+      },
+      "ACTIVE_TEXTURE": {
+        "support_level": "untriaged"
+      },
+      "ACTIVE_UNIFORMS": {
+        "support_level": "untriaged"
+      },
+      "ACTIVE_UNIFORM_BLOCKS": {
+        "support_level": "untriaged"
+      },
+      "ALIASED_LINE_WIDTH_RANGE": {
+        "support_level": "untriaged"
+      },
+      "ALIASED_POINT_SIZE_RANGE": {
+        "support_level": "untriaged"
+      },
+      "ALPHA": {
+        "support_level": "untriaged"
+      },
+      "ALPHA_BITS": {
+        "support_level": "untriaged"
+      },
+      "ALREADY_SIGNALED": {
+        "support_level": "untriaged"
+      },
+      "ALWAYS": {
+        "support_level": "untriaged"
+      },
+      "ANY_SAMPLES_PASSED": {
+        "support_level": "untriaged"
+      },
+      "ANY_SAMPLES_PASSED_CONSERVATIVE": {
+        "support_level": "untriaged"
+      },
+      "ARRAY_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "ARRAY_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "ATTACHED_SHADERS": {
+        "support_level": "untriaged"
+      },
+      "BACK": {
+        "support_level": "untriaged"
+      },
+      "BLEND": {
+        "support_level": "untriaged"
+      },
+      "BLEND_COLOR": {
+        "support_level": "untriaged"
+      },
+      "BLEND_DST_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "BLEND_DST_RGB": {
+        "support_level": "untriaged"
+      },
+      "BLEND_EQUATION": {
+        "support_level": "untriaged"
+      },
+      "BLEND_EQUATION_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "BLEND_EQUATION_RGB": {
+        "support_level": "untriaged"
+      },
+      "BLEND_SRC_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "BLEND_SRC_RGB": {
+        "support_level": "untriaged"
+      },
+      "BLUE_BITS": {
+        "support_level": "untriaged"
+      },
+      "BOOL": {
+        "support_level": "untriaged"
+      },
+      "BOOL_VEC2": {
+        "support_level": "untriaged"
+      },
+      "BOOL_VEC3": {
+        "support_level": "untriaged"
+      },
+      "BOOL_VEC4": {
+        "support_level": "untriaged"
+      },
+      "BROWSER_DEFAULT_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "BUFFER_SIZE": {
+        "support_level": "untriaged"
+      },
+      "BUFFER_USAGE": {
+        "support_level": "untriaged"
+      },
+      "BYTE": {
+        "support_level": "untriaged"
+      },
+      "CCW": {
+        "support_level": "untriaged"
+      },
+      "CLAMP_TO_EDGE": {
+        "support_level": "untriaged"
+      },
+      "COLOR": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT0": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT1": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT10": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT11": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT12": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT13": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT14": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT15": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT2": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT3": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT4": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT5": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT6": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT7": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT8": {
+        "support_level": "untriaged"
+      },
+      "COLOR_ATTACHMENT9": {
+        "support_level": "untriaged"
+      },
+      "COLOR_BUFFER_BIT": {
+        "support_level": "untriaged"
+      },
+      "COLOR_CLEAR_VALUE": {
+        "support_level": "untriaged"
+      },
+      "COLOR_WRITEMASK": {
+        "support_level": "untriaged"
+      },
+      "COMPARE_REF_TO_TEXTURE": {
+        "support_level": "untriaged"
+      },
+      "COMPILE_STATUS": {
+        "support_level": "untriaged"
+      },
+      "COMPRESSED_TEXTURE_FORMATS": {
+        "support_level": "untriaged"
+      },
+      "CONDITION_SATISFIED": {
+        "support_level": "untriaged"
+      },
+      "CONSTANT_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "CONSTANT_COLOR": {
+        "support_level": "untriaged"
+      },
+      "CONTEXT_LOST_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "COPY_READ_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "COPY_READ_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "COPY_WRITE_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "COPY_WRITE_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "CULL_FACE": {
+        "support_level": "untriaged"
+      },
+      "CULL_FACE_MODE": {
+        "support_level": "untriaged"
+      },
+      "CURRENT_PROGRAM": {
+        "support_level": "untriaged"
+      },
+      "CURRENT_QUERY": {
+        "support_level": "untriaged"
+      },
+      "CURRENT_VERTEX_ATTRIB": {
+        "support_level": "untriaged"
+      },
+      "CW": {
+        "support_level": "untriaged"
+      },
+      "DECR": {
+        "support_level": "untriaged"
+      },
+      "DECR_WRAP": {
+        "support_level": "untriaged"
+      },
+      "DELETE_STATUS": {
+        "support_level": "untriaged"
+      },
+      "DEPTH": {
+        "support_level": "untriaged"
+      },
+      "DEPTH24_STENCIL8": {
+        "support_level": "untriaged"
+      },
+      "DEPTH32F_STENCIL8": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_ATTACHMENT": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_BITS": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_BUFFER_BIT": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_CLEAR_VALUE": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_COMPONENT": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_COMPONENT16": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_COMPONENT24": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_COMPONENT32F": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_FUNC": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_RANGE": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_STENCIL": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_STENCIL_ATTACHMENT": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_TEST": {
+        "support_level": "untriaged"
+      },
+      "DEPTH_WRITEMASK": {
+        "support_level": "untriaged"
+      },
+      "DITHER": {
+        "support_level": "untriaged"
+      },
+      "DONT_CARE": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER0": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER1": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER10": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER11": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER12": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER13": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER14": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER15": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER2": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER3": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER4": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER5": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER6": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER7": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER8": {
+        "support_level": "untriaged"
+      },
+      "DRAW_BUFFER9": {
+        "support_level": "untriaged"
+      },
+      "DRAW_FRAMEBUFFER": {
+        "support_level": "untriaged"
+      },
+      "DRAW_FRAMEBUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "DST_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "DST_COLOR": {
+        "support_level": "untriaged"
+      },
+      "DYNAMIC_COPY": {
+        "support_level": "untriaged"
+      },
+      "DYNAMIC_DRAW": {
+        "support_level": "untriaged"
+      },
+      "DYNAMIC_READ": {
+        "support_level": "untriaged"
+      },
+      "ELEMENT_ARRAY_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "ELEMENT_ARRAY_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "EQUAL": {
+        "support_level": "untriaged"
+      },
+      "FASTEST": {
+        "support_level": "untriaged"
+      },
+      "FLOAT": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_32_UNSIGNED_INT_24_8_REV": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT2": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT2x3": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT2x4": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT3": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT3x2": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT3x4": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT4": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT4x2": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_MAT4x3": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_VEC2": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_VEC3": {
+        "support_level": "untriaged"
+      },
+      "FLOAT_VEC4": {
+        "support_level": "untriaged"
+      },
+      "FRAGMENT_SHADER": {
+        "support_level": "untriaged"
+      },
+      "FRAGMENT_SHADER_DERIVATIVE_HINT": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_ALPHA_SIZE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_BLUE_SIZE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_GREEN_SIZE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_OBJECT_NAME": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_RED_SIZE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_COMPLETE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_DEFAULT": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_INCOMPLETE_ATTACHMENT": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_INCOMPLETE_DIMENSIONS": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_INCOMPLETE_MULTISAMPLE": {
+        "support_level": "untriaged"
+      },
+      "FRAMEBUFFER_UNSUPPORTED": {
+        "support_level": "untriaged"
+      },
+      "FRONT": {
+        "support_level": "untriaged"
+      },
+      "FRONT_AND_BACK": {
+        "support_level": "untriaged"
+      },
+      "FRONT_FACE": {
+        "support_level": "untriaged"
+      },
+      "FUNC_ADD": {
+        "support_level": "untriaged"
+      },
+      "FUNC_REVERSE_SUBTRACT": {
+        "support_level": "untriaged"
+      },
+      "FUNC_SUBTRACT": {
+        "support_level": "untriaged"
+      },
+      "GENERATE_MIPMAP_HINT": {
+        "support_level": "untriaged"
+      },
+      "GEQUAL": {
+        "support_level": "untriaged"
+      },
+      "GREATER": {
+        "support_level": "untriaged"
+      },
+      "GREEN_BITS": {
+        "support_level": "untriaged"
+      },
+      "HALF_FLOAT": {
+        "support_level": "untriaged"
+      },
+      "HIGH_FLOAT": {
+        "support_level": "untriaged"
+      },
+      "HIGH_INT": {
+        "support_level": "untriaged"
+      },
+      "IMPLEMENTATION_COLOR_READ_FORMAT": {
+        "support_level": "untriaged"
+      },
+      "IMPLEMENTATION_COLOR_READ_TYPE": {
+        "support_level": "untriaged"
+      },
+      "INCR": {
+        "support_level": "untriaged"
+      },
+      "INCR_WRAP": {
+        "support_level": "untriaged"
+      },
+      "INT": {
+        "support_level": "untriaged"
+      },
+      "INTERLEAVED_ATTRIBS": {
+        "support_level": "untriaged"
+      },
+      "INT_2_10_10_10_REV": {
+        "support_level": "untriaged"
+      },
+      "INT_SAMPLER_2D": {
+        "support_level": "untriaged"
+      },
+      "INT_SAMPLER_2D_ARRAY": {
+        "support_level": "untriaged"
+      },
+      "INT_SAMPLER_3D": {
+        "support_level": "untriaged"
+      },
+      "INT_SAMPLER_CUBE": {
+        "support_level": "untriaged"
+      },
+      "INT_VEC2": {
+        "support_level": "untriaged"
+      },
+      "INT_VEC3": {
+        "support_level": "untriaged"
+      },
+      "INT_VEC4": {
+        "support_level": "untriaged"
+      },
+      "INVALID_ENUM": {
+        "support_level": "untriaged"
+      },
+      "INVALID_FRAMEBUFFER_OPERATION": {
+        "support_level": "untriaged"
+      },
+      "INVALID_INDEX": {
+        "support_level": "untriaged"
+      },
+      "INVALID_OPERATION": {
+        "support_level": "untriaged"
+      },
+      "INVALID_VALUE": {
+        "support_level": "untriaged"
+      },
+      "INVERT": {
+        "support_level": "untriaged"
+      },
+      "KEEP": {
+        "support_level": "untriaged"
+      },
+      "LEQUAL": {
+        "support_level": "untriaged"
+      },
+      "LESS": {
+        "support_level": "untriaged"
+      },
+      "LINEAR": {
+        "support_level": "untriaged"
+      },
+      "LINEAR_MIPMAP_LINEAR": {
+        "support_level": "untriaged"
+      },
+      "LINEAR_MIPMAP_NEAREST": {
+        "support_level": "untriaged"
+      },
+      "LINES": {
+        "support_level": "untriaged"
+      },
+      "LINE_LOOP": {
+        "support_level": "untriaged"
+      },
+      "LINE_STRIP": {
+        "support_level": "untriaged"
+      },
+      "LINE_WIDTH": {
+        "support_level": "untriaged"
+      },
+      "LINK_STATUS": {
+        "support_level": "untriaged"
+      },
+      "LOW_FLOAT": {
+        "support_level": "untriaged"
+      },
+      "LOW_INT": {
+        "support_level": "untriaged"
+      },
+      "LUMINANCE": {
+        "support_level": "untriaged"
+      },
+      "LUMINANCE_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "MAX": {
+        "support_level": "untriaged"
+      },
+      "MAX_3D_TEXTURE_SIZE": {
+        "support_level": "untriaged"
+      },
+      "MAX_ARRAY_TEXTURE_LAYERS": {
+        "support_level": "untriaged"
+      },
+      "MAX_CLIENT_WAIT_TIMEOUT_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "MAX_COLOR_ATTACHMENTS": {
+        "support_level": "untriaged"
+      },
+      "MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS": {
+        "support_level": "untriaged"
+      },
+      "MAX_COMBINED_TEXTURE_IMAGE_UNITS": {
+        "support_level": "untriaged"
+      },
+      "MAX_COMBINED_UNIFORM_BLOCKS": {
+        "support_level": "untriaged"
+      },
+      "MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS": {
+        "support_level": "untriaged"
+      },
+      "MAX_CUBE_MAP_TEXTURE_SIZE": {
+        "support_level": "untriaged"
+      },
+      "MAX_DRAW_BUFFERS": {
+        "support_level": "untriaged"
+      },
+      "MAX_ELEMENTS_INDICES": {
+        "support_level": "untriaged"
+      },
+      "MAX_ELEMENTS_VERTICES": {
+        "support_level": "untriaged"
+      },
+      "MAX_ELEMENT_INDEX": {
+        "support_level": "untriaged"
+      },
+      "MAX_FRAGMENT_INPUT_COMPONENTS": {
+        "support_level": "untriaged"
+      },
+      "MAX_FRAGMENT_UNIFORM_BLOCKS": {
+        "support_level": "untriaged"
+      },
+      "MAX_FRAGMENT_UNIFORM_COMPONENTS": {
+        "support_level": "untriaged"
+      },
+      "MAX_FRAGMENT_UNIFORM_VECTORS": {
+        "support_level": "untriaged"
+      },
+      "MAX_PROGRAM_TEXEL_OFFSET": {
+        "support_level": "untriaged"
+      },
+      "MAX_RENDERBUFFER_SIZE": {
+        "support_level": "untriaged"
+      },
+      "MAX_SAMPLES": {
+        "support_level": "untriaged"
+      },
+      "MAX_SERVER_WAIT_TIMEOUT": {
+        "support_level": "untriaged"
+      },
+      "MAX_TEXTURE_IMAGE_UNITS": {
+        "support_level": "untriaged"
+      },
+      "MAX_TEXTURE_LOD_BIAS": {
+        "support_level": "untriaged"
+      },
+      "MAX_TEXTURE_SIZE": {
+        "support_level": "untriaged"
+      },
+      "MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS": {
+        "support_level": "untriaged"
+      },
+      "MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS": {
+        "support_level": "untriaged"
+      },
+      "MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS": {
+        "support_level": "untriaged"
+      },
+      "MAX_UNIFORM_BLOCK_SIZE": {
+        "support_level": "untriaged"
+      },
+      "MAX_UNIFORM_BUFFER_BINDINGS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VARYING_COMPONENTS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VARYING_VECTORS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VERTEX_ATTRIBS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VERTEX_OUTPUT_COMPONENTS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VERTEX_TEXTURE_IMAGE_UNITS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VERTEX_UNIFORM_BLOCKS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VERTEX_UNIFORM_COMPONENTS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VERTEX_UNIFORM_VECTORS": {
+        "support_level": "untriaged"
+      },
+      "MAX_VIEWPORT_DIMS": {
+        "support_level": "untriaged"
+      },
+      "MEDIUM_FLOAT": {
+        "support_level": "untriaged"
+      },
+      "MEDIUM_INT": {
+        "support_level": "untriaged"
+      },
+      "MIN": {
+        "support_level": "untriaged"
+      },
+      "MIN_PROGRAM_TEXEL_OFFSET": {
+        "support_level": "untriaged"
+      },
+      "MIRRORED_REPEAT": {
+        "support_level": "untriaged"
+      },
+      "NEAREST": {
+        "support_level": "untriaged"
+      },
+      "NEAREST_MIPMAP_LINEAR": {
+        "support_level": "untriaged"
+      },
+      "NEAREST_MIPMAP_NEAREST": {
+        "support_level": "untriaged"
+      },
+      "NEVER": {
+        "support_level": "untriaged"
+      },
+      "NICEST": {
+        "support_level": "untriaged"
+      },
+      "NONE": {
+        "support_level": "untriaged"
+      },
+      "NOTEQUAL": {
+        "support_level": "untriaged"
+      },
+      "NO_ERROR": {
+        "support_level": "untriaged"
+      },
+      "OBJECT_TYPE": {
+        "support_level": "untriaged"
+      },
+      "ONE": {
+        "support_level": "untriaged"
+      },
+      "ONE_MINUS_CONSTANT_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "ONE_MINUS_CONSTANT_COLOR": {
+        "support_level": "untriaged"
+      },
+      "ONE_MINUS_DST_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "ONE_MINUS_DST_COLOR": {
+        "support_level": "untriaged"
+      },
+      "ONE_MINUS_SRC_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "ONE_MINUS_SRC_COLOR": {
+        "support_level": "untriaged"
+      },
+      "OUT_OF_MEMORY": {
+        "support_level": "untriaged"
+      },
+      "PACK_ALIGNMENT": {
+        "support_level": "untriaged"
+      },
+      "PACK_ROW_LENGTH": {
+        "support_level": "untriaged"
+      },
+      "PACK_SKIP_PIXELS": {
+        "support_level": "untriaged"
+      },
+      "PACK_SKIP_ROWS": {
+        "support_level": "untriaged"
+      },
+      "PIXEL_PACK_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "PIXEL_PACK_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "PIXEL_UNPACK_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "PIXEL_UNPACK_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "POINTS": {
+        "support_level": "untriaged"
+      },
+      "POLYGON_OFFSET_FACTOR": {
+        "support_level": "untriaged"
+      },
+      "POLYGON_OFFSET_FILL": {
+        "support_level": "untriaged"
+      },
+      "POLYGON_OFFSET_UNITS": {
+        "support_level": "untriaged"
+      },
+      "QUERY_RESULT": {
+        "support_level": "untriaged"
+      },
+      "QUERY_RESULT_AVAILABLE": {
+        "support_level": "untriaged"
+      },
+      "R11F_G11F_B10F": {
+        "support_level": "untriaged"
+      },
+      "R16F": {
+        "support_level": "untriaged"
+      },
+      "R16I": {
+        "support_level": "untriaged"
+      },
+      "R16UI": {
+        "support_level": "untriaged"
+      },
+      "R32F": {
+        "support_level": "untriaged"
+      },
+      "R32I": {
+        "support_level": "untriaged"
+      },
+      "R32UI": {
+        "support_level": "untriaged"
+      },
+      "R8": {
+        "support_level": "untriaged"
+      },
+      "R8I": {
+        "support_level": "untriaged"
+      },
+      "R8UI": {
+        "support_level": "untriaged"
+      },
+      "R8_SNORM": {
+        "support_level": "untriaged"
+      },
+      "RASTERIZER_DISCARD": {
+        "support_level": "untriaged"
+      },
+      "READ_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "READ_FRAMEBUFFER": {
+        "support_level": "untriaged"
+      },
+      "READ_FRAMEBUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "RED": {
+        "support_level": "untriaged"
+      },
+      "RED_BITS": {
+        "support_level": "untriaged"
+      },
+      "RED_INTEGER": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_ALPHA_SIZE": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_BLUE_SIZE": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_DEPTH_SIZE": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_GREEN_SIZE": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_HEIGHT": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_INTERNAL_FORMAT": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_RED_SIZE": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_SAMPLES": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_STENCIL_SIZE": {
+        "support_level": "untriaged"
+      },
+      "RENDERBUFFER_WIDTH": {
+        "support_level": "untriaged"
+      },
+      "RENDERER": {
+        "support_level": "untriaged"
+      },
+      "REPEAT": {
+        "support_level": "untriaged"
+      },
+      "REPLACE": {
+        "support_level": "untriaged"
+      },
+      "RG": {
+        "support_level": "untriaged"
+      },
+      "RG16F": {
+        "support_level": "untriaged"
+      },
+      "RG16I": {
+        "support_level": "untriaged"
+      },
+      "RG16UI": {
+        "support_level": "untriaged"
+      },
+      "RG32F": {
+        "support_level": "untriaged"
+      },
+      "RG32I": {
+        "support_level": "untriaged"
+      },
+      "RG32UI": {
+        "support_level": "untriaged"
+      },
+      "RG8": {
+        "support_level": "untriaged"
+      },
+      "RG8I": {
+        "support_level": "untriaged"
+      },
+      "RG8UI": {
+        "support_level": "untriaged"
+      },
+      "RG8_SNORM": {
+        "support_level": "untriaged"
+      },
+      "RGB": {
+        "support_level": "untriaged"
+      },
+      "RGB10_A2": {
+        "support_level": "untriaged"
+      },
+      "RGB10_A2UI": {
+        "support_level": "untriaged"
+      },
+      "RGB16F": {
+        "support_level": "untriaged"
+      },
+      "RGB16I": {
+        "support_level": "untriaged"
+      },
+      "RGB16UI": {
+        "support_level": "untriaged"
+      },
+      "RGB32F": {
+        "support_level": "untriaged"
+      },
+      "RGB32I": {
+        "support_level": "untriaged"
+      },
+      "RGB32UI": {
+        "support_level": "untriaged"
+      },
+      "RGB565": {
+        "support_level": "untriaged"
+      },
+      "RGB5_A1": {
+        "support_level": "untriaged"
+      },
+      "RGB8": {
+        "support_level": "untriaged"
+      },
+      "RGB8I": {
+        "support_level": "untriaged"
+      },
+      "RGB8UI": {
+        "support_level": "untriaged"
+      },
+      "RGB8_SNORM": {
+        "support_level": "untriaged"
+      },
+      "RGB9_E5": {
+        "support_level": "untriaged"
+      },
+      "RGBA": {
+        "support_level": "untriaged"
+      },
+      "RGBA16F": {
+        "support_level": "untriaged"
+      },
+      "RGBA16I": {
+        "support_level": "untriaged"
+      },
+      "RGBA16UI": {
+        "support_level": "untriaged"
+      },
+      "RGBA32F": {
+        "support_level": "untriaged"
+      },
+      "RGBA32I": {
+        "support_level": "untriaged"
+      },
+      "RGBA32UI": {
+        "support_level": "untriaged"
+      },
+      "RGBA4": {
+        "support_level": "untriaged"
+      },
+      "RGBA8": {
+        "support_level": "untriaged"
+      },
+      "RGBA8I": {
+        "support_level": "untriaged"
+      },
+      "RGBA8UI": {
+        "support_level": "untriaged"
+      },
+      "RGBA8_SNORM": {
+        "support_level": "untriaged"
+      },
+      "RGBA_INTEGER": {
+        "support_level": "untriaged"
+      },
+      "RGB_INTEGER": {
+        "support_level": "untriaged"
+      },
+      "RG_INTEGER": {
+        "support_level": "untriaged"
+      },
+      "SAMPLER_2D": {
+        "support_level": "untriaged"
+      },
+      "SAMPLER_2D_ARRAY": {
+        "support_level": "untriaged"
+      },
+      "SAMPLER_2D_ARRAY_SHADOW": {
+        "support_level": "untriaged"
+      },
+      "SAMPLER_2D_SHADOW": {
+        "support_level": "untriaged"
+      },
+      "SAMPLER_3D": {
+        "support_level": "untriaged"
+      },
+      "SAMPLER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "SAMPLER_CUBE": {
+        "support_level": "untriaged"
+      },
+      "SAMPLER_CUBE_SHADOW": {
+        "support_level": "untriaged"
+      },
+      "SAMPLES": {
+        "support_level": "untriaged"
+      },
+      "SAMPLE_ALPHA_TO_COVERAGE": {
+        "support_level": "untriaged"
+      },
+      "SAMPLE_BUFFERS": {
+        "support_level": "untriaged"
+      },
+      "SAMPLE_COVERAGE": {
+        "support_level": "untriaged"
+      },
+      "SAMPLE_COVERAGE_INVERT": {
+        "support_level": "untriaged"
+      },
+      "SAMPLE_COVERAGE_VALUE": {
+        "support_level": "untriaged"
+      },
+      "SCISSOR_BOX": {
+        "support_level": "untriaged"
+      },
+      "SCISSOR_TEST": {
+        "support_level": "untriaged"
+      },
+      "SEPARATE_ATTRIBS": {
+        "support_level": "untriaged"
+      },
+      "SHADER_TYPE": {
+        "support_level": "untriaged"
+      },
+      "SHADING_LANGUAGE_VERSION": {
+        "support_level": "untriaged"
+      },
+      "SHORT": {
+        "support_level": "untriaged"
+      },
+      "SIGNALED": {
+        "support_level": "untriaged"
+      },
+      "SIGNED_NORMALIZED": {
+        "support_level": "untriaged"
+      },
+      "SRC_ALPHA": {
+        "support_level": "untriaged"
+      },
+      "SRC_ALPHA_SATURATE": {
+        "support_level": "untriaged"
+      },
+      "SRC_COLOR": {
+        "support_level": "untriaged"
+      },
+      "SRGB": {
+        "support_level": "untriaged"
+      },
+      "SRGB8": {
+        "support_level": "untriaged"
+      },
+      "SRGB8_ALPHA8": {
+        "support_level": "untriaged"
+      },
+      "STATIC_COPY": {
+        "support_level": "untriaged"
+      },
+      "STATIC_DRAW": {
+        "support_level": "untriaged"
+      },
+      "STATIC_READ": {
+        "support_level": "untriaged"
+      },
+      "STENCIL": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_ATTACHMENT": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BACK_FAIL": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BACK_FUNC": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BACK_PASS_DEPTH_FAIL": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BACK_PASS_DEPTH_PASS": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BACK_REF": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BACK_VALUE_MASK": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BACK_WRITEMASK": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BITS": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_BUFFER_BIT": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_CLEAR_VALUE": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_FAIL": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_FUNC": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_INDEX": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_INDEX8": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_PASS_DEPTH_FAIL": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_PASS_DEPTH_PASS": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_REF": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_TEST": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_VALUE_MASK": {
+        "support_level": "untriaged"
+      },
+      "STENCIL_WRITEMASK": {
+        "support_level": "untriaged"
+      },
+      "STREAM_COPY": {
+        "support_level": "untriaged"
+      },
+      "STREAM_DRAW": {
+        "support_level": "untriaged"
+      },
+      "STREAM_READ": {
+        "support_level": "untriaged"
+      },
+      "SUBPIXEL_BITS": {
+        "support_level": "untriaged"
+      },
+      "SYNC_CONDITION": {
+        "support_level": "untriaged"
+      },
+      "SYNC_FENCE": {
+        "support_level": "untriaged"
+      },
+      "SYNC_FLAGS": {
+        "support_level": "untriaged"
+      },
+      "SYNC_FLUSH_COMMANDS_BIT": {
+        "support_level": "untriaged"
+      },
+      "SYNC_GPU_COMMANDS_COMPLETE": {
+        "support_level": "untriaged"
+      },
+      "SYNC_STATUS": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE0": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE1": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE10": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE11": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE12": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE13": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE14": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE15": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE16": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE17": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE18": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE19": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE2": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE20": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE21": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE22": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE23": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE24": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE25": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE26": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE27": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE28": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE29": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE3": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE30": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE31": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE4": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE5": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE6": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE7": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE8": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE9": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_2D": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_2D_ARRAY": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_3D": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_BASE_LEVEL": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_BINDING_2D": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_BINDING_2D_ARRAY": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_BINDING_3D": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_BINDING_CUBE_MAP": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_COMPARE_FUNC": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_COMPARE_MODE": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_CUBE_MAP": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_CUBE_MAP_NEGATIVE_X": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_CUBE_MAP_NEGATIVE_Y": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_CUBE_MAP_NEGATIVE_Z": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_CUBE_MAP_POSITIVE_X": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_CUBE_MAP_POSITIVE_Y": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_CUBE_MAP_POSITIVE_Z": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_IMMUTABLE_FORMAT": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_IMMUTABLE_LEVELS": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_MAG_FILTER": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_MAX_LEVEL": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_MAX_LOD": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_MIN_FILTER": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_MIN_LOD": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_WRAP_R": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_WRAP_S": {
+        "support_level": "untriaged"
+      },
+      "TEXTURE_WRAP_T": {
+        "support_level": "untriaged"
+      },
+      "TIMEOUT_EXPIRED": {
+        "support_level": "untriaged"
+      },
+      "TIMEOUT_IGNORED": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_ACTIVE": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_BINDING": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_BUFFER_MODE": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_BUFFER_SIZE": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_BUFFER_START": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_PAUSED": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN": {
+        "support_level": "untriaged"
+      },
+      "TRANSFORM_FEEDBACK_VARYINGS": {
+        "support_level": "untriaged"
+      },
+      "TRIANGLES": {
+        "support_level": "untriaged"
+      },
+      "TRIANGLE_FAN": {
+        "support_level": "untriaged"
+      },
+      "TRIANGLE_STRIP": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_ARRAY_STRIDE": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BLOCK_ACTIVE_UNIFORMS": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BLOCK_BINDING": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BLOCK_DATA_SIZE": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BLOCK_INDEX": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BUFFER": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BUFFER_OFFSET_ALIGNMENT": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BUFFER_SIZE": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_BUFFER_START": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_IS_ROW_MAJOR": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_MATRIX_STRIDE": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_OFFSET": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_SIZE": {
+        "support_level": "untriaged"
+      },
+      "UNIFORM_TYPE": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_ALIGNMENT": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_COLORSPACE_CONVERSION_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_FLIP_Y_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_IMAGE_HEIGHT": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_PREMULTIPLY_ALPHA_WEBGL": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_ROW_LENGTH": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_SKIP_IMAGES": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_SKIP_PIXELS": {
+        "support_level": "untriaged"
+      },
+      "UNPACK_SKIP_ROWS": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNALED": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_BYTE": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_10F_11F_11F_REV": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_24_8": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_2_10_10_10_REV": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_5_9_9_9_REV": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_SAMPLER_2D": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_SAMPLER_2D_ARRAY": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_SAMPLER_3D": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_SAMPLER_CUBE": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_VEC2": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_VEC3": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_INT_VEC4": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_NORMALIZED": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_SHORT": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_SHORT_4_4_4_4": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_SHORT_5_5_5_1": {
+        "support_level": "untriaged"
+      },
+      "UNSIGNED_SHORT_5_6_5": {
+        "support_level": "untriaged"
+      },
+      "VALIDATE_STATUS": {
+        "support_level": "untriaged"
+      },
+      "VENDOR": {
+        "support_level": "untriaged"
+      },
+      "VERSION": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ARRAY_BINDING": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_BUFFER_BINDING": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_DIVISOR": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_ENABLED": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_INTEGER": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_NORMALIZED": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_POINTER": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_SIZE": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_STRIDE": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_ATTRIB_ARRAY_TYPE": {
+        "support_level": "untriaged"
+      },
+      "VERTEX_SHADER": {
+        "support_level": "untriaged"
+      },
+      "VIEWPORT": {
+        "support_level": "untriaged"
+      },
+      "WAIT_FAILED": {
         "support_level": "untriaged"
       },
       "ZERO": {

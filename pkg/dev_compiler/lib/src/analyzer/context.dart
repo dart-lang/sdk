@@ -51,7 +51,7 @@ class AnalyzerOptions {
       {this.contextBuilderOptions,
       List<String> summaryPaths,
       String dartSdkPath,
-      this.customUrlMappings: const {}})
+      this.customUrlMappings = const {}})
       : dartSdkPath = dartSdkPath ?? getSdkDir().path,
         summaryPaths = summaryPaths ?? const [] {
     contextBuilderOptions.declaredVariables ??= const {};
@@ -62,13 +62,13 @@ class AnalyzerOptions {
       {String dartSdkPath,
       String dartSdkSummaryPath,
       List<String> summaryPaths}) {
-    var contextBuilderOptions = new ContextBuilderOptions()
-      ..defaultOptions = (new AnalysisOptionsImpl()
+    var contextBuilderOptions = ContextBuilderOptions()
+      ..defaultOptions = (AnalysisOptionsImpl()
         ..strongMode = true
         ..previewDart2 = true)
       ..dartSdkSummaryPath = dartSdkSummaryPath;
 
-    return new AnalyzerOptions._(
+    return AnalyzerOptions._(
         contextBuilderOptions: contextBuilderOptions,
         dartSdkPath: dartSdkPath,
         summaryPaths: summaryPaths);
@@ -90,7 +90,7 @@ class AnalyzerOptions {
     if (dartSdkSummaryPath == 'build') dartSdkSummaryPath = null;
     contextBuilderOptions.dartSdkSummaryPath = dartSdkSummaryPath;
 
-    return new AnalyzerOptions._(
+    return AnalyzerOptions._(
         contextBuilderOptions: contextBuilderOptions,
         summaryPaths: summaryPaths ?? args['summary'] as List<String>,
         dartSdkPath: dartSdkPath,
@@ -98,7 +98,7 @@ class AnalyzerOptions {
             _parseUrlMappings(args['url-mapping'] as List<String>));
   }
 
-  static void addArguments(ArgParser parser, {bool hide: true}) {
+  static void addArguments(ArgParser parser, {bool hide = true}) {
     parser
       ..addOption('summary',
           abbr: 's', help: 'summary file(s) to include', allowMultiple: true)
@@ -151,35 +151,35 @@ SourceFactory createSourceFactory(AnalyzerOptions options,
   resourceProvider ??= PhysicalResourceProvider.INSTANCE;
   var resolvers = <UriResolver>[];
   if (options.customUrlMappings.isNotEmpty) {
-    resolvers.add(
-        new CustomUriResolver(resourceProvider, options.customUrlMappings));
+    resolvers
+        .add(CustomUriResolver(resourceProvider, options.customUrlMappings));
   }
   resolvers.add(sdkResolver);
   if (summaryData != null) {
-    resolvers.add(new InSummaryUriResolver(resourceProvider, summaryData));
+    resolvers.add(InSummaryUriResolver(resourceProvider, summaryData));
   }
 
   if (fileResolvers == null)
     fileResolvers =
         createFileResolvers(options, resourceProvider: resourceProvider);
   resolvers.addAll(fileResolvers);
-  return new SourceFactory(resolvers, null, resourceProvider);
+  return SourceFactory(resolvers, null, resourceProvider);
 }
 
 List<UriResolver> createFileResolvers(AnalyzerOptions options,
     {ResourceProvider resourceProvider}) {
   resourceProvider ??= PhysicalResourceProvider.INSTANCE;
   UriResolver packageResolver() {
-    var builderOptions = new ContextBuilderOptions();
+    var builderOptions = ContextBuilderOptions();
     if (options.packageRoot != null) {
       builderOptions.defaultPackagesDirectoryPath = options.packageRoot;
     }
-    var builder = new ContextBuilder(resourceProvider, null, null,
-        options: builderOptions);
+    var builder =
+        ContextBuilder(resourceProvider, null, null, options: builderOptions);
 
-    return new PackageMapUriResolver(resourceProvider,
+    return PackageMapUriResolver(resourceProvider,
         builder.convertPackagesToMap(builder.createPackageMap('')));
   }
 
-  return [new ResourceUriResolver(resourceProvider), packageResolver()];
+  return [ResourceUriResolver(resourceProvider), packageResolver()];
 }

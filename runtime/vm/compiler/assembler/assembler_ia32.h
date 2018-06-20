@@ -644,6 +644,8 @@ class Assembler : public ValueObject {
   void Call(const StubEntry& stub_entry, bool movable_target = false);
   void CallToRuntime();
 
+  void CallNullErrorShared(bool save_fpu_registers) { UNREACHABLE(); }
+
   void Jmp(const StubEntry& stub_entry);
   void J(Condition condition, const StubEntry& stub_entry);
 

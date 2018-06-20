@@ -59,7 +59,7 @@ class RunningIsolates implements MessageRouter {
       return message.response;
     }
 
-    if (message.method == 'evaluateInFrame') {
+    if (message.method == 'evaluateInFrame' || message.method == 'evaluate') {
       return new _Evaluator(message, isolate, service).run();
     } else {
       return isolate.routeRequest(service, message);
@@ -76,12 +76,18 @@ class _Evaluator {
 
   Future<Response> run() async {
     Response buildScopeResponse = await _buildScope();
-    dynamic responseJson = buildScopeResponse.decodeJson();
+    Map<String, dynamic> responseJson = buildScopeResponse.decodeJson();
+
+    if (responseJson.containsKey('error')) {
+      return new Response.from(encodeCompilationError(
+          _message, responseJson['error']['data']['details']));
+    }
+
     String kernelBase64;
     try {
       kernelBase64 = await _compileExpression(responseJson['result']);
     } catch (e) {
-      return Response.from(encodeCompilationError(_message, e.toString()));
+      return new Response.from(encodeCompilationError(_message, e.toString()));
     }
     return _evaluateCompiledExpression(kernelBase64);
   }
@@ -91,13 +97,12 @@ class _Evaluator {
   VMService _service;
 
   Future<Response> _buildScope() {
+    Map<String, dynamic> params = _setupParams();
+    params['isolateId'] = _message.params['isolateId'];
     Map buildScopeParams = {
       'method': '_buildExpressionEvaluationScope',
       'id': _message.serial,
-      'params': {
-        'isolateId': _message.params['isolateId'],
-        'frameIndex': _message.params['frameIndex'],
-      },
+      'params': params,
     };
     if (_message.params['scope'] != null) {
       buildScopeParams['params']['scope'] = _message.params['scope'];
@@ -173,14 +178,13 @@ class _Evaluator {
 
   Future<Response> _evaluateCompiledExpression(String kernelBase64) {
     if (kernelBase64.isNotEmpty) {
+      Map<String, dynamic> params = _setupParams();
+      params['isolateId'] = _message.params['isolateId'];
+      params['kernelBytes'] = kernelBase64;
       Map runParams = {
         'method': '_evaluateCompiledExpression',
         'id': _message.serial,
-        'params': {
-          'isolateId': _message.params['isolateId'],
-          'frameIndex': _message.params['frameIndex'],
-          'kernelBytes': kernelBase64,
-        },
+        'params': params,
       };
       if (_message.params['scope'] != null) {
         runParams['params']['scope'] = _message.params['scope'];
@@ -191,6 +195,15 @@ class _Evaluator {
     } else {
       // empty kernel indicates dart1 mode
       return _isolate.routeRequest(_service, _message);
+    }
+  }
+
+  Map<String, dynamic> _setupParams() {
+    if (_message.method == 'evaluateInFrame') {
+      return <String, dynamic>{'frameIndex': _message.params['frameIndex']};
+    } else {
+      assert(_message.method == 'evaluate');
+      return <String, dynamic>{'targetId': _message.params['targetId']};
     }
   }
 }

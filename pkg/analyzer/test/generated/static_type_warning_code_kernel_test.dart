@@ -8,10 +8,8 @@ import 'static_type_warning_code_driver_test.dart';
 
 main() {
   defineReflectiveSuite(() {
-    // TODO(scheglov): Restore similar test coverage when the front-end API
-    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
-    // defineReflectiveTests(StaticTypeWarningCodeTest_Kernel);
-    // defineReflectiveTests(StrongModeStaticTypeWarningCodeTest_Kernel);
+    defineReflectiveTests(StaticTypeWarningCodeTest_Kernel);
+    defineReflectiveTests(StrongModeStaticTypeWarningCodeTest_Kernel);
   });
 }
 
@@ -62,6 +60,13 @@ class StaticTypeWarningCodeTest_Kernel
   test_awaitForIn_notStream() async {
     // Expected 1 errors of type StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE, found 0
     await super.test_awaitForIn_notStream();
+  }
+
+  @override
+  @failingTest
+  test_bug21912() {
+    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
+    return super.test_bug21912();
   }
 
   @override
@@ -427,6 +432,16 @@ class StaticTypeWarningCodeTest_Kernel
   test_nonTypeAsTypeArgument_undefinedIdentifier() async {
     // Expected 1 errors of type StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, found 0
     await super.test_nonTypeAsTypeArgument_undefinedIdentifier();
+  }
+
+  @override
+  @failingTest
+  test_returnOfInvalidType_async_future_future_int_mismatches_future_int() {
+    // Expected 1 errors of type StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+    // found 0; 0 errors of type StaticTypeWarningCode.INVALID_ASSIGNMENT, found
+    // 1 (54)
+    return super
+        .test_returnOfInvalidType_async_future_future_int_mismatches_future_int();
   }
 
   @override

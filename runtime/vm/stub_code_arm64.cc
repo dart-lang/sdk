@@ -9,7 +9,7 @@
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
 #include "vm/runtime_entry.h"
@@ -121,7 +121,22 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ StoreToOffset(ZR, THR, Thread::top_exit_frame_info_offset());
 
   __ LeaveStubFrame();
+
+  // The following return can jump to a lazy-deopt stub, which assumes R0
+  // contains a return value and will save it in a GC-visible way.  We therefore
+  // have to ensure R0 does not contain any garbage value left from the C
+  // function we called (which has return type "void").
+  // (See GenerateDeoptimizationSequence::saved_result_slot_from_fp.)
+  __ LoadImmediate(R0, 0);
   __ ret();
+}
+
+void StubCode::GenerateNullErrorSharedWithoutFPURegsStub(Assembler* assembler) {
+  __ Breakpoint();
+}
+
+void StubCode::GenerateNullErrorSharedWithFPURegsStub(Assembler* assembler) {
+  __ Breakpoint();
 }
 
 void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
@@ -1724,6 +1739,8 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ Pop(R5);  // Restore IC Data.
   __ LeaveStubFrame();
 
+  // When using the interpreter, the function's code may now point to the
+  // InterpretCall stub. Make sure R0, R4, and R5 are preserved.
   __ LoadFieldFromOffset(CODE_REG, R0, Function::code_offset());
   __ LoadFieldFromOffset(R2, R0, Function::entry_point_offset());
   __ br(R2);
@@ -2171,7 +2188,9 @@ void StubCode::GenerateJumpToFrameStub(Assembler* assembler) {
 // Does not return.
 void StubCode::GenerateRunExceptionHandlerStub(Assembler* assembler) {
   __ LoadFromOffset(LR, THR, Thread::resume_pc_offset());
-  __ LoadImmediate(R2, 0);
+
+  ASSERT(Thread::CanLoadFromThread(Object::null_object()));
+  __ LoadFromOffset(R2, THR, Thread::OffsetFromThread(Object::null_object()));
 
   // Exception object.
   __ LoadFromOffset(R0, THR, Thread::active_exception_offset());

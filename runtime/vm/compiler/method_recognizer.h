@@ -118,8 +118,6 @@ namespace dart {
   V(_Int32x4, withFlagY, Int32x4WithFlagY, Int32x4, 0x6485a9c4)                \
   V(_Int32x4, withFlagZ, Int32x4WithFlagZ, Int32x4, 0x267acdfa)                \
   V(_Int32x4, withFlagW, Int32x4WithFlagW, Int32x4, 0x345ac675)                \
-  V(_Int64List, [], Int64ArrayGetIndexed, Dynamic, 0x51eafb97)                 \
-  V(_Int64List, []=, Int64ArraySetIndexed, Dynamic, 0x376181fb)                \
   V(_HashVMBase, get:_index, LinkedHashMap_getIndex, TypedDataUint32Array,     \
       0x02477157)                                                              \
   V(_HashVMBase, set:_index, LinkedHashMap_setIndex, Dynamic, 0x4fc8d5e0)      \
@@ -231,8 +229,8 @@ namespace dart {
   V(_IntegerImplementation, <, Integer_lessThan, Bool, 0x365d1eba)             \
   V(_IntegerImplementation, <=, Integer_lessEqualThan, Bool, 0x74b5eb64)       \
   V(_IntegerImplementation, >=, Integer_greaterEqualThan, Bool, 0x4260c184)    \
-  V(_IntegerImplementation, <<, Integer_shl, Dynamic, 0x4db3bf69)              \
-  V(_IntegerImplementation, >>, Integer_sar, Dynamic, 0x70172b76)              \
+  V(_IntegerImplementation, <<, Integer_shl, Dynamic, 0x371c45fa)              \
+  V(_IntegerImplementation, >>, Integer_sar, Dynamic, 0x2b630578)              \
   V(_Double, toInt, DoubleToInteger, Dynamic, 0x26ef344b)                      \
 
 #define MATH_LIB_INTRINSIC_LIST(V)                                             \
@@ -299,6 +297,10 @@ namespace dart {
   V(_Int32List, []=, Int32ArraySetIndexed, Dynamic, 0x1adf9823)                \
   V(_Uint32List, [], Uint32ArrayGetIndexed, Dynamic, 0x188658ce)               \
   V(_Uint32List, []=, Uint32ArraySetIndexed, Dynamic, 0x01f51a79)              \
+  V(_Int64List, [], Int64ArrayGetIndexed, Dynamic, 0x51eafb97)                 \
+  V(_Int64List, []=, Int64ArraySetIndexed, Dynamic, 0x376181fb)                \
+  V(_Uint64List, [], Uint64ArrayGetIndexed, Dynamic, 0x4b2a1ba2)               \
+  V(_Uint64List, []=, Uint64ArraySetIndexed, Dynamic, 0x5f881bd4)              \
   V(_Float64List, [], Float64ArrayGetIndexed, Double, 0x0a714486)              \
   V(_Float64List, []=, Float64ArraySetIndexed, Dynamic, 0x04937367)            \
   V(_Float32List, [], Float32ArrayGetIndexed, Double, 0x5ade301f)              \
@@ -495,8 +497,8 @@ namespace dart {
   V(_IntegerImplementation, <, Integer_lessThan, 0x365d1eba)                   \
   V(_IntegerImplementation, <=, Integer_lessEqualThan, 0x74b5eb64)             \
   V(_IntegerImplementation, >=, Integer_greaterEqualThan, 0x4260c184)          \
-  V(_IntegerImplementation, <<, Integer_shl, 0x4db3bf69)                       \
-  V(_IntegerImplementation, >>, Integer_sar, 0x70172b76)                       \
+  V(_IntegerImplementation, <<, Integer_shl, 0x371c45fa)                       \
+  V(_IntegerImplementation, >>, Integer_sar, 0x2b630578)                       \
 
 // A list of core functions that internally dispatch based on received id.
 #define POLYMORPHIC_TARGET_LIST(V)                                             \

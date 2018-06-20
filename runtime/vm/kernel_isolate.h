@@ -27,6 +27,7 @@ class KernelIsolate : public AllStatic {
   static const int kTrainTag;
   static const int kCompileExpressionTag;
   static const int kListDependenciesTag;
+  static const int kNotifyIsolateShutdown;
 
   static void Run();
 
@@ -60,6 +61,8 @@ class KernelIsolate : public AllStatic {
       bool is_static);
 
   static Dart_KernelCompilationResult ListDependencies();
+
+  static void NotifyAboutIsolateShutdown(const Isolate* isolate);
 
  protected:
   static Monitor* monitor_;

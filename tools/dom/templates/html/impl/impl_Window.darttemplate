@@ -4,7 +4,6 @@
 
 part of $LIBRARYNAME;
 
-@DocsEditable()
 $(ANNOTATIONS)@Native("Window,DOMWindow")
 $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
@@ -107,7 +106,6 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * Note: The supplied [callback] needs to call [requestAnimationFrame] again
    * for the animation to continue.
    */
-  @DomName('Window.requestAnimationFrame')
   int requestAnimationFrame(FrameRequestCallback callback) {
     _ensureRequestAnimationFrame();
     return _requestAnimationFrame(_wrapZone(callback));
@@ -167,14 +165,12 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
   @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
   @SupportedBrowser(SupportedBrowser.IE, '10.0')
-  @Experimental()
   IdbFactory get indexedDB =>
       JS('IdbFactory|Null',  // If not supported, returns null.
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
          this, this, this);
 
   /// The debugging console for this window.
-  @DomName('Window.console')
   Console get console => Console._safeConsole;
 
   /**
@@ -202,16 +198,13 @@ $!MEMBERS
    *
    * See [EventStreamProvider] for usage information.
    */
-  @DomName('Window.beforeunloadEvent')
   static const EventStreamProvider<BeforeUnloadEvent> beforeUnloadEvent =
       const _BeforeUnloadEventStreamProvider('beforeunload');
 
   /// Stream of `beforeunload` events handled by this [Window].
-  @DomName('Window.onbeforeunload')
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
   /// Stream of `wheel` events handled by this [Window].
-  @DomName('Window.onWheel')
   Stream<WheelEvent> get onWheel => Element.wheelEvent.forTarget(this);
 
   /**
@@ -231,11 +224,8 @@ $!MEMBERS
   }
 
   @JSName('openDatabase')
-  @DomName('Window.openDatabase')
-  @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
   @Creates('SqlDatabase')
   SqlDatabase openDatabase(
       String name, String version, String displayName, int estimatedSize,
@@ -252,12 +242,8 @@ $!MEMBERS
     return db;
   }
 
-  @DomName('Window.pageXOffset')
-  @DocsEditable()
   int get pageXOffset => JS('num', '#.pageXOffset', this).round();
 
-  @DomName('Window.pageYOffset')
-  @DocsEditable()
   int get pageYOffset => JS('num', '#.pageYOffset', this).round();
 
   /**
@@ -270,8 +256,6 @@ $!MEMBERS
    * * [scrollX](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX)
    *   from MDN.
    */
-  @DomName('Window.scrollX')
-  @DocsEditable()
   int get scrollX => JS('bool', '("scrollX" in #)', this) ?
       JS('num', '#.scrollX', this).round() :
       document.documentElement.scrollLeft;
@@ -286,8 +270,6 @@ $!MEMBERS
    * * [scrollY](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY)
    *   from MDN.
    */
-  @DomName('Window.scrollY')
-  @DocsEditable()
   int get scrollY => JS('bool', '("scrollY" in #)', this) ?
       JS('num', '#.scrollY', this).round() :
       document.documentElement.scrollTop;

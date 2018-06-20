@@ -237,7 +237,7 @@ isParagraphCommand(line) => line.contains(paragraphRE);
 
 /// Returns true iff [line] does not end a block of lines that gets
 /// a hash value.
-isntHashBlockTerminator(line) => !isSectioningCommand(line);
+bool isntHashBlockTerminator(line) => !isSectioningCommand(line);
 
 /// Returns the label text part from [line], based on the assumption
 /// that isHashLabel(line) returns true.

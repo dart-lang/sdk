@@ -226,6 +226,9 @@ class ModelEmitter {
     if (compiler.options.trustPrimitives) flavor.write(', trust primitives');
     if (compiler.options.trustTypeAnnotations) flavor.write(', trust types');
     if (compiler.options.omitImplicitChecks) flavor.write(', omit checks');
+    if (compiler.options.laxRuntimeTypeToString) {
+      flavor.write(', lax runtime type');
+    }
     if (compiler.options.useContentSecurityPolicy) flavor.write(', CSP');
     return new js.Comment(generatedBy(compiler, flavor: '$flavor'));
   }

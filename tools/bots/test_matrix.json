@@ -1615,6 +1615,9 @@
     },
     {
       "builders": ["analyzer-analysis-server-linux"],
+      "meta": {
+        "description": "Analyze analyzer related packages."
+      },
       "steps": [
         {
           "name": "build dart",
@@ -1622,19 +1625,89 @@
           "arguments": ["create_sdk"]
         },
         {
-          "name": "Analyze analysis_server",
+          "name": "Analyze pkg/analysis_server/",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": ["--no-hints","pkg/analysis_server"]
         },
         {
-          "name": "Analyze analysis_server",
+          "name": "Analyze pkg/analyzer/",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": ["--no-hints","pkg/analyzer"]
         },
         {
-          "name": "Analyze analysis_server",
+          "name": "Analyze pkg/analyzer_plugin/",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": ["--no-hints","pkg/analyzer_plugin"]
+        }
+      ]
+    },
+    {
+      "builders": ["analyzer-use-fasta-parser-linux"],
+      "meta": {
+        "description": "Run the analyzer using the Fasta parser."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["create_sdk"]
+        },
+        {
+          "name": "analyze pkg/analysis_server/",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": [
+            "--no-hints",
+            "--use-fasta-parser",
+            "pkg/analysis_server"
+          ]
+        },
+        {
+          "name": "analyze pkg/analyzer/",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": [
+            "--no-hints",
+            "--use-fasta-parser",
+            "pkg/analyzer"
+          ]
+        },
+        {
+          "name": "analyze pkg/analyzer_cli/lib/",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": [
+            "--no-hints",
+            "--use-fasta-parser",
+            "pkg/analyzer_cli/lib"
+          ]
+        },
+        {
+          "name": "run analyzer unit tests",
+          "arguments": [
+            "--builder-tag=analyzer_use_fasta",
+            "--compiler=none",
+            "--use-sdk",
+            "--vm-options=-DuseFastaParser=true",
+            "pkg/analyzer/"
+          ]
+        },
+        {
+          "name": "run analysis server plugin tests",
+          "arguments": [
+            "--builder-tag=analyzer_use_fasta",
+            "--compiler=none",
+            "--use-sdk",
+            "--vm-options=-DuseFastaParser=true",
+            "pkg/analyzer_plugin/"
+          ]
+        },
+        {
+          "name": "run analysis server unit tests",
+          "arguments": [
+            "--builder-tag=analyzer_use_fasta",
+            "--compiler=none",
+            "--use-sdk",
+            "--vm-options=-DuseFastaParser=true",
+            "pkg/analysis_server/"
+          ]
         }
       ]
     },

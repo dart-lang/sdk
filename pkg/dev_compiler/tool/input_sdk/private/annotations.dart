@@ -20,7 +20,7 @@ class _NotNull {
 /// or otherwise cause the contract to be violated.
 /// TODO(leafp): Consider adding static checking and exposing
 /// this to user code.
-const notNull = const _NotNull();
+const notNull = _NotNull();
 
 /// Marks a generic function or static method API to be not reified.
 /// ****CAUTION******
@@ -49,7 +49,7 @@ class _NullCheck {
 /// ****CAUTION******
 /// This is currently unchecked, and hence will not catch re-assignments
 /// of a variable with null
-const nullCheck = const _NullCheck();
+const nullCheck = _NullCheck();
 
 /// Tells the optimizing compiler that the annotated method cannot throw.
 /// Requires @NoInline() to function correctly.

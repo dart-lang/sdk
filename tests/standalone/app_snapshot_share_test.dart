@@ -30,6 +30,7 @@ void main(List<String> args) {
 
   var exec = "$buildDir/dart_bootstrap";
   args = new List<String>();
+  args.add("--no-preview-dart-2");
   args.add("--deterministic");
   args.add("--use-blobs");
   args.add("--snapshot-kind=app-aot");
@@ -48,6 +49,7 @@ void main(List<String> args) {
 
   exec = "$buildDir/dart_bootstrap";
   args = new List<String>();
+  args.add("--no-preview-dart-2");
   args.add("--deterministic");
   args.add("--use-blobs");
   args.add("--snapshot-kind=app-aot");
@@ -75,6 +77,7 @@ void main(List<String> args) {
 
   exec = "$buildDir/dart_precompiled_runtime";
   args = new List<String>();
+  args.add("--no-preview-dart-2");
   args.add("--shared-blobs=$snapshot1Path");
   args.add(snapshot2Path);
   args.add("--child");

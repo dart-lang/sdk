@@ -444,6 +444,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'SubtleCrypto.importKey',
   'SubtleCrypto.unwrapKey',
   'ShadowRoot.applyAuthorStyles',
+  'SpeechSynthesis.getVoices',
 
   'TextEvent.initTextEvent',
   # TODO(leafp): These have been converted from int to double in Chrome 37.
@@ -1109,7 +1110,8 @@ class HtmlRenamer(object):
     if interface.id.startswith("SVG"):
       return 'svg'
     if interface.id.startswith("WebGL") or interface.id.startswith("OES") \
-        or interface.id.startswith("EXT"):
+        or interface.id.startswith("EXT") \
+        or interface.id == "WebGL":    # Name of the synthesized class for WebGL constants.
       return 'web_gl'
 
     if interface.id in typed_array_renames:
@@ -1133,7 +1135,8 @@ class HtmlRenamer(object):
     if interface.id.startswith("SVG"):
       return 'Svg'
     if interface.id.startswith("WebGL") or interface.id.startswith("OES") \
-        or interface.id.startswith("EXT"):
+        or interface.id.startswith("EXT") \
+        or interface.id == 'WebGL':     # Name of the synthesized class for WebGL constants.
       return 'WebGl'
 
     if interface.id in typed_array_renames:
@@ -1153,7 +1156,9 @@ class HtmlRenamer(object):
     # Strip off any standard prefixes.
     name = re.sub(r'^SVG', '', dart_name)
     name = re.sub(r'^IDB', '', name)
-    name = re.sub(r'^WebGL', '', name)
+    # Don't Strip the synthesized class name WebGL contains all rendering/draw constants.
+    if name != 'WebGL':
+      name = re.sub(r'^WebGL', '', name)
     name = re.sub(r'^WebKit', '', name)
 
     return self._CamelCaseName(name)

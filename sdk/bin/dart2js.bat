@@ -20,7 +20,7 @@ IF %SDK_DIR:~-1%==\ set SDK_DIR=%SDK_DIR:~0,-1%
 set DART=%BIN_DIR%\dart
 
 set EXTRA_OPTIONS=
-set EXTRA_VM_OPTIONS=--preview-dart-2
+set EXTRA_VM_OPTIONS=
 
 if _%DART2JS_DEVELOPER_MODE%_ == _1_ (
   set EXTRA_VM_OPTIONS=%EXTRA_VM_OPTIONS% --enable-asserts

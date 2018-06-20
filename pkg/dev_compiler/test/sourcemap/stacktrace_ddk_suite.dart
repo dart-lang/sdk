@@ -7,7 +7,7 @@ import 'sourcemaps_ddk_suite.dart' as ddk;
 
 Future<ChainContext> createContext(
     Chain suite, Map<String, String> environment) async {
-  return new StackTraceContext();
+  return StackTraceContext();
 }
 
 class StackTraceContext extends ChainContextWithCleanupHelper
@@ -20,8 +20,8 @@ class StackTraceContext extends ChainContextWithCleanupHelper
     return _steps ??= <Step>[
       const Setup(),
       const SetCwdToSdkRoot(),
-      new TestStackTrace(new ddk.DevCompilerRunner(this, false), "ddk.",
-          const ["ddk.", "ddc."]),
+      TestStackTrace(
+          ddk.DevCompilerRunner(this, false), "ddk.", const ["ddk.", "ddc."]),
     ];
   }
 }

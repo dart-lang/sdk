@@ -38,11 +38,6 @@ bool LongJumpScope::IsSafeToJump() {
   // since there can be only one per isolate.
   uword top_exit_frame_info =
       thread->IsMutatorThread() ? sim->top_exit_frame_info() : 0;
-#elif defined(DART_USE_INTERPRETER)
-  Interpreter* interpreter = Interpreter::Current();
-  ASSERT(interpreter->top_exit_frame_info() == 0);
-  uword top_exit_frame_info = 0;
-  // TODO(regis): Determine if top exit frame is jitted or interpreted.
 #else
   uword top_exit_frame_info = thread->top_exit_frame_info();
 #endif

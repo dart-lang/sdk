@@ -110,7 +110,7 @@ abstract class ParserAdapter implements Parser {
     currentToken = fastaParser.parseClassMember(currentToken);
     ClassDeclaration declaration = astBuilder.classDeclaration;
     astBuilder.classDeclaration = null;
-    return declaration.members[0];
+    return declaration.members.isNotEmpty ? declaration.members[0] : null;
   }
 
   @override
@@ -130,7 +130,9 @@ abstract class ParserAdapter implements Parser {
   @override
   CompilationUnit parseCompilationUnit2() {
     currentToken = fastaParser.parseUnit(currentToken);
-    return astBuilder.pop();
+    CompilationUnitImpl compilationUnit = astBuilder.pop();
+    compilationUnit.localDeclarations = astBuilder.localDeclarations;
+    return compilationUnit;
   }
 
   @override

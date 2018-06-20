@@ -64,6 +64,9 @@
 # `#lexeme` a token. The token's `lexeme` property is used.
 #
 # `#string`, `#string2`, `#string3`: strings (that aren't names).
+#    Note: as a rule of thumb, avoid using the `#string` keys. In particular,
+#    do not use them for composing error messages, see [diagnostics.md](
+#    lib/src/fasta/diagnostics.md#avoid-composing-messages-programmatically).
 #
 # `#type`, #type2`: Kernel types.
 #
@@ -98,6 +101,15 @@ ConstEvalInvalidType:
 
 ConstEvalInvalidBinaryOperandType:
   template: "Binary operator '#string' on '#constant' requires operand of type '#type', but was of type '#type2'."
+
+ConstEvalZeroDivisor:
+  template: "Binary operator '#string' on '#string2' requires non-zero divisor, but divisor was '0'."
+  dart2jsCode: INVALID_CONSTANT_DIV
+  analyzerCode: CONST_EVAL_THROWS_IDBZE
+
+ConstEvalNegativeShift:
+  template: "Binary operator '#string' on '#string2' requires non-negative operand, but was '#string3'."
+  dart2jsCode: INVALID_CONSTANT_SHIFT
 
 ConstEvalInvalidMethodInvocation:
   template: "The method '#string' can't be invoked on '#constant' within a const context."
@@ -766,6 +778,32 @@ StackOverflow:
   analyzerCode: STACK_OVERFLOW
   dart2jsCode: GENERIC
 
+InvalidCodePoint:
+  template: "The escape sequence starting with '\\u' isn't a valid code point."
+  analyzerCode: INVALID_CODE_POINT
+  dart2jsCode: "*fatal*"
+  expression:
+    - "'\\u{110000}'"
+
+InvalidHexEscape:
+  template: "An escape sequence starting with '\\x' must be followed by 2 hexidecimal digits."
+  analyzerCode: INVALID_HEX_ESCAPE
+  dart2jsCode: "*fatal*"
+  expression:
+    - "'\\x0'"
+    - "'\\x0y'"
+
+InvalidUnicodeEscape:
+  template: "An escape sequence starting with '\\u' must be followed by 4 hexidecimal digits or from 1 to 6 digits between '{' and '}'."
+  analyzerCode: INVALID_UNICODE_ESCAPE
+  dart2jsCode: "*fatal*"
+  expression:
+    - "'\\u'"
+    - "'\\u0F'"
+    - "'\\u{'"
+    - "'\\u{03'"
+    - "'\\u{0Z}'"
+
 UnexpectedDollarInString:
   template: "A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({})."
   tip: "Try adding a backslash (\\) to escape the '$'."
@@ -858,6 +896,9 @@ UnterminatedToken:
   template: "Incomplete token."
   dart2jsCode: UNTERMINATED_TOKEN
 
+# Note: avoid using this template, it should only be used for debugging and
+# prototyping, see [diagnostics.md](
+# lib/src/fasta/diagnostics.md#avoid-composing-messages-programmatically).
 Unspecified:
   template: "#string"
   dart2jsCode: GENERIC
@@ -914,7 +955,7 @@ InvalidInlineFunctionType:
   template: "Invalid inline function type."
   tip: "Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f')."
   dart2jsCode: INVALID_INLINE_FUNCTION_TYPE
-  declaration: "typedef F = Function(int f(String x)); main() { F f; }"
+  declaration: "typedef F = Function(int f(String x));"
 
 SetterNotSync:
   template: "Setters can't use 'async', 'async*', or 'sync*'."
@@ -2274,4 +2315,20 @@ InitializingFormalTypeMismatchField:
 
 UseOfDeprecatedIdentifier:
   template: "'#name' is deprecated."
+  severity: IGNORED
+
+InitializeFromDillNotSelfContained:
+  template: "Tried to initialize from a previous compilation (#string), but the file was not self-contained. This might be a bug. The Dart team would greatly appreciate if you would take a moment to report this problem at http://dartbug.com/new."
+  severity: WARNING
+  frontendInternal: true
+  external: test/incremental_load_from_invalid_dill_test.dart
+
+InitializeFromDillUnknownProblem:
+  template: "Tried to initialize from a previous compilation (#string), but couldn't. Error message was '#string2'. This might be a bug. The Dart team would greatly appreciate if you would take a moment to report this problem at http://dartbug.com/new."
+  severity: WARNING
+  frontendInternal: true
+  external: test/incremental_load_from_invalid_dill_test.dart
+
+MissingExplicitTypeArguments:
+  template: "No type arguments provided, #count possible."
   severity: IGNORED

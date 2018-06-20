@@ -4,10 +4,8 @@
 
 #include "vm/ast.h"
 #include "platform/assert.h"
-#include "vm/heap.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
-#include "vm/object_store.h"
 #include "vm/unit_test.h"
 
 namespace dart {

@@ -1007,6 +1007,8 @@ class Instruction : public ZoneAllocated {
 
   void Unsupported(FlowGraphCompiler* compiler);
 
+  virtual bool UseSharedSlowPathStub(bool is_optimizing) const { return false; }
+
  protected:
   // GetDeoptId and/or CopyDeoptIdFrom.
   friend class CallSiteInliner;
@@ -6901,6 +6903,15 @@ class CheckNullInstr : public TemplateInstruction<1, Throws, NoCSE> {
   Value* value() const { return inputs_[0]; }
   virtual TokenPosition token_pos() const { return token_pos_; }
   const String& function_name() const { return function_name_; }
+
+  bool UseSharedSlowPathStub(bool is_optimizing) const {
+#if defined(TARGET_ARCH_X64)
+    return FLAG_enable_slow_path_sharing && FLAG_precompiled_mode &&
+           is_optimizing;
+#else
+    return false;
+#endif
+  }
 
   DECLARE_INSTRUCTION(CheckNull)
 

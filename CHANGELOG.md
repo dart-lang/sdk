@@ -1,20 +1,64 @@
-## 2.0.0-dev.XX.0
-(Add new changes here, and they will be copied to the
- change section for the next dev version)
+## 2.0.0-dev.64.0
 
 ### Language
 
-#### Strong Mode
+* Numerous corner case bugs around return statements in synchronous and
+asynchronous functions fixed.  Specifically:
+  * Issues [31887][issue 31887], [32881][issue 32881]. Future flattening should
+    not be recursive.
+  * Issues [30638][issue 30638], [32233][issue 32233]. Incorrect downcast errors
+    with `FutureOr`
+  * Issue [32233][issue 32233]. Errors when returning `FutureOr`
+  * Issue [33218][issue 33218]. Returns in functions with void related types
+  * Issue [31278][issue 31278]. Incorrect hint on empty returns in async
+    functions
+* An empty `return;` in an async function with return type `Future<Object>` will
+    not report an error.
+* `return exp;` where `exp` has type `void` in an async function is now an error
+unless the return type of the function is `void` or `dynamic`.
+* Mixed return statements of the form `return;` and `return exp;` are now
+allowed when `exp` has type `void`.
+
+[issue 31887]: https://github.com/dart-lang/sdk/issues/31887
+[issue 30638]: https://github.com/dart-lang/sdk/issues/30638
+[issue 32233]: https://github.com/dart-lang/sdk/issues/32233
+[issue 32881]: https://github.com/dart-lang/sdk/issues/32881
+[issue 33218]: https://github.com/dart-lang/sdk/issues/33218
+[issue 31278]: https://github.com/dart-lang/sdk/issues/31278
 
 ### Dart VM
 
+* The Dart VM now runs programs by default with Dart 2.0 semantics. The flag
+  `--preview-dart-2` is not available anymore.
+
+* A new flag `--no-preview-dart-2` has been added, this flag can be used
+  to revert to Dart 1.0 semantics. The flag is temporary and only meant to
+  help users in the migration process. The flag will go away in a future dev
+  release, when we no longer support Dart 1.0.
+
 ### Tool Changes
 
-#### Pub
+#### Dart2js
 
-#### Other Tools
+* Dart2js now compiles programs by default with Dart 2.0 semantics. Apps are
+  expected to be bigger than before, because Dart 2.0 has many more implicit
+  checks (similar to the `--checked` flag in Dart 1.0). Other relevant flags:
+
+  * `--omit-implicit-checks`: is a flag that removes most of the extra implicit
+    checks. Only use this if you have enough test coverage to know that the app
+    will work well without the checks. If a check would have failed and it is
+    omitted, your app may crash or behave in unexpected ways.
+
+  * `--no-preview-dart-2`: a temporary flag to revert to Dart 1.0. This flag is
+    temporary and only meant to help users in the migration process. The flag
+    will go away in a future dev release, when we no longer support Dart 1.0.
 
 ### Core library changes
+
+* `dart:core`
+  * `int.parse` on the VM no longer accepts unsigned hexadecimal numbers
+    greater than or equal to 2**63 when not prefixed by `0x`.
+    (SDK issue [32858](https://github.com/dart-lang/sdk/issues/32858))
 
 ## 2.0.0-dev.63.0
 
@@ -28,7 +72,7 @@
 
 ### Language
 
-Inference chooses `void` when combining `Object` or `dynamic` and `void` ([issue
+* Inference chooses `void` when combining `Object` or `dynamic` and `void` ([issue
 3341]).  When combining with other top types, inference now prefers `void`.  So
 for example, given:
 

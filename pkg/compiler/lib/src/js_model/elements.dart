@@ -92,7 +92,7 @@ Map<K, V> convertMap<K, V>(
 
 abstract class JsToFrontendMapBase extends JsToFrontendMap {
   DartType toBackendType(DartType type) =>
-      const TypeConverter().visit(type, _toBackendEntity);
+      type == null ? null : const TypeConverter().visit(type, _toBackendEntity);
 
   Entity _toBackendEntity(Entity entity) {
     if (entity is ClassEntity) return toBackendClass(entity);

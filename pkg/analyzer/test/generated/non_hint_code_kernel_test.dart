@@ -11,9 +11,7 @@ import 'non_hint_code_driver_test.dart';
 
 main() {
   defineReflectiveSuite(() {
-    // TODO(scheglov): Restore similar test coverage when the front-end API
-    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
-    // defineReflectiveTests(NonHintCodeTest_Kernel);
+    defineReflectiveTests(NonHintCodeTest_Kernel);
   });
 }
 
@@ -39,6 +37,40 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
   @override
   bool get useCFE => true;
 
+  @override
+  @failingTest
+  test_deprecatedAnnotationUse_namedParameter_inDefiningFunction() {
+    // Failed assertion: line 215 pos 14: 'node.parent is PartOfDirective ||
+    // node.parent is EnumConstantDeclaration': is not true.
+    return super
+        .test_deprecatedAnnotationUse_namedParameter_inDefiningFunction();
+  }
+
+  @override
+  @failingTest
+  test_deprecatedAnnotationUse_namedParameter_inNestedLocalFunction() {
+    // Failed assertion: line 215 pos 14: 'node.parent is PartOfDirective ||
+    // node.parent is EnumConstantDeclaration': is not true.
+    return super
+        .test_deprecatedAnnotationUse_namedParameter_inNestedLocalFunction();
+  }
+
+  @override
+  @failingTest
+  test_deprecatedAnnotationUse_namedParameter_inDefiningMethod() {
+    // Failed assertion: line 215 pos 14: 'node.parent is PartOfDirective ||
+    // node.parent is EnumConstantDeclaration': is not true.
+    return super.test_deprecatedAnnotationUse_namedParameter_inDefiningMethod();
+  }
+
+  @override
+  @failingTest
+  test_deprecatedAnnotationUse_namedParameter_inDefiningLocalFunction() {
+    // Failed to resolve 1 nodes
+    return super
+        .test_deprecatedAnnotationUse_namedParameter_inDefiningLocalFunction();
+  }
+
   @failingTest
   @override
   @potentialAnalyzerProblem
@@ -46,20 +78,6 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
     // LibraryAnalyzer is not applying resolution data to annotations on
     // directives.
     await super.test_deprecatedMemberUse_inDeprecatedLibrary();
-  }
-
-  @override
-  @failingTest
-  @notForDart2
-  test_undefinedGetter_inSubtype() async {
-    await super.test_undefinedGetter_inSubtype();
-  }
-
-  @override
-  @failingTest
-  @notForDart2
-  test_undefinedMethod_inSubtype() async {
-    await super.test_undefinedMethod_inSubtype();
   }
 
   @override
@@ -91,13 +109,6 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
   }
 
   @override
-  @failingTest
-  @notForDart2
-  test_undefinedSetter_inSubtype() async {
-    await super.test_undefinedSetter_inSubtype();
-  }
-
-  @override
   test_unnecessaryCast_generics() async {
     // dartbug.com/18953
     // Overridden because type inference now produces more information and there
@@ -122,17 +133,26 @@ void g(bool c) {
 //    await super.test_unusedImport_annotationOnDirective();
   }
 
-  @failingTest
   @override
-  @potentialAnalyzerProblem
-  test_unusedImport_metadata() async {
-    await super.test_unusedImport_metadata();
+  @failingTest
+  test_overrideOnNonOverridingField_inSuperclass() {
+    // Expected 1 errors of type
+    // StrongModeCode.STRONG_MODE_INVALID_METHOD_OVERRIDE, found 0
+    return super.test_overrideOnNonOverridingField_inSuperclass();
+  }
+
+  @override
+  @failingTest
+  test_overrideOnNonOverridingField_inInterface() {
+    // Expected 1 errors of type
+    // StrongModeCode.STRONG_MODE_INVALID_METHOD_OVERRIDE, found 0
+    return super.test_overrideOnNonOverridingField_inInterface();
   }
 
   @failingTest
   @override
   @potentialAnalyzerProblem
-  test_importDeferredLibraryWithLoadFunction() async {
-    await super.test_importDeferredLibraryWithLoadFunction();
+  test_unusedImport_metadata() async {
+    await super.test_unusedImport_metadata();
   }
 }

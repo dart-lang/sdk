@@ -67,7 +67,7 @@ main() {
 ''';
   CompilationResult result = await runCompiler(
       memorySourceFiles: {'main.dart': source},
-      options: strongMode ? [Flags.strongMode] : []);
+      options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2]);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
   JavaScriptBackend backend = compiler.backend;

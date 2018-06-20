@@ -11,7 +11,7 @@
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/instructions.h"
 #include "vm/isolate.h"
 #include "vm/object_store.h"
@@ -102,7 +102,24 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ StoreToOffset(kWord, R2, THR, Thread::top_exit_frame_info_offset());
 
   __ LeaveStubFrame();
+
+  // The following return can jump to a lazy-deopt stub, which assumes R0
+  // contains a return value and will save it in a GC-visible way.  We therefore
+  // have to ensure R0 does not contain any garbage value left from the C
+  // function we called (which has return type "void").
+  // (See GenerateDeoptimizationSequence::saved_result_slot_from_fp.)
+  __ LoadImmediate(R0, 0);
   __ Ret();
+}
+
+void StubCode::GenerateNullErrorSharedWithoutFPURegsStub(Assembler* assembler) {
+  // TODO(sjindel): implement.
+  __ Breakpoint();
+}
+
+void StubCode::GenerateNullErrorSharedWithFPURegsStub(Assembler* assembler) {
+  // TODO(sjindel): implement.
+  __ Breakpoint();
 }
 
 // Input parameters:
@@ -1677,6 +1694,8 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ PopList((1 << R4) | (1 << R9));  // Restore arg desc. and IC data.
   __ LeaveStubFrame();
 
+  // When using the interpreter, the function's code may now point to the
+  // InterpretCall stub. Make sure R0, R4, and R9 are preserved.
   __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
   __ ldr(R2, FieldAddress(R0, Function::entry_point_offset()));
   __ bx(R2);
@@ -2121,7 +2140,10 @@ void StubCode::GenerateJumpToFrameStub(Assembler* assembler) {
 // Does not return.
 void StubCode::GenerateRunExceptionHandlerStub(Assembler* assembler) {
   __ LoadFromOffset(kWord, LR, THR, Thread::resume_pc_offset());
-  __ LoadImmediate(R2, 0);
+
+  ASSERT(Thread::CanLoadFromThread(Object::null_object()));
+  __ LoadFromOffset(kWord, R2, THR,
+                    Thread::OffsetFromThread(Object::null_object()));
 
   // Exception object.
   __ LoadFromOffset(kWord, R0, THR, Thread::active_exception_offset());

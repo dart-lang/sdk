@@ -88,7 +88,7 @@ Future test(String name, bool checkForBall) async {
       }
     }
   } finally {
-    await tempDirectory.deleteSync(recursive: true);
+    tempDirectory.deleteSync(recursive: true);
   }
 }
 

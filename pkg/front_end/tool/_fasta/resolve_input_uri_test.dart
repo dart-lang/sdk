@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io' show Platform;
+
 import 'package:test/test.dart';
 
 import 'resolve_input_uri.dart';
@@ -17,8 +19,15 @@ main() {
   });
 
   test('unknown schemes are not recognized by default', () {
-    expect(resolveInputUri('test:foo').scheme, 'file');
-    expect(resolveInputUri('org-dartlang-foo:bar').scheme, 'file');
+    expect(resolveInputUri('c:/foo').scheme, 'file');
+    if (Platform.isWindows) {
+      /// : is an invalid path character in windows.
+      expect(() => resolveInputUri('test:foo').scheme, throws);
+      expect(() => resolveInputUri('org-dartlang-foo:bar').scheme, throws);
+    } else {
+      expect(resolveInputUri('test:foo').scheme, 'file');
+      expect(resolveInputUri('org-dartlang-foo:bar').scheme, 'file');
+    }
   });
 
   test('more schemes can be supported', () {

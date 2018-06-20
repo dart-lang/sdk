@@ -54,7 +54,7 @@ class DirectiveListener extends Listener {
   @override
   void beginLiteralString(Token token) {
     if (_combinators != null || _inPart) {
-      _uri = unescapeString(token.lexeme);
+      _uri = unescapeString(token.lexeme, token, this);
     }
   }
 

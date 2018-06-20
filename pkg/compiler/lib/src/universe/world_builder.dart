@@ -21,6 +21,7 @@ import '../js_backend/runtime_types.dart';
 import '../js_model/locals.dart';
 import '../js_model/elements.dart' show JSignatureMethod;
 import '../kernel/element_map_impl.dart';
+import '../kernel/kelements.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../options.dart';
 import '../universe/class_set.dart';

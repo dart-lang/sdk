@@ -6,6 +6,7 @@
 
 #include "vm/compiler/backend/flow_graph_compiler.h"
 
+#include "platform/utils.h"
 #include "vm/bit_vector.h"
 #include "vm/compiler/backend/code_statistics.h"
 #include "vm/compiler/backend/il_printer.h"
@@ -681,7 +682,8 @@ CompilerDeoptInfo* FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id) {
 // See StackFrame::VisitObjectPointers for the details of how stack map is
 // interpreted.
 void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
-                                        intptr_t slow_path_argument_count) {
+                                        intptr_t slow_path_argument_count,
+                                        Environment* env) {
   if (is_optimizing() || locs->live_registers()->HasUntaggedValues()) {
     const intptr_t spill_area_size =
         is_optimizing() ? flow_graph_.graph_entry()->spill_slot_count() : 0;
@@ -689,9 +691,20 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
     RegisterSet* registers = locs->live_registers();
     ASSERT(registers != NULL);
     const intptr_t kFpuRegisterSpillFactor = kFpuRegisterSize / kWordSize;
-    const intptr_t live_registers_size =
-        registers->CpuRegisterCount() +
-        (registers->FpuRegisterCount() * kFpuRegisterSpillFactor);
+    intptr_t saved_registers_size = 0;
+    const bool using_shared_stub = locs->call_on_shared_slow_path();
+    if (using_shared_stub) {
+      saved_registers_size =
+          Utils::CountOneBitsWord(kDartAvailableCpuRegs) +
+          (registers->FpuRegisterCount() > 0
+               ? kFpuRegisterSpillFactor * kNumberOfFpuRegisters
+               : 0) +
+          1 /*saved PC*/;
+    } else {
+      saved_registers_size =
+          registers->CpuRegisterCount() +
+          (registers->FpuRegisterCount() * kFpuRegisterSpillFactor);
+    }
 
     BitmapBuilder* bitmap = locs->stack_bitmap();
 
@@ -706,19 +719,22 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
 // append the live registers to it again. The bitmap produced by both calls
 // will be the same.
 #if !defined(TARGET_ARCH_DBC)
-    ASSERT(bitmap->Length() <= (spill_area_size + live_registers_size));
+    ASSERT(bitmap->Length() <= (spill_area_size + saved_registers_size));
     bitmap->SetLength(spill_area_size);
 #else
-    if (bitmap->Length() <= (spill_area_size + live_registers_size)) {
+    ASSERT(slow_path_argument_count == 0);
+    if (bitmap->Length() <= (spill_area_size + saved_registers_size)) {
       bitmap->SetLength(Utils::Maximum(bitmap->Length(), spill_area_size));
     }
 #endif
+
+    ASSERT(slow_path_argument_count == 0 || !using_shared_stub);
 
     // Mark the bits in the stack map in the same order we push registers in
     // slow path code (see FlowGraphCompiler::SaveLiveRegisters).
     //
     // Slow path code can have registers at the safepoint.
-    if (!locs->always_calls()) {
+    if (!locs->always_calls() && !using_shared_stub) {
       RegisterSet* regs = locs->live_registers();
       if (regs->FpuRegisterCount() > 0) {
         // Denote FPU registers with 0 bits in the stackmap.  Based on the
@@ -737,6 +753,7 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
           }
         }
       }
+
       // General purpose registers have the highest register number at the
       // highest address (i.e., first in the stackmap).
       for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
@@ -747,7 +764,27 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
       }
     }
 
-    // Arguments pushed on top of live registers in the slow path are tagged.
+    if (using_shared_stub) {
+      // To simplify the code in the shared stub, we create an untagged hole
+      // in the stack frame where the shared stub can leave the return address
+      // before saving registers.
+      bitmap->Set(bitmap->Length(), false);
+      if (registers->FpuRegisterCount() > 0) {
+        bitmap->SetRange(bitmap->Length(),
+                         bitmap->Length() +
+                             kNumberOfFpuRegisters * kFpuRegisterSpillFactor -
+                             1,
+                         false);
+      }
+      for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
+        if ((kReservedCpuRegisters & (1 << i)) != 0) continue;
+        const Register reg = static_cast<Register>(i);
+        bitmap->Set(bitmap->Length(),
+                    locs->live_registers()->ContainsRegister(reg));
+      }
+    }
+
+    // Arguments pushed after live registers in the slow path are tagged.
     for (intptr_t i = 0; i < slow_path_argument_count; ++i) {
       bitmap->Set(bitmap->Length(), true);
     }
@@ -767,7 +804,16 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
 //     MaterializeObjectInstr::RemapRegisters
 //
 Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
-    Instruction* instruction) {
+    Instruction* instruction,
+    intptr_t num_slow_path_args) {
+  const bool using_shared_stub =
+      instruction->locs()->call_on_shared_slow_path();
+  const bool shared_stub_save_fpu_registers =
+      using_shared_stub &&
+      instruction->locs()->live_registers()->FpuRegisterCount() > 0;
+  // TODO(sjindel): Modify logic below to account for slow-path args with shared
+  // stubs.
+  ASSERT(!using_shared_stub || num_slow_path_args == 0);
   if (instruction->env() == NULL) {
     ASSERT(!is_optimizing());
     return NULL;
@@ -777,6 +823,10 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
   // 1. Iterate the registers in the order they will be spilled to compute
   //    the slots they will be spilled to.
   intptr_t next_slot = StackSize() + env->CountArgsPushed();
+  if (using_shared_stub) {
+    // The PC from the call to the shared stub is pushed here.
+    next_slot++;
+  }
   RegisterSet* regs = instruction->locs()->live_registers();
   intptr_t fpu_reg_slots[kNumberOfFpuRegisters];
   intptr_t cpu_reg_slots[kNumberOfCpuRegisters];
@@ -790,16 +840,21 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
       next_slot += kFpuRegisterSpillFactor;
       fpu_reg_slots[i] = (next_slot - 1);
     } else {
+      if (using_shared_stub && shared_stub_save_fpu_registers) {
+        next_slot += kFpuRegisterSpillFactor;
+      }
       fpu_reg_slots[i] = -1;
     }
   }
   // General purpose registers are spilled from highest to lowest register
   // number.
   for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
+    if ((kReservedCpuRegisters & (1 << i)) != 0) continue;
     Register reg = static_cast<Register>(i);
     if (regs->ContainsRegister(reg)) {
       cpu_reg_slots[i] = next_slot++;
     } else {
+      if (using_shared_stub) next_slot++;
       cpu_reg_slots[i] = -1;
     }
   }

@@ -17,5 +17,5 @@ class B extends Object with A {
 }
 
 main() {
-  Expect.equals(42, new B().foo());
+  Expect.equals(87, new B().foo());
 }

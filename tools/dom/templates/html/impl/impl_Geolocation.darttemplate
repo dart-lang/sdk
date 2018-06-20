@@ -4,10 +4,8 @@
 
 part of $LIBRARYNAME;
 
-@DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
-  @DomName('Geolocation.getCurrentPosition')
   Future<Geoposition> getCurrentPosition({bool enableHighAccuracy,
       Duration timeout, Duration maximumAge}) {
     var options = {};
@@ -36,7 +34,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     return completer.future;
   }
 
-  @DomName('Geolocation.watchPosition')
   Stream<Geoposition> watchPosition({bool enableHighAccuracy,
       Duration timeout, Duration maximumAge}) {
 

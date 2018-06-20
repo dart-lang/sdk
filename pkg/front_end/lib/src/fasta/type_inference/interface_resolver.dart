@@ -49,7 +49,7 @@ import '../kernel/kernel_shadow_ast.dart'
         ShadowField,
         ShadowMember,
         ShadowProcedure,
-        ShadowVariableDeclaration;
+        VariableDeclarationJudgment;
 
 import '../messages.dart'
     show
@@ -773,7 +773,7 @@ class InterfaceResolver {
     }
     var positionalParameters = method.function.positionalParameters;
     for (int i = 0; i < positionalParameters.length; ++i) {
-      if (ShadowVariableDeclaration
+      if (VariableDeclarationJudgment
           .isImplicitlyTyped(positionalParameters[i])) {
         // Note that if the parameter is not present in the overridden method,
         // getPositionalParameterType treats it as dynamic.  This is consistent
@@ -800,7 +800,7 @@ class InterfaceResolver {
     }
     var namedParameters = method.function.namedParameters;
     for (int i = 0; i < namedParameters.length; i++) {
-      if (ShadowVariableDeclaration.isImplicitlyTyped(namedParameters[i])) {
+      if (VariableDeclarationJudgment.isImplicitlyTyped(namedParameters[i])) {
         var name = namedParameters[i].name;
         namedParameters[i].type = matchTypes(
             overriddenTypes.map((type) => getNamedParameterType(type, name)),
@@ -1264,10 +1264,10 @@ class InterfaceResolver {
     }
     var function = procedure.function;
     for (var parameter in function.positionalParameters) {
-      if (ShadowVariableDeclaration.isImplicitlyTyped(parameter)) return true;
+      if (VariableDeclarationJudgment.isImplicitlyTyped(parameter)) return true;
     }
     for (var parameter in function.namedParameters) {
-      if (ShadowVariableDeclaration.isImplicitlyTyped(parameter)) return true;
+      if (VariableDeclarationJudgment.isImplicitlyTyped(parameter)) return true;
     }
     return false;
   }

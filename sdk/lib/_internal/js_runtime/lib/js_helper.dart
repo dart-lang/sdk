@@ -251,9 +251,9 @@ createInvocationMirror(
 }
 
 createUnmangledInvocationMirror(
-    Symbol symbol, internalName, kind, arguments, argumentNames) {
+    Symbol symbol, internalName, kind, arguments, argumentNames, types) {
   return new JSInvocationMirror(
-      symbol, internalName, kind, arguments, argumentNames, 0);
+      symbol, internalName, kind, arguments, argumentNames, types);
 }
 
 void throwInvalidReflectionError(String memberName) {
@@ -1258,8 +1258,13 @@ class Primitives {
     String selectorName =
         '${JS_GET_NAME(JsGetName.CALL_PREFIX)}\$$argumentCount$names';
 
-    return function.noSuchMethod(createUnmangledInvocationMirror(#call,
-        selectorName, JSInvocationMirror.METHOD, arguments, namedArgumentList));
+    return function.noSuchMethod(createUnmangledInvocationMirror(
+        #call,
+        selectorName,
+        JSInvocationMirror.METHOD,
+        arguments,
+        namedArgumentList,
+        0));
   }
 
   /**

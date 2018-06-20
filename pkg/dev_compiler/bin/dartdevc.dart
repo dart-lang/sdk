@@ -20,7 +20,7 @@ Future main(List<String> args) async {
   args = preprocessArgs(PhysicalResourceProvider.INSTANCE, args);
 
   if (args.contains('--persistent_worker')) {
-    await new _CompilerWorker(args..remove('--persistent_worker')).run();
+    await _CompilerWorker(args..remove('--persistent_worker')).run();
   } else if (args.isNotEmpty && args.last == "--batch") {
     await runBatch(args.sublist(0, args.length - 1));
   } else {
@@ -39,10 +39,10 @@ class _CompilerWorker extends AsyncWorkerLoop {
   Future<WorkResponse> performRequest(WorkRequest request) async {
     var args = _startupArgs.toList()..addAll(request.arguments);
 
-    var output = new StringBuffer();
+    var output = StringBuffer();
     var exitCode = compile(args, printFn: output.writeln);
     AnalysisEngine.instance.clearCaches();
-    return new WorkResponse()
+    return WorkResponse()
       ..exitCode = exitCode
       ..output = output.toString();
   }
@@ -51,12 +51,12 @@ class _CompilerWorker extends AsyncWorkerLoop {
 runBatch(List<String> batchArgs) async {
   int totalTests = 0;
   int testsFailed = 0;
-  var watch = new Stopwatch()..start();
+  var watch = Stopwatch()..start();
   print('>>> BATCH START');
   String line;
   while ((line = stdin.readLineSync(encoding: utf8)).isNotEmpty) {
     totalTests++;
-    var args = batchArgs.toList()..addAll(line.split(new RegExp(r'\s+')));
+    var args = batchArgs.toList()..addAll(line.split(RegExp(r'\s+')));
 
     // We don't try/catch here, since `compile` should handle that.
     var compileExitCode = compile(args);

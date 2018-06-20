@@ -142,6 +142,9 @@ vm/debug_break_vm_test/*: Skip
 vm/lazy_deopt_with_exception_test: Pass
 vm/reflect_core_vm_test: CompileTimeError
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
+vm/regress_33469_test/01: Crash # http://dartbug.com/33481
+vm/regress_33469_test/02: Crash # http://dartbug.com/33481
+vm/regress_33469_test/03: MissingCompileTimeError # http://dartbug.com/33481
 void_type_override_test/00: MissingCompileTimeError
 void_type_override_test/00b: MissingCompileTimeError
 void_type_override_test/01: MissingCompileTimeError
@@ -579,7 +582,6 @@ static_getter_no_setter2_test/01: MissingCompileTimeError
 static_getter_no_setter3_test/01: MissingCompileTimeError
 static_initializer_type_error_test: MissingCompileTimeError
 static_setter_get_test/01: MissingCompileTimeError
-string_interpolate_test: StaticWarning
 string_test/01: MissingCompileTimeError
 string_unicode1_negative_test: CompileTimeError
 string_unicode2_negative_test: CompileTimeError
@@ -1023,7 +1025,6 @@ static_getter_no_setter2_test/01: MissingCompileTimeError
 static_getter_no_setter3_test/01: MissingCompileTimeError
 static_initializer_type_error_test: MissingCompileTimeError
 static_setter_get_test/01: MissingCompileTimeError
-string_interpolate_test: StaticWarning
 string_test/01: MissingCompileTimeError
 string_unicode1_negative_test: CompileTimeError
 string_unicode2_negative_test: CompileTimeError
@@ -1162,7 +1163,6 @@ regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 28823
 setter_override2_test/02: MissingCompileTimeError # Issue 14736
-string_interpolate_test: CompileTimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 string_unicode1_negative_test: CompileTimeError

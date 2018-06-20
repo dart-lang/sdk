@@ -8,9 +8,7 @@ import 'static_warning_code_driver_test.dart';
 
 main() {
   defineReflectiveSuite(() {
-    // TODO(scheglov): Restore similar test coverage when the front-end API
-    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
-    // defineReflectiveTests(StaticWarningCodeTest_Kernel);
+    defineReflectiveTests(StaticWarningCodeTest_Kernel);
   });
 }
 
@@ -146,6 +144,13 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @potentialAnalyzerProblem
   test_argumentTypeNotAssignable_binary() async {
     return super.test_argumentTypeNotAssignable_binary();
+  }
+
+  @override
+  @failingTest
+  test_argumentTypeNotAssignable_call() {
+    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
+    return super.test_argumentTypeNotAssignable_call();
   }
 
   @override
@@ -476,20 +481,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_concreteClassWithAbstractMember() async {
-    return super.test_concreteClassWithAbstractMember();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_concreteClassWithAbstractMember_noSuchMethod_interface() async {
-    return super.test_concreteClassWithAbstractMember_noSuchMethod_interface();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_conflictingDartImport() async {
     return super.test_conflictingDartImport();
   }
@@ -759,58 +750,188 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_functionWithoutCall_direct() async {
-    return super.test_functionWithoutCall_direct();
+  test_generalizedVoid_invocationOfVoidFieldError() async {
+    return super.test_generalizedVoid_invocationOfVoidFieldError();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_functionWithoutCall_direct_typeAlias() async {
-    return super.test_functionWithoutCall_direct_typeAlias();
+  test_generalizedVoid_invocationOfVoidLocalError() async {
+    return super.test_generalizedVoid_invocationOfVoidLocalError();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_functionWithoutCall_indirect_extends() async {
-    return super.test_functionWithoutCall_indirect_extends();
+  test_generalizedVoid_invocationOfVoidResultError() async {
+    return super.test_generalizedVoid_invocationOfVoidResultError();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_functionWithoutCall_indirect_extends_typeAlias() async {
-    return super.test_functionWithoutCall_indirect_extends_typeAlias();
+  test_generalizedVoid_invocationOfVoidToplevelError() async {
+    return super.test_generalizedVoid_invocationOfVoidToplevelError();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_functionWithoutCall_indirect_implements() async {
-    return super.test_functionWithoutCall_indirect_implements();
+  test_generalizedVoid_throwVoidValueError() async {
+    return super.test_generalizedVoid_throwVoidValueError();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_functionWithoutCall_indirect_implements_typeAlias() async {
-    return super.test_functionWithoutCall_indirect_implements_typeAlias();
+  test_generalizedVoid_useOfInForeachIterableError() async {
+    return super.test_generalizedVoid_useOfInForeachIterableError();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_functionWithoutCall_mixin_implements() async {
-    return super.test_functionWithoutCall_mixin_implements();
+  test_generalizedVoid_useOfVoidAsIndexAssignError() async {
+    return super.test_generalizedVoid_useOfVoidAsIndexAssignError();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_functionWithoutCall_mixin_implements_typeAlias() async {
-    return super.test_functionWithoutCall_mixin_implements_typeAlias();
+  test_generalizedVoid_useOfVoidAsIndexError() async {
+    return super.test_generalizedVoid_useOfVoidAsIndexError();
+  }
+
+  @override
+  @failingTest
+  test_generalizedVoid_useOfVoidAssignedToDynamicError() async {
+    return super.test_generalizedVoid_useOfVoidAssignedToDynamicError();
+  }
+
+  @override
+  @failingTest
+  test_generalizedVoid_useOfVoidByIndexingError() async {
+    return super.test_generalizedVoid_useOfVoidByIndexingError();
+  }
+
+  @override
+  @failingTest
+  test_generalizedVoid_useOfVoidCallMethodError() async {
+    return super.test_generalizedVoid_useOfVoidCallMethodError();
+  }
+
+  @override
+  @failingTest
+  test_generalizedVoid_useOfVoidCallMethodWithNullError() async {
+    return super.test_generalizedVoid_useOfVoidCallMethodWithNullError();
+  }
+
+  @override
+  @failingTest
+  test_generalizedVoid_useOfVoidCallSetterError() async {
+    return super.test_generalizedVoid_useOfVoidCallSetterError();
+  }
+
+  @override
+  @failingTest
+  test_generalizedVoid_useOfVoidCascadeError() async {
+    return super.test_generalizedVoid_useOfVoidCascadeError();
+  }
+
+  @override
+  @failingTest
+  test_generalizedVoid_useOfVoidInConditionalConditionError() async {
+    return super.test_generalizedVoid_useOfVoidInConditionalConditionError();
+  }
+
+  @override
+  @failingTest
+  test_generalizedVoid_useOfVoidInConditionalLhsError() async {
+    return super.test_generalizedVoid_useOfVoidInConditionalLhsError();
+  }
+
+  @override
+  @failingTest
+  test_generalizedVoid_useOfVoidInConditionalRhsError() async {
+    return super.test_generalizedVoid_useOfVoidInConditionalRhsError();
+  }
+
+  @override
+  @failingTest
+  test_generalizedVoid_useOfVoidInDoWhileConditionError() async {
+    return super.test_generalizedVoid_useOfVoidInDoWhileConditionError();
+  }
+
+  @override
+  @failingTest
+  test_generalizedVoid_useOfVoidInForeachVariableError() async {
+    return super.test_generalizedVoid_useOfVoidInForeachVariableError();
+  }
+
+  @override
+  @failingTest
+  test_generalizedVoid_useOfVoidInIsTestError() async {
+    return super.test_generalizedVoid_useOfVoidInIsTestError();
+  }
+
+  @override
+  @failingTest
+  test_generalizedVoid_useOfVoidInListLiteralError() async {
+    return super.test_generalizedVoid_useOfVoidInListLiteralError();
+  }
+
+  @override
+  @failingTest
+  test_generalizedVoid_useOfVoidInMapLiteralKeyError() async {
+    return super.test_generalizedVoid_useOfVoidInMapLiteralKeyError();
+  }
+
+  @override
+  @failingTest
+  test_generalizedVoid_useOfVoidInMapLiteralValueError() async {
+    return super.test_generalizedVoid_useOfVoidInMapLiteralValueError();
+  }
+
+  @override
+  @failingTest
+  test_generalizedVoid_useOfVoidInNullOperatorLhsError() async {
+    return super.test_generalizedVoid_useOfVoidInNullOperatorLhsError();
+  }
+
+  @override
+  @failingTest
+  test_generalizedVoid_useOfVoidInSpecialAssignmentError() async {
+    return super.test_generalizedVoid_useOfVoidInSpecialAssignmentError();
+  }
+
+  @override
+  @failingTest
+  test_generalizedVoid_useOfVoidInSwitchExpressionError() async {
+    return super.test_generalizedVoid_useOfVoidInSwitchExpressionError();
+  }
+
+  @override
+  @failingTest
+  test_generalizedVoid_useOfVoidInWhileConditionError() async {
+    return super.test_generalizedVoid_useOfVoidInWhileConditionError();
+  }
+
+  @override
+  @failingTest
+  test_generalizedVoid_useOfVoidNullPropertyAccessError() async {
+    return super.test_generalizedVoid_useOfVoidNullPropertyAccessError();
+  }
+
+  @override
+  @failingTest
+  test_generalizedVoid_useOfVoidPropertyAccessError() async {
+    return super.test_generalizedVoid_useOfVoidPropertyAccessError();
+  }
+
+  @override
+  @failingTest
+  test_generalizedVoid_useOfVoidReturnInNonVoidFunctionError() async {
+    return super.test_generalizedVoid_useOfVoidReturnInNonVoidFunctionError();
+  }
+
+  @override
+  @failingTest
+  test_generalizedVoid_useOfVoidWhenArgumentError() async {
+    return super.test_generalizedVoid_useOfVoidWhenArgumentError();
   }
 
   @override
@@ -968,34 +1089,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @potentialAnalyzerProblem
   test_invalidMethodOverrideReturnType_void() async {
     return super.test_invalidMethodOverrideReturnType_void();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidOverride_defaultOverridesNonDefault() async {
-    return super.test_invalidOverride_defaultOverridesNonDefault();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidOverride_defaultOverridesNonDefault_named() async {
-    return super.test_invalidOverride_defaultOverridesNonDefault_named();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidOverrideDifferentDefaultValues_named() async {
-    return super.test_invalidOverrideDifferentDefaultValues_named();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidOverrideDifferentDefaultValues_positional() async {
-    return super.test_invalidOverrideDifferentDefaultValues_positional();
   }
 
   @override
@@ -1520,6 +1613,13 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
+  test_returnWithoutValue_async_future_object_with_return() {
+    // Expected 1 errors of type StaticWarningCode.RETURN_WITHOUT_VALUE, found 0
+    return super.test_returnWithoutValue_async_future_object_with_return();
+  }
+
+  @override
+  @failingTest
   @potentialAnalyzerProblem
   test_returnWithoutValue_factoryConstructor() async {
     return super.test_returnWithoutValue_factoryConstructor();
@@ -1544,13 +1644,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @potentialAnalyzerProblem
   test_returnWithoutValue_mixedReturnTypes_function() async {
     return super.test_returnWithoutValue_mixedReturnTypes_function();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_returnWithoutValue_Null() async {
-    return super.test_returnWithoutValue_Null();
   }
 
   @override
@@ -1658,13 +1751,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @potentialAnalyzerProblem
   test_typeParameterReferencedByStatic_setter() async {
     return super.test_typeParameterReferencedByStatic_setter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typePromotion_functionType_arg_InterToDyn() async {
-    return super.test_typePromotion_functionType_arg_InterToDyn();
   }
 
   @override
@@ -1814,204 +1900,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
     return super.test_undefinedStaticMethodOrGetter_setter_inSuperclass();
   }
 
-  @override
-  @failingTest
-  test_generalizedVoid_assignToVoid_notStrong_error() async {
-    return super.test_generalizedVoid_assignToVoid_notStrong_error();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidInForPartsOk() async {
-    return super.test_generalizedVoid_useOfVoidInForPartsOk();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidInIsTestError() async {
-    return super.test_generalizedVoid_useOfVoidInIsTestError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidInConditionalConditionError() async {
-    return super.test_generalizedVoid_useOfVoidInConditionalConditionError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidInConditionalLhsError() async {
-    return super.test_generalizedVoid_useOfVoidInConditionalLhsError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidInConditionalRhsError() async {
-    return super.test_generalizedVoid_useOfVoidInConditionalRhsError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidWhenArgumentError() async {
-    return super.test_generalizedVoid_useOfVoidWhenArgumentError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidAssignedToDynamicError() async {
-    return super.test_generalizedVoid_useOfVoidAssignedToDynamicError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_throwVoidValueError() async {
-    return super.test_generalizedVoid_throwVoidValueError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidInListLiteralError() async {
-    return super.test_generalizedVoid_useOfVoidInListLiteralError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidInMapLiteralValueError() async {
-    return super.test_generalizedVoid_useOfVoidInMapLiteralValueError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidInMapLiteralKeyError() async {
-    return super.test_generalizedVoid_useOfVoidInMapLiteralKeyError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidInNullOperatorLhsError() async {
-    return super.test_generalizedVoid_useOfVoidInNullOperatorLhsError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidReturnInNonVoidFunctionError() async {
-    return super.test_generalizedVoid_useOfVoidReturnInNonVoidFunctionError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidInWhileConditionError() async {
-    return super.test_generalizedVoid_useOfVoidInWhileConditionError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidInDoWhileConditionError() async {
-    return super.test_generalizedVoid_useOfVoidInDoWhileConditionError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfInForeachIterableError() async {
-    return super.test_generalizedVoid_useOfInForeachIterableError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidInForeachVariableError() async {
-    return super.test_generalizedVoid_useOfVoidInForeachVariableError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidInSpecialAssignmentError() async {
-    return super.test_generalizedVoid_useOfVoidInSpecialAssignmentError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidCallMethodError() async {
-    return super.test_generalizedVoid_useOfVoidCallMethodError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidCallMethodWithNullError() async {
-    return super.test_generalizedVoid_useOfVoidCallMethodWithNullError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidCascadeError() async {
-    return super.test_generalizedVoid_useOfVoidCascadeError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_invocationOfVoidToplevelError() async {
-    return super.test_generalizedVoid_invocationOfVoidToplevelError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_invocationOfVoidLocalError() async {
-    return super.test_generalizedVoid_invocationOfVoidLocalError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_invocationOfVoidFieldError() async {
-    return super.test_generalizedVoid_invocationOfVoidFieldError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_invocationOfVoidResultError() async {
-    return super.test_generalizedVoid_invocationOfVoidResultError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidByIndexingError() async {
-    return super.test_generalizedVoid_useOfVoidByIndexingError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidAsIndexError() async {
-    return super.test_generalizedVoid_useOfVoidAsIndexError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidAsIndexAssignError() async {
-    return super.test_generalizedVoid_useOfVoidAsIndexAssignError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidInSwitchExpressionError() async {
-    return super.test_generalizedVoid_useOfVoidInSwitchExpressionError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidPropertyAccessError() async {
-    return super.test_generalizedVoid_useOfVoidPropertyAccessError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidCallSetterError() async {
-    return super.test_generalizedVoid_useOfVoidCallSetterError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidNullPropertyAccessError() async {
-    return super.test_generalizedVoid_useOfVoidNullPropertyAccessError();
-  }
-
   @failingTest
   @override
   test_useOfVoidResult_assignmentExpression_function() async {
@@ -2026,8 +1914,8 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @failingTest
   @override
-  test_useOfVoidResult_variableDeclaration_method2() async {
-    return super.test_useOfVoidResult_variableDeclaration_method2();
+  test_useOfVoidResult_inForLoop_error() async {
+    return super.test_useOfVoidResult_inForLoop_error();
   }
 
   @override
@@ -2037,8 +1925,8 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @failingTest
   @override
-  test_useOfVoidResult_inForLoop_error() async {
-    return super.test_useOfVoidResult_inForLoop_error();
+  test_useOfVoidResult_variableDeclaration_function_error() async {
+    return super.test_useOfVoidResult_variableDeclaration_function_error();
   }
 
   @override
@@ -2048,8 +1936,8 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @failingTest
   @override
-  test_useOfVoidResult_variableDeclaration_function_error() async {
-    return super.test_useOfVoidResult_variableDeclaration_function_error();
+  test_useOfVoidResult_variableDeclaration_method2() async {
+    return super.test_useOfVoidResult_variableDeclaration_method2();
   }
 
   @failingTest

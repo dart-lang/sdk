@@ -6,6 +6,7 @@ library jsinterop.world_test;
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart' show ClassEntity;
@@ -18,7 +19,7 @@ import '../memory_compiler.dart';
 void main() {
   asyncTest(() async {
     print('--test from kernel------------------------------------------------');
-    await testClasses([]);
+    await testClasses([Flags.noPreviewDart2]);
     print('--test from kernel (strong mode)----------------------------------');
     // TODO(johnniwinther): Update the test to be strong mode compliant.
     //await testClasses([Flags.strongMode]);

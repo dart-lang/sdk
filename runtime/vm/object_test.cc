@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "include/dart_api.h"
+
 #include "platform/globals.h"
 
 #include "vm/class_finalizer.h"
@@ -4356,7 +4358,9 @@ TEST_CASE(HashCode) {
   EXPECT(result.IsIdenticalTo(expected));
 }
 
-static void CheckIdenticalHashStructure(const Instance& a, const Instance& b) {
+static void CheckIdenticalHashStructure(Thread* T,
+                                        const Instance& a,
+                                        const Instance& b) {
   const char* kScript =
       "(a, b) {\n"
       "  if (a._usedData != b._usedData ||\n"
@@ -4391,7 +4395,8 @@ static void CheckIdenticalHashStructure(const Instance& a, const Instance& b) {
   param_values.SetAt(1, b);
   name = String::New(kScript);
   Library& lib = Library::Handle(Library::CollectionLibrary());
-  EXPECT(lib.Evaluate(name, param_names, param_values) == Bool::True().raw());
+  EXPECT(Api::UnwrapHandle(TestCase::EvaluateExpression(
+             lib, name, param_names, param_values)) == Bool::True().raw());
 }
 
 TEST_CASE(LinkedHashMap) {
@@ -4419,7 +4424,7 @@ TEST_CASE(LinkedHashMap) {
 
   // 3. Expect them to have identical structure.
   TransitionNativeToVM transition(thread);
-  CheckIdenticalHashStructure(dart_map, cc_map);
+  CheckIdenticalHashStructure(thread, dart_map, cc_map);
 }
 
 TEST_CASE(LinkedHashMap_iteration) {

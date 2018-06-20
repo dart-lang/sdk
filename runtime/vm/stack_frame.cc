@@ -5,9 +5,9 @@
 #include "vm/stack_frame.h"
 
 #include "platform/memory_sanitizer.h"
-#include "vm/become.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/deopt_instructions.h"
+#include "vm/heap/become.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_store.h"

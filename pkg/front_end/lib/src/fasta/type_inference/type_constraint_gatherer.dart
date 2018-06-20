@@ -9,16 +9,23 @@ import 'package:kernel/ast.dart'
         FunctionType,
         InterfaceType,
         NamedType,
+        Procedure,
         TypeParameter,
         TypeParameterType,
         VoidType;
 
-import 'package:kernel/type_algebra.dart' show substitute;
+import 'package:kernel/type_algebra.dart' show substitute, Substitution;
 
 import 'type_schema.dart' show UnknownType;
 
 import 'type_schema_environment.dart'
     show TypeConstraint, TypeSchemaEnvironment, substituteTypeParams;
+
+import '../names.dart' show callName;
+
+import 'type_schema.dart';
+
+import 'type_schema_environment.dart';
 
 /// Creates a collection of [TypeConstraint]s corresponding to type parameters,
 /// based on an attempt to make one type schema a subtype of another.
@@ -101,8 +108,10 @@ class TypeConstraintGatherer {
         supertype.positionalParameters.length) {
       return false;
     }
-    if (subtype.typeParameters.isNotEmpty ||
-        supertype.typeParameters.isNotEmpty) {
+    if (subtype.typeParameters.length != supertype.typeParameters.length) {
+      return false;
+    }
+    if (subtype.typeParameters.isNotEmpty) {
       var subtypeSubstitution = <TypeParameter, DartType>{};
       var supertypeSubstitution = <TypeParameter, DartType>{};
       var freshTypeVariables = <TypeParameter>[];
@@ -299,29 +308,36 @@ class TypeConstraintGatherer {
     if (subtype is InterfaceType && supertype is InterfaceType) {
       return _isInterfaceSubtypeMatch(subtype, supertype);
     }
-    // A type `P` is a subtype match for `Function` with respect to `L` under no
-    // constraints:
-    // - If `P` implements a call method.
-    // - Or if `P` is a function type.
-    // TODO(paulberry): implement this case.
+    if (subtype is FunctionType) {
+      if (supertype is InterfaceType) {
+        return identical(
+                supertype.classNode, environment.coreTypes.functionClass) ||
+            identical(supertype.classNode, environment.coreTypes.objectClass);
+      } else if (supertype is FunctionType) {
+        return _isFunctionSubtypeMatch(subtype, supertype);
+      }
+    }
     // A type `P` is a subtype match for a type `Q` with respect to `L` under
     // constraints `C`:
     // - If `P` is an interface type which implements a call method of type `F`,
     //   and `F` is a subtype match for a type `Q` with respect to `L` under
     //   constraints `C`.
-    // TODO(paulberry): implement this case.
-    if (subtype is FunctionType) {
-      if (supertype is InterfaceType) {
-        if (identical(
-                supertype.classNode, environment.coreTypes.functionClass) ||
-            identical(supertype.classNode, environment.coreTypes.objectClass)) {
-          return true;
-        } else {
-          return false;
+    if (subtype is InterfaceType) {
+      var callMember =
+          environment.hierarchy.getInterfaceMember(subtype.classNode, callName);
+      if (callMember is Procedure && !callMember.isGetter) {
+        var callType = callMember.getterType;
+        if (callType != null) {
+          callType =
+              Substitution.fromInterfaceType(subtype).substituteType(callType);
+          // TODO(kmillikin): The subtype check will fail if the type of a
+          // generic call method is a subtype of a non-generic function type.
+          // For example, if `T call<T>(T arg)` is a subtype of `S->S` for some
+          // S.  However, explicitly tearing off that call method will work and
+          // insert an explicit instantiation, so the implicit tear off should
+          // work as well.  Figure out how to support this case.
+          return _isSubtypeMatch(callType, supertype);
         }
-      }
-      if (supertype is FunctionType) {
-        return _isFunctionSubtypeMatch(subtype, supertype);
       }
     }
     return false;
@@ -346,13 +362,12 @@ class TypeConstraintGatherer {
       Map<TypeParameter, DartType> substitution1,
       Map<TypeParameter, DartType> substitution2,
       List<TypeParameter> freshTypeVariables) {
-    int count = params1.length;
-    if (count != params2.length) return false;
+    assert(params1.length == params2.length);
     // TODO(paulberry): in imitation of analyzer, we're checking the bounds as
     // we build up the substitutions.  But I don't think that's correct--I think
     // we should build up both substitutions completely before checking any
     // bounds.  See dartbug.com/29629.
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < params1.length; ++i) {
       TypeParameter pFresh = new TypeParameter(params2[i].name);
       freshTypeVariables.add(pFresh);
       DartType variableFresh = new TypeParameterType(pFresh);

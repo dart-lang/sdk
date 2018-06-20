@@ -51,12 +51,6 @@ class Interpreter {
   // High address (KBC stack grows up).
   uword stack_limit() const { return stack_limit_; }
 
-  // The thread's top_exit_frame_info refers to a Dart frame in the interpreter
-  // stack. The interpreter's top_exit_frame_info refers to a C++ frame in the
-  // native stack.
-  uword top_exit_frame_info() const { return top_exit_frame_info_; }
-  void set_top_exit_frame_info(uword value) { top_exit_frame_info_ = value; }
-
   // Returns true if the interpreter's stack contains the given frame.
   // TODO(regis): Once the interpreter shares the native stack, we may rely on
   // a new thread vm_tag to identify an interpreter frame and we will not need
@@ -98,6 +92,8 @@ class Interpreter {
   };
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
+
+  bool IsTracing() const;
 
  private:
   uintptr_t* stack_;
@@ -187,13 +183,13 @@ class Interpreter {
                           RawObject*** SP,
                           uint32_t** pc);
 
-#if !defined(PRODUCT)
+#if defined(DEBUG)
   // Returns true if tracing of executed instructions is enabled.
   bool IsTracingExecution() const;
 
   // Prints bytecode instruction at given pc for instruction tracing.
   void TraceInstruction(uint32_t* pc) const;
-#endif  // !defined(PRODUCT)
+#endif  // defined(DEBUG)
 
   // Longjmp support for exceptions.
   InterpreterSetjmpBuffer* last_setjmp_buffer() { return last_setjmp_buffer_; }

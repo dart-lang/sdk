@@ -37,16 +37,6 @@ class ContextLocatorImplTest extends Object with ResourceProviderMixin {
     fail(buffer.toString());
   }
 
-  File newOptionsFile(String directoryPath) {
-    return newFile(resourceProvider.pathContext
-        .join(directoryPath, ContextLocatorImpl.ANALYSIS_OPTIONS_NAME));
-  }
-
-  File newPackagesFile(String directoryPath) {
-    return newFile(resourceProvider.pathContext
-        .join(directoryPath, ContextLocatorImpl.PACKAGES_FILE_NAME));
-  }
-
   void setUp() {
     contextLocator = new ContextLocatorImpl(resourceProvider: resourceProvider);
   }

@@ -695,6 +695,9 @@ class Assembler : public ValueObject {
   void CallPatchable(const StubEntry& stub_entry);
   void Call(const StubEntry& stub_entry);
   void CallToRuntime();
+
+  void CallNullErrorShared(bool save_fpu_registers);
+
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
   void CallWithEquivalence(const StubEntry& stub_entry,
@@ -758,6 +761,8 @@ class Assembler : public ValueObject {
   void LeaveCallRuntimeFrame();
 
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
+  void CallRuntimeSavingRegisters(const RuntimeEntry& entry,
+                                  intptr_t argument_count);
 
   // Call runtime function. Reserves shadow space on the stack before calling
   // if platform ABI requires that. Does not restore RSP after the call itself.

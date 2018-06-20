@@ -43,7 +43,7 @@ String formatError(AnalysisContext context, AnalysisError error) {
   var location = lineInfo.getLocation(error.offset);
 
   // [warning] 'foo' is not a... (/Users/.../tmp/foo.dart, line 1, col 2)
-  return (new StringBuffer()
+  return (StringBuffer()
         ..write('[${severity.displayName}] ')
         ..write(error.message)
         ..write(' (${path.prettyUri(error.source.uri)}')
@@ -60,8 +60,7 @@ ErrorSeverity errorSeverity(AnalysisContext context, AnalysisError error) {
   // * it can return null
   // * using AnalysisError directly is now suspect, it's a correctness trap
   // * it requires an AnalysisContext
-  return ErrorProcessor
-          .getProcessor(context.analysisOptions, error)
+  return ErrorProcessor.getProcessor(context.analysisOptions, error)
           ?.severity ??
       error.errorCode.errorSeverity;
 }

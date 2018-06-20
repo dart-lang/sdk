@@ -719,8 +719,14 @@ class ConstantEvaluator extends RecursiveVisitor {
         }
       } else if (arguments.length == 1) {
         final Constant other = arguments[0];
+        final op = node.name.name;
         if (other is IntConstant) {
-          switch (node.name.name) {
+          if ((op == '<<' || op == '>>') && other.value < 0) {
+            errorReporter.negativeShift(contextChain,
+                node.arguments.positional.first, receiver, op, other);
+            throw const _AbortCurrentEvaluation();
+          }
+          switch (op) {
             case '|':
               return canonicalize(
                   new IntConstant(receiver.value | other.value));
@@ -739,12 +745,18 @@ class ConstantEvaluator extends RecursiveVisitor {
           }
         }
 
-        if (other is IntConstant || other is DoubleConstant) {
-          final num value = (other is IntConstant)
-              ? other.value
-              : (other as DoubleConstant).value;
+        if (other is IntConstant) {
+          if (other.value == 0 && (op == '%' || op == '~/')) {
+            errorReporter.zeroDivisor(
+                contextChain, node.arguments.positional.first, receiver, op);
+            throw const _AbortCurrentEvaluation();
+          }
+
           return evaluateBinaryNumericOperation(
-              node.name.name, receiver.value, value, node);
+              node.name.name, receiver.value, other.value, node);
+        } else if (other is DoubleConstant) {
+          return evaluateBinaryNumericOperation(
+              node.name.name, receiver.value, other.value, node);
         }
 
         errorReporter.invalidBinaryOperandType(
@@ -1150,9 +1162,6 @@ class ConstantEvaluator extends RecursiveVisitor {
     }
     return value;
   }
-
-  static const kMaxInt64 = (1 << 63) - 1;
-  static const kMinInt64 = -(1 << 63);
 }
 
 /// Holds the necessary information for a constant object, namely
@@ -1256,6 +1265,10 @@ abstract class ErrorReporter {
       List<TreeNode> context, TreeNode node, Procedure target);
   invalidStringInterpolationOperand(
       List<TreeNode> context, TreeNode node, Constant constant);
+  zeroDivisor(
+      List<TreeNode> context, TreeNode node, IntConstant receiver, String op);
+  negativeShift(List<TreeNode> context, TreeNode node, IntConstant receiver,
+      String op, IntConstant argument);
   nonConstLiteral(List<TreeNode> context, TreeNode node, String klass);
   duplicateKey(List<TreeNode> context, TreeNode node, Constant key);
   failedAssertion(List<TreeNode> context, TreeNode node, String message);
@@ -1320,6 +1333,24 @@ abstract class ErrorReporterBase implements ErrorReporter {
         context,
         'Only null/bool/int/double/String values are allowed as string '
         'interpolation expressions during constant evaluation (was: "$constant").',
+        node);
+  }
+
+  zeroDivisor(
+      List<TreeNode> context, TreeNode node, IntConstant receiver, String op) {
+    report(
+        context,
+        "Binary operator '$op' on '${receiver.value}' requires non-zero "
+        "divisor, but divisor was '0'.",
+        node);
+  }
+
+  negativeShift(List<TreeNode> context, TreeNode node, IntConstant receiver,
+      String op, IntConstant argument) {
+    report(
+        context,
+        "Binary operator '$op' on '${receiver.value}' requires non-negative "
+        "operand, but was '${argument.value}'.",
         node);
   }
 

@@ -4,10 +4,8 @@
 
 part of $LIBRARYNAME;
 
-@DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
-  @DomName('HTMLTableRowElement.cells')
   List<TableCellElement> get cells =>
       new _WrappedList<TableCellElement>(_cells);
 

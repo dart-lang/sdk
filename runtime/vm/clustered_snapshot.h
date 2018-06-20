@@ -12,7 +12,7 @@
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/object.h"
 #include "vm/snapshot.h"
 #include "vm/type_testing_stubs.h"

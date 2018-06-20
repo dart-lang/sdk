@@ -159,6 +159,25 @@ flutter:
 ''');
   }
 
+  test_assetDirectoryDoesNotExist_error() {
+    assertErrors('''
+name: sample
+flutter:
+  assets:
+    - assets/logos/
+''', [PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST]);
+  }
+
+  test_assetDirectoryDoesExists_noError() {
+    newFolder('/sample/assets/logos');
+    assertNoErrors('''
+name: sample
+flutter:
+  assets:
+    - assets/logos/
+''');
+  }
+
   test_dependenciesFieldNotMap_dev_error_bool() {
     assertErrors('''
 name: sample

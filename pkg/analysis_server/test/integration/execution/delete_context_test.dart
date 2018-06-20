@@ -47,4 +47,10 @@ class DeleteContextTest extends AbstractAnalysisServerIntegrationTest {
 class DeleteContextTest_UseCFE extends DeleteContextTest {
   @override
   bool get useCFE => true;
+
+  @override
+  @failingTest
+  test_delete() {
+    fail('Test crashes with CFE');
+  }
 }

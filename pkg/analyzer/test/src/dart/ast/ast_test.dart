@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -496,7 +497,7 @@ class InstanceCreationExpressionImplTest extends ResolverTestCase {
     resetWith(options: new AnalysisOptionsImpl()..previewDart2 = true);
   }
 
-  void resolve(String source) async {
+  Future<void> resolve(String source) async {
     testSource = source;
     testUnit = await resolveSource2('/test.dart', source);
   }

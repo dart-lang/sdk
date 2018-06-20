@@ -43,4 +43,4 @@ DART_ROOT="$(cd "${SDK_DIR}/.." ; pwd -P)"
 
 DEV_COMPILER="$DART_ROOT/pkg/dev_compiler/bin/dartdevk.dart"
 
-exec "$DART" "--preview-dart-2" "--packages=$DART_ROOT/.packages" "${EXTRA_VM_OPTIONS[@]}" "$DEV_COMPILER" "$@"
+exec "$DART" "--packages=$DART_ROOT/.packages" "${EXTRA_VM_OPTIONS[@]}" "$DEV_COMPILER" "$@"

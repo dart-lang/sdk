@@ -4,7 +4,6 @@
 
 part of $LIBRARYNAME;
 
-@DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$MIXINS$IMPLEMENTS {
   factory PaymentRequest(List<Map> methodData, Map details,
       [Map options]) {

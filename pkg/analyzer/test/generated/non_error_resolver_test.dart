@@ -664,18 +664,6 @@ Future<Null> f() async {}
     verify([source]);
   }
 
-  test_async_future_object_with_return() async {
-    Source source = addSource('''
-import 'dart:async';
-Future<Object> f() async {
-  return;
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_async_future_object_with_return_value() async {
     Source source = addSource('''
 import 'dart:async';
@@ -716,19 +704,6 @@ Future f() async {
     Source source = addSource('''
 import 'dart:async';
 Future f() async {}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_async_return_flattens_futures() async {
-    Source source = addSource('''
-import 'dart:async';
-Future<int> f() async {
-  return g();
-}
-Future<Future<int>> g() => null;
 ''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
@@ -789,14 +764,11 @@ f(list) async* {
   }
 
   test_await_flattened() async {
-    // The analyzer type system over-flattens so it considers `await ffi()` to
-    // have type `int` - see dartbug.com/31887
-    var expectedType = enableKernelDriver ? 'Future<int>' : 'int';
     Source source = addSource('''
 import 'dart:async';
 Future<Future<int>> ffi() => null;
 f() async {
-  $expectedType b = await ffi();
+  Future<int> b = await ffi();
 }
 ''');
     await computeAnalysisResult(source);

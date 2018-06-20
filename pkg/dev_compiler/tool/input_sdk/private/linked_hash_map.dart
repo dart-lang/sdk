@@ -20,7 +20,7 @@ abstract class InternalMap<K, V> extends MapBase<K, V>
     for (var entry in JS('Iterable', '#.entries()', _map)) {
       action(JS('', '#[0]', entry), JS('', '#[1]', entry));
       if (modifications != _modifications) {
-        throw new ConcurrentModificationError(this);
+        throw ConcurrentModificationError(this);
       }
     }
   }
@@ -90,8 +90,8 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
   @notNull
   bool get isNotEmpty => JS('bool', '#.size != 0', _map);
 
-  Iterable<K> get keys => new _JSMapIterable<K>(this, true);
-  Iterable<V> get values => new _JSMapIterable<V>(this, false);
+  Iterable<K> get keys => _JSMapIterable<K>(this, true);
+  Iterable<V> get values => _JSMapIterable<V>(this, false);
 
   @notNull
   bool containsKey(Object key) {
@@ -272,5 +272,5 @@ class ImmutableMap<K, V> extends LinkedMap<K, V> {
   V putIfAbsent(Object key, Object ifAbsent()) => throw _unsupported();
 
   static Error _unsupported() =>
-      new UnsupportedError("Cannot modify unmodifiable map");
+      UnsupportedError("Cannot modify unmodifiable map");
 }

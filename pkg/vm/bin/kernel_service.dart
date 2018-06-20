@@ -53,12 +53,14 @@ const String platformKernelFile = 'virtual_platform_kernel.dill';
 //   4 - Compile an individual expression in some context (for debugging
 //       purposes).
 //   5 - List program dependencies (for creating depfiles)
+//   6 - Isolate shutdown that potentially should result in compiler cleanup.
 const int kCompileTag = 0;
 const int kUpdateSourcesTag = 1;
 const int kAcceptTag = 2;
 const int kTrainTag = 3;
 const int kCompileExpressionTag = 4;
 const int kListDependenciesTag = 5;
+const int kNotifyIsolateShutdownTag = 6;
 
 bool allowDartInternalImport = false;
 
@@ -345,6 +347,12 @@ Future _processListDependenciesRequest(request) async {
   port.send(result.toResponse());
 }
 
+Future _processIsolateShutdownNotification(request) async {
+  final int isolateId = request[1];
+  isolateCompilers.remove(isolateId);
+  isolateDependencies.remove(isolateId);
+}
+
 Future _processLoadRequest(request) async {
   if (verbose) print("DFE: request: $request");
 
@@ -357,6 +365,11 @@ Future _processLoadRequest(request) async {
 
   if (tag == kListDependenciesTag) {
     await _processListDependenciesRequest(request);
+    return;
+  }
+
+  if (tag == kNotifyIsolateShutdownTag) {
+    await _processIsolateShutdownNotification(request);
     return;
   }
 

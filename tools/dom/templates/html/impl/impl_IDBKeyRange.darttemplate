@@ -5,19 +5,15 @@
 part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
-  @DomName('IDBKeyRange.only')
   factory KeyRange.only(/*Key*/ value) =>
       _KeyRangeFactoryProvider.create$(CLASSNAME)_only(value);
 
-  @DomName('IDBKeyRange.lowerBound')
   factory KeyRange.lowerBound(/*Key*/ bound, [bool open = false]) =>
       _KeyRangeFactoryProvider.create$(CLASSNAME)_lowerBound(bound, open);
 
-  @DomName('IDBKeyRange.upperBound')
   factory KeyRange.upperBound(/*Key*/ bound, [bool open = false]) =>
       _KeyRangeFactoryProvider.create$(CLASSNAME)_upperBound(bound, open);
 
-  @DomName('KeyRange.bound')
   factory KeyRange.bound(/*Key*/ lower, /*Key*/ upper,
                             [bool lowerOpen = false, bool upperOpen = false]) =>
       _KeyRangeFactoryProvider.create$(CLASSNAME)_bound(

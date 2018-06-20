@@ -50,9 +50,10 @@ class Import {
       this.configurations,
       this.charOffset,
       this.prefixCharOffset,
+      int importIndex,
       {this.nativeImportUri})
       : prefixBuilder = createPrefixBuilder(prefix, importer, imported,
-            combinators, deferred, charOffset, prefixCharOffset);
+            combinators, deferred, charOffset, prefixCharOffset, importIndex);
 
   Uri get fileUri => importer.fileUri;
 
@@ -94,7 +95,8 @@ KernelPrefixBuilder createPrefixBuilder(
     List<Combinator> combinators,
     bool deferred,
     int charOffset,
-    int prefixCharOffset) {
+    int prefixCharOffset,
+    int importIndex) {
   if (prefix == null) return null;
   LibraryDependency dependency = null;
   if (deferred) {
@@ -103,5 +105,5 @@ KernelPrefixBuilder createPrefixBuilder(
       ..fileOffset = charOffset;
   }
   return new KernelPrefixBuilder(
-      prefix, deferred, importer, dependency, prefixCharOffset);
+      prefix, deferred, importer, dependency, prefixCharOffset, importIndex);
 }

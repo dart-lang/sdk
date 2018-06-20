@@ -70,9 +70,6 @@ mirrors_used_warning2_test: Crash
 mirrors_used_warning_test/minif: Crash
 mirrors_used_warning_test/none: Crash
 
-[ $compiler == dart2js && !$checked ]
-closure_signature_unneeded_test: RuntimeError # Too eager signature generation.
-
 [ $compiler == dart2js && $csp ]
 deferred_custom_loader_test: SkipByDesign # Issue 25683
 deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.

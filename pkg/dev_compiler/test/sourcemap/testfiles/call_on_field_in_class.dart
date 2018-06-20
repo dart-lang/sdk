@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  /* bl */ var foo = new /*sl:1*/ Foo();
+  /* bl */ var foo = /*sl:1*/ Foo();
   foo.foo = foo. /*sl:2*/ fooMethod;
   foo /*sl:3*/ .fooMethod();
   // Stepping into this doesn't really work because what it does is something

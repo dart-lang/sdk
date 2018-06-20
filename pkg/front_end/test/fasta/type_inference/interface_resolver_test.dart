@@ -201,7 +201,7 @@ class InterfaceResolverTest {
       {String name: 'foo',
       DartType setterType: const DynamicType(),
       bool isCovariant: false}) {
-    var parameter = new ShadowVariableDeclaration('value', 0,
+    var parameter = new VariableDeclarationJudgment('value', 0,
         type: setterType, isCovariant: isCovariant);
     var body = new Block([]);
     var function = new FunctionNode(body,
@@ -256,7 +256,7 @@ class InterfaceResolverTest {
   }
 
   void test_candidate_for_setter() {
-    var parameter = new ShadowVariableDeclaration('value', 0);
+    var parameter = new VariableDeclarationJudgment('value', 0);
     var function = new FunctionNode(null,
         positionalParameters: [parameter], returnType: const VoidType());
     var setter = new ShadowProcedure(
@@ -367,8 +367,8 @@ class InterfaceResolverTest {
         kind: ProcedureKind.Operator,
         name: '[]=',
         positionalParameters: [
-          new ShadowVariableDeclaration('index', 0, type: intType),
-          new ShadowVariableDeclaration('value', 0, type: numType)
+          new VariableDeclarationJudgment('index', 0, type: intType),
+          new VariableDeclarationJudgment('value', 0, type: numType)
         ]);
     var stub = makeForwardingStub(operator, false);
     expect(stub.name, operator.name);
@@ -397,7 +397,7 @@ class InterfaceResolverTest {
   }
 
   void test_createForwardingStub_optionalNamedParameter() {
-    var parameter = new ShadowVariableDeclaration('x', 0, type: intType);
+    var parameter = new VariableDeclarationJudgment('x', 0, type: intType);
     var method = makeEmptyMethod(namedParameters: [parameter]);
     var stub = makeForwardingStub(method, false);
     expect(stub.function.namedParameters, hasLength(1));
@@ -414,7 +414,7 @@ class InterfaceResolverTest {
   }
 
   void test_createForwardingStub_optionalPositionalParameter() {
-    var parameter = new ShadowVariableDeclaration('x', 0, type: intType);
+    var parameter = new VariableDeclarationJudgment('x', 0, type: intType);
     var method = makeEmptyMethod(
         positionalParameters: [parameter], requiredParameterCount: 0);
     var stub = makeForwardingStub(method, false);
@@ -431,7 +431,7 @@ class InterfaceResolverTest {
   }
 
   void test_createForwardingStub_requiredParameter() {
-    var parameter = new ShadowVariableDeclaration('x', 0, type: intType);
+    var parameter = new VariableDeclarationJudgment('x', 0, type: intType);
     var method = makeEmptyMethod(positionalParameters: [parameter]);
     var stub = makeForwardingStub(method, false);
     expect(stub.function.positionalParameters, hasLength(1));
@@ -512,9 +512,9 @@ class InterfaceResolverTest {
     // class C<T> { T foo(T x, {T y}); }
     var T = new TypeParameter('T', objectType);
     var x =
-        new ShadowVariableDeclaration('x', 0, type: new TypeParameterType(T));
+        new VariableDeclarationJudgment('x', 0, type: new TypeParameterType(T));
     var y =
-        new ShadowVariableDeclaration('y', 0, type: new TypeParameterType(T));
+        new VariableDeclarationJudgment('y', 0, type: new TypeParameterType(T));
     var method = makeEmptyMethod(
         positionalParameters: [x],
         namedParameters: [y],
@@ -547,9 +547,9 @@ class InterfaceResolverTest {
     var T = new TypeParameter('T', objectType);
     var U = new TypeParameter('U', objectType);
     var x =
-        new ShadowVariableDeclaration('x', 0, type: new TypeParameterType(T));
+        new VariableDeclarationJudgment('x', 0, type: new TypeParameterType(T));
     var y =
-        new ShadowVariableDeclaration('y', 0, type: new TypeParameterType(U));
+        new VariableDeclarationJudgment('y', 0, type: new TypeParameterType(U));
     var method =
         makeEmptyMethod(typeParameters: [U], positionalParameters: [x, y]);
     var substitution = Substitution.fromPairs([T], [intType]);
@@ -563,7 +563,7 @@ class InterfaceResolverTest {
   void test_createForwardingStub_typeParameter_substituteUses() {
     // class C { void foo<T>(T x); }
     var typeParameter = new TypeParameter('T', objectType);
-    var param = new ShadowVariableDeclaration('x', 0,
+    var param = new VariableDeclarationJudgment('x', 0,
         type: new TypeParameterType(typeParameter));
     var method = makeEmptyMethod(
         typeParameters: [typeParameter], positionalParameters: [param]);
@@ -578,7 +578,7 @@ class InterfaceResolverTest {
     var typeParameter = new TypeParameter('T', null);
     typeParameter.bound =
         new InterfaceType(listClass, [new TypeParameterType(typeParameter)]);
-    var param = new ShadowVariableDeclaration('x', 0,
+    var param = new VariableDeclarationJudgment('x', 0,
         type: new TypeParameterType(typeParameter));
     var method = makeEmptyMethod(
         typeParameters: [typeParameter], positionalParameters: [param]);
@@ -596,9 +596,9 @@ class InterfaceResolverTest {
   void test_direct_isGenericCovariant() {
     var typeParameter = new TypeParameter('T', objectType);
     var u = new TypeParameter('U', new TypeParameterType(typeParameter));
-    var x = new ShadowVariableDeclaration('x', 0,
+    var x = new VariableDeclarationJudgment('x', 0,
         type: new TypeParameterType(typeParameter));
-    var y = new ShadowVariableDeclaration('y', 0,
+    var y = new VariableDeclarationJudgment('y', 0,
         type: new TypeParameterType(typeParameter));
     var method = makeEmptyMethod(
         typeParameters: [u], positionalParameters: [x], namedParameters: [y]);
@@ -708,14 +708,14 @@ class InterfaceResolverTest {
 
   void test_forwardingStub_isCovariant_inherited() {
     var methodA = makeEmptyMethod(positionalParameters: [
-      new ShadowVariableDeclaration('x', 0, type: numType)
+      new VariableDeclarationJudgment('x', 0, type: numType)
     ], namedParameters: [
-      new ShadowVariableDeclaration('y', 0, type: numType)
+      new VariableDeclarationJudgment('y', 0, type: numType)
     ]);
     var methodB = makeEmptyMethod(positionalParameters: [
-      new ShadowVariableDeclaration('x', 0, type: intType)..isCovariant = true
+      new VariableDeclarationJudgment('x', 0, type: intType)..isCovariant = true
     ], namedParameters: [
-      new ShadowVariableDeclaration('y', 0, type: intType)..isCovariant = true
+      new VariableDeclarationJudgment('y', 0, type: intType)..isCovariant = true
     ]);
     var a = makeClass(name: 'A', procedures: [methodA]);
     var b = makeClass(name: 'B', procedures: [methodB]);
@@ -739,20 +739,20 @@ class InterfaceResolverTest {
     var methodA = makeEmptyMethod(typeParameters: [
       new TypeParameter('U', numType)
     ], positionalParameters: [
-      new ShadowVariableDeclaration('x', 0, type: numType)
+      new VariableDeclarationJudgment('x', 0, type: numType)
     ], namedParameters: [
-      new ShadowVariableDeclaration('y', 0, type: numType)
+      new VariableDeclarationJudgment('y', 0, type: numType)
     ]);
     var typeParameterB = new TypeParameter('T', objectType);
     var methodB = makeEmptyMethod(typeParameters: [
       new TypeParameter('U', new TypeParameterType(typeParameterB))
         ..isGenericCovariantImpl = true
     ], positionalParameters: [
-      new ShadowVariableDeclaration('x', 0,
+      new VariableDeclarationJudgment('x', 0,
           type: new TypeParameterType(typeParameterB))
         ..isGenericCovariantImpl = true
     ], namedParameters: [
-      new ShadowVariableDeclaration('y', 0,
+      new VariableDeclarationJudgment('y', 0,
           type: new TypeParameterType(typeParameterB))
         ..isGenericCovariantImpl = true
     ]);
@@ -907,11 +907,11 @@ class InterfaceResolverTest {
   }
 
   void test_resolve_directly_declared() {
-    var parameterA = new ShadowVariableDeclaration('x', 0,
+    var parameterA = new VariableDeclarationJudgment('x', 0,
         type: objectType, isCovariant: true);
     var methodA = makeEmptyMethod(positionalParameters: [parameterA]);
-    var parameterB =
-        new ShadowVariableDeclaration('x', 0, type: intType, isCovariant: true);
+    var parameterB = new VariableDeclarationJudgment('x', 0,
+        type: intType, isCovariant: true);
     var methodB = makeEmptyMethod(positionalParameters: [parameterB]);
     var a = makeClass(name: 'A', procedures: [methodA]);
     var b = makeClass(
@@ -987,16 +987,16 @@ class InterfaceResolverTest {
 
   void test_resolve_with_added_implementation() {
     var methodA = makeEmptyMethod(positionalParameters: [
-      new ShadowVariableDeclaration('x', 0, type: numType)
+      new VariableDeclarationJudgment('x', 0, type: numType)
     ]);
     var typeParamB = new TypeParameter('T', objectType);
     var methodB = makeEmptyMethod(positionalParameters: [
-      new ShadowVariableDeclaration('x', 0,
+      new VariableDeclarationJudgment('x', 0,
           type: new TypeParameterType(typeParamB))
         ..isGenericCovariantImpl = true
     ]);
     var methodC = makeEmptyMethod(positionalParameters: [
-      new ShadowVariableDeclaration('x', 0, type: numType)
+      new VariableDeclarationJudgment('x', 0, type: numType)
     ], isAbstract: true);
     var a = makeClass(name: 'A', procedures: [methodA]);
     var b = makeClass(

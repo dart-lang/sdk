@@ -275,9 +275,9 @@ class _Rest {
   const _Rest();
 }
 
-const _Rest rest = const _Rest();
+const _Rest rest = _Rest();
 
 dynamic spread(args) {
-  throw new StateError('The spread function cannot be called, '
+  throw StateError('The spread function cannot be called, '
       'it should be compiled away.');
 }

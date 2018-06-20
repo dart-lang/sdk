@@ -36,7 +36,7 @@ class NullableInference extends ExpressionVisitor<bool> {
   /// [allowNotNullDeclarations].
   bool allowPackageMetaAnnotations = false;
 
-  final _variableInference = new _NullableVariableInference();
+  final _variableInference = _NullableVariableInference();
 
   NullableInference(this.jsTypeRep)
       : types = jsTypeRep.types,
@@ -276,19 +276,19 @@ class _NullableVariableInference extends RecursiveVisitor<void> {
   NullableInference _nullInference;
 
   /// Variables that are currently believed to be not-null.
-  final _notNullLocals = new HashSet<VariableDeclaration>.identity();
+  final _notNullLocals = HashSet<VariableDeclaration>.identity();
 
   /// For each variable currently believed to be not-null ([_notNullLocals]),
   /// this collects variables that it is assigned to, so we update them if we
   /// later determine that the variable can be null.
   final _assignedTo =
-      new HashMap<VariableDeclaration, List<VariableDeclaration>>.identity();
+      HashMap<VariableDeclaration, List<VariableDeclaration>>.identity();
 
   /// All functions that have been analyzed with [analyzeFunction].
   ///
   /// In practice this will include the outermost function (typically a
   /// [Procedure]) as well as an local functions it contains.
-  final _functions = new HashSet<FunctionNode>.identity();
+  final _functions = HashSet<FunctionNode>.identity();
 
   /// The current variable we are setting/initializing, so we can track if it
   /// is [_assignedTo] from another variable.

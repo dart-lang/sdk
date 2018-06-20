@@ -53,7 +53,7 @@ Element querySelector(String selectors) => document.querySelector(selectors);
  * For details about CSS selector syntax, see the
  * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
  */
-ElementList<Element> querySelectorAll(String selectors) =>
+ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
     document.querySelectorAll(selectors);
 
 /// A utility for changing the Dart wrapper type for elements.

@@ -14,10 +14,10 @@
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_state.h"
 #include "vm/debugger_api_impl_test.h"
+#include "vm/heap/verifier.h"
 #include "vm/lockers.h"
 #include "vm/timeline.h"
 #include "vm/unit_test.h"
-#include "vm/verifier.h"
 
 namespace dart {
 

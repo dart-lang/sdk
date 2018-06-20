@@ -21,6 +21,8 @@ foo1(x) {
 class D<P, Q> extends C<int, Q, P> {
   Map<P, Q> foo;
 
+  D(tt) : foo = tt;
+
   foo2(y) {
     if (y is A<P>) {
       print('21');
@@ -40,6 +42,22 @@ class D<P, Q> extends C<int, Q, P> {
     }
     return (z as Map<T2, Q>).values;
   }
+
+  Map<P, Q> foo4(w) {
+    List<Map<P, Q>> list = [w];
+    return w;
+  }
+}
+
+List<Iterable> globalVar;
+
+void foo5(x) {
+  globalVar = x;
+}
+
+class E<P extends String> {
+  factory E() => null;
+  void foo6<T extends P, U extends List<T>>(Map<T, U> map) {}
 }
 
 main() {}

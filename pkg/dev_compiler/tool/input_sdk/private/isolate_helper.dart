@@ -34,7 +34,7 @@ leaveJsAsync() {}
 void startRootIsolate(main, args) {
   if (args == null) args = <String>[];
   if (args is List) {
-    if (args is! List<String>) args = new List<String>.from(args);
+    if (args is! List<String>) args = List<String>.from(args);
     // DDC attaches signatures only when torn off, and the typical way of
     // getting `main` via the JS ABI won't do this. So use JS to invoke main.
     if (JS<bool>('!', 'typeof # == "function"', main)) {
@@ -45,7 +45,7 @@ void startRootIsolate(main, args) {
       (main as dynamic)(args);
     }
   } else {
-    throw new ArgumentError("Arguments to main must be a List: $args");
+    throw ArgumentError("Arguments to main must be a List: $args");
   }
 }
 
@@ -72,7 +72,7 @@ class TimerImpl implements Timer {
       _handle = JS(
           'int', '#.setTimeout(#, #)', global, internalCallback, milliseconds);
     } else {
-      throw new UnsupportedError("`setTimeout()` not found.");
+      throw UnsupportedError("`setTimeout()` not found.");
     }
   }
 
@@ -93,7 +93,7 @@ class TimerImpl implements Timer {
         callback(this);
       }, milliseconds);
     } else {
-      throw new UnsupportedError("Periodic timer.");
+      throw UnsupportedError("Periodic timer.");
     }
   }
 
@@ -110,7 +110,7 @@ class TimerImpl implements Timer {
       }
       _handle = null;
     } else {
-      throw new UnsupportedError("Canceling a timer.");
+      throw UnsupportedError("Canceling a timer.");
     }
   }
 

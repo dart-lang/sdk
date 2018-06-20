@@ -12,9 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetPostfixCompletionTest);
-    // TODO(scheglov): Restore similar test coverage when the front-end API
-    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
-    // defineReflectiveTests(GetPostfixCompletionTest_UseCFE);
+    defineReflectiveTests(GetPostfixCompletionTest_UseCFE);
   });
 }
 
@@ -58,4 +56,10 @@ void foo() { }
 class GetPostfixCompletionTest_UseCFE extends GetPostfixCompletionTest {
   @override
   bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_postfix_completion() {
+    return super.test_postfix_completion();
+  }
 }

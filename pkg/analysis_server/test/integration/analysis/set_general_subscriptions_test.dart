@@ -46,4 +46,10 @@ class Foo {
 class SetGeneralSubscriptionsTest_UseCFE extends SetGeneralSubscriptionsTest {
   @override
   bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_options() {
+    fail('This test crashes under the CFE');
+  }
 }

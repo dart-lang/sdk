@@ -26,6 +26,9 @@ import 'package:front_end/src/fasta/deprecated_problems.dart'
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
+import 'package:front_end/src/fasta/incremental_compiler.dart'
+    show IncrementalCompiler;
+
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
 
@@ -159,6 +162,16 @@ class BatchCompiler {
     root.unbindAll();
     return c.errors.isEmpty;
   }
+}
+
+incrementalEntryPoint(List<String> arguments) async {
+  installAdditionalTargets();
+  await withGlobalOptions("incremental", arguments, true,
+      (CompilerContext c, _) {
+    // TODO(ahe): Extend this entry point so it can replace
+    // batchEntryPoint.
+    new IncrementalCompiler(c);
+  });
 }
 
 Future<KernelTarget> outline(List<String> arguments) async {

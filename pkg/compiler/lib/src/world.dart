@@ -1066,6 +1066,39 @@ abstract class KClosedWorld {
   RuntimeTypesNeed get rtiNeed;
   NoSuchMethodData get noSuchMethodData;
 
+  /// Returns `true` if [x] is a subtype of [y], that is, if [x] implements an
+  /// instance of [y].
+  bool isSubtypeOf(ClassEntity x, ClassEntity y);
+
+  /// Returns an iterable of the classes that are contained in the
+  /// strict subclass/subtype sets of both [cls1] and [cls2].
+  ///
+  /// Classes that are implied by included superclasses/supertypes are not
+  /// returned.
+  ///
+  /// For instance for this hierarchy
+  ///
+  ///     class A {}
+  ///     class B {}
+  ///     class C implements A, B {}
+  ///     class D extends C {}
+  ///
+  /// the query
+  ///
+  ///     commonSubclasses(A, ClassQuery.SUBTYPE, B, ClassQuery.SUBTYPE)
+  ///
+  /// return the set {C} because [D] is implied by [C].
+  Iterable<ClassEntity> commonSubclasses(
+      ClassEntity cls1, ClassQuery query1, ClassEntity cls2, ClassQuery query2);
+
+  /// Returns an iterable over the directly instantiated that implement [cls]
+  /// possibly including [cls] itself, if it is live.
+  Iterable<ClassEntity> subtypesOf(ClassEntity cls);
+
+  /// Returns an iterable over the live classes that extend [cls] including
+  /// [cls] itself.
+  Iterable<ClassEntity> subclassesOf(ClassEntity cls);
+
   /// Applies [f] to each live class that implements [cls] _not_ including [cls]
   /// itself.
   void forEachStrictSubtypeOf(

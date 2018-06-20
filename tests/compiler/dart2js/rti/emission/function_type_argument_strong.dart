@@ -5,12 +5,12 @@
 import 'package:expect/expect.dart';
 import 'package:meta/dart2js.dart';
 
-/*class: C:checks=[],instance,typeArgument*/
+/*class: C:checkedInstance,checks=[],instance,typeArgument*/
 class C {
   call(int i) {}
 }
 
-/*class: D:checks=[],instance,typeArgument*/
+/*class: D:checkedInstance,checks=[],instance,typeArgument*/
 class D {
   call(double i) {}
 }

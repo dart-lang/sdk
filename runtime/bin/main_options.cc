@@ -63,19 +63,17 @@ ENUM_OPTIONS_LIST(ENUM_OPTION_DEFINITION)
 CB_OPTIONS_LIST(CB_OPTION_DEFINITION)
 #undef CB_OPTION_DEFINITION
 
-void Options::SetPreviewDart2Options(CommandLineOptions* vm_options) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  Options::dfe()->set_use_dfe();
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  OPTION_FIELD(preview_dart_2) = true;
+void Options::SetDart2Options(CommandLineOptions* vm_options) {
   vm_options->AddArgument("--strong");
   vm_options->AddArgument("--reify-generic-functions");
   vm_options->AddArgument("--sync-async");
 }
 
-bool OPTION_FIELD(preview_dart_2) = false;
-DEFINE_BOOL_OPTION_CB(preview_dart_2,
-                      { Options::SetPreviewDart2Options(vm_options); });
+void Options::SetDart1Options(CommandLineOptions* vm_options) {
+  vm_options->AddArgument("--no-strong");
+  vm_options->AddArgument("--no-reify-generic-functions");
+  vm_options->AddArgument("--no-sync-async");
+}
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 DFE* Options::dfe_ = NULL;
@@ -338,6 +336,9 @@ int Options::ParseArguments(int argc,
   const char* kPrefix = "--";
   const intptr_t kPrefixLen = strlen(kPrefix);
 
+  // Set Dart 2 as the default option.
+  Options::SetDart2Options(vm_options);
+
   // Store the executable name.
   Platform::SetExecutableName(argv[0]);
 
@@ -381,6 +382,13 @@ int Options::ParseArguments(int argc,
     }
   }
 
+  if (Options::no_preview_dart_2()) {
+    Options::SetDart1Options(vm_options);
+  } else {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    Options::dfe()->set_use_dfe();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  }
   if (Options::deterministic()) {
     // Both an embedder and VM flag.
     vm_options->AddArgument("--deterministic");

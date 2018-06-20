@@ -601,7 +601,7 @@ testClosures({bool strongMode}) async {
         local() {}
       }
       """,
-      options: strongMode ? [Flags.strongMode] : [],
+      options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2],
       testBackendWorld: true);
   JClosedWorld world = env.jClosedWorld;
 

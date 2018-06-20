@@ -58,6 +58,9 @@
 % - Specify configurable imports.
 % - Specify the dynamic type of the Iterable/Future/Stream returned from
 %   invocations of functions marked sync*/async/async*.
+% - Add appendix listing the major differences between 64-bit integers
+%   and JavaScript integers.
+% - Remove appendix on naming conventions.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -397,7 +400,7 @@ If a declaration $d$ named $n$ is in the namespace induced by a scope $S$, then 
 \commentary{
 A consequence of these rules is that it is possible to hide a type with a method or variable.
 Naming conventions usually prevent such abuses.
-Nevertheless,the following program is legal:
+Nevertheless, the following program is legal:
 }
 
 \begin{dartCode}
@@ -9276,7 +9279,18 @@ It is a compile-time error if the contents of the URI are not a valid part decla
 It is a static warning if the referenced part declaration $p$ names a library other than the current library as the library to which $p$ belongs.
 
 \LMHash{}
-It's a compile-time error if the same library contains two part directives with the same URI.
+Let $L$ be a library.
+It is a compile-time error if $L$ contains two part directives with the same URI.
+Furthermore,
+let $L_1$ be $L$ or any library which is directly or indirectly imported by $L$,
+and let $L_2$ be any library distinct from $L_1$ which is directly or indirectly imported by $L$
+(\ref{imports}).
+It is a compile-time error if $L_1$ and $L_2$ both contain a part directive with the same URI.
+
+\commentary{
+In particular, it is an error to use the same part twice in the same program
+(\ref{scripts}).
+}
 
 
 \subsection{Scripts}
@@ -10457,28 +10471,40 @@ Assignment & =, *=, /=, +=, -= ,\&=, \^{}= etc. & Right & 1\\
 }
 
 
-\section*{Appendix: Naming Conventions}
-\LMLabel{namingConventions}
+\section*{Appendix: Integer Implementations}
+\LMLabel{integerImplementations}
 
 \commentary{
-The following naming conventions are customary in Dart programs.
+The \code{int} type represents integers.
+The specification is written with 64-bit two's complement integers as the
+intended implementation, but when Dart is compiled to JavaScript,
+the implementation of \code{int} will instead use the JavaScript
+number type.
+
+This introduces a number of differencs:
 \begin{itemize}
-\item The names of compile-time constant variables never use lower case letters.
-If they consist of multiple words, those words are separated by underscores.
-Examples: PI, I\_AM\_A\_CONSTANT.
-\item The names of functions (including getters, setters, methods and local or library functions) and non-constant variables begin with a lowercase letter.
-If the name consists of multiple words, each word (except the first) begins with an uppercase letter.
-No other uppercase letters are used.
-Examples: camlCase, dart4TheWorld
-\item The names of types (including classes and type aliases) begin with an upper case letter.
-If the name consists of multiple words, each word begins with an uppercase letter.
-No other uppercase letters are used.
-Examples: CamlCase, Dart4TheWorld.
-\item The names of type variables are short (preferably single letter).
-Examples: T, S, K, V , E.
-\item The names of libraries or library prefixes never use upper case letters.
-If they consist of multiple words, those words are separated by underscores.
-Example: my\_favorite\_library.
+\item Valid values of JavaScript \code{int} are any
+IEEE-754 64-bit floating point number with no fractional part.
+This includes positive and negative {\em infinity},
+which can be reached by overflowing
+(integer division by zero is still not allowed).
+Otherwise valid integer literals (including any leading minus sign)
+that represent invalid JavaScript \code{int} values
+cannot be compiled to JavaScript.
+Operations on integers may lose precision since 64-bit floating point numbers
+are limited to 53 significant bits.
+\item JavaScript \code{int} instances also implement \code{double},
+and integer-valued \code{double} instances also implement \code{int}.
+The \code{int} and \code{double} class are still separate subclasses of the
+class \code{num}, but {\em instances} of either class that represent an integer,
+act as if they are actually instances of a common subclass implementing both
+\code{int} and \code{double}. Fractional numbers only implement \code{double}.
+\item Bitwise operations on integers (and, or, xor, negate and shifts)
+all truncate the operands to 32-bit values.
+\item The \code{identical} method cannot distinguish the values $0.0$ and $-0.0$,
+and it cannot recognize any {\em NaN} value as identical to itself.
+For efficiency, the \code{identical} operation uses the JavaScript \code{===}
+operator.
 \end{itemize}
 }
 

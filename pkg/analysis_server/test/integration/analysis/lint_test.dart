@@ -87,4 +87,22 @@ class a { // lint: not CamelCase
 class LintIntegrationTest_UseCFE extends LintIntegrationTest {
   @override
   bool get useCFE => true;
+
+  @override
+  @failingTest
+  test_no_lints_when_not_specified() {
+    return super.test_no_lints_when_not_specified();
+  }
+
+  @override
+  @failingTest
+  test_simple_lint_newOptionsFile() {
+    return super.test_simple_lint_newOptionsFile();
+  }
+
+  @override
+  @failingTest
+  test_simple_lint_oldOptionsFile() {
+    return super.test_simple_lint_oldOptionsFile();
+  }
 }

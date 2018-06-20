@@ -208,6 +208,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to omit implicit strong mode checks.
   bool omitImplicitChecks = false;
 
+  /// Whether to omit class type arguments only needed for `toString` on
+  /// `RuntimeType`.
+  bool laxRuntimeTypeToString = false;
+
   /// What should the compiler do with type assertions of assignments.
   ///
   /// This is an internal configuration option derived from other flags.
@@ -227,7 +231,7 @@ class CompilerOptions implements DiagnosticOptions {
   bool useContentSecurityPolicy = false;
 
   /// Enables strong mode in dart2js.
-  bool strongMode = false;
+  bool strongMode = true;
 
   /// When obfuscating for minification, whether to use the frequency of a name
   /// as an heuristic to pick shorter names.
@@ -321,8 +325,11 @@ class CompilerOptions implements DiagnosticOptions {
       ..platformBinaries =
           platformBinaries ?? _extractUriOption(options, '--platform-binaries=')
       ..sourceMapUri = _extractUriOption(options, '--source-map=')
-      ..strongMode = _hasOption(options, Flags.strongMode)
+      ..strongMode = _hasOption(options, Flags.strongMode) ||
+          !_hasOption(options, Flags.noPreviewDart2)
       ..omitImplicitChecks = _hasOption(options, Flags.omitImplicitChecks)
+      ..laxRuntimeTypeToString =
+          _hasOption(options, Flags.laxRuntimeTypeToString)
       ..testMode = _hasOption(options, Flags.testMode)
       ..trustJSInteropTypeAnnotations =
           _hasOption(options, Flags.trustJSInteropTypeAnnotations)

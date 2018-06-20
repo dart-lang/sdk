@@ -74,7 +74,8 @@ import 'kernel_builder.dart'
         TypeVariableBuilder,
         isRedirectingGenerativeConstructorImplementation;
 
-import 'kernel_shadow_ast.dart' show ShadowProcedure, ShadowVariableDeclaration;
+import 'kernel_shadow_ast.dart'
+    show ShadowProcedure, VariableDeclarationJudgment;
 
 import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 
@@ -169,7 +170,7 @@ abstract class KernelFunctionBuilder
       // Do this after building the parameters, since the diet listener
       // assumes that parameters are built, even if illegal in number.
       VariableDeclaration parameter =
-          new ShadowVariableDeclaration("#synthetic", 0);
+          new VariableDeclarationJudgment("#synthetic", 0);
       result.positionalParameters.clear();
       result.positionalParameters.add(parameter);
       parameter.parent = result;

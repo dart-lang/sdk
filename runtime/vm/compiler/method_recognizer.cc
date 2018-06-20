@@ -97,6 +97,10 @@ intptr_t MethodRecognizer::MethodKindToReceiverCid(Kind kind) {
     case kInt64ArraySetIndexed:
       return kTypedDataInt64ArrayCid;
 
+    case kUint64ArrayGetIndexed:
+    case kUint64ArraySetIndexed:
+      return kTypedDataUint64ArrayCid;
+
     case kFloat32x4ArrayGetIndexed:
     case kFloat32x4ArraySetIndexed:
       return kTypedDataFloat32x4ArrayCid;

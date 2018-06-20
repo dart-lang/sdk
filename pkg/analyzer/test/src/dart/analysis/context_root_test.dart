@@ -55,6 +55,17 @@ class ContextRootTest {
     expect(contextRoot.isAnalyzed(filePath), isFalse);
   }
 
+  test_isAnalyzed_explicitlyExcluded_same() {
+    String aPath = provider.convertPath('/test/root/lib/a.dart');
+    String bPath = provider.convertPath('/test/root/lib/b.dart');
+    File aFile = provider.getFile(aPath);
+
+    contextRoot.excluded.add(aFile);
+
+    expect(contextRoot.isAnalyzed(aPath), isFalse);
+    expect(contextRoot.isAnalyzed(bPath), isTrue);
+  }
+
   test_isAnalyzed_implicitlyExcluded_dot_analysisOptions() {
     String filePath = provider.convertPath('/test/root/lib/.analysis_options');
     expect(contextRoot.isAnalyzed(filePath), isFalse);
@@ -68,6 +79,18 @@ class ContextRootTest {
   test_isAnalyzed_included() {
     String filePath = provider.convertPath('/test/root/lib/root.dart');
     expect(contextRoot.isAnalyzed(filePath), isTrue);
+  }
+
+  test_isAnalyzed_included_same() {
+    String aPath = provider.convertPath('/test/root/lib/a.dart');
+    String bPath = provider.convertPath('/test/root/lib/b.dart');
+    File aFile = provider.getFile(aPath);
+
+    contextRoot = new ContextRootImpl(provider, rootFolder);
+    contextRoot.included.add(aFile);
+
+    expect(contextRoot.isAnalyzed(aPath), isTrue);
+    expect(contextRoot.isAnalyzed(bPath), isFalse);
   }
 
   test_isAnalyzed_packagesDirectory_analyzed() {

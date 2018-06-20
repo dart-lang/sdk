@@ -5,7 +5,6 @@
 // DO NOT EDIT - unless you are editing documentation as per:
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:html library.
-
 /**
  * HTML elements and other resources for web-based applications that need to
  * interact with the browser and the DOM (Document Object Model).
@@ -15,20 +14,6 @@
  * To get started,
  * check out the [Element] class, the base class for many of the HTML
  * DOM types.
- *
- * ## Other resources
- *
- * * If you've never written a web app before, try our
- * tutorials&mdash;[A Game of Darts](http://dartlang.org/docs/tutorials).
- *
- * * To see some web-based Dart apps in action and to play with the code,
- * download
- * [Dart Editor](http://www.dartlang.org/#get-started)
- * and run its built-in examples.
- *
- * * For even more examples, see
- * [Dart HTML5 Samples](https://github.com/dart-lang/dart-html5-samples)
- * on Github.
  *
  * {@category Web}
  */
@@ -163,7 +148,6 @@ class HtmlElement extends Element implements NoncedElement {
   HtmlElement.created() : super.created();
 
   // From NoncedElement
-  @DomName('HTMLElement.nonce')
   String nonce;
 }
 
@@ -171,7 +155,5 @@ class HtmlElement extends Element implements NoncedElement {
  * Emitted for any setlike IDL entry needs a callback signature.
  * Today there is only one.
  */
-@DomName('FontFaceSetForEachCallback')
-@Experimental() // untriaged
 typedef void FontFaceSetForEachCallback(
     FontFace fontFace, FontFace fontFaceAgain, FontFaceSet set);

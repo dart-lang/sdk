@@ -10,7 +10,8 @@ class A {
 
 /*element: B.:[exact=B]*/
 class B extends A {
-  foo();
+  /*strong.element: B.foo:[exact=JSUInt31]*/
+  /*strong.invoke: [subclass=B]*/ foo();
 }
 
 /*element: C.:[exact=C]*/

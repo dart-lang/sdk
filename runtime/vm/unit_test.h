@@ -13,7 +13,7 @@
 #include "vm/dart.h"
 #include "vm/dart_api_state.h"
 #include "vm/globals.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/isolate.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
@@ -349,6 +349,11 @@ class TestCase : TestCaseBase {
       bool allow_compile_errors = false);
   static Dart_Handle LoadCoreTestScript(const char* script,
                                         Dart_NativeEntryResolver resolver);
+
+  static Dart_Handle EvaluateExpression(const Library& lib,
+                                        const String& expr,
+                                        const Array& param_names,
+                                        const Array& param_values);
 
   static Dart_Handle lib();
   static const char* url();

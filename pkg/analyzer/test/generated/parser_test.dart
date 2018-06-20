@@ -25,6 +25,9 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'test_support.dart';
 
 main() {
+  // The fasta parser has a parallel set of tests in parser_fasta_test.dart
+  if (Parser.useFasta) return;
+
   defineReflectiveSuite(() {
     defineReflectiveTests(ClassMemberParserTest);
     defineReflectiveTests(ComplexParserTest);
@@ -3998,8 +4001,8 @@ class Wrong<T> {
   }
 
   void test_invalidCodePoint() {
-    StringLiteral literal = parseExpression("'\\u{110000}'",
-        errors: [expectedError(ParserErrorCode.INVALID_CODE_POINT, 0, 10)]);
+    StringLiteral literal = parseExpression("'begin \\u{110000}'",
+        errors: [expectedError(ParserErrorCode.INVALID_CODE_POINT, 7, 9)]);
     expectNotNullIfNoErrors(literal);
   }
 
@@ -4065,8 +4068,8 @@ class Wrong<T> {
   }
 
   void test_invalidHexEscape_invalidDigit() {
-    StringLiteral literal = parseExpression("'\\x0 a'",
-        errors: [expectedError(ParserErrorCode.INVALID_HEX_ESCAPE, 1, 3)]);
+    StringLiteral literal = parseExpression("'not \\x0 a'",
+        errors: [expectedError(ParserErrorCode.INVALID_HEX_ESCAPE, 5, 3)]);
     expectNotNullIfNoErrors(literal);
   }
 
@@ -4248,7 +4251,7 @@ class Wrong<T> {
   }
 
   void test_invalidUnicodeEscape_invalidDigit() {
-    Expression expression = parseStringLiteral("'\\u0 a'");
+    Expression expression = parseStringLiteral("'\\u0 and some more'");
     expectNotNullIfNoErrors(expression);
     listener.assertErrors(
         [expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE, 1, 3)]);
@@ -4271,10 +4274,12 @@ class Wrong<T> {
   void test_invalidUnicodeEscape_tooManyDigits_variable() {
     Expression expression = parseStringLiteral("'\\u{12345678}'");
     expectNotNullIfNoErrors(expression);
-    listener.assertErrors([
-      expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE, 1, 12),
-      expectedError(ParserErrorCode.INVALID_CODE_POINT, 1, 12)
-    ]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.INVALID_CODE_POINT, 1, 9)]
+        : [
+            expectedError(ParserErrorCode.INVALID_UNICODE_ESCAPE, 1, 12),
+            expectedError(ParserErrorCode.INVALID_CODE_POINT, 1, 12)
+          ]);
   }
 
   void test_libraryDirectiveNotFirst() {
@@ -11813,17 +11818,23 @@ class C {
   }
 
   void test_missingIdentifier_afterAnnotation() {
-    createParser('@override }');
+    createParser('@override }', expectedEndOffset: 10);
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors(
         [expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 10, 1)]);
-    expect(member, new isInstanceOf<MethodDeclaration>());
-    MethodDeclaration method = member;
-    expect(method.documentationComment, isNull);
-    NodeList<Annotation> metadata = method.metadata;
-    expect(metadata, hasLength(1));
-    expect(metadata[0].name.name, "override");
+    if (usingFastaParser) {
+      // TODO(danrubel): Consider generating a sub method so that the
+      // existing annotation can be associated with a class member.
+      expect(member, isNull);
+    } else {
+      expect(member, new isInstanceOf<MethodDeclaration>());
+      MethodDeclaration method = member;
+      expect(method.documentationComment, isNull);
+      NodeList<Annotation> metadata = method.metadata;
+      expect(metadata, hasLength(1));
+      expect(metadata[0].name.name, "override");
+    }
   }
 
   void test_missingSemicolon_varialeDeclarationList() {
@@ -14592,13 +14603,20 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseTypeParameterList_single() {
-    createParser('<<A>');
+    createParser('<<A>', expectedEndOffset: 0);
     TypeParameterList parameterList = parser.parseTypeParameterList();
-    expectNotNullIfNoErrors(parameterList);
-    assertNoErrors();
-    expect(parameterList.leftBracket, isNotNull);
-    expect(parameterList.rightBracket, isNotNull);
-    expect(parameterList.typeParameters, hasLength(1));
+    if (usingFastaParser) {
+      // TODO(danrubel): Consider splitting `<<` and marking the first `<`
+      // as an unexpected token.
+      expect(parameterList, isNull);
+      assertNoErrors();
+    } else {
+      expectNotNullIfNoErrors(parameterList);
+      assertNoErrors();
+      expect(parameterList.leftBracket, isNotNull);
+      expect(parameterList.rightBracket, isNotNull);
+      expect(parameterList.typeParameters, hasLength(1));
+    }
   }
 
   void test_parseTypeParameterList_withTrailingEquals() {

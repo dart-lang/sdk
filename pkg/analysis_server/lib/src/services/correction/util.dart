@@ -1399,32 +1399,6 @@ class CorrectionUtils_InsertDesc {
  */
 class TokenUtils {
   /**
-   * Return the first token in the list of [tokens] representing the given
-   * [keyword], or `null` if there is no such token.
-   */
-  static Token findKeywordToken(List<Token> tokens, Keyword keyword) {
-    for (Token token in tokens) {
-      if (token.keyword == keyword) {
-        return token;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * @return the first [Token] with given [TokenType], may be <code>null</code> if not
-   *         found.
-   */
-  static Token findToken(List<Token> tokens, TokenType type) {
-    for (Token token in tokens) {
-      if (token.type == type) {
-        return token;
-      }
-    }
-    return null;
-  }
-
-  /**
    * @return [Token]s of the given Dart source, not <code>null</code>, may be empty if no
    *         tokens or some exception happens.
    */
@@ -1442,13 +1416,6 @@ class TokenUtils {
       return [];
     }
   }
-
-  /**
-   * @return <code>true</code> if given [Token]s contain only single [Token] with given
-   *         [TokenType].
-   */
-  static bool hasOnly(List<Token> tokens, TokenType type) =>
-      tokens.length == 1 && tokens[0].type == type;
 }
 
 class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor {

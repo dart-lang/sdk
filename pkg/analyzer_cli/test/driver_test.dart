@@ -28,19 +28,14 @@ main() {
     defineReflectiveTests(BuildModeTest);
     defineReflectiveTests(ExitCodesTest);
     defineReflectiveTests(ExitCodesTest_PreviewDart2);
-    // TODO(scheglov): Restore similar test coverage when the front-end API
-    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
-    // defineReflectiveTests(ExitCodesTest_UseCFE);
+    defineReflectiveTests(ExitCodesTest_UseCFE);
     defineReflectiveTests(LinterTest);
     defineReflectiveTests(LinterTest_PreviewDart2);
-    // Disabled until integration with the CFE has been restarted.
-//    defineReflectiveTests(LinterTest_UseCFE);
+    defineReflectiveTests(LinterTest_UseCFE);
     defineReflectiveTests(NonDartFilesTest);
     defineReflectiveTests(OptionsTest);
     defineReflectiveTests(OptionsTest_PreviewDart2);
-    // TODO(scheglov): Restore similar test coverage when the front-end API
-    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
-    // defineReflectiveTests(OptionsTest_UseCFE);
+    defineReflectiveTests(OptionsTest_UseCFE);
   }, name: 'Driver');
 }
 
@@ -680,6 +675,12 @@ class ExitCodesTest_UseCFE extends ExitCodesTest {
 
   @override
   @failingTest
+  test_enableAssertInitializer() {
+    fail('Test times out');
+  }
+
+  @override
+  @failingTest
   test_fatalErrors() {
     // TODO(devoncarew): This test times out when used with @failingTest.
     return new Future.error('failing test');
@@ -687,11 +688,51 @@ class ExitCodesTest_UseCFE extends ExitCodesTest {
 
   @override
   @failingTest
-  test_fatalWarnings() => super.test_fatalWarnings();
+  test_fatalHints() {
+    fail('Test times out');
+  }
 
   @override
   @failingTest
-  test_notFatalWarnings() => super.test_notFatalWarnings();
+  test_fatalWarnings() {
+    fail('Test times out');
+  }
+
+  @override
+  @failingTest
+  test_missingOptionsFile() {
+    fail('Test times out');
+  }
+
+  @override
+  @failingTest
+  test_notFatalHints() {
+    fail('Test times out');
+  }
+
+  @override
+  @failingTest
+  test_notFatalWarnings() {
+    fail('Test times out');
+  }
+
+  @override
+  @failingTest
+  test_partFile() {
+    fail('Test times out');
+  }
+
+  @override
+  @failingTest
+  test_partFile_extra() {
+    fail('Test times out');
+  }
+
+  @override
+  @failingTest
+  test_partFile_reversed() {
+    fail('Test crashes CFE');
+  }
 }
 
 @reflectiveTest
@@ -800,6 +841,48 @@ class LinterTest_PreviewDart2 extends LinterTest {
 class LinterTest_UseCFE extends LinterTest {
   @override
   bool get useCFE => true;
+
+  @override
+  @failingTest
+  test_defaultLints_generatedLints() {
+    fail('Test times out');
+  }
+
+  @override
+  @failingTest
+  test_defaultLints_getsDefaultLints() {
+    fail('Test times out');
+  }
+
+  @override
+  @failingTest
+  test_lintsInOptions_generatedLints() {
+    fail('Test times out');
+  }
+
+  @override
+  @failingTest
+  test_lintsInOptions_getAnalysisOptions() {
+    fail('Test times out');
+  }
+
+  @override
+  @failingTest
+  test_noLints_lintsDisabled() {
+    fail('Test times out');
+  }
+
+  @override
+  @failingTest
+  test_noLints_noGeneratedWarnings() {
+    fail('Test times out');
+  }
+
+  @override
+  @failingTest
+  test_noLints_noRegisteredLints() {
+    fail('Test times out');
+  }
 }
 
 @reflectiveTest
@@ -1016,42 +1099,75 @@ class OptionsTest_UseCFE extends OptionsTest {
 
   @override
   @failingTest
-  test_analysisOptions_excludes() => super.test_analysisOptions_excludes();
+  test_analysisOptions_excludes() {
+    fail('Test times out');
+  }
 
   @override
   @failingTest
-  test_analysisOptions_excludesRelativeToAnalysisOptions_explicit() =>
-      super.test_analysisOptions_excludesRelativeToAnalysisOptions_explicit();
+  test_analysisOptions_excludesRelativeToAnalysisOptions_explicit() {
+    fail('Test times out');
+  }
 
   @override
   @failingTest
-  test_analysisOptions_excludesRelativeToAnalysisOptions_inferred() =>
-      super.test_analysisOptions_excludesRelativeToAnalysisOptions_inferred();
+  test_analysisOptions_excludesRelativeToAnalysisOptions_inferred() {
+    fail('Test times out');
+  }
 
   @override
   @failingTest
-  test_basic_filters() => super.test_basic_filters();
+  test_analyzeFilesInDifferentContexts() {
+    fail('Test times out');
+  }
 
   @override
   @failingTest
-  test_basic_language() => super.test_basic_language();
+  test_basic_filters() {
+    fail('Test times out');
+  }
 
   @override
   @failingTest
-  test_basic_strongMode() => super.test_basic_strongMode();
+  test_basic_language() {
+    fail('Test times out');
+  }
 
   @override
   @failingTest
-  test_includeDirective() => super.test_includeDirective();
+  test_basic_strongMode() {
+    fail('Test times out');
+  }
 
   @override
   @failingTest
-  test_previewDart2() => super.test_previewDart2();
+  test_includeDirective() {
+    fail('Test times out');
+  }
 
   @override
   @failingTest
-  test_withFlags_overrideFatalWarning() =>
-      super.test_withFlags_overrideFatalWarning();
+  test_previewDart2() {
+    fail('Test times out');
+  }
+
+  @override
+  @failingTest
+  test_strongSdk() {
+    fail('Test times out');
+  }
+
+  @override
+  @failingTest
+  test_todo() {
+    fail('Test times out');
+  }
+
+  @override
+  @failingTest
+  test_withFlags_overrideFatalWarning() {
+    fail('Test times out');
+  }
 }
 
 class TestSource implements Source {

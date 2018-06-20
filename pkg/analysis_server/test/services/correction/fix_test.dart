@@ -95,11 +95,6 @@ bool test() {
     expect(resultCode, expected);
   }
 
-  assertNoFix(FixKind kind) async {
-    AnalysisError error = await _findErrorToFix();
-    await _assertNoFix(kind, error);
-  }
-
   assertHasFixAllFix(ErrorCode errorCode, FixKind kind, String expected,
       {String target}) async {
     AnalysisError error = await _findErrorToFixOfType(errorCode);
@@ -121,6 +116,11 @@ bool test() {
     expect(resultCode, expected);
   }
 
+  assertNoFix(FixKind kind) async {
+    AnalysisError error = await _findErrorToFix();
+    await _assertNoFix(kind, error);
+  }
+
   List<LinkedEditSuggestion> expectedSuggestions(
       LinkedEditSuggestionKind kind, List<String> values) {
     return values.map((value) {
@@ -139,8 +139,8 @@ bool test() {
   Future<Fix> _assertHasFix(FixKind kind, AnalysisError error,
       {bool hasFixAllFix: false}) async {
     if (hasFixAllFix && !kind.canBeAppliedTogether()) {
-      fail(
-          'Expected to find and return fix-all FixKind for $kind, but kind.canBeAppliedTogether is ${kind.canBeAppliedTogether}');
+      fail('Expected to find and return fix-all FixKind for $kind, '
+          'but kind.canBeAppliedTogether is ${kind.canBeAppliedTogether}');
     }
 
     // Compute the fixes for this AnalysisError
@@ -148,35 +148,39 @@ bool test() {
 
     // If hasFixAllFix is false, assert that none of the fixes are a fix-all fix
     if (!hasFixAllFix) {
-      for (Fix f in fixes) {
-        if (f.isFixAllFix()) {
-          fail("The boolean hasFixAllFix is false, but such a fix was found in "
-              "the computed set of fixes: $fixes, error: $error.");
+      for (Fix fix in fixes) {
+        if (fix.isFixAllFix()) {
+          fail('The boolean hasFixAllFix is false, but such a fix was found '
+              'in the computed set of fixes: $fixes, error: $error.');
         }
       }
     }
     // If hasFixAllFix is true, assert that there exists such a fix in the list
     else {
       bool foundFixAllFix = false;
-      for (Fix f in fixes) {
-        if (f.isFixAllFix()) {
+      for (Fix fix in fixes) {
+        if (fix.isFixAllFix()) {
           foundFixAllFix = true;
           break;
         }
       }
       if (!foundFixAllFix) {
-        fail("The boolean hasFixAllFix is true, but no fix-all fix was found "
-            "in the computed set of fixes: $fixes, error: $error.");
+        fail('The boolean hasFixAllFix is true, but no fix-all fix was found '
+            'in the computed set of fixes: $fixes, error: $error.');
       }
     }
 
     Fix foundFix = null;
     if (!hasFixAllFix) {
-      foundFix =
-          fixes.firstWhere((fix) => fix.kind == kind && !fix.isFixAllFix());
+      foundFix = fixes.firstWhere(
+        (fix) => fix.kind == kind && !fix.isFixAllFix(),
+        orElse: () => null,
+      );
     } else {
-      foundFix =
-          fixes.lastWhere((fix) => fix.kind == kind && fix.isFixAllFix());
+      foundFix = fixes.lastWhere(
+        (fix) => fix.kind == kind && fix.isFixAllFix(),
+        orElse: () => null,
+      );
     }
     if (foundFix == null) {
       fail('Expected to find fix $kind in\n${fixes.join('\n')}, hasFixAllFix = '
@@ -2102,6 +2106,44 @@ class Test {
 }
 ''');
     _assertLinkedGroup(change.linkedEditGroups[0], ['Test v =', 'Test {']);
+  }
+
+  test_createClass_instanceCreation_withoutNew_fromFunction() async {
+    await resolveTestUnit('''
+main() {
+  Test ();
+}
+''');
+    await assertHasFix(DartFixKind.CREATE_CLASS, '''
+main() {
+  Test ();
+}
+
+class Test {
+}
+''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['Test ()', 'Test {']);
+  }
+
+  test_createClass_instanceCreation_withoutNew_fromMethod() async {
+    await resolveTestUnit('''
+class A {
+  main() {
+    Test ();
+  }
+}
+''');
+    await assertHasFix(DartFixKind.CREATE_CLASS, '''
+class A {
+  main() {
+    Test ();
+  }
+}
+
+class Test {
+}
+''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['Test ()', 'Test {']);
   }
 
   test_createClass_itemOfList() async {
@@ -5476,36 +5518,6 @@ main() {
 ''');
   }
 
-  test_removeUnusedImport_anotherImportOnLine() async {
-    await resolveTestUnit('''
-import 'dart:math'; import 'dart:async';
-
-main() {
-  Future f;
-}
-''');
-    await assertHasFix(DartFixKind.REMOVE_UNUSED_IMPORT, '''
-import 'dart:async';
-
-main() {
-  Future f;
-}
-''');
-  }
-
-  test_removeUnusedImport_severalLines() async {
-    await resolveTestUnit('''
-import
-  'dart:math';
-main() {
-}
-''');
-    await assertHasFix(DartFixKind.REMOVE_UNUSED_IMPORT, '''
-main() {
-}
-''');
-  }
-
   test_removeUnusedImport_all() async {
     await resolveTestUnit('''
 import 'dart:math';
@@ -5566,6 +5578,36 @@ main() {
 ''');
     await assertHasFixAllFix(
         HintCode.UNUSED_IMPORT, DartFixKind.REMOVE_UNUSED_IMPORT, '''
+main() {
+}
+''');
+  }
+
+  test_removeUnusedImport_anotherImportOnLine() async {
+    await resolveTestUnit('''
+import 'dart:math'; import 'dart:async';
+
+main() {
+  Future f;
+}
+''');
+    await assertHasFix(DartFixKind.REMOVE_UNUSED_IMPORT, '''
+import 'dart:async';
+
+main() {
+  Future f;
+}
+''');
+  }
+
+  test_removeUnusedImport_severalLines() async {
+    await resolveTestUnit('''
+import
+  'dart:math';
+main() {
+}
+''');
+    await assertHasFix(DartFixKind.REMOVE_UNUSED_IMPORT, '''
 main() {
 }
 ''');

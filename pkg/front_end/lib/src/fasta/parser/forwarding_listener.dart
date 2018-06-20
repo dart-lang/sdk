@@ -1249,6 +1249,12 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleUnescapeError(
+      Message message, Token location, int offset, int length) {
+    listener?.handleUnescapeError(message, location, offset, length);
+  }
+
+  @override
   void handleStringPart(Token token) {
     listener?.handleStringPart(token);
   }

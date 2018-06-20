@@ -34,7 +34,7 @@ if %DART_ROOT:~-1%==\ set DART_ROOT=%DART_ROOT:~0,-1%
 
 set DEV_COMPILER=%DART_ROOT%\pkg\dev_compiler\bin\dartdevk.dart
 
-"%DART%" "--preview-dart-2" "--packages=%DART_ROOT%\.packages" %EXTRA_VM_OPTIONS% "%DEV_COMPILER%" %*
+"%DART%" "--packages=%DART_ROOT%\.packages" %EXTRA_VM_OPTIONS% "%DEV_COMPILER%" %*
 
 endlocal
 

@@ -16,12 +16,12 @@ class JavaScriptPrintingOptions {
   final bool allowKeywordsInProperties;
 
   JavaScriptPrintingOptions(
-      {this.shouldCompressOutput: false,
-      this.minifyLocalVariables: false,
-      this.preferSemicolonToNewlineInMinifiedOutput: false,
-      this.emitTypes: false,
-      this.allowKeywordsInProperties: false,
-      this.allowSingleLineIfStatements: false});
+      {this.shouldCompressOutput = false,
+      this.minifyLocalVariables = false,
+      this.preferSemicolonToNewlineInMinifiedOutput = false,
+      this.emitTypes = false,
+      this.allowKeywordsInProperties = false,
+      this.allowSingleLineIfStatements = false});
 }
 
 /// An environment in which JavaScript printing is done.  Provides emitting of
@@ -47,7 +47,7 @@ abstract class JavaScriptPrintingContext {
 
 /// A simple implementation of [JavaScriptPrintingContext] suitable for tests.
 class SimpleJavaScriptPrintingContext extends JavaScriptPrintingContext {
-  final StringBuffer buffer = new StringBuffer();
+  final StringBuffer buffer = StringBuffer();
 
   void emit(String string) {
     buffer.write(string);
@@ -79,15 +79,15 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   /// Whether the next call to [indent] should just be a no-op.
   bool _skipNextIndent = false;
 
-  static final identifierCharacterRegExp = new RegExp(r'^[a-zA-Z_0-9$]');
-  static final expressionContinuationRegExp = new RegExp(r'^[-+([]');
+  static final identifierCharacterRegExp = RegExp(r'^[a-zA-Z_0-9$]');
+  static final expressionContinuationRegExp = RegExp(r'^[-+([]');
 
   Printer(JavaScriptPrintingOptions options, JavaScriptPrintingContext context,
       {LocalNamer localNamer})
       : options = options,
         context = context,
         shouldCompressOutput = options.shouldCompressOutput,
-        danglingElseVisitor = new DanglingElseVisitor(context),
+        danglingElseVisitor = DanglingElseVisitor(context),
         localNamer = determineRenamer(localNamer, options) {
     context.printer = this;
   }
@@ -96,8 +96,8 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
       LocalNamer localNamer, JavaScriptPrintingOptions options) {
     if (localNamer != null) return localNamer;
     return (options.shouldCompressOutput && options.minifyLocalVariables)
-        ? new MinifyRenamer()
-        : new IdentityNamer();
+        ? MinifyRenamer()
+        : IdentityNamer();
   }
 
   // The current indentation string.
@@ -317,7 +317,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     if (hasElse) {
       bool needsBraces = node.then.accept(danglingElseVisitor) || then is Do;
       if (needsBraces) {
-        then = new Block(<Statement>[then]);
+        then = Block(<Statement>[then]);
       }
     }
     if (shouldIndent) indent();
@@ -1210,7 +1210,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   }
 
   void propertyNameOut(Expression node,
-      {bool inMethod: false, bool inAccess: false}) {
+      {bool inMethod = false, bool inAccess = false}) {
     if (node is LiteralNumber) {
       LiteralNumber nameNumber = node;
       if (inAccess) out('[');
@@ -1296,7 +1296,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
 
   /// This is unused, see [nameSpecifierOut].
   visitNameSpecifier(NameSpecifier node) {
-    throw new UnsupportedError('visitNameSpecifier');
+    throw UnsupportedError('visitNameSpecifier');
   }
 
   nameSpecifierOut(NameSpecifier node, bool export) {
@@ -1427,8 +1427,8 @@ class VarCollector extends BaseVisitor {
 
   VarCollector()
       : nested = false,
-        vars = new Set<String>(),
-        params = new Set<String>();
+        vars = Set<String>(),
+        params = Set<String>();
 
   void forEachVar(void fn(String v)) => vars.forEach(fn);
   void forEachParam(void fn(String p)) => params.forEach(fn);
@@ -1565,9 +1565,9 @@ class MinifyRenamer implements LocalNamer {
   int variableNumber = 0;
 
   void enterScope(Node node) {
-    var vars = new VarCollector();
+    var vars = VarCollector();
     node.accept(vars);
-    maps.add(new Map<String, String>());
+    maps.add(Map<String, String>());
     variableNumberStack.add(variableNumber);
     parameterNumberStack.add(parameterNumber);
     vars.forEachVar(declareVariable);
@@ -1648,7 +1648,7 @@ class MinifyRenamer implements LocalNamer {
     String newName;
     if (n < LETTERS) {
       // Start naming variables a, b, c, ..., z, A, B, C, ..., Z.
-      newName = new String.fromCharCodes([nthLetter(n)]);
+      newName = String.fromCharCodes([nthLetter(n)]);
     } else {
       // Then name variables a0, a1, a2, ..., a9, b0, b1, ..., Z9, aa0, aa1, ...
       // For all functions with fewer than 500 locals this is just as compact
@@ -1671,9 +1671,9 @@ class MinifyRenamer implements LocalNamer {
         codes.add(nthLetter((n ~/ nameSpaceSize) % LETTERS));
       }
       codes.add(charCodes.$0 + digit);
-      newName = new String.fromCharCodes(codes);
+      newName = String.fromCharCodes(codes);
     }
-    assert(new RegExp(r'[a-zA-Z][a-zA-Z0-9]*').hasMatch(newName));
+    assert(RegExp(r'[a-zA-Z][a-zA-Z0-9]*').hasMatch(newName));
     maps.last[oldName] = newName;
     return newName;
   }

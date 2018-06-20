@@ -29,8 +29,6 @@ String dart2jsHtml(String title, String scriptPath) {
           onerror="scriptTagOnErrorCallback(null)"
           defer>
   </script>
-  <script type="text/javascript"
-          src="/root_dart/pkg/browser/lib/dart.js"></script>
 </body>
 </html>""";
 }

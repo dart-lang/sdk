@@ -35,7 +35,7 @@ class PluginWatcher implements DriverWatcher {
   /**
    * A table mapping analysis drivers to information related to the driver.
    */
-  Map<AnalysisDriver, _DriverInfo> _driverInfo =
+  final Map<AnalysisDriver, _DriverInfo> _driverInfo =
       <AnalysisDriver, _DriverInfo>{};
 
   /**

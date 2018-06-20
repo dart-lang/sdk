@@ -27,15 +27,13 @@ import 'dart:_js_helper'
         notNull;
 import 'dart:_debugger' show trackCall;
 
-export 'dart:_debugger'
-    show getDynamicStats, clearDynamicStats, trackCall;
+export 'dart:_debugger' show getDynamicStats, clearDynamicStats, trackCall;
 
 part 'utils.dart';
 part 'classes.dart';
 part 'rtti.dart';
 part 'types.dart';
 part 'errors.dart';
-part 'generators.dart';
 part 'operations.dart';
 
 // TODO(vsm): Move polyfill code to dart:html.
@@ -149,3 +147,10 @@ void trackProfile(bool flag) {
 }
 
 final JsSymbol = JS('', 'Symbol');
+
+// TODO(vsm): Remove once this flag we've removed the ability to
+// whitelist / fallback on the old behavior.
+bool startAsyncSynchronously = true;
+void setStartAsyncSynchronously([bool value = true]) {
+  startAsyncSynchronously = value;
+}

@@ -159,7 +159,7 @@ constexpr bool kDartPrecompiledRuntime = false;
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
   P(strong, bool, false, "Enable strong mode.")                                \
-  P(sync_async, bool, true, "Start `async` functions synchronously.")          \
+  P(sync_async, bool, false, "Start `async` functions synchronously.")         \
   R(support_ast_printer, false, bool, true, "Support the AST printer.")        \
   R(support_compiler_stats, false, bool, true, "Support compiler stats.")      \
   R(support_disassembler, false, bool, true, "Support the disassembler.")      \
@@ -197,6 +197,9 @@ constexpr bool kDartPrecompiledRuntime = false;
     "Enables heap verification before GC.")                                    \
   D(verify_gc_contains, bool, false,                                           \
     "Enables verification of address contains during GC.")                     \
-  D(verify_on_transition, bool, false, "Verify on dart <==> VM.")
+  D(verify_on_transition, bool, false, "Verify on dart <==> VM.")              \
+  P(enable_slow_path_sharing, bool, true, "Enable sharing of slow-path code.") \
+  P(shared_slow_path_triggers_gc, bool, false,                                 \
+    "TESTING: slow-path triggers a GC.")
 
 #endif  // RUNTIME_VM_FLAG_LIST_H_

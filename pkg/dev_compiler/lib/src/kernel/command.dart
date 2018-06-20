@@ -67,7 +67,7 @@ Uri stringToUri(String s, {bool windows}) {
   Uri result = Uri.base.resolve(s);
   if (windows && result.scheme.length == 1) {
     // Assume c: or similar --- interpret as file path.
-    return new Uri.file(s, windows: true);
+    return Uri.file(s, windows: true);
   }
   return result;
 }
@@ -110,7 +110,7 @@ class CompilerResult {
 Future<CompilerResult> _compile(List<String> args,
     {fe.InitializedCompilerState compilerState}) async {
   // TODO(jmesserly): refactor options to share code with dartdevc CLI.
-  var argParser = new ArgParser(allowTrailingOptions: true)
+  var argParser = ArgParser(allowTrailingOptions: true)
     ..addFlag('help',
         abbr: 'h', help: 'Display this message.', negatable: false)
     ..addOption('out', abbr: 'o', help: 'Output file (required).')
@@ -164,7 +164,7 @@ Future<CompilerResult> _compile(List<String> args,
 
   if (argResults['help'] as bool || args.isEmpty) {
     print(_usageMessage(argParser));
-    return new CompilerResult.noState(true);
+    return CompilerResult.noState(true);
   }
 
   var moduleFormat = parseModuleFormatOption(argResults).first;
@@ -207,7 +207,7 @@ Future<CompilerResult> _compile(List<String> args,
   // lib folder). The following [FileSystem] will resolve those references to
   // the correct location and keeps the real file location hidden from the
   // front end.
-  var fileSystem = new MultiRootFileSystem(
+  var fileSystem = MultiRootFileSystem(
       customScheme, multiRoots, StandardFileSystem.instance);
 
   var oldCompilerState = compilerState;
@@ -216,21 +216,21 @@ Future<CompilerResult> _compile(List<String> args,
       stringToUri(sdkSummaryPath),
       stringToUri(packageFile),
       summaryUris,
-      new DevCompilerTarget(),
+      DevCompilerTarget(),
       fileSystem: fileSystem);
   fe.DdcResult result = await fe.compile(compilerState, inputs, errorHandler);
   if (result == null || !succeeded) {
-    return new CompilerResult(compilerState, false);
+    return CompilerResult(compilerState, false);
   }
 
   var component = result.component;
   var emitMetadata = argResults['emit-metadata'] as bool;
   if (!emitMetadata && _checkForDartMirrorsImport(component)) {
-    return new CompilerResult(compilerState, false);
+    return CompilerResult(compilerState, false);
   }
 
   String output = argResults['out'];
-  var file = new File(output);
+  var file = File(output);
   await file.parent.create(recursive: true);
 
   // Output files can be written in parallel, so collect the futures.
@@ -245,17 +245,17 @@ Future<CompilerResult> _compile(List<String> args,
     if (identical(compilerState, oldCompilerState)) {
       component.unbindCanonicalNames();
     }
-    var sink = new File(path.withoutExtension(output) + '.dill').openWrite();
-    new kernel.BinaryPrinter(sink).writeComponentFile(component);
+    var sink = File(path.withoutExtension(output) + '.dill').openWrite();
+    kernel.BinaryPrinter(sink).writeComponentFile(component);
     outFiles.add(sink.flush().then((_) => sink.close()));
   }
   if (argResults['summarize-text'] as bool) {
-    var sink = new File(output + '.txt').openWrite();
-    new kernel.Printer(sink, showExternal: false).writeComponentFile(component);
+    var sink = File(output + '.txt').openWrite();
+    kernel.Printer(sink, showExternal: false).writeComponentFile(component);
     outFiles.add(sink.flush().then((_) => sink.close()));
   }
 
-  var compiler = new ProgramCompiler(component,
+  var compiler = ProgramCompiler(component,
       declaredVariables: declaredVariables,
       emitMetadata: emitMetadata,
       enableAsserts: argResults['enable-asserts'] as bool);
@@ -271,11 +271,11 @@ Future<CompilerResult> _compile(List<String> args,
   outFiles.add(file.writeAsString(jsCode.code));
   if (jsCode.sourceMap != null) {
     outFiles.add(
-        new File(output + '.map').writeAsString(json.encode(jsCode.sourceMap)));
+        File(output + '.map').writeAsString(json.encode(jsCode.sourceMap)));
   }
 
   await Future.wait(outFiles);
-  return new CompilerResult(compilerState, true);
+  return CompilerResult(compilerState, true);
 }
 
 /// The output of compiling a JavaScript module in a particular format.
@@ -297,25 +297,24 @@ class JSCode {
 }
 
 JSCode jsProgramToCode(JS.Program moduleTree, ModuleFormat format,
-    {bool buildSourceMap: false,
+    {bool buildSourceMap = false,
     String jsUrl,
     String mapUrl,
     String customScheme}) {
-  var opts = new JS.JavaScriptPrintingOptions(
+  var opts = JS.JavaScriptPrintingOptions(
       allowKeywordsInProperties: true, allowSingleLineIfStatements: true);
   JS.SimpleJavaScriptPrintingContext printer;
   SourceMapBuilder sourceMap;
   if (buildSourceMap) {
-    var sourceMapContext = new SourceMapPrintingContext();
+    var sourceMapContext = SourceMapPrintingContext();
     sourceMap = sourceMapContext.sourceMap;
     printer = sourceMapContext;
   } else {
-    printer = new JS.SimpleJavaScriptPrintingContext();
+    printer = JS.SimpleJavaScriptPrintingContext();
   }
 
   var tree = transformModuleFormat(format, moduleTree);
-  tree.accept(
-      new JS.Printer(opts, printer, localNamer: new JS.TemporaryNamer(tree)));
+  tree.accept(JS.Printer(opts, printer, localNamer: JS.TemporaryNamer(tree)));
 
   Map builtMap;
   if (buildSourceMap && sourceMap != null) {
@@ -332,7 +331,7 @@ JSCode jsProgramToCode(JS.Program moduleTree, ModuleFormat format,
 
   var text = printer.getText();
 
-  return new JSCode(text, builtMap);
+  return JSCode(text, builtMap);
 }
 
 /// This was copied from module_compiler.dart.
@@ -343,7 +342,7 @@ JSCode jsProgramToCode(JS.Program moduleTree, ModuleFormat format,
 // TODO(sigmund): delete bazelMappings - customScheme should be used instead.
 Map placeSourceMap(Map sourceMap, String sourceMapPath,
     Map<String, String> bazelMappings, String customScheme) {
-  var map = new Map.from(sourceMap);
+  var map = Map.from(sourceMap);
   // Convert to a local file path if it's not.
   sourceMapPath = path.fromUri(_sourceToUri(sourceMapPath, customScheme));
   var sourceMapDir = path.dirname(path.absolute(sourceMapPath));
@@ -394,7 +393,7 @@ Uri _sourceToUri(String source, customScheme) {
   }
   // Assume a file path.
   // TODO(jmesserly): shouldn't this be `path.toUri(path.absolute)`?
-  return new Uri.file(path.absolute(source));
+  return Uri.file(path.absolute(source));
 }
 
 /// Parses Dart's non-standard `-Dname=value` syntax for declared variables,
@@ -408,7 +407,7 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
       var eq = rest.indexOf('=');
       if (eq <= 0) {
         var kind = eq == 0 ? 'name' : 'value';
-        throw new FormatException('no $kind given to -D option `$arg`');
+        throw FormatException('no $kind given to -D option `$arg`');
       }
       var name = rest.substring(0, eq);
       var value = rest.substring(eq + 1);

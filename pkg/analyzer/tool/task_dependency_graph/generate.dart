@@ -161,10 +161,7 @@ $data
         FolderBasedDartSdk.defaultSdkDirectory(resourceProvider));
 
     ContextBuilderOptions builderOptions = new ContextBuilderOptions();
-    if (Platform.packageRoot != null) {
-      builderOptions.defaultPackagesDirectoryPath =
-          Uri.parse(Platform.packageRoot).toFilePath();
-    } else if (Platform.packageConfig != null) {
+    if (Platform.packageConfig != null) {
       builderOptions.defaultPackageFilePath =
           Uri.parse(Platform.packageConfig).toFilePath();
     } else {

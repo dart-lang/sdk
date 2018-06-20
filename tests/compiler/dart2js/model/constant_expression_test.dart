@@ -355,7 +355,7 @@ Future testData(TestData data, {bool strongMode}) async {
   String source = sb.toString();
   CompilationResult result = await runCompiler(
       memorySourceFiles: {'main.dart': source},
-      options: strongMode ? [Flags.strongMode] : []);
+      options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2]);
   Compiler compiler = result.compiler;
   var elementEnvironment = compiler.frontendStrategy.elementEnvironment;
 

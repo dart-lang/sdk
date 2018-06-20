@@ -30,8 +30,8 @@ class IdentityMap<K, V> extends InternalMap<K, V> {
   bool get isEmpty => JS('bool', '#.size == 0', _map);
   bool get isNotEmpty => JS('bool', '#.size != 0', _map);
 
-  Iterable<K> get keys => new _JSMapIterable<K>(this, true);
-  Iterable<V> get values => new _JSMapIterable<V>(this, false);
+  Iterable<K> get keys => _JSMapIterable<K>(this, true);
+  Iterable<V> get values => _JSMapIterable<V>(this, false);
 
   bool containsKey(Object key) {
     return JS('bool', '#.has(#)', _map, key);
@@ -118,11 +118,11 @@ class _JSMapIterable<E> extends EfficientLengthIterable<E> {
     }''',
         modifications,
         map._modifications,
-        new ConcurrentModificationError(map),
+        ConcurrentModificationError(map),
         iterator);
   }
 
-  Iterator<E> get iterator => new DartIterator<E>(_jsIterator());
+  Iterator<E> get iterator => DartIterator<E>(_jsIterator());
 
   bool contains(Object element) =>
       _isKeys ? _map.containsKey(element) : _map.containsValue(element);

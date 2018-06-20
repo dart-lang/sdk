@@ -7,7 +7,7 @@
 #include "lib/invocation_mirror.h"
 #include "vm/code_patcher.h"
 #include "vm/exceptions.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/stack_frame.h"

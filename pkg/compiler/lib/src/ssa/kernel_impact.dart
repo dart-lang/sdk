@@ -13,6 +13,7 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../kernel/element_map.dart';
+import '../kernel/runtime_type_analysis.dart';
 import '../options.dart';
 import '../resolution/registry.dart' show ResolutionWorldImpactBuilder;
 import '../universe/call_structure.dart';
@@ -141,9 +142,8 @@ class KernelImpactBuilder extends ir.Visitor {
     handleSignature(constructor.function, checkReturnType: false);
     visitNodes(constructor.initializers);
     visitNode(constructor.function.body);
-    if (constructor.isExternal &&
-        !elementMap.isForeignLibrary(constructor.enclosingLibrary)) {
-      MemberEntity member = elementMap.getMember(constructor);
+    MemberEntity member = elementMap.getMember(constructor);
+    if (constructor.isExternal && !elementMap.isForeignHelper(member)) {
       bool isJsInterop = elementMap.nativeBasicData.isJsInteropMember(member);
       impactBuilder.registerNativeData(elementMap
           .getNativeBehaviorForMethod(constructor, isJsInterop: isJsInterop));
@@ -197,9 +197,8 @@ class KernelImpactBuilder extends ir.Visitor {
     handleSignature(procedure.function);
     visitNode(procedure.function.body);
     handleAsyncMarker(procedure.function);
-    if (procedure.isExternal &&
-        !elementMap.isForeignLibrary(procedure.enclosingLibrary)) {
-      MemberEntity member = elementMap.getMember(procedure);
+    MemberEntity member = elementMap.getMember(procedure);
+    if (procedure.isExternal && !elementMap.isForeignHelper(member)) {
       bool isJsInterop = elementMap.nativeBasicData.isJsInteropMember(member);
       impactBuilder.registerNativeData(elementMap
           .getNativeBehaviorForMethod(procedure, isJsInterop: isJsInterop));
@@ -651,6 +650,16 @@ class KernelImpactBuilder extends ir.Visitor {
     impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
         new Selector.getter(elementMap.getName(node.name)),
         constraint, const <DartType>[]));
+
+    if (node.name.name == Identifiers.runtimeType_) {
+      if (_options.strongMode) {
+        RuntimeTypeUse runtimeTypeUse = computeRuntimeTypeUse(elementMap, node);
+        impactBuilder.registerRuntimeTypeUse(runtimeTypeUse);
+      } else {
+        impactBuilder.registerRuntimeTypeUse(new RuntimeTypeUse(
+            RuntimeTypeUseKind.unknown, const DynamicType(), null));
+      }
+    }
   }
 
   @override

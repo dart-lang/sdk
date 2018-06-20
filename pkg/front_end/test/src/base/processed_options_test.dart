@@ -270,11 +270,12 @@ class ProcessedOptionsTest {
     fileSystem
         .entityForUri(Uri.parse('org-dartlang-test:///base/location/'))
         .createDirectory();
+
+    // packages/ directory is deprecated and should be ignored.
     fileSystem
         .entityForUri(Uri.parse('org-dartlang-test:///base/location/packages/'))
         .createDirectory();
 
-    // Both of these .packages file should be ignored.
     fileSystem
         .entityForUri(Uri.parse('org-dartlang-test:///.packages'))
         .writeAsStringSync('foo:bar\n');
@@ -285,8 +286,7 @@ class ProcessedOptionsTest {
     var processed = new ProcessedOptions(
         raw, [Uri.parse('org-dartlang-test:///base/location/script.dart')]);
     var uriTranslator = await processed.getUriTranslator();
-    checkPackageExpansion(
-        'foo', 'base/location/packages/foo', uriTranslator.packages);
+    checkPackageExpansion('foo', 'base/baz', uriTranslator.packages);
   }
 
   test_getUriTranslator_implicitPackagesFile_noPackages() async {

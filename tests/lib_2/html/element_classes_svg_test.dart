@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'dart:html';
 import 'dart:svg' as svg;
 
+import "package:expect/expect.dart";
 import 'package:expect/minitest.dart';
 
 // Test for `querySelectorAll(xxx).classes.op()` where the query returns mixed
@@ -27,11 +28,50 @@ Element makeElementsContainer() {
 
 Element elementsContainer;
 
+/// Test top-level querySelectorAll with generics.
+topLevelQuerySelector() {
+  var noElementsTop = querySelectorAll<svg.PathElement>('.no');
+  expect(noElementsTop.length, 0);
+  expect(noElementsTop is List, true);
+
+  var varWeird = querySelectorAll<svg.CircleElement>('path');
+  expect(varWeird.length, 1);
+  expect(varWeird is List, true);
+  expect(varWeird is List<svg.CircleElement>, true);
+  // Runtime error expected 'PathElement' is not a subtype of expected type 'CircleElement'.'
+  Expect.throwsTypeError(() => varWeird[0] is svg.CircleElement);
+
+  var simpleElems = querySelectorAll('circle');
+  expect(simpleElems.length, 1);
+  expect(simpleElems is List, true);
+  expect(simpleElems is List<dynamic>, true);
+  expect(simpleElems is List<svg.CircleElement>, false);
+  expect(simpleElems[0] is svg.CircleElement, true);
+
+  var varElementsFromTop = querySelectorAll<svg.CircleElement>('circle');
+  expect(varElementsFromTop.length, 1);
+  expect(varElementsFromTop is List, true);
+  expect(varElementsFromTop is List<svg.CircleElement>, true);
+  expect(varElementsFromTop[0] is svg.CircleElement, true);
+  expect(varElementsFromTop is List<svg.PathElement>, false);
+  expect(varElementsFromTop[0] is svg.PathElement, false);
+
+  List<svg.CircleElement> elementsFromTop =
+      querySelectorAll<svg.CircleElement>('circle');
+  expect(elementsFromTop is List, true);
+  expect(elementsFromTop is List<svg.CircleElement>, true);
+  expect(elementsFromTop[0] is svg.CircleElement, true);
+  expect(elementsFromTop.length, 1);
+}
+
 ElementList<Element> elementsSetup() {
   elementsContainer = makeElementsContainer();
   document.documentElement.children.add(elementsContainer);
   var elements = document.querySelectorAll('.yes');
   expect(elements.length, 4);
+
+  topLevelQuerySelector();
+
   return elements;
 }
 

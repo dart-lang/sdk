@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'analysis_context_collection_test.dart' as analysis_context_collection;
 import 'context_builder_test.dart' as context_builder;
 import 'context_locator_test.dart' as context_locator;
 import 'context_root_test.dart' as context_root;
@@ -23,6 +24,7 @@ import 'uri_converter_test.dart' as uri_converter;
 
 main() {
   defineReflectiveSuite(() {
+    analysis_context_collection.main();
     context_builder.main();
     context_locator.main();
     context_root.main();

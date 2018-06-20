@@ -720,9 +720,12 @@ class BackendImpacts {
   BackendImpact _noSuchMethodSupport;
 
   BackendImpact get noSuchMethodSupport {
-    return _noSuchMethodSupport ??= new BackendImpact(
-        staticUses: [_commonElements.createInvocationMirror],
-        dynamicUses: [Selectors.noSuchMethod_]);
+    return _noSuchMethodSupport ??= new BackendImpact(staticUses: [
+      _commonElements.createInvocationMirror,
+      _commonElements.createUnmangledInvocationMirror
+    ], dynamicUses: [
+      Selectors.noSuchMethod_
+    ]);
   }
 
   BackendImpact _loadLibrary;

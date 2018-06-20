@@ -689,6 +689,40 @@ Dart_Handle TestCase::library_handler(Dart_LibraryTag tag,
   return Api::Success();
 }
 
+Dart_Handle TestCase::EvaluateExpression(const Library& lib,
+                                         const String& expr,
+                                         const Array& param_names,
+                                         const Array& param_values) {
+  Thread* thread = Thread::Current();
+
+  Object& val = Object::Handle();
+  if (!KernelIsolate::IsRunning()) {
+    val = lib.Evaluate(expr, param_names, param_values);
+  } else {
+    Dart_KernelCompilationResult compilation_result;
+    {
+      TransitionVMToNative transition(thread);
+      compilation_result = KernelIsolate::CompileExpressionToKernel(
+          expr.ToCString(), param_names, Array::empty_array(),
+          String::Handle(lib.url()).ToCString(), /* klass=*/nullptr,
+          /* is_static= */ false);
+    }
+    if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
+      return Dart_NewApiError(compilation_result.error);
+    }
+
+    const uint8_t* kernel_bytes = compilation_result.kernel;
+    intptr_t kernel_length = compilation_result.kernel_size;
+
+    val = lib.EvaluateCompiledExpression(kernel_bytes, kernel_length,
+                                         Array::empty_array(), param_values,
+                                         TypeArguments::null_type_arguments());
+
+    free(const_cast<uint8_t*>(kernel_bytes));
+  }
+  return Api::NewHandle(thread, val.raw());
+}
+
 #if !defined(PRODUCT)
 static bool IsHex(int c) {
   return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f');

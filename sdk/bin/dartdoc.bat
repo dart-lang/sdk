@@ -14,7 +14,7 @@ for %%i in ("%RETURNED_BIN_DIR%") do set BIN_DIR=%%~fi
 set DART=%BIN_DIR%\dart
 set SNAPSHOT=%BIN_DIR%\snapshots\dartdoc.dart.snapshot
 
-"%DART%" "--preview-dart-2" --packages="%BIN_DIR%/snapshots/resources/dartdoc/.packages" "%SNAPSHOT%" %*
+"%DART%" "--packages=%BIN_DIR%/snapshots/resources/dartdoc/.packages" "%SNAPSHOT%" %*
 
 endlocal
 

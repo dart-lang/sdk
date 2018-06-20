@@ -18,7 +18,10 @@ class PrefixBuilder extends Declaration {
   @override
   final int charOffset;
 
-  PrefixBuilder(this.name, this.deferred, this.parent, this.charOffset);
+  final int importIndex;
+
+  PrefixBuilder(
+      this.name, this.deferred, this.parent, this.charOffset, this.importIndex);
 
   Uri get fileUri => parent.fileUri;
 

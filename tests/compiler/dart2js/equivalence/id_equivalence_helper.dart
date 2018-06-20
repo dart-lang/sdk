@@ -577,7 +577,7 @@ Future checkTests(
       print('--skipped for kernel--------------------------------------------');
     } else {
       print('--from kernel---------------------------------------------------');
-      List<String> options = []..addAll(testOptions);
+      List<String> options = [Flags.noPreviewDart2]..addAll(testOptions);
       if (trustTypeAnnotations) {
         options.add(Flags.trustTypeAnnotations);
       }
@@ -628,8 +628,11 @@ Future checkTests(
         print('--skipped for kernel (strong mode, omit-implicit-checks)------');
       } else {
         print('--from kernel (strong mode, omit-implicit-checks)-------------');
-        List<String> options = [Flags.strongMode, Flags.omitImplicitChecks]
-          ..addAll(testOptions);
+        List<String> options = [
+          Flags.strongMode,
+          Flags.omitImplicitChecks,
+          Flags.laxRuntimeTypeToString
+        ]..addAll(testOptions);
         MemberAnnotations<IdValue> annotations = expectedMaps[omitMarker];
         CompiledData compiledData2 = await computeData(
             entryPoint, memorySourceFiles, computeFromKernel,

@@ -1189,6 +1189,12 @@ class Parser {
             // Scanner has already reported a missing `)` error,
             // but placed the `)` in the wrong location, so move it.
             token = rewriter.moveSynthetic(token, begin.endGroup);
+          } else if (next.kind == IDENTIFIER_TOKEN &&
+              next.next.kind == IDENTIFIER_TOKEN) {
+            // Looks like a missing comma
+            Token comma = new SyntheticToken(TokenType.COMMA, next.charOffset);
+            token = rewriter.insertTokenAfter(token, comma).next;
+            continue;
           } else {
             reportRecoverableError(
                 next, fasta.templateExpectedButGot.withArguments(')'));
@@ -2961,7 +2967,8 @@ class Parser {
         }
         // Fall through to continue parsing `get` or `set` as an identifier.
       } else if (identical(value, 'factory')) {
-        if (next.next.isIdentifier) {
+        Token next2 = next.next;
+        if (next2.isIdentifier || next2.isModifier) {
           token = parseFactoryMethod(token, beforeStart, externalToken,
               staticToken ?? covariantToken, varFinalOrConst);
           listener.endMember();
@@ -3819,10 +3826,9 @@ class Parser {
   }
 
   Token parseExpressionWithoutCascade(Token token) {
-    Token result = optional('throw', token.next)
+    return optional('throw', token.next)
         ? parseThrowExpression(token, false)
         : parsePrecedenceExpression(token, ASSIGNMENT_PRECEDENCE, false);
-    return result;
   }
 
   Token parseConditionalExpressionRest(Token token) {
@@ -3868,7 +3874,10 @@ class Parser {
         } else if (identical(tokenLevel, ASSIGNMENT_PRECEDENCE)) {
           // Right associative, so we recurse at the same precedence
           // level.
-          token = parsePrecedenceExpression(token.next, level, allowCascades);
+          Token next = token.next;
+          token = optional('throw', next.next)
+              ? parseThrowExpression(next, false)
+              : parsePrecedenceExpression(next, level, allowCascades);
           listener.handleAssignmentExpression(operator);
         } else if (identical(tokenLevel, POSTFIX_PRECEDENCE)) {
           if ((identical(type, TokenType.PLUS_PLUS)) ||
@@ -3949,7 +3958,7 @@ class Parser {
     Token mark;
     do {
       mark = token;
-      if (optional('.', next)) {
+      if (optional('.', next) || optional('?.', next)) {
         Token period = next;
         token = parseSend(next, IdentifierContext.expressionContinuation);
         next = token.next;

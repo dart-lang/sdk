@@ -4,6 +4,7 @@
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
@@ -56,8 +57,8 @@ main() {
 }
 
 runTest() async {
-  CompilationResult result =
-      await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
+  CompilationResult result = await runCompiler(
+      memorySourceFiles: MEMORY_SOURCE_FILES, options: [Flags.noPreviewDart2]);
   Compiler compiler = result.compiler;
   JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
   Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');

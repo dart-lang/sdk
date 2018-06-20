@@ -285,6 +285,10 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     }
     _backendUsage.registerUsedMember(member);
 
+    if (_commonElements.isCreateInvocationMirrorHelper(member)) {
+      _registerBackendImpact(worldImpact, _impacts.noSuchMethodSupport);
+    }
+
     if (_elementEnvironment.isDeferredLoadLibraryGetter(member)) {
       // TODO(sigurdm): Create a function registerLoadLibraryAccess.
       if (!_isLoadLibraryFunctionResolved) {
@@ -298,7 +302,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       // runtimeType. We have to enable runtime type before hitting the
       // codegen, so that constructors know whether they need to generate code
       // for runtime type.
-      _backendUsage.isRuntimeTypeUsed = true;
       // TODO(ahe): Record precise dependency here.
       worldImpact.addImpact(_registerRuntimeType());
     }

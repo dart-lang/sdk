@@ -180,23 +180,16 @@ Dart_ActivationFrameInfo(Dart_ActivationFrame activation_frame,
 
 /**
  * Execute the expression given in string \expr in the context
- * of \target.
+ * of \lib_handle library, as if it were a top-level function in it.
  *
  * Requires there to be a current isolate.
- *
- * The expression is evaluated in the context of \target.
- * If \target is a Dart object, the expression is evaluated as if
- * it were an instance method of the class of the object.
- * If \target is a Class, the expression is evaluated as if it
- * were a static method of that class.
- * If \target is a Library, the expression is evaluated as if it
- * were a top-level function in that library.
  *
  * \return A handle to the computed value, or an error object if
  * the compilation of the expression fails, or if the evaluation throws
  * an error.
  */
-DART_EXPORT Dart_Handle Dart_EvaluateExpr(Dart_Handle target, Dart_Handle expr);
+DART_EXPORT Dart_Handle Dart_EvaluateStaticExpr(Dart_Handle lib_handle,
+                                                Dart_Handle expr);
 
 /**
  * Returns a handle to the library \library_id.

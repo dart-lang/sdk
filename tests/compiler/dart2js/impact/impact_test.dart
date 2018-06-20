@@ -4,13 +4,15 @@
 
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/frontend_strategy.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
-import 'package:compiler/src/universe/world_impact.dart';
+import 'package:compiler/src/universe/feature.dart';
 import 'package:compiler/src/universe/use.dart';
+import 'package:compiler/src/universe/world_impact.dart';
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 
@@ -28,6 +30,7 @@ class Tags {
   static const String staticUse = 'static';
   static const String dynamicUse = 'dynamic';
   static const String constantUse = 'constant';
+  static const String runtimeTypeUse = 'runtimeType';
 }
 
 /// Compute type inference data for [member] from kernel based inference.
@@ -60,6 +63,13 @@ void computeMemberImpact(
   }
   for (ConstantUse use in impact.constantUses) {
     features.addElement(Tags.constantUse, use.shortText);
+  }
+  if (impact is TransformedWorldImpact &&
+      impact.worldImpact is ResolutionImpact) {
+    ResolutionImpact resolutionImpact = impact.worldImpact;
+    for (RuntimeTypeUse use in resolutionImpact.runtimeTypeUses) {
+      features.addElement(Tags.runtimeTypeUse, use.shortText);
+    }
   }
   Id id = computeEntityId(definition.node);
   actualMap[id] = new ActualData(new IdValue(id, features.getText()),

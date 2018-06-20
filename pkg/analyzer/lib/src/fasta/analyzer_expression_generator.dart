@@ -30,6 +30,55 @@ class AnalyzerDeferredAccessGenerator extends AnalyzerExpressionGenerator
   Expression buildSimpleRead() => generator.buildSimpleRead();
 }
 
+class AnalyzerDelayedAssignmentGenerator extends AnalyzerExpressionGenerator
+    with fasta.DelayedAssignment<Expression, Statement, Arguments> {
+  final Token token;
+  final fasta.Generator<Expression, Statement, Arguments> generator;
+  final String assignmentOperator;
+  final Expression value;
+
+  AnalyzerDelayedAssignmentGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      AstFactory astFactory,
+      this.token,
+      this.generator,
+      this.assignmentOperator,
+      this.value)
+      : super(helper, astFactory);
+
+  @override
+  Expression buildSimpleRead() => astFactory.assignmentExpression(
+      generator.buildSimpleRead(), token, value);
+
+  @override
+  Expression doInvocation(int offset, Arguments arguments) => buildSimpleRead();
+}
+
+class AnalyzerDelayedPostfixIncrementGenerator
+    extends AnalyzerExpressionGenerator
+    with fasta.DelayedPostfixIncrement<Expression, Statement, Arguments> {
+  final Token token;
+  final fasta.Generator<Expression, Statement, Arguments> generator;
+  final kernel.Name binaryOperator;
+  final kernel.Procedure interfaceTarget;
+
+  AnalyzerDelayedPostfixIncrementGenerator(
+      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      AstFactory astFactory,
+      this.token,
+      this.generator,
+      this.binaryOperator,
+      this.interfaceTarget)
+      : super(helper, astFactory);
+
+  @override
+  Expression buildSimpleRead() =>
+      astFactory.postfixExpression(generator.buildSimpleRead(), token);
+
+  @override
+  Expression doInvocation(int offset, Arguments arguments) => buildSimpleRead();
+}
+
 abstract class AnalyzerExpressionGenerator
     implements fasta.Generator<Expression, Statement, Arguments> {
   final ExpressionGeneratorHelper<Expression, Statement, Arguments> helper;

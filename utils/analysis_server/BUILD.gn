@@ -5,6 +5,7 @@
 import("../application_snapshot.gni")
 
 application_snapshot("analysis_server") {
+  dart_version = 2
   main_dart = "../../pkg/analysis_server/bin/server.dart"
   training_args = [ "--help" ]
 }

@@ -9,7 +9,7 @@ main() {
 
 test /*ddk.2:test*/ () /*ddc.2:test*/ async {
   // ignore: UNUSED_LOCAL_VARIABLE
-  var c = new /*3:test*/ Class();
+  var c = /*3:test*/ Class();
 }
 
 class Class {

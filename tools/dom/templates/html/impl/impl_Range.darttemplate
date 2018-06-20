@@ -13,8 +13,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
       document._caretRangeFromPoint(point.x, point.y);
 $!MEMBERS
 
-  @DomName('Range.getClientRects')
-  @DocsEditable()
   List<Rectangle> getClientRects() {
     var value = _getClientRects();
 

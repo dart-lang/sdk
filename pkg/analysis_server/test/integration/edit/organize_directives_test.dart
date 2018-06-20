@@ -12,9 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OrganizeDirectivesTest);
-    // TODO(scheglov): Restore similar test coverage when the front-end API
-    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
-    // defineReflectiveTests(OrganizeDirectivesTest_UseCFE);
+    defineReflectiveTests(OrganizeDirectivesTest_UseCFE);
   });
 }
 
@@ -82,4 +80,22 @@ int minified(int x, int y) => min(x, y);
 class OrganizeDirectivesTest_UseCFE extends OrganizeDirectivesTest {
   @override
   bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_organize_directives() {
+    return super.test_organize_directives();
+  }
+
+  @failingTest
+  @override
+  test_organize_directives_no_changes() {
+    return super.test_organize_directives_no_changes();
+  }
+
+  @failingTest
+  @override
+  test_organize_directives_with_errors() {
+    return super.test_organize_directives_with_errors();
+  }
 }

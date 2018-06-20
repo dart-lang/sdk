@@ -372,7 +372,8 @@ class KernelResynthesizer implements ElementResynthesizer {
     }
 
     // Replace Analyzer type parameters with type arguments.
-    throw new UnimplementedError('TODO(paulberry)');
+    throw new UnimplementedError(
+        'TODO(paulberry): resynthesize generic typedef');
   }
 
   /// Return the [TypeParameterElement] for the given [kernelTypeParameter].

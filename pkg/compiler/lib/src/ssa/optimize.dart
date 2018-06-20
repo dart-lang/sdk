@@ -424,7 +424,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
         } else if (applies(commonElements.jsArrayAdd)) {
           // The codegen special cases array calls, but does not
           // inline argument type checks.
-          if (!_options.enableTypeAssertions) {
+          if (!_options.parameterCheckPolicy.isEmitted ||
+              input is HLiteralList) {
             target = commonElements.jsArrayAdd;
           }
         }

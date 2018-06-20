@@ -60,7 +60,7 @@ bool isPotentiallyMutated(FunctionBody function, VariableElement e,
   if (function.isPotentiallyMutatedInScope(e)) {
     // Need to visit the context looking for assignment to this local.
     if (context != null) {
-      var visitor = new _AssignmentFinder(e);
+      var visitor = _AssignmentFinder(e);
       context.accept(visitor);
       return visitor._potentiallyMutated;
     }
@@ -103,11 +103,10 @@ class ConstFieldVisitor {
   final ConstantVisitor constantVisitor;
 
   ConstFieldVisitor(AnalysisContext context, {Source dummySource})
-      : constantVisitor = new ConstantVisitor(
-            new ConstantEvaluationEngine(
+      : constantVisitor = ConstantVisitor(
+            ConstantEvaluationEngine(
                 context.typeProvider, context.declaredVariables),
-            new ErrorReporter(
-                AnalysisErrorListener.NULL_LISTENER, dummySource));
+            ErrorReporter(AnalysisErrorListener.NULL_LISTENER, dummySource));
 
   // TODO(jmesserly): this is used to determine if the field initialization is
   // side effect free. We should make the check more general, as things like

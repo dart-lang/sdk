@@ -146,20 +146,10 @@ regress_23408_test: CompileTimeError
 regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError
 regress_30339_test: CompileTimeError
-string_interpolate_test: CompileTimeError
 string_interpolation_and_buffer_test: RuntimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
-super_no_such_method1_test: CompileTimeError
-super_no_such_method2_test: CompileTimeError
-super_no_such_method3_test: CompileTimeError
-super_no_such_method4_test: CompileTimeError
-super_no_such_method5_test: CompileTimeError
-super_operator_index5_test: CompileTimeError
-super_operator_index6_test: CompileTimeError
-super_operator_index7_test: CompileTimeError
-super_operator_index8_test: CompileTimeError
 super_test: RuntimeError
 type_alias_equality_test/02: RuntimeError
 type_alias_equality_test/03: RuntimeError
@@ -176,7 +166,6 @@ type_promotion_functions_test/13: CompileTimeError
 type_promotion_functions_test/14: CompileTimeError
 type_promotion_functions_test/none: CompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError
-vm/optimized_guarded_field_isolates_test: RuntimeError
 vm/type_cast_vm_test: RuntimeError
 
 [ $compiler == dartkp ]
@@ -221,6 +210,10 @@ implicit_creation/implicit_const_not_default_values_test/e4: MissingCompileTimeE
 implicit_creation/implicit_const_not_default_values_test/e5: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e7: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e8: MissingCompileTimeError
+vm/regress_33469_test/01: MissingCompileTimeError
+vm/regress_33469_test/02: MissingCompileTimeError
+vm/regress_33469_test/03: MissingCompileTimeError
+vm/regress_33469_test/04: MissingCompileTimeError
 
 [ $fasta ]
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue 32014.
@@ -630,6 +623,9 @@ mixin_super_2_test/03: MissingCompileTimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
 
+[ $compiler != dart2js && $fasta && $strong ]
+super_call4_test/01: MissingCompileTimeError
+
 [ $compiler == dartk && $mode == debug && $hot_reload ]
 async_star_test/01: Crash
 async_star_test/05: Crash
@@ -656,11 +652,6 @@ vm/type_vm_test/33: MissingRuntimeError
 vm/type_vm_test/34: MissingRuntimeError
 vm/type_vm_test/35: MissingRuntimeError
 vm/type_vm_test/36: MissingRuntimeError
-
-[ $compiler == dartk && $runtime == vm ]
-type_alias_equality_test/02: RuntimeError # Issue 31359
-type_alias_equality_test/03: RuntimeError # Issue 31359
-type_alias_equality_test/04: RuntimeError # Issue 31359
 
 [ $compiler == dartk && $runtime == vm && $checked && $strong ]
 assert_initializer_test/31: MissingCompileTimeError # KernelVM bug: Constant evaluation.
@@ -832,20 +823,11 @@ regress_23408_test: RuntimeError
 regress_29025_test: CompileTimeError # Issue 31402 (Variable declaration)
 regress_29405_test: CompileTimeError # Issue 31402 (Invocation arguments)
 regress_30339_test: CompileTimeError # Issue 31402 (Variable declaration)
-string_interpolate_test: CompileTimeError # Issue 31533
 string_interpolation_and_buffer_test: RuntimeError # Issue 31402 (Return and yield statements)
 string_split_test: CompileTimeError # Issue 31616
 string_supertype_checked_test: CompileTimeError # Issue 31616
 super_bound_closure_test/none: CompileTimeError # Issue 31533
-super_no_such_method1_test: CompileTimeError
-super_no_such_method2_test: CompileTimeError
-super_no_such_method3_test: CompileTimeError
-super_no_such_method4_test: CompileTimeError
-super_no_such_method5_test: CompileTimeError
-super_operator_index5_test: CompileTimeError
-super_operator_index6_test: CompileTimeError
-super_operator_index7_test: CompileTimeError
-super_operator_index8_test: CompileTimeError
+super_call4_test/01: MissingCompileTimeError
 super_test: Fail, OK
 type_literal_test: RuntimeError
 type_promotion_functions_test/02: CompileTimeError # Issue 31537
@@ -860,7 +842,6 @@ type_promotion_functions_test/none: CompileTimeError # Issue 31537
 type_promotion_logical_and_test/01: MissingCompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError # Issue 31533
 vm/closure_memory_retention_test: Skip # KernelVM bug: Hits OOM
-vm/optimized_guarded_field_isolates_test: RuntimeError # Issue 31402 (Variable declaration)
 vm/regress_29145_test: Skip # Issue 29145
 vm/type_cast_vm_test: RuntimeError
 void_block_return_test/00: MissingCompileTimeError
@@ -872,10 +853,6 @@ wrong_number_type_arguments_test/none: Pass
 
 [ $compiler == dartk && $system == windows && $strong ]
 ct_const2_test: Fail
-
-[ $compiler == dartk && $hot_reload ]
-vm/causal_async_exception_stack2_test: Crash
-vm/causal_async_exception_stack_test: Crash
 
 [ $compiler == dartk && $strong ]
 assertion_initializer_const_error2_test/cc01: MissingCompileTimeError # Not reporting failed assert() at compile time.
@@ -928,6 +905,7 @@ vm/type_vm_test/35: MissingRuntimeError
 vm/type_vm_test/36: MissingRuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled ]
+super_no_such_method5_test: RuntimeError # Issue 33517
 type_alias_equality_test/02: RuntimeError # Issue 31359
 type_alias_equality_test/03: RuntimeError # Issue 31359
 type_alias_equality_test/04: RuntimeError # Issue 31359
@@ -1201,20 +1179,10 @@ setter_no_getter_test/01: Pass, CompileTimeError # Issue 31533 (started passing 
 setter_override_test/00: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 setter_override_test/03: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 stacktrace_demangle_ctors_test: RuntimeError
-string_interpolate_test: CompileTimeError # Issue 31533
 string_interpolation_and_buffer_test: RuntimeError # Issue 31402 (Return and yield statements)
 string_split_test: CompileTimeError # Issue 31616
 string_supertype_checked_test: CompileTimeError # Issue 31616
 super_bound_closure_test/none: CompileTimeError # Issue 31533
-super_no_such_method1_test: CompileTimeError
-super_no_such_method2_test: CompileTimeError
-super_no_such_method3_test: CompileTimeError
-super_no_such_method4_test: CompileTimeError
-super_no_such_method5_test: CompileTimeError
-super_operator_index5_test: CompileTimeError
-super_operator_index6_test: CompileTimeError
-super_operator_index7_test: CompileTimeError
-super_operator_index8_test: CompileTimeError
 super_test: Fail, OK
 syntax_test/00: MissingCompileTimeError
 type_literal_test: RuntimeError
@@ -1232,7 +1200,6 @@ type_promotion_more_specific_test/04: CompileTimeError # Issue 31533
 vm/causal_async_exception_stack2_test: SkipByDesign
 vm/causal_async_exception_stack_test: SkipByDesign
 vm/closure_memory_retention_test: Skip # KernelVM bug: Hits OOM
-vm/optimized_guarded_field_isolates_test: RuntimeError
 vm/optimized_stacktrace_test: Crash
 vm/optimized_stacktrace_test: Skip # Issue 30198
 vm/reflect_core_vm_test: SkipByDesign
@@ -1406,19 +1373,12 @@ regress_30339_test: CompileTimeError
 setter_no_getter_test/01: CompileTimeError
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
-string_interpolate_test: CompileTimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
-super_no_such_method1_test: CompileTimeError
-super_no_such_method2_test: CompileTimeError
-super_no_such_method3_test: CompileTimeError
-super_no_such_method4_test: CompileTimeError
-super_no_such_method5_test: CompileTimeError
-super_operator_index5_test: CompileTimeError
-super_operator_index6_test: CompileTimeError
-super_operator_index7_test: CompileTimeError
-super_operator_index8_test: CompileTimeError
+super_operator_index6_test: CompileTimeError # Issue 33498
+super_operator_index7_test: CompileTimeError # Issue 33498
+super_operator_index8_test: CompileTimeError # Issue 33498
 try_catch_test/01: MissingCompileTimeError
 type_promotion_functions_test/02: CompileTimeError
 type_promotion_functions_test/03: CompileTimeError
@@ -2280,8 +2240,17 @@ unresolved_in_factory_test: MissingCompileTimeError
 unresolved_top_level_method_test: MissingCompileTimeError
 unresolved_top_level_var_test: MissingCompileTimeError
 
-[ !$strong && ($compiler == dartk || $compiler == dartkp) ]
+[ !$strong && ($compiler == dartk || $compiler == dartkp || $runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign # language_2 is only supported in strong mode.
+
+[ ($compiler == app_jitk || $compiler == dartk || $compiler == dartkp) && ($runtime == dart_precompiled || $runtime == vm) ]
+super_no_such_method4_test: RuntimeError # Issue 33517
+super_operator_index6_test: CompileTimeError # Issue 33498
+super_operator_index7_test: CompileTimeError # Issue 33498
+super_operator_index8_test: CompileTimeError # Issue 33498
+type_alias_equality_test/02: RuntimeError # Issue 31359
+type_alias_equality_test/03: RuntimeError # Issue 31359
+type_alias_equality_test/04: RuntimeError # Issue 31359
 
 [ $compiler == dartk || $compiler == dartkp ]
 generic_function_bounds_test: RuntimeError # Issue 32076

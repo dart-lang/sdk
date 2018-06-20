@@ -18,7 +18,7 @@ Future main(List<String> args) async {
   if (parsedArgs.isBatch) {
     await runBatch(parsedArgs.args);
   } else if (parsedArgs.isWorker) {
-    await new _CompilerWorker(parsedArgs.args).run();
+    await _CompilerWorker(parsedArgs.args).run();
   } else {
     var result = await compile(parsedArgs.args);
     exitCode = result.success ? 0 : 1;
@@ -29,7 +29,7 @@ Future main(List<String> args) async {
 Future runBatch(List<String> batchArgs) async {
   var tests = 0;
   var failed = 0;
-  var watch = new Stopwatch()..start();
+  var watch = Stopwatch()..start();
 
   print('>>> BATCH START');
 
@@ -38,7 +38,7 @@ Future runBatch(List<String> batchArgs) async {
 
   while ((line = stdin.readLineSync(encoding: utf8))?.isNotEmpty == true) {
     tests++;
-    var args = batchArgs.toList()..addAll(line.split(new RegExp(r'\s+')));
+    var args = batchArgs.toList()..addAll(line.split(RegExp(r'\s+')));
 
     String outcome;
     try {
@@ -74,12 +74,12 @@ class _CompilerWorker extends AsyncWorkerLoop {
   Future<WorkResponse> performRequest(WorkRequest request) async {
     var args = _startupArgs.toList()..addAll(request.arguments);
 
-    var output = new StringBuffer();
+    var output = StringBuffer();
     var result = await runZoned(() => compile(args), zoneSpecification:
-        new ZoneSpecification(print: (self, parent, zone, message) {
+        ZoneSpecification(print: (self, parent, zone, message) {
       output.writeln(message.toString());
     }));
-    return new WorkResponse()
+    return WorkResponse()
       ..exitCode = result.success ? 0 : 1
       ..output = output.toString();
   }
@@ -95,11 +95,11 @@ class _CompilerWorker extends AsyncWorkerLoop {
 /// latter needs to be replaced by reading all the contents of the
 /// file and expanding them into the resulting argument list.
 _ParsedArgs _preprocessArgs(List<String> args) {
-  if (args.isEmpty) return new _ParsedArgs(false, false, args);
+  if (args.isEmpty) return _ParsedArgs(false, false, args);
 
   String lastArg = args.last;
   if (lastArg == '--batch') {
-    return new _ParsedArgs(true, false, args.sublist(0, args.length - 1));
+    return _ParsedArgs(true, false, args.sublist(0, args.length - 1));
   }
 
   var newArgs = <String>[];
@@ -115,20 +115,20 @@ _ParsedArgs _preprocessArgs(List<String> args) {
       newArgs.add(arg);
     }
   }
-  return new _ParsedArgs(false, isWorker, newArgs);
+  return _ParsedArgs(false, isWorker, newArgs);
 }
 
 /// Return all lines in a file found at [path].
 Iterable<String> _readLines(String path) {
   try {
-    return new File(path)
+    return File(path)
         .readAsStringSync()
         .replaceAll('\r\n', '\n')
         .replaceAll('\r', '\n')
         .split('\n')
         .where((String line) => line.isNotEmpty);
   } on FileSystemException catch (e) {
-    throw new Exception('Failed to read $path: $e');
+    throw Exception('Failed to read $path: $e');
   }
 }
 

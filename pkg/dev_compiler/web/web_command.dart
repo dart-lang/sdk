@@ -139,15 +139,15 @@ class WebCompileCommand extends Command {
       List<String> moduleIds) {
     var dartSdkSummaryPath = '/dart-sdk/lib/_internal/web_sdk.sum';
 
-    var resourceProvider = new MemoryResourceProvider()
+    var resourceProvider = MemoryResourceProvider()
       ..newFileWithBytes(dartSdkSummaryPath, sdkBytes);
 
-    var resourceUriResolver = new ResourceUriResolver(resourceProvider);
+    var resourceUriResolver = ResourceUriResolver(resourceProvider);
 
-    var options = new AnalyzerOptions.basic(
+    var options = AnalyzerOptions.basic(
         dartSdkPath: '/dart-sdk', dartSdkSummaryPath: dartSdkSummaryPath);
 
-    var summaryDataStore = new SummaryDataStore(options.summaryPaths,
+    var summaryDataStore = SummaryDataStore(options.summaryPaths,
         resourceProvider: resourceProvider);
     for (var i = 0; i < summaryBytes.length; i++) {
       var bytes = summaryBytes[i];
@@ -156,15 +156,15 @@ class WebCompileCommand extends Command {
       if (bytes.length == 0) continue;
 
       var url = '/${moduleIds[i]}.api.ds';
-      var summaryBundle = new PackageBundle.fromBuffer(bytes);
+      var summaryBundle = PackageBundle.fromBuffer(bytes);
       summaryDataStore.addBundle(url, summaryBundle);
     }
     var summaryResolver =
-        new InSummaryUriResolver(resourceProvider, summaryDataStore);
+        InSummaryUriResolver(resourceProvider, summaryDataStore);
 
     var fileResolvers = [summaryResolver, resourceUriResolver];
 
-    var compiler = new ModuleCompiler(options,
+    var compiler = ModuleCompiler(options,
         analysisRoot: '/web-compile-root',
         fileResolvers: fileResolvers,
         resourceProvider: resourceProvider,
@@ -172,7 +172,7 @@ class WebCompileCommand extends Command {
 
     var context = compiler.context as AnalysisContextImpl;
 
-    var compilerOptions = new CompilerOptions.fromArguments(argResults);
+    var compilerOptions = CompilerOptions.fromArguments(argResults);
 
     var resolveFn = (String url) {
       var packagePrefix = 'package:';
@@ -253,7 +253,7 @@ class WebCompileCommand extends Command {
         if (libraryElement == null) {
           throw "Unable to get library element.";
         }
-        var sb = new StringBuffer(imports);
+        var sb = StringBuffer(imports);
         sb.write('\n');
 
         // TODO(jacobr): we need to add a proper Analyzer flag specifing that
@@ -300,7 +300,7 @@ class WebCompileCommand extends Command {
       }
       resourceProvider.newFile(fileName, sourceCode);
 
-      var unit = new BuildUnit(libraryName, "", [fileName], _moduleForLibrary);
+      var unit = BuildUnit(libraryName, "", [fileName], _moduleForLibrary);
 
       JSModuleFile module = compiler.compile(unit, compilerOptions);
 
@@ -312,7 +312,7 @@ class WebCompileCommand extends Command {
             .code;
       }
 
-      return new CompileResult(
+      return CompileResult(
           code: moduleCode, isValid: module.isValid, errors: module.errors);
     };
 

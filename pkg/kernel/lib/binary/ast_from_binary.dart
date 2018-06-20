@@ -22,6 +22,18 @@ class ParseError {
   String toString() => '$filename:$byteIndex: $message at $path';
 }
 
+class InvalidKernelVersionError {
+  final String message;
+
+  InvalidKernelVersionError(this.message);
+}
+
+class CanonicalNameError {
+  final String message;
+
+  CanonicalNameError(this.message);
+}
+
 class _ComponentIndex {
   static const numberOfFixedFields = 9;
 
@@ -390,7 +402,7 @@ class BinaryBuilder {
   /// computed ahead of time.
   ///
   /// The input bytes may contain multiple files concatenated.
-  void readComponent(Component component) {
+  void readComponent(Component component, {bool checkCanonicalNames: false}) {
     List<int> componentFileSizes = _indexComponents();
     if (componentFileSizes.length > 1) {
       _disableLazyReading = true;
@@ -399,6 +411,10 @@ class BinaryBuilder {
     while (_byteOffset < _bytes.length) {
       _readOneComponent(component, componentFileSizes[componentFileIndex]);
       ++componentFileIndex;
+    }
+
+    if (checkCanonicalNames) {
+      _checkCanonicalNameChildren(component.root);
     }
   }
 
@@ -426,7 +442,8 @@ class BinaryBuilder {
   ///
   /// This should *only* be used when there is a reason to not allow
   /// concatenated files.
-  void readSingleFileComponent(Component component) {
+  void readSingleFileComponent(Component component,
+      {bool checkCanonicalNames: false}) {
     List<int> componentFileSizes = _indexComponents();
     if (componentFileSizes.isEmpty) throw "Invalid component data.";
     _readOneComponent(component, componentFileSizes[0]);
@@ -439,6 +456,48 @@ class BinaryBuilder {
         }
       }
       throw 'Unrecognized bytes following component data';
+    }
+
+    if (checkCanonicalNames) {
+      _checkCanonicalNameChildren(component.root);
+    }
+  }
+
+  void _checkCanonicalNameChildren(CanonicalName parent) {
+    for (CanonicalName child in parent.children) {
+      if (child.name != '@methods' &&
+          child.name != '@typedefs' &&
+          child.name != '@fields' &&
+          child.name != '@getters' &&
+          child.name != '@setters' &&
+          child.name != '@factories' &&
+          child.name != '@constructors') {
+        bool checkReferenceNode = true;
+        if (child.reference == null) {
+          // OK for "if private: URI of library" part of "Qualified name"...
+          Iterable<CanonicalName> children = child.children;
+          if (parent.parent != null &&
+              children.isNotEmpty &&
+              children.first.name.startsWith("_")) {
+            // OK then.
+            checkReferenceNode = false;
+          } else {
+            throw new CanonicalNameError(
+                "Null reference (${child.name}) ($child).");
+          }
+        }
+        if (checkReferenceNode) {
+          if (child.reference.canonicalName != child) {
+            throw new CanonicalNameError(
+                "Canonical name and reference doesn't agree.");
+          }
+          if (child.reference.node == null) {
+            throw new CanonicalNameError(
+                "Reference is null (${child.name}) ($child).");
+          }
+        }
+      }
+      _checkCanonicalNameChildren(child);
     }
   }
 
@@ -520,7 +579,8 @@ class BinaryBuilder {
 
     final int formatVersion = readUint32();
     if (formatVersion != Tag.BinaryFormatVersion) {
-      throw fail('Invalid kernel binary format version '
+      throw new InvalidKernelVersionError(
+          'Invalid kernel binary format version '
           '(found ${formatVersion}, expected ${Tag.BinaryFormatVersion})');
     }
 

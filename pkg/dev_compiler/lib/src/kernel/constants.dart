@@ -18,8 +18,8 @@ class DevCompilerConstants {
 
   DevCompilerConstants(
       TypeEnvironment types, Map<String, String> declaredVariables)
-      : _visitor = new _ConstantVisitor(types.coreTypes),
-        _evaluator = new _ConstantEvaluator(types, declaredVariables);
+      : _visitor = _ConstantVisitor(types.coreTypes),
+        _evaluator = _ConstantEvaluator(types, declaredVariables);
 
   /// Determines if an expression is constant.
   bool isConstant(Expression e) => _visitor.isConstant(e);
@@ -31,7 +31,7 @@ class DevCompilerConstants {
   ///
   /// To avoid performance costs associated with try+catch on invalid constant
   /// evaluation, call this after [isConstant] is known to be true.
-  Constant evaluate(Expression e, {bool cache: false}) {
+  Constant evaluate(Expression e, {bool cache = false}) {
     if (e == null) return null;
 
     try {
@@ -181,15 +181,15 @@ class _ConstantEvaluator extends ConstantEvaluator {
 
   _ConstantEvaluator(TypeEnvironment types, this.declaredVariables,
       {bool enableAsserts})
-      : unavailableConstant = new InstanceConstant(
+      : unavailableConstant = InstanceConstant(
             types.coreTypes.index
                 .getClass('dart:core', '_ConstantExpressionError')
                 .reference,
             [],
             {}),
-        super(new _ConstantsBackend(types.coreTypes), types, types.coreTypes,
-            true, enableAsserts, const _ErrorReporter()) {
-    env = new EvaluationEnvironment();
+        super(_ConstantsBackend(types.coreTypes), types, types.coreTypes, true,
+            enableAsserts, const _ErrorReporter()) {
+    env = EvaluationEnvironment();
   }
 
   @override
@@ -249,11 +249,11 @@ class _ConstantEvaluator extends ConstantEvaluator {
       var targetClass = target.enclosingClass;
 
       if (targetClass == coreTypes.stringClass) {
-        if (value != null) return canonicalize(new StringConstant(value));
+        if (value != null) return canonicalize(StringConstant(value));
         return defaultArg ?? nullConstant;
       } else if (targetClass == coreTypes.intClass) {
         var intValue = int.parse(value ?? '', onError: (_) => null);
-        if (intValue != null) return canonicalize(new IntConstant(intValue));
+        if (intValue != null) return canonicalize(IntConstant(intValue));
         return defaultArg ?? nullConstant;
       } else if (targetClass == coreTypes.boolClass) {
         if (value == "true") return trueConstant;
@@ -279,7 +279,7 @@ class _ConstantEvaluator extends ConstantEvaluator {
       var d = constant.value;
       if (d.isFinite) {
         var i = d.toInt();
-        if (d == i.toDouble()) return super.canonicalize(new IntConstant(i));
+        if (d == i.toDouble()) return super.canonicalize(IntConstant(i));
       }
     }
     return super.canonicalize(constant);
@@ -301,11 +301,11 @@ class _ConstantsBackend implements ConstantsBackend {
   @override
   buildConstantForNative(
           nativeName, typeArguments, positionalArguments, namedArguments) =>
-      throw new StateError('unreachable'); // DDC does not use VM native syntax
+      throw StateError('unreachable'); // DDC does not use VM native syntax
 
   @override
   buildSymbolConstant(StringConstant value) {
-    return new InstanceConstant(
+    return InstanceConstant(
         coreTypes.internalSymbolClass.reference,
         const <DartType>[],
         <Reference, Constant>{symbolNameField.reference: value});

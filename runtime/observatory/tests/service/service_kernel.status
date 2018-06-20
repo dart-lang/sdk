@@ -24,8 +24,6 @@ causal_async_stack_presence_test: RuntimeError
 causal_async_star_stack_contents_test: RuntimeError
 causal_async_star_stack_presence_test: RuntimeError
 complex_reload_test: RuntimeError
-coverage_leaf_function_test: RuntimeError
-coverage_optimized_function_test: RuntimeError
 debugger_inspect_test: Skip # Timeout
 debugger_location_second_test: RuntimeError
 debugger_location_test: RuntimeError
@@ -87,7 +85,6 @@ pause_on_exceptions_test: Skip # Timeout
 pause_on_unhandled_async_exceptions2_test: RuntimeError
 pause_on_unhandled_async_exceptions_test: RuntimeError
 positive_token_pos_test: RuntimeError
-process_service_test: RuntimeError
 regress_28443_test: RuntimeError
 regress_28980_test: RuntimeError
 rewind_optimized_out_test: RuntimeError
@@ -231,8 +228,6 @@ async_generator_breakpoint_test: Pass, RuntimeError, Crash # dartbug.com/33175 f
 bad_reload_test: Skip # Times out on sim architectures, also RuntimeError.
 break_on_activation_test: RuntimeError # Issue #33087
 complex_reload_test: Skip # Times out on sim architectures, also RuntimeError.
-coverage_leaf_function_test: RuntimeError # Please triage.
-coverage_optimized_function_test: RuntimeError # Please triage.
 debugger_inspect_test: RuntimeError, Timeout # Issue #33087
 developer_service_get_isolate_id_test: RuntimeError # Issue #33087
 eval_internal_class_test: RuntimeError # Issue #33087
@@ -249,7 +244,6 @@ evaluate_with_scope_test: RuntimeError # Issue #33087
 get_instances_rpc_test: RuntimeError # Issue #33087
 get_object_rpc_test: RuntimeError # Please triage.
 get_retaining_path_rpc_test: RuntimeError # Issue #33087
-get_source_report_test: RuntimeError # Please triage.
 get_user_level_retaining_path_rpc_test: RuntimeError # Issue #33087
 instance_field_order_rpc_test: RuntimeError # Issue #33087
 pause_on_exceptions_test: RuntimeError, Timeout # Issue #33087

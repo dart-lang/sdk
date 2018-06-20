@@ -21,9 +21,9 @@ abstract class SharedCompiler<Library> {
   final List<JS.Identifier> _operatorSetResultStack = [];
 
   JS.Identifier runtimeModule;
-  final namedArgumentTemp = new JS.TemporaryId('opts');
+  final namedArgumentTemp = JS.TemporaryId('opts');
 
-  final _privateNames = new HashMap<Library, HashMap<String, JS.TemporaryId>>();
+  final _privateNames = HashMap<Library, HashMap<String, JS.TemporaryId>>();
 
   /// The list of output module items, in the order they need to be emitted in.
   final moduleItems = <JS.ModuleItem>[];
@@ -43,7 +43,7 @@ abstract class SharedCompiler<Library> {
       bool Function() isLastParamMutated) {
     if (name == '[]=') {
       _operatorSetResultStack.add(isLastParamMutated()
-          ? new JS.TemporaryId((formals.last as JS.Identifier).name)
+          ? JS.TemporaryId((formals.last as JS.Identifier).name)
           : formals.last);
     } else {
       _operatorSetResultStack.add(null);
@@ -72,7 +72,7 @@ abstract class SharedCompiler<Library> {
       var valueParam = formals.last;
       var statements = code.statements;
       if (statements.isEmpty || !statements.last.alwaysReturns) {
-        statements.add(new JS.Return(setOperatorResult));
+        statements.add(JS.Return(setOperatorResult));
       }
       if (!identical(setOperatorResult, valueParam)) {
         // If the value parameter was mutated, then we use a temporary
@@ -89,12 +89,10 @@ abstract class SharedCompiler<Library> {
   /// the `operator []=` method.
   JS.Statement emitReturnStatement(JS.Expression value) {
     if (_operatorSetResult != null) {
-      var result = new JS.Return(_operatorSetResult);
-      return value != null
-          ? new JS.Block([value.toStatement(), result])
-          : result;
+      var result = JS.Return(_operatorSetResult);
+      return value != null ? JS.Block([value.toStatement(), result]) : result;
     }
-    return value != null ? value.toReturn() : new JS.Return();
+    return value != null ? value.toReturn() : JS.Return();
   }
 
   /// Prepends the `dart.` and then uses [js.call] to parse the specified JS
@@ -130,14 +128,13 @@ abstract class SharedCompiler<Library> {
   }
 
   JS.TemporaryId emitPrivateNameSymbol(Library library, String name) {
-    return _privateNames
-        .putIfAbsent(library, () => new HashMap())
-        .putIfAbsent(name, () {
+    return _privateNames.putIfAbsent(library, () => HashMap()).putIfAbsent(name,
+        () {
       var idName = name;
       if (idName.endsWith('=')) {
         idName = idName.replaceAll('=', '_');
       }
-      var id = new JS.TemporaryId(idName);
+      var id = JS.TemporaryId(idName);
       moduleItems.add(
           js.statement('const # = Symbol(#);', [id, js.string(name, "'")]));
       return id;

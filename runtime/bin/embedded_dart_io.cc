@@ -4,6 +4,7 @@
 
 #include "bin/embedded_dart_io.h"
 
+#include "bin/crypto.h"
 #include "bin/directory.h"
 #include "bin/eventhandler.h"
 #include "bin/platform.h"
@@ -38,6 +39,10 @@ void GetIOEmbedderInformation(Dart_EmbedderInformation* info) {
   ASSERT(info->version == DART_EMBEDDER_INFORMATION_CURRENT_VERSION);
 
   Process::GetRSSInformation(&(info->max_rss), &(info->current_rss));
+}
+
+bool GetEntropy(uint8_t* buffer, intptr_t length) {
+  return Crypto::GetRandomBytes(length, buffer);
 }
 
 }  // namespace bin

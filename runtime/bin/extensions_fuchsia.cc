@@ -10,7 +10,6 @@
 #include <dlfcn.h>
 #include <fcntl.h>
 #include <lib/fdio/io.h>
-#include <launchpad/vmo.h>
 #include <zircon/dlfcn.h>
 
 #include "platform/assert.h"

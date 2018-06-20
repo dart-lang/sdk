@@ -9,9 +9,7 @@ import 'driver_test.dart';
 
 main() {
   defineReflectiveSuite(() {
-    // TODO(scheglov): Restore similar test coverage when the front-end API
-    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
-    // defineReflectiveTests(AnalysisDriverTest_Kernel);
+    defineReflectiveTests(AnalysisDriverTest_Kernel);
   });
 }
 
@@ -59,13 +57,6 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @failingTest
   @potentialAnalyzerProblem
   @override
-  test_const_annotation_notConstConstructor() async {
-    await super.test_const_annotation_notConstConstructor();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
   test_const_annotation_withArgs() async {
     await super.test_const_annotation_withArgs();
   }
@@ -75,6 +66,13 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @override
   test_const_externalConstFactory() async {
     await super.test_const_externalConstFactory();
+  }
+
+  @override
+  @failingTest
+  test_const_implicitCreation() {
+    // Bad state: No data for () at 69
+    return super.test_const_implicitCreation();
   }
 
   @failingTest
@@ -190,6 +188,23 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @override
   test_getResult_nameConflict_local_typeInference() async {
     await super.test_getResult_nameConflict_local_typeInference();
+  }
+
+  @override
+  @failingTest
+  test_missingDartLibrary_async() {
+    // Crash when compiling package:test/test.dart, at character offset null:
+    // Class 'FutureOr' not found in library 'dart:async'
+    return super.test_missingDartLibrary_async();
+  }
+
+  @override
+  @failingTest
+  test_missingDartLibrary_core() {
+    // Crash when compiling package:test/test.dart, at character offset null:
+    // file:///sdk/lib/core/core.dart:1: Internal problem: Couldn't find
+    // 'Object' in 'file:///sdk/lib/core/core.dart'.
+    return super.test_missingDartLibrary_core();
   }
 
   @failingTest
