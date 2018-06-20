@@ -38,7 +38,7 @@ class Bar<T extends asy::Stream<core::String> = asy::Stream<core::String>> exten
                 if(:result) {
                   core::String i = :for-iterator.{asy::_StreamIterator::current};
                   {
-                    core::int x = let final dynamic #t2 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:17:44: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+                    core::int x = let<BottomType> _ = null in let final dynamic #t2 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:17:44: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
       int x = /*error:INVALID_ASSIGNMENT*/ i;
                                            ^" in let final core::String #t3 = i in null;
@@ -96,7 +96,7 @@ class Baz<T extends core::Object = dynamic, E extends asy::Stream<self::Baz::T> 
                 if(:result) {
                   self::Baz::T i = :for-iterator.{asy::_StreamIterator::current};
                   {
-                    core::int x = let final dynamic #t6 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:25:44: Error: A value of type 'test::Baz::T' can't be assigned to a variable of type 'dart.core::int'.
+                    core::int x = let<BottomType> _ = null in let final dynamic #t6 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:25:44: Error: A value of type 'test::Baz::T' can't be assigned to a variable of type 'dart.core::int'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
       int x = /*error:INVALID_ASSIGNMENT*/ i;
                                            ^" in let final self::Baz::T #t7 = i in null;
@@ -156,7 +156,7 @@ static method test() → dynamic /* originally async */ {
               if(:result) {
                 self::Foo x = :for-iterator.{asy::_StreamIterator::current};
                 {
-                  core::String y = let final dynamic #t10 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:38:45: Error: A value of type 'test::Foo' can't be assigned to a variable of type 'dart.core::String'.
+                  core::String y = let<BottomType> _ = null in let final dynamic #t10 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:38:45: Error: A value of type 'test::Foo' can't be assigned to a variable of type 'dart.core::String'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
     String y = /*error:INVALID_ASSIGNMENT*/ x;
                                             ^" in let final self::Foo #t11 = x in null;
@@ -201,7 +201,7 @@ Try changing the type of the left hand side, or casting the right hand side to '
               if(:result) {
                 final self::Foo #t16 = :for-iterator.{asy::_StreamIterator::current};
                 {
-                  core::String x = let final dynamic #t17 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:45:21: Error: A value of type 'test::Foo' can't be assigned to a variable of type 'dart.core::String'.
+                  core::String x = let<BottomType> _ = null in let final dynamic #t17 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:45:21: Error: A value of type 'test::Foo' can't be assigned to a variable of type 'dart.core::String'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
   await for (String x in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/ myStream) {
                     ^" in let final self::Foo #t18 = #t16 in null;
@@ -288,7 +288,7 @@ Try changing the type of the left hand side, or casting the right hand side to '
         }
         core::Map<core::String, self::Foo> map = <core::String, self::Foo>{};
         {
-          asy::_StreamIterator<dynamic> :for-iterator = new asy::_StreamIterator::•<dynamic>(let final dynamic #t29 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:66:74: Error: A value of type 'dart.core::Map<dart.core::String, test::Foo>' can't be assigned to a variable of type 'dart.async::Stream<dynamic>'.
+          asy::_StreamIterator<dynamic> :for-iterator = new asy::_StreamIterator::•<dynamic>(let<BottomType> _ = null in let final dynamic #t29 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:66:74: Error: A value of type 'dart.core::Map<dart.core::String, test::Foo>' can't be assigned to a variable of type 'dart.async::Stream<dynamic>'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.async::Stream<dynamic>'.
   await for (var /*@type=dynamic*/ x in /*error:FOR_IN_OF_INVALID_TYPE*/ map) {
                                                                          ^" in let final core::Map<core::String, self::Foo> #t30 = map in null);

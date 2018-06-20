@@ -20,14 +20,14 @@ static method test() → dynamic /* originally async */ {
       #L1:
       {
         core::String s;
-        for (final dynamic #t1 in let final dynamic #t2 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:10:46: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::Iterable<dynamic>'.
+        for (final dynamic #t1 in let<BottomType> _ = null in let final dynamic #t2 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:10:46: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::Iterable<dynamic>'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.core::Iterable<dynamic>'.
   for (int x in /*@error=InvalidAssignment*/ s) {}
                                              ^" in let final core::String #t3 = s in null) {
           core::int x = #t1 as{TypeError} core::int;
         }
         {
-          asy::_StreamIterator<dynamic> :for-iterator = new asy::_StreamIterator::•<dynamic>(let final dynamic #t4 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:11:52: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.async::Stream<dynamic>'.
+          asy::_StreamIterator<dynamic> :for-iterator = new asy::_StreamIterator::•<dynamic>(let<BottomType> _ = null in let final dynamic #t4 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:11:52: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.async::Stream<dynamic>'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.async::Stream<dynamic>'.
   await for (int x in /*@error=InvalidAssignment*/ s) {}
                                                    ^" in let final core::String #t5 = s in null);
@@ -51,14 +51,14 @@ Try changing the type of the left hand side, or casting the right hand side to '
             }
         }
         core::int y;
-        for (final dynamic #t9 in let final dynamic #t10 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:13:42: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::Iterable<dynamic>'.
+        for (final dynamic #t9 in let<BottomType> _ = null in let final dynamic #t10 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:13:42: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::Iterable<dynamic>'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.core::Iterable<dynamic>'.
   for (y in /*@error=InvalidAssignment*/ s) {}
                                          ^" in let final core::String #t11 = s in null) {
           y = #t9 as{TypeError} core::int;
         }
         {
-          asy::_StreamIterator<dynamic> :for-iterator = new asy::_StreamIterator::•<dynamic>(let final dynamic #t12 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:14:48: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.async::Stream<dynamic>'.
+          asy::_StreamIterator<dynamic> :for-iterator = new asy::_StreamIterator::•<dynamic>(let<BottomType> _ = null in let final dynamic #t12 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:14:48: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.async::Stream<dynamic>'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.async::Stream<dynamic>'.
   await for (y in /*@error=InvalidAssignment*/ s) {}
                                                ^" in let final core::String #t13 = s in null);

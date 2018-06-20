@@ -10,11 +10,11 @@ class B extends core::Object {
     ;
 }
 static method test1() → dynamic {
-  inf::A::x = let final dynamic #t1 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:15:38: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+  inf::A::x = let dynamic _ = null in let final dynamic #t1 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:15:38: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
   A.x = /*error:INVALID_ASSIGNMENT*/ \"hi\";
                                      ^" in let final dynamic #t2 = "hi" in null;
-  self::B::y = let final dynamic #t3 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:16:38: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+  self::B::y = let dynamic _ = null in let final dynamic #t3 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:16:38: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
   B.y = /*error:INVALID_ASSIGNMENT*/ \"hi\";
                                      ^" in let final dynamic #t4 = "hi" in null;

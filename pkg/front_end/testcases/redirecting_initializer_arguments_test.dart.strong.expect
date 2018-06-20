@@ -5,7 +5,7 @@ import "dart:core" as core;
 class Foo<T extends core::Object = dynamic> extends core::Object {
   generic-covariant-impl field self::Foo::T x;
   constructor from(core::String _init) → void
-    : this self::Foo::_internal(x: let final dynamic #t1 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/redirecting_initializer_arguments_test.dart:12:46: Error: A value of type 'dart.core::String' can't be assigned to a variable of type '#lib1::Foo::T'.
+    : this self::Foo::_internal(x: let dynamic _ = null in let final dynamic #t1 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/redirecting_initializer_arguments_test.dart:12:46: Error: A value of type 'dart.core::String' can't be assigned to a variable of type '#lib1::Foo::T'.
 Try changing the type of the left hand side, or casting the right hand side to '#lib1::Foo::T'.
   Foo.from(String _init) : this._internal(x: _init);
                                              ^" in let final dynamic #t2 = _init in null)

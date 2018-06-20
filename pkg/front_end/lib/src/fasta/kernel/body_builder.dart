@@ -3860,7 +3860,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       {List<LocatedMessage> context}) {
     // TODO(askesc): Produce explicit error expression wrapping the original.
     // See [issue 29717](https://github.com/dart-lang/sdk/issues/29717)
-    return toExpression(new Let(
+    return toExpression(new ShadowSyntheticExpression(new Let(
         new VariableDeclaration.forValue(toKernelExpression(
             buildCompileTimeError(
                 message.messageObject, message.charOffset, message.length,
@@ -3872,7 +3872,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
             toKernelExpression(storeOffset(
                 forest.literalNull(null), forest.readOffset(expression))))
           ..fileOffset = forest.readOffset(expression))
-      ..fileOffset = forest.readOffset(expression));
+      ..fileOffset = forest.readOffset(expression)));
   }
 
   Expression buildFallThroughError(int charOffset) {
