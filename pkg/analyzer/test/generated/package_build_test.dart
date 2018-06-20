@@ -477,7 +477,8 @@ class PackageBuildWorkspaceTest extends _BaseTest {
       String root, List<String> packageNames) {
     final contextBuilder = new MockContextBuilder();
     final packages = new MockPackages();
-    final packageMap = new Map.fromIterable(packageNames, value: ((_) => []));
+    final packageMap = new Map<String, List<Folder>>.fromIterable(packageNames,
+        value: ((_) => []));
     contextBuilder.packagesMapMap[_p(root)] = packages;
     contextBuilder.packagesToMapMap[packages] = packageMap;
     return PackageBuildWorkspace.find(provider, _p(root), contextBuilder);
