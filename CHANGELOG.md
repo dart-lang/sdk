@@ -32,6 +32,14 @@ allowed when `exp` has type `void`.
 
 ### Dart VM
 
+* The Dart VM now runs programs by default with Dart 2.0 semantics. The flag
+  `--preview-dart-2` is not available anymore.
+
+* A new flag `--no-preview-dart-2` has been added, this flag can be used
+  to revert to Dart 1.0 semantics. The flag is temporary and only meant to
+  help users in the migration process. The flag will go away in a future dev
+  release, when we no longer support Dart 1.0.
+
 ### Tool Changes
 
 #### Pub
