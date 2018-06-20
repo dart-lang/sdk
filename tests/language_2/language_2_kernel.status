@@ -2243,6 +2243,7 @@ unresolved_top_level_var_test: MissingCompileTimeError
 *: SkipByDesign # language_2 is only supported in strong mode.
 
 [ ($compiler == app_jitk || $compiler == dartk || $compiler == dartkp) && ($runtime == dart_precompiled || $runtime == vm) ]
+super_no_such_method4_test: RuntimeError # Issue 33517
 super_operator_index6_test: CompileTimeError # Issue 33498
 super_operator_index7_test: CompileTimeError # Issue 33498
 super_operator_index8_test: CompileTimeError # Issue 33498

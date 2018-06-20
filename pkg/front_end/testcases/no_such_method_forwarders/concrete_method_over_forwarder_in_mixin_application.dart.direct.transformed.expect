@@ -29,8 +29,6 @@ abstract class _C&A&B extends self::A implements self::B {
     ;
   method noSuchMethod(dynamic _) → dynamic
     return null;
-  no-such-method-forwarder method foo() → dynamic
-    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withoutType("foo", const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false)) as{TypeError} dynamic;
 }
 class C extends self::_C&A&B {
   synthetic constructor •() → void

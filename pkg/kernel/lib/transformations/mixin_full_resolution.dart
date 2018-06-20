@@ -180,6 +180,9 @@ class MixinFullResolution {
       // Factory constructors are not cloned.
       if (procedure.isFactory) continue;
 
+      // NoSuchMethod forwarders aren't cloned.
+      if (procedure.isNoSuchMethodForwarder) continue;
+
       Procedure clone = cloner.clone(procedure);
       // Linear search for a forwarding stub with the same name.
       for (int i = 0; i < originalLength; ++i) {
