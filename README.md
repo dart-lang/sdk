@@ -97,6 +97,9 @@ The following tools are a available today:
     `live_code_size_analysis` can correlate that with the `.info.json`, so you
     determine why code that is not used is being included in your app.
 
+  * [`info_json_to_proto`][info_json_to_proto]: a tool that converts `info.json`
+    files generated from dart2js to the protobuf schema defined in `info.proto`.
+
 Next we describe in detail how to use each of these tools.
 
 ### Code deps tool
