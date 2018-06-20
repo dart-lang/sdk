@@ -323,12 +323,12 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   void _genTypeArguments(List<DartType> typeArgs, {Class instantiatingClass}) {
     int typeArgsCPIndex() {
-      int cpIndex = cp.add(new ConstantTypeArguments(typeArgs));
       if (instantiatingClass != null) {
-        cpIndex = cp.add(new ConstantTypeArgumentsForInstanceAllocation(
-            instantiatingClass, cpIndex));
+        return cp.add(new ConstantTypeArgumentsForInstanceAllocation(
+            instantiatingClass, typeArgs));
+      } else {
+        return cp.add(new ConstantTypeArguments(typeArgs));
       }
-      return cpIndex;
     }
 
     if (typeArgs.isEmpty || !hasTypeParameters(typeArgs)) {
