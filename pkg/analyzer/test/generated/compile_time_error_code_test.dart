@@ -1613,7 +1613,33 @@ main() {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_WITH_NON_CONST]);
+    // TODO(a14n): the error CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE is
+    // redundant and ought to be suppressed.
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_WITH_NON_CONST,
+      CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+    ]);
+    verify([source]);
+  }
+
+  test_constWithNonConst_in_const_context() async {
+    Source source = addSource(r'''
+class A {
+  const A(x);
+}
+class B {
+}
+main() {
+  const A(B());
+}
+''');
+    await computeAnalysisResult(source);
+    // TODO(a14n): the error CONST_WITH_NON_CONSTANT_ARGUMENT is redundant and
+    // ought to be suppressed.
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_WITH_NON_CONST,
+      CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT
+    ]);
     verify([source]);
   }
 

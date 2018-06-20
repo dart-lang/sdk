@@ -417,6 +417,11 @@ class ConstantEvaluationEngine {
       ConstantVisitor constantVisitor,
       ErrorReporter errorReporter,
       {ConstructorInvocation invocation}) {
+    if (!constructor.isConst) {
+      errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_WITH_NON_CONST, node);
+      return null;
+    }
     if (!getConstructorImpl(constructor).isCycleFree) {
       // It's not safe to evaluate this constructor, so bail out.
       // TODO(paulberry): ensure that a reasonable error message is produced
