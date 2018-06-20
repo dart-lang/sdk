@@ -2509,26 +2509,26 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       push(forest.notExpression(toValue(receiver), token));
     } else {
       String operator = token.stringValue;
+      Expression receiverValue;
       if (optional("-", token)) {
         operator = "unary-";
 
         if (receiver
             is LargeIntAccessGenerator<Expression, Statement, Arguments>) {
-          int value =
-              int.parse("-" + receiver.token.lexeme, onError: (_) => null);
+          int value = int.tryParse("-" + receiver.token.lexeme);
           if (value != null) {
-            push(forest.literalInt(value, token));
-            return;
+            receiverValue = forest.literalInt(value, token);
           }
         }
       }
       bool isSuper = false;
-      Expression receiverValue;
-      if (receiver is ThisAccessGenerator && receiver.isSuper) {
-        isSuper = true;
-        receiverValue = forest.thisExpression(receiver.token);
-      } else {
-        receiverValue = toValue(receiver);
+      if (receiverValue == null) {
+        if (receiver is ThisAccessGenerator && receiver.isSuper) {
+          isSuper = true;
+          receiverValue = forest.thisExpression(receiver.token);
+        } else {
+          receiverValue = toValue(receiver);
+        }
       }
       push(buildMethodInvocation(receiverValue, new Name(operator),
           forest.argumentsEmpty(noLocation), token.charOffset,
