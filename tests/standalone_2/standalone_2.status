@@ -176,6 +176,10 @@ package/scenarios/invalid/same_package_twice_test: Pass # Issue 24119
 deferred_transitive_import_error_test: Crash
 fragmentation_test: Pass, Crash # Issue 31421
 io/addlatexhash_test: Pass, Crash # Issue 31252
+io/non_utf8_directory_test: Skip # Issue 33519
+io/non_utf8_file_test: Skip # Issue 33519
+io/non_utf8_link_test: Skip # Issue 33519
+io/non_utf8_output_test: Skip # Issue 33519
 io/raw_datagram_read_all_test: Pass, Fail # Timing dependent.
 io/skipping_dart2js_compilations_test: Pass, Slow # Slow.
 io/test_runner_test: Pass, Slow # Slow.
