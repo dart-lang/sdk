@@ -93,7 +93,7 @@ export 'kernel_shadow_ast.dart'
         ShadowPropertyAssign,
         PropertyGetJudgment,
         ShadowRedirectingInitializer,
-        ShadowReturnStatement,
+        ReturnJudgment,
         ShadowStaticAssignment,
         StaticGetJudgment,
         ShadowStaticInvocation,

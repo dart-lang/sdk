@@ -2002,25 +2002,31 @@ class ShadowRethrow extends Rethrow implements ExpressionJudgment {
 }
 
 /// Concrete shadow object representing a return statement in kernel form.
-class ShadowReturnStatement extends ReturnStatement
-    implements StatementJudgment {
-  ShadowReturnStatement([Expression expression]) : super(expression);
+class ReturnJudgment extends ReturnStatement implements StatementJudgment {
+  ReturnJudgment([Expression expression]) : super(expression);
+
+  ExpressionJudgment get judgment => expression;
 
   @override
   void infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory) {
+    var judgment = this.judgment;
     var closureContext = inferrer.closureContext;
     var typeContext = !closureContext.isGenerator
         ? closureContext.returnOrYieldContext
         : const UnknownType();
-    var inferredType = expression != null
-        ? inferrer.inferExpression(factory, expression, typeContext, true)
-        : const VoidType();
+    DartType inferredType;
+    if (expression != null) {
+      inferrer.inferExpression(factory, judgment, typeContext, true);
+      inferredType = judgment.inferredType;
+    } else {
+      inferredType = const VoidType();
+    }
     // Analyzer treats bare `return` statements as having no effect on the
     // inferred type of the closure.  TODO(paulberry): is this what we want
     // for Fasta?
-    if (expression != null) {
+    if (judgment != null) {
       closureContext.handleReturn(
           inferrer, inferredType, expression, fileOffset);
     }

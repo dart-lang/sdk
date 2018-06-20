@@ -792,8 +792,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
               .withLocation(uri, eof.charOffset, eof.length));
     }
 
-    ShadowReturnStatement fakeReturn =
-        new ShadowReturnStatement(toKernelExpression(expression));
+    ReturnJudgment fakeReturn =
+        new ReturnJudgment(toKernelExpression(expression));
 
     _typeInferrer.inferFunctionBody(
         this, factory, const DynamicType(), AsyncMarker.Sync, fakeReturn);

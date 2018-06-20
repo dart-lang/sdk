@@ -94,7 +94,7 @@ import 'kernel_shadow_ast.dart'
         ShadowMapLiteral,
         ShadowNot,
         ShadowRethrow,
-        ShadowReturnStatement,
+        ReturnJudgment,
         ShadowStringConcatenation,
         ShadowStringLiteral,
         ShadowSymbolLiteral,
@@ -457,7 +457,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   @override
   Statement returnStatement(
       Token returnKeyword, Expression expression, Token semicolon) {
-    return new ShadowReturnStatement(expression)
+    return new ReturnJudgment(expression)
       ..fileOffset = returnKeyword.charOffset;
   }
 
