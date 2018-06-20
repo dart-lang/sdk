@@ -42,7 +42,7 @@ import '../problems.dart' show internalProblem, unexpected;
 import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
 
 import '../type_inference/type_inference_listener.dart'
-    show TypeInferenceListener;
+    show KernelTypeInferenceListener, TypeInferenceListener;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -534,7 +534,7 @@ class DietListener extends StackListener {
       ModifierBuilder builder, Scope memberScope, bool isInstanceMember,
       [Scope formalParameterScope,
       TypeInferenceListener<int, int, Node, int> listener]) {
-    listener ??= new TypeInferenceListener<int, int, Node, int>();
+    listener ??= new KernelTypeInferenceListener();
     // Note: we set thisType regardless of whether we are building a static
     // member, since that provides better error recovery.
     InterfaceType thisType = currentClass?.target?.thisType;

@@ -379,7 +379,7 @@ class _AnalyzerDietListener extends DietListener {
       ModifierBuilder builder, Scope memberScope, bool isInstanceMember,
       [Scope formalParameterScope,
       TypeInferenceListener<int, int, Node, int> listener]) {
-    ResolutionStorer<int, int, Node, int> storer;
+    ResolutionStorer storer;
     var fileResolutions = _resolutions[builder.fileUri];
     if (fileResolutions == null) {
       fileResolutions = <CollectedResolution>[];
@@ -387,7 +387,7 @@ class _AnalyzerDietListener extends DietListener {
     }
     var resolution = new CollectedResolution();
     fileResolutions.add(resolution);
-    storer = new ResolutionStorer<int, int, Node, int>(resolution.kernelData);
+    storer = new ResolutionStorer(resolution.kernelData);
     return super.createListener(
         builder, memberScope, isInstanceMember, formalParameterScope, storer);
   }
