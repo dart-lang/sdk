@@ -1011,6 +1011,10 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
     } else {
       arguments.add('--no-strong');
     }
+    if (_configuration.compiler == Compiler.dart2analyzer &&
+        _configuration.usesFasta) {
+      arguments.add('--use-fasta-parser');
+    }
 
     // Since this is not a real compilation, no artifacts are produced.
     return new CommandArtifact([

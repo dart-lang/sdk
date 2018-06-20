@@ -768,7 +768,7 @@ files matching the regexp ".*issue.*\\.dart" in the "tests/language" directory.
 If you specify only a runtime ("-r"), then an appropriate default compiler will
 be chosen for that runtime. Likewise, if you specify only a compiler ("-c"),
 then a matching runtime is chosen. If neither compiler nor runtime is selected,
-the test is run directly from source on the VM. 
+the test is run directly from source on the VM.
 
 Options:''');
 
