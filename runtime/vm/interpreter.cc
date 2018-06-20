@@ -911,7 +911,13 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
     RawCode* code = function->ptr()->code_;
     ASSERT(code != StubCode::LazyCompile_entry()->code());
     // TODO(regis): Once we share the same stack, try to invoke directly.
-
+#if defined(DEBUG)
+    if (IsTracingExecution()) {
+      THR_Print("%" Pu64 " ", icount_);
+      THR_Print("invoking compiled %s\n",
+                Function::Handle(function).ToCString());
+    }
+#endif
     // On success, returns a RawInstance.  On failure, a RawError.
     typedef RawObject* (*invokestub)(RawCode * code, RawArray * argdesc,
                                      RawObject * *arg0, Thread * thread);
@@ -953,6 +959,12 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   ASSERT(Function::HasBytecode(function));
   // Bytecode was loaded in the above compilation step.
   // Stay in interpreter.
+#if defined(DEBUG)
+  if (IsTracingExecution()) {
+    THR_Print("%" Pu64 " ", icount_);
+    THR_Print("invoking %s\n", Function::Handle(function).ToCString());
+  }
+#endif
   RawCode* bytecode = function->ptr()->bytecode_;
   RawObject** callee_fp = call_top + kKBCDartFrameFixedSize;
   callee_fp[kKBCPcMarkerSlotFromFp] = bytecode;
@@ -978,17 +990,17 @@ DART_FORCE_INLINE bool Interpreter::Invoke(Thread* thread,
   RawObject** callee_fp = call_top + kKBCDartFrameFixedSize;
 
   RawFunction* function = FrameFunction(callee_fp);
+  if (Function::HasCode(function) || !Function::HasBytecode(function)) {
+    // TODO(regis): If the function is a dispatcher, execute the dispatch here.
+    return InvokeCompiled(thread, function, argdesc_, call_base, call_top, pc,
+                          FP, SP);
+  }
 #if defined(DEBUG)
   if (IsTracingExecution()) {
     THR_Print("%" Pu64 " ", icount_);
     THR_Print("invoking %s\n", Function::Handle(function).ToCString());
   }
 #endif
-  if (Function::HasCode(function) || !Function::HasBytecode(function)) {
-    // TODO(regis): If the function is a dispatcher, execute the dispatch here.
-    return InvokeCompiled(thread, function, argdesc_, call_base, call_top, pc,
-                          FP, SP);
-  }
   RawCode* bytecode = function->ptr()->bytecode_;
   callee_fp[kKBCPcMarkerSlotFromFp] = bytecode;
   callee_fp[kKBCSavedCallerPcSlotFromFp] = reinterpret_cast<RawObject*>(*pc);

@@ -980,6 +980,7 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
   __ movq(Address(THR, Thread::top_resource_offset()), Immediate(0));
   __ movq(RAX, Address(THR, Thread::top_exit_frame_info_offset()));
   __ pushq(RAX);
+  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
 
 // The constant kExitLinkSlotFromEntryFp must be kept in sync with the
 // code below.
@@ -993,8 +994,6 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
     __ Bind(&ok);
   }
 #endif
-
-  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
 
   // Load arguments descriptor array into R10, which is passed to Dart code.
   __ movq(R10, kArgDescReg);
@@ -1015,7 +1014,9 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
   __ SmiUntag(RBX);
 
   // Compute address of first argument into RDX.
-  ASSERT(kArg0Reg == RDX);
+  if (kArg0Reg != RDX) {  // Different registers on WIN64.
+    __ movq(RDX, kArg0Reg);
+  }
 
   // Set up arguments for the Dart call.
   Label push_arguments;
@@ -1060,7 +1061,7 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
   __ ret();
 #else
   __ Stop("Not using interpreter");
-#endif
+#endif  // defined(DART_USE_INTERPRETER)
 }
 
 // Called for inline allocation of contexts.
@@ -1953,7 +1954,7 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
   __ ret();
 #else
   __ Stop("Not using interpreter");
-#endif
+#endif  // defined(DART_USE_INTERPRETER)
 }
 
 // RBX: Contains an ICData.

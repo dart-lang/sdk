@@ -68,7 +68,7 @@ $CUR_DIR/gen_kernel --platform $BUILD_DIR/vm_platform_strong.dill \
 #   $BUILD_DIR/test_bytecode.dill $BUILD_DIR/test_bytecode.txt
 
 # Required flags.
-DART_VM_FLAGS="--preview-dart-2 --optimization-counter-threshold=-1 $DART_VM_FLAGS"
+DART_VM_FLAGS="--optimization-counter-threshold=-1 $DART_VM_FLAGS"
 
 # Optional flags examples. Uncomment as needed.
 # DART_VM_FLAGS="--force-log-flush --isolate-log-filter=\"\" $DART_VM_FLAGS"

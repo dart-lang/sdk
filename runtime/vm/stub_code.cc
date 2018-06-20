@@ -90,9 +90,9 @@ bool StubCode::InInvocationStub(uword pc, bool is_interpreted_frame) {
 #if !defined(TARGET_ARCH_DBC)
   ASSERT(HasBeenInitialized());
 #if defined(DART_USE_INTERPRETER)
-  // Recognize special marker set up by interpreter in entry frame.
-  if (is_interpreted_frame && (pc & 2) != 0) {
-    return true;
+  if (is_interpreted_frame) {
+    // Recognize special marker set up by interpreter in entry frame.
+    return (pc & 2) != 0;
   }
   {
     uword entry = StubCode::InvokeDartCodeFromBytecode_entry()->EntryPoint();
@@ -106,7 +106,7 @@ bool StubCode::InInvocationStub(uword pc, bool is_interpreted_frame) {
   uword size = StubCode::InvokeDartCodeSize();
   return (pc >= entry) && (pc < (entry + size));
 #elif defined(DART_USE_INTERPRETER)
-#error "Simultaneous usage of simulator and interpreter not yet supported."
+#error "Simultaneous usage of DBC simulator and interpreter not yet supported."
 #else
   // On DBC we use a special marker PC to signify entry frame because there is
   // no such thing as invocation stub.
