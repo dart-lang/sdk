@@ -916,16 +916,18 @@ class EmptyStatementJudgment extends EmptyStatement
 }
 
 /// Concrete shadow object representing an expression statement in kernel form.
-class ShadowExpressionStatement extends ExpressionStatement
+class ExpressionStatementJudgment extends ExpressionStatement
     implements StatementJudgment {
-  ShadowExpressionStatement(Expression expression) : super(expression);
+  ExpressionStatementJudgment(Expression expression) : super(expression);
+
+  Expression get judgment => expression;
 
   @override
   void infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory) {
     inferrer.listener.expressionStatementEnter(fileOffset);
-    inferrer.inferExpression(factory, expression, const UnknownType(), false);
+    inferrer.inferExpression(factory, judgment, const UnknownType(), false);
     inferrer.listener.expressionStatementExit(fileOffset);
   }
 }

@@ -3911,14 +3911,14 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
 
   kernel.Statement deprecated_buildCompileTimeErrorStatement(error,
       [int charOffset = -1]) {
-    return new ShadowExpressionStatement(toKernelExpression(
+    return new ExpressionStatementJudgment(toKernelExpression(
         deprecated_buildCompileTimeError(error, charOffset)));
   }
 
   kernel.Statement buildCompileTimeErrorStatement(
       Message message, int charOffset,
       {List<LocatedMessage> context}) {
-    return new ShadowExpressionStatement(toKernelExpression(
+    return new ExpressionStatementJudgment(toKernelExpression(
         buildCompileTimeError(message, charOffset, noLength,
             context: context)));
   }

@@ -86,7 +86,7 @@ import 'kernel_shadow_ast.dart'
         LabeledStatementJudgment,
         LoadLibraryJudgment,
         NullJudgment,
-        ShadowExpressionStatement,
+        ExpressionStatementJudgment,
         ShadowForStatement,
         IfJudgment,
         ShadowListLiteral,
@@ -378,7 +378,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   Statement expressionStatement(Expression expression, Token semicolon) {
-    return new ShadowExpressionStatement(expression);
+    return new ExpressionStatementJudgment(expression);
   }
 
   @override
@@ -450,7 +450,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   Statement rethrowStatement(Token rethrowKeyword, Token semicolon) {
-    return new ShadowExpressionStatement(
+    return new ExpressionStatementJudgment(
         new ShadowRethrow()..fileOffset = offsetForToken(rethrowKeyword));
   }
 
