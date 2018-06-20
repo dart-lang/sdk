@@ -54,6 +54,7 @@ const int KernelIsolate::kAcceptTag = 2;
 const int KernelIsolate::kTrainTag = 3;
 const int KernelIsolate::kCompileExpressionTag = 4;
 const int KernelIsolate::kListDependenciesTag = 5;
+const int KernelIsolate::kNotifyIsolateShutdown = 6;
 
 Dart_IsolateCreateCallback KernelIsolate::create_callback_ = NULL;
 Monitor* KernelIsolate::monitor_ = new Monitor();
@@ -787,6 +788,34 @@ Dart_KernelCompilationResult KernelIsolate::UpdateInMemorySources(
                                         NULL, 0, source_files_count,
                                         source_files, true, NULL);
 }
+
+void KernelIsolate::NotifyAboutIsolateShutdown(const Isolate* isolate) {
+  if (!KernelIsolate::IsRunning()) {
+    return;
+  }
+  Dart_Port kernel_port = WaitForKernelPort();
+  if (kernel_port == ILLEGAL_PORT) {
+    return;
+  }
+
+  Dart_CObject tag;
+  tag.type = Dart_CObject_kInt32;
+  tag.value.as_int32 = KernelIsolate::kNotifyIsolateShutdown;
+
+  Dart_CObject isolate_id;
+  isolate_id.type = Dart_CObject_kInt64;
+  isolate_id.value.as_int64 =
+      isolate != NULL ? static_cast<int64_t>(isolate->main_port()) : 0;
+
+  Dart_CObject message;
+  message.type = Dart_CObject_kArray;
+  Dart_CObject* message_arr[] = {&tag, &isolate_id};
+  message.value.as_array.values = message_arr;
+  message.value.as_array.length = ARRAY_SIZE(message_arr);
+  // Send the message.
+  Dart_PostCObject(kernel_port, &message);
+}
+
 #endif  // DART_PRECOMPILED_RUNTIME
 
 }  // namespace dart

@@ -1854,6 +1854,10 @@ void Isolate::Shutdown() {
           "--check-reloaded is enabled.\n");
     }
   }
+
+  // TODO(33514): Ideally this should be moved to Dart_ShutdownIsolate,
+  // next to ServiceIsolate::SendIsolateShutdownMessage().
+  KernelIsolate::NotifyAboutIsolateShutdown(Isolate::Current());
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   // Then, proceed with low-level teardown.
