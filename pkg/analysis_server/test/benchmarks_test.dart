@@ -48,7 +48,7 @@ void defineTests() {
       });
 
       // TODO(scheglov): Restore similar test coverage when the front-end API
-      // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
+      // allows it.  See https://github.com/dart-lang/sdk/issues/33520.
       // test('$benchmarkId-use-cfe', () {
       //   ProcessResult r = Process.runSync(
       //     Platform.resolvedExecutable,

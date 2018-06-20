@@ -36,4 +36,10 @@ class Foo {
 class SetSubscriptionsTest_UseCFE extends SetSubscriptionsTest {
   @override
   bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_subscriptions() {
+    return super.test_subscriptions();
+  }
 }

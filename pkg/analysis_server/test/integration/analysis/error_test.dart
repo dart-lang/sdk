@@ -12,9 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisErrorIntegrationTest);
-    // TODO(scheglov): Restore similar test coverage when the front-end API
-    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
-    // defineReflectiveTests(AnalysisErrorIntegrationTest_UseCFE);
+    defineReflectiveTests(AnalysisErrorIntegrationTest_UseCFE);
   });
 }
 
@@ -109,14 +107,20 @@ class AnalysisErrorIntegrationTest_UseCFE extends AnalysisErrorIntegrationTest {
 
   @override
   @failingTest
+  test_detect_simple_error() {
+    return super.test_detect_simple_error();
+  }
+
+  @override
+  @failingTest
   test_super_mixins_disabled() {
     // Disabling super mixins is not supported in the new FE.
     return super.test_super_mixins_disabled();
   }
 
   @override
+  @failingTest
   test_super_mixins_enabled() {
-    // This does pass with the new FE.
     return super.test_super_mixins_enabled();
   }
 }

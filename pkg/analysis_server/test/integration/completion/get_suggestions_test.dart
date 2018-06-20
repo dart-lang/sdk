@@ -12,9 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetSuggestionsTest);
-    // TODO(scheglov): Restore similar test coverage when the front-end API
-    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
-    // defineReflectiveTests(GetSuggestionsTest_UseCFE);
+    defineReflectiveTests(GetSuggestionsTest_UseCFE);
   });
 }
 
@@ -123,4 +121,22 @@ main() {
 class GetSuggestionsTest_UseCFE extends GetSuggestionsTest {
   @override
   bool get useCFE => true;
+
+  @override
+  @failingTest
+  test_getSuggestions() {
+    return super.test_getSuggestions();
+  }
+
+  @override
+  @failingTest
+  test_getSuggestions_onlyOverlay() {
+    return super.test_getSuggestions_onlyOverlay();
+  }
+
+  @override
+  @failingTest
+  test_getSuggestions_onlyOverlay_noWait() {
+    return super.test_getSuggestions_onlyOverlay_noWait();
+  }
 }

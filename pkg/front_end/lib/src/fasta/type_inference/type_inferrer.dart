@@ -29,6 +29,7 @@ import 'package:kernel/ast.dart'
         Member,
         MethodInvocation,
         Name,
+        Node,
         NullLiteral,
         Procedure,
         ProcedureKind,
@@ -60,7 +61,24 @@ import '../../base/instrumentation.dart'
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
 
+import '../../scanner/token.dart' show Token;
+
+import '../builder/class_builder.dart' show ClassBuilder;
+
+import '../builder/function_type_alias_builder.dart'
+    show FunctionTypeAliasBuilder;
+
+import '../builder/invalid_type_builder.dart' show InvalidTypeBuilder;
+
+import '../builder/prefix_builder.dart' show PrefixBuilder;
+
+import '../builder/type_builder.dart' show TypeBuilder;
+
+import '../builder/type_variable_builder.dart' show TypeVariableBuilder;
+
 import '../fasta_codes.dart';
+
+import '../kernel/expression_generator.dart' show TypeUseGenerator;
 
 import '../kernel/factory.dart' show Factory;
 
@@ -93,6 +111,8 @@ import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 
 import 'type_inference_engine.dart'
     show IncludesTypeParametersCovariantly, TypeInferenceEngine;
+
+import 'type_inference_listener.dart' show TypeInferenceListener;
 
 import 'type_promotion.dart' show TypePromoter, TypePromoterDisabled;
 
@@ -365,6 +385,10 @@ abstract class TypeInferrer {
       Factory<Expression, Statement, Initializer, Type> factory,
       kernel.Expression initializer,
       DartType declaredType);
+
+  void storePrefix(Token token, PrefixBuilder prefix);
+
+  void storeTypeUse(TypeUseGenerator generator);
 }
 
 /// Implementation of [TypeInferrer] which doesn't do any type inference.
@@ -421,6 +445,12 @@ class TypeInferrerDisabled extends TypeInferrer {
       Factory<Expression, Statement, Initializer, Type> factory,
       kernel.Expression initializer,
       DartType declaredType) {}
+
+  @override
+  void storePrefix(Token token, PrefixBuilder prefix) {}
+
+  @override
+  void storeTypeUse(TypeUseGenerator generator) {}
 }
 
 /// Derived class containing generic implementations of [TypeInferrer].
@@ -454,6 +484,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   final TypeSchemaEnvironment typeSchemaEnvironment;
 
+  final TypeInferenceListener<int, int, Node, int> listener;
+
   final InterfaceType thisType;
 
   final SourceLibraryBuilder library;
@@ -472,8 +504,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// if the last invocation didn't require any inference.
   FunctionType lastCalleeType;
 
-  TypeInferrerImpl(
-      this.engine, this.uri, bool topLevel, this.thisType, this.library)
+  TypeInferrerImpl(this.engine, this.uri, this.listener, bool topLevel,
+      this.thisType, this.library)
       : coreTypes = engine.coreTypes,
         strongMode = engine.strongMode,
         classHierarchy = engine.classHierarchy,
@@ -837,6 +869,15 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Gets the initializer for the given [field], or `null` if there is no
   /// initializer.
   Expression getFieldInitializer(ShadowField field);
+
+  /// If the [member] is a forwarding stub, return the target it forwards to.
+  /// Otherwise return the given [member].
+  Member getRealTarget(Member member) {
+    if (member is Procedure && member.isForwardingStub) {
+      return member.forwardingStubInterfaceTarget;
+    }
+    return member;
+  }
 
   DartType getSetterType(Object interfaceMember, DartType receiverType) {
     if (interfaceMember is FunctionType) {
@@ -1384,10 +1425,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       Object interfaceMember,
       Name methodName,
       Arguments arguments}) {
+    listener.methodInvocationEnter(expression.fileOffset, typeContext);
     // First infer the receiver so we can look up the method that was invoked.
     var receiverType = receiver == null
         ? thisType
         : inferExpression(factory, receiver, const UnknownType(), true);
+    listener.methodInvocationBeforeArgs(expression.fileOffset, isImplicitCall);
     if (strongMode) {
       receiverVariable?.type = receiverType;
     }
@@ -1415,18 +1458,38 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     handleInvocationContravariance(checkKind, desugaredInvocation, arguments,
         expression, inferredType, calleeType, fileOffset);
-    if (!identical(interfaceMember, 'call') &&
-        strongMode &&
-        isImplicitCall &&
-        interfaceMember != null &&
-        !(interfaceMember is Procedure &&
-            interfaceMember.kind == ProcedureKind.Method) &&
-        receiverType is! DynamicType &&
-        receiverType != typeSchemaEnvironment.rawFunctionType) {
-      var parent = expression.parent;
-      var errorNode = helper.wrapInCompileTimeError(expression,
-          templateImplicitCallOfNonMethod.withArguments(receiverType));
-      parent?.replaceChild(expression, errorNode);
+    int resultOffset = arguments.fileOffset != -1
+        ? arguments.fileOffset
+        : expression.fileOffset;
+    if (identical(interfaceMember, 'call')) {
+      listener.methodInvocationExitCall(
+          resultOffset,
+          arguments.types,
+          isImplicitCall,
+          lastCalleeType,
+          lastInferredSubstitution,
+          inferredType);
+    } else {
+      if (strongMode &&
+          isImplicitCall &&
+          interfaceMember != null &&
+          !(interfaceMember is Procedure &&
+              interfaceMember.kind == ProcedureKind.Method) &&
+          receiverType is! DynamicType &&
+          receiverType != typeSchemaEnvironment.rawFunctionType) {
+        var parent = expression.parent;
+        var errorNode = helper.wrapInCompileTimeError(expression,
+            templateImplicitCallOfNonMethod.withArguments(receiverType));
+        parent?.replaceChild(expression, errorNode);
+      }
+      listener.methodInvocationExit(
+          resultOffset,
+          arguments.types,
+          isImplicitCall,
+          getRealTarget(interfaceMember),
+          lastCalleeType,
+          lastInferredSubstitution,
+          inferredType);
     }
     return inferredType;
   }
@@ -1458,6 +1521,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       PropertyGet desugaredGet,
       Object interfaceMember,
       Name propertyName}) {
+    listener.propertyGetEnter(expression.fileOffset, typeContext);
     // First infer the receiver so we can look up the getter that was invoked.
     DartType receiverType;
     if (receiver == null) {
@@ -1491,6 +1555,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         interfaceMember.kind == ProcedureKind.Method)) {
       inferredType =
           instantiateTearOff(inferredType, typeContext, replacedExpression);
+    }
+    if (identical(interfaceMember, 'call')) {
+      listener.propertyGetExitCall(expression.fileOffset, inferredType);
+    } else {
+      listener.propertyGetExit(
+          expression.fileOffset, interfaceMember, inferredType);
     }
     expression.inferredType = inferredType;
   }
@@ -1625,6 +1695,30 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
       // Tortoise takes one step
       type = resolveOneStep(type);
+    }
+  }
+
+  @override
+  void storePrefix(Token token, PrefixBuilder prefix) {
+    listener.storePrefixInfo(token.offset, prefix.importIndex);
+  }
+
+  @override
+  void storeTypeUse(TypeUseGenerator generator) {
+    var declaration = generator.declaration;
+    if (declaration is ClassBuilder<TypeBuilder, InterfaceType>) {
+      Class class_ = declaration.target;
+      listener.storeClassReference(
+          generator.declarationReferenceOffset, class_, class_.rawType);
+    } else if (declaration is TypeVariableBuilder<TypeBuilder, DartType>) {
+      // TODO(paulberry): handle this case.
+    } else if (declaration is FunctionTypeAliasBuilder<TypeBuilder, DartType>) {
+      // TODO(paulberry): handle this case.
+    } else if (declaration is InvalidTypeBuilder<TypeBuilder, DartType>) {
+      // TODO(paulberry): handle this case.
+    } else {
+      throw new UnimplementedError(
+          'TODO(paulberry): ${declaration.runtimeType}');
     }
   }
 

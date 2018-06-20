@@ -8,9 +8,7 @@ import 'hint_code_driver_test.dart';
 
 main() {
   defineReflectiveSuite(() {
-    // TODO(scheglov): Restore similar test coverage when the front-end API
-    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
-    // defineReflectiveTests(HintCodeTest_Kernel);
+    defineReflectiveTests(HintCodeTest_Kernel);
   });
 }
 
@@ -62,41 +60,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   test_argumentTypeNotAssignable_type() async {
     // Expected 1 errors of type HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0
     return super.test_argumentTypeNotAssignable_type();
-  }
-
-  @failingTest
-  @override
-  test_canBeNullAfterNullAware_after_cascade() async {
-    // Expected 1 errors of type HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, found 0
-    return super.test_canBeNullAfterNullAware_after_cascade();
-  }
-
-  @failingTest
-  @override
-  test_deadCode_deadBlock_else() async {
-    // Expected 1 errors of type HintCode.DEAD_CODE, found 0
-    return super.test_deadCode_deadBlock_else();
-  }
-
-  @failingTest
-  @override
-  test_deadCode_deadBlock_else_nested() async {
-    // Expected 1 errors of type HintCode.DEAD_CODE, found 0
-    return super.test_deadCode_deadBlock_else_nested();
-  }
-
-  @failingTest
-  @override
-  test_deadCode_deadBlock_if() async {
-    // Expected 1 errors of type HintCode.DEAD_CODE, found 0
-    return super.test_deadCode_deadBlock_if();
-  }
-
-  @failingTest
-  @override
-  test_deadCode_deadBlock_if_nested() async {
-    // Expected 1 errors of type HintCode.DEAD_CODE, found 0
-    return super.test_deadCode_deadBlock_if_nested();
   }
 
   @failingTest
@@ -173,37 +136,16 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @failingTest
   @override
-  test_divisionOptimization_propagatedType() async {
-    // Expected 1 errors of type HintCode.DIVISION_OPTIMIZATION, found 0
-    return super.test_divisionOptimization_propagatedType();
+  test_duplicateShownHiddenName_hidden() {
+    // Expected 1 errors of type HintCode.DUPLICATE_HIDDEN_NAME, found 0
+    return super.test_duplicateShownHiddenName_hidden();
   }
 
   @failingTest
   @override
-  test_invalidAssignment_instanceVariable() async {
-    // Expected 1 errors of type HintCode.INVALID_ASSIGNMENT, found 0
-    return super.test_invalidAssignment_instanceVariable();
-  }
-
-  @failingTest
-  @override
-  test_invalidAssignment_localVariable() async {
-    // Expected 1 errors of type HintCode.INVALID_ASSIGNMENT, found 0
-    return super.test_invalidAssignment_localVariable();
-  }
-
-  @failingTest
-  @override
-  test_invalidAssignment_staticVariable() async {
-    // Expected 1 errors of type HintCode.INVALID_ASSIGNMENT, found 0
-    return super.test_invalidAssignment_staticVariable();
-  }
-
-  @failingTest
-  @override
-  test_invalidAssignment_variableDeclaration() async {
-    // UnimplementedError: Multiple field
-    return super.test_invalidAssignment_variableDeclaration();
+  test_duplicateShownHiddenName_shown() {
+    // Expected 1 errors of type HintCode.DUPLICATE_SHOWN_NAME, found 0
+    return super.test_duplicateShownHiddenName_shown();
   }
 
   @override
@@ -235,6 +177,13 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   @failingTest
   test_invalidRequiredParam_valid() async {
     return super.test_invalidRequiredParam_valid();
+  }
+
+  @override
+  @failingTest
+  test_isNotDouble() {
+    // Bad state: No data for is at 10
+    return super.test_isNotDouble();
   }
 
   @failingTest
@@ -298,6 +247,13 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   test_mustCallSuper_indirect() async {
     // Expected 1 errors of type HintCode.MUST_CALL_SUPER, found 0
     return super.test_mustCallSuper_indirect();
+  }
+
+  @failingTest
+  @override
+  test_nullAwareBeforeOperator_ok_is_not() {
+    // Bad state: No data for is at 14
+    return super.test_nullAwareBeforeOperator_ok_is_not();
   }
 
   @override
@@ -374,6 +330,14 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
     return super.test_strongMode_downCastCompositeWarn();
   }
 
+  @failingTest
+  @override
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_field_call() {
+    // NoSuchMethodError: The setter 'enclosingElement=' was called on null.
+    return super
+        .test_strongMode_topLevelInstanceGetter_implicitlyTyped_field_call();
+  }
+
   @override
   @failingTest
   test_strongMode_topLevelInstanceGetter_implicitlyTyped_invoke() {
@@ -390,23 +354,41 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @failingTest
   @override
-  test_undefinedGetter() async {
-    // Expected 1 errors of type HintCode.UNDEFINED_GETTER, found 0
-    return super.test_undefinedGetter();
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_invoke_not_generic() {
+    // NoSuchMethodError: The setter 'enclosingElement=' was called on null.
+    return super
+        .test_strongMode_topLevelInstanceGetter_implicitlyTyped_invoke_not_generic();
   }
 
   @failingTest
   @override
-  test_undefinedMethod() async {
-    // Expected 1 errors of type HintCode.UNDEFINED_METHOD, found 0
-    return super.test_undefinedMethod();
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_explicit_type_params_prefixed() {
+    // NoSuchMethodError: The setter 'enclosingElement=' was called on null.
+    return super
+        .test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_explicit_type_params_prefixed();
   }
 
   @failingTest
   @override
-  test_undefinedMethod_assignmentExpression() async {
-    // Expected 1 errors of type HintCode.UNDEFINED_METHOD, found 0
-    return super.test_undefinedMethod_assignmentExpression();
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_not_generic_prefixed() {
+    // NoSuchMethodError: The getter 'element' was called on null.
+    return super
+        .test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_not_generic_prefixed();
+  }
+
+  @failingTest
+  @override
+  test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_prefixed() {
+    // NoSuchMethodError: The getter 'element' was called on null.
+    return super
+        .test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_prefixed();
+  }
+
+  @failingTest
+  @override
+  test_typeCheck_type_not_Null() {
+    // Bad state: No data for is at 20
+    return super.test_typeCheck_type_not_Null();
   }
 
   @failingTest
@@ -439,23 +421,23 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @failingTest
   @override
-  test_undefinedOperator_postfixExpression() async {
-    // Expected 1 errors of type HintCode.UNDEFINED_OPERATOR, found 0
-    return super.test_undefinedOperator_postfixExpression();
+  test_unnecessaryTypeCheck_null_not_Null() {
+    // Bad state: No data for is at 14
+    return super.test_unnecessaryTypeCheck_null_not_Null();
   }
 
   @failingTest
   @override
-  test_undefinedOperator_prefixExpression() async {
-    // Expected 1 errors of type HintCode.UNDEFINED_OPERATOR, found 0
-    return super.test_undefinedOperator_prefixExpression();
+  test_unnecessaryTypeCheck_type_not_dynamic() {
+    // Bad state: No data for is at 20
+    return super.test_unnecessaryTypeCheck_type_not_dynamic();
   }
 
   @failingTest
   @override
-  test_undefinedSetter() async {
-    // Expected 1 errors of type HintCode.UNDEFINED_SETTER, found 0
-    return super.test_undefinedSetter();
+  test_unnecessaryTypeCheck_type_not_object() {
+    // Bad state: No data for is at 20
+    return super.test_unnecessaryTypeCheck_type_not_object();
   }
 
   @failingTest
@@ -492,17 +474,5 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   test_unusedShownName_topLevelVariable() async {
     // Expected 1 errors of type HintCode.UNUSED_SHOWN_NAME, found 0
     return super.test_unusedShownName_topLevelVariable();
-  }
-
-  @failingTest
-  @override
-  test_importDeferredLibraryWithLoadFunction() async {
-    await super.test_importDeferredLibraryWithLoadFunction();
-  }
-
-  @failingTest
-  @override
-  test_no_missingReturn_async_futureOrVoid() async {
-    await super.test_no_missingReturn_async_futureOrVoid();
   }
 }

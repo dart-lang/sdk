@@ -1241,6 +1241,7 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
 
   /// The offset at which the [declaration] is referenced by this generator,
   /// or `-1` if the reference is implicit.
+  @override
   final int declarationReferenceOffset;
 
   @override

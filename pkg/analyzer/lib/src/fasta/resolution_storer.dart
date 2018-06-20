@@ -3,679 +3,421 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/fasta/resolution_applier.dart';
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
+import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 
-/// The reference to the import prefix with the [name].
-class ImportPrefixNode implements TreeNode {
-  final String name;
+class ResolutionData<Type, Declaration, Reference, PrefixInfo> {
+  final List<Type> argumentTypes;
+  final Reference combiner;
+  final Declaration declaration;
+  final Type inferredType;
+  final Type invokeType;
+  final bool isExplicitCall;
+  final bool isImplicitCall;
+  final bool isWriteReference;
+  final Type literalType;
+  final PrefixInfo prefixInfo;
+  final Reference reference;
+  final Type writeContext;
 
-  ImportPrefixNode(this.name);
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  @override
-  String toString() {
-    return '(prefix-$name)';
-  }
-}
-
-/// The type of [DartType] node that is used as a marker for using `null`
-/// as the [FunctionType] for index assignment.
-class IndexAssignNullFunctionType implements DartType {
-  const IndexAssignNullFunctionType();
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  @override
-  String toString() {
-    return 'IndexAssignNullFunctionType';
-  }
-}
-
-/// Type inference listener that records inferred types and file offsets for
-/// later use by [ValidatingResolutionApplier].
-class InstrumentedResolutionStorer extends ResolutionStorer {
-  /// Indicates whether debug messages should be printed.
-  static const bool _debug = false;
-
-  final List<int> _declarationOffsets;
-  final List<int> _referenceOffsets;
-  final List<int> _typeOffsets;
-
-  final List<int> _deferredReferenceOffsets = [];
-  final List<int> _deferredTypeOffsets = [];
-
-  InstrumentedResolutionStorer(
-      List<TreeNode> declarations,
-      List<Node> references,
-      List<DartType> types,
-      this._declarationOffsets,
-      this._referenceOffsets,
-      this._typeOffsets)
-      : super(declarations, references, types);
-
-  @override
-  void _deferReference(int offset) {
-    super._deferReference(offset);
-    if (_debug) {
-      _deferredReferenceOffsets.add(offset);
-    }
-  }
-
-  @override
-  void _deferType(int offset) {
-    super._deferType(offset);
-    if (_debug) {
-      _deferredTypeOffsets.add(offset);
-    }
-  }
-
-  @override
-  void _recordDeclaration(TreeNode declaration, int offset) {
-    if (_debug) {
-      print('Recording declaration of $declaration for offset $offset');
-    }
-    _declarationOffsets.add(offset);
-    super._recordDeclaration(declaration, offset);
-  }
-
-  @override
-  int _recordReference(Node target, int offset) {
-    if (_debug) {
-      print('Recording reference to $target for offset $offset');
-    }
-    _referenceOffsets.add(offset);
-    return super._recordReference(target, offset);
-  }
-
-  @override
-  int _recordType(DartType type, int offset) {
-    if (_debug) {
-      print('Recording type $type for offset $offset');
-    }
-    assert(_types.length == _typeOffsets.length);
-    _typeOffsets.add(offset);
-    return super._recordType(type, offset);
-  }
-
-  @override
-  void _replaceReference(Node reference) {
-    if (_debug) {
-      int offset = _deferredReferenceOffsets.removeLast();
-      print('Replacing reference $reference for offset $offset');
-    }
-    super._replaceReference(reference);
-  }
-
-  @override
-  void _replaceType(DartType type, [int newOffset = -1]) {
-    if (newOffset != -1) {
-      _typeOffsets[_deferredTypeSlots.last] = newOffset;
-    }
-    if (_debug) {
-      if (newOffset != -1) {
-        _deferredTypeOffsets.removeLast();
-        _deferredTypeOffsets.add(newOffset);
-      }
-      int offset = _deferredTypeOffsets.removeLast();
-      print('Replacing type $type for offset $offset');
-    }
-    super._replaceType(type, newOffset);
-  }
-}
-
-/// A reference to the getter represented by the [member].
-/// The [member] might be either a getter itself, or a field.
-class MemberGetterNode implements TreeNode {
-  /// The member representing the getter, or `null` if the getter could not be
-  /// resolved.
-  final Member member;
-
-  MemberGetterNode(this.member);
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  @override
-  String toString() {
-    return '$member.getter';
-  }
-}
-
-/// A reference to the setter represented by the [member].
-/// The [member] might be either a setter itself, or a field.
-class MemberSetterNode implements TreeNode {
-  /// The member representing the setter, or `null` if the setter could not be
-  /// resolved.
-  final Member member;
-
-  MemberSetterNode(this.member);
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  @override
-  String toString() {
-    return '$member.setter';
-  }
-}
-
-/// The type of [TreeNode] node that is used as a marker for `null`.
-class NullNode implements TreeNode {
-  final String kind;
-
-  const NullNode(this.kind);
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  @override
-  String toString() {
-    return '(null-$kind)';
-  }
-}
-
-/// The type of [DartType] node that is used as a marker for `null`.
-///
-/// It is used for import prefix identifiers, which are resolved to elements,
-/// but don't have any types.
-class NullType implements DartType {
-  const NullType();
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  @override
-  String toString() {
-    return '(null-type)';
-  }
+  ResolutionData(
+      {this.argumentTypes,
+      this.combiner,
+      this.declaration,
+      this.inferredType,
+      this.invokeType,
+      this.isExplicitCall = false,
+      this.isImplicitCall = false,
+      this.isWriteReference = false,
+      this.literalType,
+      this.prefixInfo,
+      this.reference,
+      this.writeContext});
 }
 
 /// Type inference listener that records inferred types for later use by
 /// [ResolutionApplier].
-class ResolutionStorer {
-  /// The offset that is used when the actual offset is not know.
-  /// The consumer of information should not validate this offset.
-  static const UNKNOWN_OFFSET = -2;
+class ResolutionStorer<Location, Declaration, Reference, PrefixInfo>
+    extends TypeInferenceListener<Location, Declaration, Reference,
+        PrefixInfo> {
+  final Map<Location,
+      ResolutionData<DartType, Declaration, Reference, PrefixInfo>> _data;
 
-  final List<TreeNode> _declarations;
-  final List<Node> _references;
-  final List<DartType> _types;
+  final _stack = <Function>[];
 
-  /// Indices into [_references] which need to be filled in later.
-  final _deferredReferenceSlots = <int>[];
+  ResolutionStorer(this._data);
 
-  /// Indices into [_types] which need to be filled in later.
-  final _deferredTypeSlots = <int>[];
-
-  ResolutionStorer(this._declarations, this._references, this._types);
-
-  void asExpressionExit(AsExpression expression, DartType inferredType) {
-    _recordType(expression.type, expression.fileOffset);
-    _recordType(inferredType, expression.fileOffset);
+  void _store(Location location,
+      {List<DartType> argumentTypes,
+      Reference combiner,
+      Declaration declaration,
+      DartType inferredType,
+      DartType invokeType,
+      bool isExplicitCall = false,
+      bool isImplicitCall = false,
+      bool isWriteReference = false,
+      DartType literalType,
+      PrefixInfo prefixInfo,
+      Reference reference,
+      bool replace = false,
+      DartType writeContext}) {
+    if (!replace && _data.containsKey(location)) {
+      throw new StateError('Data already stored for offset $location');
+    }
+    _data[location] = new ResolutionData(
+        argumentTypes: argumentTypes,
+        combiner: combiner,
+        declaration: declaration,
+        inferredType: inferredType,
+        invokeType: invokeType,
+        isExplicitCall: isExplicitCall,
+        isImplicitCall: isImplicitCall,
+        isWriteReference: isWriteReference,
+        literalType: literalType,
+        prefixInfo: prefixInfo,
+        reference: reference,
+        writeContext: writeContext);
   }
 
-  void cascadeExpressionExit(Let expression, DartType inferredType) {
+  void _unstore(Location location) {
+    _data.remove(location) == null;
+  }
+
+  @override
+  void asExpressionExit(Location location, DartType inferredType) {
+    _store(location, literalType: inferredType, inferredType: inferredType);
+  }
+
+  @override
+  void cascadeExpressionExit(Location location, DartType inferredType) {
     // Overridden so that the type of the expression will not be recorded. We
     // don't need to record the type because the type is always the same as the
     // type of the target, and we don't have the appropriate offset so we can't
     // correctly apply the type even if we recorded it.
   }
 
-  void catchStatementEnter(Catch node) {
-    _recordType(node.guard, node.fileOffset);
+  @override
+  void catchStatementEnter(
+      Location location,
+      DartType guardType,
+      Location exceptionLocation,
+      DartType exceptionType,
+      Location stackTraceLocation,
+      DartType stackTraceType) {
+    _store(location, literalType: guardType);
 
-    VariableDeclaration exception = node.exception;
-    if (exception != null) {
-      _recordDeclaration(exception, exception.fileOffset);
-      _recordType(exception.type, exception.fileOffset);
+    if (exceptionLocation != null) {
+      _store(exceptionLocation, literalType: exceptionType);
     }
 
-    VariableDeclaration stackTrace = node.stackTrace;
-    if (stackTrace != null) {
-      _recordDeclaration(stackTrace, stackTrace.fileOffset);
-      _recordType(stackTrace.type, stackTrace.fileOffset);
+    if (stackTraceLocation != null) {
+      _store(stackTraceLocation, literalType: stackTraceType);
     }
   }
 
-  void constructorInvocationEnter(InvocationExpression expression,
-      String prefixName, DartType typeContext) {
-    _recordImportPrefix(prefixName);
-    _deferReference(expression.fileOffset);
-    _deferType(expression.fileOffset);
+  @override
+  void constructorInvocationEnter(Location location, DartType typeContext) {
+    _push((Reference expressionTarget, DartType inferredType) {
+      // A class reference may have already been stored at this location by
+      // storeClassReference.  We want to replace it with a constructor
+      // reference.
+      _unstore(location);
+      _store(location, inferredType: inferredType, reference: expressionTarget);
+    });
   }
 
+  @override
   void constructorInvocationExit(
-      InvocationExpression expression, DartType inferredType) {
-    _replaceType(inferredType);
-    if (expression is ConstructorInvocation) {
-      _replaceReference(expression.target);
-    } else if (expression is StaticInvocation) {
-      _replaceReference(expression.target);
-    } else {
-      throw new UnimplementedError('${expression.runtimeType}');
-    }
+      Location location, Reference expressionTarget, DartType inferredType) {
+    _pop()(expressionTarget, inferredType);
   }
 
-  void fieldInitializerEnter(FieldInitializer initializer) {
-    _recordReference(initializer.field, initializer.fileOffset);
+  @override
+  void fieldInitializerEnter(Location location, Reference initializerField) {
+    _store(location, reference: initializerField);
   }
 
-  /// Verifies that all deferred work has been completed.
   void finished() {
-    assert(_deferredTypeSlots.isEmpty);
+    assert(_stack.isEmpty);
   }
 
-  void forInStatementEnter(ForInStatement statement,
-      VariableDeclaration variable, Expression write) {
-    if (variable != null) {
-      _deferType(variable.fileOffset);
-      _recordDeclaration(variable, variable.fileOffset);
-    } else {
-      if (write is VariableSet) {
-        _recordReference(write.variable, write.fileOffset);
-        _recordType(write.variable.type, write.fileOffset);
-      } else if (write is PropertySet) {
-        Field field = write.interfaceTarget;
-        _recordReference(new MemberSetterNode(field), write.fileOffset);
-        _recordType(field.type, write.fileOffset);
-      } else if (write is StaticSet) {
-        Field field = write.target;
-        _recordReference(new MemberSetterNode(field), write.fileOffset);
-        _recordType(field.type, write.fileOffset);
+  @override
+  void forInStatementEnter(
+      Location location,
+      Location variableLocation,
+      Location writeLocation,
+      DartType writeType,
+      Declaration writeVariable,
+      Reference writeTarget) {
+    _push((DartType variableType) {
+      if (variableLocation != null) {
+        _store(variableLocation, inferredType: variableType);
       } else {
-        throw new UnimplementedError('(${write.runtimeType}) $write');
+        if (writeVariable != null) {
+          _store(writeLocation,
+              declaration: writeVariable, inferredType: writeType);
+        } else {
+          _store(writeLocation,
+              reference: writeTarget,
+              isWriteReference: true,
+              writeContext: writeType);
+        }
       }
-    }
+    });
   }
 
+  @override
   void forInStatementExit(
-      ForInStatement statement, VariableDeclaration variable) {
-    if (variable != null) {
-      _replaceType(variable.type);
-    }
+      Location location, bool variablePresent, DartType variableType) {
+    _pop()(variableType);
   }
 
-  void functionDeclarationEnter(FunctionDeclaration statement) {
-    _recordDeclaration(statement.variable, statement.fileOffset);
-  }
-
-  void functionExpressionEnter(
-      FunctionExpression expression, DartType typeContext) {
-    _recordDeclaration(expression, expression.fileOffset);
-  }
-
-  void functionExpressionExit(
-      FunctionExpression expression, DartType inferredType) {
-    // We don't need to record the inferred type.
-    // It is already set in the function declaration.
-  }
-
+  @override
   void genericExpressionEnter(
-      String expressionType, Expression expression, DartType typeContext) {}
+      String expressionType, Location location, DartType typeContext) {
+    super.genericExpressionEnter(expressionType, location, typeContext);
+  }
 
+  @override
   void genericExpressionExit(
-      String expressionType, Expression expression, DartType inferredType) {
-    _recordType(inferredType, expression.fileOffset);
+      String expressionType, Location location, DartType inferredType) {
+    _store(location, inferredType: inferredType);
+    super.genericExpressionExit(expressionType, location, inferredType);
   }
 
-  void ifNullBeforeRhs(Expression expression) {
-    _deferType(expression.fileOffset);
+  @override
+  void functionDeclarationExit(Location location, FunctionType inferredType) {
+    _store(location, inferredType: inferredType);
   }
 
-  void ifNullExit(Expression expression, DartType inferredType) {
-    _replaceType(inferredType);
+  @override
+  void nullLiteralExit(
+      Location location, bool isSynthetic, DartType inferredType) {
+    if (isSynthetic) return null;
+    super.nullLiteralExit(location, isSynthetic, inferredType);
   }
 
-  void indexAssignAfterReceiver(Expression write, DartType typeContext) {
-    _deferReference(write.fileOffset);
-    _recordType(const IndexAssignNullFunctionType(), write.fileOffset);
-    _recordType(const IndexAssignNullFunctionType(), write.fileOffset);
-    _recordType(new TypeArgumentsDartType(<DartType>[]), write.fileOffset);
-    _deferType(write.fileOffset);
+  @override
+  void indexAssignExit(Location location, Reference writeMember,
+      Reference combiner, DartType inferredType) {
+    _store(location,
+        reference: writeMember, inferredType: inferredType, combiner: combiner);
   }
 
-  void indexAssignExit(Expression expression, Expression write,
-      Member writeMember, Procedure combiner, DartType inferredType) {
-    _replaceReference(writeMember);
-    _replaceType(inferredType);
-    _recordReference(
-        combiner ?? const NullNode('assign-combiner'), write.fileOffset);
-    _recordType(inferredType, write.fileOffset);
-  }
-
-  void isExpressionExit(IsExpression expression, DartType inferredType) {
-    _recordType(expression.type, expression.fileOffset);
-    _recordType(inferredType, expression.fileOffset);
+  @override
+  void isExpressionExit(
+      Location location, DartType testedType, DartType inferredType) {
+    _store(location, literalType: testedType, inferredType: inferredType);
   }
 
   void isNotExpressionExit(
-      Not expression, DartType type, DartType inferredType) {
-    _recordType(type, expression.fileOffset);
-    _recordType(inferredType, expression.fileOffset);
+      Location location, DartType type, DartType inferredType) {
+    _store(location, literalType: type, inferredType: inferredType);
   }
 
-  void logicalExpressionBeforeRhs(LogicalExpression expression) {
-    _deferType(expression.fileOffset);
-  }
-
-  void logicalExpressionExit(
-      LogicalExpression expression, DartType inferredType) {
-    _replaceType(inferredType);
-  }
-
-  void methodInvocationBeforeArgs(Expression expression, bool isImplicitCall) {
-    if (!isImplicitCall) {
-      // When the invocation target is `VariableGet`, we record the target
-      // before arguments. To ensure this order for method invocations, we
-      // first record `null`, and then replace it on exit.
-      _deferReference(expression.fileOffset);
-      _deferType(expression.fileOffset); // callee type
-    }
-    _deferType(expression.fileOffset); // invoke type
-    _deferType(expression.fileOffset); // type arguments
-    _deferType(expression.fileOffset); // result type
-  }
-
+  @override
   void methodInvocationExit(
-      Expression expression,
-      Arguments arguments,
+      Location resultOffset,
+      List<DartType> argumentsTypes,
       bool isImplicitCall,
-      Member interfaceMember,
+      Reference interfaceMember,
       FunctionType calleeType,
       Substitution substitution,
       DartType inferredType) {
-    int resultOffset = arguments.fileOffset != -1
-        ? arguments.fileOffset
-        : expression.fileOffset;
-    _replaceType(inferredType, resultOffset);
-    _replaceType(new TypeArgumentsDartType(arguments.types), resultOffset);
-
     FunctionType invokeType = substitution == null
         ? calleeType
         : substitution.substituteType(calleeType.withoutTypeParameters);
-    _replaceType(invokeType, resultOffset);
 
-    if (!isImplicitCall) {
-      interfaceMember = _getRealTarget(interfaceMember);
-      _replaceReference(interfaceMember);
-      _replaceType(const NullType()); // callee type
-    }
+    _store(resultOffset,
+        inferredType: inferredType,
+        argumentTypes: argumentsTypes,
+        invokeType: invokeType,
+        isImplicitCall: isImplicitCall,
+        reference: interfaceMember);
+
+    super.genericExpressionExit("methodInvocation", resultOffset, inferredType);
   }
 
+  @override
   void methodInvocationExitCall(
-      Expression expression,
-      Arguments arguments,
+      Location resultOffset,
+      List<DartType> argumentsTypes,
       bool isImplicitCall,
       FunctionType calleeType,
       Substitution substitution,
       DartType inferredType) {
-    int resultOffset = arguments.fileOffset != -1
-        ? arguments.fileOffset
-        : expression.fileOffset;
-    _replaceType(inferredType, resultOffset);
-    _replaceType(new TypeArgumentsDartType(arguments.types), resultOffset);
-
     FunctionType invokeType = substitution == null
         ? calleeType
         : substitution.substituteType(calleeType.withoutTypeParameters);
-    _replaceType(invokeType, resultOffset);
 
-    if (!isImplicitCall) {
-      _replaceReference(const NullNode('explicit-call'));
-      _replaceType(const NullType()); // callee type
-    }
+    _store(resultOffset,
+        inferredType: inferredType,
+        argumentTypes: argumentsTypes,
+        invokeType: invokeType,
+        isImplicitCall: isImplicitCall);
+
+    super.genericExpressionExit("methodInvocation", resultOffset, inferredType);
   }
 
-  void propertyAssignEnter(
-      Expression expression, Expression write, DartType typeContext) {
-    _deferReference(write.fileOffset);
-    _deferType(write.fileOffset);
+  @override
+  void propertyAssignExit(Location location, Reference writeMember,
+      DartType writeContext, Reference combiner, DartType inferredType) {
+    _store(location,
+        isWriteReference: true,
+        reference: writeMember,
+        writeContext: writeContext,
+        combiner: combiner,
+        inferredType: inferredType);
   }
 
-  void propertyAssignExit(
-      Expression expression,
-      Expression write,
-      Member writeMember,
-      DartType writeContext,
-      Procedure combiner,
-      DartType inferredType) {
-    writeMember = _getRealTarget(writeMember);
-    _replaceReference(new MemberSetterNode(writeMember));
-    _replaceType(writeContext);
-    _recordReference(
-        combiner ?? const NullNode('assign-combiner'), write.fileOffset);
-    _recordType(inferredType, write.fileOffset);
-  }
-
+  @override
   void propertyGetExit(
-      Expression expression, Member member, DartType inferredType) {
-    _recordReference(new MemberGetterNode(member), expression.fileOffset);
+      Location location, Reference member, DartType inferredType) {
+    _store(location, reference: member, inferredType: inferredType);
   }
 
-  void propertyGetExitCall(Expression expression, DartType inferredType) {
-    _recordReference(const NullNode('explicit-call'), expression.fileOffset);
-    _recordType(const NullType(), expression.fileOffset);
+  @override
+  void propertyGetExitCall(Location location, DartType inferredType) {
+    _store(location, isExplicitCall: true);
   }
 
-  void redirectingInitializerEnter(RedirectingInitializer initializer) {
-    _recordReference(initializer.target, initializer.fileOffset);
+  @override
+  void redirectingInitializerEnter(
+      Location location, Reference initializerTarget) {
+    _store(location, reference: initializerTarget);
   }
 
-  void staticAssignEnter(
-      Expression expression,
-      String prefixName,
-      int targetOffset,
-      Class targetClass,
-      Expression write,
-      DartType typeContext) {
-    // if there was an import prefix, record it.
-    _recordImportPrefix(prefixName);
-    // If the static target is explicit (and is a class), record it.
-    if (targetClass != null) {
-      _recordReference(targetClass, targetOffset);
-      _recordType(targetClass.rawType, targetOffset);
-    }
-
-    _deferReference(write.fileOffset);
-    _deferType(write.fileOffset);
+  @override
+  void staticAssignEnter(Location location, DartType typeContext) {
+    _push((Reference writeMember, DartType writeContext, Reference combiner,
+        DartType inferredType) {
+      _store(location,
+          reference: writeMember,
+          isWriteReference: true,
+          writeContext: writeContext,
+          combiner: combiner,
+          inferredType: inferredType);
+    });
   }
 
-  void staticAssignExit(
-      Expression expression,
-      Expression write,
-      Member writeMember,
-      DartType writeContext,
-      Procedure combiner,
-      DartType inferredType) {
-    _replaceReference(new MemberSetterNode(writeMember));
-    _replaceType(writeContext);
-    _recordReference(
-        combiner ?? const NullNode('assign-combiner'), write.fileOffset);
-    _recordType(inferredType, write.fileOffset);
+  @override
+  void staticAssignExit(Location location, Reference writeMember,
+      DartType writeContext, Reference combiner, DartType inferredType) {
+    _pop()(writeMember, writeContext, combiner, inferredType);
   }
 
-  void staticGetEnter(StaticGet expression, String prefixName, int targetOffset,
-      Class targetClass, DartType typeContext) {
-    // if there was an import prefix, record it.
-    _recordImportPrefix(prefixName);
-    // If the static target is explicit (and is a class), record it.
-    if (targetClass != null) {
-      _recordReference(targetClass, targetOffset);
-      _recordType(targetClass.rawType, targetOffset);
-    }
+  @override
+  void staticGetEnter(Location location, DartType typeContext) {
+    _push(
+        (Location location, Reference expressionTarget, DartType inferredType) {
+      _store(location, reference: expressionTarget, inferredType: inferredType);
+    });
   }
 
-  void staticGetExit(StaticGet expression, DartType inferredType) {
-    _recordReference(
-        new MemberGetterNode(expression.target), expression.fileOffset);
+  @override
+  void staticGetExit(
+      Location location, Reference expressionTarget, DartType inferredType) {
+    _pop()(location, expressionTarget, inferredType);
   }
 
-  void staticInvocationEnter(StaticInvocation expression, String prefixName,
-      int targetOffset, Class targetClass, DartType typeContext) {
-    // if there was an import prefix, record it.
-    _recordImportPrefix(prefixName);
-    // If the static target is explicit (and is a class), record it.
-    if (targetClass != null) {
-      _recordReference(targetClass, targetOffset);
-      _recordType(targetClass.rawType, targetOffset);
-    }
-    // When the invocation target is `VariableGet`, we record the target
-    // before arguments. To ensure this order for method invocations, we
-    // first record `null`, and then replace it on exit.
-    _deferReference(expression.fileOffset);
-    // We are visiting a static invocation like: f(args), and we haven't visited
-    // args yet.
-    //
-    // The analyzer AST will expect a type for f at this point.  (It can't wait
-    // until later, because for all it knows, f is a method on `this`, and
-    // methods need a type for f at this point--see comments in
-    // [methodInvocationBeforeArgs]).  But the type isn't known yet (because it
-    // may depend on type inference based on arguments).
-    //
-    // So we add a `null` to our list of types; we'll update it with the actual
-    // type later.
-    _deferType(expression.fileOffset); // callee type
-    _deferType(expression.arguments.fileOffset); // invoke type
-    _deferType(expression.arguments.fileOffset); // type arguments
-    _deferType(expression.arguments.fileOffset); // result type
+  @override
+  void staticInvocationEnter(Location location,
+      Location expressionArgumentsLocation, DartType typeContext) {
+    _push((Reference expressionTarget,
+        List<DartType> expressionArgumentsTypes,
+        FunctionType calleeType,
+        Substitution substitution,
+        DartType inferredType) {
+      FunctionType invokeType = substitution == null
+          ? calleeType
+          : substitution.substituteType(calleeType.withoutTypeParameters);
+      _store(expressionArgumentsLocation,
+          invokeType: invokeType,
+          argumentTypes: expressionArgumentsTypes,
+          reference: expressionTarget,
+          inferredType: inferredType);
+    });
   }
 
+  @override
   void staticInvocationExit(
-      StaticInvocation expression,
+      Location location,
+      Reference expressionTarget,
+      List<DartType> expressionArgumentsTypes,
       FunctionType calleeType,
       Substitution substitution,
       DartType inferredType) {
-    _replaceType(inferredType);
-    _replaceReference(expression.target);
-    _replaceType(new TypeArgumentsDartType(expression.arguments.types));
-    FunctionType invokeType = substitution == null
-        ? calleeType
-        : substitution.substituteType(calleeType.withoutTypeParameters);
-    _replaceType(invokeType);
-    _replaceType(const NullType()); // callee type
+    _pop()(expressionTarget, expressionArgumentsTypes, calleeType, substitution,
+        inferredType);
   }
 
-  void stringConcatenationExit(
-      StringConcatenation expression, DartType inferredType) {
+  @override
+  void stringConcatenationExit(Location location, DartType inferredType) {
     // We don't need the type - we already know that it is String.
     // Moreover, the file offset for StringConcatenation is `-1`.
   }
 
-  void thisExpressionExit(ThisExpression expression, DartType inferredType) {}
+  @override
+  void thisExpressionExit(Location location, DartType inferredType) {}
 
-  void typeLiteralEnter(@override TypeLiteral expression, String prefixName,
-      DartType typeContext) {
-    // if there was an import prefix, record it.
-    _recordImportPrefix(prefixName);
+  @override
+  void typeLiteralEnter(Location location, DartType typeContext) {
+    _push((Reference expressionType, DartType inferredType) {
+      _store(location, reference: expressionType, inferredType: inferredType);
+    });
   }
 
-  void typeLiteralExit(TypeLiteral expression, DartType inferredType) {
-    _recordReference(expression.type, expression.fileOffset);
+  void typeLiteralExit(
+      Location location, Reference expressionType, DartType inferredType) {
+    _pop()(expressionType, inferredType);
   }
 
-  void variableAssignEnter(
-      Expression expression, DartType typeContext, Expression write) {
-    _deferReference(write.fileOffset);
-    _deferType(write.fileOffset);
+  @override
+  void variableAssignExit(Location location, DartType writeContext,
+      Declaration writeVariable, Reference combiner, DartType inferredType) {
+    _store(location,
+        declaration: writeVariable,
+        isWriteReference: true,
+        writeContext: writeContext,
+        combiner: combiner,
+        inferredType: inferredType);
   }
 
-  void variableAssignExit(Expression expression, DartType writeContext,
-      Expression write, Procedure combiner, DartType inferredType) {
-    _replaceReference(write is VariableSet
-        ? write.variable
-        : const NullNode('writable-variable'));
-    _replaceType(writeContext);
-    _recordReference(
-        combiner ?? const NullNode('assign-combiner'), write.fileOffset);
-    _recordType(inferredType, write.fileOffset);
-  }
-
-  void variableDeclarationEnter(VariableDeclaration statement) {
-    _recordDeclaration(statement, statement.fileOffset);
-    _deferType(statement.fileOffset);
-  }
-
+  @override
   void variableDeclarationExit(
-      VariableDeclaration statement, DartType inferredType) {
-    _replaceType(statement.type);
+      Location location, DartType statementType, DartType inferredType) {
+    _store(location, literalType: statementType, inferredType: inferredType);
   }
 
-  void variableGetExit(VariableGet expression, DartType inferredType) {
-    /// Return `true` if the given [variable] declaration occurs in a let
-    /// expression that is, or is part of, a cascade expression.
-    bool isInCascade(VariableDeclaration variable) {
-      TreeNode ancestor = variable.parent;
-      while (ancestor is Let) {
-        if (ancestor is ShadowCascadeExpression) {
-          return true;
-        }
-        ancestor = ancestor.parent;
-      }
-      return false;
-    }
-
-    VariableDeclaration variable = expression.variable;
-    if (isInCascade(variable)) {
+  @override
+  void variableGetExit(Location location, bool isInCascade,
+      Declaration expressionVariable, DartType inferredType) {
+    if (isInCascade) {
       return;
     }
-    _recordReference(variable, expression.fileOffset);
-    _recordType(inferredType, expression.fileOffset);
+    _store(location,
+        declaration: expressionVariable, inferredType: inferredType);
   }
 
-  /// Record `null` as the reference at the given [offset], and put the current
-  /// slot into the [_deferredReferenceSlots] stack.
-  void _deferReference(int offset) {
-    int slot = _recordReference(null, offset);
-    _deferredReferenceSlots.add(slot);
+  void _push(Function f) {
+    _stack.add(f);
   }
 
-  /// Record `null` as the type at the given [offset], and put the current
-  /// slot into the [_deferredTypeSlots] stack.
-  void _deferType(int offset) {
-    int slot = _recordType(null, offset);
-    _deferredTypeSlots.add(slot);
+  Function _pop() {
+    return _stack.removeLast();
   }
 
-  void _recordDeclaration(TreeNode declaration, int offset) {
-    _declarations.add(declaration);
+  @override
+  void storePrefixInfo(Location location, PrefixInfo prefixInfo) {
+    _store(location, prefixInfo: prefixInfo);
   }
 
-  /// If the [prefixName] is not `null` record the reference to it.
-  void _recordImportPrefix(String prefixName) {
-    if (prefixName != null) {
-      _recordReference(new ImportPrefixNode(prefixName), UNKNOWN_OFFSET);
-      _recordType(const NullType(), UNKNOWN_OFFSET);
-    }
-  }
-
-  int _recordReference(Node target, int offset) {
-    int slot = _references.length;
-    _references.add(target);
-    return slot;
-  }
-
-  int _recordType(DartType type, int offset) {
-    int slot = _types.length;
-    _types.add(type);
-    return slot;
-  }
-
-  void _replaceReference(Node reference) {
-    int slot = _deferredReferenceSlots.removeLast();
-    _references[slot] = reference;
-  }
-
-  void _replaceType(DartType type, [int newOffset = -1]) {
-    int slot = _deferredTypeSlots.removeLast();
-    _types[slot] = type;
-  }
-
-  /// If the [member] is a forwarding stub, return the target it forwards to.
-  /// Otherwise return the given [member].
-  static Member _getRealTarget(Member member) {
-    if (member is Procedure && member.isForwardingStub) {
-      return member.forwardingStubInterfaceTarget;
-    }
-    return member;
+  @override
+  void storeClassReference(
+      Location location, Reference reference, DartType rawType) {
+    // TODO(paulberry): would it be better to use literalType?
+    _store(location, reference: reference, inferredType: rawType);
   }
 }
 

@@ -12,9 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OutlineTest);
-    // TODO(scheglov): Restore similar test coverage when the front-end API
-    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
-    // defineReflectiveTests(OutlineTest_UseCFE);
+    defineReflectiveTests(OutlineTest_UseCFE);
   });
 }
 
@@ -77,4 +75,10 @@ class Class2 {
 class OutlineTest_UseCFE extends OutlineTest {
   @override
   bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_outline() {
+    return super.test_outline();
+  }
 }

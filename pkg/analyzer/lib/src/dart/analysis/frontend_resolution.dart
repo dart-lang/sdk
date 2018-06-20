@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/kernel_metadata.dart';
+import 'package:analyzer/src/fasta/resolution_storer.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -26,6 +27,7 @@ import 'package:front_end/src/fasta/source/source_loader.dart';
 import 'package:front_end/src/fasta/source/stack_listener.dart';
 import 'package:front_end/src/fasta/target_implementation.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
+import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -39,31 +41,7 @@ import 'package:path/path.dart' as pathos;
 
 /// Resolution information in a single function body.
 class CollectedResolution {
-  /// The list of local declarations stored by body builders while
-  /// compiling the library.
-  final List<TreeNode> kernelDeclarations = [];
-
-  /// The list of references to local or external stored by body builders
-  /// while compiling the library.
-  final List<Node> kernelReferences = [];
-
-  /// The list of types stored by body builders while compiling the library.
-  final List<DartType> kernelTypes = [];
-
-  /// File offsets corresponding to the declarations in [kernelDeclarations].
-  ///
-  /// These are used strictly for validation purposes.
-  final List<int> declarationOffsets = [];
-
-  /// File offsets corresponding to the objects in [kernelReferences].
-  ///
-  /// These are used strictly for validation purposes.
-  final List<int> referenceOffsets = [];
-
-  /// File offsets corresponding to the types in [kernelTypes].
-  ///
-  /// These are used strictly for validation purposes.
-  final List<int> typeOffsets = [];
+  final Map<int, ResolutionData<DartType, int, Node, int>> kernelData = {};
 }
 
 /// The compilation result for a single file.
@@ -399,7 +377,9 @@ class _AnalyzerDietListener extends DietListener {
 
   StackListener createListener(
       ModifierBuilder builder, Scope memberScope, bool isInstanceMember,
-      [Scope formalParameterScope]) {
+      [Scope formalParameterScope,
+      TypeInferenceListener<int, int, Node, int> listener]) {
+    ResolutionStorer<int, int, Node, int> storer;
     var fileResolutions = _resolutions[builder.fileUri];
     if (fileResolutions == null) {
       fileResolutions = <CollectedResolution>[];
@@ -407,8 +387,9 @@ class _AnalyzerDietListener extends DietListener {
     }
     var resolution = new CollectedResolution();
     fileResolutions.add(resolution);
+    storer = new ResolutionStorer<int, int, Node, int>(resolution.kernelData);
     return super.createListener(
-        builder, memberScope, isInstanceMember, formalParameterScope);
+        builder, memberScope, isInstanceMember, formalParameterScope, storer);
   }
 }
 

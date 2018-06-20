@@ -41,4 +41,10 @@ void foo() { }
 class GetAvailableRefactoringsTest_UseCFE extends GetAvailableRefactoringsTest {
   @override
   bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_has_refactorings() {
+    return super.test_has_refactorings();
+  }
 }

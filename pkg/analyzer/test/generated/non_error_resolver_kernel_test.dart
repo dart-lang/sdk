@@ -8,9 +8,7 @@ import 'non_error_resolver_driver_test.dart';
 
 main() {
   defineReflectiveSuite(() {
-    // TODO(scheglov): Restore similar test coverage when the front-end API
-    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
-    // defineReflectiveTests(NonErrorResolverTest_Kernel);
+    defineReflectiveTests(NonErrorResolverTest_Kernel);
   });
 }
 
@@ -41,6 +39,20 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31625')
   test_ambiguousImport_showCombinator() async {
     return super.test_ambiguousImport_showCombinator();
+  }
+
+  @override
+  @failingTest
+  test_argumentTypeNotAssignable_invocation_typedef_generic() {
+    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
+    return super.test_argumentTypeNotAssignable_invocation_typedef_generic();
+  }
+
+  @override
+  @failingTest
+  test_argumentTypeNotAssignable_optionalNew() {
+    // Bad state: No data for (builder: () {return Widget();}) at 164
+    return super.test_argumentTypeNotAssignable_optionalNew();
   }
 
   @override
@@ -115,6 +127,13 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  test_const_dynamic() {
+    // UnimplementedError: TODO(paulberry): DynamicType
+    return super.test_const_dynamic();
+  }
+
+  @override
+  @failingTest
   @potentialAnalyzerProblem
   test_constConstructorWithNonConstSuper_unresolved() async {
     return super.test_constConstructorWithNonConstSuper_unresolved();
@@ -143,6 +162,34 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  test_duplicateDefinition_emptyName() {
+    // NoSuchMethodError: The setter 'enclosingElement=' was called on null.
+    return super.test_duplicateDefinition_emptyName();
+  }
+
+  @override
+  @failingTest
+  test_dynamicIdentifier() {
+    // UnimplementedError: TODO(paulberry): DynamicType
+    return super.test_dynamicIdentifier();
+  }
+
+  @override
+  @failingTest
+  test_fieldFormalParameter_genericFunctionTyped() {
+    // Expected 0 errors of type ParserErrorCode.EXPECTED_TOKEN, found 1 (88)
+    return super.test_fieldFormalParameter_genericFunctionTyped();
+  }
+
+  @override
+  @failingTest
+  test_fieldFormalParameter_genericFunctionTyped_named() {
+    // Expected 0 errors of type ParserErrorCode.EXPECTED_TOKEN, found 1 (89)
+    return super.test_fieldFormalParameter_genericFunctionTyped_named();
+  }
+
+  @override
+  @failingTest
   @potentialAnalyzerProblem
   test_finalNotInitialized_hasNativeClause_hasConstructor() async {
     return super.test_finalNotInitialized_hasNativeClause_hasConstructor();
@@ -153,13 +200,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_finalNotInitialized_hasNativeClause_noConstructor() async {
     return super.test_finalNotInitialized_hasNativeClause_noConstructor();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_forEach_genericFunctionType() async {
-    return super.test_forEach_genericFunctionType();
   }
 
   @override
@@ -178,9 +218,60 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters() {
+    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
+    return super.test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters();
+  }
+
+  @override
+  @failingTest
+  test_genericTypeAlias_castsAndTypeChecks_noTypeParameters() {
+    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
+    return super.test_genericTypeAlias_castsAndTypeChecks_noTypeParameters();
+  }
+
+  @override
+  @failingTest
+  test_genericTypeAlias_fieldAndReturnType_noTypeParameters() {
+    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
+    return super.test_genericTypeAlias_fieldAndReturnType_noTypeParameters();
+  }
+
+  @override
+  @failingTest
+  test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments() {
+    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
+    return super
+        .test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments();
+  }
+
+  @override
+  @failingTest
+  test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments() {
+    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
+    return super
+        .test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments();
+  }
+
+  @override
+  @failingTest
   @potentialAnalyzerProblem
   test_genericTypeAlias_invalidGenericFunctionType() async {
     return super.test_genericTypeAlias_invalidGenericFunctionType();
+  }
+
+  @override
+  @failingTest
+  test_genericTypeAlias_noTypeParameters() {
+    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
+    return super.test_genericTypeAlias_noTypeParameters();
+  }
+
+  @override
+  @failingTest
+  test_genericTypeAlias_typeParameters() {
+    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
+    return super.test_genericTypeAlias_typeParameters();
   }
 
   @override // passes with kernel
@@ -189,16 +280,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override // Passes with kernel
   test_infer_mixin_multiplyConstrained() =>
       super.test_infer_mixin_multiplyConstrained();
-
-  @override
-  @failingTest
-  test_infer_mixin_with_substitution() =>
-      super.test_infer_mixin_with_substitution();
-
-  @override
-  @failingTest
-  test_infer_mixin_with_substitution_functionType() =>
-      super.test_infer_mixin_with_substitution_functionType();
 
   @override
   @failingTest
@@ -216,9 +297,57 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  test_invalidAnnotation_constantVariable_field_importWithPrefix() {
+    // type 'PrefixedIdentifierImpl' is not a subtype of type 'SimpleIdentifier'
+    // of 'topEntity'
+    return super
+        .test_invalidAnnotation_constantVariable_field_importWithPrefix();
+  }
+
+  @override
+  @failingTest
+  test_invalidAnnotation_constantVariable_topLevel_importWithPrefix() {
+    // type 'PrefixedIdentifierImpl' is not a subtype of type 'SimpleIdentifier'
+    // of 'topEntity'
+    return super
+        .test_invalidAnnotation_constantVariable_topLevel_importWithPrefix();
+  }
+
+  @override
+  @failingTest
+  test_invalidAnnotation_constConstructor_importWithPrefix() {
+    // type 'PrefixedIdentifierImpl' is not a subtype of type 'SimpleIdentifier'
+    // of 'topEntity'
+    return super.test_invalidAnnotation_constConstructor_importWithPrefix();
+  }
+
+  @override
+  @failingTest
+  test_invalidAnnotation_constConstructor_named_importWithPrefix() {
+    // Bad state: No data for named at 29
+    return super
+        .test_invalidAnnotation_constConstructor_named_importWithPrefix();
+  }
+
+  @override
+  @failingTest
+  test_invocationOfNonFunction_functionTypeTypeParameter() {
+    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
+    return super.test_invocationOfNonFunction_functionTypeTypeParameter();
+  }
+
+  @override
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
   test_invocationOfNonFunction_Object() async {
     return super.test_invocationOfNonFunction_Object();
+  }
+
+  @override
+  @failingTest
+  test_issue_32394() {
+    // Failed assertion: line 1133 pos 12: 'element != null': is not true.
+    return super.test_issue_32394();
   }
 
   @override
@@ -230,9 +359,24 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30609')
+  test_metadata_enumConstantDeclaration() {
+    // Failed to resolve 2 nodes
+    return super.test_metadata_enumConstantDeclaration();
+  }
+
+  @override
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_methodDeclaration_scope_signature() async {
     return super.test_methodDeclaration_scope_signature();
+  }
+
+  @override
+  @failingTest
+  test_nativeConstConstructor() {
+    // Expected 0 errors of type ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, found 1 (35)
+    return super.test_nativeConstConstructor();
   }
 
   @override
@@ -265,16 +409,16 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_returnOfInvalidType_typeParameter_18468() async {
-    return super.test_returnOfInvalidType_typeParameter_18468();
+  test_optionalNew_rewrite_instantiatesToBounds() {
+    // Bad state: No data for named1 at 21
+    return super.test_optionalNew_rewrite_instantiatesToBounds();
   }
 
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_sharedDeferredPrefix() async {
-    return super.test_sharedDeferredPrefix();
+  test_returnOfInvalidType_typeParameter_18468() async {
+    return super.test_returnOfInvalidType_typeParameter_18468();
   }
 
   @override
@@ -293,9 +437,9 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_undefinedIdentifier_synthetic_whenExpression() async {
-    return super.test_undefinedIdentifier_synthetic_whenExpression();
+  test_undefinedGetter_static_conditionalAccess() {
+    // Bad state: No data for A at 36
+    return super.test_undefinedGetter_static_conditionalAccess();
   }
 
   @override
@@ -303,5 +447,19 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_undefinedIdentifier_synthetic_whenMethodName() async {
     return super.test_undefinedIdentifier_synthetic_whenMethodName();
+  }
+
+  @override
+  @failingTest
+  test_undefinedMethod_static_conditionalAccess() {
+    // Bad state: No data for A at 39
+    return super.test_undefinedMethod_static_conditionalAccess();
+  }
+
+  @override
+  @failingTest
+  test_undefinedSetter_static_conditionalAccess() {
+    // Bad state: No data for A at 34
+    return super.test_undefinedSetter_static_conditionalAccess();
   }
 }

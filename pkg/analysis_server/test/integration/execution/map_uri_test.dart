@@ -44,4 +44,10 @@ class MapUriTest extends AbstractAnalysisServerIntegrationTest {
 class MapUriTest_UseCFE extends MapUriTest {
   @override
   bool get useCFE => true;
+
+  @override
+  @failingTest
+  test_mapUri() {
+    fail('Test crashes with CFE');
+  }
 }

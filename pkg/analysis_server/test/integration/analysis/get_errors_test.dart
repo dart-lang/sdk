@@ -12,9 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetErrorsTest);
-    // TODO(scheglov): Restore similar test coverage when the front-end API
-    // allows it.  See https://github.com/dart-lang/sdk/issues/32258.
-    // defineReflectiveTests(GetErrorsTest_UseCFE);
+    defineReflectiveTests(GetErrorsTest_UseCFE);
   });
 }
 
@@ -42,4 +40,10 @@ main() {
 class GetErrorsTest_UseCFE extends GetErrorsTest {
   @override
   bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_getErrors() {
+    return super.test_getErrors();
+  }
 }

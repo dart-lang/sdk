@@ -62,6 +62,7 @@ class AstBuilder extends StackListener {
   ScriptTag scriptTag;
   final List<Directive> directives = <Directive>[];
   final List<CompilationUnitMember> declarations = <CompilationUnitMember>[];
+  final localDeclarations = <int, AstNode>{};
 
   @override
   final Uri uri;
@@ -626,7 +627,15 @@ class AstBuilder extends StackListener {
     Expression initializer = pop();
     SimpleIdentifier identifier = pop();
     // TODO(ahe): Don't push initializers, instead install them.
-    push(ast.variableDeclaration(identifier, assignmentOperator, initializer));
+    push(_makeVariableDeclaration(identifier, assignmentOperator, initializer));
+  }
+
+  VariableDeclaration _makeVariableDeclaration(
+      SimpleIdentifier name, Token equals, Expression initializer) {
+    var variableDeclaration =
+        ast.variableDeclaration(name, equals, initializer);
+    localDeclarations[name.offset] = variableDeclaration;
+    return variableDeclaration;
   }
 
   @override
@@ -668,7 +677,7 @@ class AstBuilder extends StackListener {
     if (node is VariableDeclaration) {
       variable = node;
     } else if (node is SimpleIdentifier) {
-      variable = ast.variableDeclaration(node, null, null);
+      variable = _makeVariableDeclaration(node, null, null);
     } else {
       unhandled("${node.runtimeType}", "identifier", nameToken.charOffset, uri);
     }
@@ -1206,6 +1215,7 @@ class AstBuilder extends StackListener {
       parameter = ast.defaultFormalParameter(node, ParameterKind.NAMED,
           defaultValue.separator, defaultValue.value);
     }
+    localDeclarations[nameToken.offset] = parameter;
     push(parameter);
   }
 
@@ -1351,9 +1361,11 @@ class AstBuilder extends StackListener {
       List<FormalParameter> catchParameters = catchParameterList.parameters;
       if (catchParameters.length > 0) {
         exception = catchParameters[0].identifier;
+        localDeclarations[exception.offset] = exception;
       }
       if (catchParameters.length > 1) {
         stackTrace = catchParameters[1].identifier;
+        localDeclarations[stackTrace.offset] = stackTrace;
       }
     }
     push(ast.catchClause(
@@ -2011,7 +2023,7 @@ class AstBuilder extends StackListener {
     debugEvent("NoFieldInitializer");
 
     SimpleIdentifier name = pop();
-    push(ast.variableDeclaration(name, null, null));
+    push(_makeVariableDeclaration(name, null, null));
   }
 
   @override
@@ -2088,7 +2100,7 @@ class AstBuilder extends StackListener {
 
     Expression initializer = pop();
     SimpleIdentifier name = pop();
-    push(ast.variableDeclaration(name, assignment, initializer));
+    push(_makeVariableDeclaration(name, assignment, initializer));
   }
 
   @override
@@ -2122,8 +2134,10 @@ class AstBuilder extends StackListener {
     List<Annotation> metadata = pop(NullValue.Metadata);
     FunctionExpression functionExpression =
         ast.functionExpression(typeParameters, parameters, body);
-    push(ast.functionDeclarationStatement(ast.functionDeclaration(
-        null, metadata, null, returnType, null, name, functionExpression)));
+    var functionDeclaration = ast.functionDeclaration(
+        null, metadata, null, returnType, null, name, functionExpression);
+    localDeclarations[name.offset] = functionDeclaration;
+    push(ast.functionDeclarationStatement(functionDeclaration));
   }
 
   @override

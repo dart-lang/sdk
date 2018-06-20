@@ -10,6 +10,7 @@ import 'package:kernel/ast.dart'
         DynamicType,
         FunctionType,
         InterfaceType,
+        Node,
         TypeParameter,
         TypeParameterType,
         TypedefType,
@@ -28,6 +29,8 @@ import '../kernel/toplevel_inference_factory.dart';
 import '../messages.dart' show noLength, templateCantInferTypeDueToCircularity;
 
 import '../source/source_library_builder.dart';
+
+import 'type_inference_listener.dart' show TypeInferenceListener;
 
 import 'type_inferrer.dart';
 
@@ -238,12 +241,17 @@ abstract class TypeInferenceEngine {
   /// Creates a type inferrer for use inside of a method body declared in a file
   /// with the given [uri].
   TypeInferrer createLocalTypeInferrer(
-      Uri uri, InterfaceType thisType, SourceLibraryBuilder library);
+      Uri uri,
+      TypeInferenceListener<int, int, Node, int> listener,
+      InterfaceType thisType,
+      SourceLibraryBuilder library);
 
   /// Creates a [TypeInferrer] object which is ready to perform type inference
   /// on the given [field].
   TypeInferrer createTopLevelTypeInferrer(
-      InterfaceType thisType, ShadowField field);
+      TypeInferenceListener<int, int, Node, int> listener,
+      InterfaceType thisType,
+      ShadowField field);
 
   /// Retrieve the [TypeInferrer] for the given [field], which was created by
   /// a previous call to [createTopLevelTypeInferrer].

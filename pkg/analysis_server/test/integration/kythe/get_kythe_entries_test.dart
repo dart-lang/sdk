@@ -43,4 +43,10 @@ class Bar {
 class GetKytheEntriesTest_UseCFE extends GetKytheEntriesTest {
   @override
   bool get useCFE => true;
+
+  @override
+  @failingTest
+  test_getKytheEntries() {
+    return super.test_getKytheEntries();
+  }
 }

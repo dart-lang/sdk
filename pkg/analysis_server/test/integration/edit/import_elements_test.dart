@@ -144,4 +144,22 @@ class AnalysisGetImportElementsIntegrationTest_UseCFE
     extends AnalysisGetImportElementsIntegrationTest {
   @override
   bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_importElements_definingUnit() {
+    return super.test_importElements_definingUnit();
+  }
+
+  @failingTest
+  @override
+  test_importElements_noEdits() {
+    return super.test_importElements_noEdits();
+  }
+
+  @failingTest
+  @override
+  test_importElements_part() {
+    return super.test_importElements_part();
+  }
 }

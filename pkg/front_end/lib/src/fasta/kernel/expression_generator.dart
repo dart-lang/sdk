@@ -603,6 +603,10 @@ abstract class TypeUseGenerator<Expression, Statement, Arguments>
 
   TypeDeclarationBuilder get declaration;
 
+  /// The offset at which the [declaration] is referenced by this generator,
+  /// or `-1` if the reference is implicit.
+  int get declarationReferenceOffset;
+
   @override
   String get debugName => "TypeUseGenerator";
 

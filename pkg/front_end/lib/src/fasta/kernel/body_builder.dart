@@ -1124,6 +1124,9 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     Object send = pop();
     if (send is IncompleteSendGenerator) {
       Object receiver = optional(".", token) ? pop() : popForValue();
+      if (receiver is TypeUseGenerator<dynamic, dynamic, dynamic>) {
+        _typeInferrer.storeTypeUse(receiver);
+      }
       push(send.withReceiver(receiver, token.charOffset));
     } else {
       pop();
@@ -1514,6 +1517,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
             "You might try moving the constant to the deferred library, "
             "or removing 'deferred' from the import.");
       }
+      _typeInferrer.storePrefix(token, declaration);
       return declaration;
     } else if (declaration is LoadLibraryBuilder) {
       return new LoadLibraryGenerator<Expression, Statement, Arguments>(
@@ -2853,6 +2857,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
 
     if (type is TypeUseGenerator<Expression, Statement, Arguments>) {
       TypeUseGenerator<Expression, Statement, Arguments> generator = type;
+      _typeInferrer.storeTypeUse(generator);
       if (generator.prefix != null) {
         nameToken = nameToken.next.next;
       }
@@ -3728,6 +3733,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     KernelTypeVariableBuilder variable;
     Object inScope = scopeLookup(scope, name.name, token);
     if (inScope is TypeUseGenerator<Expression, Statement, Arguments>) {
+      _typeInferrer.storeTypeUse(inScope);
       variable = inScope.declaration;
     } else {
       // Something went wrong when pre-parsing the type variables.
