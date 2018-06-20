@@ -839,7 +839,6 @@ type_promotion_more_specific_test/04: CompileTimeError
 type_variable_promotion_test: RuntimeError
 
 [ $compiler == dart2js && $fasta ]
-arithmetic_int64_test: RuntimeError # WontFix: Int not precisely representable in JS
 call_method_as_cast_test/06: RuntimeError
 call_method_implicit_tear_off_implements_function_test/05: RuntimeError
 call_method_implicit_tear_off_implements_function_test/06: RuntimeError
@@ -855,7 +854,6 @@ duplicate_interface_implements_test/01: MissingCompileTimeError
 function_propagation_test: RuntimeError
 generic_test/01: MissingCompileTimeError # front end does not validate `extends`
 instantiate_tearoff_of_call_test: RuntimeError
-mint_compares_test: RuntimeError # WontFix: Int not precisely representable in JS
 mixin_type_parameter_inference_error_test/none: CompileTimeError
 mixin_type_parameter_inference_previous_mixin_test/01: CompileTimeError
 mixin_type_parameter_inference_previous_mixin_test/02: CompileTimeError

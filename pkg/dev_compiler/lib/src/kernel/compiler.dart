@@ -4847,7 +4847,7 @@ class ProgramCompiler extends Object
   visitStringLiteral(StringLiteral node) => js.escapedString(node.value, '"');
 
   @override
-  visitIntLiteral(IntLiteral node) => js.number(node.value);
+  visitIntLiteral(IntLiteral node) => js.uint64(node.value);
 
   @override
   visitDoubleLiteral(DoubleLiteral node) => js.number(node.value);

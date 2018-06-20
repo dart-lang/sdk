@@ -358,6 +358,11 @@ class JsBuilder {
 
   LiteralNumber number(num value) => LiteralNumber('$value');
 
+  LiteralNumber uint64(int value) {
+    BigInt uint64Value = new BigInt.from(value).toUnsigned(64);
+    return LiteralNumber('$uint64Value');
+  }
+
   LiteralBool boolean(bool value) => LiteralBool(value);
 
   ArrayInitializer numArray(Iterable<int> list) =>
