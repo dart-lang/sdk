@@ -61,7 +61,7 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
 
   @override
   void boolLiteral(ExpressionJudgment judgment, int fileOffset, Token literal,
-      DartType inferredType) {}
+      bool value, DartType inferredType) {}
 
   @override
   void breakStatement(StatementJudgment judgment, int fileOffset,
@@ -99,7 +99,12 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       Node expressionTarget, DartType inferredType) {}
 
   @override
-  void continueSwitchStatement(StatementJudgment judgment, int fileOffset) {}
+  void continueStatement(StatementJudgment judgment, int fileOffset,
+      Token continueKeyword, void label, Token semicolon) {}
+
+  @override
+  void continueSwitchStatement(StatementJudgment judgment, int fileOffset,
+      Token continueKeyword, void label, Token semicolon) {}
 
   @override
   void deferredCheck(
@@ -119,7 +124,7 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
 
   @override
   void doubleLiteral(ExpressionJudgment judgment, int fileOffset, Token literal,
-      DartType inferredType) {}
+      double value, DartType inferredType) {}
 
   @override
   void expressionStatement(StatementJudgment judgment, int fileOffset,
@@ -152,8 +157,8 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
 
   @override
-  void ifNull(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
+  void ifNull(ExpressionJudgment judgment, int fileOffset, void leftOperand,
+      Token operator, void rightOperand, DartType inferredType) {}
 
   @override
   void ifStatement(
@@ -173,7 +178,7 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
 
   @override
   void intLiteral(ExpressionJudgment judgment, int fileOffset, Token literal,
-      DartType inferredType) {}
+      num value, DartType inferredType) {}
 
   @override
   void invalidInitializer(InitializerJudgment judgment, int fileOffset) {}
@@ -208,7 +213,12 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
 
   @override
   void logicalExpression(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
+      ExpressionJudgment judgment,
+      int fileOffset,
+      void leftOperand,
+      Token operator,
+      void rightOperand,
+      DartType inferredType) {}
 
   @override
   void mapLiteral(
@@ -240,8 +250,8 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
 
   @override
-  void not(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
+  void not(ExpressionJudgment judgment, int fileOffset, Token operator,
+      void operand, DartType inferredType) {}
 
   @override
   void nullLiteral(ExpressionJudgment judgment, int fileOffset, Token literal,
@@ -314,8 +324,8 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
 
   @override
-  void stringLiteral(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
+  void stringLiteral(ExpressionJudgment judgment, int fileOffset, Token literal,
+      String value, DartType inferredType) {}
 
   @override
   void superInitializer(InitializerJudgment judgment, int fileOffset) {}
@@ -325,7 +335,12 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
 
   @override
   void symbolLiteral(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
+      ExpressionJudgment judgment,
+      int fileOffset,
+      Token poundSign,
+      List<Token> components,
+      String value,
+      DartType inferredType) {}
 
   @override
   void thisExpression(ExpressionJudgment judgment, int fileOffset,

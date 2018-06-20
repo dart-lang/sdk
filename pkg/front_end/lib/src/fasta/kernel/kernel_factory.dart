@@ -77,7 +77,7 @@ class KernelFactory
 
   @override
   Expression boolLiteral(ExpressionJudgment judgment, int fileOffset,
-      Token literal, DartType inferredType) {
+      Token literal, bool value, DartType inferredType) {
     return judgment;
   }
 
@@ -125,8 +125,14 @@ class KernelFactory
   }
 
   @override
-  Statement continueSwitchStatement(
-      StatementJudgment judgment, int fileOffset) {
+  Statement continueStatement(StatementJudgment judgment, int fileOffset,
+      Token continueKeyword, Expression label, Token semicolon) {
+    return judgment;
+  }
+
+  @override
+  Statement continueSwitchStatement(StatementJudgment judgment, int fileOffset,
+      Token continueKeyword, Expression label, Token semicolon) {
     return judgment;
   }
 
@@ -152,7 +158,7 @@ class KernelFactory
 
   @override
   Expression doubleLiteral(ExpressionJudgment judgment, int fileOffset,
-      Token literal, DartType inferredType) {
+      Token literal, double value, DartType inferredType) {
     return judgment;
   }
 
@@ -200,7 +206,12 @@ class KernelFactory
 
   @override
   Expression ifNull(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {
+      ExpressionJudgment judgment,
+      int fileOffset,
+      Expression leftOperand,
+      Token operator,
+      Expression rightOperand,
+      DartType inferredType) {
     return judgment;
   }
 
@@ -226,7 +237,7 @@ class KernelFactory
 
   @override
   Expression intLiteral(ExpressionJudgment judgment, int fileOffset,
-      Token literal, DartType inferredType) {
+      Token literal, num value, DartType inferredType) {
     return judgment;
   }
 
@@ -273,7 +284,12 @@ class KernelFactory
 
   @override
   Expression logicalExpression(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {
+      ExpressionJudgment judgment,
+      int fileOffset,
+      Expression leftOperand,
+      Token operator,
+      Expression rightOperand,
+      DartType inferredType) {
     return judgment;
   }
 
@@ -315,8 +331,8 @@ class KernelFactory
   }
 
   @override
-  Expression not(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {
+  Expression not(ExpressionJudgment judgment, int fileOffset, Token operator,
+      Expression operand, DartType inferredType) {
     return judgment;
   }
 
@@ -415,8 +431,8 @@ class KernelFactory
   }
 
   @override
-  Expression stringLiteral(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {
+  Expression stringLiteral(ExpressionJudgment judgment, int fileOffset,
+      Token literal, String value, DartType inferredType) {
     return judgment;
   }
 
@@ -432,7 +448,12 @@ class KernelFactory
 
   @override
   Expression symbolLiteral(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {
+      ExpressionJudgment judgment,
+      int fileOffset,
+      Token poundSign,
+      List<Token> components,
+      String value,
+      DartType inferredType) {
     return judgment;
   }
 
