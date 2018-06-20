@@ -7,10 +7,7 @@ library fasta.parser.listener;
 import '../../scanner/token.dart' show Token, TokenType;
 
 import '../fasta_codes.dart'
-    show
-        Message,
-        messageNativeClauseShouldBeAnnotation,
-        templateStringLiteralError;
+    show Message, messageNativeClauseShouldBeAnnotation;
 
 import '../quote.dart' show UnescapeErrorListener;
 
@@ -1239,11 +1236,8 @@ class Listener implements UnescapeErrorListener {
 
   @override
   void handleUnescapeError(
-      String error, Token location, int stringOffset, int length) {
-    handleRecoverableError(
-        templateStringLiteralError.withArguments(error, stringOffset),
-        location,
-        location);
+      Message message, Token location, int stringOffset, int length) {
+    handleRecoverableError(message, location, location);
   }
 
   /// Signals to the listener that the previous statement contained a semantic

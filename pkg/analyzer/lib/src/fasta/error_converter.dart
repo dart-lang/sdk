@@ -7,13 +7,6 @@ import 'package:analyzer/dart/ast/token.dart' show Token;
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:front_end/src/api_prototype/compilation_message.dart';
 import 'package:front_end/src/fasta/messages.dart' show Code, Message;
-import 'package:front_end/src/fasta/quote.dart'
-    show
-        incompleteHexSequence,
-        incompleteUnicodeSequence,
-        invalidCodePoint,
-        invalidHexSequenceCharacter,
-        invalidUnicodeCharacter;
 
 /// An error reporter that knows how to convert a Fasta error into an analyzer
 /// error.
@@ -190,23 +183,6 @@ class FastaErrorReporter {
             offset,
             length);
         return;
-      case "ERROR_IN_STRING_LITERAL":
-        String stringError = arguments['string'];
-        if (stringError == invalidCodePoint) {
-          errorReporter?.reportErrorForOffset(
-              ParserErrorCode.INVALID_CODE_POINT, offset, length, ['\\u{...}']);
-        } else if (stringError == invalidHexSequenceCharacter ||
-            stringError == incompleteHexSequence) {
-          errorReporter?.reportErrorForOffset(
-              ParserErrorCode.INVALID_HEX_ESCAPE, offset, length);
-        } else if (stringError == invalidUnicodeCharacter ||
-            stringError == incompleteUnicodeSequence) {
-          errorReporter?.reportErrorForOffset(
-              ParserErrorCode.INVALID_UNICODE_ESCAPE, offset, length);
-        } else {
-          throw 'Unhandled error in string literal: ${arguments['string']}';
-        }
-        return;
       case "EXPECTED_CLASS_MEMBER":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_CLASS_MEMBER, offset, length);
@@ -373,6 +349,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             StrongModeCode.INVALID_CAST_NEW_EXPR, offset, length);
         return;
+      case "INVALID_CODE_POINT":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.INVALID_CODE_POINT, offset, length, ['\\u{...}']);
+        return;
       case "INVALID_CONSTRUCTOR_NAME":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, offset, length);
@@ -380,6 +360,10 @@ class FastaErrorReporter {
       case "INVALID_GENERIC_FUNCTION_TYPE":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE, offset, length);
+        return;
+      case "INVALID_HEX_ESCAPE":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.INVALID_HEX_ESCAPE, offset, length);
         return;
       case "INVALID_METHOD_OVERRIDE":
         errorReporter?.reportErrorForOffset(
@@ -396,6 +380,10 @@ class FastaErrorReporter {
       case "INVALID_OPERATOR_FOR_SUPER":
         _reportByCode(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, message,
             offset, length);
+        return;
+      case "INVALID_UNICODE_ESCAPE":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.INVALID_UNICODE_ESCAPE, offset, length);
         return;
       case "LIBRARY_DIRECTIVE_NOT_FIRST":
         errorReporter?.reportErrorForOffset(

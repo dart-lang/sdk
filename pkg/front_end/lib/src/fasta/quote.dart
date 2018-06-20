@@ -6,6 +6,8 @@ library fasta.quote;
 
 import 'problems.dart' show unhandled;
 
+import 'fasta_codes.dart' as fasta;
+
 import 'scanner/characters.dart'
     show
         $BACKSLASH,
@@ -170,18 +172,6 @@ String unescape(String string, Quote quote, Object location,
   return unhandled("$quote", "unescape", -1, null);
 }
 
-const String incompleteHexSequence = "Incomplete hex escape sequence.";
-
-const String invalidHexSequenceCharacter =
-    "Invalid character in hex escape sequence.";
-
-const String invalidCodePoint = "Invalid code point.";
-
-const String incompleteUnicodeSequence = "Incomplete unicode escape sequence.";
-
-const String invalidUnicodeCharacter =
-    "Invalid character in unicode escape sequence.";
-
 // Note: based on
 // [StringValidator.validateString](pkg/compiler/lib/src/string_validator.dart).
 String unescapeCodeUnits(List<int> codeUnits, bool isRaw, Object location,
@@ -199,7 +189,8 @@ String unescapeCodeUnits(List<int> codeUnits, bool isRaw, Object location,
       code = $LF;
     } else if (!isRaw && code == $BACKSLASH) {
       if (codeUnits.length == ++i) {
-        listener.handleUnescapeError(incompleteUnicodeSequence, location, i, 1);
+        listener.handleUnescapeError(
+            fasta.messageInvalidUnicodeEscape, location, i, 1);
         return new String.fromCharCodes(codeUnits);
       }
       code = codeUnits[i];
@@ -228,8 +219,8 @@ String unescapeCodeUnits(List<int> codeUnits, bool isRaw, Object location,
         // Expect exactly 2 hex digits.
         int begin = i;
         if (codeUnits.length <= i + 2) {
-          listener.handleUnescapeError(incompleteHexSequence, location, begin,
-              codeUnits.length + 1 - begin);
+          listener.handleUnescapeError(fasta.messageInvalidHexEscape, location,
+              begin, codeUnits.length + 1 - begin);
           return new String.fromCharCodes(codeUnits);
         }
         code = 0;
@@ -237,7 +228,7 @@ String unescapeCodeUnits(List<int> codeUnits, bool isRaw, Object location,
           int digit = codeUnits[++i];
           if (!isHexDigit(digit)) {
             listener.handleUnescapeError(
-                invalidHexSequenceCharacter, location, begin, i + 1 - begin);
+                fasta.messageInvalidHexEscape, location, begin, i + 1 - begin);
             return new String.fromCharCodes(codeUnits);
           }
           code = (code << 4) + hexDigitValue(digit);
@@ -245,30 +236,30 @@ String unescapeCodeUnits(List<int> codeUnits, bool isRaw, Object location,
       } else if (code == $u) {
         int begin = i;
         if (codeUnits.length == i + 1) {
-          listener.handleUnescapeError(incompleteUnicodeSequence, location,
-              begin, codeUnits.length + 1 - begin);
+          listener.handleUnescapeError(fasta.messageInvalidUnicodeEscape,
+              location, begin, codeUnits.length + 1 - begin);
           return new String.fromCharCodes(codeUnits);
         }
         code = codeUnits[i + 1];
         if (code == $OPEN_CURLY_BRACKET) {
           // Expect 1-6 hex digits followed by '}'.
           if (codeUnits.length == ++i) {
-            listener.handleUnescapeError(
-                incompleteUnicodeSequence, location, begin, i + 1 - begin);
+            listener.handleUnescapeError(fasta.messageInvalidUnicodeEscape,
+                location, begin, i + 1 - begin);
             return new String.fromCharCodes(codeUnits);
           }
           code = 0;
           for (int j = 0; j < 7; j++) {
             if (codeUnits.length == ++i) {
-              listener.handleUnescapeError(
-                  incompleteUnicodeSequence, location, begin, i + 1 - begin);
+              listener.handleUnescapeError(fasta.messageInvalidUnicodeEscape,
+                  location, begin, i + 1 - begin);
               return new String.fromCharCodes(codeUnits);
             }
             int digit = codeUnits[i];
             if (j != 0 && digit == $CLOSE_CURLY_BRACKET) break;
             if (!isHexDigit(digit)) {
-              listener.handleUnescapeError(
-                  invalidUnicodeCharacter, location, begin, i + 2 - begin);
+              listener.handleUnescapeError(fasta.messageInvalidUnicodeEscape,
+                  location, begin, i + 2 - begin);
               return new String.fromCharCodes(codeUnits);
             }
             code = (code << 4) + hexDigitValue(digit);
@@ -276,16 +267,16 @@ String unescapeCodeUnits(List<int> codeUnits, bool isRaw, Object location,
         } else {
           // Expect exactly 4 hex digits.
           if (codeUnits.length <= i + 4) {
-            listener.handleUnescapeError(incompleteUnicodeSequence, location,
-                begin, codeUnits.length + 1 - begin);
+            listener.handleUnescapeError(fasta.messageInvalidUnicodeEscape,
+                location, begin, codeUnits.length + 1 - begin);
             return new String.fromCharCodes(codeUnits);
           }
           code = 0;
           for (int j = 0; j < 4; j++) {
             int digit = codeUnits[++i];
             if (!isHexDigit(digit)) {
-              listener.handleUnescapeError(
-                  invalidUnicodeCharacter, location, begin, i + 1 - begin);
+              listener.handleUnescapeError(fasta.messageInvalidUnicodeEscape,
+                  location, begin, i + 1 - begin);
               return new String.fromCharCodes(codeUnits);
             }
             code = (code << 4) + hexDigitValue(digit);
@@ -293,7 +284,7 @@ String unescapeCodeUnits(List<int> codeUnits, bool isRaw, Object location,
         }
         if (code > 0x10FFFF) {
           listener.handleUnescapeError(
-              invalidCodePoint, location, begin, i + 1 - begin);
+              fasta.messageInvalidCodePoint, location, begin, i + 1 - begin);
           return new String.fromCharCodes(codeUnits);
         }
       } else {
@@ -307,5 +298,5 @@ String unescapeCodeUnits(List<int> codeUnits, bool isRaw, Object location,
 
 abstract class UnescapeErrorListener {
   void handleUnescapeError(
-      String error, covariant location, int offset, int length);
+      fasta.Message message, covariant location, int offset, int length);
 }

@@ -778,11 +778,31 @@ StackOverflow:
   analyzerCode: STACK_OVERFLOW
   dart2jsCode: GENERIC
 
-StringLiteralError:
-  template: "#string at offset #count"
-  analyzerCode: ERROR_IN_STRING_LITERAL
+InvalidCodePoint:
+  template: "The escape sequence starting with '\\u' isn't a valid code point."
+  analyzerCode: INVALID_CODE_POINT
   dart2jsCode: "*fatal*"
-  expression: "'\\u{110000'"
+  expression:
+    - "'\\u{110000}'"
+
+InvalidHexEscape:
+  template: "An escape sequence starting with '\\x' must be followed by 2 hexidecimal digits."
+  analyzerCode: INVALID_HEX_ESCAPE
+  dart2jsCode: "*fatal*"
+  expression:
+    - "'\\x0'"
+    - "'\\x0y'"
+
+InvalidUnicodeEscape:
+  template: "An escape sequence starting with '\\u' must be followed by 4 hexidecimal digits or from 1 to 6 digits between '{' and '}'."
+  analyzerCode: INVALID_UNICODE_ESCAPE
+  dart2jsCode: "*fatal*"
+  expression:
+    - "'\\u'"
+    - "'\\u0F'"
+    - "'\\u{'"
+    - "'\\u{03'"
+    - "'\\u{0Z}'"
 
 UnexpectedDollarInString:
   template: "A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({})."

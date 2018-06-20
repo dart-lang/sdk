@@ -3769,6 +3769,28 @@ Message _withArgumentsInvalidCastTopLevelFunction(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidCodePoint = messageInvalidCodePoint;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidCodePoint = const MessageCode(
+    "InvalidCodePoint",
+    analyzerCode: "INVALID_CODE_POINT",
+    dart2jsCode: "*fatal*",
+    message:
+        r"""The escape sequence starting with '\u' isn't a valid code point.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidHexEscape = messageInvalidHexEscape;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidHexEscape = const MessageCode(
+    "InvalidHexEscape",
+    analyzerCode: "INVALID_HEX_ESCAPE",
+    dart2jsCode: "*fatal*",
+    message:
+        r"""An escape sequence starting with '\x' must be followed by 2 hexidecimal digits.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidInitializer = messageInvalidInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3842,6 +3864,17 @@ const MessageCode messageInvalidSyncModifier = const MessageCode(
     dart2jsCode: "INVALID_SYNC_MODIFIER",
     message: r"""Invalid modifier 'sync'.""",
     tip: r"""Try replacing 'sync' with 'sync*'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidUnicodeEscape = messageInvalidUnicodeEscape;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidUnicodeEscape = const MessageCode(
+    "InvalidUnicodeEscape",
+    analyzerCode: "INVALID_UNICODE_ESCAPE",
+    dart2jsCode: "*fatal*",
+    message:
+        r"""An escape sequence starting with '\u' must be followed by 4 hexidecimal digits or from 1 to 6 digits between '{' and '}'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidVoid = messageInvalidVoid;
@@ -5549,26 +5582,6 @@ const MessageCode messageStaticOperator = const MessageCode("StaticOperator",
     dart2jsCode: "EXTRANEOUS_MODIFIER",
     message: r"""Operators can't be static.""",
     tip: r"""Try removing the keyword 'static'.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string, int count)>
-    templateStringLiteralError =
-    const Template<Message Function(String string, int count)>(
-        messageTemplate: r"""#string at offset #count""",
-        withArguments: _withArgumentsStringLiteralError);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string, int count)> codeStringLiteralError =
-    const Code<Message Function(String string, int count)>(
-        "StringLiteralError", templateStringLiteralError,
-        analyzerCode: "ERROR_IN_STRING_LITERAL", dart2jsCode: "*fatal*");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsStringLiteralError(String string, int count) {
-  return new Message(codeStringLiteralError,
-      message: """${string} at offset ${count}""",
-      arguments: {'string': string, 'count': count});
-}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSuperAsExpression = messageSuperAsExpression;

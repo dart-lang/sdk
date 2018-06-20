@@ -12,8 +12,7 @@ import '../fasta_codes.dart'
     show
         Message,
         messageNativeClauseShouldBeAnnotation,
-        templateInternalProblemStackNotEmpty,
-        templateStringLiteralError;
+        templateInternalProblemStackNotEmpty;
 
 import '../parser.dart' show Listener, MemberKind, Parser;
 
@@ -359,11 +358,8 @@ abstract class StackListener extends Listener {
 
   @override
   void handleUnescapeError(
-      String error, Token token, int stringOffset, int length) {
-    addCompileTimeError(
-        templateStringLiteralError.withArguments(error, stringOffset),
-        token.charOffset + stringOffset,
-        length);
+      Message message, Token token, int stringOffset, int length) {
+    addCompileTimeError(message, token.charOffset + stringOffset, length);
   }
 
   void addCompileTimeError(Message message, int charOffset, int length);
