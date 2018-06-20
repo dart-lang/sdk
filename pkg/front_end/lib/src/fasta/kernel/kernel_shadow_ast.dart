@@ -2339,7 +2339,7 @@ class ThisJudgment extends ThisExpression implements ExpressionJudgment {
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    return (inferrer.thisType ?? const DynamicType());
+    return inferredType = inferrer.thisType ?? const DynamicType();
   }
 }
 
@@ -2847,7 +2847,8 @@ class LoadLibraryJudgment extends LoadLibrary implements ExpressionJudgment {
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    return inferredType = super.getStaticType(inferrer.typeSchemaEnvironment);
+    return inferredType =
+        inferrer.typeSchemaEnvironment.futureType(const DynamicType());
   }
 }
 
@@ -2863,7 +2864,7 @@ class CheckLibraryIsLoadedJudgment extends CheckLibraryIsLoaded
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    return inferredType = super.getStaticType(inferrer.typeSchemaEnvironment);
+    return inferredType = inferrer.typeSchemaEnvironment.objectType;
   }
 }
 
