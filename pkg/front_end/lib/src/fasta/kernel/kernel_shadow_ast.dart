@@ -3060,17 +3060,19 @@ class ShadowWhileStatement extends WhileStatement implements StatementJudgment {
 }
 
 /// Concrete shadow object representing a yield statement in kernel form.
-class ShadowYieldStatement extends YieldStatement implements StatementJudgment {
-  ShadowYieldStatement(Expression expression, {bool isYieldStar: false})
+class YieldJudgment extends YieldStatement implements StatementJudgment {
+  YieldJudgment(Expression expression, {bool isYieldStar: false})
       : super(expression, isYieldStar: isYieldStar);
+
+  ExpressionJudgment get judgment => expression;
 
   @override
   void infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory) {
     inferrer.listener.yieldStatementEnter(fileOffset);
+    var judgment = this.judgment;
     var closureContext = inferrer.closureContext;
-    DartType inferredType;
     if (closureContext.isGenerator) {
       var typeContext = closureContext.returnOrYieldContext;
       if (isYieldStar && typeContext != null) {
@@ -3080,14 +3082,12 @@ class ShadowYieldStatement extends YieldStatement implements StatementJudgment {
                 ? inferrer.coreTypes.streamClass
                 : inferrer.coreTypes.iterableClass);
       }
-      inferredType =
-          inferrer.inferExpression(factory, expression, typeContext, true);
+      inferrer.inferExpression(factory, judgment, typeContext, true);
     } else {
-      inferredType = inferrer.inferExpression(
-          factory, expression, const UnknownType(), true);
+      inferrer.inferExpression(factory, judgment, const UnknownType(), true);
     }
     closureContext.handleYield(
-        inferrer, isYieldStar, inferredType, expression, fileOffset);
+        inferrer, isYieldStar, judgment.inferredType, expression, fileOffset);
     inferrer.listener.yieldStatementExit(fileOffset);
   }
 }

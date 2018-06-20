@@ -102,7 +102,7 @@ import 'kernel_shadow_ast.dart'
         ShadowTryCatch,
         ShadowTryFinally,
         ShadowWhileStatement,
-        ShadowYieldStatement,
+        YieldJudgment,
         ThisJudgment,
         ThrowJudgment,
         TypeLiteralJudgment;
@@ -532,7 +532,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   @override
   Statement yieldStatement(
       Token yieldKeyword, Token star, Expression expression, Token semicolon) {
-    return new ShadowYieldStatement(expression, isYieldStar: star != null)
+    return new YieldJudgment(expression, isYieldStar: star != null)
       ..fileOffset = yieldKeyword.charOffset;
   }
 
