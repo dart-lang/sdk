@@ -70,6 +70,12 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
         .addAll((json['outputUnits'] as List).map((o) => parseOutputUnit(o)));
 
     result.program = parseProgram(json['program']);
+
+    if (json['deferredFiles'] != null) {
+      result.deferredFiles =
+          (json['deferredFiles'] as Map).cast<String, Map<String, dynamic>>();
+    }
+
     // todo: version, etc
     return result;
   }

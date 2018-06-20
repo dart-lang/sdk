@@ -115,6 +115,8 @@ class AllInfoPB extends GeneratedMessage {
         ProgramInfoPB.create)
     ..pp<AllInfoPB_AllInfosEntry>(2, 'allInfos', PbFieldType.PM,
         AllInfoPB_AllInfosEntry.$checkItem, AllInfoPB_AllInfosEntry.create)
+    ..pp<LibraryDeferredImportsPB>(3, 'deferredImports', PbFieldType.PM,
+        LibraryDeferredImportsPB.$checkItem, LibraryDeferredImportsPB.create)
     ..hasRequiredFields = false;
 
   AllInfoPB() : super();
@@ -146,6 +148,8 @@ class AllInfoPB extends GeneratedMessage {
   void clearProgram() => clearField(1);
 
   List<AllInfoPB_AllInfosEntry> get allInfos => $_getList(1);
+
+  List<LibraryDeferredImportsPB> get deferredImports => $_getList(2);
 }
 
 class _ReadonlyAllInfoPB extends AllInfoPB with ReadonlyMessageMixin {}
@@ -1138,3 +1142,101 @@ class ClosureInfoPB extends GeneratedMessage {
 }
 
 class _ReadonlyClosureInfoPB extends ClosureInfoPB with ReadonlyMessageMixin {}
+
+class DeferredImportPB extends GeneratedMessage {
+  static final BuilderInfo _i = new BuilderInfo('DeferredImportPB')
+    ..aOS(1, 'prefix')
+    ..pPS(2, 'files')
+    ..hasRequiredFields = false;
+
+  DeferredImportPB() : super();
+  DeferredImportPB.fromBuffer(List<int> i,
+      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      : super.fromBuffer(i, r);
+  DeferredImportPB.fromJson(String i,
+      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      : super.fromJson(i, r);
+  DeferredImportPB clone() => new DeferredImportPB()..mergeFromMessage(this);
+  BuilderInfo get info_ => _i;
+  static DeferredImportPB create() => new DeferredImportPB();
+  static PbList<DeferredImportPB> createRepeated() =>
+      new PbList<DeferredImportPB>();
+  static DeferredImportPB getDefault() {
+    if (_defaultInstance == null)
+      _defaultInstance = new _ReadonlyDeferredImportPB();
+    return _defaultInstance;
+  }
+
+  static DeferredImportPB _defaultInstance;
+  static void $checkItem(DeferredImportPB v) {
+    if (v is! DeferredImportPB) checkItemFailed(v, 'DeferredImportPB');
+  }
+
+  String get prefix => $_getS(0, '');
+  set prefix(String v) {
+    $_setString(0, v);
+  }
+
+  bool hasPrefix() => $_has(0);
+  void clearPrefix() => clearField(1);
+
+  List<String> get files => $_getList(1);
+}
+
+class _ReadonlyDeferredImportPB extends DeferredImportPB
+    with ReadonlyMessageMixin {}
+
+class LibraryDeferredImportsPB extends GeneratedMessage {
+  static final BuilderInfo _i = new BuilderInfo('LibraryDeferredImportsPB')
+    ..aOS(1, 'libraryUri')
+    ..aOS(2, 'libraryName')
+    ..pp<DeferredImportPB>(3, 'imports', PbFieldType.PM,
+        DeferredImportPB.$checkItem, DeferredImportPB.create)
+    ..hasRequiredFields = false;
+
+  LibraryDeferredImportsPB() : super();
+  LibraryDeferredImportsPB.fromBuffer(List<int> i,
+      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      : super.fromBuffer(i, r);
+  LibraryDeferredImportsPB.fromJson(String i,
+      [ExtensionRegistry r = ExtensionRegistry.EMPTY])
+      : super.fromJson(i, r);
+  LibraryDeferredImportsPB clone() =>
+      new LibraryDeferredImportsPB()..mergeFromMessage(this);
+  BuilderInfo get info_ => _i;
+  static LibraryDeferredImportsPB create() => new LibraryDeferredImportsPB();
+  static PbList<LibraryDeferredImportsPB> createRepeated() =>
+      new PbList<LibraryDeferredImportsPB>();
+  static LibraryDeferredImportsPB getDefault() {
+    if (_defaultInstance == null)
+      _defaultInstance = new _ReadonlyLibraryDeferredImportsPB();
+    return _defaultInstance;
+  }
+
+  static LibraryDeferredImportsPB _defaultInstance;
+  static void $checkItem(LibraryDeferredImportsPB v) {
+    if (v is! LibraryDeferredImportsPB)
+      checkItemFailed(v, 'LibraryDeferredImportsPB');
+  }
+
+  String get libraryUri => $_getS(0, '');
+  set libraryUri(String v) {
+    $_setString(0, v);
+  }
+
+  bool hasLibraryUri() => $_has(0);
+  void clearLibraryUri() => clearField(1);
+
+  String get libraryName => $_getS(1, '');
+  set libraryName(String v) {
+    $_setString(1, v);
+  }
+
+  bool hasLibraryName() => $_has(1);
+  void clearLibraryName() => clearField(2);
+
+  List<DeferredImportPB> get imports => $_getList(2);
+}
+
+class _ReadonlyLibraryDeferredImportsPB extends LibraryDeferredImportsPB
+    with ReadonlyMessageMixin {}

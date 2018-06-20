@@ -30,6 +30,14 @@ const AllInfoPB$json = const {
       '6': '.dart2js_info.proto.AllInfoPB.AllInfosEntry',
       '10': 'allInfos'
     },
+    const {
+      '1': 'deferred_imports',
+      '3': 3,
+      '4': 3,
+      '5': 11,
+      '6': '.dart2js_info.proto.LibraryDeferredImportsPB',
+      '10': 'deferredImports'
+    },
   ],
   '3': const [AllInfoPB_AllInfosEntry$json],
 };
@@ -386,5 +394,29 @@ const ClosureInfoPB$json = const {
   '1': 'ClosureInfoPB',
   '2': const [
     const {'1': 'function_id', '3': 1, '4': 1, '5': 9, '10': 'functionId'},
+  ],
+};
+
+const DeferredImportPB$json = const {
+  '1': 'DeferredImportPB',
+  '2': const [
+    const {'1': 'prefix', '3': 1, '4': 1, '5': 9, '10': 'prefix'},
+    const {'1': 'files', '3': 2, '4': 3, '5': 9, '10': 'files'},
+  ],
+};
+
+const LibraryDeferredImportsPB$json = const {
+  '1': 'LibraryDeferredImportsPB',
+  '2': const [
+    const {'1': 'library_uri', '3': 1, '4': 1, '5': 9, '10': 'libraryUri'},
+    const {'1': 'library_name', '3': 2, '4': 1, '5': 9, '10': 'libraryName'},
+    const {
+      '1': 'imports',
+      '3': 3,
+      '4': 3,
+      '5': 11,
+      '6': '.dart2js_info.proto.DeferredImportPB',
+      '10': 'imports'
+    },
   ],
 };

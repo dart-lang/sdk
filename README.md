@@ -446,3 +446,4 @@ bugs at the [issue tracker][tracker].
 [live]: https://github.com/dart-lang/dart2js_info/blob/master/bin/live_code_size_analysis.dart
 [function_analysis]: https://github.com/dart-lang/dart2js_info/blob/master/bin/function_size_analysis.dart
 [AllInfo]: http://dart-lang.github.io/dart2js_info/doc/api/dart2js_info.info/AllInfo-class.html
+[info_json_to_proto]: https://github.com/dart-lang/dart2js_info/blob/master/bin/info_json_to_proto.dart

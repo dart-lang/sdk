@@ -17,6 +17,9 @@ message AllInfoPB {
 
   /** All the recorded information about elements processed by the compiler. */
   map<string, InfoPB> all_infos = 2;
+
+  /** Details about all deferred imports and what files would be loaded when the import is resolved. */
+  repeated LibraryDeferredImportsPB deferred_imports = 3;
 }
 
 /*
@@ -262,4 +265,24 @@ message FunctionInfoPB {
 message ClosureInfoPB {
   /** serialized_id of the FunctionInfo wrapped by this closure. */
   string function_id = 1;
+}
+
+message DeferredImportPB {
+  /** The prefix assigned to the deferred import. */
+  string prefix = 1;
+
+  /** The list of filenames loaded by the import. */
+  repeated string files = 2;
+}
+
+/** Information about deferred imports within a dart library. */
+message LibraryDeferredImportsPB {
+  /** The uri of the library which makes the deferred import. */
+  string library_uri = 1;
+
+  /** The name of the library, or "<unnamed>" if it is unnamed. */
+  string library_name = 2;
+
+  /** The individual deferred imports within the library. */
+  repeated DeferredImportPB imports = 3;
 }

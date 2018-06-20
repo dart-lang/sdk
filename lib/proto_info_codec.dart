@@ -238,6 +238,22 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
     }
   }
 
+  static LibraryDeferredImportsPB _convertToLibraryDeferredImportsPB(
+      String libraryUri, Map<String, dynamic> fields) {
+    final proto = new LibraryDeferredImportsPB()
+      ..libraryUri = libraryUri
+      ..libraryName = fields['name'] ?? '<unnamed>';
+
+    Map<String, List<String>> imports = fields['imports'];
+    imports.forEach((prefix, files) {
+      final import = new DeferredImportPB()..prefix = prefix;
+      import.files.addAll(files);
+      proto.imports.add(import);
+    });
+
+    return proto;
+  }
+
   static AllInfoPB _convertToAllInfoPB(AllInfo info) {
     final proto = new AllInfoPB()
       ..program = _convertToProgramInfoPB(info.program);
@@ -250,6 +266,11 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
     proto.allInfos.addAll(_convertToAllInfosEntries(info.outputUnits));
     proto.allInfos.addAll(_convertToAllInfosEntries(info.typedefs));
     proto.allInfos.addAll(_convertToAllInfosEntries(info.closures));
+
+    info.deferredFiles?.forEach((libraryUri, fields) {
+      proto.deferredImports
+          .add(_convertToLibraryDeferredImportsPB(libraryUri, fields));
+    });
 
     return proto;
   }
