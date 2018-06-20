@@ -25,6 +25,10 @@ def Main():
                     action="store_true", default=False)
   parser.add_option("--target_os",
                     action="store", type="string")
+  parser.add_option("--size_symbol_name",
+                    action="store", type="string")
+  parser.add_option("--target_arch",
+                    action="store", type="string")
 
   (options, args) = parser.parse_args()
   if not options.output:
@@ -78,17 +82,52 @@ def Main():
       output_file.write(".balign 32\n")
       output_file.write("%s:\n" % options.symbol_name)
 
+    size = 0
     with open(options.input, "rb") as input_file:
       if options.target_os in ["win"]:
         for byte in input_file.read():
           output_file.write("byte %d\n" % ord(byte))
-        output_file.write("end\n")
+          size += 1
       else:
         for byte in input_file.read():
           output_file.write(".byte %d\n" % ord(byte))
+          size += 1
 
     if options.target_os not in ["mac", "ios", "win"]:
       output_file.write(".size {0}, .-{0}\n".format(options.symbol_name))
+
+    if options.size_symbol_name:
+      if not options.target_arch:
+        sys.stderr.write("--target_arch not specified\n")
+        parser.print_help();
+        return -1
+
+      is64bit = 0
+      if options.target_arch:
+        if options.target_arch in ["arm64", "x64"]:
+          is64bit = 1
+
+      if options.target_os in ["win"]:
+        output_file.write("public %s\n" % options.size_symbol_name)
+        output_file.write("%s label byte\n" % options.size_symbol_name)
+        if (is64bit == 1):
+          output_file.write("qword %d\n" % size )
+        else:
+          output_file.write("dword %d\n" % size )
+      else:
+        if options.target_os in ["mac", "ios"]:
+          output_file.write(".global _%s\n" % options.size_symbol_name)
+          output_file.write("_%s:\n" % options.size_symbol_name)
+        else:
+          output_file.write(".global %s\n" % options.size_symbol_name)
+          output_file.write("%s:\n" % options.size_symbol_name)
+        if (is64bit == 1):
+          output_file.write(".quad %d\n" % size )
+        else:
+          output_file.write(".long %d\n" % size )
+
+    if options.target_os in ["win"]:
+      output_file.write("end\n")
 
   return 0
 

@@ -593,9 +593,7 @@ template("dart_io") {
     deps += [ "//third_party/boringssl" ]
 
     if (is_fuchsia) {
-      deps += [
-        "//garnet/public/lib/netstack/c",
-      ]
+      deps += [ "//garnet/public/lib/netstack/c" ]
       public_deps = [
         "//zircon/public/lib/fdio",
       ]
@@ -701,6 +699,14 @@ template("bin_to_assembly") {
       "--target_os",
       current_os,
     ]
+    if (defined(invoker.size_symbol)) {
+      args += [
+        "--size_symbol_name",
+        invoker.size_symbol,
+        "--target_arch",
+        current_cpu,
+      ]
+    }
     if (invoker.executable) {
       args += [ "--executable" ]
     }
@@ -754,64 +760,37 @@ bin_to_assembly("isolate_snapshot_instructions_assembly") {
   executable = true
 }
 
-template("dill_to_cc") {
-  assert(defined(invoker.dill_file), "Need dill_file in $target_name.")
-  assert(defined(invoker.data_symbol), "Need data_symbol in $target_name.")
-  assert(defined(invoker.size_symbol), "Need size_symbol in $target_name.")
-  assert(defined(invoker.output), "Need output in $target_name.")
-
-  extra_deps = []
-  if (defined(invoker.deps)) {
-    extra_deps += invoker.deps
-  }
-
-  action(target_name) {
-    deps = extra_deps
-    script = "../tools/dill_to_data_cc.py"
-    inputs = [
-      "../tools/dill_to_data_cc.py",
-      invoker.dill_file,
-    ]
-    outputs = [
-      invoker.output,
-    ]
-    args = [
-      "--dill_file=" + rebase_path(invoker.dill_file),
-      "--data_symbol=" + invoker.data_symbol,
-      "--size_symbol=" + invoker.size_symbol,
-      "--output=" + rebase_path(invoker.output),
-    ]
-  }
-}
-
-dill_to_cc("kernel_service_dill_cc") {
+bin_to_assembly("kernel_service_dill_S") {
   deps = [
     "../../utils/kernel-service:kernel_service_dill",
   ]
-  dill_file = "$root_gen_dir/kernel_service.dill"
-  data_symbol = "kKernelServiceDill"
+  input = "$root_gen_dir/kernel_service.dill"
+  output = "$root_gen_dir/kernel_service.dill.S"
+  symbol = "kKernelServiceDill"
   size_symbol = "kKernelServiceDillSize"
-  output = "$root_gen_dir/kernel_service.dill.cc"
+  executable = false
 }
 
-dill_to_cc("platform_dill_cc") {
+bin_to_assembly("platform_dill_S") {
   deps = [
     "../vm:vm_legacy_platform",
   ]
-  dill_file = "$root_out_dir/vm_platform.dill"
-  data_symbol = "kPlatformDill"
+  input = "$root_out_dir/vm_platform.dill"
+  output = "$target_gen_dir/vm_platform.dill.S"
+  symbol = "kPlatformDill"
   size_symbol = "kPlatformDillSize"
-  output = "$target_gen_dir/vm_platform.dill.cc"
+  executable = false
 }
 
-dill_to_cc("platform_strong_dill_cc") {
+bin_to_assembly("platform_strong_dill_S") {
   deps = [
     "../vm:vm_platform",
   ]
-  dill_file = "$root_out_dir/vm_platform_strong.dill"
-  data_symbol = "kPlatformStrongDill"
+  input = "$root_out_dir/vm_platform_strong.dill"
+  output = "$target_gen_dir/vm_platform_strong.dill.S"
+  symbol = "kPlatformStrongDill"
   size_symbol = "kPlatformStrongDillSize"
-  output = "$target_gen_dir/vm_platform_strong.dill.cc"
+  executable = false
 }
 
 source_set("dart_snapshot_cc") {
@@ -831,14 +810,14 @@ source_set("dart_snapshot_cc") {
 
 source_set("dart_kernel_platform_cc") {
   deps = [
-    ":kernel_service_dill_cc",
-    ":platform_dill_cc",
-    ":platform_strong_dill_cc",
+    ":kernel_service_dill_S",
+    ":platform_dill_S",
+    ":platform_strong_dill_S",
   ]
   sources = [
-    "$root_gen_dir/kernel_service.dill.cc",
-    "$target_gen_dir/vm_platform.dill.cc",
-    "$target_gen_dir/vm_platform_strong.dill.cc",
+    "$root_gen_dir/kernel_service.dill.S",
+    "$target_gen_dir/vm_platform.dill.S",
+    "$target_gen_dir/vm_platform_strong.dill.S",
   ]
 }
 
