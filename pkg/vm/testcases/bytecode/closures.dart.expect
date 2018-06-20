@@ -222,11 +222,11 @@ Bytecode {
   PopLocal             r2
   PushConstant         CP#49
   Push                 r2
-  InstanceCall1        1, CP#50
+  InstanceCall1        2, CP#50
   Drop1
   PushConstant         CP#51
   Push                 r2
-  InstanceCall1        1, CP#52
+  InstanceCall1        2, CP#52
   Drop1
   PushConstant         CP#18
   ReturnTOS
@@ -443,11 +443,11 @@ Closure CP#2 {
   PopLocal             r2
   PushConstant         CP#43
   Push                 r2
-  InstanceCall1        1, CP#45
+  InstanceCall1        2, CP#45
   Drop1
   PushConstant         CP#46
   Push                 r2
-  InstanceCall1        1, CP#47
+  InstanceCall1        2, CP#47
   Drop1
   PushConstant         CP#18
   ReturnTOS
@@ -1359,7 +1359,7 @@ Bytecode {
   PushConstant         CP#5
   IndirectStaticCall   1, CP#4
   Drop1
-  InstanceCall1        1, CP#7
+  InstanceCall1        2, CP#7
   Drop1
   PushConstant         CP#8
   PushConstant         CP#3
@@ -1370,7 +1370,7 @@ Bytecode {
   PushConstant         CP#9
   IndirectStaticCall   1, CP#4
   Drop1
-  InstanceCall1        1, CP#10
+  InstanceCall1        2, CP#10
   Drop1
   PushConstant         CP#8
   PushConstant         CP#12
@@ -1381,7 +1381,7 @@ Bytecode {
   PushConstant         CP#13
   IndirectStaticCall   1, CP#4
   Drop1
-  InstanceCall1        1, CP#14
+  InstanceCall1        2, CP#14
   Drop1
   PushConstant         CP#15
   ReturnTOS
