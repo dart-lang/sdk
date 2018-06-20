@@ -12,7 +12,9 @@ dependencies:
   args: '>=0.13.0 <2.0.0'
   charcode: ^1.1.0
   collection: ^1.10.1
+  fixnum: ^0.10.5
   path: ^1.3.6
+  protobuf: '>=0.9.0'
   quiver: '>=0.21.0 <0.26.0'
   shelf: '>=0.6.1+2 <0.8.0'
   shelf_static: ^0.2.4
@@ -27,6 +29,7 @@ executables:
   dart2js_info_deferred_library_check:  deferred_library_check
   dart2js_info_deferred_library_size:   deferred_library_size
   dart2js_info_deferred_library_layout: deferred_library_layout
+  dart2js_info_json_to_proto:           info_json_to_proto
   dart2js_info_function_size_analysis:  function_size_analysis
   dart2js_info_library_size_split:      library_size_split
   dart2js_info_live_code_size_analysis: live_code_size_analysis
