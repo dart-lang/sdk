@@ -6,6 +6,7 @@ import '../common.dart';
 import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../frontend_strategy.dart';
 import '../universe/feature.dart';
 import '../util/util.dart' show Setlet;
 import 'backend_impact.dart';
@@ -87,7 +88,7 @@ abstract class BackendUsageBuilder {
 }
 
 class BackendUsageBuilderImpl implements BackendUsageBuilder {
-  final CommonElements _commonElements;
+  FrontendStrategy _frontendStrategy;
   // TODO(johnniwinther): Remove the need for these.
   Setlet<FunctionEntity> _globalFunctionDependencies;
   Setlet<ClassEntity> _globalClassDependencies;
@@ -118,43 +119,34 @@ class BackendUsageBuilderImpl implements BackendUsageBuilder {
   /// `true` if `noSuchMethod` is used.
   bool isNoSuchMethodUsed = false;
 
-  BackendUsageBuilderImpl(this._commonElements);
+  BackendUsageBuilderImpl(this._frontendStrategy);
+
+  CommonElements get _commonElements => _frontendStrategy.commonElements;
 
   @override
   void registerBackendFunctionUse(FunctionEntity element) {
-    assert(_isValidBackendUse(element),
+    assert(_isValidBackendUse(element, element.library),
         failedAt(element, "Backend use of $element is not allowed."));
     _helperFunctionsUsed.add(element);
   }
 
   @override
   void registerBackendClassUse(ClassEntity element) {
-    assert(_isValidBackendUse(element),
+    assert(_isValidBackendUse(element, element.library),
         failedAt(element, "Backend use of $element is not allowed."));
     _helperClassesUsed.add(element);
   }
 
-  bool _isValidBackendUse(Entity element) {
+  bool _isValidBackendUse(Entity element, LibraryEntity library) {
     if (_isValidEntity(element)) return true;
-    // TODO(redemption): Support these checks on kernel based elements:
-    /*if (element is Element) {
-      assert(element.isDeclaration,
-          failedAt(element, "Backend use $element must be the declaration."));
-      if (element.implementationLibrary.isPatch ||
-          // Needed to detect deserialized injected elements, that is
-          // element declared in patch files.
-          (element.library.isPlatformLibrary &&
-              element.sourcePosition.uri.path
-                  .contains('_internal/js_runtime/lib/')) ||
-          element.library == _commonElements.jsHelperLibrary ||
-          element.library == _commonElements.interceptorsLibrary) {
-        // TODO(johnniwinther): We should be more precise about these.
-        return true;
-      } else {
-        return false;
-      }
-    }*/
-    return true;
+    SourceSpan span = _frontendStrategy.spanFromSpannable(element, element);
+    if (library.canonicalUri.scheme == 'dart' &&
+        span.uri.path.contains('_internal/js_runtime/lib/')) {
+      // TODO(johnniwinther): We should be more precise about these.
+      return true;
+    } else {
+      return false;
+    }
   }
 
   bool _isValidEntity(Entity element) {

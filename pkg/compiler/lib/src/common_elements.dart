@@ -1091,6 +1091,15 @@ class CommonElements {
   FunctionEntity get createInvocationMirror =>
       _findHelperFunction('createInvocationMirror');
 
+  bool isCreateInvocationMirrorHelper(MemberEntity member) {
+    return member.isTopLevel &&
+        member.name == '_createInvocationMirror' &&
+        member.library == coreLibrary;
+  }
+
+  FunctionEntity get createUnmangledInvocationMirror =>
+      _findHelperFunction('createUnmangledInvocationMirror');
+
   FunctionEntity get cyclicThrowHelper =>
       _findHelperFunction("throwCyclicInit");
 

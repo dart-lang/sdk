@@ -409,7 +409,8 @@ class JavaScriptBackend {
             compiler.backendStrategy.sourceInformationStrategy,
         constantCompilerTask = new JavaScriptConstantTask(compiler) {
     CommonElements commonElements = compiler.frontendStrategy.commonElements;
-    _backendUsageBuilder = new BackendUsageBuilderImpl(commonElements);
+    _backendUsageBuilder =
+        new BackendUsageBuilderImpl(compiler.frontendStrategy);
     _checkedModeHelpers = new CheckedModeHelpers();
     emitter =
         new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);

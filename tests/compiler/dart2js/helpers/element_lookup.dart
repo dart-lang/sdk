@@ -22,12 +22,14 @@ ClassEntity findClass(JClosedWorld closedWorld, String name) {
 }
 
 MemberEntity findClassMember(
-    JClosedWorld closedWorld, String className, String memberName) {
+    JClosedWorld closedWorld, String className, String memberName,
+    {bool required: true}) {
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   ClassEntity cls = findClass(closedWorld, className);
   assert(cls != null, "Class '$className' not found.");
   MemberEntity member = elementEnvironment.lookupClassMember(cls, memberName);
-  assert(member != null, "Member '$memberName' not found in $cls.");
+  assert(
+      !required || member != null, "Member '$memberName' not found in $cls.");
   return member;
 }
 

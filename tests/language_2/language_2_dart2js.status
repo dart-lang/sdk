@@ -760,8 +760,6 @@ nested_generic_closure_test: RuntimeError
 no_main_test/01: CompileTimeError
 no_such_method_mock_test: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_arguments_test: RuntimeError
-nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError
-nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError
 null_no_such_method_test: CompileTimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError, OK # non JS number semantics
@@ -800,12 +798,7 @@ string_interpolation_and_buffer_test: RuntimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
-super_no_such_method1_test: CompileTimeError
-super_no_such_method2_test: CompileTimeError
-super_no_such_method3_test: CompileTimeError
-super_no_such_method4_test: CompileTimeError
-super_no_such_method5_test: CompileTimeError
-super_operator_index5_test: CompileTimeError
+super_call4_test/01: MissingCompileTimeError
 super_operator_index6_test: CompileTimeError
 super_operator_index7_test: CompileTimeError
 super_operator_index8_test: CompileTimeError
@@ -1206,8 +1199,6 @@ nested_generic_closure_test: RuntimeError
 no_main_test/01: CompileTimeError
 no_such_method_mock_test: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_arguments_test: RuntimeError
-nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError
-nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError
 null_no_such_method_test: CompileTimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError, OK # non JS number semantics
@@ -1264,12 +1255,7 @@ string_interpolation_and_buffer_test: RuntimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
-super_no_such_method1_test: CompileTimeError
-super_no_such_method2_test: CompileTimeError
-super_no_such_method3_test: CompileTimeError
-super_no_such_method4_test: CompileTimeError
-super_no_such_method5_test: CompileTimeError
-super_operator_index5_test: CompileTimeError
+super_call4_test/01: MissingCompileTimeError
 super_operator_index6_test: CompileTimeError
 super_operator_index7_test: CompileTimeError
 super_operator_index8_test: CompileTimeError
@@ -1721,8 +1707,6 @@ no_such_method_mock_test: RuntimeError
 no_such_method_native_test: RuntimeError
 no_such_method_test: RuntimeError
 nosuchmethod_forwarding/nosuchmethod_forwarding_arguments_test: RuntimeError
-nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError
-nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError
 null_no_such_method_test: CompileTimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError, OK # non JS number semantics
@@ -1779,12 +1763,7 @@ string_interpolation_and_buffer_test: RuntimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
-super_no_such_method1_test: CompileTimeError
-super_no_such_method2_test: CompileTimeError
-super_no_such_method3_test: CompileTimeError
-super_no_such_method4_test: CompileTimeError
-super_no_such_method5_test: CompileTimeError
-super_operator_index5_test: CompileTimeError
+super_call4_test/01: MissingCompileTimeError
 super_operator_index6_test: CompileTimeError
 super_operator_index7_test: CompileTimeError
 super_operator_index8_test: CompileTimeError
@@ -1871,7 +1850,6 @@ wrong_number_type_arguments_test/none: Pass
 const_constructor3_test/04: MissingCompileTimeError # OK - Subtype check uses JS number semantics.
 covariant_subtyping_test: Crash
 ct_const_test: RuntimeError
-nosuchmethod_forwarding/nosuchmethod_forwarding_partial_instantiation_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && !$strong ]
 *: SkipByDesign

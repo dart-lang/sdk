@@ -373,7 +373,8 @@ class ClassEnvImpl implements ClassEnv {
       }
     }
 
-    void addProcedures(ir.Class c, {bool includeStatic}) {
+    void addProcedures(ir.Class c,
+        {bool includeStatic, bool includeNoSuchMethodForwarders}) {
       for (ir.Procedure member in c.procedures) {
         if (member.isForwardingStub && member.isAbstract) {
           // Skip abstract forwarding stubs. These are never emitted but they
@@ -391,6 +392,9 @@ class ClassEnvImpl implements ClassEnv {
           continue;
         }
         if (!includeStatic && member.isStatic) continue;
+        if (!includeNoSuchMethodForwarders && member.isNoSuchMethodForwarder) {
+          continue;
+        }
         var name = member.name.name;
         assert(!name.contains('#'));
         if (member.kind == ir.ProcedureKind.Factory) {
@@ -424,13 +428,15 @@ class ClassEnvImpl implements ClassEnv {
     if (cls.mixedInClass != null) {
       elementMap.ensureClassMembers(cls.mixedInClass);
       addFields(cls.mixedInClass.mixin, includeStatic: false);
-      addProcedures(cls.mixedInClass.mixin, includeStatic: false);
+      addProcedures(cls.mixedInClass.mixin,
+          includeStatic: false, includeNoSuchMethodForwarders: false);
       mergeSort(members, compare: orderByFileOffset);
       mixinMemberCount = members.length;
     }
     addFields(cls, includeStatic: true);
     addConstructors(cls);
-    addProcedures(cls, includeStatic: true);
+    addProcedures(cls,
+        includeStatic: true, includeNoSuchMethodForwarders: true);
 
     if (isUnnamedMixinApplication && _constructorMap.isEmpty) {
       // Ensure that constructors are created for the superclass in case it

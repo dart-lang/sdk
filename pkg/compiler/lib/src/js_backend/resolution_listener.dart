@@ -285,6 +285,10 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     }
     _backendUsage.registerUsedMember(member);
 
+    if (_commonElements.isCreateInvocationMirrorHelper(member)) {
+      _registerBackendImpact(worldImpact, _impacts.noSuchMethodSupport);
+    }
+
     if (_elementEnvironment.isDeferredLoadLibraryGetter(member)) {
       // TODO(sigurdm): Create a function registerLoadLibraryAccess.
       if (!_isLoadLibraryFunctionResolved) {

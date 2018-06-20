@@ -93,8 +93,11 @@ abstract class KernelToElementMap {
   /// Returns the [Name] corresponding to [name].
   Name getName(ir.Name name);
 
-  /// Return `true` if [node] is the `dart:_foreign_helper` library.
-  bool isForeignLibrary(ir.Library node);
+  /// Return `true` if [member] is a "foreign helper", that is, a member whose
+  /// semantics is defined synthetically and not through Dart code.
+  ///
+  /// Most foreign helpers are located in the `dart:_foreign_helper` library.
+  bool isForeignHelper(MemberEntity member);
 
   /// Computes the [native.NativeBehavior] for a call to the [JS] function.
   native.NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);

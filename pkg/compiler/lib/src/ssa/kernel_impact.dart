@@ -142,9 +142,8 @@ class KernelImpactBuilder extends ir.Visitor {
     handleSignature(constructor.function, checkReturnType: false);
     visitNodes(constructor.initializers);
     visitNode(constructor.function.body);
-    if (constructor.isExternal &&
-        !elementMap.isForeignLibrary(constructor.enclosingLibrary)) {
-      MemberEntity member = elementMap.getMember(constructor);
+    MemberEntity member = elementMap.getMember(constructor);
+    if (constructor.isExternal && !elementMap.isForeignHelper(member)) {
       bool isJsInterop = elementMap.nativeBasicData.isJsInteropMember(member);
       impactBuilder.registerNativeData(elementMap
           .getNativeBehaviorForMethod(constructor, isJsInterop: isJsInterop));
@@ -198,9 +197,8 @@ class KernelImpactBuilder extends ir.Visitor {
     handleSignature(procedure.function);
     visitNode(procedure.function.body);
     handleAsyncMarker(procedure.function);
-    if (procedure.isExternal &&
-        !elementMap.isForeignLibrary(procedure.enclosingLibrary)) {
-      MemberEntity member = elementMap.getMember(procedure);
+    MemberEntity member = elementMap.getMember(procedure);
+    if (procedure.isExternal && !elementMap.isForeignHelper(member)) {
       bool isJsInterop = elementMap.nativeBasicData.isJsInteropMember(member);
       impactBuilder.registerNativeData(elementMap
           .getNativeBehaviorForMethod(procedure, isJsInterop: isJsInterop));

@@ -978,7 +978,7 @@ abstract class HInstruction implements Spannable {
   HInstruction(this.inputs, this.instructionType)
       : id = idCounter++,
         usedBy = <HInstruction>[] {
-    assert(inputs.every((e) => e != null));
+    assert(inputs.every((e) => e != null), "inputs: $inputs");
   }
 
   int get hashCode => id;

@@ -104,9 +104,13 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
     return new Selector.setter(name);
   }
 
-  /// Return `true` if [node] is the `dart:_foreign_helper` library.
-  bool isForeignLibrary(ir.Library node) {
-    return node.importUri == Uris.dart__foreign_helper;
+  /// Return `true` if [member] is a "foreign helper", that is, a member whose
+  /// semantics is defined synthetically and not through Dart code.
+  ///
+  /// Most foreign helpers are located in the `dart:_foreign_helper` library.
+  bool isForeignHelper(MemberEntity member) {
+    return member.library == commonElements.foreignLibrary ||
+        commonElements.isCreateInvocationMirrorHelper(member);
   }
 
   /// Looks up [typeName] for use in the spec-string of a `JS` call.
@@ -387,7 +391,7 @@ abstract class KernelToElementMapForImpactMixin
 
   /// Compute the kind of foreign helper function called by [node], if any.
   ForeignKind getForeignKind(ir.StaticInvocation node) {
-    if (isForeignLibrary(node.target.enclosingLibrary)) {
+    if (isForeignHelper(getMember(node.target))) {
       switch (node.target.name.name) {
         case JavaScriptBackend.JS:
           return ForeignKind.JS;

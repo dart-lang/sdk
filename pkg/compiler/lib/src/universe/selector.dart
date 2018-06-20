@@ -208,15 +208,16 @@ class Selector {
    */
   String get invocationMirrorMemberName => isSetter ? '$name=' : name;
 
+  static const int invocationMirrorMethodKind = 0;
+  static const int invocationMirrorGetterKind = 1;
+  static const int invocationMirrorSetterKind = 2;
+
   int get invocationMirrorKind {
-    const int METHOD = 0;
-    const int GETTER = 1;
-    const int SETTER = 2;
-    int kind = METHOD;
+    int kind = invocationMirrorMethodKind;
     if (isGetter) {
-      kind = GETTER;
+      kind = invocationMirrorGetterKind;
     } else if (isSetter) {
-      kind = SETTER;
+      kind = invocationMirrorSetterKind;
     }
     return kind;
   }

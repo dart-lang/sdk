@@ -19,6 +19,7 @@ import '../constants/values.dart'
 import '../dump_info.dart';
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
+import '../elements/names.dart';
 import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
@@ -3280,11 +3281,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
     ir.Procedure target = node.target;
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildCall(node, node);
-    if (_elementMap.isForeignLibrary(target.enclosingLibrary)) {
-      handleInvokeStaticForeign(node, target);
+    FunctionEntity function = _elementMap.getMember(target);
+    if (_elementMap.isForeignHelper(function)) {
+      handleInvokeStaticForeign(node, function);
       return;
     }
-    FunctionEntity function = _elementMap.getMember(target);
 
     if (options.strongMode &&
         function == _commonElements.extractTypeArguments &&
@@ -3558,8 +3559,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   void handleInvokeStaticForeign(
-      ir.StaticInvocation invocation, ir.Procedure target) {
-    String name = target.name.name;
+      ir.StaticInvocation invocation, MemberEntity member) {
+    String name = member.name;
     if (name == 'JS') {
       handleForeignJs(invocation);
     } else if (name == 'DART_CLOSURE_TO_JS') {
@@ -3584,11 +3585,121 @@ class KernelSsaGraphBuilder extends ir.Visitor
       handleJsInterceptorConstant(invocation);
     } else if (name == 'JS_STRING_CONCAT') {
       handleJsStringConcat(invocation);
+    } else if (name == '_createInvocationMirror') {
+      _handleCreateInvocationMirror(invocation);
     } else {
       reporter.internalError(
           _elementMap.getSpannable(targetElement, invocation),
           "Unknown foreign: ${name}");
     }
+  }
+
+  void _handleCreateInvocationMirror(ir.StaticInvocation invocation) {
+    ir.StringLiteral nameLiteral = invocation.arguments.positional[0];
+    String name = nameLiteral.value;
+
+    ir.ListLiteral typeArgumentsLiteral = invocation.arguments.positional[1];
+    List<DartType> typeArguments =
+        typeArgumentsLiteral.expressions.map((ir.Expression expression) {
+      ir.TypeLiteral typeLiteral = expression;
+      return _elementMap.getDartType(typeLiteral.type);
+    }).toList();
+
+    ir.ListLiteral positionalArgumentsLiteral =
+        invocation.arguments.positional[2];
+    ir.MapLiteral namedArgumentsLiteral = invocation.arguments.positional[3];
+    ir.IntLiteral kindLiteral = invocation.arguments.positional[4];
+
+    Name memberName = new Name(name, _currentFrame.member.library);
+    Selector selector;
+    switch (kindLiteral.value) {
+      case Selector.invocationMirrorGetterKind:
+        selector = new Selector.getter(memberName);
+        break;
+      case Selector.invocationMirrorSetterKind:
+        selector = new Selector.setter(memberName);
+        break;
+      case Selector.invocationMirrorMethodKind:
+        if (memberName == Names.INDEX_NAME) {
+          selector = new Selector.index();
+        } else if (memberName == Names.INDEX_SET_NAME) {
+          selector = new Selector.indexSet();
+        } else {
+          CallStructure callStructure = new CallStructure(
+              positionalArgumentsLiteral.expressions.length,
+              namedArgumentsLiteral.entries.map<String>((ir.MapEntry entry) {
+                ir.StringLiteral key = entry.key;
+                return key.value;
+              }).toList(),
+              typeArguments.length);
+          if (Selector.isOperatorName(name)) {
+            selector =
+                new Selector(SelectorKind.OPERATOR, memberName, callStructure);
+          } else {
+            selector = new Selector.call(memberName, callStructure);
+          }
+        }
+        break;
+    }
+
+    HConstant nameConstant = graph.addConstant(
+        closedWorld.constantSystem
+            .createSymbol(closedWorld.commonElements, name),
+        closedWorld);
+
+    List<HInstruction> arguments = <HInstruction>[];
+    for (ir.Expression argument in positionalArgumentsLiteral.expressions) {
+      argument.accept(this);
+      arguments.add(pop());
+    }
+    if (namedArgumentsLiteral.entries.isNotEmpty) {
+      Map<String, HInstruction> namedValues = <String, HInstruction>{};
+      for (ir.MapEntry entry in namedArgumentsLiteral.entries) {
+        ir.StringLiteral key = entry.key;
+        String name = key.value;
+        entry.value.accept(this);
+        namedValues[name] = pop();
+      }
+      for (String name in selector.callStructure.getOrderedNamedArguments()) {
+        arguments.add(namedValues[name]);
+      }
+    }
+
+    _addTypeArguments(arguments, typeArguments,
+        _sourceInformationBuilder.buildCall(invocation, invocation));
+
+    HInstruction argumentsInstruction = buildLiteralList(arguments);
+    add(argumentsInstruction);
+
+    List<HInstruction> argumentNames = <HInstruction>[];
+    for (String argumentName in selector.namedArguments) {
+      ConstantValue argumentNameConstant =
+          constantSystem.createString(argumentName);
+      argumentNames.add(graph.addConstant(argumentNameConstant, closedWorld));
+    }
+    HInstruction argumentNamesInstruction = buildLiteralList(argumentNames);
+    add(argumentNamesInstruction);
+
+    HInstruction typeArgumentCount =
+        graph.addConstantInt(typeArguments.length, closedWorld);
+
+    js.Name internalName = namer.invocationName(selector);
+
+    ConstantValue kindConstant =
+        constantSystem.createIntFromInt(selector.invocationMirrorKind);
+
+    _pushStaticInvocation(
+        _commonElements.createUnmangledInvocationMirror,
+        [
+          nameConstant,
+          graph.addConstantStringFromName(internalName, closedWorld),
+          graph.addConstant(kindConstant, closedWorld),
+          argumentsInstruction,
+          argumentNamesInstruction,
+          typeArgumentCount,
+        ],
+        abstractValueDomain.dynamicType,
+        const <DartType>[]);
   }
 
   bool _unexpectedForeignArguments(ir.StaticInvocation invocation,
