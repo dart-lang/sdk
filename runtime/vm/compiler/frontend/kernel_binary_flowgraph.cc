@@ -1203,15 +1203,14 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         obj = H.DartSymbolPlain(builder_->ReadStringReference()).raw();
         ASSERT(String::Cast(obj).IsSymbol());
         break;
-      case kTypeArgumentsForInstanceAllocation: {
+      case ConstantPoolTag::kTypeArgumentsForInstanceAllocation: {
         cls =
             H.LookupClassByKernelClass(builder_->ReadCanonicalNameReference());
-        intptr_t type_args_index = builder_->ReadUInt();
-        ASSERT(type_args_index < i);
-        type_args ^= pool.ObjectAt(type_args_index);
-        elem = Type::New(cls, type_args, TokenPosition::kNoSource);
-        elem = ClassFinalizer::FinalizeType(cls, Type::Cast(elem));
-        obj = Type::Cast(elem).arguments();
+        obj =
+            builder_->type_translator_
+                .BuildInstantiatedTypeArguments(cls, builder_->ReadListLength())
+                .raw();
+        ASSERT(obj.IsNull() || obj.IsTypeArguments());
       } break;
       case ConstantPoolTag::kContextOffset: {
         intptr_t index = builder_->ReadUInt();
