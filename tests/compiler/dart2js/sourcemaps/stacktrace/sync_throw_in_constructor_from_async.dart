@@ -17,7 +17,7 @@ test() async {
 
 class Class {
   @NoInline()
-  /*5:Class*/ Class() {
+  Class() {
     /*6:Class*/ throw '>ExceptionMarker<';
   }
 }

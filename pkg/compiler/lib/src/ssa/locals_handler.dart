@@ -128,17 +128,17 @@ class LocalsHandler {
   /// method creates a box and sets up the redirections.
   void enterScope(
       CapturedScope closureInfo, SourceInformation sourceInformation,
-      {bool forGenerativeConstructorBody: false}) {
+      {bool forGenerativeConstructorBody: false, HInstruction inlinedBox}) {
     // See if any variable in the top-scope of the function is captured. If yes
     // we need to create a box-object.
     if (!closureInfo.requiresContextBox) return;
     HInstruction box;
     // The scope has captured variables.
     if (forGenerativeConstructorBody) {
-      // The box is passed as a parameter to a generative
-      // constructor body.
-      box = builder.addParameter(
-          closureInfo.context, _abstractValueDomain.nonNullType);
+      // The box is passed as a parameter to a generative constructor body.
+      box = inlinedBox ??
+          builder.addParameter(
+              closureInfo.context, _abstractValueDomain.nonNullType);
     } else {
       box = createBox(sourceInformation);
     }
