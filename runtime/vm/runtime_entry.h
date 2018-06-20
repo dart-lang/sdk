@@ -7,9 +7,9 @@
 
 #include "vm/allocation.h"
 #include "vm/flags.h"
+#include "vm/heap/safepoint.h"
 #include "vm/native_arguments.h"
 #include "vm/runtime_entry_list.h"
-#include "vm/safepoint.h"
 #include "vm/tags.h"
 
 namespace dart {

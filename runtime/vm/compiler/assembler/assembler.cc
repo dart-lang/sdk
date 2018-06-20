@@ -8,7 +8,7 @@
 
 #include "platform/utils.h"
 #include "vm/cpu.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/memory_region.h"
 #include "vm/os.h"
 #include "vm/zone.h"

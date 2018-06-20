@@ -4,7 +4,7 @@
 
 #include "vm/virtual_memory.h"
 #include "platform/assert.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/unit_test.h"
 
 namespace dart {

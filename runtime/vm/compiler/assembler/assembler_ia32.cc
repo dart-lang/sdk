@@ -7,7 +7,7 @@
 
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/cpu.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/instructions.h"
 #include "vm/memory_region.h"
 #include "vm/runtime_entry.h"

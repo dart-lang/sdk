@@ -14,6 +14,7 @@
 #include "vm/deopt_instructions.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
+#include "vm/heap/verifier.h"
 #include "vm/instructions.h"
 #include "vm/interpreter.h"
 #include "vm/kernel_isolate.h"
@@ -27,7 +28,6 @@
 #include "vm/symbols.h"
 #include "vm/thread_registry.h"
 #include "vm/type_testing_stubs.h"
-#include "vm/verifier.h"
 
 namespace dart {
 

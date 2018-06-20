@@ -33,6 +33,7 @@ import("../lib/vmservice_sources.gni")
 import("../configs.gni")
 import("../runtime_args.gni")
 import("compiler/compiler_sources.gni")
+import("heap/heap_sources.gni")
 import("vm_sources.gni")
 
 config("libdart_vm_config") {
@@ -75,7 +76,8 @@ library_for_all_configs("libdart_vm") {
                                   "*_test.cc",
                                   "*_test.h",
                                 ])
-  sources = vm_sources + rebase_path(compiler_sources, ".", "./compiler/")
+  sources = vm_sources + rebase_path(compiler_sources, ".", "./compiler/") +
+            rebase_path(heap_sources, ".", "./heap/")
   include_dirs = [ ".." ]
 }
 

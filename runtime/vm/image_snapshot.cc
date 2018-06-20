@@ -9,7 +9,7 @@
 #include "vm/dwarf.h"
 #include "vm/hash.h"
 #include "vm/hash_map.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/json_writer.h"
 #include "vm/object.h"
 #include "vm/stub_code.h"

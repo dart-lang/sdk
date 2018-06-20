@@ -8,6 +8,7 @@ import("../../sdk/lib/io/io_sources.gni")
 import("../../sdk/lib/cli/cli_sources.gni")
 import("../../utils/generate_entry_points_json.gni")
 import("../runtime_args.gni")
+import("../vm/heap/heap_sources.gni")
 import("../vm/compiler/compiler_sources.gni")
 import("../vm/vm_sources.gni")
 import("builtin_impl_sources.gni")
@@ -1147,6 +1148,7 @@ executable("run_vm_tests") {
   # the tests here.
   vm_tests = rebase_path(vm_sources_tests, ".", "../vm")
   compiler_tests = rebase_path(compiler_sources_tests, ".", "../vm/compiler")
+  heap_tests = rebase_path(heap_sources_tests, ".", "../vm/heap")
 
   sources = [
               "builtin_nolib.cc",
@@ -1155,7 +1157,7 @@ executable("run_vm_tests") {
               "run_vm_tests.cc",
               "snapshot_utils.cc",
               "snapshot_utils.h",
-            ] + builtin_impl_tests + vm_tests + compiler_tests
+            ] + builtin_impl_tests + vm_tests + compiler_tests + heap_tests
 
   if (!is_win) {
     ldflags = [ "-rdynamic" ]

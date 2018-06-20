@@ -4,7 +4,7 @@
 
 #include "vm/lockers.h"
 #include "platform/assert.h"
-#include "vm/safepoint.h"
+#include "vm/heap/safepoint.h"
 
 namespace dart {
 

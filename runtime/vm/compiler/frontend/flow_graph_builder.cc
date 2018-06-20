@@ -19,7 +19,7 @@
 #include "vm/compiler/jit/compiler.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_store.h"

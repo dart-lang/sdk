@@ -15,7 +15,7 @@
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/handles.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/os.h"

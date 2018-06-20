@@ -13,7 +13,7 @@
 #include "vm/dart.h"
 #include "vm/dart_api_state.h"
 #include "vm/globals.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/isolate.h"
 #include "vm/longjump.h"
 #include "vm/object.h"

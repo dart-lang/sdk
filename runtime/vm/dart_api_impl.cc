@@ -24,6 +24,7 @@
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
+#include "vm/heap/verifier.h"
 #include "vm/image_snapshot.h"
 #include "vm/isolate_reload.h"
 #include "vm/kernel_isolate.h"
@@ -50,7 +51,6 @@
 #include "vm/timer.h"
 #include "vm/unicode.h"
 #include "vm/uri.h"
-#include "vm/verifier.h"
 #include "vm/version.h"
 
 namespace dart {

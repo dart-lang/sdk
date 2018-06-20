@@ -7,7 +7,6 @@
 #include "vm/compiler/cha.h"
 #include "vm/class_table.h"
 #include "vm/flags.h"
-#include "vm/freelist.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
 #include "vm/visitor.h"

@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/assert.h"
+#include "vm/heap/safepoint.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/profiler.h"
-#include "vm/safepoint.h"
 #include "vm/stack_frame.h"
 #include "vm/thread_pool.h"
 #include "vm/unit_test.h"

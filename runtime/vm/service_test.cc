@@ -10,12 +10,12 @@
 #include "vm/debugger.h"
 #include "vm/debugger_api_impl_test.h"
 #include "vm/globals.h"
+#include "vm/heap/safepoint.h"
 #include "vm/message_handler.h"
 #include "vm/object_id_ring.h"
 #include "vm/os.h"
 #include "vm/port.h"
 #include "vm/profiler.h"
-#include "vm/safepoint.h"
 #include "vm/service.h"
 #include "vm/unit_test.h"
 

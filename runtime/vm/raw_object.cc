@@ -4,10 +4,10 @@
 
 #include "vm/raw_object.h"
 
-#include "vm/become.h"
 #include "vm/class_table.h"
 #include "vm/dart.h"
-#include "vm/freelist.h"
+#include "vm/heap/become.h"
+#include "vm/heap/freelist.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/visitor.h"

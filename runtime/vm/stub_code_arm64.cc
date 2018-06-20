@@ -9,7 +9,7 @@
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
 #include "vm/runtime_entry.h"

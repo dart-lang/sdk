@@ -5,7 +5,7 @@
 #ifndef RUNTIME_VM_HANDLES_IMPL_H_
 #define RUNTIME_VM_HANDLES_IMPL_H_
 
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/thread.h"
 #include "vm/visitor.h"
 

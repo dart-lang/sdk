@@ -6,7 +6,6 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
-#include "vm/become.h"
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
@@ -31,7 +30,9 @@
 #include "vm/growable_array.h"
 #include "vm/hash.h"
 #include "vm/hash_table.h"
-#include "vm/heap.h"
+#include "vm/heap/become.h"
+#include "vm/heap/heap.h"
+#include "vm/heap/weak_code.h"
 #include "vm/isolate_reload.h"
 #include "vm/kernel.h"
 #include "vm/kernel_isolate.h"
@@ -54,7 +55,6 @@
 #include "vm/type_table.h"
 #include "vm/type_testing_stubs.h"
 #include "vm/unicode.h"
-#include "vm/weak_code.h"
 #include "vm/zone_text_buffer.h"
 
 namespace dart {

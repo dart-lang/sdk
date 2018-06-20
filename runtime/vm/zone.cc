@@ -9,7 +9,7 @@
 #include "vm/dart_api_state.h"
 #include "vm/flags.h"
 #include "vm/handles_impl.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/os.h"
 
 namespace dart {

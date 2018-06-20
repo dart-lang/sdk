@@ -9,7 +9,7 @@
 #include "vm/class_finalizer.h"
 #include "vm/dart.h"
 #include "vm/exceptions.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/longjump.h"
 #include "vm/message.h"
 #include "vm/object.h"

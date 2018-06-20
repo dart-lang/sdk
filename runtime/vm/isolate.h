@@ -14,6 +14,7 @@
 #include "vm/fixed_cache.h"
 #include "vm/growable_array.h"
 #include "vm/handles.h"
+#include "vm/heap/verifier.h"
 #include "vm/megamorphic_cache_table.h"
 #include "vm/metrics.h"
 #include "vm/os_thread.h"
@@ -22,7 +23,6 @@
 #include "vm/thread.h"
 #include "vm/timer.h"
 #include "vm/token_position.h"
-#include "vm/verifier.h"
 
 namespace dart {
 

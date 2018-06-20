@@ -10,10 +10,10 @@
 #include "vm/allocation.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/exceptions.h"
+#include "vm/heap/verifier.h"
 #include "vm/log.h"
 #include "vm/native_arguments.h"
 #include "vm/runtime_entry.h"
-#include "vm/verifier.h"
 
 #include "include/dart_api.h"
 

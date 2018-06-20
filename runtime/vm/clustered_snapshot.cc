@@ -8,7 +8,7 @@
 #include "vm/bootstrap.h"
 #include "vm/compiler/backend/code_statistics.h"
 #include "vm/dart.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/image_snapshot.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"

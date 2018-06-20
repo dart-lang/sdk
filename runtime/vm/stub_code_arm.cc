@@ -11,7 +11,7 @@
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/instructions.h"
 #include "vm/isolate.h"
 #include "vm/object_store.h"

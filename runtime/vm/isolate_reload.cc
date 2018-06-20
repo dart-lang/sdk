@@ -4,11 +4,12 @@
 
 #include "vm/isolate_reload.h"
 
-#include "vm/become.h"
 #include "vm/bit_vector.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/hash_table.h"
+#include "vm/heap/become.h"
+#include "vm/heap/safepoint.h"
 #include "vm/isolate.h"
 #include "vm/kernel_isolate.h"
 #include "vm/kernel_loader.h"
@@ -17,7 +18,6 @@
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/runtime_entry.h"
-#include "vm/safepoint.h"
 #include "vm/service_event.h"
 #include "vm/stack_frame.h"
 #include "vm/thread.h"
