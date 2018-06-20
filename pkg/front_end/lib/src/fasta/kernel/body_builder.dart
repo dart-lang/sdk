@@ -3517,8 +3517,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     for (Expression expression in expressions) {
       expressionOffsets.add(forest.readOffset(expression));
     }
-    push(new SwitchCase(toKernelExpressionList(expressions), expressionOffsets,
-        toKernelStatement(block),
+    push(new SwitchCaseJudgment(toKernelExpressionList(expressions),
+        expressionOffsets, toKernelStatement(block),
         isDefault: defaultKeyword != null)
       ..fileOffset = firstToken.charOffset);
     push(labels);
@@ -3534,7 +3534,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     exitLocalScope();
     Expression expression = popForValue();
     kernel.Statement result =
-        new ShadowSwitchStatement(toKernelExpression(expression), cases)
+        new SwitchStatementJudgment(toKernelExpression(expression), cases)
           ..fileOffset = switchKeyword.charOffset;
     if (target.hasUsers) {
       result = new LabeledStatementJudgment(result);

@@ -2416,25 +2416,47 @@ class SuperPropertyGetJudgment extends SuperPropertyGet
   }
 }
 
+/// Concrete shadow object representing a switch case.
+class SwitchCaseJudgment extends SwitchCase {
+  SwitchCaseJudgment(
+      List<Expression> expressions, List<int> expressionOffsets, Statement body,
+      {bool isDefault: false})
+      : super(expressions, expressionOffsets, body, isDefault: isDefault);
+
+  SwitchCaseJudgment.defaultCase(Statement body) : super.defaultCase(body);
+
+  SwitchCaseJudgment.empty() : super.empty();
+
+  List<ExpressionJudgment> get expressionJudgments => expressions.cast();
+
+  StatementJudgment get bodyJudgment => body;
+}
+
 /// Concrete shadow object representing a switch statement in kernel form.
-class ShadowSwitchStatement extends SwitchStatement
+class SwitchStatementJudgment extends SwitchStatement
     implements StatementJudgment {
-  ShadowSwitchStatement(Expression expression, List<SwitchCase> cases)
+  SwitchStatementJudgment(Expression expression, List<SwitchCase> cases)
       : super(expression, cases);
+
+  ExpressionJudgment get expressionJudgment => expression;
+
+  List<SwitchCaseJudgment> get caseJudgments => cases.cast();
 
   @override
   void infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory) {
     inferrer.listener.switchStatementEnter(fileOffset);
-    var expressionType = inferrer.inferExpression(
-        factory, expression, const UnknownType(), true);
-    for (var switchCase in cases) {
-      for (var caseExpression in switchCase.expressions) {
+    var expressionJudgment = this.expressionJudgment;
+    inferrer.inferExpression(
+        factory, expressionJudgment, const UnknownType(), true);
+    var expressionType = expressionJudgment.inferredType;
+    for (var switchCase in caseJudgments) {
+      for (var caseExpression in switchCase.expressionJudgments) {
         inferrer.inferExpression(
             factory, caseExpression, expressionType, false);
       }
-      inferrer.inferStatement(factory, switchCase.body);
+      inferrer.inferStatement(factory, switchCase.bodyJudgment);
     }
     inferrer.listener.switchStatementExit(fileOffset);
   }
