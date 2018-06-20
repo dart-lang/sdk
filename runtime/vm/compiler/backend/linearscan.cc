@@ -2977,7 +2977,19 @@ void FlowGraphAllocator::AllocateRegisters() {
   last_used_register_ = -1;
 #endif
 
-  cpu_spill_slot_count_ = spill_slots_.length();
+#if defined(TARGET_ARCH_DBC)
+  // Spilling is unsupported on DBC.
+  ASSERT(spill_slots_.length() == 0);
+  cpu_spill_slot_count_ = 0;
+#else
+  // GraphEntryInstr::fixed_slot_count() stack slots are reserved for catch
+  // entries. When allocating a spill slot, AllocateSpillSlotFor() accounts for
+  // these reserved slots and allocates spill slots on top of them.
+  // However, if there are no spill slots allocated, we still need to reserve
+  // slots for catch entries in the spill area.
+  cpu_spill_slot_count_ = Utils::Maximum(
+      spill_slots_.length(), flow_graph_.graph_entry()->fixed_slot_count());
+#endif
   spill_slots_.Clear();
   quad_spill_slots_.Clear();
   untagged_spill_slots_.Clear();

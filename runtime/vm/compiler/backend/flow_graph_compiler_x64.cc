@@ -1193,9 +1193,15 @@ void ParallelMoveResolver::EmitMove(int index) {
       __ movq(destination.reg(), source.reg());
     } else {
       ASSERT(destination.IsStackSlot());
+      ASSERT((destination.base_reg() != FPREG) ||
+             ((-VariableIndexForFrameSlot(destination.stack_index())) <
+              compiler_->StackSize()));
       __ movq(destination.ToStackSlotAddress(), source.reg());
     }
   } else if (source.IsStackSlot()) {
+    ASSERT((source.base_reg() != FPREG) ||
+           ((-VariableIndexForFrameSlot(source.stack_index())) <
+            compiler_->StackSize()));
     if (destination.IsRegister()) {
       __ movq(destination.reg(), source.ToStackSlotAddress());
     } else {
