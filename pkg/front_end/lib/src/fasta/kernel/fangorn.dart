@@ -74,38 +74,38 @@ import 'kernel_shadow_ast.dart'
         BlockJudgment,
         BoolJudgment,
         BreakJudgment,
-        ContinueJudgment,
         CheckLibraryIsLoadedJudgment,
         ConditionalJudgment,
+        ContinueJudgment,
         DoJudgment,
         DoubleJudgment,
         EmptyStatementJudgment,
+        IntJudgment,
+        IsJudgment,
+        IsNotJudgment,
+        LabeledStatementJudgment,
+        LoadLibraryJudgment,
+        NullJudgment,
         ShadowExpressionStatement,
         ShadowForStatement,
         ShadowIfStatement,
-        IntJudgment,
-        ShadowIsExpression,
-        ShadowIsNotExpression,
-        LabeledStatementJudgment,
         ShadowListLiteral,
-        LoadLibraryJudgment,
         ShadowLogicalExpression,
         ShadowMapLiteral,
         ShadowNot,
-        NullJudgment,
         ShadowRethrow,
         ShadowReturnStatement,
         ShadowStringConcatenation,
         ShadowStringLiteral,
         ShadowSymbolLiteral,
         ShadowSyntheticExpression,
-        ThisJudgment,
-        ThrowJudgment,
         ShadowTryCatch,
         ShadowTryFinally,
-        TypeLiteralJudgment,
         ShadowWhileStatement,
-        ShadowYieldStatement;
+        ShadowYieldStatement,
+        ThisJudgment,
+        ThrowJudgment,
+        TypeLiteralJudgment;
 
 import 'forest.dart'
     show
@@ -414,9 +414,9 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       Expression operand, isOperator, Token notOperator, covariant type) {
     int offset = offsetForToken(isOperator);
     if (notOperator != null) {
-      return new ShadowIsNotExpression(operand, type, offset);
+      return new IsNotJudgment(operand, type, offset);
     }
-    return new ShadowIsExpression(operand, type)..fileOffset = offset;
+    return new IsJudgment(operand, type)..fileOffset = offset;
   }
 
   @override

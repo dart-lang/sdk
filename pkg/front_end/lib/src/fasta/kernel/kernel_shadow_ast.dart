@@ -1414,26 +1414,33 @@ class ShadowInvalidInitializer extends LocalInitializer
 }
 
 /// Concrete shadow object representing a non-inverted "is" test in kernel form.
-class ShadowIsExpression extends IsExpression implements ExpressionJudgment {
+class IsJudgment extends IsExpression implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowIsExpression(Expression operand, DartType type) : super(operand, type);
+  ExpressionJudgment get judgment => operand;
+
+  IsJudgment(Expression operand, DartType type) : super(operand, type);
 
   @override
   DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    inferrer.inferExpression(factory, operand, const UnknownType(), false);
-    return inferrer.coreTypes.boolClass.rawType;
+    inferrer.inferExpression(factory, judgment, const UnknownType(), false);
+    return inferredType = inferrer.coreTypes.boolClass.rawType;
   }
 }
 
 /// Concrete shadow object representing an inverted "is" test in kernel form.
-class ShadowIsNotExpression extends Not implements ExpressionJudgment {
+class IsNotJudgment extends Not implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowIsNotExpression(Expression operand, DartType type, int charOffset)
+  @override
+  IsExpression get operand => super.operand;
+
+  ExpressionJudgment get judgment => operand.operand;
+
+  IsNotJudgment(Expression operand, DartType type, int charOffset)
       : super(new IsExpression(operand, type)..fileOffset = charOffset);
 
   @override
@@ -1441,10 +1448,8 @@ class ShadowIsNotExpression extends Not implements ExpressionJudgment {
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    IsExpression isExpression = this.operand;
-    inferrer.inferExpression(
-        factory, isExpression.operand, const UnknownType(), false);
-    return inferrer.coreTypes.boolClass.rawType;
+    inferrer.inferExpression(factory, judgment, const UnknownType(), false);
+    return inferredType = inferrer.coreTypes.boolClass.rawType;
   }
 }
 
