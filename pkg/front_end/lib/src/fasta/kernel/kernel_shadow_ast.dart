@@ -789,9 +789,9 @@ class ShadowConstructorInvocation extends ConstructorInvocation
 
 /// Concrete shadow object representing a continue statement from a switch
 /// statement, in kernel form.
-class ShadowContinueSwitchStatement extends ContinueSwitchStatement
+class ContinueSwitchJudgment extends ContinueSwitchStatement
     implements StatementJudgment {
-  ShadowContinueSwitchStatement(SwitchCase target) : super(target);
+  ContinueSwitchJudgment(SwitchCase target) : super(target);
 
   @override
   void infer<Expression, Statement, Initializer, Type>(

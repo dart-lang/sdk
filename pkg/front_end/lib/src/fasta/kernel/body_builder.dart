@@ -3653,9 +3653,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
       }
       if (target.isGotoTarget &&
           target.functionNestingLevel == functionNestingLevel) {
-        ContinueSwitchStatement statement =
-            new ShadowContinueSwitchStatement(null)
-              ..fileOffset = continueKeyword.charOffset;
+        ContinueSwitchStatement statement = new ContinueSwitchJudgment(null)
+          ..fileOffset = continueKeyword.charOffset;
         target.addGoto(toStatement(statement));
         push(statement);
         return;

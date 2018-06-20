@@ -70,7 +70,7 @@ export 'kernel_shadow_ast.dart'
         ShadowCascadeExpression,
         ShadowComplexAssignment,
         ShadowConstructorInvocation,
-        ShadowContinueSwitchStatement,
+        ContinueSwitchJudgment,
         ShadowDeferredCheck,
         ShadowExpressionStatement,
         ShadowFactoryConstructorInvocation,
