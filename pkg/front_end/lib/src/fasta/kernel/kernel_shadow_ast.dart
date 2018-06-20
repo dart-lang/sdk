@@ -1328,22 +1328,31 @@ class ShadowIfNullExpression extends Let implements ExpressionJudgment {
 }
 
 /// Concrete shadow object representing an if statement in kernel form.
-class ShadowIfStatement extends IfStatement implements StatementJudgment {
-  ShadowIfStatement(Expression condition, Statement then, Statement otherwise)
+class IfJudgment extends IfStatement implements StatementJudgment {
+  IfJudgment(Expression condition, Statement then, Statement otherwise)
       : super(condition, then, otherwise);
+
+  ExpressionJudgment get conditionJudgment => condition;
+
+  StatementJudgment get thenJudgment => then;
+
+  StatementJudgment get otherwiseJudgment => otherwise;
 
   @override
   void infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory) {
     inferrer.listener.ifStatementEnter(fileOffset);
+    var conditionJudgment = this.conditionJudgment;
     var expectedType = inferrer.coreTypes.boolClass.rawType;
-    var conditionType = inferrer.inferExpression(
-        factory, condition, expectedType, !inferrer.isTopLevel);
-    inferrer.ensureAssignable(
-        expectedType, conditionType, condition, condition.fileOffset);
-    inferrer.inferStatement(factory, then);
-    if (otherwise != null) inferrer.inferStatement(factory, otherwise);
+    inferrer.inferExpression(
+        factory, conditionJudgment, expectedType, !inferrer.isTopLevel);
+    inferrer.ensureAssignable(expectedType, conditionJudgment.inferredType,
+        condition, condition.fileOffset);
+    inferrer.inferStatement(factory, thenJudgment);
+    if (otherwiseJudgment != null) {
+      inferrer.inferStatement(factory, otherwiseJudgment);
+    }
     inferrer.listener.ifStatementExit(fileOffset);
   }
 }

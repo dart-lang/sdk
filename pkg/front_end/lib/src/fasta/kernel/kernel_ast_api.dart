@@ -79,7 +79,7 @@ export 'kernel_shadow_ast.dart'
         ShadowFunctionDeclaration,
         ShadowFunctionExpression,
         ShadowIfNullExpression,
-        ShadowIfStatement,
+        IfJudgment,
         ShadowIllegalAssignment,
         ShadowIndexAssign,
         ShadowInvalidInitializer,
