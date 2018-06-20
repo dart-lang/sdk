@@ -152,7 +152,11 @@ class _Evaluator {
       return completer.future
           .then((String s) => jsonDecode(s))
           .then((dynamic json) {
-        return json['result']['result']['kernelBytes'];
+        Map<String, dynamic> jsonMap = json;
+        if (jsonMap.containsKey('error')) {
+          throw jsonMap['error'];
+        }
+        return jsonMap['result']['result']['kernelBytes'];
       });
     } else {
       // fallback to compile using kernel service
