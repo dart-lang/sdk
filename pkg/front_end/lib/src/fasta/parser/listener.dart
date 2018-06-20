@@ -903,6 +903,7 @@ class Listener implements UnescapeErrorListener {
   /// Handle the begin of a type formal parameter (e.g. "X extends Y").
   /// Substructures:
   /// - Metadata
+  /// - Name (identifier)
   void beginTypeVariable(Token name) {}
 
   /// Handle the end of a type formal parameter (e.g. "X extends Y").

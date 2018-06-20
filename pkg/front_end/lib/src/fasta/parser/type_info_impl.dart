@@ -511,6 +511,7 @@ class SimpleTypeArgument1 implements TypeParamOrArgInfo {
     token = token.next;
     listener.beginMetadataStar(token);
     listener.endMetadataStar(0);
+    listener.handleIdentifier(token, IdentifierContext.typeVariableDeclaration);
     listener.beginTypeVariable(token);
     listener.handleNoType(token);
     token = processEndGroup(token, start, parser);
@@ -658,10 +659,8 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
     int count = 0;
     while (true) {
       token = parser.parseMetadataStar(next);
-      token = token.next.kind == IDENTIFIER_TOKEN
-          ? token.next
-          : IdentifierContext.typeVariableDeclaration
-              .ensureIdentifier(token, parser);
+      token = parser.ensureIdentifier(
+          token, IdentifierContext.typeVariableDeclaration);
       parser.listener.beginTypeVariable(token);
       Token extendsOrSuper = null;
       next = token.next;

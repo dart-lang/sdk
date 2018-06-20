@@ -449,7 +449,7 @@ class DietListener extends StackListener {
   @override
   void endTypeVariable(Token token, Token extendsOrSuper) {
     debugEvent("TypeVariable");
-    discard(1); // Metadata.
+    discard(2); // Name and metadata.
   }
 
   @override

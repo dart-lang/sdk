@@ -2168,7 +2168,6 @@ class AstBuilder extends StackListener {
   @override
   void beginTypeVariable(Token name) {
     debugEvent("beginTypeVariable");
-    push(ast.simpleIdentifier(name, isDeclaration: true));
   }
 
   @override

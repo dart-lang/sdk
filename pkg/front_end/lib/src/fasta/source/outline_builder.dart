@@ -1109,8 +1109,6 @@ class OutlineBuilder extends StackListener {
   @override
   void beginTypeVariable(Token token) {
     debugEvent("beginTypeVariable");
-    push(token.lexeme);
-    push(token.charOffset);
   }
 
   @override
