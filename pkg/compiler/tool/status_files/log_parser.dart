@@ -12,7 +12,7 @@ final String _assertionFileReplacement = r"'file:*/pkg/";
 
 /// Extracts test records from a test.py [log].
 List<Record> parse(String log) {
-  var records = [];
+  var records = <Record>[];
   var suite;
   var test;
   var config;
@@ -20,7 +20,7 @@ List<Record> parse(String log) {
   var actual;
   var reason;
   var fullReason; // lines before stack, usually multiline reason.
-  var stack = [];
+  var stack = <String>[];
   var paragraph = []; // collector of lines for fullReason.
   bool reproIsNext = false;
   for (var line in log.split('\n')) {

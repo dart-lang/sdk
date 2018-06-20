@@ -9,10 +9,12 @@ import 'package:meta/dart2js.dart';
 
 /*class: global#Iterable:checkedInstance*/
 
-/*class: A:checkedTypeArgument,checks=[],typeArgument*/
+/*kernel.class: A:checkedTypeArgument,checks=[],typeArgument*/
+/*strong.class: A:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
 class A {}
 
-/*class: B:checks=[],typeArgument*/
+/*kernel.class: B:checks=[],typeArgument*/
+/*strong.class: B:checkedInstance,checks=[],typeArgument*/
 class B {}
 
 @noInline
