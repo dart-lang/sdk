@@ -961,8 +961,6 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // store buffer if the object is in the store buffer already.
   // Spilled: EAX, ECX
   // EDX: Address being stored
-  Label reload;
-  __ Bind(&reload);
   __ movl(EAX, FieldAddress(EDX, Object::tags_offset()));
   __ testl(EAX, Immediate(1 << RawObject::kRememberedBit));
   __ j(EQUAL, &add_to_buffer, Assembler::kNearJump);
@@ -974,11 +972,10 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // EDX: Address being stored
   // EAX: Current tag value
   __ Bind(&add_to_buffer);
-  __ movl(ECX, EAX);
-  __ orl(ECX, Immediate(1 << RawObject::kRememberedBit));
-  // Compare the tag word with EAX, update to ECX if unchanged.
-  __ LockCmpxchgl(FieldAddress(EDX, Object::tags_offset()), ECX);
-  __ j(NOT_EQUAL, &reload);
+  // lock+orl is an atomic read-modify-write.
+  __ lock();
+  __ orl(FieldAddress(EDX, Object::tags_offset()),
+         Immediate(1 << RawObject::kRememberedBit));
 
   // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -992,7 +989,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Spilled: EAX, ECX
   // ECX: top_
   // EAX: StoreBufferBlock
-  Label L;
+  Label overflow;
   __ incl(ECX);
   __ movl(Address(EAX, StoreBufferBlock::top_offset()), ECX);
   __ cmpl(ECX, Immediate(StoreBufferBlock::kSize));
@@ -1000,11 +997,11 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Spilled: EAX, ECX
   __ popl(ECX);
   __ popl(EAX);
-  __ j(EQUAL, &L, Assembler::kNearJump);
+  __ j(EQUAL, &overflow, Assembler::kNearJump);
   __ ret();
 
   // Handle overflow: Call the runtime leaf function.
-  __ Bind(&L);
+  __ Bind(&overflow);
   // Setup frame, push callee-saved registers.
 
   __ EnterCallRuntimeFrame(1 * kWordSize);

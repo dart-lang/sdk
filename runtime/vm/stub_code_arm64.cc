@@ -1211,8 +1211,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Check whether this object has already been remembered. Skip adding to the
   // store buffer if the object is in the store buffer already.
   __ LoadFieldFromOffset(TMP, R0, Object::tags_offset(), kWord);
-  __ tsti(TMP, Immediate(1 << RawObject::kRememberedBit));
-  __ b(&add_to_buffer, EQ);
+  __ tbz(&add_to_buffer, TMP, RawObject::kRememberedBit);
   __ ret();
 
   __ Bind(&add_to_buffer);
@@ -1232,8 +1231,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ ldxr(R2, R3, kWord);
   __ orri(R2, R2, Immediate(1 << RawObject::kRememberedBit));
   __ stxr(R1, R2, R3, kWord);
-  __ cmp(R1, Operand(1));
-  __ b(&retry, EQ);
+  __ cbnz(&retry, R1);
 
   // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1245,7 +1243,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Increment top_ and check for overflow.
   // R2: top_.
   // R1: StoreBufferBlock.
-  Label L;
+  Label overflow;
   __ add(R2, R2, Operand(1));
   __ StoreToOffset(R2, R1, StoreBufferBlock::top_offset(), kUnsignedWord);
   __ CompareImmediate(R2, StoreBufferBlock::kSize);
@@ -1253,11 +1251,11 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ Pop(R3);
   __ Pop(R2);
   __ Pop(R1);
-  __ b(&L, EQ);
+  __ b(&overflow, EQ);
   __ ret();
 
   // Handle overflow: Call the runtime leaf function.
-  __ Bind(&L);
+  __ Bind(&overflow);
   // Setup frame, push callee-saved registers.
 
   __ Push(CODE_REG);

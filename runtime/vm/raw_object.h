@@ -623,28 +623,20 @@ class RawObject {
 
   template <class TagBitField>
   void UpdateTagBit(bool value) {
-    uint32_t tags = ptr()->tags_;
-    uint32_t old_tags;
-    do {
-      old_tags = tags;
-      uint32_t new_tags = TagBitField::update(value, old_tags);
-      tags = AtomicOperations::CompareAndSwapUint32(&ptr()->tags_, old_tags,
-                                                    new_tags);
-    } while (tags != old_tags);
+    if (value) {
+      AtomicOperations::FetchOrRelaxedUint32(&ptr()->tags_,
+                                             TagBitField::encode(true));
+    } else {
+      AtomicOperations::FetchAndRelaxedUint32(&ptr()->tags_,
+                                              ~TagBitField::encode(true));
+    }
   }
 
   template <class TagBitField>
   bool TryAcquireTagBit() {
-    uint32_t tags = ptr()->tags_;
-    uint32_t old_tags;
-    do {
-      old_tags = tags;
-      if (TagBitField::decode(tags)) return false;
-      uint32_t new_tags = TagBitField::update(true, old_tags);
-      tags = AtomicOperations::CompareAndSwapUint32(&ptr()->tags_, old_tags,
-                                                    new_tags);
-    } while (tags != old_tags);
-    return true;
+    uint32_t old_tags = AtomicOperations::FetchOrRelaxedUint32(
+        &ptr()->tags_, TagBitField::encode(true));
+    return !TagBitField::decode(old_tags);
   }
 
   // All writes to heap objects should ultimately pass through one of the
