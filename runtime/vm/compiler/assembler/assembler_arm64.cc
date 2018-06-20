@@ -953,7 +953,6 @@ void Assembler::StoreIntoObject(Register object,
     mov(R0, object);
   }
   ldr(TMP, Address(THR, Thread::update_store_buffer_entry_point_offset()));
-  ldr(CODE_REG, Address(THR, Thread::update_store_buffer_code_offset()));
   blr(TMP);
   Pop(LR);
   if (value != R0) {

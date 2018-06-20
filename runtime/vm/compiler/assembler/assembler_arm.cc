@@ -1581,7 +1581,7 @@ void Assembler::StoreIntoObject(Register object,
   Label done;
   StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
   // A store buffer update is required.
-  RegList regs = (1 << CODE_REG) | (1 << LR);
+  RegList regs = (1 << LR);
   if (value != R0) {
     regs |= (1 << R0);  // Preserve R0.
   }
@@ -1590,7 +1590,6 @@ void Assembler::StoreIntoObject(Register object,
     mov(R0, Operand(object));
   }
   ldr(LR, Address(THR, Thread::update_store_buffer_entry_point_offset()));
-  ldr(CODE_REG, Address(THR, Thread::update_store_buffer_code_offset()));
   blx(LR);
   PopList(regs);
   Bind(&done);

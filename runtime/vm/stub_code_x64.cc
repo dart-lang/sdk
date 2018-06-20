@@ -1246,10 +1246,13 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Handle overflow: Call the runtime leaf function.
   __ Bind(&L);
   // Setup frame, push callee-saved registers.
+  __ pushq(CODE_REG);
+  __ movq(CODE_REG, Address(THR, Thread::update_store_buffer_code_offset()));
   __ EnterCallRuntimeFrame(0);
   __ movq(CallingConventions::kArg1Reg, THR);
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   __ LeaveCallRuntimeFrame();
+  __ popq(CODE_REG);
   __ ret();
 }
 
