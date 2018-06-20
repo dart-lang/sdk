@@ -7,6 +7,7 @@ io/web_socket_test: Pass, RuntimeError # Issue 24674
 map_insert_remove_oom_test: Skip # Heap limit too low. Increasing iteration count to make a higher limit a meaningful test makes it too slow for simarm[64] bots.
 
 [ $runtime == dart_precompiled ]
+app_snapshot_share_test: Skip # makes sense in dartkp configuration
 http_launch_test: Skip
 io/addlatexhash_test: Skip
 io/dart_std_io_pipe_test: Skip
