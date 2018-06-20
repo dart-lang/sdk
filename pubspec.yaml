@@ -1,5 +1,5 @@
 name: dart2js_info
-version: 0.5.7
+version: 0.5.7+1
 description: >
   Libraries and tools to process data produced when running dart2js with
   --dump-info.
@@ -14,7 +14,7 @@ dependencies:
   collection: ^1.10.1
   fixnum: ^0.10.5
   path: ^1.3.6
-  protobuf: '>=0.9.0'
+  protobuf: ^0.9.0
   quiver: '>=0.21.0 <0.26.0'
   shelf: '>=0.6.1+2 <0.8.0'
   shelf_static: ^0.2.4
