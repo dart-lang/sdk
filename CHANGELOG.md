@@ -1,3 +1,10 @@
+# 0.1.54
+
+* new `unnecessary_const` lint
+* new `unnecessary_new` lint
+* fixed errors in `use_to_and_as_if_applicable`
+* new `file_names` lint
+
 # 0.1.53
 
 * updated `unnecessary_statements` to ignore getters (as they may be side-effecting).
