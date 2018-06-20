@@ -2561,25 +2561,42 @@ class ThrowJudgment extends Throw implements ExpressionJudgment {
   }
 }
 
+/// Concrete shadow object representing a catch clause.
+class CatchJudgment extends Catch {
+  CatchJudgment(VariableDeclaration exception, Statement body,
+      {DartType guard: const DynamicType(), VariableDeclaration stackTrace})
+      : super(exception, body, guard: guard, stackTrace: stackTrace);
+
+  VariableDeclarationJudgment get exceptionJudgment => exception;
+
+  VariableDeclarationJudgment get stackTraceJudgment => stackTrace;
+
+  StatementJudgment get bodyJudgment => body;
+}
+
 /// Concrete shadow object representing a try-catch block in kernel form.
-class ShadowTryCatch extends TryCatch implements StatementJudgment {
-  ShadowTryCatch(Statement body, List<Catch> catches) : super(body, catches);
+class TryCatchJudgment extends TryCatch implements StatementJudgment {
+  TryCatchJudgment(Statement body, List<Catch> catches) : super(body, catches);
+
+  StatementJudgment get bodyJudgment => body;
+
+  List<CatchJudgment> get catchJudgments => catches.cast();
 
   @override
   void infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory) {
     inferrer.listener.tryCatchEnter(fileOffset);
-    inferrer.inferStatement(factory, body);
-    for (var catch_ in catches) {
+    inferrer.inferStatement(factory, bodyJudgment);
+    for (var catch_ in catchJudgments) {
       inferrer.listener.catchStatementEnter(
           catch_.fileOffset,
           catch_.guard,
-          catch_.exception?.fileOffset,
-          catch_.exception?.type,
-          catch_.stackTrace?.fileOffset,
-          catch_.stackTrace?.type);
-      inferrer.inferStatement(factory, catch_.body);
+          catch_.exceptionJudgment?.fileOffset,
+          catch_.exceptionJudgment?.type,
+          catch_.stackTraceJudgment?.fileOffset,
+          catch_.stackTraceJudgment?.type);
+      inferrer.inferStatement(factory, catch_.bodyJudgment);
       inferrer.listener.catchStatementExit(catch_.fileOffset);
     }
     inferrer.listener.tryCatchExit(fileOffset);

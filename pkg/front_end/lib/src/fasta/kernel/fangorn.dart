@@ -74,6 +74,7 @@ import 'kernel_shadow_ast.dart'
         BlockJudgment,
         BoolJudgment,
         BreakJudgment,
+        CatchJudgment,
         CheckLibraryIsLoadedJudgment,
         ConditionalJudgment,
         ContinueJudgment,
@@ -99,7 +100,7 @@ import 'kernel_shadow_ast.dart'
         ShadowStringLiteral,
         ShadowSymbolLiteral,
         ShadowSyntheticExpression,
-        ShadowTryCatch,
+        TryCatchJudgment,
         ShadowTryFinally,
         ShadowWhileStatement,
         YieldJudgment,
@@ -353,7 +354,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       DartType stackTraceType,
       Statement body) {
     exceptionType ??= const DynamicType();
-    return new Catch(exceptionParameter, body,
+    return new CatchJudgment(exceptionParameter, body,
         guard: exceptionType, stackTrace: stackTraceParameter)
       ..fileOffset = offsetForToken(onKeyword ?? catchKeyword);
   }
@@ -489,7 +490,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       List<Catch> catchClauses, Token finallyKeyword, Statement finallyBlock) {
     Statement tryStatement = body;
     if (catchClauses != null) {
-      tryStatement = new ShadowTryCatch(tryStatement, catchClauses);
+      tryStatement = new TryCatchJudgment(tryStatement, catchClauses);
     }
     if (finallyBlock != null) {
       tryStatement = new ShadowTryFinally(tryStatement, finallyBlock);
