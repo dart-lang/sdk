@@ -102,7 +102,7 @@ import 'kernel_shadow_ast.dart'
         ShadowSyntheticExpression,
         TryCatchJudgment,
         ShadowTryFinally,
-        ShadowWhileStatement,
+        WhileJudgment,
         YieldJudgment,
         ThisJudgment,
         ThrowJudgment,
@@ -526,7 +526,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   @override
   Statement whileStatement(
       Token whileKeyword, Expression condition, Statement body) {
-    return new ShadowWhileStatement(condition, body)
+    return new WhileJudgment(condition, body)
       ..fileOffset = whileKeyword.charOffset;
   }
 

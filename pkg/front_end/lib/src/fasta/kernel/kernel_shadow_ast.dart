@@ -3087,21 +3087,25 @@ class VariableGetJudgment extends VariableGet implements ExpressionJudgment {
 }
 
 /// Concrete shadow object representing a while loop in kernel form.
-class ShadowWhileStatement extends WhileStatement implements StatementJudgment {
-  ShadowWhileStatement(Expression condition, Statement body)
-      : super(condition, body);
+class WhileJudgment extends WhileStatement implements StatementJudgment {
+  WhileJudgment(Expression condition, Statement body) : super(condition, body);
+
+  ExpressionJudgment get conditionJudgment => condition;
+
+  StatementJudgment get bodyJudgment => body;
 
   @override
   void infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory) {
     inferrer.listener.whileStatementEnter(fileOffset);
+    var conditionJudgment = this.conditionJudgment;
     var expectedType = inferrer.coreTypes.boolClass.rawType;
-    var actualType = inferrer.inferExpression(
-        factory, condition, expectedType, !inferrer.isTopLevel);
-    inferrer.ensureAssignable(
-        expectedType, actualType, condition, condition.fileOffset);
-    inferrer.inferStatement(factory, body);
+    inferrer.inferExpression(
+        factory, conditionJudgment, expectedType, !inferrer.isTopLevel);
+    inferrer.ensureAssignable(expectedType, conditionJudgment.inferredType,
+        condition, condition.fileOffset);
+    inferrer.inferStatement(factory, bodyJudgment);
     inferrer.listener.whileStatementExit(fileOffset);
   }
 }
