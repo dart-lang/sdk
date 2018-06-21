@@ -21,9 +21,7 @@ class ThisAccessGenerator extends KernelGenerator {
   final bool isSuper;
 
   ThisAccessGenerator(
-      ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
-      Token token,
-      this.isInitializer,
+      ExpressionGeneratorHelper helper, Token token, this.isInitializer,
       {this.isSuper: false})
       : super(helper, token);
 
@@ -80,11 +78,11 @@ class ThisAccessGenerator extends KernelGenerator {
       Member setter =
           helper.lookupInstanceMember(name, isSuper: isSuper, isSetter: true);
       if (isSuper) {
-        return new SuperPropertyAccessGenerator<Expression, Statement,
-            Arguments>(helper, send.token, name, getter, setter);
+        return new SuperPropertyAccessGenerator(
+            helper, send.token, name, getter, setter);
       } else {
-        return new ThisPropertyAccessGenerator<Expression, Statement,
-            Arguments>(helper, send.token, name, getter, setter);
+        return new ThisPropertyAccessGenerator(
+            helper, send.token, name, getter, setter);
       }
     }
   }
@@ -111,14 +109,12 @@ class ThisAccessGenerator extends KernelGenerator {
           constructor.function, arguments, offset, <TypeParameter>[]);
     }
     if (constructor == null || argMessage != null) {
-      return helper.buildInvalidInitializer(
-          buildThrowNoSuchMethodError(
-              storeOffset(forest.literalNull(null), offset), arguments,
-              isSuper: isSuper,
-              name: name.name,
-              offset: offset,
-              argMessage: argMessage),
-          offset);
+      return helper.buildInvalidInitializer(buildThrowNoSuchMethodError(
+          forest.literalNull(null)..fileOffset = offset, arguments,
+          isSuper: isSuper,
+          name: name.name,
+          offset: offset,
+          argMessage: argMessage));
     } else if (isSuper) {
       return helper.buildSuperInitializer(
           false, constructor, arguments, offset);
@@ -190,9 +186,7 @@ abstract class IncompleteSendGenerator extends KernelGenerator {
   final Name name;
 
   IncompleteSendGenerator(
-      ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
-      Token token,
-      this.name)
+      ExpressionGeneratorHelper helper, Token token, this.name)
       : super(helper, token);
 
   withReceiver(Object receiver, int operatorOffset, {bool isNullAware});
@@ -218,13 +212,11 @@ abstract class IncompleteSendGenerator extends KernelGenerator {
 }
 
 class IncompleteErrorGenerator extends IncompleteSendGenerator
-    with ErroneousExpressionGenerator<Expression, Statement, Arguments> {
+    with ErroneousExpressionGenerator {
   final Message message;
 
   IncompleteErrorGenerator(
-      ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
-      Token token,
-      this.message)
+      ExpressionGeneratorHelper helper, Token token, this.message)
       : super(helper, token, null);
 
   String get debugName => "IncompleteErrorGenerator";
@@ -266,10 +258,7 @@ class SendAccessGenerator extends IncompleteSendGenerator {
   final Arguments arguments;
 
   SendAccessGenerator(
-      ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
-      Token token,
-      Name name,
-      this.arguments)
+      ExpressionGeneratorHelper helper, Token token, Name name, this.arguments)
       : super(helper, token, name) {
     assert(arguments != null);
   }
@@ -353,9 +342,7 @@ class SendAccessGenerator extends IncompleteSendGenerator {
 
 class IncompletePropertyAccessGenerator extends IncompleteSendGenerator {
   IncompletePropertyAccessGenerator(
-      ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
-      Token token,
-      Name name)
+      ExpressionGeneratorHelper helper, Token token, Name name)
       : super(helper, token, name);
 
   String get plainNameForRead => name.name;
@@ -386,7 +373,7 @@ class IncompletePropertyAccessGenerator extends IncompleteSendGenerator {
           isQualified: true, prefix: prefix);
     }
 
-    return PropertyAccessGenerator.make<Expression, Statement, Arguments>(
+    return PropertyAccessGenerator.make(
         helper, token, helper.toValue(receiver), name, null, null, isNullAware);
   }
 
@@ -424,9 +411,7 @@ class IncompletePropertyAccessGenerator extends IncompleteSendGenerator {
 
 class ParenthesizedExpressionGenerator extends KernelReadOnlyAccessGenerator {
   ParenthesizedExpressionGenerator(
-      ExpressionGeneratorHelper<dynamic, dynamic, dynamic> helper,
-      Token token,
-      Expression expression)
+      ExpressionGeneratorHelper helper, Token token, Expression expression)
       : super(helper, token, expression, null);
 
   String get debugName => "ParenthesizedExpressionGenerator";

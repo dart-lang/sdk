@@ -119,7 +119,7 @@ import 'forest.dart'
         UnlinkedDeclaration;
 
 /// A shadow tree factory.
-class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
+class Fangorn extends Forest {
   const Fangorn();
 
   @override
@@ -426,8 +426,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
-  Statement labeledStatement(
-          LabelTarget<Statement> target, Statement statement) =>
+  Statement labeledStatement(LabelTarget target, Statement statement) =>
       statement;
 
   @override
@@ -616,7 +615,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   KernelVariableUseGenerator variableUseGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      ExpressionGeneratorHelper helper,
       Token token,
       VariableDeclaration variable,
       DartType promotedType) {
@@ -626,7 +625,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   KernelPropertyAccessGenerator propertyAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      ExpressionGeneratorHelper helper,
       Token token,
       Expression receiver,
       Name name,
@@ -638,7 +637,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   KernelThisPropertyAccessGenerator thisPropertyAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      ExpressionGeneratorHelper helper,
       Token token,
       Name name,
       Member getter,
@@ -649,7 +648,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   KernelNullAwarePropertyAccessGenerator nullAwarePropertyAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      ExpressionGeneratorHelper helper,
       Token token,
       Expression receiverExpression,
       Name name,
@@ -662,7 +661,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   KernelSuperPropertyAccessGenerator superPropertyAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      ExpressionGeneratorHelper helper,
       Token token,
       Name name,
       Member getter,
@@ -673,7 +672,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   KernelIndexedAccessGenerator indexedAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      ExpressionGeneratorHelper helper,
       Token token,
       Expression receiver,
       Expression index,
@@ -685,7 +684,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   KernelThisIndexedAccessGenerator thisIndexedAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      ExpressionGeneratorHelper helper,
       Token token,
       Expression index,
       Procedure getter,
@@ -696,7 +695,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   KernelSuperIndexedAccessGenerator superIndexedAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      ExpressionGeneratorHelper helper,
       Token token,
       Expression index,
       Member getter,
@@ -707,7 +706,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   KernelStaticAccessGenerator staticAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      ExpressionGeneratorHelper helper,
       Token token,
       Member getter,
       Member setter) {
@@ -716,7 +715,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   KernelLoadLibraryGenerator loadLibraryGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      ExpressionGeneratorHelper helper,
       Token token,
       LoadLibraryBuilder builder) {
     return new KernelLoadLibraryGenerator(helper, token, builder);
@@ -724,16 +723,16 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   KernelDeferredAccessGenerator deferredAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      ExpressionGeneratorHelper helper,
       Token token,
       PrefixBuilder builder,
-      Generator<Expression, Statement, Arguments> generator) {
+      Generator generator) {
     return new KernelDeferredAccessGenerator(helper, token, builder, generator);
   }
 
   @override
   KernelTypeUseGenerator typeUseGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      ExpressionGeneratorHelper helper,
       Token token,
       PrefixBuilder prefix,
       int declarationReferenceOffset,
@@ -745,7 +744,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   KernelReadOnlyAccessGenerator readOnlyAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      ExpressionGeneratorHelper helper,
       Token token,
       Expression expression,
       String plainNameForRead) {
@@ -755,32 +754,27 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   KernelLargeIntAccessGenerator largeIntAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Token token) {
+      ExpressionGeneratorHelper helper, Token token) {
     return new KernelLargeIntAccessGenerator(helper, token);
   }
 
   @override
   KernelUnresolvedNameGenerator unresolvedNameGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Token token,
-      Name name) {
+      ExpressionGeneratorHelper helper, Token token, Name name) {
     return new KernelUnresolvedNameGenerator(helper, token, name);
   }
 
   @override
-  KernelUnlinkedGenerator unlinkedGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Token token,
-      UnlinkedDeclaration declaration) {
+  KernelUnlinkedGenerator unlinkedGenerator(ExpressionGeneratorHelper helper,
+      Token token, UnlinkedDeclaration declaration) {
     return new KernelUnlinkedGenerator(helper, token, declaration);
   }
 
   @override
   KernelDelayedAssignment delayedAssignment(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      ExpressionGeneratorHelper helper,
       Token token,
-      Generator<Expression, Statement, Arguments> generator,
+      Generator generator,
       Expression value,
       String assignmentOperator) {
     return new KernelDelayedAssignment(
@@ -789,9 +783,9 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   KernelDelayedPostfixIncrement delayedPostfixIncrement(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      ExpressionGeneratorHelper helper,
       Token token,
-      Generator<Expression, Statement, Arguments> generator,
+      Generator generator,
       Name binaryOperator,
       Procedure interfaceTarget) {
     return new KernelDelayedPostfixIncrement(

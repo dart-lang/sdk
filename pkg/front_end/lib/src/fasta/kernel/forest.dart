@@ -4,13 +4,15 @@
 
 library fasta.forest;
 
-import 'package:kernel/ast.dart' as kernel
+import 'package:kernel/ast.dart'
     show
         Arguments, // TODO(ahe): Remove this import.
         DartType,
+        Expression,
         Member,
         Name,
-        Procedure;
+        Procedure,
+        Statement;
 
 import 'body_builder.dart' show Identifier, LabelTarget;
 
@@ -24,6 +26,8 @@ import 'kernel_builder.dart'
         PrefixBuilder,
         TypeDeclarationBuilder,
         UnlinkedDeclaration;
+
+import '../scanner.dart' show Token;
 
 export 'body_builder.dart' show Identifier, Operator;
 
@@ -39,15 +43,13 @@ export 'kernel_builder.dart'
         UnlinkedDeclaration;
 
 /// A tree factory.
-///
-/// For now, the [Location] is always a token.
-abstract class Forest<Expression, Statement, Location, Arguments> {
+abstract class Forest {
   const Forest();
 
-  Arguments arguments(List<Expression> positional, Location location,
+  Arguments arguments(List<Expression> positional, Token location,
       {covariant List types, covariant List named});
 
-  Arguments argumentsEmpty(Location location);
+  Arguments argumentsEmpty(Token location);
 
   List argumentsNamed(Arguments arguments);
 
@@ -61,15 +63,15 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
 
   /// Return a representation of a boolean literal at the given [location]. The
   /// literal has the given [value].
-  Expression literalBool(bool value, Location location);
+  Expression literalBool(bool value, Token location);
 
   /// Return a representation of a double literal at the given [location]. The
   /// literal has the given [value].
-  Expression literalDouble(double value, Location location);
+  Expression literalDouble(double value, Token location);
 
   /// Return a representation of an integer literal at the given [location]. The
   /// literal has the given [value].
-  Expression literalInt(int value, Location location);
+  Expression literalInt(int value, Token location);
 
   /// Return a representation of a list literal. The [constKeyword] is the
   /// location of the `const` keyword, or `null` if there is no keyword. The
@@ -83,13 +85,13 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// [expressions] is a list of the representations of the list elements. The
   /// [rightBracket] is the location of the `]`.
   Expression literalList(
-      Location constKeyword,
+      Token constKeyword,
       bool isConst,
       Object typeArgument,
       Object typeArguments,
-      Location leftBracket,
+      Token leftBracket,
       List<Expression> expressions,
-      Location rightBracket);
+      Token rightBracket);
 
   /// Return a representation of a map literal. The [constKeyword] is the
   /// location of the `const` keyword, or `null` if there is no keyword. The
@@ -105,41 +107,40 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// of the `{`. The list of [entries] is a list of the representations of the
   /// map entries. The [rightBracket] is the location of the `}`.
   Expression literalMap(
-      Location constKeyword,
+      Token constKeyword,
       bool isConst,
       covariant keyType,
       covariant valueType,
       Object typeArguments,
-      Location leftBracket,
+      Token leftBracket,
       covariant List entries,
-      Location rightBracket);
+      Token rightBracket);
 
   /// Return a representation of a null literal at the given [location].
-  Expression literalNull(Location location);
+  Expression literalNull(Token location);
 
   /// Return a representation of a simple string literal at the given
   /// [location]. The literal has the given [value]. This does not include
   /// either adjacent strings or interpolated strings.
-  Expression literalString(String value, Location location);
+  Expression literalString(String value, Token location);
 
   /// Return a representation of a symbol literal defined by the [hash] and the
   /// list of [components]. The [value] is the string value of the symbol.
   Expression literalSymbolMultiple(
-      String value, Location hash, List<Identifier> components);
+      String value, Token hash, List<Identifier> components);
 
   /// Return a representation of a symbol literal defined by the [hash] and the
   /// single [component]. The component can be either an [Identifier] or an
   /// [Operator]. The [value] is the string value of the symbol.
-  Expression literalSymbolSingluar(
-      String value, Location hash, Object component);
+  Expression literalSymbolSingluar(String value, Token hash, Object component);
 
-  Expression literalType(covariant type, Location location);
+  Expression literalType(covariant type, Token location);
 
   /// Return a representation of a key/value pair in a literal map. The [key] is
   /// the representation of the expression used to compute the key. The [colon]
   /// is the location of the colon separating the key and the value. The [value]
   /// is the representation of the expression used to compute the value.
-  Object mapEntry(Expression key, Location colon, Expression value);
+  Object mapEntry(Expression key, Token colon, Expression value);
 
   /// Return a list that can hold [length] representations of map entries, as
   /// returned from [mapEntry].
@@ -153,45 +154,40 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
 
   /// Given a representation of a list of [typeArguments], return the type
   /// associated with the argument at the given [index].
-  kernel.DartType getTypeAt(covariant typeArguments, int index);
+  DartType getTypeAt(covariant typeArguments, int index);
 
   Expression loadLibrary(covariant dependency);
 
   Expression checkLibraryIsLoaded(covariant dependency);
 
   Expression asExpression(
-      Expression expression, covariant type, Location location);
+      Expression expression, covariant type, Token location);
 
   /// Return a representation of an assert that appears in a constructor's
   /// initializer list.
-  Object assertInitializer(Location assertKeyword, Location leftParenthesis,
-      Expression condition, Location comma, Expression message);
+  Object assertInitializer(Token assertKeyword, Token leftParenthesis,
+      Expression condition, Token comma, Expression message);
 
   /// Return a representation of an assert that appears as a statement.
-  Statement assertStatement(
-      Location assertKeyword,
-      Location leftParenthesis,
-      Expression condition,
-      Location comma,
-      Expression message,
-      Location semicolon);
+  Statement assertStatement(Token assertKeyword, Token leftParenthesis,
+      Expression condition, Token comma, Expression message, Token semicolon);
 
-  Expression awaitExpression(Expression operand, Location location);
+  Expression awaitExpression(Expression operand, Token location);
 
   /// Return a representation of a block of [statements] enclosed between the
   /// [openBracket] and [closeBracket].
   Statement block(
-      Location openBrace, List<Statement> statements, Location closeBrace);
+      Token openBrace, List<Statement> statements, Token closeBrace);
 
   /// Return a representation of a break statement.
   Statement breakStatement(
-      Location breakKeyword, Identifier label, Location semicolon);
+      Token breakKeyword, Identifier label, Token semicolon);
 
   /// Return a representation of a catch clause.
   Object catchClause(
-      Location onKeyword,
+      Token onKeyword,
       covariant exceptionType,
-      Location catchKeyword,
+      Token catchKeyword,
       covariant exceptionParameter,
       covariant stackTraceParameter,
       covariant stackTraceType,
@@ -202,95 +198,90 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// [thenExpression] is the expression following the question mark. The
   /// [colon] is the `:`. The [elseExpression] is the expression following the
   /// colon.
-  Expression conditionalExpression(Expression condition, Location question,
-      Expression thenExpression, Location colon, Expression elseExpression);
+  Expression conditionalExpression(Expression condition, Token question,
+      Expression thenExpression, Token colon, Expression elseExpression);
 
   /// Return a representation of a continue statement.
   Statement continueStatement(
-      Location continueKeyword, Identifier label, Location semicolon);
+      Token continueKeyword, Identifier label, Token semicolon);
 
   /// Return a representation of a do statement.
-  Statement doStatement(
-      Location doKeyword,
-      Statement body,
-      Location whileKeyword,
-      covariant Expression condition,
-      Location semicolon);
+  Statement doStatement(Token doKeyword, Statement body, Token whileKeyword,
+      covariant Expression condition, Token semicolon);
 
   /// Return a representation of an expression statement composed from the
   /// [expression] and [semicolon].
-  Statement expressionStatement(Expression expression, Location semicolon);
+  Statement expressionStatement(Expression expression, Token semicolon);
 
   /// Return a representation of an empty statement consisting of the given
   /// [semicolon].
-  Statement emptyStatement(Location semicolon);
+  Statement emptyStatement(Token semicolon);
 
   /// Return a representation of a for statement.
   Statement forStatement(
-      Location forKeyword,
-      Location leftParenthesis,
+      Token forKeyword,
+      Token leftParenthesis,
       covariant variableList,
       covariant initialization,
-      Location leftSeparator,
+      Token leftSeparator,
       Expression condition,
       Statement conditionStatement,
       List<Expression> updaters,
-      Location rightParenthesis,
+      Token rightParenthesis,
       Statement body);
 
   /// Return a representation of an `if` statement.
-  Statement ifStatement(Location ifKeyword, covariant Expression condition,
-      Statement thenStatement, Location elseKeyword, Statement elseStatement);
+  Statement ifStatement(Token ifKeyword, covariant Expression condition,
+      Statement thenStatement, Token elseKeyword, Statement elseStatement);
 
   /// Return a representation of an `is` expression. The [operand] is the
   /// representation of the left operand. The [isOperator] is the `is` operator.
   /// The [notOperator] is either the `!` or `null` if the test is not negated.
   /// The [type] is a representation of the type that is the right operand.
-  Expression isExpression(Expression operand, Location isOperator,
-      Location notOperator, covariant type);
+  Expression isExpression(
+      Expression operand, Token isOperator, Token notOperator, covariant type);
 
   /// Return a representation of the label consisting of the given [identifer]
   /// followed by the given [colon].
-  Object label(Location identifier, Location colon);
+  Object label(Token identifier, Token colon);
 
   /// Return a representation of a [statement] that has one or more labels (from
   /// the [target]) associated with it.
-  Statement labeledStatement(
-      LabelTarget<Statement> target, Statement statement);
+  Statement labeledStatement(LabelTarget target, Statement statement);
 
   /// Return a representation of a logical expression having the [leftOperand],
   /// [rightOperand] and the [operator] (either `&&` or `||`).
   Expression logicalExpression(
-      Expression leftOperand, Location operator, Expression rightOperand);
+      Expression leftOperand, Token operator, Expression rightOperand);
 
-  Expression notExpression(Expression operand, Location location);
+  Expression notExpression(Expression operand, Token location);
 
   /// Return a representation of a parenthesized condition consisting of the
   /// given [expression] between the [leftParenthesis] and [rightParenthesis].
-  Object parenthesizedCondition(Location leftParenthesis, Expression expression,
-      Location rightParenthesis);
+  Object parenthesizedCondition(
+      Token leftParenthesis, Expression expression, Token rightParenthesis);
 
   /// Return a representation of a rethrow statement consisting of the
   /// [rethrowKeyword] followed by the [semicolon].
-  Statement rethrowStatement(Location rethrowKeyword, Location semicolon);
+  Statement rethrowStatement(Token rethrowKeyword, Token semicolon);
 
   /// Return a representation of a return statement.
   Statement returnStatement(
-      Location returnKeyword, Expression expression, Location semicolon);
+      Token returnKeyword, Expression expression, Token semicolon);
 
   Expression stringConcatenationExpression(
-      List<Expression> expressions, Location location);
+      List<Expression> expressions, Token location);
 
   /// The given [statement] is being used as the target of either a break or
   /// continue statement. Return the statement that should be used as the actual
   /// target.
   Statement syntheticLabeledStatement(Statement statement);
 
-  Expression thisExpression(Location location);
+  Expression thisExpression(Token location);
 
   /// Return a representation of a throw expression consisting of the
   /// [throwKeyword].
-  Expression throwExpression(Location throwKeyword, Expression expression);
+  Expression throwExpression(Token throwKeyword, Expression expression);
 
   /// Return a representation of a try statement. The statement is introduced by
   /// the [tryKeyword] and the given [body]. If catch clauses were included,
@@ -300,8 +291,8 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// was an error in some part of the try statement, then an [errorReplacement]
   /// might be provided, in which case it could be returned instead of the
   /// representation of the try statement.
-  Statement tryStatement(Location tryKeyword, Statement body,
-      covariant catchClauses, Location finallyKeyword, Statement finallyBlock);
+  Statement tryStatement(Token tryKeyword, Statement body,
+      covariant catchClauses, Token finallyKeyword, Statement finallyBlock);
 
   Statement variablesDeclaration(covariant List declarations, Uri uri);
 
@@ -313,13 +304,13 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// Return a representation of a while statement introduced by the
   /// [whileKeyword] and consisting of the given [condition] and [body].
   Statement whileStatement(
-      Location whileKeyword, covariant Expression condition, Statement body);
+      Token whileKeyword, covariant Expression condition, Statement body);
 
   /// Return a representation of a yield statement consisting of the
   /// [yieldKeyword], [star], [expression], and [semicolon]. The [star] is null
   /// when no star was included in the source code.
-  Statement yieldStatement(Location yieldKeyword, Location star,
-      Expression expression, Location semicolon);
+  Statement yieldStatement(
+      Token yieldKeyword, Token star, Expression expression, Token semicolon);
 
   /// Return the expression from the given expression [statement].
   Expression getExpressionFromExpressionStatement(Statement statement);
@@ -368,127 +359,87 @@ abstract class Forest<Expression, Statement, Location, Arguments> {
   /// Set the type of the [parameter] to the given [type].
   void setParameterType(covariant parameter, covariant type);
 
-  Generator<Expression, Statement, Arguments> variableUseGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Location location,
-      covariant variable,
-      kernel.DartType promotedType);
+  Generator variableUseGenerator(ExpressionGeneratorHelper helper,
+      Token location, covariant variable, DartType promotedType);
 
-  Generator<Expression, Statement, Arguments> propertyAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Location location,
+  Generator propertyAccessGenerator(
+      ExpressionGeneratorHelper helper,
+      Token location,
       Expression receiver,
-      kernel.Name name,
-      kernel.Member getter,
-      kernel.Member setter);
+      Name name,
+      Member getter,
+      Member setter);
 
-  Generator<Expression, Statement, Arguments> thisPropertyAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Location location,
-      kernel.Name name,
-      kernel.Member getter,
-      kernel.Member setter);
+  Generator thisPropertyAccessGenerator(ExpressionGeneratorHelper helper,
+      Token location, Name name, Member getter, Member setter);
 
-  Generator<Expression, Statement, Arguments> nullAwarePropertyAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Location location,
+  Generator nullAwarePropertyAccessGenerator(
+      ExpressionGeneratorHelper helper,
+      Token location,
       Expression receiverExpression,
-      kernel.Name name,
-      kernel.Member getter,
-      kernel.Member setter,
-      kernel.DartType type);
+      Name name,
+      Member getter,
+      Member setter,
+      DartType type);
 
-  Generator<Expression, Statement, Arguments> superPropertyAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Location location,
-      kernel.Name name,
-      kernel.Member getter,
-      kernel.Member setter);
+  Generator superPropertyAccessGenerator(ExpressionGeneratorHelper helper,
+      Token location, Name name, Member getter, Member setter);
 
-  Generator<Expression, Statement, Arguments> indexedAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Location location,
+  Generator indexedAccessGenerator(
+      ExpressionGeneratorHelper helper,
+      Token location,
       Expression receiver,
       Expression index,
-      kernel.Procedure getter,
-      kernel.Procedure setter);
+      Procedure getter,
+      Procedure setter);
 
-  Generator<Expression, Statement, Arguments> thisIndexedAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Location location,
-      Expression index,
-      kernel.Procedure getter,
-      kernel.Procedure setter);
+  Generator thisIndexedAccessGenerator(ExpressionGeneratorHelper helper,
+      Token location, Expression index, Procedure getter, Procedure setter);
 
-  Generator<Expression, Statement, Arguments> superIndexedAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Location location,
-      Expression index,
-      kernel.Member getter,
-      kernel.Member setter);
+  Generator superIndexedAccessGenerator(ExpressionGeneratorHelper helper,
+      Token location, Expression index, Member getter, Member setter);
 
-  Generator<Expression, Statement, Arguments> staticAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Location location,
-      kernel.Member getter,
-      kernel.Member setter);
+  Generator staticAccessGenerator(ExpressionGeneratorHelper helper,
+      Token location, Member getter, Member setter);
 
-  Generator<Expression, Statement, Arguments> loadLibraryGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Location location,
-      LoadLibraryBuilder builder);
+  Generator loadLibraryGenerator(ExpressionGeneratorHelper helper,
+      Token location, LoadLibraryBuilder builder);
 
-  Generator<Expression, Statement, Arguments> deferredAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Location location,
-      PrefixBuilder builder,
-      Generator<Expression, Statement, Arguments> generator);
+  Generator deferredAccessGenerator(ExpressionGeneratorHelper helper,
+      Token location, PrefixBuilder builder, Generator generator);
 
-  Generator<Expression, Statement, Arguments> typeUseGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Location location,
+  Generator typeUseGenerator(
+      ExpressionGeneratorHelper helper,
+      Token location,
       PrefixBuilder prefix,
       int declarationReferenceOffset,
       TypeDeclarationBuilder declaration,
       String plainNameForRead);
 
-  Generator<Expression, Statement, Arguments> readOnlyAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Location location,
-      Expression expression,
-      String plainNameForRead);
+  Generator readOnlyAccessGenerator(ExpressionGeneratorHelper helper,
+      Token location, Expression expression, String plainNameForRead);
 
-  Generator<Expression, Statement, Arguments> largeIntAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Location location);
+  Generator largeIntAccessGenerator(
+      ExpressionGeneratorHelper helper, Token location);
 
-  Generator<Expression, Statement, Arguments> unresolvedNameGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Location location,
-      kernel.Name name);
+  Generator unresolvedNameGenerator(
+      ExpressionGeneratorHelper helper, Token location, Name name);
 
-  Generator<Expression, Statement, Arguments> unlinkedGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Location location,
+  Generator unlinkedGenerator(ExpressionGeneratorHelper helper, Token location,
       UnlinkedDeclaration declaration);
 
-  Generator<Expression, Statement, Arguments> delayedAssignment(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Location location,
-      Generator<Expression, Statement, Arguments> generator,
-      Expression value,
-      String assignmentOperator);
+  Generator delayedAssignment(ExpressionGeneratorHelper helper, Token location,
+      Generator generator, Expression value, String assignmentOperator);
 
-  Generator<Expression, Statement, Arguments> delayedPostfixIncrement(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Location location,
-      Generator<Expression, Statement, Arguments> generator,
-      kernel.Name binaryOperator,
-      kernel.Procedure interfaceTarget);
+  Generator delayedPostfixIncrement(
+      ExpressionGeneratorHelper helper,
+      Token location,
+      Generator generator,
+      Name binaryOperator,
+      Procedure interfaceTarget);
 
   // TODO(ahe): Remove this method when all users are moved here.
-  kernel.Arguments castArguments(Arguments arguments) {
-    dynamic a = arguments;
-    return a;
+  Arguments castArguments(Arguments arguments) {
+    return arguments;
   }
 }

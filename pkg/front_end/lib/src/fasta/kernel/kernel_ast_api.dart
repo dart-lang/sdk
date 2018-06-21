@@ -8,6 +8,7 @@ library fasta.kernel_ast_api;
 
 export 'package:kernel/ast.dart'
     show
+        Arguments,
         AssertStatement,
         AsyncMarker,
         Block,

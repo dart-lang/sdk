@@ -18,7 +18,6 @@ import 'package:kernel/ast.dart'
         Name,
         Procedure,
         ProcedureKind,
-        Statement,
         StringLiteral,
         TypeParameter,
         VariableDeclaration,
@@ -80,8 +79,7 @@ import 'package:front_end/src/fasta/kernel/kernel_expression_generator.dart'
 
 import 'package:front_end/src/fasta/scanner.dart' show Token, scanString;
 
-void check(
-    String expected, Generator<Expression, Statement, Arguments> generator) {
+void check(String expected, Generator generator) {
   Expect.stringEquals(expected, "$generator");
 }
 
