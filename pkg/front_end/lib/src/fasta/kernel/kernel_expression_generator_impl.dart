@@ -163,13 +163,13 @@ class ThisAccessGenerator extends KernelGenerator {
   }
 
   @override
-  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     return unsupported("_makeRead", offsetForToken(token), uri);
   }
 
   @override
   Expression _makeWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
+      ComplexAssignmentJudgment complexAssignment) {
     return unsupported("_makeWrite", offsetForToken(token), uri);
   }
 
@@ -194,13 +194,13 @@ abstract class IncompleteSendGenerator extends KernelGenerator {
   Arguments get arguments => null;
 
   @override
-  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     return unsupported("_makeRead", offsetForToken(token), uri);
   }
 
   @override
   Expression _makeWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
+      ComplexAssignmentJudgment complexAssignment) {
     return unsupported("_makeWrite", offsetForToken(token), uri);
   }
 

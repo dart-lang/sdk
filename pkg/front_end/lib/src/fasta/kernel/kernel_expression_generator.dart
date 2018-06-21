@@ -74,14 +74,14 @@ import 'kernel_ast_api.dart'
         Name,
         Procedure,
         PropertySet,
-        ShadowComplexAssignment,
-        ShadowIllegalAssignment,
-        ShadowIndexAssign,
+        ComplexAssignmentJudgment,
+        IllegalAssignmentJudgment,
+        IndexAssignmentJudgment,
         ShadowMethodInvocation,
         NullAwarePropertyGetJudgment,
-        ShadowPropertyAssign,
+        PropertyAssignmentJudgment,
         PropertyGetJudgment,
-        ShadowStaticAssignment,
+        StaticAssignmentJudgment,
         ShadowSuperMethodInvocation,
         SuperPropertyGetJudgment,
         VariableAssignmentJudgment,
@@ -227,17 +227,17 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
   Expression _makeSimpleRead() => _makeRead(null);
 
   Expression _makeSimpleWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
+      ComplexAssignmentJudgment complexAssignment) {
     return _makeWrite(value, voidContext, complexAssignment);
   }
 
-  Expression _makeRead(ShadowComplexAssignment complexAssignment);
+  Expression _makeRead(ComplexAssignmentJudgment complexAssignment);
 
   Expression _makeWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment);
+      ComplexAssignmentJudgment complexAssignment);
 
   Expression _finish(
-      Expression body, ShadowComplexAssignment complexAssignment) {
+      Expression body, ComplexAssignmentJudgment complexAssignment) {
     if (complexAssignment != null) {
       complexAssignment.desugared = body;
       return complexAssignment;
@@ -248,8 +248,8 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
 
   /// Creates a data structure for tracking the desugaring of a complex
   /// assignment expression whose right hand side is [rhs].
-  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
-      new ShadowIllegalAssignment(rhs);
+  ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
+      new IllegalAssignmentJudgment(rhs);
 }
 
 abstract class KernelGenerator = Generator with KernelExpressionGenerator;
@@ -268,7 +268,7 @@ class KernelVariableUseGenerator extends KernelGenerator
   String get plainNameForRead => variable.name;
 
   @override
-  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     var fact = helper.typePromoter
         .getFactForAccess(variable, helper.functionNestingLevel);
     var scope = helper.typePromoter.currentScope;
@@ -280,7 +280,7 @@ class KernelVariableUseGenerator extends KernelGenerator
 
   @override
   Expression _makeWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
+      ComplexAssignmentJudgment complexAssignment) {
     helper.typePromoter.mutateVariable(variable, helper.functionNestingLevel);
     var write = variable.isFinal || variable.isConst
         ? makeInvalidWrite(value)
@@ -298,7 +298,7 @@ class KernelVariableUseGenerator extends KernelGenerator
   }
 
   @override
-  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
+  ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
       new VariableAssignmentJudgment(rhs);
 
   @override
@@ -342,8 +342,8 @@ class KernelPropertyAccessGenerator extends KernelGenerator
   }
 
   @override
-  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
-      new ShadowPropertyAssign(receiver, rhs);
+  ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
+      new PropertyAssignmentJudgment(receiver, rhs);
 
   @override
   void printOn(StringSink sink) {
@@ -367,7 +367,7 @@ class KernelPropertyAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeSimpleWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
+      ComplexAssignmentJudgment complexAssignment) {
     var write = new PropertySet(receiver, name, value, setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
@@ -375,7 +375,7 @@ class KernelPropertyAccessGenerator extends KernelGenerator
   }
 
   @override
-  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     var read = new PropertyGetJudgment(receiverAccess(), name, getter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
@@ -384,7 +384,7 @@ class KernelPropertyAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
+      ComplexAssignmentJudgment complexAssignment) {
     var write = new PropertySet(receiverAccess(), name, value, setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
@@ -393,7 +393,7 @@ class KernelPropertyAccessGenerator extends KernelGenerator
 
   @override
   Expression _finish(
-      Expression body, ShadowComplexAssignment complexAssignment) {
+      Expression body, ComplexAssignmentJudgment complexAssignment) {
     return super._finish(makeLet(_receiverVariable, body), complexAssignment);
   }
 }
@@ -414,7 +414,7 @@ class KernelThisPropertyAccessGenerator extends KernelGenerator
   String get plainNameForRead => name.name;
 
   @override
-  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     if (getter == null) {
       helper.warnUnresolvedGet(name, offsetForToken(token));
     }
@@ -427,7 +427,7 @@ class KernelThisPropertyAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
+      ComplexAssignmentJudgment complexAssignment) {
     if (setter == null) {
       helper.warnUnresolvedSet(name, offsetForToken(token));
     }
@@ -455,8 +455,8 @@ class KernelThisPropertyAccessGenerator extends KernelGenerator
   }
 
   @override
-  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
-      new ShadowPropertyAssign(null, rhs);
+  ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
+      new PropertyAssignmentJudgment(null, rhs);
 
   @override
   void printOn(StringSink sink) {
@@ -501,7 +501,7 @@ class KernelNullAwarePropertyAccessGenerator extends KernelGenerator
   String get plainNameForRead => name.name;
 
   @override
-  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     var read = new PropertyGetJudgment(receiverAccess(), name, getter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
@@ -510,7 +510,7 @@ class KernelNullAwarePropertyAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
+      ComplexAssignmentJudgment complexAssignment) {
     var write = new PropertySet(receiverAccess(), name, value, setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
@@ -519,7 +519,7 @@ class KernelNullAwarePropertyAccessGenerator extends KernelGenerator
 
   @override
   Expression _finish(
-      Expression body, ShadowComplexAssignment complexAssignment) {
+      Expression body, ComplexAssignmentJudgment complexAssignment) {
     var offset = offsetForToken(token);
     var nullAwareGuard = forest.conditionalExpression(
         buildIsNull(receiverAccess(), offset, helper),
@@ -530,7 +530,7 @@ class KernelNullAwarePropertyAccessGenerator extends KernelGenerator
       ..fileOffset = offset;
     if (complexAssignment != null) {
       body = makeLet(receiver, nullAwareGuard);
-      ShadowPropertyAssign kernelPropertyAssign = complexAssignment;
+      PropertyAssignmentJudgment kernelPropertyAssign = complexAssignment;
       kernelPropertyAssign.nullAwareGuard = nullAwareGuard;
       kernelPropertyAssign.desugared = body;
       return kernelPropertyAssign;
@@ -546,8 +546,8 @@ class KernelNullAwarePropertyAccessGenerator extends KernelGenerator
   }
 
   @override
-  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
-      new ShadowPropertyAssign(receiverExpression, rhs);
+  ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
+      new PropertyAssignmentJudgment(receiverExpression, rhs);
 
   @override
   void printOn(StringSink sink) {
@@ -583,7 +583,7 @@ class KernelSuperPropertyAccessGenerator extends KernelGenerator
   String get plainNameForRead => name.name;
 
   @override
-  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     if (getter == null) {
       helper.warnUnresolvedGet(name, offsetForToken(token), isSuper: true);
     }
@@ -596,7 +596,7 @@ class KernelSuperPropertyAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
+      ComplexAssignmentJudgment complexAssignment) {
     if (setter == null) {
       helper.warnUnresolvedSet(name, offsetForToken(token), isSuper: true);
     }
@@ -628,8 +628,8 @@ class KernelSuperPropertyAccessGenerator extends KernelGenerator
   }
 
   @override
-  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
-      new ShadowPropertyAssign(null, rhs, isSuper: true);
+  ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
+      new PropertyAssignmentJudgment(null, rhs, isSuper: true);
 
   @override
   void printOn(StringSink sink) {
@@ -685,7 +685,7 @@ class KernelIndexedAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeSimpleWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
+      ComplexAssignmentJudgment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
     var write = new ShadowMethodInvocation(
         receiver,
@@ -699,7 +699,7 @@ class KernelIndexedAccessGenerator extends KernelGenerator
   }
 
   @override
-  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     var read = new ShadowMethodInvocation(
         receiverAccess(),
         indexGetName,
@@ -713,7 +713,7 @@ class KernelIndexedAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
+      ComplexAssignmentJudgment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
     var write = new ShadowMethodInvocation(
         receiverAccess(),
@@ -729,7 +729,7 @@ class KernelIndexedAccessGenerator extends KernelGenerator
   // TODO(dmitryas): remove this method after the "[]=" operator of the Context
   // class is made to return a value.
   Expression _makeWriteAndReturn(
-      Expression value, ShadowComplexAssignment complexAssignment) {
+      Expression value, ComplexAssignmentJudgment complexAssignment) {
     // The call to []= does not return the value like direct-style assignments
     // do.  We need to bind the value in a let.
     var valueVariable = new VariableDeclaration.forValue(value);
@@ -750,7 +750,7 @@ class KernelIndexedAccessGenerator extends KernelGenerator
 
   @override
   Expression _finish(
-      Expression body, ShadowComplexAssignment complexAssignment) {
+      Expression body, ComplexAssignmentJudgment complexAssignment) {
     return super._finish(
         makeLet(receiverVariable, makeLet(indexVariable, body)),
         complexAssignment);
@@ -764,8 +764,8 @@ class KernelIndexedAccessGenerator extends KernelGenerator
   }
 
   @override
-  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
-      new ShadowIndexAssign(receiver, index, rhs);
+  ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
+      new IndexAssignmentJudgment(receiver, index, rhs);
 
   @override
   void printOn(StringSink sink) {
@@ -805,7 +805,7 @@ class KernelThisIndexedAccessGenerator extends KernelGenerator
   }
 
   Expression _makeWriteAndReturn(
-      Expression value, ShadowComplexAssignment complexAssignment) {
+      Expression value, ComplexAssignmentJudgment complexAssignment) {
     var valueVariable = new VariableDeclaration.forValue(value);
     var write = new ShadowMethodInvocation(
         forest.thisExpression(token),
@@ -833,7 +833,7 @@ class KernelThisIndexedAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeSimpleWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
+      ComplexAssignmentJudgment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
     var write = new ShadowMethodInvocation(
         forest.thisExpression(token),
@@ -847,7 +847,7 @@ class KernelThisIndexedAccessGenerator extends KernelGenerator
   }
 
   @override
-  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     var read = new ShadowMethodInvocation(
         forest.thisExpression(token),
         indexGetName,
@@ -861,7 +861,7 @@ class KernelThisIndexedAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
+      ComplexAssignmentJudgment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
     var write = new ShadowMethodInvocation(
         forest.thisExpression(token),
@@ -876,7 +876,7 @@ class KernelThisIndexedAccessGenerator extends KernelGenerator
 
   @override
   Expression _finish(
-      Expression body, ShadowComplexAssignment complexAssignment) {
+      Expression body, ComplexAssignmentJudgment complexAssignment) {
     return super._finish(makeLet(indexVariable, body), complexAssignment);
   }
 
@@ -888,8 +888,8 @@ class KernelThisIndexedAccessGenerator extends KernelGenerator
   }
 
   @override
-  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
-      new ShadowIndexAssign(null, index, rhs);
+  ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
+      new IndexAssignmentJudgment(null, index, rhs);
 
   @override
   void printOn(StringSink sink) {
@@ -925,7 +925,7 @@ class KernelSuperIndexedAccessGenerator extends KernelGenerator
   }
 
   Expression _makeWriteAndReturn(
-      Expression value, ShadowComplexAssignment complexAssignment) {
+      Expression value, ComplexAssignmentJudgment complexAssignment) {
     var valueVariable = new VariableDeclaration.forValue(value);
     if (setter == null) {
       helper.warnUnresolvedMethod(indexSetName, offsetForToken(token),
@@ -960,7 +960,7 @@ class KernelSuperIndexedAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeSimpleWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
+      ComplexAssignmentJudgment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
     if (setter == null) {
       helper.warnUnresolvedMethod(indexSetName, offsetForToken(token),
@@ -977,7 +977,7 @@ class KernelSuperIndexedAccessGenerator extends KernelGenerator
   }
 
   @override
-  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     if (getter == null) {
       helper.warnUnresolvedMethod(indexGetName, offsetForToken(token),
           isSuper: true);
@@ -994,7 +994,7 @@ class KernelSuperIndexedAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
+      ComplexAssignmentJudgment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
     if (setter == null) {
       helper.warnUnresolvedMethod(indexSetName, offsetForToken(token),
@@ -1012,7 +1012,7 @@ class KernelSuperIndexedAccessGenerator extends KernelGenerator
 
   @override
   Expression _finish(
-      Expression body, ShadowComplexAssignment complexAssignment) {
+      Expression body, ComplexAssignmentJudgment complexAssignment) {
     return super._finish(makeLet(indexVariable, body), complexAssignment);
   }
 
@@ -1024,8 +1024,8 @@ class KernelSuperIndexedAccessGenerator extends KernelGenerator
   }
 
   @override
-  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
-      new ShadowIndexAssign(null, index, rhs, isSuper: true);
+  ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
+      new IndexAssignmentJudgment(null, index, rhs, isSuper: true);
 
   @override
   void printOn(StringSink sink) {
@@ -1057,7 +1057,7 @@ class KernelStaticAccessGenerator extends KernelGenerator
   String get plainNameForRead => (readTarget ?? writeTarget).name.name;
 
   @override
-  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     if (readTarget == null) {
       return makeInvalidRead();
     } else {
@@ -1069,7 +1069,7 @@ class KernelStaticAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
+      ComplexAssignmentJudgment complexAssignment) {
     Expression write;
     if (writeTarget == null) {
       write = makeInvalidWrite(value);
@@ -1102,8 +1102,8 @@ class KernelStaticAccessGenerator extends KernelGenerator
   }
 
   @override
-  ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
-      new ShadowStaticAssignment(rhs);
+  ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
+      new StaticAssignmentJudgment(rhs);
 
   @override
   void printOn(StringSink sink) {
@@ -1124,7 +1124,7 @@ class KernelLoadLibraryGenerator extends KernelGenerator
       : super(helper, token);
 
   @override
-  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     var read =
         helper.makeStaticGet(builder.createTearoffMethod(helper.forest), token);
     complexAssignment?.read = read;
@@ -1133,7 +1133,7 @@ class KernelLoadLibraryGenerator extends KernelGenerator
 
   @override
   Expression _makeWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
+      ComplexAssignmentJudgment complexAssignment) {
     Expression write = makeInvalidWrite(value);
     write.fileOffset = offsetForToken(token);
     return write;
@@ -1175,14 +1175,14 @@ class KernelDeferredAccessGenerator extends KernelGenerator
   }
 
   @override
-  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     return helper.wrapInDeferredCheck(
         generator._makeRead(complexAssignment), builder, token.charOffset);
   }
 
   @override
   Expression _makeWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
+      ComplexAssignmentJudgment complexAssignment) {
     return helper.wrapInDeferredCheck(
         generator._makeWrite(value, voidContext, complexAssignment),
         builder,
@@ -1314,14 +1314,14 @@ class KernelReadOnlyAccessGenerator extends KernelGenerator
   Expression _makeSimpleRead() => expression;
 
   @override
-  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     value ??= new VariableDeclaration.forValue(expression);
     return new VariableGet(value);
   }
 
   @override
   Expression _makeWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
+      ComplexAssignmentJudgment complexAssignment) {
     var write = makeInvalidWrite(value);
     complexAssignment?.write = write;
     return write;
@@ -1329,7 +1329,7 @@ class KernelReadOnlyAccessGenerator extends KernelGenerator
 
   @override
   Expression _finish(
-          Expression body, ShadowComplexAssignment complexAssignment) =>
+          Expression body, ComplexAssignmentJudgment complexAssignment) =>
       super._finish(makeLet(value, body), complexAssignment);
 
   @override
@@ -1361,18 +1361,18 @@ class KernelLargeIntAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeSimpleWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
+      ComplexAssignmentJudgment complexAssignment) {
     return buildError();
   }
 
   @override
-  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     return buildError();
   }
 
   @override
   Expression _makeWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
+      ComplexAssignmentJudgment complexAssignment) {
     return buildError();
   }
 }
@@ -1387,13 +1387,13 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
       : super(helper, token);
 
   @override
-  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     return unsupported("_makeRead", offsetForToken(token), uri);
   }
 
   @override
   Expression _makeWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
+      ComplexAssignmentJudgment complexAssignment) {
     return unsupported("_makeWrite", offsetForToken(token), uri);
   }
 
@@ -1420,13 +1420,13 @@ class KernelUnlinkedGenerator extends KernelGenerator with UnlinkedGenerator {
         super(helper, token);
 
   @override
-  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     return unsupported("_makeRead", offsetForToken(token), uri);
   }
 
   @override
   Expression _makeWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
+      ComplexAssignmentJudgment complexAssignment) {
     return unsupported("_makeWrite", offsetForToken(token), uri);
   }
 
@@ -1458,13 +1458,13 @@ abstract class KernelContextAwareGenerator extends KernelGenerator
       : super(helper, token);
 
   @override
-  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     return unsupported("_makeRead", offsetForToken(token), uri);
   }
 
   @override
   Expression _makeWrite(Expression value, bool voidContext,
-      ShadowComplexAssignment complexAssignment) {
+      ComplexAssignmentJudgment complexAssignment) {
     return unsupported("_makeWrite", offsetForToken(token), uri);
   }
 }

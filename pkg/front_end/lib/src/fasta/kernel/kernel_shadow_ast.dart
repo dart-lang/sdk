@@ -449,13 +449,13 @@ class ShadowClass extends Class {
 ///
 /// TODO(paulberry): once we know exactly what constitutes a "complex
 /// assignment", document it here.
-abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
+abstract class ComplexAssignmentJudgment extends ShadowSyntheticExpression {
   /// In a compound assignment, the expression that reads the old value, or
   /// `null` if this is not a compound assignment.
   Expression read;
 
   /// The expression appearing on the RHS of the assignment.
-  final Expression rhs;
+  final ExpressionJudgment rhs;
 
   /// The expression that performs the write (e.g. `a.[]=(b, a.[](b) + 1)` in
   /// `++a[b]`).
@@ -484,7 +484,7 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
   /// pre-decrement.
   bool isPreIncDec = false;
 
-  ShadowComplexAssignment(this.rhs) : super(null);
+  ComplexAssignmentJudgment(this.rhs) : super(null);
 
   String toString() {
     var parts = _getToStringParts();
@@ -539,8 +539,8 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
         assert(identical(combiner.arguments.positional.first, rhs));
         // Analyzer uses a null context for the RHS here.
         // TODO(paulberry): improve on this.
-        rhsType =
-            inferrer.inferExpression(factory, rhs, const UnknownType(), true);
+        inferrer.inferExpression(factory, rhs, const UnknownType(), true);
+        rhsType = rhs.inferredType;
         // Do not use rhs after this point because it may be a Shadow node
         // that has been replaced in the tree with its desugaring.
         var expectedType = getPositionalParameterType(combinerType, 0);
@@ -570,8 +570,9 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
       }
       _storeLetType(inferrer, replacedCombiner, combinedType);
     } else {
-      var rhsType = inferrer.inferExpression(
+      inferrer.inferExpression(
           factory, rhs, writeContext ?? const UnknownType(), true);
+      var rhsType = rhs.inferredType;
       var replacedRhs =
           inferrer.ensureAssignable(writeContext, rhsType, rhs, writeOffset);
       _storeLetType(inferrer, replacedRhs ?? rhs, rhsType);
@@ -592,28 +593,29 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
         combinedType = rhsType;
       }
     }
-    if (this is ShadowIndexAssign) {
+    if (this is IndexAssignmentJudgment) {
       _storeLetType(inferrer, write, const VoidType());
     } else {
       _storeLetType(inferrer, write, combinedType);
     }
-    return new _ComplexAssignmentInferenceResult(combinerMember,
-        isPostIncDec ? (readType ?? const DynamicType()) : combinedType);
+    inferredType =
+        isPostIncDec ? (readType ?? const DynamicType()) : combinedType;
+    return new _ComplexAssignmentInferenceResult(combinerMember);
   }
 }
 
 /// Abstract shadow object representing a complex assignment involving a
 /// receiver.
-abstract class ShadowComplexAssignmentWithReceiver
-    extends ShadowComplexAssignment {
+abstract class ComplexAssignmentJudgmentWithReceiver
+    extends ComplexAssignmentJudgment {
   /// The receiver of the assignment target (e.g. `a` in `a[b] = c`).
-  final Expression receiver;
+  final ExpressionJudgment receiver;
 
   /// Indicates whether this assignment uses `super`.
   final bool isSuper;
 
-  ShadowComplexAssignmentWithReceiver(
-      this.receiver, Expression rhs, this.isSuper)
+  ComplexAssignmentJudgmentWithReceiver(
+      this.receiver, ExpressionJudgment rhs, this.isSuper)
       : super(rhs);
 
   @override
@@ -628,8 +630,8 @@ abstract class ShadowComplexAssignmentWithReceiver
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory) {
     if (receiver != null) {
-      var receiverType = inferrer.inferExpression(
-          factory, receiver, const UnknownType(), true);
+      inferrer.inferExpression(factory, receiver, const UnknownType(), true);
+      var receiverType = receiver.inferredType;
       _storeLetType(inferrer, receiver, receiverType);
       return receiverType;
     } else if (isSuper) {
@@ -1090,7 +1092,7 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
       } else {
         context = variable.type;
       }
-    } else if (syntheticAssignment is ShadowComplexAssignment) {
+    } else if (syntheticAssignment is ComplexAssignmentJudgment) {
       syntheticWrite = syntheticAssignment.write;
       syntheticWriteType =
           context = syntheticAssignment._getWriteType(inferrer);
@@ -1149,13 +1151,13 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
         body = combineStatements(variable, body)..parent = this;
       }
     } else if (syntheticAssignment is ShadowSyntheticExpression) {
-      if (syntheticAssignment is ShadowComplexAssignment) {
+      if (syntheticAssignment is ComplexAssignmentJudgment) {
         inferrer.ensureAssignable(
             greatestClosure(inferrer.coreTypes, syntheticWriteType),
             this.variable.type,
             syntheticAssignment.rhs,
             syntheticAssignment.rhs.fileOffset);
-        if (syntheticAssignment is ShadowPropertyAssign) {
+        if (syntheticAssignment is PropertyAssignmentJudgment) {
           syntheticAssignment._handleWriteContravariance(
               inferrer, inferrer.thisType);
         }
@@ -1410,8 +1412,8 @@ class IfJudgment extends IfStatement implements StatementJudgment {
 
 /// Concrete shadow object representing an assignment to a target for which
 /// assignment is not allowed.
-class ShadowIllegalAssignment extends ShadowComplexAssignment {
-  ShadowIllegalAssignment(Expression rhs) : super(rhs);
+class IllegalAssignmentJudgment extends ComplexAssignmentJudgment {
+  IllegalAssignmentJudgment(ExpressionJudgment rhs) : super(rhs);
 
   @override
   DartType _getWriteType(ShadowTypeInferrer inferrer) {
@@ -1427,17 +1429,18 @@ class ShadowIllegalAssignment extends ShadowComplexAssignment {
       inferrer.inferExpression(factory, write, const UnknownType(), false);
     }
     _replaceWithDesugared();
-    return const DynamicType();
+    return inferredType = const DynamicType();
   }
 }
 
 /// Concrete shadow object representing an assignment to a target of the form
 /// `a[b]`.
-class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
+class IndexAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
   /// In an assignment to an index expression, the index expression.
-  Expression index;
+  final ExpressionJudgment index;
 
-  ShadowIndexAssign(Expression receiver, this.index, Expression rhs,
+  IndexAssignmentJudgment(
+      ExpressionJudgment receiver, this.index, ExpressionJudgment rhs,
       {bool isSuper: false})
       : super(receiver, rhs, isSuper);
 
@@ -1482,8 +1485,8 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
       expectedIndexTypeForWrite = calleeType.positionalParameters[0];
       writeContext = calleeType.positionalParameters[1];
     }
-    var indexType =
-        inferrer.inferExpression(factory, index, indexContext, true);
+    inferrer.inferExpression(factory, index, indexContext, true);
+    var indexType = index.inferredType;
     _storeLetType(inferrer, index, indexType);
     if (writeContext is! UnknownType) {
       inferrer.ensureAssignable(
@@ -1520,9 +1523,9 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
     }
     var inferredResult = _inferRhs(inferrer, factory, readType, writeContext);
     inferrer.listener.indexAssign(this, write.fileOffset, writeMember,
-        inferredResult.combiner, inferredResult.type);
+        inferredResult.combiner, inferredType);
     _replaceWithDesugared();
-    return inferredResult.type;
+    return inferredType;
   }
 }
 
@@ -2043,12 +2046,13 @@ class ShadowProcedure extends Procedure implements ShadowMember {
 }
 
 /// Concrete shadow object representing an assignment to a property.
-class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
+class PropertyAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
   /// If this assignment uses null-aware access (`?.`), the conditional
   /// expression that guards the access; otherwise `null`.
   ConditionalExpression nullAwareGuard;
 
-  ShadowPropertyAssign(Expression receiver, Expression rhs,
+  PropertyAssignmentJudgment(
+      ExpressionJudgment receiver, ExpressionJudgment rhs,
       {bool isSuper: false})
       : super(receiver, rhs, isSuper);
 
@@ -2097,16 +2101,16 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
     // doing compound assignment?
     var writeContext = inferrer.getSetterType(writeMember, receiverType);
     var inferredResult = _inferRhs(inferrer, factory, readType, writeContext);
-    if (inferrer.strongMode) nullAwareGuard?.staticType = inferredResult.type;
+    if (inferrer.strongMode) nullAwareGuard?.staticType = inferredType;
     inferrer.listener.propertyAssign(
         this,
         write.fileOffset,
         inferrer.getRealTarget(writeMember),
         writeContext,
         inferredResult.combiner,
-        inferredResult.type);
+        inferredType);
     _replaceWithDesugared();
-    return inferredResult.type;
+    return inferredType;
   }
 }
 
@@ -2221,8 +2225,8 @@ abstract class StatementJudgment extends Statement {
 }
 
 /// Concrete shadow object representing an assignment to a static variable.
-class ShadowStaticAssignment extends ShadowComplexAssignment {
-  ShadowStaticAssignment(Expression rhs) : super(rhs);
+class StaticAssignmentJudgment extends ComplexAssignmentJudgment {
+  StaticAssignmentJudgment(ExpressionJudgment rhs) : super(rhs);
 
   @override
   DartType _getWriteType(ShadowTypeInferrer inferrer) {
@@ -2254,9 +2258,9 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
     }
     var inferredResult = _inferRhs(inferrer, factory, readType, writeContext);
     inferrer.listener.staticAssign(this, write?.fileOffset, writeMember,
-        writeContext, inferredResult.combiner, inferredResult.type);
+        writeContext, inferredResult.combiner, inferredType);
     _replaceWithDesugared();
-    return inferredResult.type;
+    return inferredType;
   }
 }
 
@@ -2916,8 +2920,8 @@ class ShadowTypePromoter extends TypePromoterImpl {
   }
 }
 
-class VariableAssignmentJudgment extends ShadowComplexAssignment {
-  VariableAssignmentJudgment(Expression rhs) : super(rhs);
+class VariableAssignmentJudgment extends ComplexAssignmentJudgment {
+  VariableAssignmentJudgment(ExpressionJudgment rhs) : super(rhs);
 
   @override
   DartType _getWriteType(ShadowTypeInferrer inferrer) {
@@ -2950,9 +2954,9 @@ class VariableAssignmentJudgment extends ShadowComplexAssignment {
         writeContext,
         write is VariableSet ? write.variable.fileOffset : null,
         inferredResult.combiner,
-        inferredResult.type);
+        inferredType);
     _replaceWithDesugared();
-    return inferredType = inferredResult.type;
+    return inferredType;
   }
 }
 
@@ -3231,10 +3235,7 @@ class _ComplexAssignmentInferenceResult {
   /// `null` if the assignment is not compound.
   final Procedure combiner;
 
-  /// The inferred type of the assignment expression.
-  final DartType type;
-
-  _ComplexAssignmentInferenceResult(this.combiner, this.type);
+  _ComplexAssignmentInferenceResult(this.combiner);
 }
 
 class _UnfinishedCascade extends Expression {
