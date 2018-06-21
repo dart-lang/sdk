@@ -1509,6 +1509,14 @@ DART_EXPORT bool Dart_IsFuture(Dart_Handle object);
 DART_EXPORT Dart_Handle Dart_InstanceGetType(Dart_Handle instance);
 
 /**
+ * Returns the name for the provided class type.
+ *
+ * \return A valid string handle if no error occurs during the
+ *   operation.
+ */
+DART_EXPORT Dart_Handle Dart_ClassName(Dart_Handle cls_type);
+
+/**
  * Returns the name for the provided function or method.
  *
  * \return A valid string handle if no error occurs during the
@@ -1552,6 +1560,15 @@ DART_EXPORT Dart_Handle Dart_FunctionIsStatic(Dart_Handle function,
  *   argument is not a closure.
  */
 DART_EXPORT Dart_Handle Dart_ClosureFunction(Dart_Handle closure);
+
+/**
+ * Returns a handle to the library which contains class.
+ *
+ * \return A valid handle to the library with owns class, null if the class
+ *   has no library or an error handle if the argument is not a valid handle
+ *   to a class type.
+ */
+DART_EXPORT Dart_Handle Dart_ClassLibrary(Dart_Handle cls_type);
 
 /*
  * =============================
@@ -1685,6 +1702,20 @@ DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle double_obj, double* value);
  */
 DART_EXPORT Dart_Handle Dart_GetClosure(Dart_Handle library,
                                         Dart_Handle function_name);
+
+/**
+ * Returns a closure of static function 'function_name' in the class 'class_name'
+ * in the exported namespace of specified 'library'.
+ *
+ * \param library Library object
+ * \param cls_type Type object representing a Class
+ * \param function_name Name of the static function in the class
+ *
+ * \return A valid Dart instance if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_GetStaticMethodClosure(Dart_Handle library,
+                                                    Dart_Handle cls_type,
+                                                    Dart_Handle function_name);
 
 /*
  * ========
