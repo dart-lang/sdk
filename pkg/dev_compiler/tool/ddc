@@ -93,6 +93,7 @@ else
       -o $LIBROOT/$BASENAME.js $*
 fi
 
+export NODE_PATH
 pushd $LIBROOT > /dev/null
 # TODO(jmesserly): we could have this output the same content as the devtool
 # script, so you could debug the output without recompiling?

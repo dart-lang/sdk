@@ -92,18 +92,26 @@ void main(List<String> args) {
   }
 
   String sdkJsPath;
+  String requirePath;
+  String ddcSdk;
   if (debug) {
     var sdkRoot = path.dirname(path.dirname(ddcPath));
     var buildDir = path.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out');
     var genDir = path.join(buildDir, 'ReleaseX64', 'gen', 'utils', 'dartdevc');
-    sdkJsPath = path.join(genDir, kernel ? 'kernel' : 'js', mod);
+    sdkJsPath = path.join(buildDir, 'ReleaseX64', 'gen', 'utils', 'dartdevc',
+        kernel ? 'kernel' : 'js', mod);
+    requirePath = path.join(sdkRoot, 'third_party', 'requirejs');
+    ddcSdk = path.join(buildDir, 'ReleaseX64', 'gen', 'utils', 'dartdevc',
+        kernel ? path.join('kernel', 'ddc_sdk.dill') : 'ddc_sdk.sum');
   } else {
     var suffix = kernel ? path.join('kernel', mod) : mod;
     sdkJsPath = path.join(dartSdk, 'lib', 'dev_compiler', suffix);
+    requirePath = sdkJsPath;
+    ddcSdk = path.join(
+        dartSdk, 'lib', '_internal', kernel ? 'ddc_sdk.dill' : 'ddc_sdk.sum');
   }
   ProcessResult result;
   if (kernel) {
-    var ddcSdk = path.join(dartSdk, 'lib', '_internal', 'ddc_sdk.dill');
     result = runDdc('dartdevk', [
       '--modules=$mod',
       '--dart-sdk-summary=$ddcSdk',
@@ -114,6 +122,7 @@ void main(List<String> args) {
   } else {
     result = runDdc('dartdevc', [
       '--modules=$mod',
+      '--dart-sdk-summary=$ddcSdk',
       '--library-root=$libRoot',
       '-o',
       '$libRoot/$basename.js',
@@ -143,7 +152,7 @@ void main(List<String> args) {
     }
 
     var html = """
-<script src='$sdkJsPath/require.js'></script>
+<script src='$requirePath/require.js'></script>
 <script>
   require.config({
     baseUrl: '$libRoot',
