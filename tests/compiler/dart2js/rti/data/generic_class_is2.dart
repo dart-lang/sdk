@@ -8,7 +8,8 @@ import 'package:meta/dart2js.dart';
 /*class: A:implicit=[List<A<C2>>,List<A<C>>]*/
 class A<T> {}
 
-/*!strong.class: A1:*/
+/*kernel.class: A1:*/
+/*omit.class: A1:*/
 /*strong.class: A1:implicit=[A1]*/
 class A1 implements A<C1> {}
 

@@ -5,18 +5,22 @@
 import 'package:expect/expect.dart';
 
 /*kernel.class: Class1:needsArgs*/
-/*!kernel.class: Class1:*/
+/*strong.class: Class1:*/
+/*omit.class: Class1:*/
 class Class1<S> {
   /*kernel.element: Class1.:needsSignature*/
-  /*!kernel.element: Class1.:*/
+  /*strong.element: Class1.:*/
+  /*omit.element: Class1.:*/
   Class1();
 
   /*kernel.element: Class1.method1a:needsSignature*/
-  /*!kernel.element: Class1.method1a:needsArgs*/
+  /*strong.element: Class1.method1a:needsArgs*/
+  /*omit.element: Class1.method1a:needsArgs*/
   T method1a<T>() => null;
 
   /*kernel.element: Class1.method1b:needsSignature*/
-  /*!kernel.element: Class1.method1b:needsArgs*/
+  /*strong.element: Class1.method1b:needsArgs*/
+  /*omit.element: Class1.method1b:needsArgs*/
   T method1b<T>() => null;
 
   /*kernel.element: Class1.method2:needsSignature*/
@@ -26,15 +30,18 @@ class Class1<S> {
 }
 
 /*kernel.class: Class2:needsArgs*/
-/*!kernel.class: Class2:*/
+/*strong.class: Class2:*/
+/*omit.class: Class2:*/
 class Class2<T> {
   /*kernel.element: Class2.:needsSignature*/
-  /*!kernel.element: Class2.:*/
+  /*strong.element: Class2.:*/
+  /*omit.element: Class2.:*/
   Class2();
 }
 
 /*kernel.element: main:needsSignature*/
-/*!kernel.element: main:*/
+/*strong.element: main:*/
+/*omit.element: main:*/
 main() {
   var c = new Class1<int>();
 

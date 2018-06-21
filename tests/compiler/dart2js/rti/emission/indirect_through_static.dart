@@ -3,15 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*kernel.class: A:*/
-/*!kernel.class: A:checkedInstance,checks=[],typeArgument*/
+/*strong.class: A:checkedInstance,checks=[],typeArgument*/
+/*omit.class: A:checkedInstance,checks=[],typeArgument*/
 abstract class A {}
 
 /*kernel.class: B:checks=[],typeArgument*/
-/*!kernel.class: B:checks=[$isA],typeArgument*/
+/*strong.class: B:checks=[$isA],typeArgument*/
+/*omit.class: B:checks=[$isA],typeArgument*/
 class B implements A {}
 
 /*kernel.class: C:checks=[],instance*/
-/*!kernel.class: C:checkedInstance,checks=[],instance,typeArgument*/
+/*strong.class: C:checkedInstance,checks=[],instance,typeArgument*/
+/*omit.class: C:checkedInstance,checks=[],instance,typeArgument*/
 class C<T> {}
 
 final Map<String, C> map = {};

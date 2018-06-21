@@ -15,7 +15,8 @@ class Class1 {
   Object method3(num n) => null;
 }
 
-/*!strong.class: Class2:needsArgs*/
+/*kernel.class: Class2:needsArgs*/
+/*omit.class: Class2:needsArgs*/
 /*strong.class: Class2:direct,explicit=[Class2.T],needsArgs*/
 class Class2<T> {
   /*element: Class2.method4:needsSignature*/
@@ -28,7 +29,8 @@ class Class3<T> {
   T method5(num n) => null;
 }
 
-/*!strong.class: Class4:*/
+/*kernel.class: Class4:*/
+/*omit.class: Class4:*/
 /*strong.class: Class4:direct,explicit=[Class4.T],needsArgs*/
 class Class4<T> {
   /*element: Class4.method6:*/

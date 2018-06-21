@@ -186,30 +186,17 @@ Map<String, AnnotatedCode> splitByPrefixes(
   for (String prefix in prefixes) {
     map[prefix] = <Annotation>[];
   }
+  outer:
   for (Annotation annotation in annotatedCode.annotations) {
-    String annotationText = annotation.text;
-    String annotationPrefix;
-    bool not = false;
-    if (annotationText.startsWith('!')) {
-      annotationText = annotationText.substring(1);
-      not = true;
-    }
     for (String prefix in prefixes) {
-      if (annotationText.startsWith(prefix)) {
-        annotationPrefix = prefix;
-        annotation = new Annotation(annotation.lineNo, annotation.columnNo,
-            annotation.offset, annotationText.substring(prefix.length));
+      if (annotation.text.startsWith(prefix)) {
+        map[prefix].add(new Annotation(annotation.lineNo, annotation.columnNo,
+            annotation.offset, annotation.text.substring(prefix.length)));
+        continue outer;
       }
     }
-
     for (String prefix in prefixes) {
-      if (annotationPrefix == null) {
-        map[prefix].add(annotation);
-      } else if (annotationPrefix != prefix && not) {
-        map[prefix].add(annotation);
-      } else if (annotationPrefix == prefix && !not) {
-        map[prefix].add(annotation);
-      }
+      map[prefix].add(annotation);
     }
   }
   Map<String, AnnotatedCode> split = <String, AnnotatedCode>{};

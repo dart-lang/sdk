@@ -7,11 +7,13 @@ import 'package:expect/expect.dart';
 /*class: Class1a:needsArgs*/
 class Class1a<T> {
   /*kernel.element: Class1a.:needsSignature*/
-  /*!kernel.element: Class1a.:*/
+  /*strong.element: Class1a.:*/
+  /*omit.element: Class1a.:*/
   Class1a();
 
   /*kernel.element: Class1a.==:needsSignature*/
-  /*!kernel.element: Class1a.==:*/
+  /*strong.element: Class1a.==:*/
+  /*omit.element: Class1a.==:*/
   bool operator ==(other) {
     if (identical(this, other)) return true;
     return runtimeType == other?.runtimeType;
@@ -21,7 +23,8 @@ class Class1a<T> {
 /*class: Class1b:needsArgs*/
 class Class1b<T> extends Class1a<T> {
   /*kernel.element: Class1b.:needsSignature*/
-  /*!kernel.element: Class1b.:*/
+  /*strong.element: Class1b.:*/
+  /*omit.element: Class1b.:*/
   Class1b();
 }
 
@@ -30,20 +33,24 @@ class Class1b<T> extends Class1a<T> {
 /*class: Class1c:needsArgs*/
 class Class1c<T> implements Class1a<T> {
   /*kernel.element: Class1c.:needsSignature*/
-  /*!kernel.element: Class1c.:*/
+  /*strong.element: Class1c.:*/
+  /*omit.element: Class1c.:*/
   Class1c();
 }
 
 /*kernel.class: Class2:needsArgs*/
-/*!kernel.class: Class2:*/
+/*strong.class: Class2:*/
+/*omit.class: Class2:*/
 class Class2<T> {
   /*kernel.element: Class2.:needsSignature*/
-  /*!kernel.element: Class2.:*/
+  /*strong.element: Class2.:*/
+  /*omit.element: Class2.:*/
   Class2();
 }
 
 /*kernel.element: main:needsSignature*/
-/*!kernel.element: main:*/
+/*strong.element: main:*/
+/*omit.element: main:*/
 main() {
   Class1a<int> cls1a = new Class1a<int>();
   Class1a<int> cls1b1 = new Class1b<int>();

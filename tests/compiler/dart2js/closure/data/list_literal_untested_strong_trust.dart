@@ -6,7 +6,8 @@ import 'package:expect/expect.dart';
 
 @NoInline()
 method<T>() {
-  /*!strong.*/
+  /*kernel.*/
+  /*omit.*/
   /*strong.fields=[T],free=[T]*/
   dynamic local() => <T>[];
   return local;

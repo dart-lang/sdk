@@ -5,38 +5,46 @@
 import 'package:expect/expect.dart';
 
 /*kernel.class: Class1:needsArgs*/
-/*!kernel.class: Class1:*/
+/*strong.class: Class1:*/
+/*omit.class: Class1:*/
 class Class1<T> {
   /*kernel.element: Class1.:needsSignature*/
-  /*!kernel.element: Class1.:*/
+  /*strong.element: Class1.:*/
+  /*omit.element: Class1.:*/
   Class1();
 
   // TODO(johnniwinther): Currently only methods that use class type variables
   // in their signature are marked as 'needs signature'. Change this to mark
   // all methods that need to support access to their function type at runtime.
   /*kernel.element: Class1.method1a:needsSignature*/
-  /*!kernel.element: Class1.method1a:*/
+  /*strong.element: Class1.method1a:*/
+  /*omit.element: Class1.method1a:*/
   method1a() => null;
 
   /*kernel.element: Class1.method1b:needsSignature*/
-  /*!kernel.element: Class1.method1b:*/
+  /*strong.element: Class1.method1b:*/
+  /*omit.element: Class1.method1b:*/
   method1b() => null;
 
   /*kernel.element: Class1.method2:needsSignature*/
-  /*!kernel.element: Class1.method2:*/
+  /*strong.element: Class1.method2:*/
+  /*omit.element: Class1.method2:*/
   method2(t, s) => t;
 }
 
 /*kernel.class: Class2:needsArgs*/
-/*!kernel.class: Class2:*/
+/*strong.class: Class2:*/
+/*omit.class: Class2:*/
 class Class2<T> {
   /*kernel.element: Class2.:needsSignature*/
-  /*!kernel.element: Class2.:*/
+  /*strong.element: Class2.:*/
+  /*omit.element: Class2.:*/
   Class2();
 }
 
 /*kernel.element: main:needsSignature*/
-/*!kernel.element: main:*/
+/*strong.element: main:*/
+/*omit.element: main:*/
 main() {
   var c = new Class1<int>();
 

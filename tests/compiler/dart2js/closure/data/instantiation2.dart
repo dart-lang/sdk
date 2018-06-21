@@ -12,7 +12,8 @@ class B<S> {
   method() {
     return
         /*kernel.hasThis*/
-        /*!kernel.fields=[this],free=[this],hasThis*/
+        /*strong.fields=[this],free=[this],hasThis*/
+        /*omit.fields=[this],free=[this],hasThis*/
         () {
       F<S> c = f;
       return c;
