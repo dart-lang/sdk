@@ -42,6 +42,11 @@ enum {
   kBoolType,
   kStringType,
   kArrayType,
+  kIntTypeArguments,
+  kDoubleTypeArguments,
+  kStringTypeArguments,
+  kStringDynamicTypeArguments,
+  kStringStringTypeArguments,
   kEmptyTypeArguments,
 
   kExtractorParameterTypes,

@@ -1799,7 +1799,8 @@ RawError* Object::Init(Isolate* isolate,
     type = object_store->object_type();
     cls.set_super_type(type);
 
-    // Create and cache commonly used type arguments <int> and <String>
+    // Create and cache commonly used type arguments <int>, <double>,
+    // <String>, <String, dynamic> and <String, String>.
     type_args = TypeArguments::New(1);
     type = object_store->int_type();
     type_args.SetTypeAt(0, type);
@@ -1807,10 +1808,30 @@ RawError* Object::Init(Isolate* isolate,
     object_store->set_type_argument_int(type_args);
 
     type_args = TypeArguments::New(1);
+    type = object_store->double_type();
+    type_args.SetTypeAt(0, type);
+    type_args.Canonicalize();
+    object_store->set_type_argument_double(type_args);
+
+    type_args = TypeArguments::New(1);
     type = object_store->string_type();
     type_args.SetTypeAt(0, type);
     type_args.Canonicalize();
     object_store->set_type_argument_string(type_args);
+
+    type_args = TypeArguments::New(2);
+    type = object_store->string_type();
+    type_args.SetTypeAt(0, type);
+    type_args.SetTypeAt(1, Object::dynamic_type());
+    type_args.Canonicalize();
+    object_store->set_type_argument_string_dynamic(type_args);
+
+    type_args = TypeArguments::New(2);
+    type = object_store->string_type();
+    type_args.SetTypeAt(0, type);
+    type_args.SetTypeAt(1, type);
+    type_args.Canonicalize();
+    object_store->set_type_argument_string_string(type_args);
 
     // Finish the initialization by compiling the bootstrap scripts containing
     // the base interfaces and the implementation of the internal classes.
@@ -15957,6 +15978,8 @@ class CheckForPointers : public ObjectPointerVisitor {
 
 bool Instance::CheckAndCanonicalizeFields(Thread* thread,
                                           const char** error_str) const {
+  ASSERT(error_str != NULL);
+  ASSERT(*error_str == NULL);
   if (GetClassId() >= kNumPredefinedCids) {
     // Iterate over all fields, canonicalize numbers and strings, expect all
     // other instances to be canonical otherwise report error (return false).
@@ -15969,12 +15992,15 @@ bool Instance::CheckAndCanonicalizeFields(Thread* thread,
       obj = *this->FieldAddrAtOffset(offset);
       if (obj.IsInstance() && !obj.IsSmi() && !obj.IsCanonical()) {
         if (obj.IsNumber() || obj.IsString()) {
-          obj = Instance::Cast(obj).CheckAndCanonicalize(thread, NULL);
+          obj = Instance::Cast(obj).CheckAndCanonicalize(thread, error_str);
+          if (*error_str != NULL) {
+            return false;
+          }
           ASSERT(!obj.IsNull());
           this->SetFieldAtOffset(offset, obj);
         } else {
-          ASSERT(error_str != NULL);
-          char* chars = OS::SCreate(zone, "field: %s\n", obj.ToCString());
+          char* chars = OS::SCreate(zone, "field: %s, owner: %s\n",
+                                    obj.ToCString(), ToCString());
           *error_str = chars;
           return false;
         }
@@ -15993,6 +16019,8 @@ bool Instance::CheckAndCanonicalizeFields(Thread* thread,
 
 RawInstance* Instance::CheckAndCanonicalize(Thread* thread,
                                             const char** error_str) const {
+  ASSERT(error_str != NULL);
+  ASSERT(*error_str == NULL);
   ASSERT(!IsNull());
   if (this->IsCanonical()) {
     return this->raw();
@@ -21275,6 +21303,8 @@ RawArray* Array::MakeFixedLength(const GrowableObjectArray& growable_array,
 
 bool Array::CheckAndCanonicalizeFields(Thread* thread,
                                        const char** error_str) const {
+  ASSERT(error_str != NULL);
+  ASSERT(*error_str == NULL);
   intptr_t len = Length();
   if (len > 0) {
     Zone* zone = thread->zone();
@@ -21285,11 +21315,13 @@ bool Array::CheckAndCanonicalizeFields(Thread* thread,
       obj = At(i);
       if (obj.IsInstance() && !obj.IsSmi() && !obj.IsCanonical()) {
         if (obj.IsNumber() || obj.IsString()) {
-          obj = Instance::Cast(obj).CheckAndCanonicalize(thread, NULL);
+          obj = Instance::Cast(obj).CheckAndCanonicalize(thread, error_str);
+          if (*error_str != NULL) {
+            return false;
+          }
           ASSERT(!obj.IsNull());
           this->SetAt(i, obj);
         } else {
-          ASSERT(error_str != NULL);
           char* chars = OS::SCreate(zone, "element at index %" Pd ": %s\n", i,
                                     obj.ToCString());
           *error_str = chars;

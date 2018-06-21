@@ -50,7 +50,7 @@ static bool IsObjectStoreClassId(intptr_t class_id) {
 
 static bool IsObjectStoreTypeId(intptr_t index) {
   // Check if this is a type which is stored in the object store.
-  return (index >= kObjectType && index <= kArrayType);
+  return (index >= kObjectType && index <= kStringStringTypeArguments);
 }
 
 static bool IsSplitClassId(intptr_t class_id) {
@@ -74,7 +74,7 @@ static intptr_t ObjectIdFromClassId(intptr_t class_id) {
   return (class_id + kClassIdsOffset);
 }
 
-static RawType* GetType(ObjectStore* object_store, intptr_t index) {
+static RawObject* GetType(ObjectStore* object_store, intptr_t index) {
   switch (index) {
     case kObjectType:
       return object_store->object_type();
@@ -98,6 +98,16 @@ static RawType* GetType(ObjectStore* object_store, intptr_t index) {
       return object_store->string_type();
     case kArrayType:
       return object_store->array_type();
+    case kIntTypeArguments:
+      return object_store->type_argument_int();
+    case kDoubleTypeArguments:
+      return object_store->type_argument_double();
+    case kStringTypeArguments:
+      return object_store->type_argument_string();
+    case kStringDynamicTypeArguments:
+      return object_store->type_argument_string_dynamic();
+    case kStringStringTypeArguments:
+      return object_store->type_argument_string_string();
     default:
       break;
   }
@@ -106,8 +116,7 @@ static RawType* GetType(ObjectStore* object_store, intptr_t index) {
 }
 
 static intptr_t GetTypeIndex(ObjectStore* object_store,
-                             const RawType* raw_type) {
-  ASSERT(raw_type->IsHeapObject());
+                             const RawObject* raw_type) {
   if (raw_type == object_store->object_type()) {
     return kObjectType;
   } else if (raw_type == object_store->null_type()) {
@@ -130,6 +139,16 @@ static intptr_t GetTypeIndex(ObjectStore* object_store,
     return kStringType;
   } else if (raw_type == object_store->array_type()) {
     return kArrayType;
+  } else if (raw_type == object_store->type_argument_int()) {
+    return kIntTypeArguments;
+  } else if (raw_type == object_store->type_argument_double()) {
+    return kDoubleTypeArguments;
+  } else if (raw_type == object_store->type_argument_string()) {
+    return kStringTypeArguments;
+  } else if (raw_type == object_store->type_argument_string_dynamic()) {
+    return kStringDynamicTypeArguments;
+  } else if (raw_type == object_store->type_argument_string_string()) {
+    return kStringStringTypeArguments;
   }
   return kInvalidIndex;
 }
@@ -579,7 +598,11 @@ RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
       offset += kWordSize;
     }
     if (RawObject::IsCanonical(tags)) {
-      *result = result->CheckAndCanonicalize(thread(), NULL);
+      const char* error_str = NULL;
+      *result = result->CheckAndCanonicalize(thread(), &error_str);
+      if (error_str != NULL) {
+        FATAL1("Failed to canonicalize %s\n", error_str);
+      }
       ASSERT(!result->IsNull());
     }
   }
@@ -1186,8 +1209,7 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
   }
 
   // Now check it is a preinitialized type object.
-  RawType* raw_type = reinterpret_cast<RawType*>(rawobj);
-  intptr_t index = GetTypeIndex(object_store(), raw_type);
+  intptr_t index = GetTypeIndex(object_store(), rawobj);
   if (index != kInvalidIndex) {
     WriteIndexedObject(index);
     return true;

@@ -1868,7 +1868,11 @@ RawInstance* Instance::ReadFrom(SnapshotReader* reader,
   obj ^= Object::Allocate(kInstanceCid, Instance::InstanceSize(),
                           HEAP_SPACE(kind));
   if (RawObject::IsCanonical(tags)) {
-    obj = obj.CheckAndCanonicalize(reader->thread(), NULL);
+    const char* error_str = NULL;
+    obj = obj.CheckAndCanonicalize(reader->thread(), &error_str);
+    if (error_str != NULL) {
+      FATAL1("Failed to canonicalize: %s", error_str);
+    }
   }
   reader->AddBackRef(object_id, &obj, kIsDeserialized);
 
@@ -2226,7 +2230,11 @@ RawImmutableArray* ImmutableArray::ReadFrom(SnapshotReader* reader,
     // Read all the individual elements for inlined objects.
     reader->ArrayReadFrom(object_id, *array, len, tags);
     if (RawObject::IsCanonical(tags)) {
-      *array ^= array->CheckAndCanonicalize(reader->thread(), NULL);
+      const char* error_str = NULL;
+      *array ^= array->CheckAndCanonicalize(reader->thread(), &error_str);
+      if (error_str != NULL) {
+        FATAL1("Failed to canonicalize: %s", error_str);
+      }
     }
   }
   return raw(*array);
@@ -2552,7 +2560,11 @@ RawTypedData* TypedData::ReadFrom(SnapshotReader* reader,
   // When reading a script snapshot or a message snapshot we always have
   // to canonicalize the object.
   if (RawObject::IsCanonical(tags)) {
-    result ^= result.CheckAndCanonicalize(reader->thread(), NULL);
+    const char* error_str = NULL;
+    result ^= result.CheckAndCanonicalize(reader->thread(), &error_str);
+    if (error_str != NULL) {
+      FATAL1("Failed to canonicalize: %s", error_str);
+    }
     ASSERT(!result.IsNull());
     ASSERT(result.IsCanonical());
   }
