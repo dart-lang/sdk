@@ -1376,6 +1376,8 @@ setter_override_test/03: MissingCompileTimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
+super_no_such_method4_test: CompileTimeError # Issue 33498
+super_no_such_method5_test: CompileTimeError # Issue 33498
 super_operator_index6_test: CompileTimeError # Issue 33498
 super_operator_index7_test: CompileTimeError # Issue 33498
 super_operator_index8_test: CompileTimeError # Issue 33498
@@ -2244,7 +2246,8 @@ unresolved_top_level_var_test: MissingCompileTimeError
 *: SkipByDesign # language_2 is only supported in strong mode.
 
 [ ($compiler == app_jitk || $compiler == dartk || $compiler == dartkp) && ($runtime == dart_precompiled || $runtime == vm) ]
-super_no_such_method4_test: RuntimeError # Issue 33517
+super_no_such_method4_test: CompileTimeError # Issue 33498
+super_no_such_method5_test: CompileTimeError # Issue 33498
 super_operator_index6_test: CompileTimeError # Issue 33498
 super_operator_index7_test: CompileTimeError # Issue 33498
 super_operator_index8_test: CompileTimeError # Issue 33498

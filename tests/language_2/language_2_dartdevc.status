@@ -541,8 +541,8 @@ regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError # Issue 31402 Error: A value of type '#lib2::Foo' can't be assigned to a variable of type '(#lib2::Foo) → void'.
 regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
-regress_30339_test: CompileTimeError
 regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
+regress_30339_test: CompileTimeError
 setter4_test: MissingCompileTimeError
 setter_no_getter_test/01: CompileTimeError
 setter_override_test/00: MissingCompileTimeError
@@ -553,6 +553,8 @@ string_split_test: CompileTimeError # Issue 31616
 string_supertype_checked_test: CompileTimeError # Issue 31616
 super_bound_closure_test/none: CompileTimeError # Issue 31533
 super_call4_test/01: MissingCompileTimeError
+super_no_such_method4_test: CompileTimeError # Issue 33498
+super_no_such_method5_test: CompileTimeError # Issue 33498
 super_operator_index6_test: CompileTimeError # Issue 33498
 super_operator_index7_test: CompileTimeError # Issue 33498
 super_operator_index8_test: CompileTimeError # Issue 33498
