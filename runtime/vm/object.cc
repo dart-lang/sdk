@@ -3219,12 +3219,6 @@ RawFunction* Function::EvaluateHelper(const Class& cls,
   return func.raw();
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-static void ReleaseFetchedBytes(uint8_t* buffer) {
-  free(buffer);
-}
-#endif
-
 RawObject* Class::Evaluate(const String& expr,
                            const Array& param_names,
                            const Array& param_values) const {
@@ -3245,7 +3239,8 @@ RawObject* Class::Evaluate(const String& expr,
     return UnhandledException::New(exception, stacktrace);
   }
 
-  ASSERT(Library::Handle(library()).kernel_data() == TypedData::null() ||
+  ASSERT(Library::Handle(library()).kernel_data() ==
+             ExternalTypedData::null() ||
          !FLAG_enable_kernel_expression_compilation);
   const Function& eval_func = Function::Handle(
       Function::EvaluateHelper(*this, expr, param_names, true));
@@ -3694,7 +3689,8 @@ TokenPosition Class::ComputeEndTokenPos() const {
   if (scr.kind() == RawScript::kKernelTag) {
     ASSERT(kernel_offset() > 0);
     const Library& lib = Library::Handle(zone, library());
-    const TypedData& kernel_data = TypedData::Handle(zone, lib.kernel_data());
+    const ExternalTypedData& kernel_data =
+        ExternalTypedData::Handle(zone, lib.kernel_data());
     ASSERT(!kernel_data.IsNull());
     const intptr_t library_kernel_offset = lib.kernel_offset();
     ASSERT(library_kernel_offset > 0);
@@ -5553,7 +5549,7 @@ void PatchClass::set_script(const Script& value) const {
   StorePointer(&raw_ptr()->script_, value.raw());
 }
 
-void PatchClass::set_library_kernel_data(const TypedData& data) const {
+void PatchClass::set_library_kernel_data(const ExternalTypedData& data) const {
   StorePointer(&raw_ptr()->library_kernel_data_, data.raw());
 }
 
@@ -7301,7 +7297,8 @@ RawFunction* Function::ImplicitClosureFunction() const {
     kernel::TranslationHelper translation_helper(thread);
     kernel::StreamingFlowGraphBuilder builder(
         &translation_helper, function_script, zone,
-        TypedData::Handle(zone, KernelData()), KernelDataProgramOffset(),
+        ExternalTypedData::Handle(zone, KernelData()),
+        KernelDataProgramOffset(),
         /* active_class = */ NULL);
     translation_helper.InitFromScript(function_script);
     builder.SetOffset(kernel_offset());
@@ -7556,7 +7553,7 @@ RawClass* Function::origin() const {
 }
 
 void Function::SetKernelDataAndScript(const Script& script,
-                                      const TypedData& data,
+                                      const ExternalTypedData& data,
                                       intptr_t offset) {
   Array& data_field = Array::Handle(Array::New(3));
   data_field.SetAt(0, script);
@@ -7598,12 +7595,12 @@ RawScript* Function::script() const {
   return PatchClass::Cast(obj).script();
 }
 
-RawTypedData* Function::KernelData() const {
+RawExternalTypedData* Function::KernelData() const {
   Object& data = Object::Handle(raw_ptr()->data_);
   if (data.IsArray()) {
     Object& script = Object::Handle(Array::Cast(data).At(0));
     if (script.IsScript()) {
-      return TypedData::RawCast(Array::Cast(data).At(1));
+      return ExternalTypedData::RawCast(Array::Cast(data).At(1));
     }
   }
   if (IsClosureFunction()) {
@@ -8184,7 +8181,7 @@ RawScript* Field::Script() const {
   return PatchClass::Cast(obj).script();
 }
 
-RawTypedData* Field::KernelData() const {
+RawExternalTypedData* Field::KernelData() const {
   const Object& obj = Object::Handle(this->raw_ptr()->owner_);
   if (obj.IsClass()) {
     Library& library = Library::Handle(Class::Cast(obj).library());
@@ -10259,7 +10256,7 @@ void Library::set_url(const String& name) const {
   StorePointer(&raw_ptr()->url_, name.raw());
 }
 
-void Library::set_kernel_data(const TypedData& data) const {
+void Library::set_kernel_data(const ExternalTypedData& data) const {
   StorePointer(&raw_ptr()->kernel_data_, data.raw());
 }
 
@@ -11431,7 +11428,7 @@ RawObject* Library::Evaluate(const String& expr,
                              const Array& param_values,
                              const Array& type_param_names,
                              const TypeArguments& type_param_values) const {
-  ASSERT(kernel_data() == TypedData::null() ||
+  ASSERT(kernel_data() == ExternalTypedData::null() ||
          !FLAG_enable_kernel_expression_compilation);
   // Evaluate the expression as a static function of the toplevel class.
   Class& top_level_class = Class::Handle(toplevel_class());
@@ -11521,14 +11518,12 @@ static RawObject* EvaluateCompiledExpressionHelper(
   Thread* T = Thread::Current();
 
   kernel::Program* kernel_pgm =
-      kernel::Program::ReadFromBuffer(kernel_bytes, kernel_length, true);
+      kernel::Program::ReadFromBuffer(kernel_bytes, kernel_length);
 
   if (kernel_pgm == NULL) {
     return ApiError::New(String::Handle(
         String::New("Kernel isolate returned ill-formed kernel.")));
   }
-
-  kernel_pgm->set_release_buffer_callback(ReleaseFetchedBytes);
 
   Function& callee = Function::Handle();
   intptr_t num_cids = I->class_table()->NumCids();
@@ -11563,7 +11558,7 @@ static RawObject* EvaluateCompiledExpressionHelper(
   // callee, so it doesn't require access it's parent library during
   // compilation.
   callee.SetKernelDataAndScript(Script::Handle(callee.script()),
-                                TypedData::Handle(loaded.kernel_data()),
+                                ExternalTypedData::Handle(loaded.kernel_data()),
                                 loaded.kernel_offset());
 
   // Reparent the callee to the real enclosing class so we can remove the fake
@@ -12323,12 +12318,13 @@ RawKernelProgramInfo* KernelProgramInfo::New() {
   return reinterpret_cast<RawKernelProgramInfo*>(raw);
 }
 
-RawKernelProgramInfo* KernelProgramInfo::New(const TypedData& string_offsets,
-                                             const TypedData& string_data,
-                                             const TypedData& canonical_names,
-                                             const TypedData& metadata_payloads,
-                                             const TypedData& metadata_mappings,
-                                             const Array& scripts) {
+RawKernelProgramInfo* KernelProgramInfo::New(
+    const TypedData& string_offsets,
+    const ExternalTypedData& string_data,
+    const TypedData& canonical_names,
+    const ExternalTypedData& metadata_payloads,
+    const ExternalTypedData& metadata_mappings,
+    const Array& scripts) {
   const KernelProgramInfo& info =
       KernelProgramInfo::Handle(KernelProgramInfo::New());
   info.StorePointer(&info.raw_ptr()->string_offsets_, string_offsets.raw());
@@ -15848,7 +15844,7 @@ RawObject* Instance::Evaluate(const Class& method_cls,
   }
 
   const Library& library = Library::Handle(method_cls.library());
-  ASSERT(library.kernel_data() == TypedData::null() ||
+  ASSERT(library.kernel_data() == ExternalTypedData::null() ||
          !FLAG_enable_kernel_expression_compilation);
   const Function& eval_func = Function::Handle(
       Function::EvaluateHelper(method_cls, expr, param_names, false));
@@ -21803,6 +21799,9 @@ RawExternalTypedData* ExternalTypedData::New(intptr_t class_id,
                                              uint8_t* data,
                                              intptr_t len,
                                              Heap::Space space) {
+  if (len < 0 || len > ExternalTypedData::MaxElements(class_id)) {
+    FATAL1("Fatal error in ExternalTypedData::New: invalid len %" Pd "\n", len);
+  }
   ExternalTypedData& result = ExternalTypedData::Handle();
   {
     RawObject* raw =

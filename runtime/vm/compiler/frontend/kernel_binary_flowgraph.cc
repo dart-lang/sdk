@@ -1372,8 +1372,7 @@ RawCode* BytecodeMetadataHelper::ReadBytecode(const ObjectPool& pool) {
   // TODO(regis): Avoid copying bytecode from mapped kernel binary.
   intptr_t size = builder_->reader_.ReadUInt();
   intptr_t offset = builder_->reader_.offset();
-  uint8_t* data =
-      builder_->reader_.CopyDataIntoZone(builder_->zone_, offset, size);
+  const uint8_t* data = builder_->reader_.BufferAt(offset);
   builder_->reader_.set_offset(offset + size);
 
   // Create and return code object.
@@ -1535,7 +1534,8 @@ StreamingScopeBuilder::StreamingScopeBuilder(ParsedFunction* parsed_function)
           &translation_helper_,
           Script::Handle(Z, parsed_function->function().script()),
           zone_,
-          TypedData::Handle(Z, parsed_function->function().KernelData()),
+          ExternalTypedData::Handle(Z,
+                                    parsed_function->function().KernelData()),
           parsed_function->function().KernelDataProgramOffset(),
           &active_class_)),
       type_translator_(builder_, /*finalize=*/true) {
@@ -1660,8 +1660,8 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
           for (intptr_t i = 0; i < class_fields.Length(); ++i) {
             class_field ^= class_fields.At(i);
             if (!class_field.is_static()) {
-              TypedData& kernel_data =
-                  TypedData::Handle(Z, class_field.KernelData());
+              ExternalTypedData& kernel_data =
+                  ExternalTypedData::Handle(Z, class_field.KernelData());
               ASSERT(!kernel_data.IsNull());
               intptr_t field_offset = class_field.kernel_offset();
               AlternativeReadingScope alt(&builder_->reader_, &kernel_data,
@@ -1863,7 +1863,8 @@ void StreamingScopeBuilder::VisitConstructor() {
     for (intptr_t i = 0; i < class_fields.Length(); ++i) {
       class_field ^= class_fields.At(i);
       if (!class_field.is_static()) {
-        TypedData& kernel_data = TypedData::Handle(Z, class_field.KernelData());
+        ExternalTypedData& kernel_data =
+            ExternalTypedData::Handle(Z, class_field.KernelData());
         ASSERT(!kernel_data.IsNull());
         intptr_t field_offset = class_field.kernel_offset();
         AlternativeReadingScope alt(&builder_->reader_, &kernel_data,
@@ -5220,7 +5221,8 @@ void StreamingFlowGraphBuilder::ReadUntilFunctionNode(
 StringIndex StreamingFlowGraphBuilder::GetNameFromVariableDeclaration(
     intptr_t kernel_offset,
     const Function& function) {
-  TypedData& kernel_data = TypedData::Handle(Z, function.KernelData());
+  ExternalTypedData& kernel_data =
+      ExternalTypedData::Handle(Z, function.KernelData());
   ASSERT(!kernel_data.IsNull());
 
   // Temporarily go to the variable declaration, read the name.
@@ -5467,7 +5469,8 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
     for (intptr_t i = 0; i < class_fields.Length(); ++i) {
       class_field ^= class_fields.At(i);
       if (!class_field.is_static()) {
-        TypedData& kernel_data = TypedData::Handle(Z, class_field.KernelData());
+        ExternalTypedData& kernel_data =
+            ExternalTypedData::Handle(Z, class_field.KernelData());
         ASSERT(!kernel_data.IsNull());
         intptr_t field_offset = class_field.kernel_offset();
         AlternativeReadingScope alt(&reader_, &kernel_data, field_offset);
@@ -11326,8 +11329,7 @@ String& StreamingFlowGraphBuilder::SourceTableUriFor(intptr_t index) {
   AlternativeReadingScope alt(&reader_);
   SetOffset(GetOffsetForSourceInfo(index));
   intptr_t size = ReadUInt();  // read uri List<byte> size.
-  return H.DartString(reader_.CopyDataIntoZone(Z, ReaderOffset(), size), size,
-                      Heap::kOld);
+  return H.DartString(reader_.BufferAt(ReaderOffset()), size, Heap::kOld);
 }
 
 String& StreamingFlowGraphBuilder::GetSourceFor(intptr_t index) {
@@ -11335,8 +11337,7 @@ String& StreamingFlowGraphBuilder::GetSourceFor(intptr_t index) {
   SetOffset(GetOffsetForSourceInfo(index));
   SkipBytes(ReadUInt());       // skip uri.
   intptr_t size = ReadUInt();  // read source List<byte> size.
-  return H.DartString(reader_.CopyDataIntoZone(Z, ReaderOffset(), size), size,
-                      Heap::kOld);
+  return H.DartString(reader_.BufferAt(ReaderOffset()), size, Heap::kOld);
 }
 
 RawTypedData* StreamingFlowGraphBuilder::GetLineStartsFor(intptr_t index) {

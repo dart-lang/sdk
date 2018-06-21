@@ -525,10 +525,6 @@ class ResourceHolder : ValueObject {
   ~ResourceHolder() { delete (resource_); }
 };
 
-static void ReleaseFetchedBytes(uint8_t* buffer) {
-  free(buffer);
-}
-
 static void AcceptCompilation(Thread* thread) {
   TransitionVMToNative transition(thread);
   if (KernelIsolate::AcceptCompilation().status !=
@@ -617,11 +613,10 @@ void IsolateReloadContext::Reload(bool force_reload,
         return;
       }
       did_kernel_compilation = true;
-      kernel_program.set(kernel::Program::ReadFromBuffer(
-          retval.kernel, retval.kernel_size, true));
+      kernel_program.set(
+          kernel::Program::ReadFromBuffer(retval.kernel, retval.kernel_size));
     }
 
-    kernel_program.get()->set_release_buffer_callback(ReleaseFetchedBytes);
     kernel::KernelLoader::FindModifiedLibraries(kernel_program.get(), I,
                                                 modified_libs_, force_reload);
   } else {

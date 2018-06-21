@@ -75,7 +75,7 @@ RawError* BootstrapFromKernel(Thread* thread,
                               intptr_t kernel_buffer_size) {
   Zone* zone = thread->zone();
   kernel::Program* program =
-      kernel::Program::ReadFromBuffer(kernel_buffer, kernel_buffer_size, false);
+      kernel::Program::ReadFromBuffer(kernel_buffer, kernel_buffer_size);
   kernel::KernelLoader loader(program);
   Isolate* isolate = thread->isolate();
 

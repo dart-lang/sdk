@@ -19,11 +19,11 @@ bool FieldHasFunctionLiteralInitializer(const Field& field,
   TranslationHelper translation_helper(Thread::Current());
   translation_helper.InitFromScript(script);
 
-  StreamingFlowGraphBuilder builder(&translation_helper,
-                                    Script::Handle(zone, field.Script()), zone,
-                                    TypedData::Handle(zone, field.KernelData()),
-                                    field.KernelDataProgramOffset(),
-                                    /* active_class = */ NULL);
+  StreamingFlowGraphBuilder builder(
+      &translation_helper, Script::Handle(zone, field.Script()), zone,
+      ExternalTypedData::Handle(zone, field.KernelData()),
+      field.KernelDataProgramOffset(),
+      /* active_class = */ NULL);
   builder.SetOffset(field.kernel_offset());
   kernel::FieldHelper field_helper(&builder);
   field_helper.ReadUntilExcluding(kernel::FieldHelper::kEnd, true);
@@ -96,9 +96,10 @@ uint32_t KernelSourceFingerprintHelper::CalculateFieldFingerprint(
   TranslationHelper translation_helper(thread);
   translation_helper.InitFromScript(script);
 
-  KernelFingerprintHelper helper(zone, &translation_helper, script,
-                                 TypedData::Handle(zone, field.KernelData()),
-                                 field.KernelDataProgramOffset());
+  KernelFingerprintHelper helper(
+      zone, &translation_helper, script,
+      ExternalTypedData::Handle(zone, field.KernelData()),
+      field.KernelDataProgramOffset());
   helper.SetOffset(field.kernel_offset());
   return helper.CalculateFieldFingerprint();
 }
@@ -112,9 +113,10 @@ uint32_t KernelSourceFingerprintHelper::CalculateFunctionFingerprint(
   TranslationHelper translation_helper(thread);
   translation_helper.InitFromScript(script);
 
-  KernelFingerprintHelper helper(zone, &translation_helper, script,
-                                 TypedData::Handle(zone, func.KernelData()),
-                                 func.KernelDataProgramOffset());
+  KernelFingerprintHelper helper(
+      zone, &translation_helper, script,
+      ExternalTypedData::Handle(zone, func.KernelData()),
+      func.KernelDataProgramOffset());
   helper.SetOffset(func.kernel_offset());
   return helper.CalculateFunctionFingerprint();
 }

@@ -29,7 +29,7 @@ const char* Reader::TagName(Tag tag) {
   return "Unknown";
 }
 
-Program* Program::ReadFrom(Reader* reader, bool take_buffer_ownership) {
+Program* Program::ReadFrom(Reader* reader) {
   uint32_t magic = reader->ReadUInt32();
   if (magic != kMagicProgramFile) FATAL("Invalid magic identifier");
 
@@ -42,7 +42,6 @@ Program* Program::ReadFrom(Reader* reader, bool take_buffer_ownership) {
   Program* program = new Program();
   program->kernel_data_ = reader->buffer();
   program->kernel_data_size_ = reader->size();
-  program->buffer_ownership_ = take_buffer_ownership;
 
   // Dill files can be concatenated (e.g. cat a.dill b.dill > c.dill). Find out
   // if this dill contains more than one program.
@@ -117,10 +116,9 @@ Program* Program::ReadFromFile(const char* script_uri) {
 }
 
 Program* Program::ReadFromBuffer(const uint8_t* buffer,
-                                 intptr_t buffer_length,
-                                 bool take_buffer_ownership) {
+                                 intptr_t buffer_length) {
   kernel::Reader reader(buffer, buffer_length);
-  return kernel::Program::ReadFrom(&reader, take_buffer_ownership);
+  return kernel::Program::ReadFrom(&reader);
 }
 
 }  // namespace kernel

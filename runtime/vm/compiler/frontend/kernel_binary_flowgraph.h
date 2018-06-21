@@ -1021,7 +1021,7 @@ class KernelReaderHelper {
   KernelReaderHelper(Zone* zone,
                      TranslationHelper* translation_helper,
                      const Script& script,
-                     const TypedData& data,
+                     const ExternalTypedData& data,
                      intptr_t data_program_offset)
       : zone_(zone),
         translation_helper_(*translation_helper),
@@ -1149,7 +1149,7 @@ class KernelFingerprintHelper : public KernelReaderHelper {
   KernelFingerprintHelper(Zone* zone,
                           TranslationHelper* translation_helper,
                           const Script& script,
-                          const TypedData& data,
+                          const ExternalTypedData& data,
                           intptr_t data_program_offset)
       : KernelReaderHelper(zone,
                            translation_helper,
@@ -1198,7 +1198,7 @@ class KernelFingerprintHelper : public KernelReaderHelper {
 class StreamingFlowGraphBuilder : public KernelReaderHelper {
  public:
   StreamingFlowGraphBuilder(FlowGraphBuilder* flow_graph_builder,
-                            const TypedData& data,
+                            const ExternalTypedData& data,
                             intptr_t data_program_offset)
       : KernelReaderHelper(
             flow_graph_builder->zone_,
@@ -1250,7 +1250,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
                             const Script& script,
                             Zone* zone,
-                            const TypedData& data,
+                            const ExternalTypedData& data,
                             intptr_t data_program_offset,
                             ActiveClass* active_class)
       : KernelReaderHelper(zone,
@@ -1663,7 +1663,7 @@ class AlternativeReadingScope {
   }
 
   AlternativeReadingScope(Reader* reader,
-                          const TypedData* new_typed_data,
+                          const ExternalTypedData* new_typed_data,
                           intptr_t new_position)
       : reader_(reader),
         saved_size_(reader_->size()),
@@ -1696,7 +1696,7 @@ class AlternativeReadingScope {
   Reader* reader_;
   intptr_t saved_size_;
   const uint8_t* saved_raw_buffer_;
-  const TypedData* saved_typed_data_;
+  const ExternalTypedData* saved_typed_data_;
   intptr_t saved_offset_;
 };
 

@@ -1640,10 +1640,10 @@ class PatchClass : public Object {
   RawClass* patched_class() const { return raw_ptr()->patched_class_; }
   RawClass* origin_class() const { return raw_ptr()->origin_class_; }
   RawScript* script() const { return raw_ptr()->script_; }
-  RawTypedData* library_kernel_data() const {
+  RawExternalTypedData* library_kernel_data() const {
     return raw_ptr()->library_kernel_data_;
   }
-  void set_library_kernel_data(const TypedData& data) const;
+  void set_library_kernel_data(const ExternalTypedData& data) const;
 
   intptr_t library_kernel_offset() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -2523,12 +2523,12 @@ class Function : public Object {
   }
 
   void SetKernelDataAndScript(const Script& script,
-                              const TypedData& data,
+                              const ExternalTypedData& data,
                               intptr_t offset);
 
   intptr_t KernelDataProgramOffset() const;
 
-  RawTypedData* KernelData() const;
+  RawExternalTypedData* KernelData() const;
 
   bool IsOptimizable() const;
   void SetIsOptimizable(bool value) const;
@@ -3137,7 +3137,7 @@ class Field : public Object {
 #endif
   }
 
-  RawTypedData* KernelData() const;
+  RawExternalTypedData* KernelData() const;
 
   intptr_t KernelDataProgramOffset() const;
 
@@ -3886,8 +3886,8 @@ class Library : public Object {
 
   inline intptr_t UrlHash() const;
 
-  RawTypedData* kernel_data() const { return raw_ptr()->kernel_data_; }
-  void set_kernel_data(const TypedData& data) const;
+  RawExternalTypedData* kernel_data() const { return raw_ptr()->kernel_data_; }
+  void set_kernel_data(const ExternalTypedData& data) const;
 
   intptr_t kernel_offset() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -4057,10 +4057,10 @@ class Namespace : public Object {
 class KernelProgramInfo : public Object {
  public:
   static RawKernelProgramInfo* New(const TypedData& string_offsets,
-                                   const TypedData& string_data,
+                                   const ExternalTypedData& string_data,
                                    const TypedData& canonical_names,
-                                   const TypedData& metadata_payload,
-                                   const TypedData& metadata_mappings,
+                                   const ExternalTypedData& metadata_payload,
+                                   const ExternalTypedData& metadata_mappings,
                                    const Array& scripts);
 
   static intptr_t InstanceSize() {
@@ -4069,15 +4069,15 @@ class KernelProgramInfo : public Object {
 
   RawTypedData* string_offsets() const { return raw_ptr()->string_offsets_; }
 
-  RawTypedData* string_data() const { return raw_ptr()->string_data_; }
+  RawExternalTypedData* string_data() const { return raw_ptr()->string_data_; }
 
   RawTypedData* canonical_names() const { return raw_ptr()->canonical_names_; }
 
-  RawTypedData* metadata_payloads() const {
+  RawExternalTypedData* metadata_payloads() const {
     return raw_ptr()->metadata_payloads_;
   }
 
-  RawTypedData* metadata_mappings() const {
+  RawExternalTypedData* metadata_mappings() const {
     return raw_ptr()->metadata_mappings_;
   }
 

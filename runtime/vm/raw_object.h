@@ -824,7 +824,7 @@ class RawPatchClass : public RawObject {
   RawClass* patched_class_;
   RawClass* origin_class_;
   RawScript* script_;
-  RawTypedData* library_kernel_data_;
+  RawExternalTypedData* library_kernel_data_;
   VISIT_TO(RawObject*, library_kernel_data_);
 
   RawObject** to_snapshot(Snapshot::Kind kind) {
@@ -1168,7 +1168,7 @@ class RawLibrary : public RawObject {
   RawArray* imports_;        // List of Namespaces imported without prefix.
   RawArray* exports_;        // List of re-exported Namespaces.
   RawInstance* load_error_;  // Error iff load_state_ == kLoadError.
-  RawTypedData* kernel_data_;
+  RawExternalTypedData* kernel_data_;
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
@@ -1224,10 +1224,10 @@ class RawKernelProgramInfo : public RawObject {
 
   VISIT_FROM(RawObject*, string_offsets_);
   RawTypedData* string_offsets_;
-  RawTypedData* string_data_;
+  RawExternalTypedData* string_data_;
   RawTypedData* canonical_names_;
-  RawTypedData* metadata_payloads_;
-  RawTypedData* metadata_mappings_;
+  RawExternalTypedData* metadata_payloads_;
+  RawExternalTypedData* metadata_mappings_;
   RawArray* scripts_;
   RawArray* constants_;
   RawGrowableObjectArray* potential_natives_;

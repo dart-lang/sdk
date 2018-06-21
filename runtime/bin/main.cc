@@ -251,6 +251,9 @@ static Dart_Isolate IsolateSetupHelperAotCompilationDart2(
   }
 
   auto isolate_data = new IsolateData(script_uri, NULL, NULL, NULL);
+  // Kernel buffer released by ~IsolateData during isolate shutdown.
+  isolate_data->set_kernel_buffer(payload, payload_length,
+                                  true /*take ownership*/);
 
   // We bootstrap the isolate from the Kernel file (instead of using a
   // potentially linked-in kernel file).
@@ -263,7 +266,6 @@ static Dart_Isolate IsolateSetupHelperAotCompilationDart2(
 
   Dart_EnterScope();
   Dart_Handle library = Dart_LoadScriptFromKernel(payload, payload_length);
-  free(payload);
   CHECK_RESULT(library);
   Dart_Handle url = DartUtils::NewString("dart:_builtin");
   CHECK_RESULT(url);

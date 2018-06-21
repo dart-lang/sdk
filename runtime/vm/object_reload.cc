@@ -345,7 +345,7 @@ void Class::PatchFieldsAndFunctions() const {
       PatchClass::Handle(PatchClass::New(*this, Script::Handle(script())));
   ASSERT(!patch.IsNull());
   const Library& lib = Library::Handle(library());
-  patch.set_library_kernel_data(TypedData::Handle(lib.kernel_data()));
+  patch.set_library_kernel_data(ExternalTypedData::Handle(lib.kernel_data()));
   patch.set_library_kernel_offset(lib.kernel_offset());
 
   const Array& funcs = Array::Handle(functions());

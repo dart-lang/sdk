@@ -5384,8 +5384,8 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
   CHECK_CALLBACK_STATE(T);
   CHECK_COMPILATION_ALLOWED(I);
 
-  kernel::Program* program = kernel::Program::ReadFromBuffer(
-      buffer, buffer_size, /*take_buffer_ownership=*/false);
+  kernel::Program* program =
+      kernel::Program::ReadFromBuffer(buffer, buffer_size);
   const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
   delete program;
 
@@ -5681,8 +5681,8 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
   CHECK_CALLBACK_STATE(T);
   CHECK_COMPILATION_ALLOWED(I);
 
-  kernel::Program* program = kernel::Program::ReadFromBuffer(
-      buffer, buffer_size, false /* take_buffer_ownership */);
+  kernel::Program* program =
+      kernel::Program::ReadFromBuffer(buffer, buffer_size);
   const Object& result =
       kernel::KernelLoader::LoadEntireProgram(program, false);
   delete program;
