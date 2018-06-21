@@ -97,7 +97,7 @@ import 'kernel_shadow_ast.dart'
         ShadowRethrow,
         ReturnJudgment,
         ShadowStringConcatenation,
-        ShadowStringLiteral,
+        StringLiteralJudgment,
         ShadowSymbolLiteral,
         ShadowSyntheticExpression,
         TryCatchJudgment,
@@ -155,7 +155,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
-  ShadowStringLiteral asLiteralString(Expression value) => value;
+  StringLiteralJudgment asLiteralString(Expression value) => value;
 
   @override
   BoolJudgment literalBool(bool value, Token token) {
@@ -211,8 +211,8 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   @override
-  ShadowStringLiteral literalString(String value, Token token) {
-    return new ShadowStringLiteral(value)..fileOffset = offsetForToken(token);
+  StringLiteralJudgment literalString(String value, Token token) {
+    return new StringLiteralJudgment(value)..fileOffset = offsetForToken(token);
   }
 
   @override

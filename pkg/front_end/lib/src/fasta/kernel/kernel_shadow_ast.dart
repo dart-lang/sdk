@@ -2294,11 +2294,12 @@ class ShadowStringConcatenation extends StringConcatenation
   }
 }
 
-/// Concrete shadow object representing a string literal in kernel form.
-class ShadowStringLiteral extends StringLiteral implements ExpressionJudgment {
+/// Type inference derivation for [StringLiteral].
+class StringLiteralJudgment extends StringLiteral
+    implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowStringLiteral(String value) : super(value);
+  StringLiteralJudgment(String value) : super(value);
 
   @override
   DartType infer<Expression, Statement, Initializer, Type>(
@@ -2307,7 +2308,7 @@ class ShadowStringLiteral extends StringLiteral implements ExpressionJudgment {
       DartType typeContext) {
     var inferredType = inferrer.coreTypes.stringClass.rawType;
     inferrer.listener.stringLiteral(this, fileOffset, null, null, inferredType);
-    return inferredType;
+    return this.inferredType = inferredType;
   }
 }
 
