@@ -2475,7 +2475,8 @@ class SwitchStatementJudgment extends SwitchStatement
       }
       inferrer.inferStatement(factory, switchCase.bodyJudgment);
     }
-    inferrer.listener.switchStatement(this, fileOffset);
+    inferrer.listener.switchStatement(
+        this, fileOffset, null, null, expression, null, null, cases, null);
   }
 }
 

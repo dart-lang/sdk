@@ -542,7 +542,16 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
       Token constructorName,
       covariant Object argumentList) {}
 
-  void switchStatement(StatementJudgment judgment, Location location) {}
+  void switchStatement(
+      StatementJudgment judgment,
+      Location location,
+      Token switchKeyword,
+      Token leftParenthesis,
+      void expression,
+      Token rightParenthesis,
+      Token leftBracket,
+      void members,
+      Token rightBracket) {}
 
   void symbolLiteral(
           ExpressionJudgment judgment,

@@ -398,7 +398,16 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       Object argumentList) {}
 
   @override
-  void switchStatement(StatementJudgment judgment, int fileOffset) {}
+  void switchStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token switchKeyword,
+      Token leftParenthesis,
+      void expression,
+      Token rightParenthesis,
+      Token leftBracket,
+      void members,
+      Token rightBracket) {}
 
   @override
   void symbolLiteral(

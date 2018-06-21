@@ -511,7 +511,16 @@ class KernelFactory
   }
 
   @override
-  Statement switchStatement(StatementJudgment judgment, int fileOffset) {
+  Statement switchStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token switchKeyword,
+      Token leftParenthesis,
+      Expression expression,
+      Token rightParenthesis,
+      Token leftBracket,
+      List<Object> members,
+      Token rightBracket) {
     return judgment;
   }
 
