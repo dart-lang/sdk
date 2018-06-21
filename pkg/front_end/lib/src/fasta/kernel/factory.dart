@@ -129,6 +129,15 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Statement forInStatement(
       StatementJudgment judgment,
       int fileOffset,
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      covariant Object loopVariable,
+      Token identifier,
+      Token inKeyword,
+      Expression iterator,
+      Token rightParenthesis,
+      Statement body,
       int variableOffset,
       DartType variableType,
       int writeOffset,
@@ -136,7 +145,19 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       int writeVariableDeclarationOffset,
       Node writeTarget);
 
-  Statement forStatement(StatementJudgment judgment, int fileOffset);
+  Statement forStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token forKeyword,
+      Token leftParenthesis,
+      covariant Object variableDeclarationList,
+      Expression initialization,
+      Token leftSeparator,
+      Expression condition,
+      Token rightSeparator,
+      List<Expression> updaters,
+      Token rightParenthesis,
+      Statement body);
 
   Statement functionDeclaration(
       StatementJudgment judgment, int fileOffset, FunctionType inferredType);

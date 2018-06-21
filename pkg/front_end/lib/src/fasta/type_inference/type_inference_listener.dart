@@ -139,6 +139,15 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
   void forInStatement(
       StatementJudgment judgment,
       Location location,
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      Object loopVariable,
+      Token identifier,
+      Token inKeyword,
+      void iterator,
+      Token rightParenthesis,
+      void body,
       Location variableLocation,
       DartType variableType,
       Location writeLocation,
@@ -146,7 +155,19 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
       Declaration writeVariable,
       Reference writeTarget);
 
-  void forStatement(StatementJudgment judgment, Location location);
+  void forStatement(
+      StatementJudgment judgment,
+      Location location,
+      Token forKeyword,
+      Token leftParenthesis,
+      List<Object> variableList,
+      void initialization,
+      Token leftSeparator,
+      void condition,
+      Token rightSeparator,
+      void updaters,
+      Token rightParenthesis,
+      void body);
 
   void functionDeclaration(
       StatementJudgment judgment, Location location, FunctionType inferredType);
@@ -496,6 +517,15 @@ class KernelTypeInferenceListener
   void forInStatement(
       StatementJudgment judgment,
       location,
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      covariant Object loopVariable,
+      Token identifier,
+      Token inKeyword,
+      void iterator,
+      Token rightParenthesis,
+      void body,
       variableLocation,
       DartType variableType,
       writeLocation,
@@ -504,7 +534,19 @@ class KernelTypeInferenceListener
       writeTarget) {}
 
   @override
-  void forStatement(StatementJudgment judgment, location) {}
+  void forStatement(
+      StatementJudgment judgment,
+      location,
+      Token forKeyword,
+      Token leftParenthesis,
+      Object variableDeclarationList,
+      void initialization,
+      Token leftSeparator,
+      void condition,
+      Token rightSeparator,
+      void updaters,
+      Token rightParenthesis,
+      void body) {}
 
   @override
   void functionDeclaration(

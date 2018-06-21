@@ -194,6 +194,15 @@ class KernelFactory
   Statement forInStatement(
       StatementJudgment judgment,
       int fileOffset,
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      Object loopVariable,
+      Token identifier,
+      Token inKeyword,
+      Expression iterator,
+      Token rightParenthesis,
+      Statement body,
       int variableOffset,
       DartType variableType,
       int writeOffset,
@@ -204,7 +213,19 @@ class KernelFactory
   }
 
   @override
-  Statement forStatement(StatementJudgment judgment, int fileOffset) {
+  Statement forStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token forKeyword,
+      Token leftParenthesis,
+      Object variableDeclarationList,
+      Expression initialization,
+      Token leftSeparator,
+      Expression condition,
+      Token rightSeparator,
+      List<Expression> updaters,
+      Token rightParenthesis,
+      Statement body) {
     return judgment;
   }
 

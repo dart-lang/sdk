@@ -154,6 +154,15 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
   void forInStatement(
       StatementJudgment judgment,
       int fileOffset,
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      Object loopVariable,
+      Token identifier,
+      Token inKeyword,
+      void iterator,
+      Token rightParenthesis,
+      void body,
       int variableOffset,
       DartType variableType,
       int writeOffset,
@@ -162,7 +171,19 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       Node writeTarget) {}
 
   @override
-  void forStatement(StatementJudgment judgment, int fileOffset) {}
+  void forStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token forKeyword,
+      Token leftParenthesis,
+      void variableDeclarationList,
+      void initialization,
+      Token leftSeparator,
+      void condition,
+      Token rightSeparator,
+      void updaters,
+      Token rightParenthesis,
+      void body) {}
 
   @override
   void functionDeclaration(

@@ -239,6 +239,15 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
   void forInStatement(
       StatementJudgment judgment,
       Location location,
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      Object loopVariable,
+      Token identifier,
+      Token inKeyword,
+      void iterator,
+      Token rightParenthesis,
+      void body,
       Location variableLocation,
       DartType variableType,
       Location writeLocation,
@@ -260,7 +269,19 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
     }
   }
 
-  void forStatement(StatementJudgment judgment, Location location) {}
+  void forStatement(
+      StatementJudgment judgment,
+      Location location,
+      Token forKeyword,
+      Token leftParenthesis,
+      void variableDeclarationList,
+      void initialization,
+      Token leftSeparator,
+      void condition,
+      Token rightSeparator,
+      void updaters,
+      Token rightParenthesis,
+      void body) {}
 
   void functionDeclaration(StatementJudgment judgment, Location location,
       FunctionType inferredType) {

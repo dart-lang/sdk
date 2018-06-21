@@ -1166,6 +1166,15 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
       inferrer.listener.forInStatement(
           this,
           fileOffset,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          iterable,
+          null,
+          body,
           variable?.fileOffset,
           variable?.type,
           syntheticWrite.fileOffset,
@@ -1176,6 +1185,15 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
       inferrer.listener.forInStatement(
           this,
           fileOffset,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          iterable,
+          null,
+          body,
           variable?.fileOffset,
           variable?.type,
           syntheticWrite.fileOffset,
@@ -1186,6 +1204,15 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
       inferrer.listener.forInStatement(
           this,
           fileOffset,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          iterable,
+          null,
+          body,
           variable?.fileOffset,
           variable?.type,
           syntheticWrite.fileOffset,
@@ -1194,8 +1221,24 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
           syntheticWrite.target);
     } else if (syntheticWrite == null ||
         syntheticWrite is ShadowSyntheticExpression) {
-      inferrer.listener.forInStatement(this, fileOffset, variable?.fileOffset,
-          variable?.type, null, null, null, null);
+      inferrer.listener.forInStatement(
+          this,
+          fileOffset,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          variable?.fileOffset,
+          variable?.type,
+          null,
+          null,
+          null,
+          null);
     } else {
       throw new UnimplementedError(
           '(${syntheticWrite.runtimeType}) $syntheticWrite');
@@ -1227,7 +1270,8 @@ class ShadowForStatement extends ForStatement implements StatementJudgment {
       inferrer.inferExpression(factory, update, const UnknownType(), false);
     }
     inferrer.inferStatement(factory, body);
-    inferrer.listener.forStatement(this, fileOffset);
+    inferrer.listener.forStatement(this, fileOffset, null, null, null, null,
+        null, condition, null, updates, null, body);
   }
 }
 
