@@ -571,7 +571,14 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
 
   void tryCatch(StatementJudgment judgment, Location location) {}
 
-  void tryFinally(StatementJudgment judgment, Location location) {}
+  void tryFinally(
+      StatementJudgment judgment,
+      Location location,
+      Token tryKeyword,
+      void body,
+      void catchClauses,
+      Token finallyKeyword,
+      void finallyBlock) {}
 
   void typeLiteral(ExpressionJudgment judgment, Location location,
       Reference expressionType, DartType inferredType) {

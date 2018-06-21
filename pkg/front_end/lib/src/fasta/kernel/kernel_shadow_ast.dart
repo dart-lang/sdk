@@ -2678,7 +2678,8 @@ class TryFinallyJudgment extends TryFinally implements StatementJudgment {
       body = new TryCatch(body, catches)..parent = this;
     }
     inferrer.inferStatement(factory, finalizerJudgment);
-    inferrer.listener.tryFinally(this, fileOffset);
+    inferrer.listener
+        .tryFinally(this, fileOffset, null, body, catches, null, finalizer);
   }
 }
 

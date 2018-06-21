@@ -365,7 +365,14 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
 
   Statement tryCatch(StatementJudgment judgment, int fileOffset);
 
-  Statement tryFinally(StatementJudgment judgment, int fileOffset);
+  Statement tryFinally(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token tryKeyword,
+      Statement body,
+      List<Object> catchClauses,
+      Token finallyKeyword,
+      Statement finallyBlock);
 
   Expression typeLiteral(ExpressionJudgment judgment, int fileOffset,
       Node expressionType, DartType inferredType);

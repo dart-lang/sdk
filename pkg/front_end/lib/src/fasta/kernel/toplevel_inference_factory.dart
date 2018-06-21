@@ -430,7 +430,8 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
   void tryCatch(StatementJudgment judgment, int fileOffset) {}
 
   @override
-  void tryFinally(StatementJudgment judgment, int fileOffset) {}
+  void tryFinally(StatementJudgment judgment, int fileOffset, Token tryKeyword,
+      void body, void catchClauses, Token finallyKeyword, void finallyBlock) {}
 
   @override
   void typeLiteral(ExpressionJudgment judgment, int fileOffset,

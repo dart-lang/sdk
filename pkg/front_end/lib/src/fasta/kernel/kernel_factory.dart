@@ -553,7 +553,14 @@ class KernelFactory
   }
 
   @override
-  Statement tryFinally(StatementJudgment judgment, int fileOffset) {
+  Statement tryFinally(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token tryKeyword,
+      Statement body,
+      List<Object> catchClauses,
+      Token finallyKeyword,
+      Statement finallyBlock) {
     return judgment;
   }
 

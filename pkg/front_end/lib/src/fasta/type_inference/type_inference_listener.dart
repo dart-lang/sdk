@@ -370,7 +370,14 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
 
   void tryCatch(StatementJudgment judgment, Location location);
 
-  void tryFinally(StatementJudgment judgment, Location location);
+  void tryFinally(
+      StatementJudgment judgment,
+      Location location,
+      Token tryKeyword,
+      void body,
+      void catchClauses,
+      Token finallyKeyword,
+      void finallyBlock);
 
   void typeLiteral(ExpressionJudgment judgment, Location location,
       Reference expressionType, DartType inferredType);
@@ -803,7 +810,8 @@ class KernelTypeInferenceListener
   void tryCatch(StatementJudgment judgment, location) {}
 
   @override
-  void tryFinally(StatementJudgment judgment, location) {}
+  void tryFinally(StatementJudgment judgment, location, Token tryKeyword,
+      void body, void catchClauses, Token finallyKeyword, void finallyBlock) {}
 
   @override
   void typeLiteral(ExpressionJudgment judgment, location, expressionType,
