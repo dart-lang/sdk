@@ -271,12 +271,14 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       List<FormalParameterBuilder> formals,
       ProcedureKind kind,
       KernelLibraryBuilder compilationUnit,
+      int startCharOffset,
       int charOffset,
       this.charOpenParenOffset,
       int charEndOffset,
       [String nativeMethodName])
       : procedure = new ShadowProcedure(null, kind, null, returnType == null,
             fileUri: compilationUnit?.fileUri)
+          ..startFileOffset = startCharOffset
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset,
         super(metadata, modifiers, returnType, name, typeVariables, formals,
@@ -367,6 +369,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
     // TODO(ahe): restore file-offset once we track both origin and patch file
     // URIs. See https://github.com/dart-lang/sdk/issues/31579
     origin.procedure.fileUri = fileUri;
+    origin.procedure.startFileOffset = procedure.startFileOffset;
     origin.procedure.fileOffset = procedure.fileOffset;
     origin.procedure.fileEndOffset = procedure.fileEndOffset;
     origin.procedure.annotations
@@ -420,11 +423,13 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       KernelLibraryBuilder compilationUnit,
+      int startCharOffset,
       int charOffset,
       this.charOpenParenOffset,
       int charEndOffset,
       [String nativeMethodName])
       : constructor = new Constructor(null, fileUri: compilationUnit?.fileUri)
+          ..startFileOffset = startCharOffset
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset,
         super(metadata, modifiers, returnType, name, typeVariables, formals,
@@ -555,6 +560,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
     // TODO(ahe): restore file-offset once we track both origin and patch file
     // URIs. See https://github.com/dart-lang/sdk/issues/31579
     origin.constructor.fileUri = fileUri;
+    origin.constructor.startFileOffset = constructor.startFileOffset;
     origin.constructor.fileOffset = constructor.fileOffset;
     origin.constructor.fileEndOffset = constructor.fileEndOffset;
     origin.constructor.annotations
@@ -598,6 +604,7 @@ class KernelRedirectingFactoryBuilder extends KernelProcedureBuilder {
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       KernelLibraryBuilder compilationUnit,
+      int startCharOffset,
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
@@ -612,6 +619,7 @@ class KernelRedirectingFactoryBuilder extends KernelProcedureBuilder {
             formals,
             ProcedureKind.Factory,
             compilationUnit,
+            startCharOffset,
             charOffset,
             charOpenParenOffset,
             charEndOffset,

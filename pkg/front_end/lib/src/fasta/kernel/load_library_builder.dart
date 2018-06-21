@@ -53,6 +53,7 @@ class LoadLibraryBuilder extends Declaration {
                 <DartType>[const DynamicType()])),
         fileUri: parent.target.fileUri,
         isStatic: true)
+      ..startFileOffset = charOffset
       ..fileOffset = charOffset;
     return tearoff;
   }

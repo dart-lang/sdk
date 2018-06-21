@@ -539,6 +539,7 @@ f() {
         formalParameterBuilders,
         kernel.ProcedureKind.Method,
         library,
+        -1 /* startCharOffset */,
         -1 /* charOffset */,
         -1 /* charOpenParenOffset */,
         -1 /* charEndOffset */);

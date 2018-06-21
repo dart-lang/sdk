@@ -7713,6 +7713,38 @@ RawString* Function::GetSource() const {
   }
   Zone* zone = Thread::Current()->zone();
   const Script& func_script = Script::Handle(zone, script());
+
+  if (func_script.kind() == RawScript::kKernelTag) {
+    intptr_t from_line;
+    intptr_t from_col;
+    intptr_t to_line;
+    intptr_t to_col;
+    intptr_t to_length;
+    func_script.GetTokenLocation(token_pos(), &from_line, &from_col);
+    func_script.GetTokenLocation(end_token_pos(), &to_line, &to_col,
+                                 &to_length);
+
+    if (to_length == 1) {
+      // Handle special cases for end tokens of closures (where we exclude the
+      // last token):
+      // (1) "foo(() => null, bar);": End token is `,', but we don't print it.
+      // (2) "foo(() => null);": End token is ')`, but we don't print it.
+      // (3) "var foo = () => null;": End token is `;', but in this case the
+      // token semicolon belongs to the assignment so we skip it.
+      const String& src = String::Handle(func_script.Source());
+      uint16_t end_char = src.CharAt(end_token_pos().value());
+      if ((end_char == ',') ||  // Case 1.
+          (end_char == ')') ||  // Case 2.
+          (end_char == ';' && String::Handle(zone, name())
+                                  .Equals("<anonymous closure>"))) {  // Case 3.
+        to_length = 0;
+      }
+    }
+
+    return func_script.GetSnippet(from_line, from_col, to_line,
+                                  to_col + to_length);
+  }
+
   const TokenStream& stream = TokenStream::Handle(zone, func_script.tokens());
   if (!func_script.HasSource()) {
     // When source is not available, avoid printing the whole token stream and

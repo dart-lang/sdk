@@ -904,6 +904,7 @@ class BinaryBuilder {
     }
 
     var fileUri = readUriReference();
+    node.startFileOffset = readOffset();
     node.fileOffset = readOffset();
     node.fileEndOffset = readOffset();
     int flags = readByte();
@@ -1013,6 +1014,7 @@ class BinaryBuilder {
       node = new Constructor(null, reference: reference);
     }
     var fileUri = readUriReference();
+    var startFileOffset = readOffset();
     var fileOffset = readOffset();
     var fileEndOffset = readOffset();
     var flags = readByte();
@@ -1034,6 +1036,7 @@ class BinaryBuilder {
     var transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
     if (shouldWriteData) {
+      node.startFileOffset = startFileOffset;
       node.fileOffset = fileOffset;
       node.fileEndOffset = fileEndOffset;
       node.flags = flags;
@@ -1057,6 +1060,7 @@ class BinaryBuilder {
       node = new Procedure(null, null, null, reference: reference);
     }
     var fileUri = readUriReference();
+    var startFileOffset = readOffset();
     var fileOffset = readOffset();
     var fileEndOffset = readOffset();
     int kindIndex = readByte();
@@ -1081,6 +1085,7 @@ class BinaryBuilder {
     var transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
     if (shouldWriteData) {
+      node.startFileOffset = startFileOffset;
       node.fileOffset = fileOffset;
       node.fileEndOffset = fileEndOffset;
       node.kind = kind;

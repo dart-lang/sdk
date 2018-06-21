@@ -243,7 +243,7 @@ class SourceLoader<L> extends Loader<L> {
       }
     }
     KernelProcedureBuilder builder = new KernelProcedureBuilder(null, 0, null,
-        "debugExpr", null, null, ProcedureKind.Method, library, 0, -1, -1)
+        "debugExpr", null, null, ProcedureKind.Method, library, 0, 0, -1, -1)
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
         builder, dietListener.memberScope, isInstanceMember);

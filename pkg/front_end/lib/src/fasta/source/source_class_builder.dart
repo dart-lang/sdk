@@ -47,10 +47,14 @@ ShadowClass initializeClass(
     List<TypeVariableBuilder> typeVariables,
     String name,
     KernelLibraryBuilder parent,
+    int startCharOffset,
     int charOffset,
     int charEndOffset) {
   cls ??= new ShadowClass(name: name);
   cls.fileUri ??= parent.fileUri;
+  if (cls.startFileOffset == TreeNode.noOffset) {
+    cls.startFileOffset = startCharOffset;
+  }
   if (cls.fileOffset == TreeNode.noOffset) {
     cls.fileOffset = charOffset;
   }
@@ -87,12 +91,13 @@ class SourceClassBuilder extends KernelClassBuilder {
       Scope constructors,
       LibraryBuilder parent,
       this.constructorReferences,
+      int startCharOffset,
       int charOffset,
       int charEndOffset,
       [ShadowClass cls,
       this.mixedInType])
-      : actualCls = initializeClass(
-            cls, typeVariables, name, parent, charOffset, charEndOffset),
+      : actualCls = initializeClass(cls, typeVariables, name, parent,
+            startCharOffset, charOffset, charEndOffset),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
             scope, constructors, parent, charOffset) {
     ShadowClass.setBuilder(this.cls, this);

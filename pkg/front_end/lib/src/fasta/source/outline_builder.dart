@@ -130,10 +130,10 @@ class OutlineBuilder extends StackListener {
     String postfix = popIfNotNull(periodBeforeName);
     List<TypeBuilder> typeArguments = pop();
     if (arguments == null) {
-      int charOffset = pop();
+      pop(); // charOffset
       Object expression = pop();
       push(new MetadataBuilder.fromExpression(
-          expression, postfix, library, charOffset));
+          expression, postfix, library, beginToken.charOffset));
     } else {
       int charOffset = pop();
       Object typeName = pop();
@@ -465,6 +465,9 @@ class OutlineBuilder extends StackListener {
     }
     List<MetadataBuilder> metadata = pop();
 
+    final int startCharOffset =
+        metadata == null ? beginToken.charOffset : metadata.first.charOffset;
+
     library.addClass(
         documentationComment,
         metadata,
@@ -473,6 +476,7 @@ class OutlineBuilder extends StackListener {
         typeVariables,
         supertype,
         interfaces,
+        startCharOffset,
         charOffset,
         endToken.charOffset,
         supertypeOffset);
@@ -521,6 +525,8 @@ class OutlineBuilder extends StackListener {
     library
         .endNestedDeclaration("#method")
         .resolveTypes(typeVariables, library);
+    final int startCharOffset =
+        metadata == null ? beginToken.charOffset : metadata.first.charOffset;
     library.addProcedure(
         documentationComment,
         metadata,
@@ -530,6 +536,7 @@ class OutlineBuilder extends StackListener {
         typeVariables,
         formals,
         computeProcedureKind(getOrSet),
+        startCharOffset,
         charOffset,
         formalsOffset,
         endToken.charOffset,
@@ -710,6 +717,8 @@ class OutlineBuilder extends StackListener {
             messageConstructorWithReturnType, beginToken, beginToken);
         returnType = null;
       }
+      final int startCharOffset =
+          metadata == null ? beginToken.charOffset : metadata.first.charOffset;
       library.addConstructor(
           documentationComment,
           metadata,
@@ -719,6 +728,7 @@ class OutlineBuilder extends StackListener {
           constructorName,
           typeVariables,
           formals,
+          startCharOffset,
           charOffset,
           formalsOffset,
           endToken.charOffset,
@@ -728,6 +738,8 @@ class OutlineBuilder extends StackListener {
         addCompileTimeError(messageConstMethod, varFinalOrConstOffset, 5);
         modifiers &= ~constMask;
       }
+      final int startCharOffset =
+          metadata == null ? beginToken.charOffset : metadata.first.charOffset;
       library.addProcedure(
           documentationComment,
           metadata,
@@ -737,6 +749,7 @@ class OutlineBuilder extends StackListener {
           typeVariables,
           formals,
           kind,
+          startCharOffset,
           charOffset,
           formalsOffset,
           endToken.charOffset,
@@ -1183,6 +1196,7 @@ class OutlineBuilder extends StackListener {
         name,
         formals,
         redirectionTarget,
+        beginToken.charOffset,
         charOffset,
         formalsOffset,
         endToken.charOffset,

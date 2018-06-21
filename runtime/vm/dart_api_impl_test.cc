@@ -259,7 +259,7 @@ void VerifyStackOverflowStackTraceInfo(const char* script,
 
 TEST_CASE(DartAPI_StackOverflowStackTraceInfoBraceFunction1) {
   int line = 2;
-  int col = FLAG_use_dart_frontend ? 10 : 3;
+  int col = 3;
   VerifyStackOverflowStackTraceInfo(
       "class C {\n"
       "  static foo(int i) { foo(i); }\n"
@@ -270,7 +270,7 @@ TEST_CASE(DartAPI_StackOverflowStackTraceInfoBraceFunction1) {
 
 TEST_CASE(DartAPI_StackOverflowStackTraceInfoBraceFunction2) {
   int line = 2;
-  int col = FLAG_use_dart_frontend ? 10 : 3;
+  int col = 3;
   VerifyStackOverflowStackTraceInfo(
       "class C {\n"
       "  static foo(int i, int j) {\n"
@@ -283,7 +283,7 @@ TEST_CASE(DartAPI_StackOverflowStackTraceInfoBraceFunction2) {
 
 TEST_CASE(DartAPI_StackOverflowStackTraceInfoArrowFunction) {
   int line = 2;
-  int col = FLAG_use_dart_frontend ? 10 : 3;
+  int col = 3;
   VerifyStackOverflowStackTraceInfo(
       "class C {\n"
       "  static foo(int i) => foo(i);\n"

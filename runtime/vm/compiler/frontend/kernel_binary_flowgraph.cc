@@ -272,6 +272,11 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       helper_->set_current_script_id(source_uri_index_);
       if (++next_read_ == field) return;
       /* Falls through */
+    case kStartPosition:
+      start_position_ = helper_->ReadPosition(false);  // read position.
+      helper_->RecordTokenPosition(start_position_);
+      if (++next_read_ == field) return;
+      /* Falls through */
     case kPosition:
       position_ = helper_->ReadPosition(false);  // read position.
       helper_->RecordTokenPosition(position_);
@@ -345,6 +350,11 @@ void ConstructorHelper::ReadUntilExcluding(Field field) {
       helper_->set_current_script_id(source_uri_index_);
       if (++next_read_ == field) return;
       /* Falls through */
+    case kStartPosition:
+      start_position_ = helper_->ReadPosition();  // read position.
+      helper_->RecordTokenPosition(start_position_);
+      if (++next_read_ == field) return;
+      /* Falls through */
     case kPosition:
       position_ = helper_->ReadPosition();  // read position.
       helper_->RecordTokenPosition(position_);
@@ -408,6 +418,11 @@ void ClassHelper::ReadUntilExcluding(Field field) {
     case kSourceUriIndex:
       source_uri_index_ = helper_->ReadUInt();  // read source_uri_index.
       helper_->set_current_script_id(source_uri_index_);
+      if (++next_read_ == field) return;
+      /* Falls through */
+    case kStartPosition:
+      start_position_ = helper_->ReadPosition(false);  // read position.
+      helper_->RecordTokenPosition(start_position_);
       if (++next_read_ == field) return;
       /* Falls through */
     case kPosition:

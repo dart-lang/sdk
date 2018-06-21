@@ -57,7 +57,7 @@ class MockLibraryBuilder extends KernelLibraryBuilder {
 
   KernelProcedureBuilder mockProcedure(String name) {
     return new KernelProcedureBuilder(null, 0, null, name, null, null,
-        ProcedureKind.Getter, this, -1, -1, -1);
+        ProcedureKind.Getter, this, -1, -1, -1, -1);
   }
 }
 

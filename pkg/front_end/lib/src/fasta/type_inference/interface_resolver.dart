@@ -537,6 +537,7 @@ class ForwardingNode extends Procedure {
         isForwardingStub: true,
         fileUri: enclosingClass.fileUri,
         forwardingStubInterfaceTarget: finalTarget)
+      ..startFileOffset = enclosingClass.fileOffset
       ..fileOffset = enclosingClass.fileOffset
       ..parent = enclosingClass;
   }

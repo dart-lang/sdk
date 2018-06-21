@@ -275,6 +275,7 @@ class ProcedureHelper {
     kStart,  // tag.
     kCanonicalName,
     kSourceUriIndex,
+    kStartPosition,
     kPosition,
     kEndPosition,
     kKind,
@@ -329,6 +330,7 @@ class ProcedureHelper {
   }
 
   NameIndex canonical_name_;
+  TokenPosition start_position_;
   TokenPosition position_;
   TokenPosition end_position_;
   Kind kind_;
@@ -357,6 +359,7 @@ class ConstructorHelper {
     kStart,  // tag.
     kCanonicalName,
     kSourceUriIndex,
+    kStartPosition,
     kPosition,
     kEndPosition,
     kFlags,
@@ -390,6 +393,7 @@ class ConstructorHelper {
   bool IsSynthetic() { return (flags_ & kSynthetic) != 0; }
 
   NameIndex canonical_name_;
+  TokenPosition start_position_;
   TokenPosition position_;
   TokenPosition end_position_;
   uint8_t flags_;
@@ -414,6 +418,7 @@ class ClassHelper {
     kStart,  // tag.
     kCanonicalName,
     kSourceUriIndex,
+    kStartPosition,
     kPosition,
     kEndPosition,
     kFlags,
@@ -458,6 +463,7 @@ class ClassHelper {
   }
 
   NameIndex canonical_name_;
+  TokenPosition start_position_;
   TokenPosition position_;
   TokenPosition end_position_;
   StringIndex name_index_;

@@ -1092,8 +1092,8 @@ Class& KernelLoader::LoadClass(const Library& library,
     FixCoreLibraryScriptUri(library, script);
   }
   if (klass.token_pos() == TokenPosition::kNoSource) {
-    class_helper.ReadUntilIncluding(ClassHelper::kPosition);
-    klass.set_token_pos(class_helper.position_);
+    class_helper.ReadUntilIncluding(ClassHelper::kStartPosition);
+    klass.set_token_pos(class_helper.start_position_);
   }
 
   class_helper.ReadUntilIncluding(ClassHelper::kFlags);
@@ -1237,7 +1237,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                          false,  // is_abstract
                          constructor_helper.IsExternal(),
                          false,  // is_native
-                         *owner, constructor_helper.position_));
+                         *owner, constructor_helper.start_position_));
     function.set_end_token_pos(constructor_helper.end_position_);
     functions_.Add(&function);
     function.set_kernel_offset(constructor_offset);
@@ -1449,7 +1449,7 @@ void KernelLoader::LoadProcedure(const Library& library,
                        false,       // is_const
                        is_abstract, is_external,
                        !native_name.IsNull(),  // is_native
-                       script_class, procedure_helper.position_));
+                       script_class, procedure_helper.start_position_));
   function.set_has_pragma(has_pragma_annotation);
   function.set_end_token_pos(procedure_helper.end_position_);
   functions_.Add(&function);

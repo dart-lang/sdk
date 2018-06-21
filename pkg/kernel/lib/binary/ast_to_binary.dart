@@ -746,8 +746,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     final Uri activeFileUriSaved = _activeFileUri;
     _activeFileUri = writeUriReference(node.fileUri);
 
+    writeOffset(node.startFileOffset);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
+
     writeByte(flags);
     writeStringReference(node.name ?? '');
 
@@ -788,8 +790,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     final Uri activeFileUriSaved = _activeFileUri;
     _activeFileUri = writeUriReference(node.fileUri);
 
+    writeOffset(node.startFileOffset);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
+
     writeByte(node.flags);
     writeName(node.name ?? _emptyName);
 
@@ -820,6 +824,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     final Uri activeFileUriSaved = _activeFileUri;
     _activeFileUri = writeUriReference(node.fileUri);
 
+    writeOffset(node.startFileOffset);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.kind.index);

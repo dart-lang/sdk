@@ -180,6 +180,7 @@ class KernelLibraryBuilder
       List<TypeVariableBuilder> typeVariables,
       KernelTypeBuilder supertype,
       List<KernelTypeBuilder> interfaces,
+      int startCharOffset,
       int charOffset,
       int charEndOffset,
       int supertypeOffset) {
@@ -211,6 +212,7 @@ class KernelLibraryBuilder
         constructorScope,
         this,
         new List<ConstructorReferenceBuilder>.from(constructorReferences),
+        startCharOffset,
         charOffset,
         charEndOffset);
     loader.target.metadataCollector
@@ -441,6 +443,10 @@ class KernelLibraryBuilder
             }
           }
         }
+        final int startCharOffset =
+            (isNamedMixinApplication ? metadata : null) == null
+                ? charOffset
+                : metadata.first.charOffset;
         SourceClassBuilder application = new SourceClassBuilder(
             isNamedMixinApplication ? metadata : null,
             isNamedMixinApplication
@@ -457,6 +463,7 @@ class KernelLibraryBuilder
                 isModifiable: false),
             this,
             <ConstructorReferenceBuilder>[],
+            startCharOffset,
             charOffset,
             TreeNode.noOffset,
             null,
@@ -527,6 +534,7 @@ class KernelLibraryBuilder
       String constructorName,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
+      int startCharOffset,
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
@@ -540,6 +548,7 @@ class KernelLibraryBuilder
         typeVariables,
         formals,
         this,
+        startCharOffset,
         charOffset,
         charOpenParenOffset,
         charEndOffset,
@@ -563,6 +572,7 @@ class KernelLibraryBuilder
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       ProcedureKind kind,
+      int startCharOffset,
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
@@ -578,6 +588,7 @@ class KernelLibraryBuilder
         formals,
         kind,
         this,
+        startCharOffset,
         charOffset,
         charOpenParenOffset,
         charEndOffset,
@@ -598,6 +609,7 @@ class KernelLibraryBuilder
       Object name,
       List<FormalParameterBuilder> formals,
       ConstructorReferenceBuilder redirectionTarget,
+      int startCharOffset,
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
@@ -630,6 +642,7 @@ class KernelLibraryBuilder
               factoryDeclaration),
           formals,
           this,
+          startCharOffset,
           charOffset,
           charOpenParenOffset,
           charEndOffset,
@@ -647,6 +660,7 @@ class KernelLibraryBuilder
           formals,
           ProcedureKind.Factory,
           this,
+          startCharOffset,
           charOffset,
           charOpenParenOffset,
           charEndOffset,

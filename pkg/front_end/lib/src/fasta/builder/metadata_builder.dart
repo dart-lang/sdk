@@ -9,7 +9,8 @@ import 'builder.dart' show Declaration, TypeBuilder;
 import 'constructor_reference_builder.dart' show ConstructorReferenceBuilder;
 
 abstract class MetadataBuilder<T extends TypeBuilder> {
-  MetadataBuilder(Declaration parent, int charOffset);
+  final int charOffset;
+  MetadataBuilder(Declaration parent, this.charOffset);
 
   factory MetadataBuilder.fromConstructor(
       ConstructorReferenceBuilder constructorReference,
