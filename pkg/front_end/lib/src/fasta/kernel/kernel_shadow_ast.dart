@@ -1701,7 +1701,8 @@ class ShadowListLiteral extends ListLiteral implements ExpressionJudgment {
       }
     }
     var inferredType = new InterfaceType(listClass, [inferredTypeArgument]);
-    inferrer.listener.listLiteral(this, fileOffset, inferredType);
+    inferrer.listener.listLiteral(
+        this, fileOffset, null, null, null, expressions, null, inferredType);
     return inferredType;
   }
 }
@@ -1824,7 +1825,8 @@ class ShadowMapLiteral extends MapLiteral implements ExpressionJudgment {
     }
     var inferredType =
         new InterfaceType(mapClass, [inferredKeyType, inferredValueType]);
-    inferrer.listener.mapLiteral(this, fileOffset, inferredType);
+    inferrer.listener.mapLiteral(
+        this, fileOffset, null, null, null, entries, null, inferredType);
     return inferredType;
   }
 }

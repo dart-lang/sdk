@@ -214,7 +214,14 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Statement labeledStatement(StatementJudgment judgment, int fileOffset);
 
   Expression listLiteral(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType);
+      ExpressionJudgment judgment,
+      int fileOffset,
+      Token constKeyword,
+      covariant Object typeArguments,
+      Token leftBracket,
+      List<Expression> elements,
+      Token rightBracket,
+      DartType inferredType);
 
   Expression logicalExpression(
       ExpressionJudgment judgment,
@@ -225,7 +232,17 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       DartType inferredType);
 
   Expression mapLiteral(
-      ExpressionJudgment judgment, int fileOffset, DartType typeContext);
+      ExpressionJudgment judgment,
+      int fileOffset,
+      Token constKeyword,
+      covariant Object typeArguments,
+      Token leftBracket,
+      List<Object> entries,
+      Token rightBracket,
+      DartType typeContext);
+
+  Object mapLiteralEntry(Object judgment, int fileOffset, Expression key,
+      Token separator, Expression value);
 
   Expression methodInvocation(
       ExpressionJudgment judgment,

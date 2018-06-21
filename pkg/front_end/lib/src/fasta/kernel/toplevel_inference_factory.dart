@@ -246,7 +246,14 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
 
   @override
   void listLiteral(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
+      ExpressionJudgment judgment,
+      int fileOffset,
+      Token constKeyword,
+      Object typeArguments,
+      Token leftBracket,
+      void elements,
+      Token rightBracket,
+      DartType inferredType) {}
 
   @override
   void logicalExpression(
@@ -259,7 +266,18 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
 
   @override
   void mapLiteral(
-      ExpressionJudgment judgment, int fileOffset, DartType typeContext) {}
+      ExpressionJudgment judgment,
+      int fileOffset,
+      Token constKeyword,
+      void typeArguments,
+      Token leftBracket,
+      void entries,
+      Token rightBracket,
+      DartType typeContext) {}
+
+  @override
+  void mapLiteralEntry(
+      Object judgment, int fileOffset, void key, Token separator, void value) {}
 
   @override
   void methodInvocation(

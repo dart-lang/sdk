@@ -219,7 +219,14 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
   void labeledStatement(StatementJudgment judgment, Location location);
 
   void listLiteral(
-      ExpressionJudgment judgment, Location location, DartType inferredType);
+      ExpressionJudgment judgment,
+      Location location,
+      Token constKeyword,
+      covariant Object typeArguments,
+      Token leftBracket,
+      void elements,
+      Token rightBracket,
+      DartType inferredType);
 
   void logicalExpression(
       ExpressionJudgment judgment,
@@ -230,7 +237,17 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
       DartType inferredType);
 
   void mapLiteral(
-      ExpressionJudgment judgment, Location location, DartType typeContext);
+      ExpressionJudgment judgment,
+      Location location,
+      Token constKeyword,
+      covariant Object typeArguments,
+      Token leftBracket,
+      List<Object> entries,
+      Token rightBracket,
+      DartType typeContext);
+
+  void mapLiteralEntry(
+      Object judgment, int fileOffset, void key, Token separator, void value);
 
   void methodInvocation(
       ExpressionJudgment judgment,
@@ -609,7 +626,14 @@ class KernelTypeInferenceListener
 
   @override
   void listLiteral(
-      ExpressionJudgment judgment, location, DartType inferredType) {}
+      ExpressionJudgment judgment,
+      location,
+      Token constKeyword,
+      covariant Object typeArguments,
+      Token leftBracket,
+      void elements,
+      Token rightBracket,
+      DartType inferredType) {}
 
   @override
   void logicalExpression(
@@ -622,7 +646,17 @@ class KernelTypeInferenceListener
 
   @override
   void mapLiteral(
-      ExpressionJudgment judgment, location, DartType typeContext) {}
+      ExpressionJudgment judgment,
+      location,
+      Token constKeyword,
+      Object typeArguments,
+      Token leftBracket,
+      List<Object> entries,
+      Token rightBracket,
+      DartType typeContext) {}
+
+  void mapLiteralEntry(
+      Object judgment, int fileOffset, void key, Token separator, void value) {}
 
   @override
   void methodInvocation(

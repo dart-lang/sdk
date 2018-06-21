@@ -315,7 +315,14 @@ class KernelFactory
 
   @override
   Expression listLiteral(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {
+      ExpressionJudgment judgment,
+      int fileOffset,
+      Token constKeyword,
+      Object typeArguments,
+      Token leftBracket,
+      List<Expression> elements,
+      Token rightBracket,
+      DartType inferredType) {
     return judgment;
   }
 
@@ -332,7 +339,20 @@ class KernelFactory
 
   @override
   Expression mapLiteral(
-      ExpressionJudgment judgment, int fileOffset, DartType typeContext) {
+      ExpressionJudgment judgment,
+      int fileOffset,
+      Token constKeyword,
+      Object typeArguments,
+      Token leftBracket,
+      List<Object> entries,
+      Token rightBracket,
+      DartType typeContext) {
+    return judgment;
+  }
+
+  @override
+  Object mapLiteralEntry(Object judgment, int fileOffset, Expression key,
+      Token separator, Expression value) {
     return judgment;
   }
 

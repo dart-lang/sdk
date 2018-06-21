@@ -320,7 +320,14 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
 
   void labeledStatement(StatementJudgment judgment, Location location) {}
 
-  void listLiteral(ExpressionJudgment judgment, Location location,
+  void listLiteral(
+          ExpressionJudgment judgment,
+          Location location,
+          Token constKeyword,
+          Object typeArguments,
+          Token leftBracket,
+          void elements,
+          Token rightBracket,
           DartType inferredType) =>
       genericExpression("listLiteral", location, inferredType);
 
@@ -333,9 +340,21 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
           DartType inferredType) =>
       genericExpression("logicalExpression", location, inferredType);
 
-  void mapLiteral(ExpressionJudgment judgment, Location location,
+  void mapLiteral(
+          ExpressionJudgment judgment,
+          Location location,
+          Token constKeyword,
+          Object typeArguments,
+          Token leftBracket,
+          List<Object> entries,
+          Token rightBracket,
           DartType typeContext) =>
       genericExpression("mapLiteral", location, typeContext);
+
+  void mapLiteralEntry(
+      Object judgment, int fileOffset, void key, Token separator, void value) {
+    // TODO(brianwilkerson) Implement this.
+  }
 
   void namedFunctionExpression(ExpressionJudgment judgment, Location location,
           DartType inferredType) =>
