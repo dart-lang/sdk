@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/fasta/resolution_applier.dart';
+import 'package:front_end/src/fasta/kernel/factory.dart';
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
+import 'package:front_end/src/scanner/token.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 
@@ -39,7 +41,10 @@ class ResolutionData<Type, Declaration, Reference, PrefixInfo> {
 
 /// Type inference listener that records inferred types for later use by
 /// [ResolutionApplier].
-class ResolutionStorer extends _ResolutionStorer<int, int, Node, int> {
+class ResolutionStorer extends _ResolutionStorer<int, int, Node, int>
+    implements
+        TypeInferenceListener<int, int, Node, int>,
+        Factory<void, void, void, void> {
   ResolutionStorer(Map<int, ResolutionData<DartType, int, Node, int>> data)
       : super(data);
 }
@@ -48,9 +53,7 @@ class ResolutionStorer extends _ResolutionStorer<int, int, Node, int> {
 /// accidentally peeking into kernel internals.
 ///
 /// TODO(paulberry): when the time is right, fuse this with [ResolutionStorer].
-class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo>
-    implements
-        TypeInferenceListener<Location, Declaration, Reference, PrefixInfo> {
+class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
   final Map<Location,
       ResolutionData<DartType, Declaration, Reference, PrefixInfo>> _data;
 
@@ -92,35 +95,51 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo>
     _data.remove(location) == null;
   }
 
-  @override
   void asExpression(
-      ExpressionJudgment judgment, Location location, DartType inferredType) {
+      ExpressionJudgment judgment,
+      Location location,
+      void expression,
+      Token asOperator,
+      void literalType,
+      DartType inferredType) {
     _store(location, literalType: inferredType, inferredType: inferredType);
   }
 
-  @override
-  void assertInitializer(InitializerJudgment judgment, Location location) {}
+  void assertInitializer(
+      InitializerJudgment judgment,
+      Location location,
+      Token assertKeyword,
+      Token leftParenthesis,
+      void condition,
+      Token comma,
+      void message,
+      Token rightParenthesis) {}
 
-  @override
-  void assertStatement(StatementJudgment judgment, Location location) {}
+  void assertStatement(
+      StatementJudgment judgment,
+      Location location,
+      Token assertKeyword,
+      Token leftParenthesis,
+      void condition,
+      Token comma,
+      void message,
+      Token rightParenthesis,
+      Token semicolon) {}
 
-  @override
   void awaitExpression(ExpressionJudgment judgment, Location location,
-          DartType inferredType) =>
+          Token awaitKeyword, void expression, DartType inferredType) =>
       genericExpression("awaitExpression", location, inferredType);
 
-  @override
-  void block(StatementJudgment judgment, Location location) {}
+  void block(StatementJudgment judgment, Location location, Token leftBracket,
+      List<void> statements, Token rightBracket) {}
 
-  @override
   void boolLiteral(ExpressionJudgment judgment, Location location,
-          DartType inferredType) =>
+          Token literal, bool value, DartType inferredType) =>
       genericExpression("boolLiteral", location, inferredType);
 
-  @override
-  void breakStatement(StatementJudgment judgment, Location location) {}
+  void breakStatement(StatementJudgment judgment, Location location,
+      Token breakKeyword, void label, Token semicolon) {}
 
-  @override
   void cascadeExpression(
       ExpressionJudgment judgment, Location location, DartType inferredType) {
     // Overridden so that the type of the expression will not be recorded. We
@@ -129,10 +148,18 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo>
     // correctly apply the type even if we recorded it.
   }
 
-  @override
   void catchStatement(
       Catch judgment,
       Location location,
+      Token onKeyword,
+      void type,
+      Token catchKeyword,
+      Token leftParenthesis,
+      Token exceptionParameter,
+      Token comma,
+      Token stackTraceParameter,
+      Token rightParenthesis,
+      void body,
       DartType guardType,
       Location exceptionLocation,
       DartType exceptionType,
@@ -149,12 +176,17 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo>
     }
   }
 
-  @override
-  void conditionalExpression(ExpressionJudgment judgment, Location location,
+  void conditionalExpression(
+          ExpressionJudgment judgment,
+          Location location,
+          void condition,
+          Token question,
+          void thenExpression,
+          Token colon,
+          void elseExpression,
           DartType inferredType) =>
       genericExpression("conditionalExpression", location, inferredType);
 
-  @override
   void constructorInvocation(ExpressionJudgment judgment, Location location,
       Reference expressionTarget, DartType inferredType) {
     // A class reference may have already been stored at this location by
@@ -164,32 +196,46 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo>
     _store(location, inferredType: inferredType, reference: expressionTarget);
   }
 
-  @override
-  void continueSwitchStatement(StatementJudgment judgment, Location location) {}
+  void continueStatement(StatementJudgment judgment, Location location,
+      Token continueKeyword, void label, Token semicolon) {}
 
-  @override
+  void continueSwitchStatement(StatementJudgment judgment, Location location,
+      Token continueKeyword, void label, Token semicolon) {}
+
   void deferredCheck(ExpressionJudgment judgment, Location location,
           DartType inferredType) =>
       genericExpression("deferredCheck", location, inferredType);
 
-  @override
-  void doStatement(StatementJudgment judgment, Location location) {}
+  void doStatement(
+      StatementJudgment judgment,
+      Location location,
+      Token doKeyword,
+      void body,
+      Token whileKeyword,
+      Token leftParenthesis,
+      void condition,
+      Token rightParenthesis,
+      Token semicolon) {}
 
-  @override
   void doubleLiteral(ExpressionJudgment judgment, Location location,
-          DartType inferredType) =>
+          Token literal, double value, DartType inferredType) =>
       genericExpression("doubleLiteral", location, inferredType);
 
-  @override
-  void expressionStatement(StatementJudgment judgment, Location location) {}
+  void expressionStatement(StatementJudgment judgment, Location location,
+      void expression, Token semicolon) {}
 
-  @override
-  void fieldInitializer(InitializerJudgment judgment, Location location,
+  void fieldInitializer(
+      InitializerJudgment judgment,
+      Location location,
+      Token thisKeyword,
+      Token period,
+      Token fieldName,
+      Token equals,
+      void expression,
       Reference initializerField) {
     _store(location, reference: initializerField);
   }
 
-  @override
   void forInStatement(
       StatementJudgment judgment,
       Location location,
@@ -214,16 +260,13 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo>
     }
   }
 
-  @override
   void forStatement(StatementJudgment judgment, Location location) {}
 
-  @override
   void functionDeclaration(StatementJudgment judgment, Location location,
       FunctionType inferredType) {
     _store(location, inferredType: inferredType);
   }
 
-  @override
   void functionExpression(ExpressionJudgment judgment, Location location,
           DartType inferredType) =>
       genericExpression("functionExpression", location, inferredType);
@@ -233,76 +276,89 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo>
     _store(location, inferredType: inferredType);
   }
 
-  @override
-  void ifNull(ExpressionJudgment judgment, Location location,
-          DartType inferredType) =>
+  void ifNull(ExpressionJudgment judgment, Location location, void leftOperand,
+          Token operator, void rightOperand, DartType inferredType) =>
       genericExpression('ifNull', location, inferredType);
 
-  @override
-  void ifStatement(StatementJudgment judgment, Location location) {}
+  void ifStatement(
+      StatementJudgment judgment,
+      Location location,
+      Token ifKeyword,
+      Token leftParenthesis,
+      void condition,
+      Token rightParenthesis,
+      void thenStatement,
+      Token elseKeyword,
+      void elseStatement) {}
 
-  @override
-  void intLiteral(ExpressionJudgment judgment, Location location,
-          DartType inferredType) =>
+  void intLiteral(ExpressionJudgment judgment, Location location, Token literal,
+          num value, DartType inferredType) =>
       genericExpression("intLiteral", location, inferredType);
 
-  @override
   void invalidInitializer(InitializerJudgment judgment, Location location) {}
 
-  @override
   void labeledStatement(StatementJudgment judgment, Location location) {}
 
-  @override
   void listLiteral(ExpressionJudgment judgment, Location location,
           DartType inferredType) =>
       genericExpression("listLiteral", location, inferredType);
 
-  @override
-  void logicalExpression(ExpressionJudgment judgment, Location location,
+  void logicalExpression(
+          ExpressionJudgment judgment,
+          Location location,
+          void leftOperand,
+          Token operator,
+          void rightOperand,
           DartType inferredType) =>
       genericExpression("logicalExpression", location, inferredType);
 
-  @override
   void mapLiteral(ExpressionJudgment judgment, Location location,
           DartType typeContext) =>
       genericExpression("mapLiteral", location, typeContext);
 
-  @override
   void namedFunctionExpression(ExpressionJudgment judgment, Location location,
           DartType inferredType) =>
       genericExpression("namedFunctionExpression", location, inferredType);
 
-  @override
-  void not(ExpressionJudgment judgment, Location location,
-          DartType inferredType) =>
+  void not(ExpressionJudgment judgment, Location location, Token operator,
+          void operand, DartType inferredType) =>
       genericExpression("not", location, inferredType);
 
-  @override
   void nullLiteral(ExpressionJudgment judgment, Location location,
-      bool isSynthetic, DartType inferredType) {
+      Token literal, bool isSynthetic, DartType inferredType) {
     if (isSynthetic) return null;
     genericExpression("nullLiteral", location, inferredType);
   }
 
-  @override
   void indexAssign(ExpressionJudgment judgment, Location location,
       Reference writeMember, Reference combiner, DartType inferredType) {
     _store(location,
         reference: writeMember, inferredType: inferredType, combiner: combiner);
   }
 
-  @override
-  void isExpression(ExpressionJudgment judgment, Location location,
-      DartType testedType, DartType inferredType) {
+  void isExpression(
+      ExpressionJudgment judgment,
+      Location location,
+      void expression,
+      Token isOperator,
+      void literalType,
+      DartType testedType,
+      DartType inferredType) {
     _store(location, literalType: testedType, inferredType: inferredType);
   }
 
-  void isNotExpression(ExpressionJudgment judgment, Location location,
-      DartType type, DartType inferredType) {
+  void isNotExpression(
+      ExpressionJudgment judgment,
+      Location location,
+      void expression,
+      Token isOperator,
+      Token notOperator,
+      void literalType,
+      DartType type,
+      DartType inferredType) {
     _store(location, literalType: type, inferredType: inferredType);
   }
 
-  @override
   void methodInvocation(
       ExpressionJudgment judgment,
       Location resultOffset,
@@ -324,7 +380,6 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo>
         reference: interfaceMember);
   }
 
-  @override
   void methodInvocationCall(
       ExpressionJudgment judgment,
       Location resultOffset,
@@ -344,7 +399,6 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo>
         isImplicitCall: isImplicitCall);
   }
 
-  @override
   void propertyAssign(
       ExpressionJudgment judgment,
       Location location,
@@ -360,38 +414,38 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo>
         inferredType: inferredType);
   }
 
-  @override
   void propertySet(ExpressionJudgment judgment, Location location,
           DartType inferredType) =>
       genericExpression("propertySet", location, inferredType);
 
-  @override
   void propertyGet(ExpressionJudgment judgment, Location location,
       Reference member, DartType inferredType) {
     _store(location, reference: member, inferredType: inferredType);
   }
 
-  @override
   void propertyGetCall(
       ExpressionJudgment judgment, Location location, DartType inferredType) {
     _store(location, isExplicitCall: true);
   }
 
-  @override
-  void redirectingInitializer(InitializerJudgment judgment, Location location,
+  void redirectingInitializer(
+      InitializerJudgment judgment,
+      Location location,
+      Token thisKeyword,
+      Token period,
+      Token constructorName,
+      covariant Object argumentList,
       Reference initializerTarget) {
     _store(location, reference: initializerTarget);
   }
 
-  @override
   void rethrow_(ExpressionJudgment judgment, Location location,
-          DartType inferredType) =>
+          Token rethrowKeyword, DartType inferredType) =>
       genericExpression('rethrow', location, inferredType);
 
-  @override
-  void returnStatement(StatementJudgment judgment, Location location) {}
+  void returnStatement(StatementJudgment judgment, Location location,
+      Token returnKeyword, void expression, Token semicolon) {}
 
-  @override
   void staticAssign(
       ExpressionJudgment judgment,
       Location location,
@@ -407,13 +461,11 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo>
         inferredType: inferredType);
   }
 
-  @override
   void staticGet(ExpressionJudgment judgment, Location location,
       Reference expressionTarget, DartType inferredType) {
     _store(location, reference: expressionTarget, inferredType: inferredType);
   }
 
-  @override
   void staticInvocation(
       ExpressionJudgment judgment,
       Location location,
@@ -432,42 +484,44 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo>
         inferredType: inferredType);
   }
 
-  @override
   void stringConcatenation(
       ExpressionJudgment judgment, Location location, DartType inferredType) {
     // We don't need the type - we already know that it is String.
     // Moreover, the file offset for StringConcatenation is `-1`.
   }
 
-  @override
   void stringLiteral(ExpressionJudgment judgment, Location location,
-          DartType inferredType) =>
+          Token literal, String value, DartType inferredType) =>
       genericExpression("StringLiteral", location, inferredType);
 
-  @override
-  void superInitializer(InitializerJudgment judgment, Location location) {}
+  void superInitializer(
+      InitializerJudgment judgment,
+      Location location,
+      Token superKeyword,
+      Token period,
+      Token constructorName,
+      covariant Object argumentList) {}
 
-  @override
   void switchStatement(StatementJudgment judgment, Location location) {}
 
-  @override
-  void symbolLiteral(ExpressionJudgment judgment, Location location,
+  void symbolLiteral(
+          ExpressionJudgment judgment,
+          Location location,
+          Token poundSign,
+          List<Token> components,
+          String value,
           DartType inferredType) =>
       genericExpression("symbolLiteral", location, inferredType);
 
-  @override
-  void thisExpression(
-      ExpressionJudgment judgment, Location location, DartType inferredType) {}
+  void thisExpression(ExpressionJudgment judgment, Location location,
+      Token thisKeyword, DartType inferredType) {}
 
-  @override
   void throw_(ExpressionJudgment judgment, Location location,
-          DartType inferredType) =>
+          Token throwKeyword, void expression, DartType inferredType) =>
       genericExpression('throw', location, inferredType);
 
-  @override
   void tryCatch(StatementJudgment judgment, Location location) {}
 
-  @override
   void tryFinally(StatementJudgment judgment, Location location) {}
 
   void typeLiteral(ExpressionJudgment judgment, Location location,
@@ -475,7 +529,6 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo>
     _store(location, reference: expressionType, inferredType: inferredType);
   }
 
-  @override
   void variableAssign(
       ExpressionJudgment judgment,
       Location location,
@@ -491,13 +544,11 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo>
         inferredType: inferredType);
   }
 
-  @override
   void variableDeclaration(StatementJudgment judgment, Location location,
       DartType statementType, DartType inferredType) {
     _store(location, literalType: statementType, inferredType: inferredType);
   }
 
-  @override
   void variableGet(ExpressionJudgment judgment, Location location,
       bool isInCascade, Declaration expressionVariable, DartType inferredType) {
     if (isInCascade) {
@@ -507,23 +558,26 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo>
         declaration: expressionVariable, inferredType: inferredType);
   }
 
-  @override
   void variableSet(ExpressionJudgment judgment, Location location,
           DartType inferredType) =>
       genericExpression("variableSet", location, inferredType);
 
-  @override
-  void whileStatement(StatementJudgment judgment, Location location) {}
+  void whileStatement(
+      StatementJudgment judgment,
+      Location location,
+      Token whileKeyword,
+      Token leftParenthesis,
+      void condition,
+      Token rightParenthesis,
+      void body) {}
 
-  @override
-  void yieldStatement(StatementJudgment judgment, Location location) {}
+  void yieldStatement(StatementJudgment judgment, Location location,
+      Token yieldKeyword, Token star, void expression, Token semicolon) {}
 
-  @override
   void storePrefixInfo(Location location, PrefixInfo prefixInfo) {
     _store(location, prefixInfo: prefixInfo);
   }
 
-  @override
   void storeClassReference(
       Location location, Reference reference, DartType rawType) {
     // TODO(paulberry): would it be better to use literalType?
