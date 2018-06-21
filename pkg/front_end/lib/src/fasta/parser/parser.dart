@@ -49,8 +49,6 @@ import '../scanner/token_constants.dart'
         STRING_INTERPOLATION_TOKEN,
         STRING_TOKEN;
 
-import '../util/link.dart' show Link;
-
 import 'assert.dart' show Assert;
 
 import 'async_modifier.dart' show AsyncModifier;
@@ -80,8 +78,6 @@ import 'recovery_listeners.dart'
 
 import 'token_stream_rewriter.dart' show TokenStreamRewriter;
 
-import 'type_continuation.dart' show TypeContinuation;
-
 import 'type_info.dart'
     show
         TypeInfo,
@@ -89,7 +85,6 @@ import 'type_info.dart'
         computeMethodTypeArguments,
         computeType,
         computeTypeParamOrArg,
-        isGeneralizedFunctionType,
         isValidTypeReference,
         noType,
         noTypeParamOrArg;
@@ -1940,295 +1935,13 @@ class Parser {
     return token.next;
   }
 
-  /// ```
-  /// typeVariable:
-  ///   metadata? identifier (('extends' | 'super') typeName)?
-  /// ;
-  /// ```
-  Token parseTypeVariable(Token token) {
-    token = parseMetadataStar(token);
-    token = ensureIdentifier(token, IdentifierContext.typeVariableDeclaration);
-    listener.beginTypeVariable(token);
-    Token extendsOrSuper = null;
-    Token next = token.next;
-    if (optional('extends', next) || optional('super', next)) {
-      extendsOrSuper = next;
-      token = parseType(next);
-    } else {
-      listener.handleNoType(token);
-    }
-    listener.endTypeVariable(token.next, extendsOrSuper);
-    return token;
-  }
-
   bool notEofOrValue(String value, Token token) {
     return !identical(token.kind, EOF_TOKEN) &&
         !identical(value, token.stringValue);
   }
 
-  /// Parse a type, if it is appropriate to do so.
-  ///
-  /// If this method can parse a type, it will return the next (non-null) token
-  /// after the type. Otherwise, it returns null.
-  Token parseType(Token token,
-      [TypeContinuation continuation = TypeContinuation.Required,
-      IdentifierContext continuationContext,
-      MemberKind memberKind,
-      Token varFinalOrConst]) {
-    /// True if we've seen the `var` keyword.
-    bool hasVar = false;
-
-    /// The token before [token].
-    Token beforeToken;
-
-    /// The token before the `begin` token.
-    Token beforeBegin;
-
-    /// Where the type begins.
-    Token begin;
-
-    /// Non-null if 'void' is the first token.
-    Token voidToken;
-
-    /// True if the tokens at [begin] looks like a type.
-    bool looksLikeType = false;
-
-    /// True if a type that could be a return type for a generalized function
-    /// type was seen during analysis.
-    bool hasReturnType = false;
-
-    /// The identifier context to use for parsing the type.
-    IdentifierContext context = IdentifierContext.typeReference;
-
-    /// Non-null if type arguments were seen during analysis.
-    Token typeArguments;
-
-    /// The number of function types seen during analysis.
-    int functionTypes = 0;
-
-    /// The tokens before the start of type variables of function types seen
-    /// during analysis. Notice that the tokens in this list might precede
-    /// either `'<'` or `'('` as not all function types have type parameters.
-    /// Also, it is safe to assume that token.endGroup will return
-    /// non-null for all of the tokens following these tokens.
-    Link<Token> typeVariableStarters = const Link<Token>();
-
-    {
-      // Analyse the next tokens to see if they could be a type.
-
-      beforeToken = beforeBegin = token;
-      token = begin = token.next;
-
-      if (optional("void", token)) {
-        // `void` is a type.
-        looksLikeType = true;
-        beforeToken = voidToken = token;
-        token = token.next;
-      } else if (isValidTypeReference(token) &&
-          !isGeneralizedFunctionType(token)) {
-        // We're looking at an identifier that could be a type (or `dynamic`).
-        looksLikeType = true;
-        beforeToken = token;
-        token = token.next;
-        if (optional(".", token) && isValidTypeReference(token.next)) {
-          // We're looking at `prefix '.' identifier`.
-          context = IdentifierContext.prefixedTypeReference;
-          beforeToken = token.next;
-          token = beforeToken.next;
-        }
-        if (optional("<", token)) {
-          Token close = token.endGroup;
-          if (close != null &&
-              (optional(">", close) || optional(">>", close))) {
-            // We found some type arguments.
-            typeArguments = token;
-            beforeToken = close;
-            token = close.next;
-          }
-        }
-      } else if (token.isModifier && isValidTypeReference(token.next)) {
-        // Recovery - report error and skip modifier
-        reportRecoverableErrorWithToken(token, fasta.templateExpectedType);
-        return parseType(token, continuation, continuationContext, memberKind);
-      }
-
-      // If what we have seen so far looks like a type, that could be a return
-      // type for a generalized function type.
-      hasReturnType = looksLikeType;
-
-      while (optional("Function", token)) {
-        Token typeVariableStart = token;
-        if (optional("<", token.next)) {
-          Token close = token.next.endGroup;
-          if (close != null && optional(">", close)) {
-            beforeToken = previousToken(token, close);
-            token = close;
-          } else {
-            break; // Not a function type.
-          }
-        }
-        if (optional("(", token.next)) {
-          // This is a function type.
-          Token close = token.next.endGroup;
-          assert(optional(")", close));
-          looksLikeType = true;
-          functionTypes++;
-          typeVariableStarters =
-              typeVariableStarters.prepend(typeVariableStart);
-          beforeToken = close;
-          token = close.next;
-        } else {
-          break; // Not a function type.
-        }
-      }
-    }
-
-    /// Call this function when it's known that [begin] is a type. This
-    /// function will call the appropriate event methods on [listener] to
-    /// handle the type.
-    Token commitType() {
-      int count = 0;
-      for (Token typeVariableStart in typeVariableStarters) {
-        count++;
-        parseTypeVariablesOpt(typeVariableStart);
-        listener.beginFunctionType(begin);
-      }
-      assert(count == functionTypes);
-
-      if (functionTypes > 0 && !hasReturnType) {
-        // A function type without return type.
-        // Push the non-existing return type first. The loop below will
-        // generate the full type.
-        listener.handleNoType(beforeBegin);
-        token = beforeBegin;
-      } else if (voidToken != null) {
-        listener.handleVoidKeyword(voidToken);
-        token = voidToken;
-      } else {
-        token = ensureIdentifier(beforeBegin, context);
-        token = parseQualifiedRestOpt(
-            token, IdentifierContext.typeReferenceContinuation);
-        assert(typeArguments == null || typeArguments == token.next);
-        token = parseTypeArgumentsOpt(token);
-        listener.handleType(begin, token.next);
-      }
-
-      for (int i = 0; i < functionTypes; i++) {
-        Token next = token.next;
-        assert(optional('Function', next));
-        Token functionToken = next;
-        if (optional("<", next.next)) {
-          // Skip type parameters, they were parsed above.
-          next = next.next.endGroup;
-        }
-        token = parseFormalParametersRequiredOpt(
-            next, MemberKind.GeneralizedFunctionType);
-        listener.endFunctionType(functionToken, token.next);
-      }
-
-      if (hasVar) {
-        reportRecoverableError(begin, fasta.messageTypeAfterVar);
-      }
-
-      return token;
-    }
-
-    switch (continuation) {
-      case TypeContinuation.Required:
-        // If the token after the type is not an identifier,
-        // the report a missing type
-        if (!token.isIdentifier) {
-          if (memberKind == MemberKind.TopLevelField ||
-              memberKind == MemberKind.NonStaticField ||
-              memberKind == MemberKind.StaticField ||
-              memberKind == MemberKind.Local) {
-            reportRecoverableError(
-                begin, fasta.messageMissingConstFinalVarOrType);
-            listener.handleNoType(beforeBegin);
-            return beforeBegin;
-          }
-        }
-        return commitType();
-
-      optional:
-      case TypeContinuation.Optional:
-        if (looksLikeType) {
-          if (functionTypes > 0) {
-            return commitType(); // Parse function type.
-          }
-          if (voidToken != null) {
-            listener.handleVoidKeyword(voidToken);
-            return voidToken;
-          }
-          if (token.isIdentifier || optional('this', token)) {
-            return commitType(); // Parse type.
-          }
-        }
-        listener.handleNoType(beforeBegin);
-        return beforeBegin;
-
-      case TypeContinuation.OptionalAfterVar:
-        hasVar = true;
-        continue optional;
-    }
-
-    throw "Internal error: Unhandled continuation '$continuation'.";
-  }
-
-  Token parseTypeArgumentsOpt(Token token) {
-    Token next = token.next;
-    if (optional('<', next)) {
-      BeginToken begin = next;
-      rewriteLtEndGroupOpt(begin);
-      listener.beginTypeArguments(begin);
-      int count = 0;
-      do {
-        token = parseType(next);
-        next = token.next;
-        ++count;
-      } while (optional(',', next));
-      if (next == begin.endToken) {
-        token = next;
-      } else if (begin.endToken != null) {
-        reportRecoverableError(
-            next, fasta.templateExpectedToken.withArguments('>'));
-        token = begin.endToken;
-      } else {
-        token = begin.endToken = ensureGt(token);
-      }
-      listener.endTypeArguments(count, begin, token);
-    } else {
-      listener.handleNoTypeArguments(next);
-    }
-    return token;
-  }
-
   Token parseTypeVariablesOpt(Token token) {
-    Token next = token.next;
-    if (optional('<', next)) {
-      BeginToken begin = next;
-      rewriteLtEndGroupOpt(begin);
-      listener.beginTypeVariables(begin);
-      int count = 0;
-      do {
-        token = parseTypeVariable(next);
-        next = token.next;
-        ++count;
-      } while (optional(',', next));
-      if (next == begin.endToken) {
-        token = next;
-      } else if (begin.endToken != null) {
-        reportRecoverableError(
-            next, fasta.templateExpectedToken.withArguments('>'));
-        token = begin.endToken;
-      } else {
-        token = begin.endToken = ensureGt(token);
-      }
-      listener.endTypeVariables(count, begin, token);
-    } else {
-      listener.handleNoTypeVariables(next);
-    }
-    return token;
+    return computeTypeParamOrArg(token, true).parseVariables(token, this);
   }
 
   /// Parse a top level field or function.

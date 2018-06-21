@@ -654,8 +654,8 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
   @override
   Token parseVariables(Token token, Parser parser) {
     Token next = start;
-    Token innerEndGroup = processBeginGroup(start, parser);
     parser.listener.beginTypeVariables(start);
+    Token innerEndGroup = processBeginGroup(start, parser);
     int count = 0;
     while (true) {
       token = parser.parseMetadataStar(next);

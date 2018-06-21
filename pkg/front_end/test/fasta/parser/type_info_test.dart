@@ -4,7 +4,6 @@
 
 import 'package:front_end/src/fasta/messages.dart';
 import 'package:front_end/src/fasta/parser.dart';
-import 'package:front_end/src/fasta/parser/type_continuation.dart';
 import 'package:front_end/src/fasta/parser/type_info.dart';
 import 'package:front_end/src/fasta/parser/type_info_impl.dart';
 import 'package:front_end/src/fasta/scanner.dart';
@@ -1235,6 +1234,91 @@ class TypeParamOrArgInfoTest {
     expectComplexTypeParam('<@Foo S',
         inDeclaration: true, expectedErrors: [error(codeExpectedButGot, 7, 0)]);
   }
+
+  void test_computeTypeParam_31846() {
+    expectComplexTypeParam('<T extends Comparable<T>>', expectedCalls: [
+      'beginTypeVariables <',
+      'beginMetadataStar T',
+      'endMetadataStar 0',
+      'handleIdentifier T typeVariableDeclaration',
+      'beginTypeVariable T',
+      'handleIdentifier Comparable typeReference',
+      'beginTypeArguments <',
+      'handleIdentifier T typeReference',
+      'handleNoTypeArguments >',
+      'handleType T >',
+      'endTypeArguments 1 < >',
+      'handleType Comparable >',
+      'endTypeVariable > extends',
+      'endTypeVariables 1 < >',
+    ]);
+    expectComplexTypeParam('<T extends Comparable<S>, S>', expectedCalls: [
+      'beginTypeVariables <',
+      'beginMetadataStar T',
+      'endMetadataStar 0',
+      'handleIdentifier T typeVariableDeclaration',
+      'beginTypeVariable T',
+      'handleIdentifier Comparable typeReference',
+      'beginTypeArguments <',
+      'handleIdentifier S typeReference',
+      'handleNoTypeArguments >',
+      'handleType S >',
+      'endTypeArguments 1 < >',
+      'handleType Comparable ,',
+      'endTypeVariable , extends',
+      'beginMetadataStar S',
+      'endMetadataStar 0',
+      'handleIdentifier S typeVariableDeclaration',
+      'beginTypeVariable S',
+      'handleNoType S',
+      'endTypeVariable > null',
+      'endTypeVariables 2 < >',
+    ]);
+    expectComplexTypeParam('<T extends Function(T)>', expectedCalls: [
+      'beginTypeVariables <',
+      'beginMetadataStar T',
+      'endMetadataStar 0',
+      'handleIdentifier T typeVariableDeclaration',
+      'beginTypeVariable T',
+      'handleNoTypeVariables (',
+      'beginFunctionType Function',
+      'handleNoType extends',
+      'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+      'beginMetadataStar T',
+      'endMetadataStar 0',
+      'beginFormalParameter T MemberKind.GeneralizedFunctionType',
+      'handleIdentifier T typeReference',
+      'handleNoTypeArguments )',
+      'handleType T )',
+      'handleNoName )',
+      'handleFormalParameterWithoutValue )',
+      'beginTypeVariables null null ) FormalParameterKind.mandatory MemberKind.GeneralizedFunctionType',
+      'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
+      'endFunctionType Function >',
+      'endTypeVariable > extends',
+      'endTypeVariables 1 < >',
+    ]);
+    expectComplexTypeParam('<T extends List<List<T>>>', expectedCalls: [
+      'beginTypeVariables <',
+      'beginMetadataStar T',
+      'endMetadataStar 0',
+      'handleIdentifier T typeVariableDeclaration',
+      'beginTypeVariable T',
+      'handleIdentifier List typeReference',
+      'beginTypeArguments <',
+      'handleIdentifier List typeReference',
+      'beginTypeArguments <',
+      'handleIdentifier T typeReference',
+      'handleNoTypeArguments >',
+      'handleType T >',
+      'endTypeArguments 1 < >',
+      'handleType List >',
+      'endTypeArguments 1 < >',
+      'handleType List >',
+      'endTypeVariable > extends',
+      'endTypeVariables 1 < >',
+    ]);
+  }
 }
 
 void expectInfo(expectedInfo, String source, {bool required}) {
@@ -1314,18 +1398,7 @@ ComplexTypeInfo computeComplex(
 
   expectEnd(expectedAfter, actualEnd);
   if (expectedCalls != null) {
-    try {
-      expect(listener.calls, expectedCalls, reason: source);
-    } catch (e) {
-      TypeInfoListener listener2 = new TypeInfoListener();
-      new Parser(listener2).parseType(start, TypeContinuation.Required);
-      print('[');
-      for (String call in listener2.calls) {
-        print("'$call',");
-      }
-      print(']');
-      rethrow;
-    }
+    expect(listener.calls, expectedCalls, reason: source);
   }
   expect(listener.errors, expectedErrors, reason: source);
   return typeInfo;
@@ -1356,18 +1429,7 @@ void expectComplexTypeArg(String source,
   expectEnd(expectedAfter, actualEnd);
 
   if (expectedCalls != null) {
-    try {
-      expect(listener.calls, expectedCalls, reason: source);
-    } catch (e) {
-      TypeInfoListener listener2 = new TypeInfoListener();
-      new Parser(listener2).parseTypeArgumentsOpt(start);
-      print('Events from parseTypeArgumentsOpt: [');
-      for (String call in listener2.calls) {
-        print("  '$call',");
-      }
-      print(']');
-      rethrow;
-    }
+    expect(listener.calls, expectedCalls, reason: source);
   }
   expect(listener.errors, expectedErrors, reason: source);
 }
@@ -1397,18 +1459,7 @@ void expectComplexTypeParam(String source,
   expectEnd(expectedAfter, actualEnd);
 
   if (expectedCalls != null) {
-    try {
-      expect(listener.calls, expectedCalls, reason: source);
-    } catch (e) {
-      TypeInfoListener listener2 = new TypeInfoListener(metadataAllowed: true);
-      new Parser(listener2).parseTypeVariablesOpt(start);
-      print('Events from parseTypeVariablesOpt: [');
-      for (String call in listener2.calls) {
-        print("  '$call',");
-      }
-      print(']');
-      rethrow;
-    }
+    expect(listener.calls, expectedCalls, reason: source);
   }
   expect(listener.errors, expectedErrors, reason: source);
 }
