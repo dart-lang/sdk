@@ -1376,11 +1376,6 @@ setter_override_test/03: MissingCompileTimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
-super_no_such_method4_test: CompileTimeError # Issue 33498
-super_no_such_method5_test: CompileTimeError # Issue 33498
-super_operator_index6_test: CompileTimeError # Issue 33498
-super_operator_index7_test: CompileTimeError # Issue 33498
-super_operator_index8_test: CompileTimeError # Issue 33498
 try_catch_test/01: MissingCompileTimeError
 type_promotion_functions_test/02: CompileTimeError
 type_promotion_functions_test/03: CompileTimeError
@@ -1449,6 +1444,8 @@ prefix_transitive_import_prefix_test/03: MissingCompileTimeError
 prefix_transitive_import_test/01: MissingCompileTimeError
 prefix_transitive_import_test/02: MissingCompileTimeError
 setter_override2_test/02: MissingCompileTimeError
+super_no_such_method4_test/01: MissingCompileTimeError # Requires Dart 2 semantics. See http://dartbug.com/33380.
+super_no_such_method5_test/01: MissingCompileTimeError # Requires Dart 2 semantics. See http://dartbug.com/33380.
 variable_shadow_class_test/01: MissingCompileTimeError
 
 [ $mode == debug && $runtime == vm && $strong && ($compiler == app_jitk || $compiler == dartk) ]
@@ -2246,11 +2243,6 @@ unresolved_top_level_var_test: MissingCompileTimeError
 *: SkipByDesign # language_2 is only supported in strong mode.
 
 [ ($compiler == app_jitk || $compiler == dartk || $compiler == dartkp) && ($runtime == dart_precompiled || $runtime == vm) ]
-super_no_such_method4_test: CompileTimeError # Issue 33498
-super_no_such_method5_test: CompileTimeError # Issue 33498
-super_operator_index6_test: CompileTimeError # Issue 33498
-super_operator_index7_test: CompileTimeError # Issue 33498
-super_operator_index8_test: CompileTimeError # Issue 33498
 type_alias_equality_test/02: RuntimeError # Issue 31359
 type_alias_equality_test/03: RuntimeError # Issue 31359
 type_alias_equality_test/04: RuntimeError # Issue 31359
