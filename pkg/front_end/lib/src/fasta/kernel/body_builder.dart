@@ -3245,8 +3245,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           new VariableGetJudgment(variable, fact, scope)
             ..fileOffset = inKeyword.offset,
           voidContext: true);
-      kernelBody = combineStatements(
-          new ShadowLoopAssignmentStatement(syntheticAssignment), kernelBody);
     } else {
       Message message = forest.isVariablesDeclaration(lvalue)
           ? fasta.messageForInLoopExactlyOneVariable
@@ -3255,7 +3253,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       variable = new VariableDeclaration.forValue(buildCompileTimeError(
           message, offsetForToken(token), lengthForToken(token)));
     }
-    Statement result = new ShadowForInStatement(
+    Statement result = new ForInJudgment(
         variable, expression, kernelBody, declaresVariable, syntheticAssignment,
         isAsync: awaitToken != null)
       ..fileOffset = awaitToken?.charOffset ?? forToken.charOffset

@@ -1052,15 +1052,21 @@ class ShadowFieldInitializer extends FieldInitializer
 }
 
 /// Concrete shadow object representing a for-in loop in kernel form.
-class ShadowForInStatement extends ForInStatement implements StatementJudgment {
+class ForInJudgment extends ForInStatement implements StatementJudgment {
   final bool _declaresVariable;
 
   final ShadowSyntheticExpression _syntheticAssignment;
 
-  ShadowForInStatement(VariableDeclaration variable, Expression iterable,
+  ForInJudgment(VariableDeclaration variable, Expression iterable,
       Statement body, this._declaresVariable, this._syntheticAssignment,
       {bool isAsync: false})
       : super(variable, iterable, body, isAsync: isAsync);
+
+  VariableDeclarationJudgment get variableJudgment => variable;
+
+  ExpressionJudgment get iterableJudgment => iterable;
+
+  StatementJudgment get bodyJudgment => body;
 
   @override
   void infer<Expression, Statement, Initializer, Type>(
@@ -1077,7 +1083,7 @@ class ShadowForInStatement extends ForInStatement implements StatementJudgment {
     kernel.Expression syntheticWrite;
     DartType syntheticWriteType;
     if (_declaresVariable) {
-      variable = this.variable;
+      variable = this.variableJudgment;
       if (inferrer.strongMode && variable._implicitlyTyped) {
         typeNeeded = true;
         context = const UnknownType();
@@ -1092,14 +1098,18 @@ class ShadowForInStatement extends ForInStatement implements StatementJudgment {
       context = const UnknownType();
     }
     context = inferrer.wrapType(context, iterableClass);
-    var inferredExpressionType = inferrer.resolveTypeParameter(
-        inferrer.inferExpression(
-            factory, iterable, context, typeNeeded || typeChecksNeeded));
+
+    var iterableJudgment = this.iterableJudgment;
+    inferrer.inferExpression(
+        factory, iterableJudgment, context, typeNeeded || typeChecksNeeded);
+    var inferredExpressionType =
+        inferrer.resolveTypeParameter(iterableJudgment.inferredType);
     inferrer.ensureAssignable(
         inferrer.wrapType(const DynamicType(), iterableClass),
         inferredExpressionType,
         iterable,
         iterable.fileOffset);
+
     DartType inferredType;
     if (typeNeeded || typeChecksNeeded) {
       inferredType = const DynamicType();
@@ -1119,7 +1129,12 @@ class ShadowForInStatement extends ForInStatement implements StatementJudgment {
         this.variable.type = inferredType;
       }
     }
-    inferrer.inferStatement(factory, body);
+
+    inferrer.inferStatement(factory, bodyJudgment);
+    if (syntheticAssignment != null) {
+      var syntheticStatement = new ExpressionStatement(syntheticAssignment);
+      body = combineStatements(syntheticStatement, body)..parent = this;
+    }
     if (_declaresVariable) {
       inferrer.inferMetadataKeepingHelper(factory, variable.annotations);
       var tempVar =
@@ -1672,21 +1687,6 @@ class ShadowLogicalExpression extends LogicalExpression
         .logicalExpression(this, fileOffset, null, null, null, inferredType);
     return inferredType;
   }
-}
-
-/// Shadow object for synthetic assignments added at the top of a for-in loop.
-///
-/// This covers the case where a for-in loop refers to a variable decleared
-/// elsewhere, so it is desugared into a for-in loop that assigns to the
-/// variable at the top of the loop body.
-class ShadowLoopAssignmentStatement extends ExpressionStatement
-    implements StatementJudgment {
-  ShadowLoopAssignmentStatement(Expression expression) : super(expression);
-
-  @override
-  void infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory) {}
 }
 
 /// Shadow object for [MapLiteral].
