@@ -905,7 +905,6 @@ vm/type_vm_test/35: MissingRuntimeError
 vm/type_vm_test/36: MissingRuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled ]
-super_no_such_method5_test: RuntimeError # Issue 33517
 type_alias_equality_test/02: RuntimeError # Issue 31359
 type_alias_equality_test/03: RuntimeError # Issue 31359
 type_alias_equality_test/04: RuntimeError # Issue 31359
