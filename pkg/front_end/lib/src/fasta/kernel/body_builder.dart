@@ -3517,8 +3517,8 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     for (Expression expression in expressions) {
       expressionOffsets.add(forest.readOffset(expression));
     }
-    push(new SwitchCase(toKernelExpressionList(expressions), expressionOffsets,
-        toKernelStatement(block),
+    push(new SwitchCaseJudgment(toKernelExpressionList(expressions),
+        expressionOffsets, toKernelStatement(block),
         isDefault: defaultKeyword != null)
       ..fileOffset = firstToken.charOffset);
     push(labels);
@@ -3534,7 +3534,7 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
     exitLocalScope();
     Expression expression = popForValue();
     kernel.Statement result =
-        new ShadowSwitchStatement(toKernelExpression(expression), cases)
+        new SwitchStatementJudgment(toKernelExpression(expression), cases)
           ..fileOffset = switchKeyword.charOffset;
     if (target.hasUsers) {
       result = new LabeledStatementJudgment(result);
@@ -3715,7 +3715,6 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
   @override
   void beginTypeVariable(Token name) {
     debugEvent("beginTypeVariable");
-    push(new Identifier(name));
   }
 
   @override
@@ -3911,14 +3910,14 @@ abstract class BodyBuilder<Expression, Statement, Arguments>
 
   kernel.Statement deprecated_buildCompileTimeErrorStatement(error,
       [int charOffset = -1]) {
-    return new ShadowExpressionStatement(toKernelExpression(
+    return new ExpressionStatementJudgment(toKernelExpression(
         deprecated_buildCompileTimeError(error, charOffset)));
   }
 
   kernel.Statement buildCompileTimeErrorStatement(
       Message message, int charOffset,
       {List<LocatedMessage> context}) {
-    return new ShadowExpressionStatement(toKernelExpression(
+    return new ExpressionStatementJudgment(toKernelExpression(
         buildCompileTimeError(message, charOffset, noLength,
             context: context)));
   }

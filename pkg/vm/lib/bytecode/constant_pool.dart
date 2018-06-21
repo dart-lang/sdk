@@ -133,7 +133,7 @@ type ConstantSymbol extends ConstantPoolEntry {
 type ConstantTypeArgumentsForInstanceAllocation extends ConstantPoolEntry {
   Byte tag = 19;
   CanonicalNameReference instantiatingClass;
-  ConstantIndex typeArguments;
+  List<DartType> types;
 }
 
 type ConstantContextOffset extends ConstantPoolEntry {
@@ -896,16 +896,15 @@ class ConstantSymbol extends ConstantPoolEntry {
 
 class ConstantTypeArgumentsForInstanceAllocation extends ConstantPoolEntry {
   final Reference _instantiatingClassRef;
-  final int _typeArgumentsConstantIndex;
+  final List<DartType> typeArgs;
 
   Class get instantiatingClass => _instantiatingClassRef.asClass;
 
   ConstantTypeArgumentsForInstanceAllocation(
-      Class instantiatingClass, int typeArgumentsConstantIndex)
-      : this.byReference(
-            instantiatingClass.reference, typeArgumentsConstantIndex);
+      Class instantiatingClass, List<DartType> typeArgs)
+      : this.byReference(instantiatingClass.reference, typeArgs);
   ConstantTypeArgumentsForInstanceAllocation.byReference(
-      this._instantiatingClassRef, this._typeArgumentsConstantIndex);
+      this._instantiatingClassRef, this.typeArgs);
 
   @override
   ConstantTag get tag => ConstantTag.kTypeArgumentsForInstanceAllocation;
@@ -914,27 +913,29 @@ class ConstantTypeArgumentsForInstanceAllocation extends ConstantPoolEntry {
   void writeValueToBinary(BinarySink sink) {
     sink.writeCanonicalNameReference(
         getCanonicalNameOfClass(instantiatingClass));
-    sink.writeUInt30(_typeArgumentsConstantIndex);
+    sink.writeUInt30(typeArgs.length);
+    typeArgs.forEach(sink.writeDartType);
   }
 
   ConstantTypeArgumentsForInstanceAllocation.readFromBinary(BinarySource source)
       : _instantiatingClassRef =
             source.readCanonicalNameReference().getReference(),
-        _typeArgumentsConstantIndex = source.readUInt();
+        typeArgs = new List<DartType>.generate(
+            source.readUInt(), (_) => source.readDartType());
 
   @override
   String toString() =>
-      'TypeArgumentsForInstanceAllocation $instantiatingClass type-args CP#$_typeArgumentsConstantIndex';
+      'TypeArgumentsForInstanceAllocation $instantiatingClass $typeArgs';
 
   @override
   int get hashCode =>
-      _combineHashes(instantiatingClass.hashCode, _typeArgumentsConstantIndex);
+      _combineHashes(instantiatingClass.hashCode, listHashCode(typeArgs));
 
   @override
   bool operator ==(other) =>
       other is ConstantTypeArgumentsForInstanceAllocation &&
       this.instantiatingClass == other.instantiatingClass &&
-      this._typeArgumentsConstantIndex == other._typeArgumentsConstantIndex;
+      listEquals(this.typeArgs, other.typeArgs);
 }
 
 class ConstantContextOffset extends ConstantPoolEntry {

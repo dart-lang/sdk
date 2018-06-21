@@ -1030,21 +1030,21 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
 // Input parameters:
 //   R0: address (i.e. object) being stored into.
 void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
-  // Save values being destroyed.
-  __ PushList((1 << R1) | (1 << R2) | (1 << R3));
-
   Label add_to_buffer;
   // Check whether this object has already been remembered. Skip adding to the
   // store buffer if the object is in the store buffer already.
   // Spilled: R1, R2, R3
   // R0: Address being stored
-  __ ldr(R2, FieldAddress(R0, Object::tags_offset()));
-  __ tst(R2, Operand(1 << RawObject::kRememberedBit));
+  __ ldr(TMP, FieldAddress(R0, Object::tags_offset()));
+  __ tst(TMP, Operand(1 << RawObject::kRememberedBit));
   __ b(&add_to_buffer, EQ);
-  __ PopList((1 << R1) | (1 << R2) | (1 << R3));
   __ Ret();
 
   __ Bind(&add_to_buffer);
+
+  // Save values being destroyed.
+  __ PushList((1 << R1) | (1 << R2) | (1 << R3));
+
   // R2: Header word.
   if (TargetCPUFeatures::arm_version() == ARMv5TE) {
 // TODO(21263): Implement 'swp' and use it below.
@@ -1077,24 +1077,27 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Increment top_ and check for overflow.
   // R2: top_.
   // R1: StoreBufferBlock.
-  Label L;
+  Label overflow;
   __ add(R2, R2, Operand(1));
   __ str(R2, Address(R1, StoreBufferBlock::top_offset()));
   __ CompareImmediate(R2, StoreBufferBlock::kSize);
   // Restore values.
   __ PopList((1 << R1) | (1 << R2) | (1 << R3));
-  __ b(&L, EQ);
+  __ b(&overflow, EQ);
   __ Ret();
 
   // Handle overflow: Call the runtime leaf function.
-  __ Bind(&L);
+  __ Bind(&overflow);
   // Setup frame, push callee-saved registers.
 
+  __ Push(CODE_REG);
+  __ ldr(CODE_REG, Address(THR, Thread::update_store_buffer_code_offset()));
   __ EnterCallRuntimeFrame(0 * kWordSize);
   __ mov(R0, Operand(THR));
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   // Restore callee-saved registers, tear down frame.
   __ LeaveCallRuntimeFrame();
+  __ Pop(CODE_REG);
   __ Ret();
 }
 

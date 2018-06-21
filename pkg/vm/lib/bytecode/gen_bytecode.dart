@@ -150,13 +150,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final function = enclosingMember.function;
     assert(function != null);
 
-    if (locals.hasTypeArgsVar) {
-      asm.emitPush(locals.typeArgsVarIndexInFrame);
-    } else if (enclosingMember is Procedure &&
-        (enclosingMember as Procedure).isFactory) {
-      // Null type arguments are passed to factory constructors even if class
-      // is not generic. TODO(alexmarkov): Clean this up.
-      _genPushNull();
+    if (locals.hasFactoryTypeArgsVar) {
+      asm.emitPush(locals.getVarIndexInFrame(locals.factoryTypeArgsVar));
+    } else if (locals.hasFunctionTypeArgsVar) {
+      asm.emitPush(locals.functionTypeArgsVarIndexInFrame);
     }
     if (locals.hasReceiver) {
       asm.emitPush(locals.getVarIndexInFrame(locals.receiverVar));
@@ -326,12 +323,12 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   void _genTypeArguments(List<DartType> typeArgs, {Class instantiatingClass}) {
     int typeArgsCPIndex() {
-      int cpIndex = cp.add(new ConstantTypeArguments(typeArgs));
       if (instantiatingClass != null) {
-        cpIndex = cp.add(new ConstantTypeArgumentsForInstanceAllocation(
-            instantiatingClass, cpIndex));
+        return cp.add(new ConstantTypeArgumentsForInstanceAllocation(
+            instantiatingClass, typeArgs));
+      } else {
+        return cp.add(new ConstantTypeArguments(typeArgs));
       }
-      return cpIndex;
     }
 
     if (typeArgs.isEmpty || !hasTypeParameters(typeArgs)) {
@@ -341,7 +338,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         _genPushInstantiatorTypeArguments();
       } else {
         _genPushInstantiatorAndFunctionTypeArguments(typeArgs);
-        asm.emitInstantiateTypeArgumentsTOS(1, typeArgsCPIndex());
+        // TODO(alexmarkov): Optimize type arguments instantiation
+        // by passing rA = 1 in InstantiateTypeArgumentsTOS.
+        // For this purpose, we need to detect if type arguments
+        // would be all-dynamic in case of all-dynamic instantiator and
+        // function type arguments.
+        // Corresponding check is implemented in VM in
+        // TypeArguments::IsRawWhenInstantiatedFromRaw.
+        asm.emitInstantiateTypeArgumentsTOS(0, typeArgsCPIndex());
       }
     }
   }
@@ -364,10 +368,16 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   void _genPushInstantiatorTypeArguments() {
     if (instantiatorTypeArguments != null) {
-      _genPushReceiver();
-      final int cpIndex =
-          cp.add(new ConstantTypeArgumentsFieldOffset(enclosingClass));
-      asm.emitLoadFieldTOS(cpIndex);
+      if (locals.hasFactoryTypeArgsVar) {
+        assert(enclosingMember is Procedure &&
+            (enclosingMember as Procedure).isFactory);
+        _genLoadVar(locals.factoryTypeArgsVar);
+      } else {
+        _genPushReceiver();
+        final int cpIndex =
+            cp.add(new ConstantTypeArgumentsFieldOffset(enclosingClass));
+        asm.emitLoadFieldTOS(cpIndex);
+      }
     } else {
       _genPushNull();
     }
@@ -416,8 +426,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   void _genPushFunctionTypeArguments() {
-    if (locals.hasTypeArgsVar) {
-      asm.emitPush(locals.typeArgsVarIndexInFrame);
+    if (locals.hasFunctionTypeArgsVar) {
+      asm.emitPush(locals.functionTypeArgsVarIndexInFrame);
     } else {
       _genPushNull();
     }
@@ -536,10 +546,17 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   void start(Member node) {
     enclosingClass = node.enclosingClass;
     enclosingMember = node;
-    if (enclosingMember.isInstanceMember || enclosingMember is Constructor) {
+    if (node.isInstanceMember ||
+        node is Constructor ||
+        (node is Procedure && node.isFactory)) {
       if (enclosingClass.typeParameters.isNotEmpty) {
         classTypeParameters =
             new Set<TypeParameter>.from(enclosingClass.typeParameters);
+        // Treat type arguments of factory constructors as class
+        // type parameters.
+        if (node is Procedure && node.isFactory) {
+          classTypeParameters.addAll(node.function.typeParameters);
+        }
       }
       if (hasInstantiatorTypeArguments(enclosingClass)) {
         final typeParameters = enclosingClass.typeParameters
@@ -670,22 +687,22 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       asm.emitPopLocal(locals.contextVarIndexInFrame);
     }
 
-    if (locals.hasTypeArgsVar && isClosure) {
+    if (locals.hasFunctionTypeArgsVar && isClosure) {
       if (function.typeParameters.isNotEmpty) {
         final int numParentTypeArgs = locals.numParentTypeArguments;
-        asm.emitPush(locals.typeArgsVarIndexInFrame);
+        asm.emitPush(locals.functionTypeArgsVarIndexInFrame);
         asm.emitPush(locals.closureVarIndexInFrame);
         asm.emitLoadFieldTOS(
             cp.add(new ConstantFieldOffset(closureFunctionTypeArguments)));
         _genPushInt(numParentTypeArgs);
         _genPushInt(numParentTypeArgs + function.typeParameters.length);
         _genStaticCall(prependTypeArguments, new ConstantArgDesc(4), 4);
-        asm.emitPopLocal(locals.typeArgsVarIndexInFrame);
+        asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
       } else {
         asm.emitPush(locals.closureVarIndexInFrame);
         asm.emitLoadFieldTOS(
             cp.add(new ConstantFieldOffset(closureFunctionTypeArguments)));
-        asm.emitPopLocal(locals.typeArgsVarIndexInFrame);
+        asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
       }
     }
 
@@ -699,6 +716,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     if (locals.hasCapturedParameters) {
       // Copy captured parameters to their respective locations in the context.
+      if (locals.hasFactoryTypeArgsVar) {
+        _copyParamIfCaptured(locals.factoryTypeArgsVar);
+      }
       if (locals.hasReceiver) {
         _copyParamIfCaptured(locals.receiverVar);
       }
@@ -1234,7 +1254,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       }
     }
 
-    _genStaticCall(mapFromLiteral, new ConstantArgDesc(1, numTypeArgs: 1), 2);
+    // Map._fromLiteral is a factory constructor.
+    // Type arguments passed to a factory constructor are counted as a normal
+    // argument and not counted in number of type arguments.
+    assert(mapFromLiteral.isFactory);
+    _genStaticCall(mapFromLiteral, new ConstantArgDesc(2, numTypeArgs: 0), 2);
   }
 
   @override
@@ -1246,9 +1270,12 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         cp.add(new ConstantArgDesc.fromArguments(args, hasReceiver: true));
     final icdataIndex = cp.add(
         new ConstantICData(InvocationKind.method, node.name, argDescIndex));
+    final totalArgCount = args.positional.length +
+        args.named.length +
+        1 /* receiver */ +
+        (args.types.isNotEmpty ? 1 : 0) /* type arguments */;
     // TODO(alexmarkov): figure out when generate InstanceCall2 (2 checked arguments).
-    asm.emitInstanceCall1(
-        args.positional.length + args.named.length + 1, icdataIndex);
+    asm.emitInstanceCall1(totalArgCount, icdataIndex);
   }
 
   @override
@@ -1285,7 +1312,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
           'Unsupported SuperMethodInvocation without target');
     }
     if (target is Procedure && !target.isGetter) {
-      _genStaticCallWithArgs(target, args);
+      _genStaticCallWithArgs(target, args, hasReceiver: true);
     } else {
       throw new UnsupportedOperationError(
           'Unsupported SuperMethodInvocation with target ${target.runtimeType} $target');
@@ -1378,11 +1405,20 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitStaticInvocation(StaticInvocation node) {
-    final args = node.arguments;
-    if (node.target.isFactory && args.types.isEmpty) {
-      // VM needs type arguments for every invocation of a factory constructor.
-      // TODO(alexmarkov): Clean this up.
-      _genPushNull();
+    Arguments args = node.arguments;
+    if (node.target.isFactory) {
+      final constructedClass = node.target.enclosingClass;
+      if (hasInstantiatorTypeArguments(constructedClass)) {
+        _genTypeArguments(args.types,
+            instantiatingClass: node.target.enclosingClass);
+      } else {
+        assert(args.types.isEmpty);
+        // VM needs type arguments for every invocation of a factory
+        // constructor. TODO(alexmarkov): Clean this up.
+        _genPushNull();
+      }
+      args =
+          new Arguments(node.arguments.positional, named: node.arguments.named);
     }
     _genArguments(null, args);
     _genStaticCallWithArgs(node.target, args, isFactory: node.target.isFactory);

@@ -141,7 +141,14 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
 
   @override
   void fieldInitializer(
-      InitializerJudgment judgment, int fileOffset, Node initializerField) {}
+      InitializerJudgment judgment,
+      int fileOffset,
+      Token thisKeyword,
+      Token period,
+      Token fieldName,
+      Token equals,
+      void expression,
+      Node initializerField) {}
 
   @override
   void forInStatement(
@@ -289,7 +296,13 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
 
   @override
   void redirectingInitializer(
-      InitializerJudgment judgment, int fileOffset, Node initializerTarget) {}
+      InitializerJudgment judgment,
+      int fileOffset,
+      Token thisKeyword,
+      Token period,
+      Token constructorName,
+      Object argumentList,
+      Node initializerTarget) {}
 
   @override
   void rethrow_(ExpressionJudgment judgment, int fileOffset,
@@ -337,7 +350,13 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       String value, DartType inferredType) {}
 
   @override
-  void superInitializer(InitializerJudgment judgment, int fileOffset) {}
+  void superInitializer(
+      InitializerJudgment judgment,
+      int fileOffset,
+      Token superKeyword,
+      Token period,
+      Token constructorName,
+      Object argumentList) {}
 
   @override
   void switchStatement(StatementJudgment judgment, int fileOffset) {}

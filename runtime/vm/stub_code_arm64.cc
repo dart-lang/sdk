@@ -958,8 +958,138 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ ret();
 }
 
+// Called when invoking compiled Dart code from interpreted Dart code.
+// Input parameters:
+//   LR : points to return address.
+//   R0 : raw code object of the Dart function to call.
+//   R1 : arguments raw descriptor array.
+//   R2 : address of first argument.
+//   R3 : current thread.
 void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
-  __ Unimplemented("Interpreter not yet supported");
+#if defined(DART_USE_INTERPRETER)
+  // Copy the C stack pointer (R31) into the stack pointer we'll actually use
+  // to access the stack.
+  __ SetupDartSP();
+  __ EnterFrame(0);
+
+  // Push code object to PC marker slot.
+  __ ldr(TMP,
+         Address(R3, Thread::invoke_dart_code_from_bytecode_stub_offset()));
+  __ Push(TMP);
+
+  // Save the callee-saved registers.
+  for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {
+    const Register r = static_cast<Register>(i);
+    // We use str instead of the Push macro because we will be pushing the PP
+    // register when it is not holding a pool-pointer since we are coming from
+    // C++ code.
+    __ str(r, Address(SP, -1 * kWordSize, Address::PreIndex));
+  }
+
+  // Save the bottom 64-bits of callee-saved V registers.
+  for (int i = kAbiFirstPreservedFpuReg; i <= kAbiLastPreservedFpuReg; i++) {
+    const VRegister r = static_cast<VRegister>(i);
+    __ PushDouble(r);
+  }
+
+  // Set up THR, which caches the current thread in Dart code.
+  if (THR != R3) {
+    __ mov(THR, R3);
+  }
+
+  // Save the current VMTag on the stack.
+  __ LoadFromOffset(R4, THR, Thread::vm_tag_offset());
+  __ Push(R4);
+
+  // Mark that the thread is executing Dart code.
+  __ LoadImmediate(R6, VMTag::kDartTagId);
+  __ StoreToOffset(R6, THR, Thread::vm_tag_offset());
+
+  // Save top resource and top exit frame info. Use R6 as a temporary register.
+  // StackFrameIterator reads the top exit frame info saved in this frame.
+  __ LoadFromOffset(R6, THR, Thread::top_resource_offset());
+  __ StoreToOffset(ZR, THR, Thread::top_resource_offset());
+  __ Push(R6);
+  __ LoadFromOffset(R6, THR, Thread::top_exit_frame_info_offset());
+  __ StoreToOffset(ZR, THR, Thread::top_exit_frame_info_offset());
+  // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
+  ASSERT(kExitLinkSlotFromEntryFp == -22);
+  __ Push(R6);
+
+  // Load arguments descriptor array into R4, which is passed to Dart code.
+  __ mov(R4, R1);
+
+  // Load number of arguments into R5 and adjust count for type arguments.
+  __ LoadFieldFromOffset(R5, R4, ArgumentsDescriptor::count_offset());
+  __ LoadFieldFromOffset(R3, R4, ArgumentsDescriptor::type_args_len_offset());
+  __ AddImmediate(TMP, R5, 1);  // Include the type arguments.
+  __ cmp(R3, Operand(0));
+  __ csinc(R5, R5, TMP, EQ);  // R5 <- (R3 == 0) ? R5 : TMP + 1 (R5 : R5 + 2).
+  __ SmiUntag(R5);
+
+  // R2 points to first argument.
+  // Set up arguments for the Dart call.
+  Label push_arguments;
+  Label done_push_arguments;
+  __ cmp(R5, Operand(0));
+  __ b(&done_push_arguments, EQ);  // check if there are arguments.
+  __ LoadImmediate(R1, 0);
+  __ Bind(&push_arguments);
+  __ ldr(R3, Address(R2));
+  __ Push(R3);
+  __ add(R1, R1, Operand(1));
+  __ add(R2, R2, Operand(kWordSize));
+  __ cmp(R1, Operand(R5));
+  __ b(&push_arguments, LT);
+  __ Bind(&done_push_arguments);
+
+  // We now load the pool pointer(PP) with a GC safe value as we are about to
+  // invoke dart code. We don't need a real object pool here.
+  // Smi zero does not work because ARM64 assumes PP to be untagged.
+  __ LoadObject(PP, Object::null_object());
+
+  // Call the Dart code entrypoint.
+  __ mov(CODE_REG, R0);
+  __ ldr(R0, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  __ blr(R0);  // R4 is the arguments descriptor array.
+
+  // Get rid of arguments pushed on the stack.
+  __ AddImmediate(SP, FP, kExitLinkSlotFromEntryFp * kWordSize);
+
+  // Restore the saved top exit frame info and top resource back into the
+  // Isolate structure. Uses R6 as a temporary register for this.
+  __ Pop(R6);
+  __ StoreToOffset(R6, THR, Thread::top_exit_frame_info_offset());
+  __ Pop(R6);
+  __ StoreToOffset(R6, THR, Thread::top_resource_offset());
+
+  // Restore the current VMTag from the stack.
+  __ Pop(R4);
+  __ StoreToOffset(R4, THR, Thread::vm_tag_offset());
+
+  // Restore the bottom 64-bits of callee-saved V registers.
+  for (int i = kAbiLastPreservedFpuReg; i >= kAbiFirstPreservedFpuReg; i--) {
+    const VRegister r = static_cast<VRegister>(i);
+    __ PopDouble(r);
+  }
+
+  // Restore C++ ABI callee-saved registers.
+  for (int i = kAbiLastPreservedCpuReg; i >= kAbiFirstPreservedCpuReg; i--) {
+    Register r = static_cast<Register>(i);
+    // We use ldr instead of the Pop macro because we will be popping the PP
+    // register when it is not holding a pool-pointer since we are returning to
+    // C++ code. We also skip the dart stack pointer SP, since we are still
+    // using it as the stack pointer.
+    __ ldr(r, Address(SP, 1 * kWordSize, Address::PostIndex));
+  }
+
+  // Restore the frame pointer and C stack pointer and return.
+  __ LeaveFrame();
+  __ RestoreCSP();
+  __ ret();
+#else
+  __ Stop("Not using interpreter");
+#endif  // defined(DART_USE_INTERPRETER)
 }
 
 // Called for inline allocation of contexts.
@@ -1081,8 +1211,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Check whether this object has already been remembered. Skip adding to the
   // store buffer if the object is in the store buffer already.
   __ LoadFieldFromOffset(TMP, R0, Object::tags_offset(), kWord);
-  __ tsti(TMP, Immediate(1 << RawObject::kRememberedBit));
-  __ b(&add_to_buffer, EQ);
+  __ tbz(&add_to_buffer, TMP, RawObject::kRememberedBit);
   __ ret();
 
   __ Bind(&add_to_buffer);
@@ -1102,8 +1231,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ ldxr(R2, R3, kWord);
   __ orri(R2, R2, Immediate(1 << RawObject::kRememberedBit));
   __ stxr(R1, R2, R3, kWord);
-  __ cmp(R1, Operand(1));
-  __ b(&retry, EQ);
+  __ cbnz(&retry, R1);
 
   // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1115,7 +1243,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Increment top_ and check for overflow.
   // R2: top_.
   // R1: StoreBufferBlock.
-  Label L;
+  Label overflow;
   __ add(R2, R2, Operand(1));
   __ StoreToOffset(R2, R1, StoreBufferBlock::top_offset(), kUnsignedWord);
   __ CompareImmediate(R2, StoreBufferBlock::kSize);
@@ -1123,18 +1251,21 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ Pop(R3);
   __ Pop(R2);
   __ Pop(R1);
-  __ b(&L, EQ);
+  __ b(&overflow, EQ);
   __ ret();
 
   // Handle overflow: Call the runtime leaf function.
-  __ Bind(&L);
+  __ Bind(&overflow);
   // Setup frame, push callee-saved registers.
 
+  __ Push(CODE_REG);
+  __ ldr(CODE_REG, Address(THR, Thread::update_store_buffer_code_offset()));
   __ EnterCallRuntimeFrame(0 * kWordSize);
   __ mov(R0, THR);
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   // Restore callee-saved registers, tear down frame.
   __ LeaveCallRuntimeFrame();
+  __ Pop(CODE_REG);
   __ ret();
 }
 
@@ -1746,8 +1877,115 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ br(R2);
 }
 
+// Stub for interpreting a function call.
+// R5: IC-Data (for methods).
+// R4: Arguments descriptor.
+// R0: Function.
 void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
-  __ Unimplemented("Interpreter not yet supported");
+#if defined(DART_USE_INTERPRETER)
+  const intptr_t thread_offset = NativeArguments::thread_offset();
+  const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
+  const intptr_t argv_offset = NativeArguments::argv_offset();
+  const intptr_t retval_offset = NativeArguments::retval_offset();
+
+  __ SetPrologueOffset();
+  __ EnterStubFrame();
+
+  // Save exit frame information to enable stack walking as we are about
+  // to transition to Dart VM C++ code.
+  __ StoreToOffset(FP, THR, Thread::top_exit_frame_info_offset());
+
+#if defined(DEBUG)
+  {
+    Label ok;
+    // Check that we are always entering from Dart code.
+    __ LoadFromOffset(R8, THR, Thread::vm_tag_offset());
+    __ CompareImmediate(R8, VMTag::kDartTagId);
+    __ b(&ok, EQ);
+    __ Stop("Not coming from Dart code.");
+    __ Bind(&ok);
+  }
+#endif
+
+  // Mark that the thread is executing VM code.
+  __ StoreToOffset(R5, THR, Thread::vm_tag_offset());
+
+  // Setup space on stack for result of the interpreted function call.
+  __ Push(ZR);
+
+  // Set callee-saved R23 to point to return value slot.
+  __ mov(R23, SP);
+
+  // Push first 3 arguments of the interpreted function call.
+  __ Push(R0);  // Function.
+  __ Push(R5);  // ICData/MegamorphicCache.
+  __ Push(R4);  // Arguments descriptor array.
+
+  // Adjust arguments count.
+  __ LoadFieldFromOffset(R3, R4, ArgumentsDescriptor::type_args_len_offset());
+  __ AddImmediate(TMP, R2, 1);  // Include the type arguments.
+  __ cmp(R3, Operand(0));
+  __ csinc(R2, R2, TMP, EQ);  // R2 <- (R3 == 0) ? R2 : TMP + 1 (R2 : R2 + 2).
+
+  // Push 4th Dart argument of the interpreted function call.
+  // R2: Smi-tagged arguments array length.
+  PushArrayOfArguments(assembler);
+  const intptr_t kNumArgs = 4;
+
+  // Reserve space for arguments and align frame before entering C++ world.
+  // NativeArguments are passed in registers.
+  ASSERT(sizeof(NativeArguments) == 4 * kWordSize);
+  __ ReserveAlignedFrameSpace(sizeof(NativeArguments));
+
+  // Pass NativeArguments structure by value and call runtime.
+  // Registers R0, R1, R2, and R3 are used.
+
+  ASSERT(thread_offset == 0 * kWordSize);
+  __ mov(R0, THR);  // Set thread in NativeArgs.
+
+  ASSERT(argc_tag_offset == 1 * kWordSize);
+  __ LoadImmediate(R1, kNumArgs);  // Set argc in NativeArguments.
+
+  ASSERT(argv_offset == 2 * kWordSize);
+  __ AddImmediate(R2, R23, -kWordSize);  // Set argv in NativeArguments.
+
+  ASSERT(retval_offset == 3 * kWordSize);
+  __ mov(R3, R23);  // Set retval in NativeArguments.
+
+  __ StoreToOffset(R0, SP, thread_offset);
+  __ StoreToOffset(R1, SP, argc_tag_offset);
+  __ StoreToOffset(R2, SP, argv_offset);
+  __ StoreToOffset(R3, SP, retval_offset);
+  __ mov(R0, SP);  // Pass the pointer to the NativeArguments.
+
+  // We are entering runtime code, so the C stack pointer must be restored from
+  // the stack limit to the top of the stack. We cache the stack limit address
+  // in a callee-saved register.
+  __ mov(R25, CSP);
+  __ mov(CSP, SP);
+
+  __ LoadImmediate(R5, kInterpretCallRuntimeEntry.GetEntryPoint());
+  __ blr(R5);
+
+  // Restore SP and CSP.
+  __ mov(SP, CSP);
+  __ mov(CSP, R25);
+
+  // Mark that the thread is executing Dart code.
+  __ LoadImmediate(R2, VMTag::kDartTagId);
+  __ StoreToOffset(R2, THR, Thread::vm_tag_offset());
+
+  // Reset exit frame information in Isolate structure.
+  __ StoreToOffset(ZR, THR, Thread::top_exit_frame_info_offset());
+
+  // Load result of interpreted function call into R0.
+  __ LoadFromOffset(R0, R23, 0);
+
+  __ LeaveStubFrame();
+  __ ret();
+#else
+  __ Stop("Not using interpreter");
+#endif  // defined(DART_USE_INTERPRETER)
 }
 
 // R5: Contains an ICData.

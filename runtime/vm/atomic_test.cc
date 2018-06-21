@@ -50,6 +50,20 @@ VM_UNIT_TEST_CASE(DecrementBy) {
   EXPECT_EQ(static_cast<intptr_t>(1), v);
 }
 
+VM_UNIT_TEST_CASE(FetchOrRelaxed) {
+  uint32_t v = 42;
+  uint32_t previous = AtomicOperations::FetchOrRelaxedUint32(&v, 3);
+  EXPECT_EQ(static_cast<uint32_t>(42), previous);
+  EXPECT_EQ(static_cast<uint32_t>(43), v);
+}
+
+VM_UNIT_TEST_CASE(FetchAndRelaxed) {
+  uint32_t v = 42;
+  uint32_t previous = AtomicOperations::FetchAndRelaxedUint32(&v, 3);
+  EXPECT_EQ(static_cast<uint32_t>(42), previous);
+  EXPECT_EQ(static_cast<uint32_t>(2), v);
+}
+
 VM_UNIT_TEST_CASE(LoadRelaxed) {
   uword v = 42;
   EXPECT_EQ(static_cast<uword>(42), AtomicOperations::LoadRelaxed(&v));

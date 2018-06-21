@@ -222,11 +222,11 @@ Bytecode {
   PopLocal             r2
   PushConstant         CP#49
   Push                 r2
-  InstanceCall1        1, CP#50
+  InstanceCall1        2, CP#50
   Drop1
   PushConstant         CP#51
   Push                 r2
-  InstanceCall1        1, CP#52
+  InstanceCall1        2, CP#52
   Drop1
   PushConstant         CP#18
   ReturnTOS
@@ -362,7 +362,7 @@ Closure CP#12 {
   LoadFieldTOS         CP#1
   LoadFieldTOS         CP#17
   Push                 r0
-  InstantiateTypeArgumentsTOS 1, CP#34
+  InstantiateTypeArgumentsTOS 0, CP#34
   PushConstant         CP#36
   IndirectStaticCall   1, CP#35
   Drop1
@@ -443,11 +443,11 @@ Closure CP#2 {
   PopLocal             r2
   PushConstant         CP#43
   Push                 r2
-  InstanceCall1        1, CP#45
+  InstanceCall1        2, CP#45
   Drop1
   PushConstant         CP#46
   Push                 r2
-  InstanceCall1        1, CP#47
+  InstanceCall1        2, CP#47
   Drop1
   PushConstant         CP#18
   ReturnTOS
@@ -1351,58 +1351,56 @@ Bytecode {
   Entry                1
   CheckStack
   PushConstant         CP#0
-  PushConstant         CP#3
+  PushConstant         CP#2
   PushConstant         CP#1
   AllocateT
   StoreLocal           r0
   Push                 r0
-  PushConstant         CP#5
-  IndirectStaticCall   1, CP#4
+  PushConstant         CP#4
+  IndirectStaticCall   1, CP#3
   Drop1
-  InstanceCall1        1, CP#7
+  InstanceCall1        2, CP#6
   Drop1
+  PushConstant         CP#7
+  PushConstant         CP#2
+  PushConstant         CP#1
+  AllocateT
+  StoreLocal           r0
+  Push                 r0
   PushConstant         CP#8
-  PushConstant         CP#3
+  IndirectStaticCall   1, CP#3
+  Drop1
+  InstanceCall1        2, CP#9
+  Drop1
+  PushConstant         CP#7
+  PushConstant         CP#10
   PushConstant         CP#1
   AllocateT
   StoreLocal           r0
   Push                 r0
-  PushConstant         CP#9
-  IndirectStaticCall   1, CP#4
+  PushConstant         CP#11
+  IndirectStaticCall   1, CP#3
   Drop1
-  InstanceCall1        1, CP#10
+  InstanceCall1        2, CP#12
   Drop1
-  PushConstant         CP#8
-  PushConstant         CP#12
-  PushConstant         CP#1
-  AllocateT
-  StoreLocal           r0
-  Push                 r0
   PushConstant         CP#13
-  IndirectStaticCall   1, CP#4
-  Drop1
-  InstanceCall1        1, CP#14
-  Drop1
-  PushConstant         CP#15
   ReturnTOS
 }
 ConstantPool {
   [0] = TypeArgs [#lib::C3, #lib::C4]
   [1] = Class #lib::A
-  [2] = TypeArgs [#lib::C1, #lib::C2]
-  [3] = TypeArgumentsForInstanceAllocation #lib::A type-args CP#2
-  [4] = ArgDesc num-args 1, num-type-args 0, names []
-  [5] = StaticICData target '#lib::A::', arg-desc CP#4
-  [6] = ArgDesc num-args 1, num-type-args 2, names []
-  [7] = ICData target-name 'foo', arg-desc CP#6
-  [8] = TypeArgs [dart.core::List<#lib::C3>, dart.core::List<#lib::C4>]
-  [9] = StaticICData target '#lib::A::', arg-desc CP#4
-  [10] = ICData target-name 'foo', arg-desc CP#6
-  [11] = TypeArgs [dart.core::List<#lib::C1>, dart.core::List<#lib::C2>]
-  [12] = TypeArgumentsForInstanceAllocation #lib::A type-args CP#11
-  [13] = StaticICData target '#lib::A::', arg-desc CP#4
-  [14] = ICData target-name 'foo', arg-desc CP#6
-  [15] = Null
+  [2] = TypeArgumentsForInstanceAllocation #lib::A [#lib::C1, #lib::C2]
+  [3] = ArgDesc num-args 1, num-type-args 0, names []
+  [4] = StaticICData target '#lib::A::', arg-desc CP#3
+  [5] = ArgDesc num-args 1, num-type-args 2, names []
+  [6] = ICData target-name 'foo', arg-desc CP#5
+  [7] = TypeArgs [dart.core::List<#lib::C3>, dart.core::List<#lib::C4>]
+  [8] = StaticICData target '#lib::A::', arg-desc CP#3
+  [9] = ICData target-name 'foo', arg-desc CP#5
+  [10] = TypeArgumentsForInstanceAllocation #lib::A [dart.core::List<#lib::C1>, dart.core::List<#lib::C2>]
+  [11] = StaticICData target '#lib::A::', arg-desc CP#3
+  [12] = ICData target-name 'foo', arg-desc CP#5
+  [13] = Null
 }
 ]static method callA() → void {
   new self::A::•<self::C1, self::C2>().{self::A::foo}<self::C3, self::C4>();

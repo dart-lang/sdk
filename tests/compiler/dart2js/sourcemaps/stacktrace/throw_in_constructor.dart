@@ -11,7 +11,7 @@ main() {
 
 class Class {
   @NoInline()
-  /*2:Class*/ Class() {
+  Class() {
     /*3:Class*/ throw '>ExceptionMarker<';
   }
 }

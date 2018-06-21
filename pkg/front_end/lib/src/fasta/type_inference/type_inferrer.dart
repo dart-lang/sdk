@@ -1425,12 +1425,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       Object interfaceMember,
       Name methodName,
       Arguments arguments}) {
-    listener.methodInvocationEnter(expression.fileOffset, typeContext);
     // First infer the receiver so we can look up the method that was invoked.
     var receiverType = receiver == null
         ? thisType
         : inferExpression(factory, receiver, const UnknownType(), true);
-    listener.methodInvocationBeforeArgs(expression.fileOffset, isImplicitCall);
     if (strongMode) {
       receiverVariable?.type = receiverType;
     }
@@ -1462,7 +1460,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         ? arguments.fileOffset
         : expression.fileOffset;
     if (identical(interfaceMember, 'call')) {
-      listener.methodInvocationExitCall(
+      listener.methodInvocationCall(
+          expression,
           resultOffset,
           arguments.types,
           isImplicitCall,
@@ -1482,7 +1481,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
             templateImplicitCallOfNonMethod.withArguments(receiverType));
         parent?.replaceChild(expression, errorNode);
       }
-      listener.methodInvocationExit(
+      listener.methodInvocation(
+          expression,
           resultOffset,
           arguments.types,
           isImplicitCall,
@@ -1521,7 +1521,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       PropertyGet desugaredGet,
       Object interfaceMember,
       Name propertyName}) {
-    listener.propertyGetEnter(expression.fileOffset, typeContext);
     // First infer the receiver so we can look up the getter that was invoked.
     DartType receiverType;
     if (receiver == null) {
@@ -1557,10 +1556,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           instantiateTearOff(inferredType, typeContext, replacedExpression);
     }
     if (identical(interfaceMember, 'call')) {
-      listener.propertyGetExitCall(expression.fileOffset, inferredType);
+      listener.propertyGetCall(expression, expression.fileOffset, inferredType);
     } else {
-      listener.propertyGetExit(
-          expression.fileOffset, interfaceMember, inferredType);
+      listener.propertyGet(
+          expression, expression.fileOffset, interfaceMember, inferredType);
     }
     expression.inferredType = inferredType;
   }

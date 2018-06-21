@@ -898,6 +898,77 @@ TEST_CASE(DartAPI_ClosureFunction) {
   EXPECT(strstr(result, "getInt"));
 }
 
+TEST_CASE(DartAPI_GetStaticMethodClosure) {
+  const char* kScriptChars =
+      "class Foo {\n"
+      "  static int getInt() {\n"
+      "    return 1;\n"
+      "  }\n"
+      "  double getDouble() {\n"
+      "    return 1.0;\n"
+      "  }\n"
+      "}\n";
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle foo_cls = Dart_GetClass(lib, NewString("Foo"));
+  EXPECT_VALID(foo_cls);
+
+  Dart_Handle closure =
+      Dart_GetStaticMethodClosure(lib, foo_cls, NewString("getInt"));
+  EXPECT_VALID(closure);
+  EXPECT(Dart_IsClosure(closure));
+  Dart_Handle closure_str = Dart_ToString(closure);
+  const char* result = "";
+  Dart_StringToCString(closure_str, &result);
+  EXPECT_SUBSTRING("getInt", result);
+
+  Dart_Handle function = Dart_ClosureFunction(closure);
+  EXPECT_VALID(function);
+  EXPECT(Dart_IsFunction(function));
+  Dart_Handle func_str = Dart_ToString(function);
+  Dart_StringToCString(func_str, &result);
+  EXPECT_SUBSTRING("getInt", result);
+
+  Dart_Handle cls = Dart_FunctionOwner(function);
+  EXPECT_VALID(cls);
+  EXPECT(Dart_IsInstance(cls));
+  Dart_Handle cls_str = Dart_ClassName(cls);
+  Dart_StringToCString(cls_str, &result);
+  EXPECT_SUBSTRING("Foo", result);
+
+  EXPECT_ERROR(Dart_ClassName(Dart_Null()),
+               "Dart_ClassName expects argument 'cls_type' to be non-null.");
+  EXPECT_ERROR(
+      Dart_GetStaticMethodClosure(Dart_Null(), foo_cls, NewString("getInt")),
+      "Dart_GetStaticMethodClosure expects argument 'library' to be non-null.");
+  EXPECT_ERROR(
+      Dart_GetStaticMethodClosure(lib, Dart_Null(), NewString("getInt")),
+      "Dart_GetStaticMethodClosure expects argument 'cls_type' to be "
+      "non-null.");
+  EXPECT_ERROR(Dart_GetStaticMethodClosure(lib, foo_cls, Dart_Null()),
+               "Dart_GetStaticMethodClosure expects argument 'function_name' "
+               "to be non-null.");
+}
+
+TEST_CASE(DartAPI_ClassLibrary) {
+  Dart_Handle lib = Dart_LookupLibrary(NewString("dart:core"));
+  EXPECT_VALID(lib);
+  Dart_Handle type = Dart_GetType(lib, NewString("int"), 0, NULL);
+  EXPECT_VALID(type);
+  Dart_Handle result = Dart_ClassLibrary(type);
+  EXPECT_VALID(result);
+  Dart_Handle lib_url = Dart_LibraryUrl(result);
+  const char* str = NULL;
+  Dart_StringToCString(lib_url, &str);
+  EXPECT_STREQ("dart:core", str);
+
+  // Case with no library.
+  type = Dart_GetType(lib, NewString("dynamic"), 0, NULL);
+  EXPECT_VALID(type);
+  EXPECT(Dart_IsNull(Dart_ClassLibrary(type)));
+}
+
 TEST_CASE(DartAPI_BooleanValues) {
   Dart_Handle str = NewString("test");
   EXPECT(!Dart_IsBoolean(str));

@@ -2066,6 +2066,20 @@ DART_EXPORT Dart_Handle Dart_FunctionName(Dart_Handle function) {
   return Api::NewHandle(T, func.UserVisibleName());
 }
 
+DART_EXPORT Dart_Handle Dart_ClassName(Dart_Handle cls_type) {
+  DARTSCOPE(Thread::Current());
+  const Type& type_obj = Api::UnwrapTypeHandle(Z, cls_type);
+  if (type_obj.IsNull()) {
+    RETURN_TYPE_ERROR(Z, cls_type, Type);
+  }
+  const Class& klass = Class::Handle(Z, type_obj.type_class());
+  if (klass.IsNull()) {
+    return Api::NewError(
+        "cls_type must be a Type object which represents a Class.");
+  }
+  return Api::NewHandle(T, klass.UserVisibleName());
+}
+
 DART_EXPORT Dart_Handle Dart_FunctionOwner(Dart_Handle function) {
   DARTSCOPE(Thread::Current());
   const Function& func = Api::UnwrapFunctionHandle(Z, function);
@@ -2118,6 +2132,21 @@ DART_EXPORT Dart_Handle Dart_ClosureFunction(Dart_Handle closure) {
 
   RawFunction* rf = Closure::Cast(closure_obj).function();
   return Api::NewHandle(T, rf);
+}
+
+DART_EXPORT Dart_Handle Dart_ClassLibrary(Dart_Handle cls_type) {
+  DARTSCOPE(Thread::Current());
+  const Type& type_obj = Api::UnwrapTypeHandle(Z, cls_type);
+  const Class& klass = Class::Handle(Z, type_obj.type_class());
+  if (klass.IsNull()) {
+    return Api::NewError(
+        "cls_type must be a Type object which represents a Class.");
+  }
+  const Library& library = Library::Handle(klass.library());
+  if (library.IsNull()) {
+    return Dart_Null();
+  }
+  return Api::NewHandle(Thread::Current(), library.raw());
 }
 
 // --- Numbers, Integers and Doubles ----
@@ -2298,6 +2327,53 @@ DART_EXPORT Dart_Handle Dart_GetClosure(Dart_Handle library,
     RETURN_TYPE_ERROR(Z, function_name, String);
   }
   return Api::NewHandle(T, lib.GetFunctionClosure(name));
+}
+
+DART_EXPORT Dart_Handle Dart_GetStaticMethodClosure(Dart_Handle library,
+                                                    Dart_Handle cls_type,
+                                                    Dart_Handle function_name) {
+  DARTSCOPE(Thread::Current());
+  const Library& lib = Api::UnwrapLibraryHandle(Z, library);
+  if (lib.IsNull()) {
+    RETURN_TYPE_ERROR(Z, library, Library);
+  }
+
+  const Type& type_obj = Api::UnwrapTypeHandle(Z, cls_type);
+  if (type_obj.IsNull()) {
+    RETURN_TYPE_ERROR(Z, cls_type, Type);
+  }
+
+  const Class& klass = Class::Handle(Z, type_obj.type_class());
+  if (klass.IsNull()) {
+    return Api::NewError(
+        "cls_type must be a Type object which represents a Class");
+  }
+
+  const String& func_name = Api::UnwrapStringHandle(Z, function_name);
+  if (func_name.IsNull()) {
+    RETURN_TYPE_ERROR(Z, function_name, String);
+  }
+
+  Function& func =
+      Function::Handle(Z, klass.LookupStaticFunctionAllowPrivate(func_name));
+  if (func.IsNull()) {
+    return Dart_Null();
+  }
+
+  if (!func.is_static()) {
+    return Api::NewError("function_name must refer to a static method.");
+  }
+
+  if (func.kind() != RawFunction::kRegularFunction) {
+    return Api::NewError(
+        "function_name must be the name of a regular function.");
+  }
+  func ^= func.ImplicitClosureFunction();
+  if (func.IsNull()) {
+    return Dart_Null();
+  }
+
+  return Api::NewHandle(T, func.ImplicitStaticClosure());
 }
 
 // --- Booleans ----

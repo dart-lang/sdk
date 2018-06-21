@@ -253,7 +253,7 @@ Bytecode {
   Push                 FP[-6]
   LoadFieldTOS         CP#0
   PushConstant         CP#1
-  InstantiateTypeArgumentsTOS 1, CP#2
+  InstantiateTypeArgumentsTOS 0, CP#2
   StoreLocal           r1
   Push                 r1
   PushConstant         CP#3

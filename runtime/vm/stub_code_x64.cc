@@ -980,6 +980,7 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
   __ movq(Address(THR, Thread::top_resource_offset()), Immediate(0));
   __ movq(RAX, Address(THR, Thread::top_exit_frame_info_offset()));
   __ pushq(RAX);
+  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
 
 // The constant kExitLinkSlotFromEntryFp must be kept in sync with the
 // code below.
@@ -993,8 +994,6 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
     __ Bind(&ok);
   }
 #endif
-
-  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
 
   // Load arguments descriptor array into R10, which is passed to Dart code.
   __ movq(R10, kArgDescReg);
@@ -1015,7 +1014,9 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
   __ SmiUntag(RBX);
 
   // Compute address of first argument into RDX.
-  ASSERT(kArg0Reg == RDX);
+  if (kArg0Reg != RDX) {  // Different registers on WIN64.
+    __ movq(RDX, kArg0Reg);
+  }
 
   // Set up arguments for the Dart call.
   Label push_arguments;
@@ -1060,7 +1061,7 @@ void StubCode::GenerateInvokeDartCodeFromBytecodeStub(Assembler* assembler) {
   __ ret();
 #else
   __ Stop("Not using interpreter");
-#endif
+#endif  // defined(DART_USE_INTERPRETER)
 }
 
 // Called for inline allocation of contexts.
@@ -1193,22 +1194,13 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
 // Input parameters:
 //   RDX: Address being stored
 void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
-  // Save registers being destroyed.
-  __ pushq(RAX);
-  __ pushq(RCX);
-
   Label add_to_buffer;
   // Check whether this object has already been remembered. Skip adding to the
   // store buffer if the object is in the store buffer already.
-  // Spilled: RAX, RCX
   // RDX: Address being stored
-  Label reload;
-  __ Bind(&reload);
-  __ movl(RAX, FieldAddress(RDX, Object::tags_offset()));
-  __ testl(RAX, Immediate(1 << RawObject::kRememberedBit));
+  __ movl(TMP, FieldAddress(RDX, Object::tags_offset()));
+  __ testl(TMP, Immediate(1 << RawObject::kRememberedBit));
   __ j(EQUAL, &add_to_buffer, Assembler::kNearJump);
-  __ popq(RCX);
-  __ popq(RAX);
   __ ret();
 
   // Update the tags that this object has been remembered.
@@ -1217,11 +1209,14 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // RDX: Address being stored
   // RAX: Current tag value
   __ Bind(&add_to_buffer);
-  __ movl(RCX, RAX);
-  __ orl(RCX, Immediate(1 << RawObject::kRememberedBit));
-  // Compare the tag word with RAX, update to RCX if unchanged.
-  __ LockCmpxchgl(FieldAddress(RDX, Object::tags_offset()), RCX);
-  __ j(NOT_EQUAL, &reload);
+  // lock+orl is an atomic read-modify-write.
+  __ lock();
+  __ orl(FieldAddress(RDX, Object::tags_offset()),
+         Immediate(1 << RawObject::kRememberedBit));
+
+  // Save registers being destroyed.
+  __ pushq(RAX);
+  __ pushq(RCX);
 
   // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1233,23 +1228,26 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Increment top_ and check for overflow.
   // RCX: top_
   // RAX: StoreBufferBlock
-  Label L;
+  Label overflow;
   __ incq(RCX);
   __ movl(Address(RAX, StoreBufferBlock::top_offset()), RCX);
   __ cmpl(RCX, Immediate(StoreBufferBlock::kSize));
   // Restore values.
   __ popq(RCX);
   __ popq(RAX);
-  __ j(EQUAL, &L, Assembler::kNearJump);
+  __ j(EQUAL, &overflow, Assembler::kNearJump);
   __ ret();
 
   // Handle overflow: Call the runtime leaf function.
-  __ Bind(&L);
+  __ Bind(&overflow);
   // Setup frame, push callee-saved registers.
+  __ pushq(CODE_REG);
+  __ movq(CODE_REG, Address(THR, Thread::update_store_buffer_code_offset()));
   __ EnterCallRuntimeFrame(0);
   __ movq(CallingConventions::kArg1Reg, THR);
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   __ LeaveCallRuntimeFrame();
+  __ popq(CODE_REG);
   __ ret();
 }
 
@@ -1950,7 +1948,7 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
   __ ret();
 #else
   __ Stop("Not using interpreter");
-#endif
+#endif  // defined(DART_USE_INTERPRETER)
 }
 
 // RBX: Contains an ICData.

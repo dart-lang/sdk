@@ -5,7 +5,7 @@
 library fasta.kernel_field_builder;
 
 import 'package:kernel/ast.dart'
-    show DartType, Expression, Field, Name, Node, NullLiteral;
+    show DartType, Expression, Field, Name, NullLiteral;
 
 import '../../base/instrumentation.dart'
     show Instrumentation, InstrumentationValueForType;
@@ -17,7 +17,7 @@ import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
 import '../problems.dart' show internalProblem;
 
 import '../type_inference/type_inference_listener.dart'
-    show TypeInferenceListener;
+    show KernelTypeInferenceListener;
 
 import 'kernel_body_builder.dart' show KernelBodyBuilder;
 
@@ -90,7 +90,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   @override
   void prepareTopLevelInference() {
     if (!isEligibleForInference) return;
-    var listener = new TypeInferenceListener<int, int, Node, int>();
+    var listener = new KernelTypeInferenceListener();
     var typeInferrer = library.loader.typeInferenceEngine
         .createTopLevelTypeInferrer(
             listener, field.enclosingClass?.thisType, field);

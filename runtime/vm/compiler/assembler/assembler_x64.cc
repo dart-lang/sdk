@@ -1258,12 +1258,8 @@ void Assembler::StoreIntoObject(Register object,
   if (object != RDX) {
     movq(RDX, object);
   }
-  pushq(CODE_REG);
-  movq(TMP, Address(THR, Thread::update_store_buffer_entry_point_offset()));
-  movq(CODE_REG, Address(THR, Thread::update_store_buffer_code_offset()));
-  call(TMP);
+  call(Address(THR, Thread::update_store_buffer_entry_point_offset()));
 
-  popq(CODE_REG);
   if (value != RDX) popq(RDX);
   Bind(&done);
 }

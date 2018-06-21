@@ -30,6 +30,10 @@ class AtomicOperations : public AllStatic {
   // Atomically decrement the value at p by 'value'.
   static void DecrementBy(intptr_t* p, intptr_t value);
 
+  // Atomically perform { tmp = *ptr; *ptr = (tmp OP value); return tmp; }.
+  static uint32_t FetchOrRelaxedUint32(uint32_t* ptr, uint32_t value);
+  static uint32_t FetchAndRelaxedUint32(uint32_t* ptr, uint32_t value);
+
   // Atomically compare *ptr to old_value, and if equal, store new_value.
   // Returns the original value at ptr.
   static uword CompareAndSwapWord(uword* ptr, uword old_value, uword new_value);

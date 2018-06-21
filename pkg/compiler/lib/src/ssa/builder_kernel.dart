@@ -5361,6 +5361,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
         nativeData,
         interceptorData);
     localsHandler.scopeInfo = closureDataLookup.getScopeInfo(function);
+
+    CapturedScope scopeData = closureDataLookup.getCapturedScope(function);
+    bool forGenerativeConstructorBody = function is ConstructorBodyEntity;
+
     _returnLocal = new SyntheticLocal("result", function, function);
     localsHandler.updateLocal(_returnLocal, graph.addConstantNull(closedWorld));
 
@@ -5372,11 +5376,28 @@ class KernelSsaGraphBuilder extends ir.Visitor
           compiledArguments[argumentIndex++]);
     }
 
+    bool hasBox = false;
     forEachOrderedParameter(_globalLocalsMap, _elementMap, function,
         (Local parameter) {
+      if (forGenerativeConstructorBody && scopeData.isBoxed(parameter)) {
+        // The parameter will be a field in the box passed as the last
+        // parameter. So no need to have it.
+        hasBox = true;
+        return;
+      }
       HInstruction argument = compiledArguments[argumentIndex++];
       localsHandler.updateLocal(parameter, argument);
     });
+
+    if (hasBox) {
+      HInstruction box = compiledArguments[argumentIndex++];
+      assert(box is HCreateBox);
+      // TODO(sra): Make inlining of closures work. We should always call
+      // enterScope, and pass in the inlined 'this' as well as the 'box'.
+      localsHandler.enterScope(scopeData, null,
+          inlinedBox: box,
+          forGenerativeConstructorBody: forGenerativeConstructorBody);
+    }
 
     ClassEntity enclosing = function.enclosingClass;
     if ((function.isConstructor || function is ConstructorBodyEntity) &&
@@ -5540,7 +5561,17 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   bool _isFunctionCalledOnce(FunctionEntity element) {
     // ConstructorBodyElements are not in the type inference graph.
-    if (element is ConstructorBodyEntity) return false;
+    if (element is ConstructorBodyEntity) {
+      // If there are no subclasses with constructors that have this constructor
+      // as a superconstructor, it is called once by the generative
+      // constructor's factory.  A simplified version is to check this is a
+      // constructor body for a leaf class.
+      ClassEntity class_ = element.enclosingClass;
+      if (closedWorld.isDirectlyInstantiated(class_)) {
+        return !closedWorld.isIndirectlyInstantiated(class_);
+      }
+      return false;
+    }
     return globalInferenceResults.resultOfMember(element).isCalledOnce;
   }
 

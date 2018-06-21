@@ -88,11 +88,17 @@ class LocalVariables {
           .scratchVar ??
       (throw 'Scratch variable is not declared in ${_currentFrame.function}'));
 
-  int get typeArgsVarIndexInFrame => getVarIndexInFrame(_currentFrame
-          .typeArgsVar ??
-      (throw 'TypeArgs variable is not declared in ${_currentFrame.function}'));
+  int get functionTypeArgsVarIndexInFrame => getVarIndexInFrame(_currentFrame
+          .functionTypeArgsVar ??
+      (throw 'FunctionTypeArgs variable is not declared in ${_currentFrame.function}'));
 
-  bool get hasTypeArgsVar => _currentFrame.typeArgsVar != null;
+  bool get hasFunctionTypeArgsVar => _currentFrame.functionTypeArgsVar != null;
+
+  VariableDeclaration get factoryTypeArgsVar =>
+      _currentFrame.factoryTypeArgsVar ??
+      (throw 'FactoryTypeArgs variable is not declared in ${_currentFrame.function}');
+
+  bool get hasFactoryTypeArgsVar => _currentFrame.factoryTypeArgsVar != null;
 
   VariableDeclaration get receiverVar =>
       _currentFrame.receiverVar ??
@@ -204,7 +210,8 @@ class Frame {
   bool isDartSync = true;
   bool isSyncYielding = false;
   VariableDeclaration receiverVar;
-  VariableDeclaration typeArgsVar;
+  VariableDeclaration functionTypeArgsVar;
+  VariableDeclaration factoryTypeArgsVar;
   VariableDeclaration closureVar;
   VariableDeclaration contextVar;
   VariableDeclaration scratchVar;
@@ -275,15 +282,29 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
       _currentFrame.isSyncYielding =
           function.asyncMarker == AsyncMarker.SyncYielding;
 
-      _currentFrame.numTypeArguments =
-          (_currentFrame.parent?.numTypeArguments ?? 0) +
-              function.typeParameters.length;
+      if (node is Procedure && node.isFactory) {
+        assert(_currentFrame.parent == null);
+        _currentFrame.numTypeArguments = 0;
+        _currentFrame.factoryTypeArgsVar =
+            new VariableDeclaration(':type_arguments');
+        _declareVariable(_currentFrame.factoryTypeArgsVar);
+      } else {
+        _currentFrame.numTypeArguments =
+            (_currentFrame.parent?.numTypeArguments ?? 0) +
+                function.typeParameters.length;
 
-      if (_currentFrame.numTypeArguments > 0) {
-        _currentFrame.typeArgsVar =
-            new VariableDeclaration(':function_type_arguments_var');
-        _declareVariable(_currentFrame.typeArgsVar);
+        if (_currentFrame.numTypeArguments > 0) {
+          _currentFrame.functionTypeArgsVar =
+              new VariableDeclaration(':function_type_arguments_var');
+          _declareVariable(_currentFrame.functionTypeArgsVar);
+        }
+
+        if (_currentFrame.parent?.factoryTypeArgsVar != null) {
+          _currentFrame.factoryTypeArgsVar =
+              _currentFrame.parent.factoryTypeArgsVar;
+        }
       }
+
       if (node is Constructor || (node is Procedure && !node.isStatic)) {
         _currentFrame.receiverVar = new VariableDeclaration('this');
         _declareVariable(_currentFrame.receiverVar);
@@ -383,7 +404,7 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
     final transient = new Set<VariableDeclaration>();
     transient
       ..addAll([
-        _currentFrame.typeArgsVar,
+        _currentFrame.functionTypeArgsVar,
         _currentFrame.closureVar,
         _currentFrame.contextVar,
         _currentFrame.scratchVar,
@@ -501,8 +522,15 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
 
   @override
   visitTypeParameterType(TypeParameterType node) {
-    if (node.parameter.parent is Class) {
+    var parent = node.parameter.parent;
+    if (parent is Class) {
       _useThis();
+    } else if (parent is FunctionNode) {
+      parent = parent.parent;
+      if (parent is Procedure && parent.isFactory) {
+        assert(_currentFrame.factoryTypeArgsVar != null);
+        _useVariable(_currentFrame.factoryTypeArgsVar);
+      }
     }
     node.visitChildren(this);
   }
@@ -746,13 +774,11 @@ class _Allocator extends RecursiveVisitor<Null> {
             function.namedParameters.any(locals.isCaptured);
 
     int count = 0;
-    if (hasTypeArgs) {
-      assert(!locals.isCaptured(_currentFrame.typeArgsVar));
-      _allocateParameter(_currentFrame.typeArgsVar, count++);
-    } else if (isFactory) {
-      // Null type arguments are passed to factory constructors even if class
-      // is not generic. TODO(alexmarkov): Clean this up.
-      count++;
+    if (isFactory) {
+      _allocateParameter(_currentFrame.factoryTypeArgsVar, count++);
+    } else if (hasTypeArgs) {
+      assert(!locals.isCaptured(_currentFrame.functionTypeArgsVar));
+      _allocateParameter(_currentFrame.functionTypeArgsVar, count++);
     }
     if (hasReceiver) {
       _allocateParameter(_currentFrame.receiverVar, count++);
@@ -776,7 +802,7 @@ class _Allocator extends RecursiveVisitor<Null> {
   }
 
   void _allocateSpecialVariables() {
-    _ensureVariableAllocated(_currentFrame.typeArgsVar);
+    _ensureVariableAllocated(_currentFrame.functionTypeArgsVar);
     _ensureVariableAllocated(_currentFrame.contextVar);
     _ensureVariableAllocated(_currentFrame.scratchVar);
   }

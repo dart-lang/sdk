@@ -119,15 +119,12 @@ class FunctionInlineCache {
     int decision = _cachedDecisions[element];
 
     if (decision == null) {
-      // These synthetic elements are not yet present when we initially compute
-      // this cache from metadata annotations, so look for their parent.
-      if (element is ConstructorBodyEntity) {
-        ConstructorBodyEntity body = element;
-        decision = _cachedDecisions[body.constructor];
-      }
-      if (decision == null) {
-        decision = _unknown;
-      }
+      // TODO(sra): Have annotations for mustInline / noInline for constructor
+      // bodies. (There used to be some logic here to have constructor bodies,
+      // inherit the settings from annotations on the generative
+      // constructor. This was conflated with the heuristic decisions, leading
+      // to lack of inlining where it was beneficial.)
+      decision = _unknown;
     }
 
     if (insideLoop) {

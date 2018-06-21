@@ -74,6 +74,7 @@ import 'kernel_shadow_ast.dart'
         BlockJudgment,
         BoolJudgment,
         BreakJudgment,
+        CatchJudgment,
         CheckLibraryIsLoadedJudgment,
         ConditionalJudgment,
         ContinueJudgment,
@@ -86,7 +87,7 @@ import 'kernel_shadow_ast.dart'
         LabeledStatementJudgment,
         LoadLibraryJudgment,
         NullJudgment,
-        ShadowExpressionStatement,
+        ExpressionStatementJudgment,
         ShadowForStatement,
         IfJudgment,
         ShadowListLiteral,
@@ -99,9 +100,9 @@ import 'kernel_shadow_ast.dart'
         ShadowStringLiteral,
         ShadowSymbolLiteral,
         ShadowSyntheticExpression,
-        ShadowTryCatch,
+        TryCatchJudgment,
         ShadowTryFinally,
-        ShadowWhileStatement,
+        WhileJudgment,
         YieldJudgment,
         ThisJudgment,
         ThrowJudgment,
@@ -353,7 +354,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       DartType stackTraceType,
       Statement body) {
     exceptionType ??= const DynamicType();
-    return new Catch(exceptionParameter, body,
+    return new CatchJudgment(exceptionParameter, body,
         guard: exceptionType, stackTrace: stackTraceParameter)
       ..fileOffset = offsetForToken(onKeyword ?? catchKeyword);
   }
@@ -378,7 +379,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   }
 
   Statement expressionStatement(Expression expression, Token semicolon) {
-    return new ShadowExpressionStatement(expression);
+    return new ExpressionStatementJudgment(expression);
   }
 
   @override
@@ -450,7 +451,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
 
   @override
   Statement rethrowStatement(Token rethrowKeyword, Token semicolon) {
-    return new ShadowExpressionStatement(
+    return new ExpressionStatementJudgment(
         new ShadowRethrow()..fileOffset = offsetForToken(rethrowKeyword));
   }
 
@@ -489,7 +490,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
       List<Catch> catchClauses, Token finallyKeyword, Statement finallyBlock) {
     Statement tryStatement = body;
     if (catchClauses != null) {
-      tryStatement = new ShadowTryCatch(tryStatement, catchClauses);
+      tryStatement = new TryCatchJudgment(tryStatement, catchClauses);
     }
     if (finallyBlock != null) {
       tryStatement = new ShadowTryFinally(tryStatement, finallyBlock);
@@ -525,7 +526,7 @@ class Fangorn extends Forest<Expression, Statement, Token, Arguments> {
   @override
   Statement whileStatement(
       Token whileKeyword, Expression condition, Statement body) {
-    return new ShadowWhileStatement(condition, body)
+    return new WhileJudgment(condition, body)
       ..fileOffset = whileKeyword.charOffset;
   }
 

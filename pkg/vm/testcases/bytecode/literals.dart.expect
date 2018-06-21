@@ -553,7 +553,7 @@ Bytecode {
   Drop1
   PushConstant         CP#16
   Push                 FP[-8]
-  InstantiateTypeArgumentsTOS 1, CP#17
+  InstantiateTypeArgumentsTOS 0, CP#17
   PushConstant         CP#18
   PushConstant         CP#19
   IndirectStaticCall   2, CP#7
@@ -562,7 +562,7 @@ Bytecode {
   Drop1
   PushConstant         CP#16
   Push                 FP[-8]
-  InstantiateTypeArgumentsTOS 1, CP#21
+  InstantiateTypeArgumentsTOS 0, CP#21
   PushConstant         CP#1
   PushConstant         CP#5
   CreateArrayTOS
@@ -591,7 +591,7 @@ ConstantPool {
   [4] = Int 1
   [5] = Int 2
   [6] = Int 3
-  [7] = ArgDesc num-args 1, num-type-args 1, names []
+  [7] = ArgDesc num-args 2, num-type-args 0, names []
   [8] = StaticICData target 'dart.core::Map::_fromLiteral', arg-desc CP#7
   [9] = ArgDesc num-args 1, num-type-args 0, names []
   [10] = StaticICData target 'dart.core::print', arg-desc CP#9

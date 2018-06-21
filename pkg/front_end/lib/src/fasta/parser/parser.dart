@@ -1947,10 +1947,7 @@ class Parser {
   /// ```
   Token parseTypeVariable(Token token) {
     token = parseMetadataStar(token);
-    token = token.next.kind == IDENTIFIER_TOKEN
-        ? token.next
-        : IdentifierContext.typeVariableDeclaration
-            .ensureIdentifier(token, this);
+    token = ensureIdentifier(token, IdentifierContext.typeVariableDeclaration);
     listener.beginTypeVariable(token);
     Token extendsOrSuper = null;
     Token next = token.next;

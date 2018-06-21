@@ -2,29 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:kernel/ast.dart' show DartType, FunctionType;
+import 'package:kernel/ast.dart' show Catch, DartType, FunctionType, Node;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
-/// Base class for [TypeInferenceListener] that defines the API for debugging.
-///
-/// By default no debug info is printed.  To enable debug printing, mix in
-/// [TypeInferenceDebugging].
-class TypeInferenceBase<Location> {
-  void genericExpressionEnter(
-      String expressionType, Location location, DartType typeContext) {}
-
-  void genericExpressionExit(
-      String expressionType, Location location, DartType inferredType) {}
-
-  void genericInitializerEnter(String initializerType, Location location) {}
-
-  void genericInitializerExit(String initializerType, Location location) {}
-
-  void genericStatementEnter(String statementType, Location location) {}
-
-  void genericStatementExit(String statementType, Location location) {}
-}
+import '../kernel/kernel_shadow_ast.dart'
+    show ExpressionJudgment, InitializerJudgment, StatementJudgment;
 
 /// Callback interface used by [TypeInferrer] to report the results of type
 /// inference to a client.
@@ -38,444 +21,502 @@ class TypeInferenceBase<Location> {
 /// The default implementation (in this base class) does nothing, however it can
 /// be used to debug type inference by uncommenting the
 /// "with TypeInferenceDebugging" clause below.
-class TypeInferenceListener<Location, Declaration, Reference, PrefixInfo>
-    extends TypeInferenceBase<Location> {
-  void asExpressionEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("asExpression", location, typeContext);
+abstract class TypeInferenceListener<Location, Declaration, Reference,
+    PrefixInfo> {
+  void asExpression(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void asExpressionExit(Location location, DartType inferredType) =>
-      genericExpressionExit("asExpression", location, inferredType);
+  void assertInitializer(InitializerJudgment judgment, Location location);
 
-  void assertInitializerEnter(Location location) =>
-      genericInitializerEnter("assertInitializer", location);
+  void assertStatement(StatementJudgment judgment, Location location);
 
-  void assertInitializerExit(Location location) =>
-      genericInitializerExit("assertInitializer", location);
+  void awaitExpression(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void assertStatementEnter(Location location) =>
-      genericStatementEnter('assertStatement', location);
+  void block(StatementJudgment judgment, Location location);
 
-  void assertStatementExit(Location location) =>
-      genericStatementExit('assertStatement', location);
+  void boolLiteral(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void awaitExpressionEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("awaitExpression", location, typeContext);
+  void breakStatement(StatementJudgment judgment, Location location);
 
-  void awaitExpressionExit(Location location, DartType inferredType) =>
-      genericExpressionExit("awaitExpression", location, inferredType);
+  void cascadeExpression(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void blockEnter(Location location) =>
-      genericStatementEnter('block', location);
-
-  void blockExit(Location location) => genericStatementExit('block', location);
-
-  void boolLiteralEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("boolLiteral", location, typeContext);
-
-  void boolLiteralExit(Location location, DartType inferredType) =>
-      genericExpressionExit("boolLiteral", location, inferredType);
-
-  void breakStatementEnter(Location location) =>
-      genericStatementEnter('breakStatement', location);
-
-  void breakStatementExit(Location location) =>
-      genericStatementExit('breakStatement', location);
-
-  void cascadeExpressionEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("cascade", location, typeContext);
-
-  void cascadeExpressionExit(Location location, DartType inferredType) =>
-      genericExpressionExit("cascade", location, inferredType);
-
-  void catchStatementEnter(
+  void catchStatement(
+      Catch judgment,
       Location location,
       DartType guardType,
       Location exceptionLocation,
       DartType exceptionType,
       Location stackTraceLocation,
-      DartType stackTraceType) {}
+      DartType stackTraceType);
 
-  void catchStatementExit(Location location) {}
+  void conditionalExpression(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void conditionalExpressionEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("conditionalExpression", location, typeContext);
+  void constructorInvocation(ExpressionJudgment judgment, Location location,
+      Reference expressionTarget, DartType inferredType);
 
-  void conditionalExpressionExit(Location location, DartType inferredType) =>
-      genericExpressionExit("conditionalExpression", location, inferredType);
+  void continueSwitchStatement(StatementJudgment judgment, Location location);
 
-  void constructorInvocationEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("constructorInvocation", location, typeContext);
+  void deferredCheck(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void constructorInvocationExit(Location location, Reference expressionTarget,
-          DartType inferredType) =>
-      genericExpressionExit("constructorInvocation", location, inferredType);
+  void doStatement(StatementJudgment judgment, Location location);
 
-  void continueSwitchStatementEnter(Location location) =>
-      genericStatementEnter('continueSwitchStatement', location);
+  void doubleLiteral(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void continueSwitchStatementExit(Location location) =>
-      genericStatementExit('continueSwitchStatement', location);
+  void expressionStatement(StatementJudgment judgment, Location location);
 
-  void deferredCheckEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("deferredCheck", location, typeContext);
+  void fieldInitializer(InitializerJudgment judgment, Location location,
+      Reference initializerField);
 
-  void deferredCheckExit(Location location, DartType inferredType) =>
-      genericExpressionExit("deferredCheck", location, inferredType);
+  void forInStatement(
+      StatementJudgment judgment,
+      Location location,
+      Location variableLocation,
+      DartType variableType,
+      Location writeLocation,
+      DartType writeVariableType,
+      Declaration writeVariable,
+      Reference writeTarget);
 
-  void doStatementEnter(Location location) =>
-      genericStatementEnter("doStatement", location);
+  void forStatement(StatementJudgment judgment, Location location);
 
-  void doStatementExit(Location location) =>
-      genericStatementExit("doStatement", location);
+  void functionDeclaration(
+      StatementJudgment judgment, Location location, FunctionType inferredType);
 
-  void doubleLiteralEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("doubleLiteral", location, typeContext);
+  void functionExpression(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void doubleLiteralExit(Location location, DartType inferredType) =>
-      genericExpressionExit("doubleLiteral", location, inferredType);
+  void ifNull(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void dryRunEnter(Location location) =>
-      genericExpressionEnter("dryRun", location, null);
+  void ifStatement(StatementJudgment judgment, Location location);
 
-  void dryRunExit(Location location) =>
-      genericExpressionExit("dryRun", location, null);
+  void indexAssign(ExpressionJudgment judgment, Location location,
+      Reference writeMember, Reference combiner, DartType inferredType);
 
-  void expressionStatementEnter(Location location) =>
-      genericStatementEnter('expressionStatement', location);
+  void intLiteral(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void expressionStatementExit(Location location) =>
-      genericStatementExit('expressionStatement', location);
+  void invalidInitializer(InitializerJudgment judgment, Location location);
 
-  void fieldInitializerEnter(Location location, Reference initializerField) =>
-      genericInitializerEnter("fieldInitializer", location);
+  void isExpression(ExpressionJudgment judgment, Location location,
+      DartType testedType, DartType inferredType);
 
-  void fieldInitializerExit(Location location) =>
-      genericInitializerExit("fieldInitializer", location);
+  void isNotExpression(ExpressionJudgment judgment, Location location,
+      DartType type, DartType inferredType);
 
-  void forInStatementEnter(
-          Location location,
-          Location variableLocation,
-          Location writeLocation,
-          DartType writeVariableType,
-          Declaration writeVariable,
-          Reference writeTarget) =>
-      genericStatementEnter('forInStatement', location);
+  void labeledStatement(StatementJudgment judgment, Location location);
 
-  void forInStatementExit(
-          Location location, bool variablePresent, DartType variableType) =>
-      genericStatementExit('forInStatement', location);
+  void listLiteral(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void forStatementEnter(Location location) =>
-      genericStatementEnter('forStatement', location);
+  void logicalExpression(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void forStatementExit(Location location) =>
-      genericStatementExit('forStatement', location);
+  void mapLiteral(
+      ExpressionJudgment judgment, Location location, DartType typeContext);
 
-  void functionDeclarationEnter(Location location) =>
-      genericStatementEnter('functionDeclaration', location);
+  void methodInvocation(
+      ExpressionJudgment judgment,
+      Location resultOffset,
+      List<DartType> argumentsTypes,
+      bool isImplicitCall,
+      Reference interfaceMember,
+      FunctionType calleeType,
+      Substitution substitution,
+      DartType inferredType);
 
-  void functionDeclarationExit(Location location, FunctionType inferredType) =>
-      genericStatementExit('functionDeclaration', location);
+  void methodInvocationCall(
+      ExpressionJudgment judgment,
+      Location resultOffset,
+      List<DartType> argumentsTypes,
+      bool isImplicitCall,
+      FunctionType calleeType,
+      Substitution substitution,
+      DartType inferredType);
 
-  void functionExpressionEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("functionExpression", location, typeContext);
+  void namedFunctionExpression(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void functionExpressionExit(Location location, DartType inferredType) =>
-      genericExpressionExit("functionExpression", location, inferredType);
+  void not(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void ifNullBeforeRhs(Location location) {}
+  void nullLiteral(ExpressionJudgment judgment, Location location,
+      bool isSynthetic, DartType inferredType);
 
-  void ifNullEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter('ifNull', location, typeContext);
+  void propertyAssign(
+      ExpressionJudgment judgment,
+      Location location,
+      Reference writeMember,
+      DartType writeContext,
+      Reference combiner,
+      DartType inferredType);
 
-  void ifNullExit(Location location, DartType inferredType) =>
-      genericExpressionExit('ifNull', location, inferredType);
+  void propertyGet(ExpressionJudgment judgment, Location location,
+      Reference member, DartType inferredType);
 
-  void ifStatementEnter(Location location) =>
-      genericStatementEnter('ifStatement', location);
+  void propertyGetCall(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void ifStatementExit(Location location) =>
-      genericStatementExit('ifStatement', location);
+  void propertySet(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void indexAssignAfterReceiver(Location location, DartType typeContext) {}
+  void redirectingInitializer(InitializerJudgment judgment, Location location,
+      Reference initializerTarget);
 
-  void indexAssignEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("indexAssign", location, typeContext);
+  void rethrow_(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void indexAssignExit(Location location, Reference writeMember,
-          Reference combiner, DartType inferredType) =>
-      genericExpressionExit("indexAssign", location, inferredType);
+  void returnStatement(StatementJudgment judgment, Location location);
 
-  void intLiteralEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("intLiteral", location, typeContext);
+  void staticAssign(
+      ExpressionJudgment judgment,
+      Location location,
+      Reference writeMember,
+      DartType writeContext,
+      Reference combiner,
+      DartType inferredType);
 
-  void intLiteralExit(Location location, DartType inferredType) =>
-      genericExpressionExit("intLiteral", location, inferredType);
+  void staticGet(ExpressionJudgment judgment, Location location,
+      Reference expressionTarget, DartType inferredType);
 
-  void invalidInitializerEnter(Location location) =>
-      genericInitializerEnter("invalidInitializer", location);
+  void staticInvocation(
+      ExpressionJudgment judgment,
+      Location location,
+      Reference expressionTarget,
+      List<DartType> expressionArgumentsTypes,
+      FunctionType calleeType,
+      Substitution substitution,
+      DartType inferredType);
 
-  void invalidInitializerExit(Location location) =>
-      genericInitializerExit("invalidInitializer", location);
+  void stringConcatenation(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void isExpressionEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("isExpression", location, typeContext);
+  void stringLiteral(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void isExpressionExit(
-          Location location, DartType testedType, DartType inferredType) =>
-      genericExpressionExit("isExpression", location, inferredType);
+  void superInitializer(InitializerJudgment judgment, Location location);
 
-  void isNotExpressionEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("isNotExpression", location, typeContext);
+  void switchStatement(StatementJudgment judgment, Location location);
 
-  void isNotExpressionExit(
-          Location location, DartType type, DartType inferredType) =>
-      genericExpressionExit("isNotExpression", location, inferredType);
+  void symbolLiteral(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void labeledStatementEnter(Location location) =>
-      genericStatementEnter('labeledStatement', location);
+  void thisExpression(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void labeledStatementExit(Location location) =>
-      genericStatementExit('labeledStatement', location);
+  void throw_(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void listLiteralEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("listLiteral", location, typeContext);
+  void tryCatch(StatementJudgment judgment, Location location);
 
-  void listLiteralExit(Location location, DartType inferredType) =>
-      genericExpressionExit("listLiteral", location, inferredType);
+  void tryFinally(StatementJudgment judgment, Location location);
 
-  void logicalExpressionBeforeRhs(Location location) {}
+  void typeLiteral(ExpressionJudgment judgment, Location location,
+      Reference expressionType, DartType inferredType);
 
-  void logicalExpressionEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("logicalExpression", location, typeContext);
+  void variableAssign(
+      ExpressionJudgment judgment,
+      Location location,
+      DartType writeContext,
+      Declaration writeVariable,
+      Reference combiner,
+      DartType inferredType);
 
-  void logicalExpressionExit(Location location, DartType inferredType) =>
-      genericExpressionExit("logicalExpression", location, inferredType);
+  void variableDeclaration(StatementJudgment judgment, Location location,
+      DartType statementType, DartType inferredType);
 
-  void mapLiteralEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("mapLiteral", location, typeContext);
+  void variableGet(ExpressionJudgment judgment, Location location,
+      bool isInCascade, Declaration expressionVariable, DartType inferredType);
 
-  void mapLiteralExit(Location location, DartType typeContext) =>
-      genericExpressionExit("mapLiteral", location, typeContext);
+  void variableSet(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void methodInvocationBeforeArgs(Location location, bool isImplicitCall) {}
+  void whileStatement(StatementJudgment judgment, Location location);
 
-  void methodInvocationEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("methodInvocation", location, typeContext);
+  void yieldStatement(StatementJudgment judgment, Location location);
 
-  void methodInvocationExit(
-          Location resultOffset,
-          List<DartType> argumentsTypes,
-          bool isImplicitCall,
-          Reference interfaceMember,
-          FunctionType calleeType,
-          Substitution substitution,
-          DartType inferredType) =>
-      genericExpressionExit("methodInvocation", resultOffset, inferredType);
-
-  void methodInvocationExitCall(
-          Location resultOffset,
-          List<DartType> argumentsTypes,
-          bool isImplicitCall,
-          FunctionType calleeType,
-          Substitution substitution,
-          DartType inferredType) =>
-      genericExpressionExit("methodInvocation", resultOffset, inferredType);
-
-  void namedFunctionExpressionEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("namedFunctionExpression", location, typeContext);
-
-  void namedFunctionExpressionExit(Location location, DartType inferredType) =>
-      genericExpressionExit("namedFunctionExpression", location, inferredType);
-
-  void notEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("not", location, typeContext);
-
-  void notExit(Location location, DartType inferredType) =>
-      genericExpressionExit("not", location, inferredType);
-
-  void nullLiteralEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("nullLiteral", location, typeContext);
-
-  void nullLiteralExit(
-          Location location, bool isSynthetic, DartType inferredType) =>
-      genericExpressionExit("nullLiteral", location, inferredType);
-
-  void propertyAssignEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("propertyAssign", location, typeContext);
-
-  void propertyAssignExit(Location location, Reference writeMember,
-          DartType writeContext, Reference combiner, DartType inferredType) =>
-      genericExpressionExit("propertyAssign", location, inferredType);
-
-  void propertyGetEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("propertyGet", location, typeContext);
-
-  void propertyGetExit(
-          Location location, Reference member, DartType inferredType) =>
-      genericExpressionExit("propertyGet", location, inferredType);
-
-  void propertyGetExitCall(Location location, DartType inferredType) =>
-      genericExpressionExit("propertyGet", location, inferredType);
-
-  void propertySetEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("propertySet", location, typeContext);
-
-  void propertySetExit(Location location, DartType inferredType) =>
-      genericExpressionExit("propertySet", location, inferredType);
-
-  void redirectingInitializerEnter(
-          Location location, Reference initializerTarget) =>
-      genericInitializerEnter("redirectingInitializer", location);
-
-  void redirectingInitializerExit(Location location) =>
-      genericInitializerExit("redirectingInitializer", location);
-
-  void rethrowEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter('rethrow', location, typeContext);
-
-  void rethrowExit(Location location, DartType inferredType) =>
-      genericExpressionExit('rethrow', location, inferredType);
-
-  void returnStatementEnter(Location location) =>
-      genericStatementEnter('returnStatement', location);
-
-  void returnStatementExit(Location location) =>
-      genericStatementExit('returnStatement', location);
-
-  void staticAssignEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("staticAssign", location, typeContext);
-
-  void staticAssignExit(Location location, Reference writeMember,
-          DartType writeContext, Reference combiner, DartType inferredType) =>
-      genericExpressionExit("staticAssign", location, inferredType);
-
-  void staticGetEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("staticGet", location, typeContext);
-
-  void staticGetExit(Location location, Reference expressionTarget,
-          DartType inferredType) =>
-      genericExpressionExit("staticGet", location, inferredType);
-
-  void staticInvocationEnter(Location location,
-          Location expressionArgumentsLocation, DartType typeContext) =>
-      genericExpressionEnter("staticInvocation", location, typeContext);
-
-  void staticInvocationExit(
-          Location location,
-          Reference expressionTarget,
-          List<DartType> expressionArgumentsTypes,
-          FunctionType calleeType,
-          Substitution substitution,
-          DartType inferredType) =>
-      genericExpressionExit("staticInvocation", location, inferredType);
-
-  void stringConcatenationEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("stringConcatenation", location, typeContext);
-
-  void stringConcatenationExit(Location location, DartType inferredType) =>
-      genericExpressionExit("stringConcatenation", location, inferredType);
-
-  void stringLiteralEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("StringLiteral", location, typeContext);
-
-  void stringLiteralExit(Location location, DartType inferredType) =>
-      genericExpressionExit("StringLiteral", location, inferredType);
-
-  void superInitializerEnter(Location location) =>
-      genericInitializerEnter("superInitializer", location);
-
-  void superInitializerExit(Location location) =>
-      genericInitializerExit("superInitializer", location);
-
-  void switchStatementEnter(Location location) =>
-      genericStatementEnter('switchStatement', location);
-
-  void switchStatementExit(Location location) =>
-      genericStatementExit('switchStatement', location);
-
-  void symbolLiteralEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("symbolLiteral", location, typeContext);
-
-  void symbolLiteralExit(Location location, DartType inferredType) =>
-      genericExpressionExit("symbolLiteral", location, inferredType);
-
-  void thisExpressionEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("thisExpression", location, typeContext);
-
-  void thisExpressionExit(Location location, DartType inferredType) =>
-      genericExpressionExit("thisExpression", location, inferredType);
-
-  void throwEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter('throw', location, typeContext);
-
-  void throwExit(Location location, DartType inferredType) =>
-      genericExpressionExit('throw', location, inferredType);
-
-  void tryCatchEnter(Location location) =>
-      genericStatementEnter('tryCatch', location);
-
-  void tryCatchExit(Location location) =>
-      genericStatementExit('tryCatch', location);
-
-  void tryFinallyEnter(Location location) =>
-      genericStatementEnter('tryFinally', location);
-
-  void tryFinallyExit(Location location) =>
-      genericStatementExit('tryFinally', location);
-
-  void typeLiteralEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("typeLiteral", location, typeContext);
-
-  void typeLiteralExit(
-          Location location, Reference expressionType, DartType inferredType) =>
-      genericExpressionExit("typeLiteral", location, inferredType);
-
-  void variableAssignEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("variableAssign", location, typeContext);
-
-  void variableAssignExit(
-          Location location,
-          DartType writeContext,
-          Declaration writeVariable,
-          Reference combiner,
-          DartType inferredType) =>
-      genericExpressionExit("variableAssign", location, inferredType);
-
-  void variableDeclarationEnter(Location location) =>
-      genericStatementEnter('variableDeclaration', location);
-
-  void variableDeclarationExit(
-          Location location, DartType statementType, DartType inferredType) =>
-      genericStatementExit('variableDeclaration', location);
-
-  void variableGetEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("variableGet", location, typeContext);
-
-  void variableGetExit(Location location, bool isInCascade,
-          Declaration expressionVariable, DartType inferredType) =>
-      genericExpressionExit("variableGet", location, inferredType);
-
-  void variableSetEnter(Location location, DartType typeContext) =>
-      genericExpressionEnter("variableSet", location, typeContext);
-
-  void variableSetExit(Location location, DartType inferredType) =>
-      genericExpressionExit("variableSet", location, inferredType);
-
-  void whileStatementEnter(Location location) =>
-      genericStatementEnter("whileStatement", location);
-
-  void whileStatementExit(Location location) =>
-      genericStatementExit("whileStatement", location);
-
-  void yieldStatementEnter(Location location) =>
-      genericStatementEnter('yieldStatement', location);
-
-  void yieldStatementExit(Location location) =>
-      genericStatementExit('yieldStatement', location);
-
-  void storePrefixInfo(Location location, PrefixInfo prefixInfo) {}
+  void storePrefixInfo(Location location, PrefixInfo prefixInfo);
 
   void storeClassReference(
-      Location location, Reference reference, DartType rawType) {}
+      Location location, Reference reference, DartType rawType);
+}
+
+/// Kernel implementation of TypeInferenceListener; does nothing.
+///
+/// TODO(paulberry): fuse this with KernelFactory.
+class KernelTypeInferenceListener
+    implements TypeInferenceListener<int, int, Node, int> {
+  @override
+  void asExpression(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void assertInitializer(InitializerJudgment judgment, location) {}
+
+  @override
+  void assertStatement(StatementJudgment judgment, location) {}
+
+  @override
+  void awaitExpression(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void block(StatementJudgment judgment, location) {}
+
+  @override
+  void boolLiteral(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void breakStatement(StatementJudgment judgment, location) {}
+
+  @override
+  void cascadeExpression(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void catchStatement(
+      Catch judgment,
+      location,
+      DartType guardType,
+      exceptionLocation,
+      DartType exceptionType,
+      stackTraceLocation,
+      DartType stackTraceType) {}
+
+  @override
+  void conditionalExpression(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void constructorInvocation(ExpressionJudgment judgment, location,
+      expressionTarget, DartType inferredType) {}
+
+  @override
+  void continueSwitchStatement(StatementJudgment judgment, location) {}
+
+  @override
+  void deferredCheck(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void doStatement(StatementJudgment judgment, location) {}
+
+  @override
+  void doubleLiteral(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void expressionStatement(StatementJudgment judgment, location) {}
+
+  @override
+  void fieldInitializer(
+      InitializerJudgment judgment, location, initializerField) {}
+
+  @override
+  void forInStatement(
+      StatementJudgment judgment,
+      location,
+      variableLocation,
+      DartType variableType,
+      writeLocation,
+      DartType writeVariableType,
+      writeVariable,
+      writeTarget) {}
+
+  @override
+  void forStatement(StatementJudgment judgment, location) {}
+
+  @override
+  void functionDeclaration(
+      StatementJudgment judgment, location, FunctionType inferredType) {}
+
+  @override
+  void functionExpression(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void ifNull(ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void ifStatement(StatementJudgment judgment, location) {}
+
+  @override
+  void indexAssign(ExpressionJudgment judgment, location, writeMember, combiner,
+      DartType inferredType) {}
+
+  @override
+  void intLiteral(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void invalidInitializer(InitializerJudgment judgment, location) {}
+
+  @override
+  void isExpression(ExpressionJudgment judgment, location, DartType testedType,
+      DartType inferredType) {}
+
+  @override
+  void isNotExpression(ExpressionJudgment judgment, location, DartType type,
+      DartType inferredType) {}
+
+  @override
+  void labeledStatement(StatementJudgment judgment, location) {}
+
+  @override
+  void listLiteral(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void logicalExpression(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void mapLiteral(
+      ExpressionJudgment judgment, location, DartType typeContext) {}
+
+  @override
+  void methodInvocation(
+      ExpressionJudgment judgment,
+      resultOffset,
+      List<DartType> argumentsTypes,
+      bool isImplicitCall,
+      interfaceMember,
+      FunctionType calleeType,
+      Substitution substitution,
+      DartType inferredType) {}
+
+  @override
+  void methodInvocationCall(
+      ExpressionJudgment judgment,
+      resultOffset,
+      List<DartType> argumentsTypes,
+      bool isImplicitCall,
+      FunctionType calleeType,
+      Substitution substitution,
+      DartType inferredType) {}
+
+  @override
+  void namedFunctionExpression(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void not(ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void nullLiteral(ExpressionJudgment judgment, location, bool isSynthetic,
+      DartType inferredType) {}
+
+  @override
+  void propertyAssign(ExpressionJudgment judgment, location, writeMember,
+      DartType writeContext, combiner, DartType inferredType) {}
+
+  @override
+  void propertyGet(
+      ExpressionJudgment judgment, location, member, DartType inferredType) {}
+
+  @override
+  void propertyGetCall(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void propertySet(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void redirectingInitializer(
+      InitializerJudgment judgment, location, initializerTarget) {}
+
+  @override
+  void rethrow_(ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void returnStatement(StatementJudgment judgment, location) {}
+
+  @override
+  void staticAssign(ExpressionJudgment judgment, location, writeMember,
+      DartType writeContext, combiner, DartType inferredType) {}
+
+  @override
+  void staticGet(ExpressionJudgment judgment, location, expressionTarget,
+      DartType inferredType) {}
+
+  @override
+  void staticInvocation(
+      ExpressionJudgment judgment,
+      location,
+      expressionTarget,
+      List<DartType> expressionArgumentsTypes,
+      FunctionType calleeType,
+      Substitution substitution,
+      DartType inferredType) {}
+
+  @override
+  void storeClassReference(location, reference, DartType rawType) {}
+
+  @override
+  void storePrefixInfo(location, prefixInfo) {}
+
+  @override
+  void stringConcatenation(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void stringLiteral(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void superInitializer(InitializerJudgment judgment, location) {}
+
+  @override
+  void switchStatement(StatementJudgment judgment, location) {}
+
+  @override
+  void symbolLiteral(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void thisExpression(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void throw_(ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void tryCatch(StatementJudgment judgment, location) {}
+
+  @override
+  void tryFinally(StatementJudgment judgment, location) {}
+
+  @override
+  void typeLiteral(ExpressionJudgment judgment, location, expressionType,
+      DartType inferredType) {}
+
+  @override
+  void variableAssign(ExpressionJudgment judgment, location,
+      DartType writeContext, writeVariable, combiner, DartType inferredType) {}
+
+  @override
+  void variableDeclaration(StatementJudgment judgment, location,
+      DartType statementType, DartType inferredType) {}
+
+  @override
+  void variableGet(ExpressionJudgment judgment, location, bool isInCascade,
+      expressionVariable, DartType inferredType) {}
+
+  @override
+  void variableSet(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void whileStatement(StatementJudgment judgment, location) {}
+
+  @override
+  void yieldStatement(StatementJudgment judgment, location) {}
 }
