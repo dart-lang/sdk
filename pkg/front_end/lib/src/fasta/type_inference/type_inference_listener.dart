@@ -390,14 +390,17 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
       Reference combiner,
       DartType inferredType);
 
-  void variableDeclaration(StatementJudgment judgment, Location location,
-      DartType statementType, DartType inferredType);
+  void variableDeclaration(
+      covariant Object lemma, DartType statementType, DartType inferredType);
+
+  Object variableDeclarationLemma(
+      StatementJudgment judgment, int fileOffset, String name);
 
   void variableGet(ExpressionJudgment judgment, Location location,
-      bool isInCascade, Declaration expressionVariable, DartType inferredType);
+      bool isInCascade, covariant Object variableLemma, DartType inferredType);
 
-  void variableSet(
-      ExpressionJudgment judgment, Location location, DartType inferredType);
+  void variableSet(ExpressionJudgment judgment, Location location,
+      covariant Object variableLemma, DartType inferredType);
 
   void whileStatement(
       StatementJudgment judgment,
@@ -822,16 +825,20 @@ class KernelTypeInferenceListener
       DartType writeContext, writeVariable, combiner, DartType inferredType) {}
 
   @override
-  void variableDeclaration(StatementJudgment judgment, location,
-      DartType statementType, DartType inferredType) {}
+  void variableDeclaration(
+      covariant void lemma, DartType statementType, DartType inferredType) {}
+
+  @override
+  void variableDeclarationLemma(
+      StatementJudgment judgment, int fileOffset, String name) {}
 
   @override
   void variableGet(ExpressionJudgment judgment, location, bool isInCascade,
       expressionVariable, DartType inferredType) {}
 
   @override
-  void variableSet(
-      ExpressionJudgment judgment, location, DartType inferredType) {}
+  void variableSet(ExpressionJudgment judgment, location,
+      covariant void variableLemma, DartType inferredType) {}
 
   @override
   void whileStatement(

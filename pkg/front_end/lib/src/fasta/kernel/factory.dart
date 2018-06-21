@@ -385,18 +385,17 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       Node combiner,
       DartType inferredType);
 
-  Statement variableDeclaration(StatementJudgment judgment, int fileOffset,
-      DartType statementType, DartType inferredType);
+  Statement variableDeclaration(
+      covariant Object lemma, DartType statementType, DartType inferredType);
 
-  Expression variableGet(
-      ExpressionJudgment judgment,
-      int fileOffset,
-      bool isInCascade,
-      int expressionVariableDeclarationOffset,
-      DartType inferredType);
+  Object variableDeclarationLemma(
+      StatementJudgment judgment, int fileOffset, String name);
 
-  Expression variableSet(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType);
+  Expression variableGet(ExpressionJudgment judgment, int fileOffset,
+      bool isInCascade, covariant Object variableLemma, DartType inferredType);
+
+  Expression variableSet(ExpressionJudgment judgment, int fileOffset,
+      covariant Object variableLemma, DartType inferredType);
 
   Statement whileStatement(
       StatementJudgment judgment,

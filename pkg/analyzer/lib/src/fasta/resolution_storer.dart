@@ -600,21 +600,35 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
         inferredType: inferredType);
   }
 
-  void variableDeclaration(StatementJudgment judgment, Location location,
+  void variableDeclaration(covariant VariableDeclarationLemma lemma,
       DartType statementType, DartType inferredType) {
-    _store(location, literalType: statementType, inferredType: inferredType);
+    _store(lemma.fileOffset as Location,
+        literalType: statementType, inferredType: inferredType);
   }
 
-  void variableGet(ExpressionJudgment judgment, Location location,
-      bool isInCascade, Declaration expressionVariable, DartType inferredType) {
+  Object variableDeclarationLemma(
+      StatementJudgment judgment, int fileOffset, String name) {
+    return new VariableDeclarationLemma(fileOffset);
+  }
+
+  void variableGet(
+      ExpressionJudgment judgment,
+      Location location,
+      bool isInCascade,
+      covariant VariableDeclarationLemma variableLemma,
+      DartType inferredType) {
     if (isInCascade) {
       return;
     }
     _store(location,
-        declaration: expressionVariable, inferredType: inferredType);
+        declaration: variableLemma.fileOffset as Declaration,
+        inferredType: inferredType);
   }
 
-  void variableSet(ExpressionJudgment judgment, Location location,
+  void variableSet(
+          ExpressionJudgment judgment,
+          Location location,
+          covariant VariableDeclarationLemma variableLemma,
           DartType inferredType) =>
       genericExpression("variableSet", location, inferredType);
 
@@ -639,6 +653,13 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
     // TODO(paulberry): would it be better to use literalType?
     _store(location, reference: reference, inferredType: rawType);
   }
+}
+
+/// TODO(paulberry): eventually just use the element directly.
+class VariableDeclarationLemma {
+  final int fileOffset;
+
+  VariableDeclarationLemma(this.fileOffset);
 }
 
 /// A [DartType] wrapper around invocation type arguments.

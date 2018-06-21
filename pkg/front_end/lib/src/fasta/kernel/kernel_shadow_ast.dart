@@ -2969,6 +2969,8 @@ class VariableDeclarationJudgment extends VariableDeclaration
 
   final bool _isLocalFunction;
 
+  Object lemma;
+
   VariableDeclarationJudgment(String name, this._functionNestingLevel,
       {Expression initializer,
       DartType type,
@@ -3054,8 +3056,11 @@ class VariableDeclarationJudgment extends VariableDeclaration
       }
     }
     inferrer.listener.variableDeclaration(
-        this, fileOffset, type, _implicitlyTyped ? inferredType : type);
+        createLemma(inferrer), type, _implicitlyTyped ? inferredType : type);
   }
+
+  Object createLemma(ShadowTypeInferrer inferrer) => lemma ??=
+      inferrer.listener.variableDeclarationLemma(this, fileOffset, name);
 
   /// Determine whether the given [VariableDeclarationJudgment] had an implicit
   /// type.
@@ -3119,8 +3124,8 @@ class VariableGetJudgment extends VariableGet implements ExpressionJudgment {
       type = inferrer.instantiateTearOff(type, typeContext, this);
     }
     inferredType = type;
-    inferrer.listener.variableGet(
-        this, fileOffset, _isInCascade(), variable.fileOffset, inferredType);
+    inferrer.listener.variableGet(this, fileOffset, _isInCascade(),
+        variable.createLemma(inferrer), inferredType);
     return inferredType;
   }
 }

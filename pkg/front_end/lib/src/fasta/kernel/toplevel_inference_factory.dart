@@ -447,20 +447,19 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       DartType inferredType) {}
 
   @override
-  void variableDeclaration(StatementJudgment judgment, int fileOffset,
-      DartType statementType, DartType inferredType) {}
+  void variableDeclaration(
+      covariant void lemma, DartType statementType, DartType inferredType) {}
+
+  void variableDeclarationLemma(
+      StatementJudgment judgment, int fileOffset, String name) {}
 
   @override
-  void variableGet(
-      ExpressionJudgment judgment,
-      int fileOffset,
-      bool isInCascade,
-      int expressionVariableDeclarationOffset,
-      DartType inferredType) {}
+  void variableGet(ExpressionJudgment judgment, int fileOffset,
+      bool isInCascade, covariant void variableLemma, DartType inferredType) {}
 
   @override
-  void variableSet(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
+  void variableSet(ExpressionJudgment judgment, int fileOffset,
+      covariant void variableLemma, DartType inferredType) {}
 
   @override
   void whileStatement(

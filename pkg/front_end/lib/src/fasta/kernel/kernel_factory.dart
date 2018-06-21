@@ -12,7 +12,8 @@ import 'package:kernel/ast.dart'
         FunctionType,
         Initializer,
         Node,
-        Statement;
+        Statement,
+        VariableDeclaration;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
@@ -582,8 +583,14 @@ class KernelFactory
   }
 
   @override
-  Statement variableDeclaration(StatementJudgment judgment, int fileOffset,
+  Statement variableDeclaration(covariant VariableDeclaration lemma,
       DartType statementType, DartType inferredType) {
+    return lemma;
+  }
+
+  @override
+  Object variableDeclarationLemma(
+      StatementJudgment judgment, int fileOffset, String name) {
     return judgment;
   }
 
@@ -592,14 +599,14 @@ class KernelFactory
       ExpressionJudgment judgment,
       int fileOffset,
       bool isInCascade,
-      int expressionVariableDeclarationOffset,
+      covariant VariableDeclaration variableLemma,
       DartType inferredType) {
     return judgment;
   }
 
   @override
-  Expression variableSet(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {
+  Expression variableSet(ExpressionJudgment judgment, int fileOffset,
+      covariant VariableDeclaration variableLemma, DartType inferredType) {
     return judgment;
   }
 
