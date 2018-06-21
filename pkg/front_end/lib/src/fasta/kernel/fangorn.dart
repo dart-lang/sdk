@@ -101,7 +101,7 @@ import 'kernel_shadow_ast.dart'
         ShadowSymbolLiteral,
         ShadowSyntheticExpression,
         TryCatchJudgment,
-        ShadowTryFinally,
+        TryFinallyJudgment,
         WhileJudgment,
         YieldJudgment,
         ThisJudgment,
@@ -487,14 +487,10 @@ class Fangorn extends Forest {
   @override
   Statement tryStatement(Token tryKeyword, Statement body,
       List<Catch> catchClauses, Token finallyKeyword, Statement finallyBlock) {
-    Statement tryStatement = body;
-    if (catchClauses != null) {
-      tryStatement = new TryCatchJudgment(tryStatement, catchClauses);
-    }
     if (finallyBlock != null) {
-      tryStatement = new ShadowTryFinally(tryStatement, finallyBlock);
+      return new TryFinallyJudgment(body, catchClauses, finallyBlock);
     }
-    return tryStatement;
+    return new TryCatchJudgment(body, catchClauses ?? const <CatchJudgment>[]);
   }
 
   @override

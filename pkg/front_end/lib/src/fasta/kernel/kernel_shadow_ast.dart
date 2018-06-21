@@ -2563,6 +2563,29 @@ class CatchJudgment extends Catch {
   VariableDeclarationJudgment get stackTraceJudgment => stackTrace;
 
   StatementJudgment get bodyJudgment => body;
+
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
+    inferrer.inferStatement(factory, bodyJudgment);
+    inferrer.listener.catchStatement(
+        this,
+        fileOffset,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        guard,
+        exceptionJudgment?.fileOffset,
+        exceptionJudgment?.type,
+        stackTraceJudgment?.fileOffset,
+        stackTraceJudgment?.type);
+  }
 }
 
 /// Concrete shadow object representing a try-catch block in kernel form.
@@ -2579,40 +2602,35 @@ class TryCatchJudgment extends TryCatch implements StatementJudgment {
       Factory<Expression, Statement, Initializer, Type> factory) {
     inferrer.inferStatement(factory, bodyJudgment);
     for (var catch_ in catchJudgments) {
-      inferrer.inferStatement(factory, catch_.bodyJudgment);
-      inferrer.listener.catchStatement(
-          catch_,
-          catch_.fileOffset,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          catch_.guard,
-          catch_.exceptionJudgment?.fileOffset,
-          catch_.exceptionJudgment?.type,
-          catch_.stackTraceJudgment?.fileOffset,
-          catch_.stackTraceJudgment?.type);
+      catch_.infer(inferrer, factory);
     }
     inferrer.listener.tryCatch(this, fileOffset);
   }
 }
 
 /// Concrete shadow object representing a try-finally block in kernel form.
-class ShadowTryFinally extends TryFinally implements StatementJudgment {
-  ShadowTryFinally(Statement body, Statement finalizer)
+class TryFinallyJudgment extends TryFinally implements StatementJudgment {
+  final List<Catch> catches;
+
+  TryFinallyJudgment(Statement body, this.catches, Statement finalizer)
       : super(body, finalizer);
+
+  List<CatchJudgment> get catchJudgments => catches?.cast();
+
+  StatementJudgment get finalizerJudgment => finalizer;
 
   @override
   void infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory) {
     inferrer.inferStatement(factory, body);
-    inferrer.inferStatement(factory, finalizer);
+    if (catchJudgments != null) {
+      for (var catch_ in catchJudgments) {
+        catch_.infer(inferrer, factory);
+      }
+      body = new TryCatch(body, catches)..parent = this;
+    }
+    inferrer.inferStatement(factory, finalizerJudgment);
     inferrer.listener.tryFinally(this, fileOffset);
   }
 }
