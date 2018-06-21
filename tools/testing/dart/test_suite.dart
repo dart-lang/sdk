@@ -1468,7 +1468,7 @@ class StandardTestSuite extends TestSuite {
     for (var match in matches) {
       result.add(wordSplit(match[1]));
     }
-    if (result.isEmpty) result.add([]);
+    if (result.isEmpty) result.add(<String>[]);
 
     dartOptions = singleListOfOptions('DartOptions');
     sharedOptions = singleListOfOptions('SharedOptions');
@@ -1660,7 +1660,7 @@ class StandardTestSuite extends TestSuite {
     bool isMultitest = multiTestRegExp.hasMatch(contents);
 
     return {
-      "vmOptions": <List>[[]],
+      "vmOptions": <List<String>>[[]],
       "sharedOptions": <String>[],
       "dart2jsOptions": <String>[],
       "dartOptions": null,
