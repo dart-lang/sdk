@@ -1075,7 +1075,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Expression b = popForValue();
     Expression a = popForValue();
     VariableDeclaration variable = new VariableDeclaration.forValue(a);
-    push(new ShadowIfNullExpression(
+    push(new IfNullJudgment(
         variable,
         forest.conditionalExpression(
             buildIsNull(new VariableGet(variable), offsetForToken(token), this),

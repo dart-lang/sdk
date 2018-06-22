@@ -1338,42 +1338,48 @@ class ShadowFunctionExpression extends FunctionExpression
 /// expression:
 ///
 ///     let v = a in v == null ? b : v
-class ShadowIfNullExpression extends Let implements ExpressionJudgment {
+class IfNullJudgment extends Let implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowIfNullExpression(VariableDeclaration variable, Expression body)
+  IfNullJudgment(VariableDeclaration variable, Expression body)
       : super(variable, body);
 
   @override
   ConditionalExpression get body => super.body;
 
   /// Returns the expression to the left of `??`.
-  Expression get _lhs => variable.initializer;
+  ExpressionJudgment get leftJudgment => variable.initializer;
 
   /// Returns the expression to the right of `??`.
-  Expression get _rhs => body.then;
+  ExpressionJudgment get rightJudgment => body.then;
 
   @override
   DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
+    var leftJudgment = this.leftJudgment;
+    var rightJudgment = this.rightJudgment;
     // To infer `e0 ?? e1` in context K:
     // - Infer e0 in context K to get T0
-    var lhsType = inferrer.inferExpression(factory, _lhs, typeContext, true);
+    inferrer.inferExpression(factory, leftJudgment, typeContext, true);
+    var lhsType = leftJudgment.inferredType;
     if (inferrer.strongMode) {
       variable.type = lhsType;
     }
     // - Let J = T0 if K is `?` else K.
     // - Infer e1 in context J to get T1
     bool useLub = _forceLub || typeContext is UnknownType;
-    var rhsType = typeContext is UnknownType
-        ? inferrer.inferExpression(factory, _rhs, lhsType, true)
-        : inferrer.inferExpression(factory, _rhs, typeContext, _forceLub);
+    if (typeContext is UnknownType) {
+      inferrer.inferExpression(factory, rightJudgment, lhsType, true);
+    } else {
+      inferrer.inferExpression(factory, rightJudgment, typeContext, _forceLub);
+    }
+    var rhsType = rightJudgment.inferredType;
     // - Let T = greatest closure of K with respect to `?` if K is not `_`, else
     //   UP(t0, t1)
     // - Then the inferred type is T.
-    var inferredType = useLub
+    inferredType = useLub
         ? inferrer.typeSchemaEnvironment.getLeastUpperBound(lhsType, rhsType)
         : greatestClosure(inferrer.coreTypes, typeContext);
     if (inferrer.strongMode) {

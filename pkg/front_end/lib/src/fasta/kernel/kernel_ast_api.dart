@@ -79,7 +79,7 @@ export 'kernel_shadow_ast.dart'
         ForInJudgment,
         ShadowFunctionDeclaration,
         ShadowFunctionExpression,
-        ShadowIfNullExpression,
+        IfNullJudgment,
         IfJudgment,
         IllegalAssignmentJudgment,
         IndexAssignmentJudgment,
