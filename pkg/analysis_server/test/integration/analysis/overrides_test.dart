@@ -127,9 +127,6 @@ class OverridesTest_UseCFE extends OverridesTest {
   @override
   bool get useCFE => true;
 
-  @failingTest
   @override
-  solo_test_overrides() {
-    return super.test_overrides();
-  }
+  test_overrides() => super.test_overrides();
 }
