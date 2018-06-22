@@ -64,7 +64,7 @@ void main() {
 
 // Make sure that empty functions are inlined and that functions from
 // main also are inlined (assuming normal heuristics).
-const Map MEMORY_SOURCE_FILES = const {
+const Map<String, String> MEMORY_SOURCE_FILES = const {
   "main.dart": """
 import "dart:async";
 

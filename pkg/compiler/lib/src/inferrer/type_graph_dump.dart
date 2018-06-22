@@ -364,7 +364,8 @@ class _GraphGenerator extends TypeInformationVisitor {
     addNode(info, 'BoolLiteral\n${info.value}');
   }
 
-  void handleCall(CallSiteTypeInformation info, String text, Map inputs) {
+  void handleCall(CallSiteTypeInformation info, String text,
+      Map<String, TypeInformation> inputs) {
     String sourceCode = shorten('${info.debugName}');
     text = '$text\n$sourceCode';
     if (info.arguments != null) {

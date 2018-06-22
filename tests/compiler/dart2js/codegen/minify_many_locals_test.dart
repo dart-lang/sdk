@@ -47,6 +47,6 @@ main() {
   asyncTest(() async {
     // The [numberOfParameters] value is somewhat arbitrary.
     print('--test from kernel------------------------------------------------');
-    await runTests(numberOfParameters: 2000);
+    await runTests(numberOfParameters: 1000);
   });
 }

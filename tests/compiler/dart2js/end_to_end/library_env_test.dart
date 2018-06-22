@@ -79,7 +79,7 @@ class DummyCompilerDiagnostics implements CompilerDiagnostics {
 final platformDir = Uri.parse(Platform.resolvedExecutable).resolve('.');
 
 class CustomCompiler extends CompilerImpl {
-  CustomCompiler(options, environment)
+  CustomCompiler(List<String> options, Map<String, String> environment)
       : super(
             const DummyCompilerInput(),
             const NullCompilerOutput(),

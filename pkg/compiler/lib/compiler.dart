@@ -109,7 +109,7 @@ Future<CompilationResult> compile(Uri script, Uri libraryRoot, Uri packageRoot,
     CompilerInputProvider inputProvider, DiagnosticHandler handler,
     [List<String> options = const [],
     CompilerOutputProvider outputProvider,
-    Map<String, dynamic> environment = const {},
+    Map<String, String> environment = const {},
     Uri packageConfig,
     PackagesDiscoveryProvider packagesDiscoveryProvider]) {
   CompilerOptions compilerOptions =

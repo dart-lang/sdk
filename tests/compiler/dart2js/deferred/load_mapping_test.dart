@@ -31,7 +31,7 @@ void main() {
   });
 }
 
-const Map MEMORY_SOURCE_FILES = const {
+const Map<String, String> MEMORY_SOURCE_FILES = const {
   "main.dart": """
 import 'dart:convert' deferred as convert;
 import 'lib1.dart' deferred as lib1;

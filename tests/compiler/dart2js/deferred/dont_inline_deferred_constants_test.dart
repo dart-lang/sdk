@@ -91,7 +91,7 @@ void main() {
 }
 
 // Make sure that deferred constants are not inlined into the main hunk.
-const Map MEMORY_SOURCE_FILES = const {
+const Map<String, String> MEMORY_SOURCE_FILES = const {
   "main.dart": """
 import "dart:async";
 

@@ -187,20 +187,23 @@ const List<TestData> DATA = const [
         'MapConstant(<int, int>{IntConstant(0): IntConstant(2)})',
         expectedErrors: MessageKind.EQUAL_MAP_ENTRY_KEY),
     const ConstantData(
-        'const bool.fromEnvironment("foo", defaultValue: false)', const {
-      const {}: 'BoolConstant(false)',
-      const {'foo': 'true'}: 'BoolConstant(true)'
-    }),
+        'const bool.fromEnvironment("foo", defaultValue: false)',
+        const <Map<String, String>, String>{
+          const {}: 'BoolConstant(false)',
+          const {'foo': 'true'}: 'BoolConstant(true)'
+        }),
     const ConstantData(
-        'const int.fromEnvironment("foo", defaultValue: 42)', const {
-      const {}: 'IntConstant(42)',
-      const {'foo': '87'}: 'IntConstant(87)'
-    }),
+        'const int.fromEnvironment("foo", defaultValue: 42)',
+        const <Map<String, String>, String>{
+          const {}: 'IntConstant(42)',
+          const {'foo': '87'}: 'IntConstant(87)'
+        }),
     const ConstantData(
-        'const String.fromEnvironment("foo", defaultValue: "bar")', const {
-      const {}: 'StringConstant("bar")',
-      const {'foo': 'foo'}: 'StringConstant("foo")'
-    }),
+        'const String.fromEnvironment("foo", defaultValue: "bar")',
+        const <Map<String, String>, String>{
+          const {}: 'StringConstant("bar")',
+          const {'foo': 'foo'}: 'StringConstant("foo")'
+        }),
   ]),
   const TestData('env', '''
 const a = const bool.fromEnvironment("foo", defaultValue: true);
@@ -249,7 +252,8 @@ class D extends C {
         'const C.named(87)',
         'ConstructedConstant(C(field1=IntConstant(87),'
         'field2=IntConstant(87)))'),
-    const ConstantData('const C(field1: a, field2: b)', const {
+    const ConstantData(
+        'const C(field1: a, field2: b)', const <Map<String, String>, String>{
       const {}: 'ConstructedConstant(C(field1=BoolConstant(true),'
           'field2=IntConstant(42)))',
       const {'foo': 'false', 'bar': '87'}:
@@ -303,12 +307,12 @@ class B extends A {
   const B(a) : super(a, a * 2);
 }
 ''', const [
-    const ConstantData('const A(c, d)', const {
+    const ConstantData('const A(c, d)', const <Map<String, String>, String>{
       const {}: 'ConstructedConstant(A(field=IntConstant(15)))',
       const {'foo': '7', 'bar': '11'}:
           'ConstructedConstant(A(field=IntConstant(18)))',
     }),
-    const ConstantData('const B(d)', const {
+    const ConstantData('const B(d)', const <Map<String, String>, String>{
       const {}: 'ConstructedConstant(B(field=IntConstant(30)))',
       const {'bar': '42'}: 'ConstructedConstant(B(field=IntConstant(126)))',
     }),
@@ -616,7 +620,9 @@ Future testData(TestData data) async {
         var expectedResults =
             strongMode ? data.strongModeResults : data.expectedResults;
         if (expectedResults is String) {
-          expectedResults = {const <String, String>{}: expectedResults};
+          expectedResults = <Map<String, String>, String>{
+            const <String, String>{}: expectedResults
+          };
         }
         expectedResults.forEach((Map<String, String> env, String expectedText) {
           MemoryEnvironment environment =

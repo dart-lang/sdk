@@ -27,7 +27,7 @@ main() {
   });
 }
 
-const Map MEMORY_SOURCE_FILES = const {
+const Map<String, String> MEMORY_SOURCE_FILES = const {
   'main.dart': """
 class Greeting {
   final message;

@@ -38,7 +38,7 @@ runTest() async {
 // The main library imports a file defining a custom element.
 // Registering this class implicitly causes the constructors to be
 // live. Check that this is handled.
-const Map MEMORY_SOURCE_FILES = const {
+const Map<String, String> MEMORY_SOURCE_FILES = const {
   "main.dart": """
 import "lib.dart" deferred as a;
 import 'dart:html';

@@ -13,7 +13,7 @@ import 'package:expect/expect.dart';
 import 'memory_compiler.dart' show runCompiler, OutputCollector;
 
 Future<String> compileSources(sources, {bool minify}) async {
-  var options = [];
+  var options = <String>[];
   if (minify) options.add(Flags.minify);
   OutputCollector outputCollector = new OutputCollector();
   await runCompiler(

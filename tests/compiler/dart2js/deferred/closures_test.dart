@@ -36,7 +36,7 @@ runTest() async {
 }
 
 // Make sure that deferred constants are not inlined into the main hunk.
-const Map sources = const {
+const Map<String, String> sources = const {
   "main.dart": """
     import 'lib.dart' deferred as lib;
 
