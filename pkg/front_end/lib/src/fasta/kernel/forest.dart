@@ -222,7 +222,7 @@ abstract class Forest {
       Token forKeyword,
       Token leftParenthesis,
       covariant variableList,
-      covariant initialization,
+      covariant initializers,
       Token leftSeparator,
       Expression condition,
       Statement conditionStatement,

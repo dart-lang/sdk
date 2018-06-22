@@ -1271,29 +1271,50 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
 }
 
 /// Concrete shadow object representing a classic for loop in kernel form.
-class ShadowForStatement extends ForStatement implements StatementJudgment {
-  ShadowForStatement(List<VariableDeclaration> variables, Expression condition,
-      List<Expression> updates, Statement body)
-      : super(variables, condition, updates, body);
+class ForJudgment extends ForStatement implements StatementJudgment {
+  final List<ExpressionJudgment> initializers;
+
+  ForJudgment(List<VariableDeclaration> variables, this.initializers,
+      ExpressionJudgment condition, List<Expression> updates, Statement body)
+      : super(variables ?? [], condition, updates, body);
+
+  List<VariableDeclarationJudgment> get variableJudgments => variables.cast();
+
+  ExpressionJudgment get conditionJudgment => condition;
+
+  List<ExpressionJudgment> get updateJudgments => updates.cast();
+
+  StatementJudgment get bodyJudgment => body;
 
   @override
   void infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory) {
-    for (var variable in variables) {
-      inferrer.inferStatement(factory, variable);
+    var initializers = this.initializers;
+    var conditionJudgment = this.conditionJudgment;
+    if (initializers != null) {
+      for (var initializer in initializers) {
+        variables
+            .add(new VariableDeclaration.forValue(initializer)..parent = this);
+        inferrer.inferExpression(
+            factory, initializer, const UnknownType(), false);
+      }
+    } else {
+      for (var variable in variableJudgments) {
+        inferrer.inferStatement(factory, variable);
+      }
     }
-    if (condition != null) {
+    if (conditionJudgment != null) {
       var expectedType = inferrer.coreTypes.boolClass.rawType;
-      var conditionType = inferrer.inferExpression(
-          factory, condition, expectedType, !inferrer.isTopLevel);
-      inferrer.ensureAssignable(
-          expectedType, conditionType, condition, condition.fileOffset);
+      inferrer.inferExpression(
+          factory, conditionJudgment, expectedType, !inferrer.isTopLevel);
+      inferrer.ensureAssignable(expectedType, conditionJudgment.inferredType,
+          condition, condition.fileOffset);
     }
-    for (var update in updates) {
+    for (var update in updateJudgments) {
       inferrer.inferExpression(factory, update, const UnknownType(), false);
     }
-    inferrer.inferStatement(factory, body);
+    inferrer.inferStatement(factory, bodyJudgment);
     inferrer.listener.forStatement(this, fileOffset, null, null, null, null,
         null, condition, null, updates, null, body);
   }

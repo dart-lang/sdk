@@ -88,7 +88,7 @@ import 'kernel_shadow_ast.dart'
         LoadLibraryJudgment,
         NullJudgment,
         ExpressionStatementJudgment,
-        ShadowForStatement,
+        ForJudgment,
         IfJudgment,
         ListLiteralJudgment,
         ShadowLogicalExpression,
@@ -399,14 +399,15 @@ class Fangorn extends Forest {
       Token forKeyword,
       Token leftParenthesis,
       List<VariableDeclaration> variableList,
-      covariant initialization,
+      List<Expression> initializers,
       Token leftSeparator,
       Expression condition,
       Statement conditionStatement,
       List<Expression> updaters,
       Token rightParenthesis,
       Statement body) {
-    return new ShadowForStatement(variableList, condition, updaters, body)
+    return new ForJudgment(
+        variableList, initializers, condition, updaters, body)
       ..fileOffset = forKeyword.charOffset;
   }
 

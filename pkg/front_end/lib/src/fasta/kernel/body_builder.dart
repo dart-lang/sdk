@@ -1855,31 +1855,30 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
   }
 
-  List<VariableDeclaration> buildVariableDeclarations(variableOrExpression) {
-    if (variableOrExpression is Generator) {
-      variableOrExpression = variableOrExpression.buildForEffect();
-    }
+  List<VariableDeclaration> buildForInitVariableDeclarations(
+      variableOrExpression) {
     if (variableOrExpression is VariableDeclaration) {
       return <VariableDeclaration>[variableOrExpression];
-    } else if (variableOrExpression is Expression) {
-      VariableDeclaration variable = new VariableDeclarationJudgment.forEffect(
-          variableOrExpression, functionNestingLevel);
-      return <VariableDeclaration>[variable];
-    } else if (variableOrExpression is ExpressionStatement) {
-      VariableDeclaration variable = new VariableDeclarationJudgment.forEffect(
-          variableOrExpression.expression, functionNestingLevel);
-      return <VariableDeclaration>[variable];
     } else if (forest.isVariablesDeclaration(variableOrExpression)) {
       return forest
           .variablesDeclarationExtractDeclarations(variableOrExpression);
     } else if (variableOrExpression is List<Object>) {
       List<VariableDeclaration> variables = <VariableDeclaration>[];
       for (Object v in variableOrExpression) {
-        variables.addAll(buildVariableDeclarations(v));
+        variables.addAll(buildForInitVariableDeclarations(v));
       }
       return variables;
     } else if (variableOrExpression == null) {
       return <VariableDeclaration>[];
+    }
+    return null;
+  }
+
+  List<ExpressionJudgment> buildForInitExpressions(variableOrExpression) {
+    if (variableOrExpression is ExpressionJudgment) {
+      return <ExpressionJudgment>[variableOrExpression];
+    } else if (variableOrExpression is ExpressionStatementJudgment) {
+      return <ExpressionJudgment>[variableOrExpression.expression];
     }
     return null;
   }
@@ -1892,12 +1891,16 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     List<Expression> updates = popListForEffect(updateExpressionCount);
     Statement conditionStatement = popStatement();
     Object variableOrExpression = pop();
-    List<VariableDeclaration> variables =
-        buildVariableDeclarations(variableOrExpression);
-    if (variables == null) {
-      return unhandled("${variableOrExpression.runtimeType}", "endForStatement",
-          forKeyword.charOffset, uri);
-    }
+
+    variableOrExpression = variableOrExpression is Generator
+        ? variableOrExpression.buildForEffect()
+        : variableOrExpression;
+    List<ExpressionJudgment> initializers =
+        buildForInitExpressions(variableOrExpression);
+    List<VariableDeclaration> variableList = initializers == null
+        ? buildForInitVariableDeclarations(variableOrExpression)
+        : null;
+
     exitLocalScope();
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
@@ -1915,8 +1918,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Statement result = forest.forStatement(
         forKeyword,
         leftParen,
-        variables,
-        variables,
+        variableList,
+        initializers,
         leftSeparator,
         condition,
         conditionStatement,
