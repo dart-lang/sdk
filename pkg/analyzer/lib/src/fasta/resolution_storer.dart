@@ -161,18 +161,19 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
       Token rightParenthesis,
       void body,
       DartType guardType,
-      Location exceptionLocation,
+      covariant VariableDeclarationLemma exceptionLemma,
       DartType exceptionType,
-      Location stackTraceLocation,
+      covariant VariableDeclarationLemma stackTraceLemma,
       DartType stackTraceType) {
     _store(location, literalType: guardType);
 
-    if (exceptionLocation != null) {
-      _store(exceptionLocation, literalType: exceptionType);
+    if (exceptionLemma != null) {
+      _store(exceptionLemma.fileOffset as Location, literalType: exceptionType);
     }
 
-    if (stackTraceLocation != null) {
-      _store(stackTraceLocation, literalType: stackTraceType);
+    if (stackTraceLemma != null) {
+      _store(stackTraceLemma.fileOffset as Location,
+          literalType: stackTraceType);
     }
   }
 
@@ -248,14 +249,14 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
       void iterator,
       Token rightParenthesis,
       void body,
-      Location variableLocation,
+      covariant VariableDeclarationLemma variableLemma,
       DartType variableType,
       Location writeLocation,
       DartType writeType,
       Declaration writeVariable,
       Reference writeTarget) {
-    if (variableLocation != null) {
-      _store(variableLocation, inferredType: variableType);
+    if (variableLemma != null) {
+      _store(variableLemma.fileOffset as Location, inferredType: variableType);
     } else {
       if (writeVariable != null) {
         _store(writeLocation,
@@ -283,9 +284,14 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
       Token rightParenthesis,
       void body) {}
 
-  void functionDeclaration(StatementJudgment judgment, Location location,
-      FunctionType inferredType) {
-    _store(location, inferredType: inferredType);
+  void functionDeclaration(
+      covariant VariableDeclarationLemma lemma, FunctionType inferredType) {
+    _store(lemma.fileOffset as Location, inferredType: inferredType);
+  }
+
+  Object functionDeclarationLemma(
+      StatementJudgment judgment, int fileOffset, String name) {
+    return new VariableDeclarationLemma(fileOffset);
   }
 
   void functionExpression(ExpressionJudgment judgment, Location location,

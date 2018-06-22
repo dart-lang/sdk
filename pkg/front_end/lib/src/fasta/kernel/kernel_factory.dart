@@ -108,9 +108,9 @@ class KernelFactory
       Token rightParenthesis,
       Statement body,
       DartType guardType,
-      int exceptionOffset,
+      covariant VariableDeclaration exceptionLemma,
       DartType exceptionType,
-      int stackTraceOffset,
+      covariant VariableDeclaration stackTraceLemma,
       DartType stackTraceType) {
     return judgment;
   }
@@ -204,7 +204,7 @@ class KernelFactory
       Expression iterator,
       Token rightParenthesis,
       Statement body,
-      int variableOffset,
+      covariant Object variableLemma,
       DartType variableType,
       int writeOffset,
       DartType writeVariableType,
@@ -232,7 +232,13 @@ class KernelFactory
 
   @override
   Statement functionDeclaration(
-      StatementJudgment judgment, int fileOffset, FunctionType inferredType) {
+      covariant VariableDeclaration lemma, FunctionType inferredType) {
+    return lemma;
+  }
+
+  @override
+  Object functionDeclarationLemma(
+      StatementJudgment judgment, int fileOffset, String name) {
     return judgment;
   }
 

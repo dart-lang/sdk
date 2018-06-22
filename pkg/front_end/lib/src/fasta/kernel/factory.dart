@@ -72,9 +72,9 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       Token rightParenthesis,
       Statement body,
       DartType guardType,
-      int exceptionOffset,
+      covariant Object exceptionLemma,
       DartType exceptionType,
-      int stackTraceOffset,
+      covariant Object stackTraceLemma,
       DartType stackTraceType);
 
   Expression conditionalExpression(
@@ -138,7 +138,7 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       Expression iterator,
       Token rightParenthesis,
       Statement body,
-      int variableOffset,
+      covariant Object variableLemma,
       DartType variableType,
       int writeOffset,
       DartType writeVariableType,
@@ -160,7 +160,10 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       Statement body);
 
   Statement functionDeclaration(
-      StatementJudgment judgment, int fileOffset, FunctionType inferredType);
+      covariant Object lemma, FunctionType inferredType);
+
+  Object functionDeclarationLemma(
+      StatementJudgment judgment, int fileOffset, String name);
 
   Expression functionExpression(
       ExpressionJudgment judgment, int fileOffset, DartType inferredType);

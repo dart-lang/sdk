@@ -85,9 +85,9 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       Token rightParenthesis,
       void body,
       DartType guardType,
-      int exceptionOffset,
+      covariant void exceptionLemma,
       DartType exceptionType,
-      int stackTraceOffset,
+      covariant void stackTraceLemma,
       DartType stackTraceType) {
     return judgment;
   }
@@ -163,7 +163,7 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       void iterator,
       Token rightParenthesis,
       void body,
-      int variableOffset,
+      covariant void variableLemma,
       DartType variableType,
       int writeOffset,
       DartType writeVariableType,
@@ -186,8 +186,11 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       void body) {}
 
   @override
-  void functionDeclaration(
-      StatementJudgment judgment, int fileOffset, FunctionType inferredType) {}
+  void functionDeclaration(covariant void lemma, FunctionType inferredType) {}
+
+  @override
+  void functionDeclarationLemma(
+      StatementJudgment judgment, int fileOffset, String name) {}
 
   @override
   void functionExpression(

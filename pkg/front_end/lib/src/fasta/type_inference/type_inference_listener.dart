@@ -82,9 +82,9 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
       Token rightParenthesis,
       void body,
       DartType guardType,
-      Location exceptionLocation,
+      covariant Object exceptionLemma,
       DartType exceptionType,
-      Location stackTraceLocation,
+      covariant Object stackTraceLemma,
       DartType stackTraceType);
 
   void conditionalExpression(
@@ -148,7 +148,7 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
       void iterator,
       Token rightParenthesis,
       void body,
-      Location variableLocation,
+      covariant Object variableLemma,
       DartType variableType,
       Location writeLocation,
       DartType writeVariableType,
@@ -169,8 +169,10 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
       Token rightParenthesis,
       void body);
 
-  void functionDeclaration(
-      StatementJudgment judgment, Location location, FunctionType inferredType);
+  void functionDeclaration(covariant Object lemma, FunctionType inferredType);
+
+  Object functionDeclarationLemma(
+      StatementJudgment judgment, Location location, String name);
 
   void functionExpression(
       ExpressionJudgment judgment, Location location, DartType inferredType);
@@ -486,9 +488,9 @@ class KernelTypeInferenceListener
       Token rightParenthesis,
       void body,
       DartType guardType,
-      exceptionLocation,
+      covariant void exceptionLemma,
       DartType exceptionType,
-      stackTraceLocation,
+      covariant void stackTraceLemma,
       DartType stackTraceType) {}
 
   @override
@@ -562,7 +564,7 @@ class KernelTypeInferenceListener
       void iterator,
       Token rightParenthesis,
       void body,
-      variableLocation,
+      covariant void variableLemma,
       DartType variableType,
       writeLocation,
       DartType writeVariableType,
@@ -585,8 +587,11 @@ class KernelTypeInferenceListener
       void body) {}
 
   @override
-  void functionDeclaration(
-      StatementJudgment judgment, location, FunctionType inferredType) {}
+  void functionDeclaration(covariant void lemma, FunctionType inferredType) {}
+
+  @override
+  void functionDeclarationLemma(
+      StatementJudgment judgment, location, String name) {}
 
   @override
   void functionExpression(

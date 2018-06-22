@@ -1177,7 +1177,7 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
           iterable,
           null,
           body,
-          variable?.fileOffset,
+          variable?.createLemma(inferrer),
           variable?.type,
           syntheticWrite.fileOffset,
           syntheticWrite.variable.type,
@@ -1196,7 +1196,7 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
           iterable,
           null,
           body,
-          variable?.fileOffset,
+          variable?.createLemma(inferrer),
           variable?.type,
           syntheticWrite.fileOffset,
           syntheticWrite.interfaceTarget?.setterType,
@@ -1215,7 +1215,7 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
           iterable,
           null,
           body,
-          variable?.fileOffset,
+          variable?.createLemma(inferrer),
           variable?.type,
           syntheticWrite.fileOffset,
           syntheticWrite.target.setterType,
@@ -1235,7 +1235,7 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
           null,
           null,
           null,
-          variable?.fileOffset,
+          variable?.createLemma(inferrer),
           variable?.type,
           null,
           null,
@@ -1283,8 +1283,11 @@ class ShadowFunctionDeclaration extends FunctionDeclaration
     implements StatementJudgment {
   bool _hasImplicitReturnType = false;
 
-  ShadowFunctionDeclaration(VariableDeclaration variable, FunctionNode function)
+  ShadowFunctionDeclaration(
+      VariableDeclarationJudgment variable, FunctionNode function)
       : super(variable, function);
+
+  VariableDeclarationJudgment get variableJudgment => variable;
 
   @override
   void infer<Expression, Statement, Initializer, Type>(
@@ -1300,7 +1303,8 @@ class ShadowFunctionDeclaration extends FunctionDeclaration
             ? (inferrer.strongMode ? null : const DynamicType())
             : function.returnType);
     var inferredType = variable.type = function.functionType;
-    inferrer.listener.functionDeclaration(this, fileOffset, inferredType);
+    inferrer.listener.functionDeclaration(
+        variableJudgment.createLemma(inferrer), inferredType);
   }
 
   static void setHasImplicitReturnType(
@@ -2632,9 +2636,9 @@ class CatchJudgment extends Catch {
         null,
         null,
         guard,
-        exceptionJudgment?.fileOffset,
+        exceptionJudgment?.createLemma(inferrer),
         exceptionJudgment?.type,
-        stackTraceJudgment?.fileOffset,
+        stackTraceJudgment?.createLemma(inferrer),
         stackTraceJudgment?.type);
   }
 }
@@ -3063,8 +3067,9 @@ class VariableDeclarationJudgment extends VariableDeclaration
         createLemma(inferrer), type, _implicitlyTyped ? inferredType : type);
   }
 
-  Object createLemma(ShadowTypeInferrer inferrer) => lemma ??=
-      inferrer.listener.variableDeclarationLemma(this, fileOffset, name);
+  Object createLemma(ShadowTypeInferrer inferrer) => lemma ??= _isLocalFunction
+      ? inferrer.listener.functionDeclarationLemma(this, fileOffset, name)
+      : inferrer.listener.variableDeclarationLemma(this, fileOffset, name);
 
   /// Determine whether the given [VariableDeclarationJudgment] had an implicit
   /// type.
