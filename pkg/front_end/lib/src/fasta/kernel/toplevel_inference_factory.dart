@@ -305,8 +305,8 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       DartType inferredType) {}
 
   @override
-  void namedFunctionExpression(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
+  void namedFunctionExpression(ExpressionJudgment judgment,
+      covariant void lemma, DartType inferredType) {}
 
   @override
   void not(ExpressionJudgment judgment, int fileOffset, Token operator,

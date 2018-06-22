@@ -364,9 +364,10 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
     // TODO(brianwilkerson) Implement this.
   }
 
-  void namedFunctionExpression(ExpressionJudgment judgment, Location location,
-          DartType inferredType) =>
-      genericExpression("namedFunctionExpression", location, inferredType);
+  void namedFunctionExpression(ExpressionJudgment judgment,
+          covariant VariableDeclarationLemma lemma, DartType inferredType) =>
+      genericExpression("namedFunctionExpression", lemma.fileOffset as Location,
+          inferredType);
 
   void not(ExpressionJudgment judgment, Location location, Token operator,
           void operand, DartType inferredType) =>

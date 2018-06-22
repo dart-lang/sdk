@@ -390,8 +390,8 @@ class KernelFactory
   }
 
   @override
-  Expression namedFunctionExpression(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {
+  Expression namedFunctionExpression(ExpressionJudgment judgment,
+      covariant VariableDeclaration lemma, DartType inferredType) {
     return judgment;
   }
 

@@ -267,8 +267,8 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       Substitution substitution,
       DartType inferredType);
 
-  Expression namedFunctionExpression(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType);
+  Expression namedFunctionExpression(ExpressionJudgment judgment,
+      covariant Object lemma, DartType inferredType);
 
   Expression not(ExpressionJudgment judgment, int fileOffset, Token operator,
       Expression operand, DartType inferredType);

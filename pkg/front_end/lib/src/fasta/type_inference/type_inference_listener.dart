@@ -271,8 +271,8 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
       Substitution substitution,
       DartType inferredType);
 
-  void namedFunctionExpression(
-      ExpressionJudgment judgment, Location location, DartType inferredType);
+  void namedFunctionExpression(ExpressionJudgment judgment,
+      covariant Object lemma, DartType inferredType);
 
   void not(ExpressionJudgment judgment, Location location, Token operator,
       void operand, DartType inferredType);
@@ -706,8 +706,8 @@ class KernelTypeInferenceListener
       DartType inferredType) {}
 
   @override
-  void namedFunctionExpression(
-      ExpressionJudgment judgment, location, DartType inferredType) {}
+  void namedFunctionExpression(ExpressionJudgment judgment,
+      covariant void lemma, DartType inferredType) {}
 
   @override
   void not(ExpressionJudgment judgment, location, Token operator, void operand,
