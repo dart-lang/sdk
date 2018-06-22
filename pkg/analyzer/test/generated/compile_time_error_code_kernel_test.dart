@@ -526,16 +526,16 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_constWithNonConst_with() async {
-    // Bad state: No type information for C at 72
-    await super.test_constWithNonConst_with();
+  test_constWithNonConst_in_const_context() async {
+    // Bad state: No data for () at 58
+    await super.test_constWithNonConst_in_const_context();
   }
 
   @override
   @failingTest
-  test_constWithNonConst_in_const_context() async {
-    // Bad state: No data for () at 58
-    await super.test_constWithNonConst_in_const_context();
+  test_constWithNonConst_with() async {
+    // Bad state: No type information for C at 72
+    await super.test_constWithNonConst_with();
   }
 
   @override
@@ -2252,6 +2252,13 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_optionalParameterInOperator_positional() async {
     // Expected 1 errors of type CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR, found 0
     await super.test_optionalParameterInOperator_positional();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_partOfNonPart() async {
+    await super.test_partOfNonPart();
   }
 
   @override

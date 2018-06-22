@@ -182,11 +182,7 @@ class LibraryAnalyzer {
   }
 
   Future<Map<FileState, UnitAnalysisResult>> _analyze2() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     return await _logger.runAsync('Analyze', () async {
-      // TODO(brianwilkerson) Determine whether this await is necessary.
-      await null;
       Map<FileState, CompilationUnit> units = {};
 
       // Parse all files.
@@ -209,7 +205,7 @@ class LibraryAnalyzer {
         _resolveDirectives(units);
 
         var libraryResult = await _logger.runAsync('Compile library', () {
-          return _frontEndCompiler.compile(_library.uri);
+          return _frontEndCompiler.getResolution(_library.uri);
         });
 
         _logger.run('Apply resolution', () {

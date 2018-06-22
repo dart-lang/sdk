@@ -80,22 +80,4 @@ int minified(int x, int y) => min(x, y);
 class OrganizeDirectivesTest_UseCFE extends OrganizeDirectivesTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_organize_directives() {
-    return super.test_organize_directives();
-  }
-
-  @failingTest
-  @override
-  test_organize_directives_no_changes() {
-    return super.test_organize_directives_no_changes();
-  }
-
-  @failingTest
-  @override
-  test_organize_directives_with_errors() {
-    return super.test_organize_directives_with_errors();
-  }
 }

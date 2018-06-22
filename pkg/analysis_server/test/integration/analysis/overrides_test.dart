@@ -129,7 +129,7 @@ class OverridesTest_UseCFE extends OverridesTest {
 
   @failingTest
   @override
-  test_overrides() {
+  solo_test_overrides() {
     return super.test_overrides();
   }
 }

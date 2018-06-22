@@ -84,15 +84,14 @@ class KernelContext {
       // TODO(brianwilkerson) Determine whether this await is necessary.
       await null;
       Uri targetUri = targetLibrary.uri;
-      LibraryCompilationResult compilationResult =
-          await compiler.compile(targetUri);
+      LibraryOutlineResult outlineResult = await compiler.getOutline(targetUri);
 
       // Remember Kernel libraries produced by the compiler.
       // There might be more libraries than we actually need.
       // This is probably OK, because we consume them lazily.
       var libraryMap = <String, kernel.Library>{};
       var libraryExistMap = <String, bool>{};
-      for (var library in compilationResult.component.libraries) {
+      for (var library in outlineResult.component.libraries) {
         String uriStr = library.importUri.toString();
         libraryMap[uriStr] = library;
         FileState file = fsState.getFileForUri(library.importUri);
@@ -116,8 +115,8 @@ class KernelContext {
       analysisContext.contentCache = new _ContentCacheWrapper(fsState);
 
       // Create the resynthesizer bound to the analysis context.
-      var resynthesizer = new KernelResynthesizer(analysisContext,
-          compilationResult.types, libraryMap, libraryExistMap);
+      var resynthesizer = new KernelResynthesizer(
+          analysisContext, outlineResult.types, libraryMap, libraryExistMap);
 
       return new KernelContext._(analysisContext, resynthesizer);
     });

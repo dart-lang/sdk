@@ -110,16 +110,4 @@ void main() {
 class UpdateContentTest_UseCFE extends UpdateContentTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_updateContent() {
-    return super.test_updateContent();
-  }
-
-  @failingTest
-  @override
-  test_updateContent_multipleAdds() {
-    return super.test_updateContent_multipleAdds();
-  }
 }

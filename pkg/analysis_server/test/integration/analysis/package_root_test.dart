@@ -83,10 +83,4 @@ f() {}
 class SetAnalysisRootsTest_UseCFE extends SetAnalysisRootsTest {
   @override
   bool get useCFE => true;
-
-  @override
-  @failingTest
-  test_package_root() {
-    return super.test_package_root();
-  }
 }

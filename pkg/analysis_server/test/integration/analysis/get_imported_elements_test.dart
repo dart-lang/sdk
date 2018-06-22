@@ -145,16 +145,4 @@ class AnalysisGetImportedElementsIntegrationTest_UseCFE
     extends AnalysisGetImportedElementsIntegrationTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_getImportedElements_none() {
-    return super.test_getImportedElements_none();
-  }
-
-  @failingTest
-  @override
-  test_getImportedElements_some() {
-    return super.test_getImportedElements_some();
-  }
 }

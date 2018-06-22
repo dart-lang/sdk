@@ -46,10 +46,4 @@ class IsPostfixCompletionApplicableTest_UseCFE
     extends IsPostfixCompletionApplicableTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_is_postfix_completion_applicable() {
-    return super.test_is_postfix_completion_applicable();
-  }
 }
