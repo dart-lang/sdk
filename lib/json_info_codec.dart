@@ -72,8 +72,20 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
     result.program = parseProgram(json['program']);
 
     if (json['deferredFiles'] != null) {
-      result.deferredFiles =
+      final deferredFilesMap =
           (json['deferredFiles'] as Map).cast<String, Map<String, dynamic>>();
+      for (final library in deferredFilesMap.values) {
+        if (library['imports'] != null) {
+          // The importMap needs to be typed as <String, List<String>>, but the
+          // json parser produces <String, dynamic>.
+          final importMap = library['imports'] as Map<String, dynamic>;
+          importMap.forEach((prefix, files) {
+            importMap[prefix] = (files as List<dynamic>).cast<String>();
+          });
+          library['imports'] = importMap.cast<String, List<String>>();
+        }
+      }
+      result.deferredFiles = deferredFilesMap;
     }
 
     // todo: version, etc
