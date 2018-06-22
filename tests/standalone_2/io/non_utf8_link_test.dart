@@ -19,8 +19,8 @@ Future main() async {
     Directory tmp =
         await Directory.systemTemp.createTemp('non_utf8_link_test_async');
     try {
-      Directory.current = await tmp.resolveSymbolicLinks();
-      final path = join(Directory.current.path, dirName);
+      tmp = new Directory(await tmp.resolveSymbolicLinks());
+      final path = join(tmp.path, dirName);
       final rawPath =
           utf8.encode(path).sublist(0, path.length - dirName.length).toList();
       rawPath.add(47);
@@ -46,7 +46,7 @@ Future main() async {
       }
       expect(await asyncLink.exists(), isTrue);
 
-      await for (final e in Directory.current.list()) {
+      await for (final e in tmp.list()) {
         if (e is Link) {
           // FIXME(bkonyi): reenable when rawPath is exposed.
           /*
@@ -77,8 +77,8 @@ Future main() async {
     Directory tmp =
         Directory.systemTemp.createTempSync('non_utf8_link_test_sync');
     try {
-      Directory.current = tmp.resolveSymbolicLinksSync();
-      final path = join(Directory.current.path, dirName);
+      tmp = new Directory(tmp.resolveSymbolicLinksSync());
+      final path = join(tmp.path, dirName);
       final rawPath =
           utf8.encode(path).sublist(0, path.length - dirName.length).toList();
       rawPath.add(47); // '/'
@@ -104,7 +104,7 @@ Future main() async {
       }
       expect(syncLink.existsSync(), isTrue);
 
-      for (final e in Directory.current.listSync()) {
+      for (final e in tmp.listSync()) {
         if (e is Link) {
           // FIXME(bkonyi): reenable when rawPath is exposed.
           /*

@@ -16,7 +16,6 @@ Future main() async {
     Directory tmp;
     try {
       tmp = await Directory.systemTemp.createTemp('non_utf8_file_test_async');
-      Directory.current = tmp;
       final rawPath = new Uint8List.fromList([182]);
       asyncFile = new File.fromRawPath(rawPath);
       if (Platform.isMacOS || Platform.isIOS) {
@@ -32,7 +31,7 @@ Future main() async {
       }
       expect(await asyncFile.exists(), isTrue);
 
-      for (final file in Directory.current.listSync()) {
+      for (final file in tmp.listSync()) {
         // FIXME(bkonyi): reenable when rawPath is exposed.
         /*
         if (Platform.isWindows) {
@@ -59,7 +58,6 @@ Future main() async {
     Directory tmp;
     try {
       tmp = Directory.systemTemp.createTempSync('non_utf8_file_test_sync');
-      Directory.current = tmp;
       final rawPath = new Uint8List.fromList([182]);
       syncFile = new File.fromRawPath(rawPath);
 
@@ -76,7 +74,7 @@ Future main() async {
       }
       expect(syncFile.existsSync(), isTrue);
 
-      for (final file in Directory.current.listSync()) {
+      for (final file in tmp.listSync()) {
         // FIXME(bkonyi): reenable when rawPath is exposed.
         /*
         if (Platform.isWindows) {
