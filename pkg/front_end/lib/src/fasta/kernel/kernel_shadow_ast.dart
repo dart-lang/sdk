@@ -2181,7 +2181,7 @@ class ShadowRedirectingInitializer extends RedirectingInitializer
 }
 
 /// Shadow object for [Rethrow].
-class ShadowRethrow extends Rethrow implements ExpressionJudgment {
+class RethrowJudgment extends Rethrow implements ExpressionJudgment {
   DartType inferredType;
 
   @override
@@ -2189,7 +2189,7 @@ class ShadowRethrow extends Rethrow implements ExpressionJudgment {
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    var inferredType = const BottomType();
+    inferredType = const BottomType();
     inferrer.listener.rethrow_(this, fileOffset, null, inferredType);
     return inferredType;
   }
