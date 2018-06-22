@@ -439,11 +439,20 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     }
     List<DartType> parameterTypes = <DartType>[];
     List<DartType> optionalParameterTypes = <DartType>[];
+
+    DartType getParameterType(ir.VariableDeclaration variable) {
+      if (variable.isCovariant || variable.isGenericCovariantImpl) {
+        // A covariant parameter has type `Object` in the method signature.
+        return commonElements.objectType;
+      }
+      return getDartType(variable.type);
+    }
+
     for (ir.VariableDeclaration variable in node.positionalParameters) {
       if (parameterTypes.length == node.requiredParameterCount) {
-        optionalParameterTypes.add(getDartType(variable.type));
+        optionalParameterTypes.add(getParameterType(variable));
       } else {
-        parameterTypes.add(getDartType(variable.type));
+        parameterTypes.add(getParameterType(variable));
       }
     }
     List<String> namedParameters = <String>[];
@@ -452,7 +461,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
         node.namedParameters.toList()..sort((a, b) => a.name.compareTo(b.name));
     for (ir.VariableDeclaration variable in sortedNamedParameters) {
       namedParameters.add(variable.name);
-      namedParameterTypes.add(getDartType(variable.type));
+      namedParameterTypes.add(getParameterType(variable));
     }
     List<FunctionTypeVariable> typeVariables;
     if (node.typeParameters.isNotEmpty && options.strongMode) {

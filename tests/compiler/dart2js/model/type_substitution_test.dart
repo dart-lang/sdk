@@ -108,10 +108,8 @@ void testSubstitution(
     ElementEnvironment elementEnvironment,
     List<DartType> arguments,
     List<DartType> parameters,
-    String name1,
-    String name2) {
-  DartType type1 = getType(elementEnvironment, name1);
-  DartType type2 = getType(elementEnvironment, name2);
+    DartType type1,
+    DartType type2) {
   DartType subst = type1.subst(arguments, parameters);
   Expect.equals(
       type2, subst, "$type1.subst($arguments,$parameters)=$subst != $type2");
@@ -119,57 +117,7 @@ void testSubstitution(
 
 testTypeSubstitution() async {
   var env = await TypeEnvironment.create(r"""
-      typedef void Typedef1<X,Y>(X x1, Y y2);
-      typedef void Typedef2<Z>(Z z1);
-
-      class Class<T,S> {
-        void void1() {}
-        void void2() {}
-        void dynamic1(dynamic a) {}
-        void dynamic2(dynamic b) {}
-        void int1(int a) {}
-        void int2(int a) {}
-        void String1(String a) {}
-        void String2(String a) {}
-        void ListInt1(List<int> a) {}
-        void ListInt2(List<int> b) {}
-        void ListT1(List<T> a) {}
-        void ListT2(List<int> b) {}
-        void ListS1(List<S> a) {}
-        void ListS2(List<String> b) {}
-        void ListListT1(List<List<T>> a) {}
-        void ListListT2(List<List<int>> b) {}
-        void ListRaw1(List a) {}
-        void ListRaw2(List b) {}
-        void ListDynamic1(List<dynamic> a) {}
-        void ListDynamic2(List<dynamic> b) {}
-        void MapIntString1(Map<T,S> a) {}
-        void MapIntString2(Map<int,String> b) {}
-        void MapTString1(Map<T,String> a) {}
-        void MapTString2(Map<int,String> b) {}
-        void MapDynamicString1(Map<dynamic,String> a) {}
-        void MapDynamicString2(Map<dynamic,String> b) {}
-        void TypeVarT1(T t1) {}
-        void TypeVarT2(int t2) {}
-        void TypeVarS1(S s1) {}
-        void TypeVarS2(String s2) {}
-        void Function1a(int a(String s1)) {}
-        void Function2a(int b(String s2)) {}
-        void Function1b(void a(T t1, S s1)) {}
-        void Function2b(void b(int t2, String s2)) {}
-        void Function1c(void a(dynamic t1, dynamic s1)) {}
-        void Function2c(void b(dynamic t2, dynamic s2)) {}
-        void Typedef1a(Typedef1<T,S> a) {}
-        void Typedef2a(Typedef1<int,String> b) {}
-        void Typedef1b(Typedef1<dynamic,dynamic> a) {}
-        void Typedef2b(Typedef1<dynamic,dynamic> b) {}
-        void Typedef1c(Typedef1 a) {}
-        void Typedef2c(Typedef1 b) {}
-        void Typedef1d(Typedef2<T> a) {}
-        void Typedef2d(Typedef2<int> b) {}
-        void Typedef1e(Typedef2<S> a) {}
-        void Typedef2e(Typedef2<String> b) {}
-      }
+      class Class<T,S> {}
       """);
   InterfaceType Class_T_S = env["Class"];
   Expect.isNotNull(Class_T_S);
@@ -184,82 +132,89 @@ testTypeSubstitution() async {
   Expect.isNotNull(S);
   Expect.isTrue(S.isTypeVariable);
 
-  DartType intType = env['int']; //getType(compiler, "int1");
+  DartType intType = env['int'];
   Expect.isNotNull(intType);
   Expect.isTrue(intType.isInterfaceType);
 
-  DartType StringType = env['String']; //getType(compiler, "String1");
+  DartType StringType = env['String'];
   Expect.isNotNull(StringType);
   Expect.isTrue(StringType.isInterfaceType);
+
+  ClassEntity ListClass = env.getElement('List');
+  ClassEntity MapClass = env.getElement('Map');
 
   List<DartType> parameters = <DartType>[T, S];
   List<DartType> arguments = <DartType>[intType, StringType];
 
-  // TODO(johnniwinther): Create types directly from strings to improve
-  // test readability.
-
-  testSubstitution(
-      env.elementEnvironment, arguments, parameters, "void1", "void2");
-  testSubstitution(
-      env.elementEnvironment, arguments, parameters, "dynamic1", "dynamic2");
-  testSubstitution(
-      env.elementEnvironment, arguments, parameters, "int1", "int2");
-  testSubstitution(
-      env.elementEnvironment, arguments, parameters, "String1", "String2");
-  testSubstitution(
-      env.elementEnvironment, arguments, parameters, "ListInt1", "ListInt2");
-  testSubstitution(
-      env.elementEnvironment, arguments, parameters, "ListT1", "ListT2");
-  testSubstitution(
-      env.elementEnvironment, arguments, parameters, "ListS1", "ListS2");
-  testSubstitution(env.elementEnvironment, arguments, parameters, "ListListT1",
-      "ListListT2");
-  testSubstitution(
-      env.elementEnvironment, arguments, parameters, "ListRaw1", "ListRaw2");
   testSubstitution(env.elementEnvironment, arguments, parameters,
-      "ListDynamic1", "ListDynamic2");
+      const VoidType(), const VoidType());
   testSubstitution(env.elementEnvironment, arguments, parameters,
-      "MapIntString1", "MapIntString2");
-  testSubstitution(env.elementEnvironment, arguments, parameters, "MapTString1",
-      "MapTString2");
+      const DynamicType(), const DynamicType());
+  testSubstitution(
+      env.elementEnvironment, arguments, parameters, intType, intType);
+  testSubstitution(
+      env.elementEnvironment, arguments, parameters, StringType, StringType);
   testSubstitution(env.elementEnvironment, arguments, parameters,
-      "MapDynamicString1", "MapDynamicString2");
+      instantiate(ListClass, [intType]), instantiate(ListClass, [intType]));
+  testSubstitution(env.elementEnvironment, arguments, parameters,
+      instantiate(ListClass, [T]), instantiate(ListClass, [intType]));
+  testSubstitution(env.elementEnvironment, arguments, parameters,
+      instantiate(ListClass, [S]), instantiate(ListClass, [StringType]));
   testSubstitution(
-      env.elementEnvironment, arguments, parameters, "TypeVarT1", "TypeVarT2");
+      env.elementEnvironment,
+      arguments,
+      parameters,
+      instantiate(ListClass, [
+        instantiate(ListClass, [T])
+      ]),
+      instantiate(ListClass, [
+        instantiate(ListClass, [intType])
+      ]));
   testSubstitution(
-      env.elementEnvironment, arguments, parameters, "TypeVarS1", "TypeVarS2");
-  testSubstitution(env.elementEnvironment, arguments, parameters, "Function1a",
-      "Function2a");
-  testSubstitution(env.elementEnvironment, arguments, parameters, "Function1b",
-      "Function2b");
-  testSubstitution(env.elementEnvironment, arguments, parameters, "Function1c",
-      "Function2c");
+      env.elementEnvironment,
+      arguments,
+      parameters,
+      instantiate(ListClass, [const DynamicType()]),
+      instantiate(ListClass, [const DynamicType()]));
   testSubstitution(
-      env.elementEnvironment, arguments, parameters, "Typedef1a", "Typedef2a");
+      env.elementEnvironment,
+      arguments,
+      parameters,
+      instantiate(MapClass, [intType, StringType]),
+      instantiate(MapClass, [intType, StringType]));
   testSubstitution(
-      env.elementEnvironment, arguments, parameters, "Typedef1b", "Typedef2b");
+      env.elementEnvironment,
+      arguments,
+      parameters,
+      instantiate(MapClass, [T, StringType]),
+      instantiate(MapClass, [intType, StringType]));
   testSubstitution(
-      env.elementEnvironment, arguments, parameters, "Typedef1c", "Typedef2c");
+      env.elementEnvironment,
+      arguments,
+      parameters,
+      instantiate(MapClass, [const DynamicType(), StringType]),
+      instantiate(MapClass, [const DynamicType(), StringType]));
+  testSubstitution(env.elementEnvironment, arguments, parameters, T, intType);
   testSubstitution(
-      env.elementEnvironment, arguments, parameters, "Typedef1d", "Typedef2d");
+      env.elementEnvironment, arguments, parameters, S, StringType);
   testSubstitution(
-      env.elementEnvironment, arguments, parameters, "Typedef1e", "Typedef2e");
-
-  // Substitution in unalias.
-  DartType Typedef2_int_String = getType(env.elementEnvironment, "Typedef2a");
-  Expect.isNotNull(Typedef2_int_String);
-  DartType Function_int_String = getType(env.elementEnvironment, "Function2b");
-  Expect.isNotNull(Function_int_String);
-  DartType unalias1 = Typedef2_int_String.unaliased;
-  Expect.equals(Function_int_String, unalias1,
-      '$Typedef2_int_String.unalias=$unalias1 != $Function_int_String');
-
-  DartType Typedef1 = getType(env.elementEnvironment, "Typedef1c");
-  Expect.isNotNull(Typedef1);
-  DartType Function_dynamic_dynamic =
-      getType(env.elementEnvironment, "Function1c");
-  Expect.isNotNull(Function_dynamic_dynamic);
-  DartType unalias2 = Typedef1.unaliased;
-  Expect.equals(Function_dynamic_dynamic, unalias2,
-      '$Typedef1.unalias=$unalias2 != $Function_dynamic_dynamic');
+      env.elementEnvironment,
+      arguments,
+      parameters,
+      new FunctionType(intType, [StringType], [], [], [], []),
+      new FunctionType(intType, [StringType], [], [], [], []));
+  testSubstitution(
+      env.elementEnvironment,
+      arguments,
+      parameters,
+      new FunctionType(const VoidType(), [T, S], [], [], [], []),
+      new FunctionType(
+          const VoidType(), [intType, StringType], [], [], [], []));
+  testSubstitution(
+      env.elementEnvironment,
+      arguments,
+      parameters,
+      new FunctionType(const VoidType(), [const DynamicType()], [], [], [], []),
+      new FunctionType(
+          const VoidType(), [const DynamicType()], [], [], [], []));
 }

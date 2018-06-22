@@ -16,10 +16,12 @@ class Class1 {
 }
 
 /*kernel.class: Class2:needsArgs*/
-/*omit.class: Class2:needsArgs*/
 /*strong.class: Class2:direct,explicit=[Class2.T],needsArgs*/
+/*omit.class: Class2:*/
 class Class2<T> {
-  /*element: Class2.method4:needsSignature*/
+  /*kernel.element: Class2.method4:needsSignature*/
+  /*strong.element: Class2.method4:*/
+  /*omit.element: Class2.method4:*/
   num method4(T n) => null;
 }
 

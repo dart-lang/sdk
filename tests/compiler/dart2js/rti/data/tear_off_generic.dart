@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*kernel.class: A:needsArgs*/
-/*omit.class: A:needsArgs*/
 /*strong.class: A:direct,explicit=[A.T],needsArgs*/
+/*omit.class: A:*/
 class A<T> {
-  /*element: A.m:needsSignature*/
+  /*kernel.element: A.m:needsSignature*/
+  /*strong.element: A.m:*/
+  /*omit.element: A.m:*/
   void m(T t) {}
 
   /*element: A.f:*/
