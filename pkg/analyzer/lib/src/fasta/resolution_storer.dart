@@ -161,18 +161,19 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
       Token rightParenthesis,
       void body,
       DartType guardType,
-      covariant VariableDeclarationLemma exceptionLemma,
+      covariant VariableDeclarationBinder exceptionBinder,
       DartType exceptionType,
-      covariant VariableDeclarationLemma stackTraceLemma,
+      covariant VariableDeclarationBinder stackTraceBinder,
       DartType stackTraceType) {
     _store(location, literalType: guardType);
 
-    if (exceptionLemma != null) {
-      _store(exceptionLemma.fileOffset as Location, literalType: exceptionType);
+    if (exceptionBinder != null) {
+      _store(exceptionBinder.fileOffset as Location,
+          literalType: exceptionType);
     }
 
-    if (stackTraceLemma != null) {
-      _store(stackTraceLemma.fileOffset as Location,
+    if (stackTraceBinder != null) {
+      _store(stackTraceBinder.fileOffset as Location,
           literalType: stackTraceType);
     }
   }
@@ -249,14 +250,14 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
       void iterator,
       Token rightParenthesis,
       void body,
-      covariant VariableDeclarationLemma loopVariableLemma,
+      covariant VariableDeclarationBinder loopVariableBinder,
       DartType loopVariableType,
       Location writeLocation,
       DartType writeType,
       Declaration writeVariable,
       Reference writeTarget) {
-    if (loopVariableLemma != null) {
-      _store(loopVariableLemma.fileOffset as Location,
+    if (loopVariableBinder != null) {
+      _store(loopVariableBinder.fileOffset as Location,
           inferredType: loopVariableType);
     } else {
       if (writeVariable != null) {
@@ -286,13 +287,13 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
       void body) {}
 
   void functionDeclaration(
-      covariant VariableDeclarationLemma lemma, FunctionType inferredType) {
-    _store(lemma.fileOffset as Location, inferredType: inferredType);
+      covariant VariableDeclarationBinder binder, FunctionType inferredType) {
+    _store(binder.fileOffset as Location, inferredType: inferredType);
   }
 
-  Object functionDeclarationLemma(
+  Object binderForFunctionDeclaration(
       StatementJudgment judgment, int fileOffset, String name) {
-    return new VariableDeclarationLemma(fileOffset);
+    return new VariableDeclarationBinder(fileOffset);
   }
 
   void functionExpression(ExpressionJudgment judgment, Location location,
@@ -365,9 +366,9 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
   }
 
   void namedFunctionExpression(ExpressionJudgment judgment,
-          covariant VariableDeclarationLemma lemma, DartType inferredType) =>
-      genericExpression("namedFunctionExpression", lemma.fileOffset as Location,
-          inferredType);
+          covariant VariableDeclarationBinder binder, DartType inferredType) =>
+      genericExpression("namedFunctionExpression",
+          binder.fileOffset as Location, inferredType);
 
   void not(ExpressionJudgment judgment, Location location, Token operator,
           void operand, DartType inferredType) =>
@@ -609,35 +610,35 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
         inferredType: inferredType);
   }
 
-  void variableDeclaration(covariant VariableDeclarationLemma lemma,
+  void variableDeclaration(covariant VariableDeclarationBinder binder,
       DartType statementType, DartType inferredType) {
-    _store(lemma.fileOffset as Location,
+    _store(binder.fileOffset as Location,
         literalType: statementType, inferredType: inferredType);
   }
 
-  Object variableDeclarationLemma(
+  Object binderForVariableDeclaration(
       StatementJudgment judgment, int fileOffset, String name) {
-    return new VariableDeclarationLemma(fileOffset);
+    return new VariableDeclarationBinder(fileOffset);
   }
 
   void variableGet(
       ExpressionJudgment judgment,
       Location location,
       bool isInCascade,
-      covariant VariableDeclarationLemma variableLemma,
+      covariant VariableDeclarationBinder variableBinder,
       DartType inferredType) {
     if (isInCascade) {
       return;
     }
     _store(location,
-        declaration: variableLemma.fileOffset as Declaration,
+        declaration: variableBinder.fileOffset as Declaration,
         inferredType: inferredType);
   }
 
   void variableSet(
           ExpressionJudgment judgment,
           Location location,
-          covariant VariableDeclarationLemma variableLemma,
+          covariant VariableDeclarationBinder variableBinder,
           DartType inferredType) =>
       genericExpression("variableSet", location, inferredType);
 
@@ -665,10 +666,10 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
 }
 
 /// TODO(paulberry): eventually just use the element directly.
-class VariableDeclarationLemma {
+class VariableDeclarationBinder {
   final int fileOffset;
 
-  VariableDeclarationLemma(this.fileOffset);
+  VariableDeclarationBinder(this.fileOffset);
 }
 
 /// A [DartType] wrapper around invocation type arguments.

@@ -108,9 +108,9 @@ class KernelFactory
       Token rightParenthesis,
       Statement body,
       DartType guardType,
-      covariant VariableDeclaration exceptionLemma,
+      covariant VariableDeclaration exceptionBinder,
       DartType exceptionType,
-      covariant VariableDeclaration stackTraceLemma,
+      covariant VariableDeclaration stackTraceBinder,
       DartType stackTraceType) {
     return judgment;
   }
@@ -204,7 +204,7 @@ class KernelFactory
       Expression iterator,
       Token rightParenthesis,
       Statement body,
-      covariant Object loopVariableLemma,
+      covariant Object loopVariableBinder,
       DartType loopVariableType,
       int writeOffset,
       DartType writeVariableType,
@@ -232,12 +232,12 @@ class KernelFactory
 
   @override
   Statement functionDeclaration(
-      covariant VariableDeclaration lemma, FunctionType inferredType) {
-    return lemma;
+      covariant VariableDeclaration binder, FunctionType inferredType) {
+    return binder;
   }
 
   @override
-  Object functionDeclarationLemma(
+  Object binderForFunctionDeclaration(
       StatementJudgment judgment, int fileOffset, String name) {
     return judgment;
   }
@@ -391,7 +391,7 @@ class KernelFactory
 
   @override
   Expression namedFunctionExpression(ExpressionJudgment judgment,
-      covariant VariableDeclaration lemma, DartType inferredType) {
+      covariant VariableDeclaration binder, DartType inferredType) {
     return judgment;
   }
 
@@ -590,13 +590,13 @@ class KernelFactory
   }
 
   @override
-  Statement variableDeclaration(covariant VariableDeclaration lemma,
+  Statement variableDeclaration(covariant VariableDeclaration binder,
       DartType statementType, DartType inferredType) {
-    return lemma;
+    return binder;
   }
 
   @override
-  Object variableDeclarationLemma(
+  Object binderForVariableDeclaration(
       StatementJudgment judgment, int fileOffset, String name) {
     return judgment;
   }
@@ -606,14 +606,14 @@ class KernelFactory
       ExpressionJudgment judgment,
       int fileOffset,
       bool isInCascade,
-      covariant VariableDeclaration variableLemma,
+      covariant VariableDeclaration variableBinder,
       DartType inferredType) {
     return judgment;
   }
 
   @override
   Expression variableSet(ExpressionJudgment judgment, int fileOffset,
-      covariant VariableDeclaration variableLemma, DartType inferredType) {
+      covariant VariableDeclaration variableBinder, DartType inferredType) {
     return judgment;
   }
 

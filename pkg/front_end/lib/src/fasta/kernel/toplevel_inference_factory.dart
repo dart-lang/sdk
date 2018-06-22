@@ -85,9 +85,9 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       Token rightParenthesis,
       void body,
       DartType guardType,
-      covariant void exceptionLemma,
+      covariant void exceptionBinder,
       DartType exceptionType,
-      covariant void stackTraceLemma,
+      covariant void stackTraceBinder,
       DartType stackTraceType) {
     return judgment;
   }
@@ -163,7 +163,7 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       void iterator,
       Token rightParenthesis,
       void body,
-      covariant void loopVariableLemma,
+      covariant void loopVariableBinder,
       DartType loopVariableType,
       int writeOffset,
       DartType writeVariableType,
@@ -186,10 +186,10 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       void body) {}
 
   @override
-  void functionDeclaration(covariant void lemma, FunctionType inferredType) {}
+  void functionDeclaration(covariant void binder, FunctionType inferredType) {}
 
   @override
-  void functionDeclarationLemma(
+  void binderForFunctionDeclaration(
       StatementJudgment judgment, int fileOffset, String name) {}
 
   @override
@@ -306,7 +306,7 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
 
   @override
   void namedFunctionExpression(ExpressionJudgment judgment,
-      covariant void lemma, DartType inferredType) {}
+      covariant void binder, DartType inferredType) {}
 
   @override
   void not(ExpressionJudgment judgment, int fileOffset, Token operator,
@@ -452,18 +452,18 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
 
   @override
   void variableDeclaration(
-      covariant void lemma, DartType statementType, DartType inferredType) {}
+      covariant void binder, DartType statementType, DartType inferredType) {}
 
-  void variableDeclarationLemma(
+  void binderForVariableDeclaration(
       StatementJudgment judgment, int fileOffset, String name) {}
 
   @override
   void variableGet(ExpressionJudgment judgment, int fileOffset,
-      bool isInCascade, covariant void variableLemma, DartType inferredType) {}
+      bool isInCascade, covariant void variableBinder, DartType inferredType) {}
 
   @override
   void variableSet(ExpressionJudgment judgment, int fileOffset,
-      covariant void variableLemma, DartType inferredType) {}
+      covariant void variableBinder, DartType inferredType) {}
 
   @override
   void whileStatement(

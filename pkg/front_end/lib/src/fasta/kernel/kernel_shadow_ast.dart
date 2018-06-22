@@ -1199,7 +1199,7 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
           iterable,
           null,
           body,
-          variable?.createLemma(inferrer),
+          variable?.createBinder(inferrer),
           variable?.type,
           syntheticWrite.fileOffset,
           syntheticWrite.variable.type,
@@ -1218,7 +1218,7 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
           iterable,
           null,
           body,
-          variable?.createLemma(inferrer),
+          variable?.createBinder(inferrer),
           variable?.type,
           syntheticWrite.fileOffset,
           syntheticWrite.interfaceTarget?.setterType,
@@ -1237,7 +1237,7 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
           iterable,
           null,
           body,
-          variable?.createLemma(inferrer),
+          variable?.createBinder(inferrer),
           variable?.type,
           syntheticWrite.fileOffset,
           syntheticWrite.target.setterType,
@@ -1257,7 +1257,7 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
           null,
           null,
           null,
-          variable?.createLemma(inferrer),
+          variable?.createBinder(inferrer),
           variable?.type,
           null,
           null,
@@ -1354,7 +1354,7 @@ class FunctionDeclarationJudgment extends FunctionDeclaration
         inferrer, factory, _hasImplicitReturnType, fileOffset);
     var inferredType = variable.type = function.functionType;
     inferrer.listener.functionDeclaration(
-        variableJudgment.createLemma(inferrer), inferredType);
+        variableJudgment.createBinder(inferrer), inferredType);
   }
 
   static void setHasImplicitReturnType(
@@ -2700,9 +2700,9 @@ class CatchJudgment extends Catch {
         null,
         null,
         guard,
-        exceptionJudgment?.createLemma(inferrer),
+        exceptionJudgment?.createBinder(inferrer),
         exceptionJudgment?.type,
-        stackTraceJudgment?.createLemma(inferrer),
+        stackTraceJudgment?.createBinder(inferrer),
         stackTraceJudgment?.type);
   }
 }
@@ -3041,7 +3041,7 @@ class VariableDeclarationJudgment extends VariableDeclaration
 
   final bool _isLocalFunction;
 
-  Object lemma;
+  Object binder;
 
   VariableDeclarationJudgment(String name, this._functionNestingLevel,
       {Expression initializer,
@@ -3128,12 +3128,15 @@ class VariableDeclarationJudgment extends VariableDeclaration
       }
     }
     inferrer.listener.variableDeclaration(
-        createLemma(inferrer), type, _implicitlyTyped ? inferredType : type);
+        createBinder(inferrer), type, _implicitlyTyped ? inferredType : type);
   }
 
-  Object createLemma(ShadowTypeInferrer inferrer) => lemma ??= _isLocalFunction
-      ? inferrer.listener.functionDeclarationLemma(this, fileOffset, name)
-      : inferrer.listener.variableDeclarationLemma(this, fileOffset, name);
+  Object createBinder(ShadowTypeInferrer inferrer) =>
+      binder ??= _isLocalFunction
+          ? inferrer.listener
+              .binderForFunctionDeclaration(this, fileOffset, name)
+          : inferrer.listener
+              .binderForVariableDeclaration(this, fileOffset, name);
 
   /// Determine whether the given [VariableDeclarationJudgment] had an implicit
   /// type.
@@ -3198,7 +3201,7 @@ class VariableGetJudgment extends VariableGet implements ExpressionJudgment {
     }
     inferredType = type;
     inferrer.listener.variableGet(this, fileOffset, _isInCascade(),
-        variable.createLemma(inferrer), inferredType);
+        variable.createBinder(inferrer), inferredType);
     return inferredType;
   }
 }

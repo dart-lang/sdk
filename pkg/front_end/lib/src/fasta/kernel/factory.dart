@@ -72,9 +72,9 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       Token rightParenthesis,
       Statement body,
       DartType guardType,
-      covariant Object exceptionLemma,
+      covariant Object exceptionBinder,
       DartType exceptionType,
-      covariant Object stackTraceLemma,
+      covariant Object stackTraceBinder,
       DartType stackTraceType);
 
   Expression conditionalExpression(
@@ -138,7 +138,7 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       Expression iterator,
       Token rightParenthesis,
       Statement body,
-      covariant Object loopVariableLemma,
+      covariant Object loopVariableBinder,
       DartType loopVariableType,
       int writeOffset,
       DartType writeVariableType,
@@ -160,9 +160,9 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       Statement body);
 
   Statement functionDeclaration(
-      covariant Object lemma, FunctionType inferredType);
+      covariant Object binder, FunctionType inferredType);
 
-  Object functionDeclarationLemma(
+  Object binderForFunctionDeclaration(
       StatementJudgment judgment, int fileOffset, String name);
 
   Expression functionExpression(
@@ -268,7 +268,7 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       DartType inferredType);
 
   Expression namedFunctionExpression(ExpressionJudgment judgment,
-      covariant Object lemma, DartType inferredType);
+      covariant Object binder, DartType inferredType);
 
   Expression not(ExpressionJudgment judgment, int fileOffset, Token operator,
       Expression operand, DartType inferredType);
@@ -390,16 +390,16 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       DartType inferredType);
 
   Statement variableDeclaration(
-      covariant Object lemma, DartType statementType, DartType inferredType);
+      covariant Object binder, DartType statementType, DartType inferredType);
 
-  Object variableDeclarationLemma(
+  Object binderForVariableDeclaration(
       StatementJudgment judgment, int fileOffset, String name);
 
   Expression variableGet(ExpressionJudgment judgment, int fileOffset,
-      bool isInCascade, covariant Object variableLemma, DartType inferredType);
+      bool isInCascade, covariant Object variableBinder, DartType inferredType);
 
   Expression variableSet(ExpressionJudgment judgment, int fileOffset,
-      covariant Object variableLemma, DartType inferredType);
+      covariant Object variableBinder, DartType inferredType);
 
   Statement whileStatement(
       StatementJudgment judgment,

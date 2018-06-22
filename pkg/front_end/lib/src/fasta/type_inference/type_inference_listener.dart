@@ -82,9 +82,9 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
       Token rightParenthesis,
       void body,
       DartType guardType,
-      covariant Object exceptionLemma,
+      covariant Object exceptionBinder,
       DartType exceptionType,
-      covariant Object stackTraceLemma,
+      covariant Object stackTraceBinder,
       DartType stackTraceType);
 
   void conditionalExpression(
@@ -148,7 +148,7 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
       void iterator,
       Token rightParenthesis,
       void body,
-      covariant Object loopVariableLemma,
+      covariant Object loopVariableBinder,
       DartType loopVariableType,
       Location writeLocation,
       DartType writeVariableType,
@@ -169,9 +169,9 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
       Token rightParenthesis,
       void body);
 
-  void functionDeclaration(covariant Object lemma, FunctionType inferredType);
+  void functionDeclaration(covariant Object binder, FunctionType inferredType);
 
-  Object functionDeclarationLemma(
+  Object binderForFunctionDeclaration(
       StatementJudgment judgment, Location location, String name);
 
   void functionExpression(
@@ -272,7 +272,7 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
       DartType inferredType);
 
   void namedFunctionExpression(ExpressionJudgment judgment,
-      covariant Object lemma, DartType inferredType);
+      covariant Object binder, DartType inferredType);
 
   void not(ExpressionJudgment judgment, Location location, Token operator,
       void operand, DartType inferredType);
@@ -394,16 +394,16 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
       DartType inferredType);
 
   void variableDeclaration(
-      covariant Object lemma, DartType statementType, DartType inferredType);
+      covariant Object binder, DartType statementType, DartType inferredType);
 
-  Object variableDeclarationLemma(
+  Object binderForVariableDeclaration(
       StatementJudgment judgment, int fileOffset, String name);
 
   void variableGet(ExpressionJudgment judgment, Location location,
-      bool isInCascade, covariant Object variableLemma, DartType inferredType);
+      bool isInCascade, covariant Object variableBinder, DartType inferredType);
 
   void variableSet(ExpressionJudgment judgment, Location location,
-      covariant Object variableLemma, DartType inferredType);
+      covariant Object variableBinder, DartType inferredType);
 
   void whileStatement(
       StatementJudgment judgment,
@@ -489,9 +489,9 @@ class KernelTypeInferenceListener
       Token rightParenthesis,
       void body,
       DartType guardType,
-      covariant void exceptionLemma,
+      covariant void exceptionBinder,
       DartType exceptionType,
-      covariant void stackTraceLemma,
+      covariant void stackTraceBinder,
       DartType stackTraceType) {}
 
   @override
@@ -565,7 +565,7 @@ class KernelTypeInferenceListener
       void iterator,
       Token rightParenthesis,
       void body,
-      covariant void loopVariableLemma,
+      covariant void loopVariableBinder,
       DartType loopVariableType,
       writeLocation,
       DartType writeVariableType,
@@ -588,10 +588,10 @@ class KernelTypeInferenceListener
       void body) {}
 
   @override
-  void functionDeclaration(covariant void lemma, FunctionType inferredType) {}
+  void functionDeclaration(covariant void binder, FunctionType inferredType) {}
 
   @override
-  void functionDeclarationLemma(
+  void binderForFunctionDeclaration(
       StatementJudgment judgment, location, String name) {}
 
   @override
@@ -707,7 +707,7 @@ class KernelTypeInferenceListener
 
   @override
   void namedFunctionExpression(ExpressionJudgment judgment,
-      covariant void lemma, DartType inferredType) {}
+      covariant void binder, DartType inferredType) {}
 
   @override
   void not(ExpressionJudgment judgment, location, Token operator, void operand,
@@ -833,10 +833,10 @@ class KernelTypeInferenceListener
 
   @override
   void variableDeclaration(
-      covariant void lemma, DartType statementType, DartType inferredType) {}
+      covariant void binder, DartType statementType, DartType inferredType) {}
 
   @override
-  void variableDeclarationLemma(
+  void binderForVariableDeclaration(
       StatementJudgment judgment, int fileOffset, String name) {}
 
   @override
@@ -845,7 +845,7 @@ class KernelTypeInferenceListener
 
   @override
   void variableSet(ExpressionJudgment judgment, location,
-      covariant void variableLemma, DartType inferredType) {}
+      covariant void variableBinder, DartType inferredType) {}
 
   @override
   void whileStatement(
