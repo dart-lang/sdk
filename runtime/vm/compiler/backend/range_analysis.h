@@ -605,7 +605,7 @@ class RangeAnalysis : public ValueObject {
 
   GrowableArray<BinaryInt64OpInstr*> binary_int64_ops_;
 
-  GrowableArray<ShiftInt64OpInstr*> shift_int64_ops_;
+  GrowableArray<ShiftIntegerOpInstr*> shift_int64_ops_;
 
   // All CheckArrayBound instructions.
   GrowableArray<CheckArrayBoundInstr*> bounds_checks_;
