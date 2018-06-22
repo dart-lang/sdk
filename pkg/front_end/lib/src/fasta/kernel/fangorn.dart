@@ -93,7 +93,7 @@ import 'kernel_shadow_ast.dart'
         ListLiteralJudgment,
         ShadowLogicalExpression,
         ShadowMapLiteral,
-        ShadowNot,
+        NotJudgment,
         RethrowJudgment,
         ReturnJudgment,
         StringConcatenationJudgment,
@@ -447,7 +447,7 @@ class Fangorn extends Forest {
 
   @override
   Expression notExpression(Expression operand, Token token) {
-    return new ShadowNot(operand)..fileOffset = offsetForToken(token);
+    return new NotJudgment(operand)..fileOffset = offsetForToken(token);
   }
 
   @override

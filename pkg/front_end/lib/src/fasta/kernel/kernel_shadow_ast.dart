@@ -1997,22 +1997,25 @@ class NamedFunctionExpressionJudgment extends Let
 }
 
 /// Shadow object for [Not].
-class ShadowNot extends Not implements ExpressionJudgment {
+class NotJudgment extends Not implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowNot(Expression operand) : super(operand);
+  NotJudgment(ExpressionJudgment operand) : super(operand);
+
+  ExpressionJudgment get judgment => operand;
 
   @override
   DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
+    var judgment = this.judgment;
     // First infer the receiver so we can look up the method that was invoked.
     var boolType = inferrer.coreTypes.boolClass.rawType;
-    var actualType = inferrer.inferExpression(
-        factory, operand, boolType, !inferrer.isTopLevel);
-    inferrer.ensureAssignable(boolType, actualType, operand, fileOffset);
-    DartType inferredType = boolType;
+    inferrer.inferExpression(factory, judgment, boolType, !inferrer.isTopLevel);
+    inferrer.ensureAssignable(
+        boolType, judgment.inferredType, operand, fileOffset);
+    inferredType = boolType;
     inferrer.listener.not(this, fileOffset, null, null, inferredType);
     return inferredType;
   }
