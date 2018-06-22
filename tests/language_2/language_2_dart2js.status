@@ -577,8 +577,6 @@ cyclic_type_test/00: RuntimeError
 cyclic_type_test/02: RuntimeError
 cyclic_type_test/03: RuntimeError
 cyclic_type_test/04: RuntimeError
-cyclic_typedef_test/10: Crash # Crash when compiling file:///usr/local/google/home/sra/Dart/sdk/out/ReleaseX64/generated_tests/language_2/cyclic_typedef_test_10.dart,
-cyclic_typedef_test/11: Crash # Crash when compiling file:///usr/local/google/home/sra/Dart/sdk/out/ReleaseX64/generated_tests/language_2/cyclic_typedef_test_11.dart,
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
@@ -772,7 +770,6 @@ parser_quirks_test: CompileTimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_reflection_test: RuntimeError
-regress_23089_test: Crash # Crash when compiling file:///usr/local/google/home/sra/Dart/sdk/tests/language_2/regress_23089_test.dart,
 regress_23408_test: CompileTimeError
 regress_24283_test: RuntimeError # non JS number semantics
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
@@ -965,8 +962,6 @@ cyclic_type_variable_test/01: MissingCompileTimeError
 cyclic_type_variable_test/02: MissingCompileTimeError
 cyclic_type_variable_test/03: MissingCompileTimeError
 cyclic_type_variable_test/04: MissingCompileTimeError
-cyclic_typedef_test/10: Crash # Stack Overflow
-cyclic_typedef_test/11: Crash # Stack Overflow
 default_factory2_test/01: MissingCompileTimeError
 default_factory_test/01: MissingCompileTimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
@@ -1245,7 +1240,6 @@ redirecting_factory_malbounded_test/01: MissingCompileTimeError
 redirecting_factory_reflection_test: RuntimeError
 regress_13462_1_test: RuntimeError
 regress_18535_test: RuntimeError
-regress_23089_test: Crash # Stack Overflow
 regress_23408_test: CompileTimeError
 regress_24283_test: RuntimeError # non JS number semantics
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
@@ -1464,8 +1458,6 @@ cyclic_type_variable_test/01: MissingCompileTimeError
 cyclic_type_variable_test/02: MissingCompileTimeError
 cyclic_type_variable_test/03: MissingCompileTimeError
 cyclic_type_variable_test/04: MissingCompileTimeError
-cyclic_typedef_test/10: Crash # Stack Overflow
-cyclic_typedef_test/11: Crash # Stack Overflow
 default_factory2_test/01: MissingCompileTimeError
 default_factory_test/01: MissingCompileTimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
@@ -1749,7 +1741,6 @@ redirecting_factory_reflection_test: RuntimeError
 regress_13462_1_test: RuntimeError
 regress_18535_test: RuntimeError
 regress_21795_test: RuntimeError # Issue 12605
-regress_23089_test: Crash # Stack Overflow
 regress_23408_test: CompileTimeError
 regress_24283_test: RuntimeError, OK # Requires 64 bit numbers.
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant

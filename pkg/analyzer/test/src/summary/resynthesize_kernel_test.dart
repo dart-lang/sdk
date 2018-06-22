@@ -1400,16 +1400,6 @@ class C {
   }
 
   @failingTest
-  test_typedef_type_parameters_bound_recursive() async {
-    await super.test_typedef_type_parameters_bound_recursive();
-  }
-
-  @failingTest
-  test_typedef_type_parameters_bound_recursive2() async {
-    await super.test_typedef_type_parameters_bound_recursive2();
-  }
-
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30267')
   test_unresolved_annotation_instanceCreation_argument_super() async {
     await super.test_unresolved_annotation_instanceCreation_argument_super();

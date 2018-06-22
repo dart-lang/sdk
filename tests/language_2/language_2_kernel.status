@@ -48,8 +48,6 @@ ct_const_test: RuntimeError
 cyclic_type2_test: CompileTimeError
 cyclic_type_test/02: CompileTimeError
 cyclic_type_test/04: CompileTimeError
-cyclic_typedef_test/10: DartkCrash
-cyclic_typedef_test/11: DartkCrash
 deferred_call_empty_before_load_test: RuntimeError
 deferred_load_constants_test/none: RuntimeError
 deferred_not_loaded_check_test: RuntimeError
@@ -141,7 +139,6 @@ override_inheritance_method_test/28: CompileTimeError
 override_inheritance_method_test/29: CompileTimeError
 parser_quirks_test: CompileTimeError
 regress_22443_test: RuntimeError
-regress_23089_test: DartkCrash
 regress_23408_test: CompileTimeError
 regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError
@@ -740,8 +737,6 @@ ct_const_test: RuntimeError
 cyclic_type2_test: RuntimeError, CompileTimeError
 cyclic_type_test/02: RuntimeError, CompileTimeError
 cyclic_type_test/04: RuntimeError, CompileTimeError
-cyclic_typedef_test/10: Crash # Issue 32416.
-cyclic_typedef_test/11: Crash # Issue 32416.
 deferred_call_empty_before_load_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
 deferred_load_constants_test/none: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
 deferred_load_library_wrong_args_test/01: Pass # Passes by mistake. KernelVM bug: Deferred loading kernel issue 30273.
@@ -817,7 +812,6 @@ parser_quirks_test: CompileTimeError # Issue 31533
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 regress_22443_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
-regress_23089_test: Crash # Issue 32417.
 regress_23408_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 regress_23408_test: RuntimeError
 regress_29025_test: CompileTimeError # Issue 31402 (Variable declaration)
@@ -1037,8 +1031,6 @@ ct_const_test: RuntimeError
 cyclic_type2_test: Fail, OK
 cyclic_type_test/02: Fail, OK # Non-contractive types are not supported in the vm.
 cyclic_type_test/04: Fail, OK
-cyclic_typedef_test/10: Crash # Issue 32416.
-cyclic_typedef_test/11: Crash # Issue 32416.
 deferred_call_empty_before_load_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_load_constants_test/none: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
 deferred_load_library_wrong_args_test/01: Pass # Passes by mistake. KernelVM bug: Deferred loading kernel issue 30273.
@@ -1167,7 +1159,6 @@ regress_13462_0_test: SkipByDesign
 regress_13462_1_test: SkipByDesign
 regress_18535_test: SkipByDesign
 regress_22443_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
-regress_23089_test: Crash # Issue 32417.
 regress_23408_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 regress_23408_test: RuntimeError
 regress_28255_test: SkipByDesign
@@ -1280,8 +1271,6 @@ config_import_corelib_test: CompileTimeError
 config_import_test: Crash
 const_constructor3_test/04: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
-cyclic_typedef_test/10: Crash
-cyclic_typedef_test/11: Crash
 deferred_load_library_wrong_args_test/01: CompileTimeError
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
@@ -1364,7 +1353,6 @@ override_inheritance_generic_test/02: CompileTimeError
 override_inheritance_method_test/28: CompileTimeError
 override_inheritance_method_test/29: CompileTimeError
 parser_quirks_test: CompileTimeError
-regress_23089_test: Crash
 regress_23408_test: CompileTimeError
 regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError
@@ -1442,6 +1430,7 @@ prefix_transitive_import_prefix_test/02: MissingCompileTimeError
 prefix_transitive_import_prefix_test/03: MissingCompileTimeError
 prefix_transitive_import_test/01: MissingCompileTimeError
 prefix_transitive_import_test/02: MissingCompileTimeError
+regress_23089_test: MissingCompileTimeError
 setter_override2_test/02: MissingCompileTimeError
 super_no_such_method4_test/01: MissingCompileTimeError # Requires Dart 2 semantics. See http://dartbug.com/33380.
 super_no_such_method5_test/01: MissingCompileTimeError # Requires Dart 2 semantics. See http://dartbug.com/33380.
@@ -2077,7 +2066,6 @@ regress_21912_test/01: MissingCompileTimeError
 regress_21912_test/02: MissingCompileTimeError
 regress_22438_test: MissingCompileTimeError
 regress_22936_test: MissingCompileTimeError
-regress_23089_test: MissingCompileTimeError
 regress_26133_test: MissingCompileTimeError
 regress_27572_test: MissingCompileTimeError
 regress_28217_test/01: MissingCompileTimeError
