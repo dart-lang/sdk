@@ -20,6 +20,8 @@
 
 import 'dart:core' hide MapEntry;
 
+import 'package:front_end/src/scanner/token.dart' show Token;
+
 import 'package:kernel/ast.dart' as kernel show Expression, Initializer;
 
 import 'package:kernel/ast.dart' hide InvalidExpression, InvalidInitializer;
@@ -157,9 +159,12 @@ class ArgumentsJudgment extends Arguments {
 
 /// Shadow object for [AsExpression].
 class AsJudgment extends AsExpression implements ExpressionJudgment {
+  final Token asOperator;
+
   DartType inferredType;
 
-  AsJudgment(Expression operand, DartType type) : super(operand, type);
+  AsJudgment(Expression operand, this.asOperator, DartType type)
+      : super(operand, type);
 
   ExpressionJudgment get judgment => operand;
 
@@ -171,7 +176,7 @@ class AsJudgment extends AsExpression implements ExpressionJudgment {
     inferrer.inferExpression(factory, judgment, const UnknownType(), false);
     inferredType = type;
     inferrer.listener
-        .asExpression(this, fileOffset, null, null, null, inferredType);
+        .asExpression(this, fileOffset, null, asOperator, null, inferredType);
     return inferredType;
   }
 }
@@ -179,7 +184,14 @@ class AsJudgment extends AsExpression implements ExpressionJudgment {
 /// Concrete shadow object representing an assert initializer in kernel form.
 class AssertInitializerJudgment extends AssertInitializer
     implements InitializerJudgment {
-  AssertInitializerJudgment(AssertStatement statement) : super(statement);
+  final Token assertKeyword;
+  final Token leftParenthesis;
+  final Token comma;
+  final Token rightParenthesis;
+
+  AssertInitializerJudgment(AssertStatement statement, this.assertKeyword,
+      this.leftParenthesis, this.comma, this.rightParenthesis)
+      : super(statement);
 
   AssertStatementJudgment get judgment => statement;
 
@@ -188,15 +200,22 @@ class AssertInitializerJudgment extends AssertInitializer
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory) {
     inferrer.inferStatement(factory, judgment);
-    inferrer.listener.assertInitializer(
-        this, fileOffset, null, null, null, null, null, null);
+    inferrer.listener.assertInitializer(this, fileOffset, assertKeyword,
+        leftParenthesis, null, comma, null, rightParenthesis);
   }
 }
 
 /// Concrete shadow object representing an assertion statement in kernel form.
 class AssertStatementJudgment extends AssertStatement
     implements StatementJudgment {
-  AssertStatementJudgment(Expression condition,
+  final Token assertKeyword;
+  final Token leftParenthesis;
+  final Token comma;
+  final Token rightParenthesis;
+  final Token semicolon;
+
+  AssertStatementJudgment(this.assertKeyword, this.leftParenthesis,
+      Expression condition, this.comma, this.rightParenthesis, this.semicolon,
       {Expression message, int conditionStartOffset, int conditionEndOffset})
       : super(condition,
             message: message,
@@ -222,8 +241,8 @@ class AssertStatementJudgment extends AssertStatement
       inferrer.inferExpression(
           factory, messageJudgment, const UnknownType(), false);
     }
-    inferrer.listener.assertStatement(
-        this, fileOffset, null, null, null, null, null, null, null);
+    inferrer.listener.assertStatement(this, fileOffset, assertKeyword,
+        leftParenthesis, null, comma, null, rightParenthesis, semicolon);
   }
 }
 

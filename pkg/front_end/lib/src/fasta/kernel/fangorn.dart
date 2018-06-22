@@ -261,7 +261,8 @@ class Fangorn extends Forest {
 
   @override
   Expression asExpression(Expression expression, covariant type, Token token) {
-    return new AsJudgment(expression, type)..fileOffset = offsetForToken(token);
+    return new AsJudgment(expression, token, type)
+      ..fileOffset = offsetForToken(token);
   }
 
   @override
@@ -271,8 +272,13 @@ class Fangorn extends Forest {
       Expression condition,
       Token comma,
       Expression message) {
-    return new AssertInitializerJudgment(assertStatement(
-        assertKeyword, leftParenthesis, condition, comma, message, null));
+    return new AssertInitializerJudgment(
+        assertStatement(
+            assertKeyword, leftParenthesis, condition, comma, message, null),
+        assertKeyword,
+        leftParenthesis,
+        comma,
+        leftParenthesis.endGroup);
   }
 
   @override
@@ -311,7 +317,8 @@ class Fangorn extends Forest {
         endOffset = conditionLastToken.offset + conditionLastToken.length;
       }
     }
-    return new AssertStatementJudgment(condition,
+    return new AssertStatementJudgment(assertKeyword, leftParenthesis,
+        condition, comma, leftParenthesis.endGroup, semicolon,
         conditionStartOffset: startOffset,
         conditionEndOffset: endOffset,
         message: message);
