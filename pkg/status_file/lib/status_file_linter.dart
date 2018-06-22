@@ -132,8 +132,11 @@ Iterable<LintingError> lintNormalizedSection(StatusSection section) {
 /// Checks for duplicate section entries in the body of a section.
 Iterable<LintingError> lintSectionEntryDuplicates(StatusSection section) {
   var errors = <LintingError>[];
-  List<StatusEntry> statusEntries =
-      section.entries.where((entry) => entry is StatusEntry).toList();
+  // TODO(whereType): When whereType is supported, use that.
+  List<StatusEntry> statusEntries = section.entries
+      .where((entry) => entry is StatusEntry)
+      .cast<StatusEntry>()
+      .toList();
   for (var i = 0; i < statusEntries.length; i++) {
     var entry = statusEntries[i];
     for (var j = i + 1; j < statusEntries.length; j++) {
