@@ -2166,35 +2166,44 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void beginTypeVariable(Token name) {
+  void beginTypeVariable(Token token) {
     debugEvent("beginTypeVariable");
+    SimpleIdentifier name = pop();
+    List<Annotation> metadata = pop();
+
+    Comment comment = _findComment(metadata, name.beginToken);
+    push(ast.typeParameter(comment, metadata, name, null, null));
   }
 
   @override
-  void endTypeVariable(Token token, Token extendsOrSuper) {
-    // TODO(paulberry): set up scopes properly to resolve parameters and type
-    // variables.  Note that this is tricky due to the handling of initializers
-    // in constructors, so the logic should be shared with BodyBuilder as much
-    // as possible.
+  void handleTypeVariablesDefined(Token token, int count) {
+    debugEvent("handleTypeVariablesDefined");
+    assert(count > 0);
+    push(popTypedList(count, new List<TypeParameter>(count)));
+  }
+
+  @override
+  void endTypeVariable(Token token, int index, Token extendsOrSuper) {
+    debugEvent("TypeVariable");
     assert(extendsOrSuper == null ||
         optional('extends', extendsOrSuper) ||
         optional('super', extendsOrSuper));
-    debugEvent("TypeVariable");
-
     TypeAnnotation bound = pop();
-    SimpleIdentifier name = pop();
-    List<Annotation> metadata = pop();
-    Comment comment = _findComment(metadata, name.beginToken);
-    push(ast.typeParameter(comment, metadata, name, extendsOrSuper, bound));
+
+    // Peek to leave type parameters on top of stack.
+    List<TypeParameter> typeParameters = peek();
+    typeParameters[index]
+      ..extendsKeyword = extendsOrSuper
+      ..bound = bound;
   }
 
   @override
-  void endTypeVariables(int count, Token beginToken, Token endToken) {
+  void endTypeVariables(Token beginToken, Token endToken) {
     assert(optional('<', beginToken));
     assert(optional('>', endToken));
     debugEvent("TypeVariables");
 
-    List<TypeParameter> typeParameters = popTypedList(count);
+    List<TypeParameter> typeParameters = pop();
     push(ast.typeParameterList(beginToken, typeParameters, endToken));
   }
 

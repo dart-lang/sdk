@@ -3641,6 +3641,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void beginTypeVariables(Token token) {
     debugEvent("beginTypeVariables");
+
+    // TODO(danrubel): Now that the type variable events have been reordered,
+    // we should be able to cleanup body builder type variable declaration
+    // handling and remove this hack.
+
     OutlineBuilder listener = new OutlineBuilder(library);
     // TODO(dmitryas):  [ClassMemberParser] shouldn't be used to parse and build
     // the type variables for the local function.  It also causes the unresolved
@@ -3664,23 +3669,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void beginTypeVariable(Token name) {
+  void beginTypeVariable(Token token) {
     debugEvent("beginTypeVariable");
-  }
-
-  @override
-  void handleNoTypeVariables(Token token) {
-    debugEvent("NoTypeVariables");
-    enterFunctionTypeScope(null);
-    push(NullValue.TypeVariables);
-  }
-
-  @override
-  void endTypeVariable(Token token, Token extendsOrSuper) {
-    debugEvent("TypeVariable");
-    DartType bound = pop();
     Identifier name = pop();
     List<Expression> annotations = pop();
+
     KernelTypeVariableBuilder variable;
     Object inScope = scopeLookup(scope, name.name, token);
     if (inScope is TypeUseGenerator) {
@@ -3692,7 +3685,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       variable = new KernelTypeVariableBuilder(
           name.name, library, offsetForToken(name.token), null);
     }
-    variable.parameter.bound = bound;
     if (annotations != null) {
       _typeInferrer.inferMetadata(this, factory, annotations);
       for (Expression annotation in annotations) {
@@ -3703,39 +3695,66 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void endTypeVariables(int count, Token beginToken, Token endToken) {
+  void handleTypeVariablesDefined(Token token, int count) {
+    debugEvent("handleTypeVariablesDefined");
+    assert(count > 0);
+    List<KernelTypeVariableBuilder> typeVariables =
+        popList(count, new List<KernelTypeVariableBuilder>(count));
+
+    // TODO(danrubel): Call enterFunctionScope here
+    // once the hack in beginTypeVariables has been removed.
+    //enterFunctionTypeScope(typeVariables);
+    push(typeVariables);
+  }
+
+  @override
+  void endTypeVariable(Token token, int index, Token extendsOrSuper) {
+    debugEvent("TypeVariable");
+    DartType bound = pop();
+    // Peek to leave type parameters on top of stack.
+    List<KernelTypeVariableBuilder> typeVariables = peek();
+
+    KernelTypeVariableBuilder variable = typeVariables[index];
+    variable.parameter.bound = bound;
+  }
+
+  @override
+  void endTypeVariables(Token beginToken, Token endToken) {
     debugEvent("TypeVariables");
-    List<KernelTypeVariableBuilder> typeVariables = popList(
-        count,
-        new List<KernelTypeVariableBuilder>.filled(count, null,
-            growable: true));
-    if (typeVariables != null) {
-      if (library.loader.target.strongMode) {
-        List<KernelTypeBuilder> calculatedBounds = calculateBounds(
-            typeVariables,
-            library.loader.target.dynamicType,
-            library.loader.target.bottomType,
-            library.loader.target.objectClassBuilder);
-        for (int i = 0; i < typeVariables.length; ++i) {
-          typeVariables[i].defaultType = calculatedBounds[i];
-          typeVariables[i].defaultType.resolveIn(scope,
-              typeVariables[i].charOffset, typeVariables[i].fileUri, library);
-          typeVariables[i].finish(
-              library,
-              library.loader.target.objectClassBuilder,
-              library.loader.target.dynamicType);
-        }
-      } else {
-        for (int i = 0; i < typeVariables.length; ++i) {
-          typeVariables[i].defaultType = library.loader.target.dynamicType;
-          typeVariables[i].finish(
-              library,
-              library.loader.target.objectClassBuilder,
-              library.loader.target.dynamicType);
-        }
+    // Peek to leave type parameters on top of stack.
+    List<KernelTypeVariableBuilder> typeVariables = peek();
+
+    if (library.loader.target.strongMode) {
+      List<KernelTypeBuilder> calculatedBounds = calculateBounds(
+          typeVariables,
+          library.loader.target.dynamicType,
+          library.loader.target.bottomType,
+          library.loader.target.objectClassBuilder);
+      for (int i = 0; i < typeVariables.length; ++i) {
+        typeVariables[i].defaultType = calculatedBounds[i];
+        typeVariables[i].defaultType.resolveIn(scope,
+            typeVariables[i].charOffset, typeVariables[i].fileUri, library);
+        typeVariables[i].finish(
+            library,
+            library.loader.target.objectClassBuilder,
+            library.loader.target.dynamicType);
+      }
+    } else {
+      for (int i = 0; i < typeVariables.length; ++i) {
+        typeVariables[i].defaultType = library.loader.target.dynamicType;
+        typeVariables[i].finish(
+            library,
+            library.loader.target.objectClassBuilder,
+            library.loader.target.dynamicType);
       }
     }
-    push(typeVariables ?? NullValue.TypeVariables);
+  }
+
+  @override
+  void handleNoTypeVariables(Token token) {
+    debugEvent("NoTypeVariables");
+    enterFunctionTypeScope(null);
+    push(NullValue.TypeVariables);
   }
 
   List<TypeParameter> typeVariableBuildersToKernel(

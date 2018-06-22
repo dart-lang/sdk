@@ -80,8 +80,7 @@ import '../kernel/kernel_builder.dart'
     show
         KernelFormalParameterBuilder,
         KernelNamedTypeBuilder,
-        KernelTypeBuilder,
-        KernelTypeVariableBuilder;
+        KernelTypeBuilder;
 
 enum MethodBody {
   Abstract,
@@ -819,21 +818,6 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
-  void endTypeVariables(int count, Token beginToken, Token endToken) {
-    debugEvent("TypeVariables");
-    push(popList(
-            count,
-            new List<KernelTypeVariableBuilder>.filled(count, null,
-                growable: true)) ??
-        NullValue.TypeVariables);
-    if (inConstructorName) {
-      addProblem(messageConstructorWithTypeParameters,
-          offsetForToken(beginToken), lengthOfSpan(beginToken, endToken));
-      inConstructorName = false;
-    }
-  }
-
-  @override
   void handleNoTypeVariables(Token token) {
     super.handleNoTypeVariables(token);
     inConstructorName = false;
@@ -1122,18 +1106,41 @@ class OutlineBuilder extends StackListener {
   @override
   void beginTypeVariable(Token token) {
     debugEvent("beginTypeVariable");
-  }
-
-  @override
-  void endTypeVariable(Token token, Token extendsOrSuper) {
-    debugEvent("endTypeVariable");
-    TypeBuilder bound = pop();
     int charOffset = pop();
     String name = pop();
     // TODO(paulberry): type variable metadata should not be ignored.  See
     // dartbug.com/28981.
     /* List<MetadataBuilder> metadata = */ pop();
-    push(library.addTypeVariable(name, bound, charOffset));
+
+    push(library.addTypeVariable(name, null, charOffset));
+  }
+
+  @override
+  void handleTypeVariablesDefined(Token token, int count) {
+    debugEvent("TypeVariablesDefined");
+    assert(count > 0);
+    push(popList(count, new List<TypeVariableBuilder>(count)));
+  }
+
+  @override
+  void endTypeVariable(Token token, int index, Token extendsOrSuper) {
+    debugEvent("endTypeVariable");
+    TypeBuilder bound = pop();
+    // Peek to leave type parameters on top of stack.
+    List typeParameters = peek();
+
+    typeParameters[index].bound = bound;
+  }
+
+  @override
+  void endTypeVariables(Token beginToken, Token endToken) {
+    debugEvent("endTypeVariables");
+
+    if (inConstructorName) {
+      addProblem(messageConstructorWithTypeParameters,
+          offsetForToken(beginToken), lengthOfSpan(beginToken, endToken));
+      inConstructorName = false;
+    }
   }
 
   @override
