@@ -289,7 +289,7 @@ Future<String> runDiff(Uri expected, String actual) async {
   return process.output;
 }
 
-Future openWrite(Uri uri, f(IOSink sink)) async {
+Future<void> openWrite(Uri uri, f(IOSink sink)) async {
   IOSink sink = new File.fromUri(uri).openWrite();
   try {
     await f(sink);
