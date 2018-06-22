@@ -1314,18 +1314,18 @@ class ShadowFunctionDeclaration extends FunctionDeclaration
 }
 
 /// Concrete shadow object representing a function expression in kernel form.
-class ShadowFunctionExpression extends FunctionExpression
+class FunctionExpressionJudgment extends FunctionExpression
     implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowFunctionExpression(FunctionNode function) : super(function);
+  FunctionExpressionJudgment(FunctionNode function) : super(function);
 
   @override
   DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    var inferredType = inferrer.inferLocalFunction(
+    inferredType = inferrer.inferLocalFunction(
         factory, function, typeContext, fileOffset, null);
     inferrer.listener.functionExpression(this, fileOffset, inferredType);
     return inferredType;

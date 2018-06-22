@@ -3099,7 +3099,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       variable.type = function.functionType;
       if (isFunctionExpression) {
         Expression oldInitializer = variable.initializer;
-        variable.initializer = new ShadowFunctionExpression(function)
+        variable.initializer = new FunctionExpressionJudgment(function)
           ..parent = variable
           ..fileOffset = formals.charOffset;
         exitLocalScope();
@@ -3171,7 +3171,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       push(deprecated_buildCompileTimeError(
           "Not a constant expression.", formals.charOffset));
     } else {
-      push(new ShadowFunctionExpression(function)
+      push(new FunctionExpressionJudgment(function)
         ..fileOffset = offsetForToken(beginToken));
     }
   }

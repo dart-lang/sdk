@@ -78,7 +78,7 @@ export 'kernel_shadow_ast.dart'
         ShadowFieldInitializer,
         ForInJudgment,
         ShadowFunctionDeclaration,
-        ShadowFunctionExpression,
+        FunctionExpressionJudgment,
         IfNullJudgment,
         IfJudgment,
         IllegalAssignmentJudgment,
