@@ -87,7 +87,7 @@ export 'kernel_shadow_ast.dart'
         LabeledStatementJudgment,
         ShadowLogicalExpression,
         ShadowMethodInvocation,
-        ShadowNamedFunctionExpression,
+        NamedFunctionExpressionJudgment,
         ShadowNullAwareMethodInvocation,
         NullAwarePropertyGetJudgment,
         PropertyAssignmentJudgment,

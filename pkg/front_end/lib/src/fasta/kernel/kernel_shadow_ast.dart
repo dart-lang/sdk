@@ -1899,19 +1899,23 @@ class ShadowMethodInvocation extends MethodInvocation
 /// kernel expression:
 ///
 ///     let f = () { ... } in f
-class ShadowNamedFunctionExpression extends Let implements ExpressionJudgment {
+class NamedFunctionExpressionJudgment extends Let
+    implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowNamedFunctionExpression(VariableDeclaration variable)
+  NamedFunctionExpressionJudgment(VariableDeclarationJudgment variable)
       : super(variable, new VariableGet(variable));
+
+  VariableDeclarationJudgment get variableJudgment => variable;
 
   @override
   DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    var inferredType = inferrer.inferExpression(
-        factory, variable.initializer, typeContext, true);
+    ExpressionJudgment initializer = variableJudgment.initializer;
+    inferrer.inferExpression(factory, initializer, typeContext, true);
+    inferredType = initializer.inferredType;
     if (inferrer.strongMode) variable.type = inferredType;
     inferrer.listener.namedFunctionExpression(this, fileOffset, inferredType);
     return inferredType;

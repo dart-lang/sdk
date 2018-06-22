@@ -3093,7 +3093,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           ..parent = variable
           ..fileOffset = formals.charOffset;
         exitLocalScope();
-        Expression expression = new ShadowNamedFunctionExpression(variable);
+        Expression expression = new NamedFunctionExpressionJudgment(variable);
         if (oldInitializer != null) {
           // This must have been a compile-time error.
           assert(isErroneousNode(oldInitializer));
