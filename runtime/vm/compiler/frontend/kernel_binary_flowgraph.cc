@@ -1369,14 +1369,14 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
 }
 
 RawCode* BytecodeMetadataHelper::ReadBytecode(const ObjectPool& pool) {
-  // TODO(regis): Avoid copying bytecode from mapped kernel binary.
   intptr_t size = builder_->reader_.ReadUInt();
   intptr_t offset = builder_->reader_.offset();
   const uint8_t* data = builder_->reader_.BufferAt(offset);
   builder_->reader_.set_offset(offset + size);
 
   // Create and return code object.
-  return Code::FinalizeBytecode(reinterpret_cast<void*>(data), size, pool);
+  return Code::FinalizeBytecode(reinterpret_cast<const void*>(data), size,
+                                pool);
 }
 
 void BytecodeMetadataHelper::ReadExceptionsTable(const Code& bytecode) {

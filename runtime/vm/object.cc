@@ -14828,7 +14828,7 @@ RawCode* Code::FinalizeCode(const Function& function,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if defined(DART_USE_INTERPRETER)
-RawCode* Code::FinalizeBytecode(void* bytecode_data,
+RawCode* Code::FinalizeBytecode(const void* bytecode_data,
                                 intptr_t bytecode_size,
                                 const ObjectPool& object_pool,
                                 CodeStatistics* stats /* = nullptr */) {
@@ -14845,7 +14845,7 @@ RawCode* Code::FinalizeBytecode(void* bytecode_data,
   // Copy the bytecode data into the instruction area. No fixups to apply.
   MemoryRegion instrs_region(reinterpret_cast<void*>(instrs.PayloadStart()),
                              instrs.Size());
-  MemoryRegion bytecode_region(bytecode_data, bytecode_size);
+  MemoryRegion bytecode_region(const_cast<void*>(bytecode_data), bytecode_size);
   // TODO(regis): Avoid copying bytecode.
   instrs_region.CopyFrom(0, bytecode_region);
 

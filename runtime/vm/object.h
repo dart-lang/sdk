@@ -4990,7 +4990,7 @@ class Code : public Object {
                                bool optimized,
                                CodeStatistics* stats = nullptr);
 #if defined(DART_USE_INTERPRETER)
-  static RawCode* FinalizeBytecode(void* bytecode_data,
+  static RawCode* FinalizeBytecode(const void* bytecode_data,
                                    intptr_t bytecode_size,
                                    const ObjectPool& object_pool,
                                    CodeStatistics* stats = nullptr);
