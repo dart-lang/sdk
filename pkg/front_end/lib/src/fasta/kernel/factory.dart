@@ -242,7 +242,7 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       Token leftBracket,
       List<Object> entries,
       Token rightBracket,
-      DartType typeContext);
+      DartType inferredType);
 
   Object mapLiteralEntry(Object judgment, int fileOffset, Expression key,
       Token separator, Expression value);

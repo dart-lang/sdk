@@ -353,7 +353,7 @@ class KernelFactory
       Token leftBracket,
       List<Object> entries,
       Token rightBracket,
-      DartType typeContext) {
+      DartType inferredType) {
     return judgment;
   }
 

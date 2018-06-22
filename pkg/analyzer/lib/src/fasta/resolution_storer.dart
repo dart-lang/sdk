@@ -354,8 +354,8 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
           Token leftBracket,
           List<Object> entries,
           Token rightBracket,
-          DartType typeContext) =>
-      genericExpression("mapLiteral", location, typeContext);
+          DartType inferredType) =>
+      genericExpression("mapLiteral", location, inferredType);
 
   void mapLiteralEntry(
       Object judgment, int fileOffset, void key, Token separator, void value) {

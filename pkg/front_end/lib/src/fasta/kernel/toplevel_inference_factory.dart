@@ -276,7 +276,7 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       Token leftBracket,
       void entries,
       Token rightBracket,
-      DartType typeContext) {}
+      DartType inferredType) {}
 
   @override
   void mapLiteralEntry(

@@ -246,7 +246,7 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
       Token leftBracket,
       List<Object> entries,
       Token rightBracket,
-      DartType typeContext);
+      DartType inferredType);
 
   void mapLiteralEntry(
       Object judgment, int fileOffset, void key, Token separator, void value);
@@ -677,7 +677,7 @@ class KernelTypeInferenceListener
       Token leftBracket,
       List<Object> entries,
       Token rightBracket,
-      DartType typeContext) {}
+      DartType inferredType) {}
 
   void mapLiteralEntry(
       Object judgment, int fileOffset, void key, Token separator, void value) {}
