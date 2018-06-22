@@ -4109,8 +4109,7 @@ void StreamingConstantEvaluator::EvaluateStringConcatenation() {
 }
 
 void StreamingConstantEvaluator::EvaluateSymbolLiteral() {
-  const Class& owner =
-      Class::Handle(Z, builder_->parsed_function()->function().Owner());
+  const Class& owner = *builder_->active_class()->klass;
   const Library& lib = Library::Handle(Z, owner.library());
   String& symbol_value = H.DartIdentifier(lib, builder_->ReadStringReference());
   const Class& symbol_class =
