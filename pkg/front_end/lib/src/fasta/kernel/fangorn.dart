@@ -96,7 +96,7 @@ import 'kernel_shadow_ast.dart'
         ShadowNot,
         ShadowRethrow,
         ReturnJudgment,
-        ShadowStringConcatenation,
+        StringConcatenationJudgment,
         StringLiteralJudgment,
         ShadowSymbolLiteral,
         ShadowSyntheticExpression,
@@ -464,7 +464,7 @@ class Fangorn extends Forest {
   @override
   Expression stringConcatenationExpression(
       List<Expression> expressions, Token token) {
-    return new ShadowStringConcatenation(expressions)
+    return new StringConcatenationJudgment(expressions)
       ..fileOffset = offsetForToken(token);
   }
 

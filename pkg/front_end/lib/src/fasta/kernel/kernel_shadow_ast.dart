@@ -2325,11 +2325,12 @@ class ShadowStaticInvocation extends StaticInvocation
 }
 
 /// Concrete shadow object representing a string concatenation in kernel form.
-class ShadowStringConcatenation extends StringConcatenation
+class StringConcatenationJudgment extends StringConcatenation
     implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowStringConcatenation(List<Expression> expressions) : super(expressions);
+  StringConcatenationJudgment(List<Expression> expressions)
+      : super(expressions);
 
   @override
   DartType infer<Expression, Statement, Initializer, Type>(
@@ -2337,12 +2338,12 @@ class ShadowStringConcatenation extends StringConcatenation
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     if (!inferrer.isTopLevel) {
-      for (kernel.Expression expression in expressions) {
+      for (var expression in expressions) {
         inferrer.inferExpression(
             factory, expression, const UnknownType(), false);
       }
     }
-    var inferredType = inferrer.coreTypes.stringClass.rawType;
+    inferredType = inferrer.coreTypes.stringClass.rawType;
     inferrer.listener.stringConcatenation(this, fileOffset, inferredType);
     return inferredType;
   }
