@@ -635,8 +635,6 @@ generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_method_types_test/02: RuntimeError
 generic_methods_bounds_test/02: MissingRuntimeError
-generic_methods_dynamic_test/02: MissingRuntimeError
-generic_methods_dynamic_test/04: MissingRuntimeError
 generic_methods_generic_class_tearoff_test: RuntimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_methods_unused_parameter_test: RuntimeError
@@ -759,7 +757,6 @@ nan_identical_test: RuntimeError # Issue 11551
 nested_generic_closure_test: RuntimeError
 no_main_test/01: CompileTimeError
 no_such_method_mock_test: RuntimeError
-nosuchmethod_forwarding/nosuchmethod_forwarding_arguments_test: RuntimeError
 null_no_such_method_test: CompileTimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError, OK # non JS number semantics
@@ -1014,8 +1011,6 @@ generic_is_check_test: RuntimeError
 generic_method_types_test/02: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_bounds_test/02: MissingRuntimeError
-generic_methods_dynamic_test/02: MissingRuntimeError
-generic_methods_dynamic_test/04: MissingRuntimeError
 generic_methods_generic_class_tearoff_test: RuntimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
@@ -1198,7 +1193,6 @@ nan_identical_test: RuntimeError # Issue 11551
 nested_generic_closure_test: RuntimeError
 no_main_test/01: CompileTimeError
 no_such_method_mock_test: RuntimeError
-nosuchmethod_forwarding/nosuchmethod_forwarding_arguments_test: RuntimeError
 null_no_such_method_test: CompileTimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError, OK # non JS number semantics
@@ -1514,8 +1508,6 @@ generic_is_check_test: RuntimeError
 generic_method_types_test/02: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_bounds_test/02: MissingRuntimeError
-generic_methods_dynamic_test/02: MissingRuntimeError
-generic_methods_dynamic_test/04: MissingRuntimeError
 generic_methods_generic_class_tearoff_test: RuntimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
@@ -1706,7 +1698,6 @@ no_main_test/01: CompileTimeError
 no_such_method_mock_test: RuntimeError
 no_such_method_native_test: RuntimeError
 no_such_method_test: RuntimeError
-nosuchmethod_forwarding/nosuchmethod_forwarding_arguments_test: RuntimeError
 null_no_such_method_test: CompileTimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError, OK # non JS number semantics

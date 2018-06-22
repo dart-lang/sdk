@@ -620,8 +620,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         ConstructorBodyEntity constructorBody =
             _elementMap.getConstructorBody(body);
         if (!isCustomElement && // TODO(13836): Fix inlining.
-            _tryInlineMethod(constructorBody, null, null, bodyCallInputs, node,
-                sourceInformation)) {
+            _tryInlineMethod(constructorBody, null, null, bodyCallInputs, null,
+                node, sourceInformation)) {
           pop();
         } else {
           _invokeConstructorBody(body, bodyCallInputs,
@@ -4100,7 +4100,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       AbstractValue typeMask, List<DartType> typeArguments,
       {SourceInformation sourceInformation, InterfaceType instanceType}) {
     // TODO(redemption): Pass current node if needed.
-    if (_tryInlineMethod(target, null, null, arguments, null, sourceInformation,
+    if (_tryInlineMethod(
+        target, null, null, arguments, typeArguments, null, sourceInformation,
         instanceType: instanceType)) {
       return;
     }
@@ -4170,8 +4171,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         !(element.isGetter && selector.isCall) &&
         !(element.isFunction && selector.isGetter) &&
         !isOptimizableOperation(selector, element)) {
-      if (_tryInlineMethod(
-          element, selector, mask, arguments, node, sourceInformation)) {
+      if (_tryInlineMethod(element, selector, mask, arguments, typeArguments,
+          node, sourceInformation)) {
         return;
       }
     }
@@ -4988,6 +4989,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       Selector selector,
       AbstractValue mask,
       List<HInstruction> providedArguments,
+      List<DartType> typeArguments,
       ir.Node currentNode,
       SourceInformation sourceInformation,
       {InterfaceType instanceType}) {
@@ -5149,8 +5151,15 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     void doInlining() {
-      registry
-          .registerStaticUse(new StaticUse.inlining(function, instanceType));
+      if (function.isConstructor) {
+        registry.registerStaticUse(
+            new StaticUse.constructorInlining(function, instanceType));
+      } else {
+        assert(instanceType == null,
+            "Unexpected instance type for $function: $instanceType");
+        registry.registerStaticUse(
+            new StaticUse.methodInlining(function, typeArguments));
+      }
 
       // Add an explicit null check on the receiver before doing the
       // inlining. We use [element] to get the same name in the

@@ -212,7 +212,6 @@ map_test: Crash # tests/corelib_2/map_test.dart:903:7: Internal problem: Unhandl
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
 
 [ $compiler == dart2js && $fast_startup && $fasta && $strong ]
-cast_test: RuntimeError
 error_stack_trace1_test: RuntimeError
 growable_list_test: RuntimeError
 integer_to_radix_string_test/01: RuntimeError
@@ -231,7 +230,6 @@ int_parse_radix_int64_test/02: RuntimeError # WontFix: Int not precisely represe
 int_parse_radix_test/01: RuntimeError
 
 [ $compiler == dart2js && $fasta && $host_checked && $strong ]
-cast_test: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
 growable_list_test: RuntimeError # Concurrent modifications test always runs
 integer_to_radix_string_test/01: RuntimeError
@@ -248,7 +246,6 @@ symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') sho
 uri_base_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && $minified && $strong ]
-cast_test: RuntimeError
 dynamic_nosuchmethod_test: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
 growable_list_test: RuntimeError # Concurrent modifications test always runs

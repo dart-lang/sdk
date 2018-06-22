@@ -501,10 +501,12 @@ Future checkTests(
     int end = entities.length * (shardIndex + 1) ~/ shards;
     entities = entities.sublist(start, end);
   }
+  int testCount = 0;
   for (FileSystemEntity entity in entities) {
     String name = entity.uri.pathSegments.last;
     if (args.isNotEmpty && !args.contains(name) && !continued) continue;
     if (shouldContinue) continued = true;
+    testCount++;
     List<String> testOptions = options.toList();
     bool strongModeOnlyTest = false;
     bool trustTypeAnnotations = false;
@@ -652,6 +654,7 @@ Future checkTests(
     }
   }
   Expect.isFalse(hasFailures, 'Errors found.');
+  Expect.isTrue(testCount > 0, "No files were tested.");
 }
 
 final Set<String> userFiles = new Set<String>();

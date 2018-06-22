@@ -665,7 +665,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         node.typeArguments,
         node.sourceInformation);
     result.element = method;
-    _registry.registerStaticUse(new StaticUse.inlining(method, null));
+    _registry.registerStaticUse(new StaticUse.methodInlining(method, null));
     return result;
   }
 
