@@ -3014,7 +3014,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       deprecated_addCompileTimeError(offsetForToken(name.token),
           "'${variable.name}' already declared in this scope.");
     }
-    push(new ShadowFunctionDeclaration(
+    push(new FunctionDeclarationJudgment(
         variable,
         // The function node is created later.
         null)
@@ -3079,7 +3079,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     if (!isFunctionExpression) {
       annotations = pop(); // Metadata.
     }
-    FunctionNode function = formals.addToFunction(new FunctionNode(body,
+    FunctionNode function = formals.addToFunction(new FunctionNodeJudgment(body,
         typeParameters: typeParameters,
         asyncMarker: asyncModifier,
         returnType: returnType)
@@ -3093,7 +3093,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           variable.addAnnotation(annotation);
         }
       }
-      ShadowFunctionDeclaration.setHasImplicitReturnType(
+      FunctionDeclarationJudgment.setHasImplicitReturnType(
           declaration, hasImplicitReturnType);
 
       variable.type = function.functionType;
@@ -3163,7 +3163,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     FormalParameters<Expression, Statement, Arguments> formals = pop();
     exitFunction();
     List<TypeParameter> typeParameters = typeVariableBuildersToKernel(pop());
-    FunctionNode function = formals.addToFunction(new FunctionNode(body,
+    FunctionNode function = formals.addToFunction(new FunctionNodeJudgment(body,
         typeParameters: typeParameters, asyncMarker: asyncModifier)
       ..fileOffset = beginToken.charOffset
       ..fileEndOffset = token.charOffset);

@@ -1280,38 +1280,66 @@ class ShadowForStatement extends ForStatement implements StatementJudgment {
   }
 }
 
+/// Concrete shadow object representing a function expression in kernel form.
+class FunctionNodeJudgment extends FunctionNode {
+  FunctionNodeJudgment(Statement body,
+      {List<TypeParameter> typeParameters,
+      List<VariableDeclaration> positionalParameters,
+      List<VariableDeclaration> namedParameters,
+      int requiredParameterCount,
+      DartType returnType: const DynamicType(),
+      AsyncMarker asyncMarker: AsyncMarker.Sync,
+      AsyncMarker dartAsyncMarker})
+      : super(body,
+            typeParameters: typeParameters,
+            positionalParameters: positionalParameters,
+            namedParameters: namedParameters,
+            requiredParameterCount: requiredParameterCount,
+            returnType: returnType,
+            asyncMarker: asyncMarker,
+            dartAsyncMarker: dartAsyncMarker);
+
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory,
+      bool hasImplicitReturnType,
+      int returnTypeInstrumentationOffset) {
+    DartType returnContext = hasImplicitReturnType
+        ? (inferrer.strongMode ? null : const DynamicType())
+        : returnType;
+    inferrer.inferLocalFunction(
+        factory, this, null, returnTypeInstrumentationOffset, returnContext);
+  }
+}
+
 /// Concrete shadow object representing a local function declaration in kernel
 /// form.
-class ShadowFunctionDeclaration extends FunctionDeclaration
+class FunctionDeclarationJudgment extends FunctionDeclaration
     implements StatementJudgment {
   bool _hasImplicitReturnType = false;
 
-  ShadowFunctionDeclaration(
+  FunctionDeclarationJudgment(
       VariableDeclarationJudgment variable, FunctionNode function)
       : super(variable, function);
 
   VariableDeclarationJudgment get variableJudgment => variable;
+
+  FunctionNodeJudgment get functionJudgment => function;
 
   @override
   void infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory) {
     inferrer.inferMetadataKeepingHelper(factory, variable.annotations);
-    inferrer.inferLocalFunction(
-        factory,
-        function,
-        null,
-        fileOffset,
-        _hasImplicitReturnType
-            ? (inferrer.strongMode ? null : const DynamicType())
-            : function.returnType);
+    functionJudgment.infer(
+        inferrer, factory, _hasImplicitReturnType, fileOffset);
     var inferredType = variable.type = function.functionType;
     inferrer.listener.functionDeclaration(
         variableJudgment.createLemma(inferrer), inferredType);
   }
 
   static void setHasImplicitReturnType(
-      ShadowFunctionDeclaration declaration, bool hasImplicitReturnType) {
+      FunctionDeclarationJudgment declaration, bool hasImplicitReturnType) {
     declaration._hasImplicitReturnType = hasImplicitReturnType;
   }
 }
