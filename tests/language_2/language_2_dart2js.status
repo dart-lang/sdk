@@ -838,6 +838,7 @@ call_method_must_not_be_field_test/03: RuntimeError # Issue 32155
 call_method_must_not_be_getter_test/03: RuntimeError # Issue 32155
 checked_setter2_test: RuntimeError # Issue 31128
 checked_setter_test: RuntimeError # Issue 31128
+const_constructor_nonconst_param_test/01: MissingCompileTimeError
 const_dynamic_type_literal_test/03: Pass # but it shouldn't until we fix issue 17207
 constructor_redirect_cycle_test/01: Crash # Stack Overflow
 constructor_redirect_indirect_cycle_test/01: Crash # Stack Overflow

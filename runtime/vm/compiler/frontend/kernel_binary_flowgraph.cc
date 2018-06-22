@@ -3516,10 +3516,10 @@ RawInstance* StreamingConstantEvaluator::EvaluateExpression(
     Tag tag = builder_->ReadTag(&payload);  // read tag.
     switch (tag) {
       case kVariableGet:
-        EvaluateVariableGet();
+        EvaluateVariableGet(/* is_specialized = */ false);
         break;
       case kSpecializedVariableGet:
-        EvaluateVariableGet(payload);
+        EvaluateVariableGet(/* is_specialized = */ true);
         break;
       case kPropertyGet:
         EvaluatePropertyGet();
@@ -3697,29 +3697,21 @@ bool StreamingConstantEvaluator::IsAllowedToEvaluate() {
          !builder_->optimizing();
 }
 
-void StreamingConstantEvaluator::EvaluateVariableGet() {
+void StreamingConstantEvaluator::EvaluateVariableGet(bool is_specialized) {
   // When we see a [VariableGet] the corresponding [VariableDeclaration] must've
   // been executed already. It therefore must have a constant object associated
   // with it.
-  builder_->ReadPosition();  // read position.
-  intptr_t variable_kernel_position =
-      builder_->ReadUInt();          // read kernel position.
-  builder_->ReadUInt();              // read relative variable index.
-  builder_->SkipOptionalDartType();  // read promoted type.
-  LocalVariable* variable = builder_->LookupVariable(variable_kernel_position);
-  ASSERT(variable->IsConst());
-  result_ = variable->ConstValue()->raw();
-}
-
-void StreamingConstantEvaluator::EvaluateVariableGet(uint8_t payload) {
-  // When we see a [VariableGet] the corresponding [VariableDeclaration] must've
-  // been executed already. It therefore must have a constant object associated
-  // with it.
-  builder_->ReadPosition();  // read position.
-  intptr_t variable_kernel_position =
+  const TokenPosition position = builder_->ReadPosition();  // read position.
+  const intptr_t variable_kernel_position =
       builder_->ReadUInt();  // read kernel position.
+  if (!is_specialized) {
+    builder_->ReadUInt();              // read relative variable index.
+    builder_->SkipOptionalDartType();  // read promoted type.
+  }
   LocalVariable* variable = builder_->LookupVariable(variable_kernel_position);
-  ASSERT(variable->IsConst());
+  if (!variable->IsConst()) {
+    H.ReportError(script_, position, "Not a constant expression.");
+  }
   result_ = variable->ConstValue()->raw();
 }
 
