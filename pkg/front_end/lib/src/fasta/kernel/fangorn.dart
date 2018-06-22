@@ -90,7 +90,7 @@ import 'kernel_shadow_ast.dart'
         ExpressionStatementJudgment,
         ShadowForStatement,
         IfJudgment,
-        ShadowListLiteral,
+        ListLiteralJudgment,
         ShadowLogicalExpression,
         ShadowMapLiteral,
         ShadowNot,
@@ -173,7 +173,7 @@ class Fangorn extends Forest {
   }
 
   @override
-  ShadowListLiteral literalList(
+  ListLiteralJudgment literalList(
       Token constKeyword,
       bool isConst,
       Object typeArgument,
@@ -183,7 +183,7 @@ class Fangorn extends Forest {
       Token rightBracket) {
     // TODO(brianwilkerson): The file offset computed below will not be correct
     // if there are type arguments but no `const` keyword.
-    return new ShadowListLiteral(expressions,
+    return new ListLiteralJudgment(expressions,
         typeArgument: typeArgument, isConst: isConst)
       ..fileOffset = offsetForToken(constKeyword ?? leftBracket);
   }

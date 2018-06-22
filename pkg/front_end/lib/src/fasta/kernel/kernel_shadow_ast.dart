@@ -1648,13 +1648,15 @@ class LabeledStatementJudgment extends LabeledStatement
   }
 }
 
-/// Concrete shadow object representing a list literal in kernel form.
-class ShadowListLiteral extends ListLiteral implements ExpressionJudgment {
+/// Type inference derivation for [LiteralList].
+class ListLiteralJudgment extends ListLiteral implements ExpressionJudgment {
   DartType inferredType;
+
+  List<Expression> get judgments => expressions;
 
   final DartType _declaredTypeArgument;
 
-  ShadowListLiteral(List<Expression> expressions,
+  ListLiteralJudgment(List<Expression> expressions,
       {DartType typeArgument, bool isConst: false})
       : _declaredTypeArgument = typeArgument,
         super(expressions,
@@ -1688,13 +1690,14 @@ class ShadowListLiteral extends ListLiteral implements ExpressionJudgment {
       inferredTypeArgument = _declaredTypeArgument ?? const DynamicType();
     }
     if (inferenceNeeded || typeChecksNeeded) {
-      for (var expression in expressions) {
-        var expressionType = inferrer.inferExpression(factory, expression,
-            inferredTypeArgument, inferenceNeeded || typeChecksNeeded);
+      for (int i = 0; i < judgments.length; ++i) {
+        ExpressionJudgment judgment = judgments[i];
+        inferrer.inferExpression(factory, judgment, inferredTypeArgument,
+            inferenceNeeded || typeChecksNeeded);
         if (inferenceNeeded) {
           formalTypes.add(listType.typeArguments[0]);
         }
-        actualTypes.add(expressionType);
+        actualTypes.add(judgment.inferredType);
       }
     }
     if (inferenceNeeded) {
@@ -1711,15 +1714,15 @@ class ShadowListLiteral extends ListLiteral implements ExpressionJudgment {
       typeArgument = inferredTypeArgument;
     }
     if (typeChecksNeeded) {
-      for (int i = 0; i < expressions.length; i++) {
-        inferrer.ensureAssignable(typeArgument, actualTypes[i], expressions[i],
-            expressions[i].fileOffset);
+      for (int i = 0; i < judgments.length; i++) {
+        inferrer.ensureAssignable(typeArgument, actualTypes[i], judgments[i],
+            judgments[i].fileOffset);
       }
     }
     var inferredType = new InterfaceType(listClass, [inferredTypeArgument]);
     inferrer.listener.listLiteral(
         this, fileOffset, null, null, null, expressions, null, inferredType);
-    return inferredType;
+    return this.inferredType = inferredType;
   }
 }
 
