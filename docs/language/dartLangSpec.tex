@@ -5697,12 +5697,15 @@ where $e$ is an expression and \metavar{suffix} is a sequence of operator, metho
 \end{grammar}
 
 \LMHash{}
-Evaluation of a cascaded method invocation expression $e$ of the form \code{$e$..\metavar{suffix}} proceeds as follows:
+Evaluation of a cascaded method invocation expression $c$ of the form \code{$e$..\metavar{suffix}} proceeds as follows:
 
 Evaluate $e$ to an object $o$.
 Let $t$ be a fresh variable bound to $o$.
 Evaluate \code{$t$.\metavar{suffix}} to an object.
-Then $e$ evaluates to $o$.
+Then $c$ evaluates to $o$.
+
+\LMHash{}
+The static type of $c$ is the static type of $e$.
 
 \rationale{
 With the introduction of null-aware conditional assignable expressions (\ref{assignableExpressions}), it would make sense to extend cascades with a null-aware conditional form as well.
