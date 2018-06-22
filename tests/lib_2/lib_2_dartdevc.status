@@ -14,6 +14,10 @@ convert/chunked_conversion_utf86_test: RuntimeError
 convert/chunked_conversion_utf87_test: RuntimeError
 convert/utf82_test: RuntimeError
 html/debugger_test: CompileTimeError
+math/double_pow_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+typed_data/int32x4_arithmetic_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+typed_data/int32x4_arithmetic_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+typed_data/int64_list_load_store_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 
 [ $runtime == chrome && ($compiler == dartdevc || $compiler == dartdevk) ]
 html/element_animate_test/timing_dict: RuntimeError # Issue 29922

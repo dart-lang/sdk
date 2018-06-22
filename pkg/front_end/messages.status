@@ -409,5 +409,7 @@ UnterminatedString/script7: Fail
 UnterminatedString/script8: Fail
 UnterminatedToken/analyzerCode: Fail
 UnterminatedToken/example: Fail
+WebLiteralCannotBeRepresentedExactly/analyzerCode: Fail
+WebLiteralCannotBeRepresentedExactly/example: Fail
 YieldAsIdentifier/example: Fail
 YieldNotGenerator/example: Fail

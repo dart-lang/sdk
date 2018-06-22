@@ -683,6 +683,10 @@ html/indexeddb_3_test: RuntimeError
 html/indexeddb_5_test: RuntimeError
 html/js_typed_interop_default_arg_test/explicit_argument: RuntimeError
 html/js_typed_interop_test: RuntimeError
+math/double_pow_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+typed_data/int32x4_arithmetic_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+typed_data/int32x4_arithmetic_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+typed_data/int64_list_load_store_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 
 [ $compiler == dart2js && $fasta && $host_checked ]
 html/custom/mirrors_2_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.

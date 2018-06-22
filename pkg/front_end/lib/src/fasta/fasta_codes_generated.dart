@@ -6326,6 +6326,38 @@ const MessageCode messageVarReturnType = const MessageCode("VarReturnType",
         r"""Try removing the keyword 'var', or replacing it with the name of the return type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        String
+            string2)> templateWebLiteralCannotBeRepresentedExactly = const Template<
+        Message Function(String string, String string2)>(
+    messageTemplate:
+        r"""The integer literal #string can't be represented exactly in JavaScript.""",
+    tipTemplate:
+        r"""Try changing the literal to something that can be represented in Javascript. In Javascript #string2 is the nearest value that can be represented exactly.""",
+    withArguments: _withArgumentsWebLiteralCannotBeRepresentedExactly);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeWebLiteralCannotBeRepresentedExactly =
+    const Code<Message Function(String string, String string2)>(
+        "WebLiteralCannotBeRepresentedExactly",
+        templateWebLiteralCannotBeRepresentedExactly,
+        dart2jsCode: "*fatal*",
+        severity: Severity.error);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsWebLiteralCannotBeRepresentedExactly(
+    String string, String string2) {
+  return new Message(codeWebLiteralCannotBeRepresentedExactly,
+      message:
+          """The integer literal ${string} can't be represented exactly in JavaScript.""",
+      tip: """Try changing the literal to something that can be represented in Javascript. In Javascript ${string2} is the nearest value that can be represented exactly.""",
+      arguments: {'string': string, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeWithBeforeExtends = messageWithBeforeExtends;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

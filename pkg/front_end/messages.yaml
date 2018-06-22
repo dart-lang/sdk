@@ -2332,3 +2332,9 @@ InitializeFromDillUnknownProblem:
 MissingExplicitTypeArguments:
   template: "No type arguments provided, #count possible."
   severity: IGNORED
+
+WebLiteralCannotBeRepresentedExactly:
+  template: "The integer literal #string can't be represented exactly in JavaScript."
+  tip: "Try changing the literal to something that can be represented in Javascript. In Javascript #string2 is the nearest value that can be represented exactly."
+  severity: ERROR
+  dart2jsCode: "*fatal*"

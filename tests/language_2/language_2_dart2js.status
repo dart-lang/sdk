@@ -829,6 +829,10 @@ type_promotion_more_specific_test/04: CompileTimeError
 type_variable_promotion_test: RuntimeError
 
 [ $compiler == dart2js && $fasta ]
+arithmetic_int64_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+bit_operations_test/03: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+bit_operations_test/04: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+bit_operations_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 call_method_as_cast_test/06: RuntimeError
 call_method_implicit_tear_off_implements_function_test/05: RuntimeError
 call_method_implicit_tear_off_implements_function_test/06: RuntimeError
@@ -840,10 +844,27 @@ checked_setter_test: RuntimeError # Issue 31128
 const_dynamic_type_literal_test/03: Pass # but it shouldn't until we fix issue 17207
 constructor_redirect_cycle_test/01: Crash # Stack Overflow
 constructor_redirect_indirect_cycle_test/01: Crash # Stack Overflow
+deopt_inlined_function_lazy_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+deopt_smi_op_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 duplicate_interface_implements_test/01: MissingCompileTimeError
 function_propagation_test: RuntimeError
 generic_test/01: MissingCompileTimeError # front end does not validate `extends`
+guess_cid_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+identical_closure2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 instantiate_tearoff_of_call_test: RuntimeError
+int2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/02: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/04: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/05: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/10: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/20: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/40: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+list_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+mint_arithmetic_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+mint_compares_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+mint_identical_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 mixin_type_parameter_inference_error_test/none: CompileTimeError
 mixin_type_parameter_inference_previous_mixin_test/01: CompileTimeError
 mixin_type_parameter_inference_previous_mixin_test/02: CompileTimeError
@@ -859,6 +880,7 @@ mixin_type_parameter_inference_test/12: CompileTimeError
 mixin_type_parameter_inference_test/13: CompileTimeError
 mixin_type_parameter_inference_test/16: CompileTimeError
 mixin_type_parameter_inference_test/none: CompileTimeError
+number_identity_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 partial_tearoff_instantiation_test/05: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/06: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/07: Pass # for the wrong reason.
