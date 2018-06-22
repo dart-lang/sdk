@@ -31,15 +31,6 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @override
   bool get useCFE => true;
 
-//  @failingTest
-//  @potentialAnalyzerProblem
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_analyze_resolveDirectives_error_partOfNonPart() async {
-    await super.test_analyze_resolveDirectives_error_partOfNonPart();
-  }
-
   @override
   test_asyncChangesDuringAnalysis_getErrors() async {
     // TODO(brianwilkerson) Re-enable this test. It was disabled because it

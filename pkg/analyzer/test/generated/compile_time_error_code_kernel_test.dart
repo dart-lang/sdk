@@ -2256,13 +2256,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_partOfNonPart() async {
-    await super.test_partOfNonPart();
-  }
-
-  @override
-  @failingTest
   test_prefix_assignment_compound_in_method() async {
     // Bad state: No reference information for p at 46
     await super.test_prefix_assignment_compound_in_method();

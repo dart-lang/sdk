@@ -223,12 +223,28 @@ class FrontEndCompiler {
 
         // Add new libraries to the current component.
         if (newComponent != null) {
+          // When a file is used in a `part` directive of a library, but does
+          // not have a `part of` itself, we get this file both as a part,
+          // and as a library. This causes an exception later in resolution.
+          var partFileUris = new Set<Uri>();
           for (var library in newComponent.libraries) {
-            Uri uri = library.importUri;
-            if (!_component.root.hasChild('$uri')) {
-              _component.root.getChildFromUri(uri).bindTo(library.reference);
-              library.computeCanonicalNames();
-              _component.libraries.add(library);
+            var libraryFileUri = library.fileUri;
+            for (var part in library.parts) {
+              var partFileUri = libraryFileUri.resolve(part.partUri);
+              if (partFileUri != libraryFileUri) {
+                partFileUris.add(partFileUri);
+              }
+            }
+          }
+          // Do add new libraries.
+          for (var library in newComponent.libraries) {
+            if (!partFileUris.contains(library.fileUri)) {
+              Uri uri = library.importUri;
+              if (!_component.root.hasChild('$uri')) {
+                _component.root.getChildFromUri(uri).bindTo(library.reference);
+                library.computeCanonicalNames();
+                _component.libraries.add(library);
+              }
             }
           }
         }
