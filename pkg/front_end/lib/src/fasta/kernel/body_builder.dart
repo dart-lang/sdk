@@ -4188,7 +4188,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Object check = new VariableDeclaration.forValue(
         forest.checkLibraryIsLoaded(prefix.dependency))
       ..fileOffset = charOffset;
-    return new ShadowDeferredCheck(check, expression);
+    return new DeferredCheckJudgment(check, expression);
   }
 
   /// TODO(ahe): This method is temporarily implemented by subclasses. Once type

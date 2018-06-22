@@ -825,11 +825,13 @@ class ContinueSwitchJudgment extends ContinueSwitchStatement
 }
 
 /// Shadow object representing a deferred check in kernel form.
-class ShadowDeferredCheck extends Let implements ExpressionJudgment {
+class DeferredCheckJudgment extends Let implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowDeferredCheck(VariableDeclaration variable, Expression body)
+  DeferredCheckJudgment(VariableDeclaration variable, Expression body)
       : super(variable, body);
+
+  ExpressionJudgment get judgment => body;
 
   @override
   DartType infer<Expression, Statement, Initializer, Type>(
@@ -838,8 +840,9 @@ class ShadowDeferredCheck extends Let implements ExpressionJudgment {
       DartType typeContext) {
     // Since the variable is not used in the body we don't need to type infer
     // it.  We can just type infer the body.
-    var inferredType =
-        inferrer.inferExpression(factory, body, typeContext, true);
+    var judgment = this.judgment;
+    inferrer.inferExpression(factory, judgment, typeContext, true);
+    inferredType = judgment.inferredType;
     inferrer.listener.deferredCheck(this, fileOffset, inferredType);
     return inferredType;
   }
