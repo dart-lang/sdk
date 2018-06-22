@@ -164,6 +164,7 @@ class InfoPB extends GeneratedMessage {
     ..aOS(6, 'parentId')
     ..pp<DependencyInfoPB>(7, 'uses', PbFieldType.PM,
         DependencyInfoPB.$checkItem, DependencyInfoPB.create)
+    ..aOS(8, 'outputUnitId')
     ..a<LibraryInfoPB>(100, 'libraryInfo', PbFieldType.OM,
         LibraryInfoPB.getDefault, LibraryInfoPB.create)
     ..a<ClassInfoPB>(101, 'classInfo', PbFieldType.OM, ClassInfoPB.getDefault,
@@ -252,68 +253,76 @@ class InfoPB extends GeneratedMessage {
 
   List<DependencyInfoPB> get uses => $_getList(6);
 
-  LibraryInfoPB get libraryInfo => $_getN(7);
+  String get outputUnitId => $_getS(7, '');
+  set outputUnitId(String v) {
+    $_setString(7, v);
+  }
+
+  bool hasOutputUnitId() => $_has(7);
+  void clearOutputUnitId() => clearField(8);
+
+  LibraryInfoPB get libraryInfo => $_getN(8);
   set libraryInfo(LibraryInfoPB v) {
     setField(100, v);
   }
 
-  bool hasLibraryInfo() => $_has(7);
+  bool hasLibraryInfo() => $_has(8);
   void clearLibraryInfo() => clearField(100);
 
-  ClassInfoPB get classInfo => $_getN(8);
+  ClassInfoPB get classInfo => $_getN(9);
   set classInfo(ClassInfoPB v) {
     setField(101, v);
   }
 
-  bool hasClassInfo() => $_has(8);
+  bool hasClassInfo() => $_has(9);
   void clearClassInfo() => clearField(101);
 
-  FunctionInfoPB get functionInfo => $_getN(9);
+  FunctionInfoPB get functionInfo => $_getN(10);
   set functionInfo(FunctionInfoPB v) {
     setField(102, v);
   }
 
-  bool hasFunctionInfo() => $_has(9);
+  bool hasFunctionInfo() => $_has(10);
   void clearFunctionInfo() => clearField(102);
 
-  FieldInfoPB get fieldInfo => $_getN(10);
+  FieldInfoPB get fieldInfo => $_getN(11);
   set fieldInfo(FieldInfoPB v) {
     setField(103, v);
   }
 
-  bool hasFieldInfo() => $_has(10);
+  bool hasFieldInfo() => $_has(11);
   void clearFieldInfo() => clearField(103);
 
-  ConstantInfoPB get constantInfo => $_getN(11);
+  ConstantInfoPB get constantInfo => $_getN(12);
   set constantInfo(ConstantInfoPB v) {
     setField(104, v);
   }
 
-  bool hasConstantInfo() => $_has(11);
+  bool hasConstantInfo() => $_has(12);
   void clearConstantInfo() => clearField(104);
 
-  OutputUnitInfoPB get outputUnitInfo => $_getN(12);
+  OutputUnitInfoPB get outputUnitInfo => $_getN(13);
   set outputUnitInfo(OutputUnitInfoPB v) {
     setField(105, v);
   }
 
-  bool hasOutputUnitInfo() => $_has(12);
+  bool hasOutputUnitInfo() => $_has(13);
   void clearOutputUnitInfo() => clearField(105);
 
-  TypedefInfoPB get typedefInfo => $_getN(13);
+  TypedefInfoPB get typedefInfo => $_getN(14);
   set typedefInfo(TypedefInfoPB v) {
     setField(106, v);
   }
 
-  bool hasTypedefInfo() => $_has(13);
+  bool hasTypedefInfo() => $_has(14);
   void clearTypedefInfo() => clearField(106);
 
-  ClosureInfoPB get closureInfo => $_getN(14);
+  ClosureInfoPB get closureInfo => $_getN(15);
   set closureInfo(ClosureInfoPB v) {
     setField(107, v);
   }
 
-  bool hasClosureInfo() => $_has(14);
+  bool hasClosureInfo() => $_has(15);
   void clearClosureInfo() => clearField(107);
 }
 

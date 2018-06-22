@@ -75,6 +75,7 @@ const InfoPB$json = const {
       '6': '.dart2js_info.proto.DependencyInfoPB',
       '10': 'uses'
     },
+    const {'1': 'output_unit_id', '3': 8, '4': 1, '5': 9, '10': 'outputUnitId'},
     const {
       '1': 'library_info',
       '3': 100,
@@ -152,7 +153,7 @@ const InfoPB$json = const {
     const {'1': 'concrete'},
   ],
   '9': const [
-    const {'1': 8, '2': 100},
+    const {'1': 9, '2': 100},
   ],
 };
 

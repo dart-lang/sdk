@@ -184,6 +184,13 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
       proto.coverageId = info.coverageId;
     }
 
+    if (info is BasicInfo && info.outputUnit != null) {
+      // TODO(lorenvs): Similar to the JSON codec, omit this for the default
+      // output unit. At the moment, there is no easy way to identify which
+      // output unit is the default on [OutputUnitInfo].
+      proto.outputUnitId = info.outputUnit.serializedId;
+    }
+
     if (info is CodeInfo) {
       proto.uses.addAll(info.uses.map(_convertToDependencyInfoPB));
     }

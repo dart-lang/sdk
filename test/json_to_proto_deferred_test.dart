@@ -27,6 +27,24 @@ main() {
       expect(import.prefix, 'deferred_import');
       expect(import.files, hasLength(1));
       expect(import.files.first, 'hello_world_deferred.js_1.part.js');
+
+      // Dart protobuf doesn't support maps, translate the info list into
+      // a map for associative verifications.
+      final infoMap = <String, InfoPB>{};
+      infoMap.addEntries(proto.allInfos.map(
+          (entry) => new MapEntry<String, InfoPB>(entry.key, entry.value)));
+
+      final entrypoint = infoMap[proto.program.entrypointId];
+      expect(entrypoint, isNotNull);
+      expect(entrypoint.hasFunctionInfo(), isTrue);
+      expect(entrypoint.outputUnitId, isNotNull);
+
+      // The output unit of the entrypoint function should be the default
+      // entrypoint, which should have no imports.
+      final defaultOutputUnit = infoMap[entrypoint.outputUnitId];
+      expect(defaultOutputUnit, isNotNull);
+      expect(defaultOutputUnit.hasOutputUnitInfo(), isTrue);
+      expect(defaultOutputUnit.outputUnitInfo.imports, isEmpty);
     });
   });
 }

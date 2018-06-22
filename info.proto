@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+option go_package = "dart2js_info";
+
 package dart2js_info.proto;
 
 message DependencyInfoPB {
@@ -49,8 +51,11 @@ message InfoPB {
   /** How does this function or field depend on others. */
   repeated DependencyInfoPB uses = 7;
 
+  /** The serialized_id of the output unit the element is generated into. */
+  string output_unit_id = 8;
+
   /** Reserved tags for future common fields. */
-  reserved 8 to 99;
+  reserved 9 to 99;
 
   /** The concrete info type. */
   oneof concrete {
