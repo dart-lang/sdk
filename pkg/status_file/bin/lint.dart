@@ -62,7 +62,7 @@ void lintStdIn({bool checkForDisjunctions = false}) {
     while (null != (readString = stdin.readLineSync())) {
       strings.add(readString);
     }
-  } on StdinException catch (e) {
+  } on StdinException {
     // I do not know why this happens.
   }
   if (!lintText(strings)) {
@@ -100,7 +100,7 @@ bool lintText(List<String> text, {bool checkForDisjunctions = false}) {
     var statusFile = new StatusFile.parse("stdin", text);
     return lintStatusFile(statusFile,
         checkForDisjunctions: checkForDisjunctions);
-  } on status_file.SyntaxError catch (error) {
+  } on status_file.SyntaxError {
     stderr.writeln("Could not parse stdin.");
   }
   return false;
