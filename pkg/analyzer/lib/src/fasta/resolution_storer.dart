@@ -249,14 +249,15 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
       void iterator,
       Token rightParenthesis,
       void body,
-      covariant VariableDeclarationLemma variableLemma,
-      DartType variableType,
+      covariant VariableDeclarationLemma loopVariableLemma,
+      DartType loopVariableType,
       Location writeLocation,
       DartType writeType,
       Declaration writeVariable,
       Reference writeTarget) {
-    if (variableLemma != null) {
-      _store(variableLemma.fileOffset as Location, inferredType: variableType);
+    if (loopVariableLemma != null) {
+      _store(loopVariableLemma.fileOffset as Location,
+          inferredType: loopVariableType);
     } else {
       if (writeVariable != null) {
         _store(writeLocation,
