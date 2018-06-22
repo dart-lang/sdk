@@ -5,11 +5,13 @@
 /**
  * Defines the element model. The element model describes the semantic (as
  * opposed to syntactic) structure of Dart code. The syntactic structure of the
- * code is modeled by the [AST structure](../ast/ast.dart).
+ * code is modeled by the [AST
+ * structure](../analyzer.dart.ast.ast/analyzer.dart.ast.ast-library.html).
  *
  * The element model consists of two closely related kinds of objects: elements
  * (instances of a subclass of [Element]) and types. This library defines the
- * elements, the types are defined in [type.dart](type.dart).
+ * elements, the types are defined in
+ * [type.dart](../dart_element_type/dart_element_type-library.html).
  *
  * Generally speaking, an element represents something that is declared in the
  * code, such as a class, method, or variable. Elements are organized in a tree
