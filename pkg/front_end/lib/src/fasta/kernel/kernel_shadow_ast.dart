@@ -1342,13 +1342,11 @@ class FunctionNodeJudgment extends FunctionNode {
   void infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
-      bool hasImplicitReturnType,
+      DartType typeContext,
+      DartType returnContext,
       int returnTypeInstrumentationOffset) {
-    DartType returnContext = hasImplicitReturnType
-        ? (inferrer.strongMode ? null : const DynamicType())
-        : returnType;
-    inferrer.inferLocalFunction(
-        factory, this, null, returnTypeInstrumentationOffset, returnContext);
+    inferrer.inferLocalFunction(factory, this, typeContext,
+        returnTypeInstrumentationOffset, returnContext);
   }
 }
 
@@ -1359,7 +1357,7 @@ class FunctionDeclarationJudgment extends FunctionDeclaration
   bool _hasImplicitReturnType = false;
 
   FunctionDeclarationJudgment(
-      VariableDeclarationJudgment variable, FunctionNode function)
+      VariableDeclarationJudgment variable, FunctionNodeJudgment function)
       : super(variable, function);
 
   VariableDeclarationJudgment get variableJudgment => variable;
@@ -1371,8 +1369,10 @@ class FunctionDeclarationJudgment extends FunctionDeclaration
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory) {
     inferrer.inferMetadataKeepingHelper(factory, variable.annotations);
-    functionJudgment.infer(
-        inferrer, factory, _hasImplicitReturnType, fileOffset);
+    DartType returnContext = _hasImplicitReturnType
+        ? (inferrer.strongMode ? null : const DynamicType())
+        : function.returnType;
+    functionJudgment.infer(inferrer, factory, null, returnContext, fileOffset);
     var inferredType = variable.type = function.functionType;
     inferrer.listener.functionDeclaration(
         variableJudgment.createBinder(inferrer), inferredType);
@@ -1389,15 +1389,18 @@ class FunctionExpressionJudgment extends FunctionExpression
     implements ExpressionJudgment {
   DartType inferredType;
 
-  FunctionExpressionJudgment(FunctionNode function) : super(function);
+  FunctionExpressionJudgment(FunctionNodeJudgment function) : super(function);
+
+  FunctionNodeJudgment get judgment => function;
 
   @override
   DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    inferredType = inferrer.inferLocalFunction(
-        factory, function, typeContext, fileOffset, null);
+    var judgment = this.judgment;
+    judgment.infer(inferrer, factory, typeContext, null, fileOffset);
+    inferredType = judgment.functionType;
     inferrer.listener.functionExpression(this, fileOffset, inferredType);
     return inferredType;
   }
