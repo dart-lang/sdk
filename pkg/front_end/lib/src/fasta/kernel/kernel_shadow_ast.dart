@@ -1644,7 +1644,7 @@ class LabeledStatementJudgment extends LabeledStatement
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory) {
     inferrer.inferStatement(factory, judgment);
-    inferrer.listener.labeledStatement(this, fileOffset);
+    inferrer.listener.labeledStatement(this, fileOffset, null, null, null);
   }
 }
 

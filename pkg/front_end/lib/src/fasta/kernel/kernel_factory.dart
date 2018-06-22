@@ -316,7 +316,8 @@ class KernelFactory
   }
 
   @override
-  Statement labeledStatement(StatementJudgment judgment, int fileOffset) {
+  Statement labeledStatement(StatementJudgment judgment, int fileOffset,
+      Token label, Token colon, Statement statement) {
     return judgment;
   }
 

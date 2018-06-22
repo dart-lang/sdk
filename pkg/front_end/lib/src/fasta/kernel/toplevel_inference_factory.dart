@@ -245,7 +245,8 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       DartType inferredType) {}
 
   @override
-  void labeledStatement(StatementJudgment judgment, int fileOffset) {}
+  void labeledStatement(StatementJudgment judgment, int fileOffset, Token label,
+      Token colon, void statement) {}
 
   @override
   void listLiteral(

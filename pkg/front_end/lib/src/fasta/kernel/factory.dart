@@ -214,7 +214,8 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       DartType testedType,
       DartType inferredType);
 
-  Statement labeledStatement(StatementJudgment judgment, int fileOffset);
+  Statement labeledStatement(StatementJudgment judgment, int fileOffset,
+      Token label, Token colon, Statement statement);
 
   Expression listLiteral(
       ExpressionJudgment judgment,

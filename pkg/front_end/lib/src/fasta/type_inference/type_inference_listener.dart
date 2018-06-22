@@ -218,7 +218,8 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
       DartType type,
       DartType inferredType);
 
-  void labeledStatement(StatementJudgment judgment, Location location);
+  void labeledStatement(StatementJudgment judgment, Location location,
+      Token label, Token colon, void statement);
 
   void listLiteral(
       ExpressionJudgment judgment,
@@ -646,7 +647,8 @@ class KernelTypeInferenceListener
       DartType inferredType) {}
 
   @override
-  void labeledStatement(StatementJudgment judgment, location) {}
+  void labeledStatement(StatementJudgment judgment, location, Token label,
+      Token colon, void statement) {}
 
   @override
   void listLiteral(

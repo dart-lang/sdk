@@ -324,7 +324,8 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
 
   void invalidInitializer(InitializerJudgment judgment, Location location) {}
 
-  void labeledStatement(StatementJudgment judgment, Location location) {}
+  void labeledStatement(StatementJudgment judgment, Location location,
+      Token label, Token colon, void statement) {}
 
   void listLiteral(
           ExpressionJudgment judgment,
