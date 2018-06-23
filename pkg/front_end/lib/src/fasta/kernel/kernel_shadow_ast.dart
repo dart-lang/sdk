@@ -61,7 +61,11 @@ import '../type_inference/type_inference_engine.dart'
         TypeInferenceEngine;
 
 import '../type_inference/type_inferrer.dart'
-    show TypeInferrer, TypeInferrerDisabled, TypeInferrerImpl;
+    show
+        ExpressionInferenceResult,
+        TypeInferrer,
+        TypeInferrerDisabled,
+        TypeInferrerImpl;
 
 import '../type_inference/type_inference_listener.dart'
     show TypeInferenceListener;
@@ -708,7 +712,7 @@ class ConditionalJudgment extends ConditionalExpression
 }
 
 /// Shadow object for [ConstructorInvocation].
-class ShadowConstructorInvocation extends ConstructorInvocation
+class ConstructorInvocationJudgment extends ConstructorInvocation
     implements ExpressionJudgment {
   DartType inferredType;
 
@@ -730,10 +734,12 @@ class ShadowConstructorInvocation extends ConstructorInvocation
   /// [targetTypeArguments] is a list containing the type `List<T>`.
   final List<DartType> targetTypeArguments;
 
-  ShadowConstructorInvocation(Constructor target, this.targetTypeArguments,
-      this._initialTarget, Arguments arguments,
+  ConstructorInvocationJudgment(Constructor target, this.targetTypeArguments,
+      this._initialTarget, ArgumentsJudgment arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
+
+  ArgumentsJudgment get argumentJudgments => arguments;
 
   @override
   DartType infer<Expression, Statement, Initializer, Type>(
@@ -770,14 +776,16 @@ class ShadowConstructorInvocation extends ConstructorInvocation
       }
       inferrer.engine.beingInferred.remove(target);
     }
-    var inferredType = inferrer.inferInvocation(
+    var inferenceResult = inferrer.inferInvocation(
         factory,
         typeContext,
         fileOffset,
         _initialTarget.function.functionType,
         computeConstructorReturnType(_initialTarget),
-        arguments,
+        argumentJudgments,
         isConst: isConst);
+    var inferredType = inferenceResult.type;
+    this.inferredType = inferredType;
     if (inferrer.strongMode &&
         !inferrer.isTopLevel &&
         inferrer.typeSchemaEnvironment.isSuperBounded(inferredType)) {
@@ -817,12 +825,12 @@ class ShadowConstructorInvocation extends ConstructorInvocation
     return inferredType;
   }
 
-  /// Determines whether the given [ShadowConstructorInvocation] represents an
+  /// Determines whether the given [ConstructorInvocationJudgment] represents an
   /// invocation of a redirected factory constructor.
   ///
   /// This is static to avoid introducing a method that would be visible to the
   /// kernel.
-  static bool isRedirected(ShadowConstructorInvocation expression) {
+  static bool isRedirected(ConstructorInvocationJudgment expression) {
     return !identical(expression._initialTarget, expression.target);
   }
 }
@@ -950,7 +958,7 @@ class ExpressionStatementJudgment extends ExpressionStatement
 
 /// Shadow object for [StaticInvocation] when the procedure being invoked is a
 /// factory constructor.
-class ShadowFactoryConstructorInvocation extends StaticInvocation
+class FactoryConstructorInvocationJudgment extends StaticInvocation
     implements ExpressionJudgment {
   DartType inferredType;
 
@@ -972,23 +980,30 @@ class ShadowFactoryConstructorInvocation extends StaticInvocation
   /// [targetTypeArguments] is a list containing the type `List<T>`.
   final List<DartType> targetTypeArguments;
 
-  ShadowFactoryConstructorInvocation(Procedure target, this.targetTypeArguments,
-      this._initialTarget, Arguments arguments,
+  FactoryConstructorInvocationJudgment(
+      Procedure target,
+      this.targetTypeArguments,
+      this._initialTarget,
+      ArgumentsJudgment arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
+
+  ArgumentsJudgment get argumentJudgments => arguments;
 
   @override
   DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    var inferredType = inferrer.inferInvocation(
+    var inferenceResult = inferrer.inferInvocation(
         factory,
         typeContext,
         fileOffset,
         _initialTarget.function.functionType,
         computeConstructorReturnType(_initialTarget),
-        arguments);
+        argumentJudgments);
+    var inferredType = inferenceResult.type;
+    this.inferredType = inferredType;
     inferrer.listener
         .constructorInvocation(this, fileOffset, target, inferredType);
 
@@ -1019,12 +1034,12 @@ class ShadowFactoryConstructorInvocation extends StaticInvocation
     return inferredType;
   }
 
-  /// Determines whether the given [ShadowConstructorInvocation] represents an
+  /// Determines whether the given [ConstructorInvocationJudgment] represents an
   /// invocation of a redirected factory constructor.
   ///
   /// This is static to avoid introducing a method that would be visible to the
   /// kernel.
-  static bool isRedirected(ShadowFactoryConstructorInvocation expression) {
+  static bool isRedirected(FactoryConstructorInvocationJudgment expression) {
     return !identical(expression._initialTarget, expression.target);
   }
 }
@@ -1339,13 +1354,13 @@ class FunctionNodeJudgment extends FunctionNode {
             asyncMarker: asyncMarker,
             dartAsyncMarker: dartAsyncMarker);
 
-  void infer<Expression, Statement, Initializer, Type>(
+  ExpressionInferenceResult infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext,
       DartType returnContext,
       int returnTypeInstrumentationOffset) {
-    inferrer.inferLocalFunction(factory, this, typeContext,
+    return inferrer.inferLocalFunction(factory, this, typeContext,
         returnTypeInstrumentationOffset, returnContext);
   }
 }
@@ -1372,8 +1387,9 @@ class FunctionDeclarationJudgment extends FunctionDeclaration
     DartType returnContext = _hasImplicitReturnType
         ? (inferrer.strongMode ? null : const DynamicType())
         : function.returnType;
-    functionJudgment.infer(inferrer, factory, null, returnContext, fileOffset);
-    var inferredType = variable.type = function.functionType;
+    var inferenceResult = functionJudgment.infer(
+        inferrer, factory, null, returnContext, fileOffset);
+    var inferredType = variable.type = inferenceResult.type;
     inferrer.listener.functionDeclaration(
         variableJudgment.createBinder(inferrer), inferredType);
   }
@@ -1399,8 +1415,9 @@ class FunctionExpressionJudgment extends FunctionExpression
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     var judgment = this.judgment;
-    judgment.infer(inferrer, factory, typeContext, null, fileOffset);
-    inferredType = judgment.functionType;
+    var inferenceResult =
+        judgment.infer(inferrer, factory, typeContext, null, fileOffset);
+    var inferredType = inferenceResult.type;
     inferrer.listener.functionExpression(this, fileOffset, inferredType);
     return inferredType;
   }
@@ -1943,7 +1960,7 @@ abstract class ShadowMember implements Member {
 }
 
 /// Shadow object for [MethodInvocation].
-class ShadowMethodInvocation extends MethodInvocation
+class MethodInvocationJudgment extends MethodInvocation
     implements ExpressionJudgment {
   DartType inferredType;
 
@@ -1951,19 +1968,23 @@ class ShadowMethodInvocation extends MethodInvocation
   /// resulting from the invocation of a function expression.
   final bool _isImplicitCall;
 
-  ShadowMethodInvocation(Expression receiver, Name name, Arguments arguments,
+  MethodInvocationJudgment(
+      Expression receiver, Name name, ArgumentsJudgment arguments,
       {bool isImplicitCall: false, Member interfaceTarget})
       : _isImplicitCall = isImplicitCall,
         super(receiver, name, arguments, interfaceTarget);
+
+  ArgumentsJudgment get argumentJudgments => arguments;
 
   @override
   DartType infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    return inferrer.inferMethodInvocation(
+    var inferenceResult = inferrer.inferMethodInvocation(
         factory, this, receiver, fileOffset, _isImplicitCall, typeContext,
         desugaredInvocation: this);
+    return inferredType = inferenceResult.type;
   }
 }
 
@@ -2030,11 +2051,12 @@ class NotJudgment extends Not implements ExpressionJudgment {
 /// expression:
 ///
 ///     let v = a in v == null ? null : v.b(...)
-class ShadowNullAwareMethodInvocation extends Let
+class NullAwareMethodInvocationJudgment extends Let
     implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowNullAwareMethodInvocation(VariableDeclaration variable, Expression body)
+  NullAwareMethodInvocationJudgment(
+      VariableDeclaration variable, Expression body)
       : super(variable, body);
 
   @override
@@ -2047,9 +2069,10 @@ class ShadowNullAwareMethodInvocation extends Let
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    var inferredType = inferrer.inferMethodInvocation(
+    var inferenceResult = inferrer.inferMethodInvocation(
         factory, this, variable.initializer, fileOffset, false, typeContext,
         receiverVariable: variable, desugaredInvocation: _desugaredInvocation);
+    inferredType = inferenceResult.type;
     if (inferrer.strongMode) {
       body.staticType = inferredType;
     }
@@ -2235,10 +2258,13 @@ class PropertyGetJudgment extends PropertyGet implements ExpressionJudgment {
 
 /// Concrete shadow object representing a redirecting initializer in kernel
 /// form.
-class ShadowRedirectingInitializer extends RedirectingInitializer
+class RedirectingInitializerJudgment extends RedirectingInitializer
     implements InitializerJudgment {
-  ShadowRedirectingInitializer(Constructor target, Arguments arguments)
+  RedirectingInitializerJudgment(
+      Constructor target, ArgumentsJudgment arguments)
       : super(target, arguments);
+
+  ArgumentsJudgment get argumentJudgments => arguments;
 
   @override
   infer<Expression, Statement, Initializer, Type>(ShadowTypeInferrer inferrer,
@@ -2251,8 +2277,13 @@ class ShadowRedirectingInitializer extends RedirectingInitializer
       typeArguments[i] = new TypeParameterType(classTypeParameters[i]);
     }
     ArgumentsJudgment.setNonInferrableArgumentTypes(arguments, typeArguments);
-    inferrer.inferInvocation(factory, null, fileOffset,
-        target.function.functionType, target.enclosingClass.thisType, arguments,
+    inferrer.inferInvocation(
+        factory,
+        null,
+        fileOffset,
+        target.function.functionType,
+        target.enclosingClass.thisType,
+        argumentJudgments,
         skipTypeArgumentInference: true);
     ArgumentsJudgment.removeNonInferrableArgumentTypes(arguments);
     inferrer.listener.redirectingInitializer(
@@ -2386,13 +2417,15 @@ class StaticGetJudgment extends StaticGet implements ExpressionJudgment {
 }
 
 /// Shadow object for [StaticInvocation].
-class ShadowStaticInvocation extends StaticInvocation
+class StaticInvocationJudgment extends StaticInvocation
     implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowStaticInvocation(Procedure target, Arguments arguments,
+  StaticInvocationJudgment(Procedure target, ArgumentsJudgment arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
+
+  ArgumentsJudgment get argumentJudgments => arguments;
 
   @override
   DartType infer<Expression, Statement, Initializer, Type>(
@@ -2400,8 +2433,10 @@ class ShadowStaticInvocation extends StaticInvocation
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     var calleeType = target.function.functionType;
-    var inferredType = inferrer.inferInvocation(factory, typeContext,
-        fileOffset, calleeType, calleeType.returnType, arguments);
+    var inferenceResult = inferrer.inferInvocation(factory, typeContext,
+        fileOffset, calleeType, calleeType.returnType, argumentJudgments);
+    var inferredType = inferenceResult.type;
+    this.inferredType = inferredType;
     inferrer.listener.staticInvocation(
         this,
         arguments.fileOffset,
@@ -2458,10 +2493,12 @@ class StringLiteralJudgment extends StringLiteral
 }
 
 /// Concrete shadow object representing a super initializer in kernel form.
-class ShadowSuperInitializer extends SuperInitializer
+class SuperInitializerJudgment extends SuperInitializer
     implements InitializerJudgment {
-  ShadowSuperInitializer(Constructor target, Arguments arguments)
+  SuperInitializerJudgment(Constructor target, ArgumentsJudgment arguments)
       : super(target, arguments);
+
+  ArgumentsJudgment get argumentJudgments => arguments;
 
   @override
   void infer<Expression, Statement, Initializer, Type>(
@@ -2477,7 +2514,7 @@ class ShadowSuperInitializer extends SuperInitializer
         substitution
             .substituteType(target.function.functionType.withoutTypeParameters),
         inferrer.thisType,
-        arguments,
+        argumentJudgments,
         skipTypeArgumentInference: true);
     inferrer.listener
         .superInitializer(this, fileOffset, null, null, null, null);
@@ -2485,13 +2522,15 @@ class ShadowSuperInitializer extends SuperInitializer
 }
 
 /// Shadow object for [SuperMethodInvocation].
-class ShadowSuperMethodInvocation extends SuperMethodInvocation
+class SuperMethodInvocationJudgment extends SuperMethodInvocation
     implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowSuperMethodInvocation(Name name, Arguments arguments,
+  SuperMethodInvocationJudgment(Name name, ArgumentsJudgment arguments,
       [Procedure interfaceTarget])
       : super(name, arguments, interfaceTarget);
+
+  ArgumentsJudgment get argumentJudgments => arguments;
 
   @override
   DartType infer<Expression, Statement, Initializer, Type>(
@@ -2502,11 +2541,12 @@ class ShadowSuperMethodInvocation extends SuperMethodInvocation
       inferrer.instrumentation?.record(inferrer.uri, fileOffset, 'target',
           new InstrumentationValueForMember(interfaceTarget));
     }
-    return inferrer.inferMethodInvocation(
+    var inferenceResult = inferrer.inferMethodInvocation(
         factory, this, null, fileOffset, false, typeContext,
         interfaceMember: interfaceTarget,
         methodName: name,
         arguments: arguments);
+    return inferredType = inferenceResult.type;
   }
 }
 

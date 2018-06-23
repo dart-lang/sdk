@@ -86,12 +86,13 @@ import '../kernel/kernel_expression_generator.dart' show buildIsNull;
 
 import '../kernel/kernel_shadow_ast.dart'
     show
+        ArgumentsJudgment,
         ExpressionJudgment,
+        NullJudgment,
         ShadowClass,
-        ShadowConstructorInvocation,
+        ConstructorInvocationJudgment,
         ShadowField,
         ShadowMember,
-        NullJudgment,
         VariableDeclarationJudgment,
         getExplicitTypeArguments;
 
@@ -1090,17 +1091,18 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Performs the type inference steps that are shared by all kinds of
   /// invocations (constructors, instance methods, and static methods).
-  DartType inferInvocation<Expression, Statement, Initializer, Type>(
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext,
-      int offset,
-      FunctionType calleeType,
-      DartType returnType,
-      Arguments arguments,
-      {bool isOverloadedArithmeticOperator: false,
-      DartType receiverType,
-      bool skipTypeArgumentInference: false,
-      bool isConst: false}) {
+  ExpressionInferenceResult
+      inferInvocation<Expression, Statement, Initializer, Type>(
+          Factory<Expression, Statement, Initializer, Type> factory,
+          DartType typeContext,
+          int offset,
+          FunctionType calleeType,
+          DartType returnType,
+          ArgumentsJudgment arguments,
+          {bool isOverloadedArithmeticOperator: false,
+          DartType receiverType,
+          bool skipTypeArgumentInference: false,
+          bool isConst: false}) {
     lastInferredSubstitution = null;
     lastCalleeType = null;
     var calleeTypeParameters = calleeType.typeParameters;
@@ -1224,15 +1226,16 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     inferredType = substitution == null
         ? returnType
         : substitution.substituteType(returnType);
-    return inferredType;
+    return new ExpressionInferenceResult(null, inferredType);
   }
 
-  DartType inferLocalFunction<Expression, Statement, Initializer, Type>(
-      Factory<Expression, Statement, Initializer, Type> factory,
-      FunctionNode function,
-      DartType typeContext,
-      int fileOffset,
-      DartType returnContext) {
+  ExpressionInferenceResult
+      inferLocalFunction<Expression, Statement, Initializer, Type>(
+          Factory<Expression, Statement, Initializer, Type> factory,
+          FunctionNode function,
+          DartType typeContext,
+          int fileOffset,
+          DartType returnContext) {
     bool hasImplicitReturnType = false;
     if (returnContext == null) {
       hasImplicitReturnType = true;
@@ -1377,7 +1380,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           closureContext._wrapAsyncOrGenerator(this, const DynamicType());
     }
     this.closureContext = oldClosureContext;
-    return function.functionType;
+    return new ExpressionInferenceResult(null, function.functionType);
   }
 
   @override
@@ -1413,18 +1416,19 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Performs the core type inference algorithm for method invocations (this
   /// handles both null-aware and non-null-aware method invocations).
-  DartType inferMethodInvocation<Expression, Statement, Initializer, Type>(
-      Factory<Expression, Statement, Initializer, Type> factory,
-      kernel.Expression expression,
-      kernel.Expression receiver,
-      int fileOffset,
-      bool isImplicitCall,
-      DartType typeContext,
-      {VariableDeclaration receiverVariable,
-      MethodInvocation desugaredInvocation,
-      Object interfaceMember,
-      Name methodName,
-      Arguments arguments}) {
+  ExpressionInferenceResult
+      inferMethodInvocation<Expression, Statement, Initializer, Type>(
+          Factory<Expression, Statement, Initializer, Type> factory,
+          kernel.Expression expression,
+          kernel.Expression receiver,
+          int fileOffset,
+          bool isImplicitCall,
+          DartType typeContext,
+          {VariableDeclaration receiverVariable,
+          MethodInvocation desugaredInvocation,
+          Object interfaceMember,
+          Name methodName,
+          Arguments arguments}) {
     // First infer the receiver so we can look up the method that was invoked.
     var receiverType = receiver == null
         ? thisType
@@ -1447,10 +1451,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         getCalleeFunctionType(interfaceMember, receiverType, !isImplicitCall);
     var checkKind = preCheckInvocationContravariance(receiver, receiverType,
         interfaceMember, desugaredInvocation, arguments, expression);
-    var inferredType = inferInvocation(factory, typeContext, fileOffset,
+    var inferenceResult = inferInvocation(factory, typeContext, fileOffset,
         calleeType, calleeType.returnType, arguments,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         receiverType: receiverType);
+    var inferredType = inferenceResult.type;
     if (methodName.name == '==') {
       inferredType = coreTypes.boolClass.rawType;
     }
@@ -1491,7 +1496,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           lastInferredSubstitution,
           inferredType);
     }
-    return inferredType;
+    return new ExpressionInferenceResult(null, inferredType);
   }
 
   @override
@@ -1790,7 +1795,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       return templateInvalidCastFunctionExpr;
     }
     if (expression is ConstructorInvocation) {
-      if (ShadowConstructorInvocation.isRedirected(expression)) {
+      if (ConstructorInvocationJudgment.isRedirected(expression)) {
         return null;
       } else {
         return templateInvalidCastNewExpr;
@@ -1976,4 +1981,12 @@ class StrongModeMixinInferrer implements MixinInferrer {
       gatherer = null;
     }
   }
+}
+
+/// The result of an expression inference.
+class ExpressionInferenceResult<Expression> {
+  final Expression expression;
+  final DartType type;
+
+  ExpressionInferenceResult(this.expression, this.type);
 }

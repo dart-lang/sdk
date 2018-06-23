@@ -77,12 +77,12 @@ import 'kernel_ast_api.dart'
         ComplexAssignmentJudgment,
         IllegalAssignmentJudgment,
         IndexAssignmentJudgment,
-        ShadowMethodInvocation,
+        MethodInvocationJudgment,
         NullAwarePropertyGetJudgment,
         PropertyAssignmentJudgment,
         PropertyGetJudgment,
         StaticAssignmentJudgment,
-        ShadowSuperMethodInvocation,
+        SuperMethodInvocationJudgment,
         SuperPropertyGetJudgment,
         VariableAssignmentJudgment,
         ShadowSyntheticExpression,
@@ -676,7 +676,7 @@ class KernelIndexedAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeSimpleRead() {
-    var read = new ShadowMethodInvocation(receiver, indexGetName,
+    var read = new MethodInvocationJudgment(receiver, indexGetName,
         forest.castArguments(forest.arguments(<Expression>[index], token)),
         interfaceTarget: getter)
       ..fileOffset = offsetForToken(token);
@@ -687,7 +687,7 @@ class KernelIndexedAccessGenerator extends KernelGenerator
   Expression _makeSimpleWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
-    var write = new ShadowMethodInvocation(
+    var write = new MethodInvocationJudgment(
         receiver,
         indexSetName,
         forest
@@ -700,7 +700,7 @@ class KernelIndexedAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    var read = new ShadowMethodInvocation(
+    var read = new MethodInvocationJudgment(
         receiverAccess(),
         indexGetName,
         forest.castArguments(
@@ -715,7 +715,7 @@ class KernelIndexedAccessGenerator extends KernelGenerator
   Expression _makeWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
-    var write = new ShadowMethodInvocation(
+    var write = new MethodInvocationJudgment(
         receiverAccess(),
         indexSetName,
         forest.castArguments(
@@ -733,7 +733,7 @@ class KernelIndexedAccessGenerator extends KernelGenerator
     // The call to []= does not return the value like direct-style assignments
     // do.  We need to bind the value in a let.
     var valueVariable = new VariableDeclaration.forValue(value);
-    var write = new ShadowMethodInvocation(
+    var write = new MethodInvocationJudgment(
         receiverAccess(),
         indexSetName,
         forest.castArguments(forest.arguments(
@@ -807,7 +807,7 @@ class KernelThisIndexedAccessGenerator extends KernelGenerator
   Expression _makeWriteAndReturn(
       Expression value, ComplexAssignmentJudgment complexAssignment) {
     var valueVariable = new VariableDeclaration.forValue(value);
-    var write = new ShadowMethodInvocation(
+    var write = new MethodInvocationJudgment(
         forest.thisExpression(token),
         indexSetName,
         forest.castArguments(forest.arguments(
@@ -823,7 +823,7 @@ class KernelThisIndexedAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeSimpleRead() {
-    return new ShadowMethodInvocation(
+    return new MethodInvocationJudgment(
         forest.thisExpression(token),
         indexGetName,
         forest.castArguments(forest.arguments(<Expression>[index], token)),
@@ -835,7 +835,7 @@ class KernelThisIndexedAccessGenerator extends KernelGenerator
   Expression _makeSimpleWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
-    var write = new ShadowMethodInvocation(
+    var write = new MethodInvocationJudgment(
         forest.thisExpression(token),
         indexSetName,
         forest
@@ -848,7 +848,7 @@ class KernelThisIndexedAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    var read = new ShadowMethodInvocation(
+    var read = new MethodInvocationJudgment(
         forest.thisExpression(token),
         indexGetName,
         forest.castArguments(
@@ -863,7 +863,7 @@ class KernelThisIndexedAccessGenerator extends KernelGenerator
   Expression _makeWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
-    var write = new ShadowMethodInvocation(
+    var write = new MethodInvocationJudgment(
         forest.thisExpression(token),
         indexSetName,
         forest.castArguments(
@@ -951,7 +951,7 @@ class KernelSuperIndexedAccessGenerator extends KernelGenerator
           isSuper: true);
     }
     // TODO(ahe): Use [DirectMethodInvocation] when possible.
-    return new ShadowSuperMethodInvocation(
+    return new SuperMethodInvocationJudgment(
         indexGetName,
         forest.castArguments(forest.arguments(<Expression>[index], token)),
         getter)
@@ -1511,7 +1511,7 @@ Expression makeLet(VariableDeclaration variable, Expression body) {
 Expression makeBinary(Expression left, Name operator, Procedure interfaceTarget,
     Expression right, ExpressionGeneratorHelper helper,
     {int offset: TreeNode.noOffset}) {
-  return new ShadowMethodInvocation(
+  return new MethodInvocationJudgment(
       left,
       operator,
       helper.forest

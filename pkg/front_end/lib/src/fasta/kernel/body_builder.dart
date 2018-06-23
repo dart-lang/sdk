@@ -2665,7 +2665,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         return deprecated_buildCompileTimeError(
             "Not a const constructor.", charOffset);
       }
-      return new ShadowConstructorInvocation(target, targetTypeArguments,
+      return new ConstructorInvocationJudgment(target, targetTypeArguments,
           initialTarget, forest.castArguments(arguments),
           isConst: isConst)
         ..fileOffset = charOffset;
@@ -2679,12 +2679,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           return deprecated_buildCompileTimeError(
               "Not a const factory.", charOffset);
         }
-        return new ShadowFactoryConstructorInvocation(target,
+        return new FactoryConstructorInvocationJudgment(target,
             targetTypeArguments, initialTarget, forest.castArguments(arguments),
             isConst: isConst)
           ..fileOffset = charOffset;
       } else {
-        return new ShadowStaticInvocation(
+        return new StaticInvocationJudgment(
             target, forest.castArguments(arguments),
             isConst: isConst)
           ..fileOffset = charOffset;
@@ -4002,7 +4002,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           charOffset);
     }
     needsImplicitSuperInitializer = false;
-    return new ShadowSuperInitializer(
+    return new SuperInitializerJudgment(
         constructor, forest.castArguments(arguments))
       ..fileOffset = charOffset
       ..isSynthetic = isSynthetic;
@@ -4013,7 +4013,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       Constructor constructor, Arguments arguments,
       [int charOffset = -1]) {
     needsImplicitSuperInitializer = false;
-    return new ShadowRedirectingInitializer(
+    return new RedirectingInitializerJudgment(
         constructor, forest.castArguments(arguments))
       ..fileOffset = charOffset;
   }
@@ -4132,14 +4132,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
               offset,
               name.name.length);
         }
-        return new ShadowSuperMethodInvocation(
+        return new SuperMethodInvocationJudgment(
             name, forest.castArguments(arguments), target)
           ..fileOffset = offset;
       }
 
       receiver = new SuperPropertyGetJudgment(name, target)
         ..fileOffset = offset;
-      return new ShadowMethodInvocation(
+      return new MethodInvocationJudgment(
           receiver, callName, forest.castArguments(arguments),
           isImplicitCall: true)
         ..fileOffset = forest.readOffset(arguments);
@@ -4147,7 +4147,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
     if (isNullAware) {
       VariableDeclaration variable = new VariableDeclaration.forValue(receiver);
-      return new ShadowNullAwareMethodInvocation(
+      return new NullAwareMethodInvocationJudgment(
           variable,
           forest.conditionalExpression(
               buildIsNull(new VariableGet(variable), offset, this),
@@ -4160,7 +4160,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             ..fileOffset = offset)
         ..fileOffset = offset;
     } else {
-      return new ShadowMethodInvocation(
+      return new MethodInvocationJudgment(
           receiver, name, forest.castArguments(arguments),
           isImplicitCall: isImplicitCall, interfaceTarget: interfaceTarget)
         ..fileOffset = offset;
