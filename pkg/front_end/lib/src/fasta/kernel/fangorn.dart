@@ -159,7 +159,7 @@ class Fangorn extends Forest {
 
   @override
   BoolJudgment literalBool(bool value, Token token) {
-    return new BoolJudgment(value)..fileOffset = offsetForToken(token);
+    return new BoolJudgment(token, value)..fileOffset = offsetForToken(token);
   }
 
   @override
@@ -326,7 +326,8 @@ class Fangorn extends Forest {
 
   @override
   Expression awaitExpression(Expression operand, Token token) {
-    return new AwaitJudgment(operand)..fileOffset = offsetForToken(token);
+    return new AwaitJudgment(token, operand)
+      ..fileOffset = offsetForToken(token);
   }
 
   @override
@@ -342,13 +343,14 @@ class Fangorn extends Forest {
         copy.add(statement);
       }
     }
-    return new BlockJudgment(copy ?? statements)
+    return new BlockJudgment(openBrace, copy ?? statements, closeBrace)
       ..fileOffset = offsetForToken(openBrace);
   }
 
   @override
   Statement breakStatement(Token breakKeyword, Object label, Token semicolon) {
-    return new BreakJudgment(null)..fileOffset = breakKeyword.charOffset;
+    return new BreakJudgment(breakKeyword, null, semicolon)
+      ..fileOffset = breakKeyword.charOffset;
   }
 
   @override
@@ -361,7 +363,9 @@ class Fangorn extends Forest {
       DartType stackTraceType,
       Statement body) {
     exceptionType ??= const DynamicType();
-    return new CatchJudgment(exceptionParameter, body,
+    // TODO(brianwilkerson) Get the left and right parentheses and the comma.
+    return new CatchJudgment(
+        onKeyword, catchKeyword, null, exceptionParameter, null, null, body,
         guard: exceptionType, stackTrace: stackTraceParameter)
       ..fileOffset = offsetForToken(onKeyword ?? catchKeyword);
   }
@@ -369,14 +373,16 @@ class Fangorn extends Forest {
   @override
   Expression conditionalExpression(Expression condition, Token question,
       Expression thenExpression, Token colon, Expression elseExpression) {
-    return new ConditionalJudgment(condition, thenExpression, elseExpression)
+    return new ConditionalJudgment(
+        condition, question, thenExpression, colon, elseExpression)
       ..fileOffset = offsetForToken(question);
   }
 
   @override
   Statement continueStatement(
       Token continueKeyword, Object label, Token semicolon) {
-    return new ContinueJudgment(null)..fileOffset = continueKeyword.charOffset;
+    return new ContinueJudgment(continueKeyword, null, semicolon)
+      ..fileOffset = continueKeyword.charOffset;
   }
 
   @override
@@ -516,10 +522,10 @@ class Fangorn extends Forest {
   @override
   Statement wrapVariables(Statement statement) {
     if (statement is _VariablesDeclaration) {
-      return new BlockJudgment(statement.declarations)
+      return new BlockJudgment(null, statement.declarations, null)
         ..fileOffset = statement.fileOffset;
     } else if (statement is VariableDeclaration) {
-      return new BlockJudgment(<Statement>[statement])
+      return new BlockJudgment(null, <Statement>[statement], null)
         ..fileOffset = statement.fileOffset;
     } else {
       return statement;
