@@ -659,13 +659,6 @@ class ExitCodesTest extends BaseTest {
 class ExitCodesTest_PreviewDart2 extends ExitCodesTest {
   @override
   bool get usePreviewDart2 => true;
-
-  @override
-  @failingTest
-  test_fatalErrors() {
-    // TODO(devoncarew): This test times out when used with @failingTest.
-    return new Future.error('failing test');
-  }
 }
 
 @reflectiveTest
@@ -675,64 +668,7 @@ class ExitCodesTest_UseCFE extends ExitCodesTest {
 
   @override
   @failingTest
-  test_enableAssertInitializer() {
-    fail('Test times out');
-  }
-
-  @override
-  @failingTest
-  test_fatalErrors() {
-    // TODO(devoncarew): This test times out when used with @failingTest.
-    return new Future.error('failing test');
-  }
-
-  @override
-  @failingTest
-  test_fatalHints() {
-    fail('Test times out');
-  }
-
-  @override
-  @failingTest
-  test_fatalWarnings() {
-    fail('Test times out');
-  }
-
-  @override
-  @failingTest
-  test_missingOptionsFile() {
-    fail('Test times out');
-  }
-
-  @override
-  @failingTest
-  test_notFatalHints() {
-    fail('Test times out');
-  }
-
-  @override
-  @failingTest
-  test_notFatalWarnings() {
-    fail('Test times out');
-  }
-
-  @override
-  @failingTest
-  test_partFile() {
-    fail('Test times out');
-  }
-
-  @override
-  @failingTest
-  test_partFile_extra() {
-    fail('Test times out');
-  }
-
-  @override
-  @failingTest
-  test_partFile_reversed() {
-    fail('Test crashes CFE');
-  }
+  test_fatalWarnings() => callFailingTest(super.test_fatalWarnings);
 }
 
 @reflectiveTest
@@ -841,48 +777,6 @@ class LinterTest_PreviewDart2 extends LinterTest {
 class LinterTest_UseCFE extends LinterTest {
   @override
   bool get useCFE => true;
-
-  @override
-  @failingTest
-  test_defaultLints_generatedLints() {
-    fail('Test times out');
-  }
-
-  @override
-  @failingTest
-  test_defaultLints_getsDefaultLints() {
-    fail('Test times out');
-  }
-
-  @override
-  @failingTest
-  test_lintsInOptions_generatedLints() {
-    fail('Test times out');
-  }
-
-  @override
-  @failingTest
-  test_lintsInOptions_getAnalysisOptions() {
-    fail('Test times out');
-  }
-
-  @override
-  @failingTest
-  test_noLints_lintsDisabled() {
-    fail('Test times out');
-  }
-
-  @override
-  @failingTest
-  test_noLints_noGeneratedWarnings() {
-    fail('Test times out');
-  }
-
-  @override
-  @failingTest
-  test_noLints_noRegisteredLints() {
-    fail('Test times out');
-  }
 }
 
 @reflectiveTest
@@ -1099,75 +993,45 @@ class OptionsTest_UseCFE extends OptionsTest {
 
   @override
   @failingTest
-  test_analysisOptions_excludes() {
-    fail('Test times out');
-  }
+  test_analysisOptions_excludes() =>
+      callFailingTest(super.test_analysisOptions_excludes);
 
   @override
   @failingTest
-  test_analysisOptions_excludesRelativeToAnalysisOptions_explicit() {
-    fail('Test times out');
-  }
+  test_analysisOptions_excludesRelativeToAnalysisOptions_explicit() =>
+      callFailingTest(super
+          .test_analysisOptions_excludesRelativeToAnalysisOptions_explicit);
 
   @override
   @failingTest
-  test_analysisOptions_excludesRelativeToAnalysisOptions_inferred() {
-    fail('Test times out');
-  }
+  test_analysisOptions_excludesRelativeToAnalysisOptions_inferred() =>
+      callFailingTest(super
+          .test_analysisOptions_excludesRelativeToAnalysisOptions_inferred);
 
   @override
   @failingTest
-  test_analyzeFilesInDifferentContexts() {
-    fail('Test times out');
-  }
+  test_basic_filters() => callFailingTest(super.test_basic_filters);
 
   @override
   @failingTest
-  test_basic_filters() {
-    fail('Test times out');
-  }
+  test_basic_language() => callFailingTest(super.test_basic_language);
 
   @override
   @failingTest
-  test_basic_language() {
-    fail('Test times out');
-  }
+  test_basic_strongMode() => callFailingTest(super.test_basic_strongMode);
 
   @override
   @failingTest
-  test_basic_strongMode() {
-    fail('Test times out');
-  }
+  test_includeDirective() => callFailingTest(super.test_includeDirective);
 
   @override
   @failingTest
-  test_includeDirective() {
-    fail('Test times out');
-  }
+  test_previewDart2() => callFailingTest(super.test_previewDart2);
 
   @override
   @failingTest
-  test_previewDart2() {
-    fail('Test times out');
-  }
-
-  @override
-  @failingTest
-  test_strongSdk() {
-    fail('Test times out');
-  }
-
-  @override
-  @failingTest
-  test_todo() {
-    fail('Test times out');
-  }
-
-  @override
-  @failingTest
-  test_withFlags_overrideFatalWarning() {
-    fail('Test times out');
-  }
+  test_withFlags_overrideFatalWarning() =>
+      callFailingTest(super.test_withFlags_overrideFatalWarning);
 }
 
 class TestSource implements Source {
@@ -1175,4 +1039,33 @@ class TestSource implements Source {
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+typedef dynamic NoArgFunction();
+
+/**
+ * Call a test that we think will fail.
+ *
+ * Ensure that we return any thrown exception correctly (avoiding the
+ * package:test zone error handler).
+ */
+callFailingTest(NoArgFunction expectedFailingTestFn) {
+  final Completer completer = new Completer();
+
+  try {
+    runZoned(
+      () async => await expectedFailingTestFn(),
+      onError: (error) {
+        completer.completeError(error);
+      },
+    ).then((result) {
+      completer.complete(result);
+    }).catchError((error) {
+      completer.completeError(error);
+    });
+  } catch (error) {
+    completer.completeError(error);
+  }
+
+  return completer.future;
 }
