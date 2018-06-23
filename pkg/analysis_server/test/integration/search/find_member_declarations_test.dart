@@ -55,10 +55,4 @@ class Foo {
 class FindMemberDeclarationsTest_UseCFE extends FindMemberDeclarationsTest {
   @override
   bool get useCFE => true;
-
-  @override
-  @failingTest
-  test_findMemberDeclarations() {
-    fail('Test times out with CFE.');
-  }
 }

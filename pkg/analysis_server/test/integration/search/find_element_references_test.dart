@@ -79,12 +79,5 @@ class FindElementReferencesTest_UseCFE extends FindElementReferencesTest {
 
   @override
   @failingTest
-  test_badTarget() {
-    fail('Test times out with CFE.');
-  }
-
-  @override
-  @failingTest
-  // TODO(devoncarew): 'NoSuchMethodError: The getter 'source' was called on null'
-  Future test_findReferences() => new Future.error('failing test');
+  Future test_findReferences() => fail('Test fails with CFE');
 }

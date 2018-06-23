@@ -38,6 +38,6 @@ class SetPriorityFilesTest_UseCFE extends SetPriorityFilesTest {
   @failingTest
   @override
   test_options() {
-    fail('This test crashes under the CFE');
+    fail('Test fails with CFE');
   }
 }

@@ -48,6 +48,6 @@ class ReanalyzeTest_UseCFE extends ReanalyzeTest {
   @failingTest
   @override
   test_reanalyze() {
-    fail('This test crashes under the CFE');
+    fail('Test fails with CFE');
   }
 }
