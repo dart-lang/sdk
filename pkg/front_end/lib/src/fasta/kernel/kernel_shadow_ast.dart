@@ -326,12 +326,15 @@ class BreakJudgment extends BreakStatement implements StatementJudgment {
 class ContinueJudgment extends BreakStatement implements StatementJudgment {
   ContinueJudgment(LabeledStatement target) : super(target);
 
+  LabeledStatementJudgment get targetJudgment => target;
+
   @override
   void infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory) {
     // No inference needs to be done.
-    inferrer.listener.breakStatement(this, fileOffset, null, null, null);
+    inferrer.listener.breakStatement(this, fileOffset, null, null, null,
+        targetJudgment?.createBinder(inferrer));
   }
 }
 
@@ -841,13 +844,15 @@ class ContinueSwitchJudgment extends ContinueSwitchStatement
     implements StatementJudgment {
   ContinueSwitchJudgment(SwitchCase target) : super(target);
 
+  SwitchCaseJudgment get targetJudgment => target;
+
   @override
   void infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory) {
     // No inference needs to be done.
-    inferrer.listener
-        .continueSwitchStatement(this, fileOffset, null, null, null);
+    inferrer.listener.continueSwitchStatement(this, fileOffset, null, null,
+        null, targetJudgment?.createBinder(inferrer));
   }
 }
 
@@ -1725,14 +1730,26 @@ class LabeledStatementJudgment extends LabeledStatement
     implements StatementJudgment {
   LabeledStatementJudgment(Statement body) : super(body);
 
+  Object binder;
+
   StatementJudgment get judgment => body;
+
+  Object createBinder(ShadowTypeInferrer inferrer) {
+    // TODO(paulberry): we need one binder for each label
+    return binder ??=
+        inferrer.listener.binderForStatementLabel(this, fileOffset, null);
+  }
 
   @override
   void infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory) {
     inferrer.inferStatement(factory, judgment);
-    inferrer.listener.labeledStatement(this, fileOffset, null, null, null);
+    // TODO(paulberry): support multiple labels.
+    List<Object> labels = <Object>[
+      inferrer.listener.statementLabel(createBinder(inferrer), null, null)
+    ];
+    inferrer.listener.labeledStatement(labels, null);
   }
 }
 
@@ -2575,6 +2592,8 @@ class SuperPropertyGetJudgment extends SuperPropertyGet
 
 /// Concrete shadow object representing a switch case.
 class SwitchCaseJudgment extends SwitchCase {
+  Object binder;
+
   SwitchCaseJudgment(
       List<Expression> expressions, List<int> expressionOffsets, Statement body,
       {bool isDefault: false})
@@ -2587,6 +2606,12 @@ class SwitchCaseJudgment extends SwitchCase {
   List<ExpressionJudgment> get expressionJudgments => expressions.cast();
 
   StatementJudgment get bodyJudgment => body;
+
+  Object createBinder(ShadowTypeInferrer inferrer) {
+    // TODO(paulberry): we need one binder for each label
+    return binder ??=
+        inferrer.listener.binderForSwitchLabel(this, fileOffset, null);
+  }
 }
 
 /// Concrete shadow object representing a switch statement in kernel form.
@@ -2613,6 +2638,8 @@ class SwitchStatementJudgment extends SwitchStatement
             factory, caseExpression, expressionType, false);
       }
       inferrer.inferStatement(factory, switchCase.bodyJudgment);
+      // TODO(paulberry): support labels.
+      inferrer.listener.switchCase(switchCase, null, null, null, null, null);
     }
     inferrer.listener.switchStatement(
         this, fileOffset, null, null, expression, null, null, cases, null);

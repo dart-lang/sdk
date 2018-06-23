@@ -11,8 +11,10 @@ import 'package:kernel/ast.dart'
         Expression,
         FunctionType,
         Initializer,
+        LabeledStatement,
         Node,
         Statement,
+        SwitchCase,
         VariableDeclaration;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
@@ -20,7 +22,11 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 import 'factory.dart' show Factory;
 
 import 'kernel_shadow_ast.dart'
-    show ExpressionJudgment, InitializerJudgment, StatementJudgment;
+    show
+        ExpressionJudgment,
+        InitializerJudgment,
+        StatementJudgment,
+        SwitchCaseJudgment;
 
 /// Implementation of [Factory] that builds source code into a kernel
 /// representation.
@@ -83,8 +89,13 @@ class KernelFactory
   }
 
   @override
-  Statement breakStatement(StatementJudgment judgment, int fileOffset,
-      Token breakKeyword, Expression label, Token semicolon) {
+  Statement breakStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token breakKeyword,
+      Expression label,
+      Token semicolon,
+      covariant LabeledStatement labelBinder) {
     return judgment;
   }
 
@@ -135,14 +146,24 @@ class KernelFactory
   }
 
   @override
-  Statement continueStatement(StatementJudgment judgment, int fileOffset,
-      Token continueKeyword, Expression label, Token semicolon) {
+  Statement continueStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token continueKeyword,
+      Expression label,
+      Token semicolon,
+      covariant LabeledStatement labelBinder) {
     return judgment;
   }
 
   @override
-  Statement continueSwitchStatement(StatementJudgment judgment, int fileOffset,
-      Token continueKeyword, Expression label, Token semicolon) {
+  Statement continueSwitchStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token continueKeyword,
+      Expression label,
+      Token semicolon,
+      covariant LabeledStatement labelBinder) {
     return judgment;
   }
 
@@ -316,8 +337,18 @@ class KernelFactory
   }
 
   @override
-  Statement labeledStatement(StatementJudgment judgment, int fileOffset,
-      Token label, Token colon, Statement statement) {
+  Statement labeledStatement(List<Object> labels, Statement statement) {
+    return labels[0];
+  }
+
+  Object statementLabel(
+      covariant StatementJudgment binder, Token label, Token colon) {
+    return binder;
+  }
+
+  @override
+  Object binderForStatementLabel(
+      StatementJudgment judgment, int fileOffset, String name) {
     return judgment;
   }
 
@@ -515,6 +546,26 @@ class KernelFactory
       Token period,
       Token constructorName,
       Object argumentList) {
+    return judgment;
+  }
+
+  SwitchCase switchCase(
+      SwitchCaseJudgment judgment,
+      List<Object> labels,
+      Token keyword,
+      Expression expression,
+      Token colon,
+      List<Statement> statements) {
+    return judgment;
+  }
+
+  SwitchCase switchLabel(
+      covariant SwitchCase binder, Token label, Token colon) {
+    return binder;
+  }
+
+  SwitchCase binderForSwitchLabel(
+      SwitchCaseJudgment judgment, int fileOffset, String name) {
     return judgment;
   }
 

@@ -9,7 +9,11 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 import '../../scanner/token.dart' show Token;
 
 import '../kernel/kernel_shadow_ast.dart'
-    show ExpressionJudgment, InitializerJudgment, StatementJudgment;
+    show
+        ExpressionJudgment,
+        InitializerJudgment,
+        StatementJudgment,
+        SwitchCaseJudgment;
 
 /// Callback interface used by [TypeInferrer] to report the results of type
 /// inference to a client.
@@ -63,8 +67,13 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
   void boolLiteral(ExpressionJudgment judgment, Location location,
       Token literal, bool value, DartType inferredType);
 
-  void breakStatement(StatementJudgment judgment, Location location,
-      Token breakKeyword, void label, Token semicolon);
+  void breakStatement(
+      StatementJudgment judgment,
+      Location location,
+      Token breakKeyword,
+      void label,
+      Token semicolon,
+      covariant Object labelBinder);
 
   void cascadeExpression(
       ExpressionJudgment judgment, Location location, DartType inferredType);
@@ -100,11 +109,21 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
   void constructorInvocation(ExpressionJudgment judgment, Location location,
       Reference expressionTarget, DartType inferredType);
 
-  void continueStatement(StatementJudgment judgment, Location location,
-      Token continueKeyword, void label, Token semicolon);
+  void continueStatement(
+      StatementJudgment judgment,
+      Location location,
+      Token continueKeyword,
+      void label,
+      Token semicolon,
+      covariant Object labelBinder);
 
-  void continueSwitchStatement(StatementJudgment judgment, Location location,
-      Token continueKeyword, void label, Token semicolon);
+  void continueSwitchStatement(
+      StatementJudgment judgment,
+      Location location,
+      Token continueKeyword,
+      void label,
+      Token semicolon,
+      covariant Object labelBinder);
 
   void deferredCheck(
       ExpressionJudgment judgment, Location location, DartType inferredType);
@@ -218,8 +237,12 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
       DartType type,
       DartType inferredType);
 
-  void labeledStatement(StatementJudgment judgment, Location location,
-      Token label, Token colon, void statement);
+  void labeledStatement(List<Object> labels, void statement);
+
+  Object statementLabel(covariant Object binder, Token label, Token colon);
+
+  Object binderForStatementLabel(
+      StatementJudgment judgment, int fileOffset, String name);
 
   void listLiteral(
       ExpressionJudgment judgment,
@@ -346,6 +369,14 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
       Token constructorName,
       covariant Object argumentList);
 
+  Object switchCase(SwitchCaseJudgment switchCase, List<Object> labels,
+      Token keyword, void expression, Token colon, List<void> statements);
+
+  Object switchLabel(covariant Object binder, Token label, Token colon);
+
+  Object binderForSwitchLabel(
+      SwitchCaseJudgment judgment, int fileOffset, String name);
+
   void switchStatement(
       StatementJudgment judgment,
       Location location,
@@ -469,7 +500,7 @@ class KernelTypeInferenceListener
 
   @override
   void breakStatement(StatementJudgment judgment, location, Token breakKeyword,
-      void label, Token semicolon) {}
+      void label, Token semicolon, covariant void labelBinder) {}
 
   @override
   void cascadeExpression(
@@ -510,12 +541,22 @@ class KernelTypeInferenceListener
       expressionTarget, DartType inferredType) {}
 
   @override
-  void continueStatement(StatementJudgment judgment, location,
-      Token continueKeyword, void label, Token semicolon) {}
+  void continueStatement(
+      StatementJudgment judgment,
+      location,
+      Token continueKeyword,
+      void label,
+      Token semicolon,
+      covariant void labelBinder) {}
 
   @override
-  void continueSwitchStatement(StatementJudgment judgment, location,
-      Token continueKeyword, void label, Token semicolon) {}
+  void continueSwitchStatement(
+      StatementJudgment judgment,
+      location,
+      Token continueKeyword,
+      void label,
+      Token semicolon,
+      covariant void labelBinder) {}
 
   @override
   void deferredCheck(
@@ -647,8 +688,14 @@ class KernelTypeInferenceListener
       DartType inferredType) {}
 
   @override
-  void labeledStatement(StatementJudgment judgment, location, Token label,
-      Token colon, void statement) {}
+  void labeledStatement(List<Object> labels, void statement) {}
+
+  @override
+  void statementLabel(covariant void binder, Token label, Token colon) {}
+
+  @override
+  void binderForStatementLabel(
+      StatementJudgment judgment, int fileOffset, String name) {}
 
   @override
   void listLiteral(
@@ -791,6 +838,17 @@ class KernelTypeInferenceListener
       Token period,
       Token constructorName,
       covariant Object argumentList) {}
+
+  @override
+  void switchCase(SwitchCaseJudgment switchCase, covariant List<Object> labels,
+      Token keyword, void expression, Token colon, List<void> statements) {}
+
+  @override
+  void switchLabel(covariant void binder, Token label, Token colon) {}
+
+  @override
+  void binderForSwitchLabel(
+      SwitchCaseJudgment judgment, int fileOffset, String name) {}
 
   @override
   void switchStatement(

@@ -9,7 +9,11 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 import '../../scanner/token.dart' show Token;
 
 import 'kernel_shadow_ast.dart'
-    show ExpressionJudgment, InitializerJudgment, StatementJudgment;
+    show
+        ExpressionJudgment,
+        InitializerJudgment,
+        StatementJudgment,
+        SwitchCaseJudgment;
 
 /// Abstract base class for factories that can construct trees of expressions,
 /// statements, initializers, and literal types based on tokens, inferred types,
@@ -53,8 +57,13 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Expression boolLiteral(ExpressionJudgment judgment, int fileOffset,
       Token literal, bool value, DartType inferredType);
 
-  Statement breakStatement(StatementJudgment judgment, int fileOffset,
-      Token breakKeyword, Expression label, Token semicolon);
+  Statement breakStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token breakKeyword,
+      Expression label,
+      Token semicolon,
+      covariant Object labelBinder);
 
   Expression cascadeExpression(
       ExpressionJudgment judgment, int fileOffset, DartType inferredType);
@@ -90,11 +99,21 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Expression constructorInvocation(ExpressionJudgment judgment, int fileOffset,
       Node expressionTarget, DartType inferredType);
 
-  Statement continueStatement(StatementJudgment judgment, int fileOffset,
-      Token continueKeyword, Expression label, Token semicolon);
+  Statement continueStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token continueKeyword,
+      Expression label,
+      Token semicolon,
+      covariant Object labelBinder);
 
-  Statement continueSwitchStatement(StatementJudgment judgment, int fileOffset,
-      Token continueKeyword, Expression label, Token semicolon);
+  Statement continueSwitchStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token continueKeyword,
+      Expression label,
+      Token semicolon,
+      covariant Object labelBinder);
 
   Expression deferredCheck(
       ExpressionJudgment judgment, int fileOffset, DartType inferredType);
@@ -214,8 +233,12 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       DartType testedType,
       DartType inferredType);
 
-  Statement labeledStatement(StatementJudgment judgment, int fileOffset,
-      Token label, Token colon, Statement statement);
+  Statement labeledStatement(List<Object> labels, Statement statement);
+
+  Object statementLabel(covariant Object binder, Token label, Token colon);
+
+  Object binderForStatementLabel(
+      StatementJudgment judgment, int fileOffset, String name);
 
   Expression listLiteral(
       ExpressionJudgment judgment,
@@ -341,6 +364,19 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       Token period,
       Token constructorName,
       covariant Object argumentList);
+
+  Object switchCase(
+      SwitchCaseJudgment judgment,
+      List<Object> labels,
+      Token keyword,
+      Expression expression,
+      Token colon,
+      List<Statement> statements);
+
+  Object switchLabel(covariant Object binder, Token label, Token colon);
+
+  Object binderForSwitchLabel(
+      SwitchCaseJudgment judgment, int fileOffset, String name);
 
   Statement switchStatement(
       StatementJudgment judgment,

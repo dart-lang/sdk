@@ -11,7 +11,11 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 import 'factory.dart' show Factory;
 
 import 'kernel_shadow_ast.dart'
-    show ExpressionJudgment, InitializerJudgment, StatementJudgment;
+    show
+        ExpressionJudgment,
+        InitializerJudgment,
+        StatementJudgment,
+        SwitchCaseJudgment;
 
 /// Implementation of [Factory] for use during top level type inference, when
 /// no representation of the code semantics needs to be created (only the type
@@ -64,8 +68,13 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       bool value, DartType inferredType) {}
 
   @override
-  void breakStatement(StatementJudgment judgment, int fileOffset,
-      Token breakKeyword, void label, Token semicolon) {}
+  void breakStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token breakKeyword,
+      void label,
+      Token semicolon,
+      covariant void labelBinder) {}
 
   @override
   void cascadeExpression(
@@ -108,12 +117,22 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       Node expressionTarget, DartType inferredType) {}
 
   @override
-  void continueStatement(StatementJudgment judgment, int fileOffset,
-      Token continueKeyword, void label, Token semicolon) {}
+  void continueStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token continueKeyword,
+      void label,
+      Token semicolon,
+      covariant void labelBinder) {}
 
   @override
-  void continueSwitchStatement(StatementJudgment judgment, int fileOffset,
-      Token continueKeyword, void label, Token semicolon) {}
+  void continueSwitchStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token continueKeyword,
+      void label,
+      Token semicolon,
+      covariant void labelBinder) {}
 
   @override
   void deferredCheck(
@@ -245,8 +264,14 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       DartType inferredType) {}
 
   @override
-  void labeledStatement(StatementJudgment judgment, int fileOffset, Token label,
-      Token colon, void statement) {}
+  void labeledStatement(List<Object> labels, void statement) {}
+
+  @override
+  void statementLabel(covariant void binder, Token label, Token colon) {}
+
+  @override
+  void binderForStatementLabel(
+      StatementJudgment judgment, int fileOffset, String name) {}
 
   @override
   void listLiteral(
@@ -400,6 +425,17 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       Token period,
       Token constructorName,
       Object argumentList) {}
+
+  @override
+  void switchCase(SwitchCaseJudgment judgment, List<Object> labels,
+      Token keyword, void expression, Token colon, List<void> statements) {}
+
+  @override
+  void switchLabel(covariant void binder, Token label, Token colon) {}
+
+  @override
+  void binderForSwitchLabel(
+      SwitchCaseJudgment judgment, int fileOffset, String name) {}
 
   @override
   void switchStatement(

@@ -137,8 +137,13 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
           Token literal, bool value, DartType inferredType) =>
       genericExpression("boolLiteral", location, inferredType);
 
-  void breakStatement(StatementJudgment judgment, Location location,
-      Token breakKeyword, void label, Token semicolon) {}
+  void breakStatement(
+      StatementJudgment judgment,
+      Location location,
+      Token breakKeyword,
+      void label,
+      Token semicolon,
+      covariant Object labelBinder) {}
 
   void cascadeExpression(
       ExpressionJudgment judgment, Location location, DartType inferredType) {
@@ -198,11 +203,21 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
     _store(location, inferredType: inferredType, reference: expressionTarget);
   }
 
-  void continueStatement(StatementJudgment judgment, Location location,
-      Token continueKeyword, void label, Token semicolon) {}
+  void continueStatement(
+      StatementJudgment judgment,
+      Location location,
+      Token continueKeyword,
+      void label,
+      Token semicolon,
+      covariant Object labelBinder) {}
 
-  void continueSwitchStatement(StatementJudgment judgment, Location location,
-      Token continueKeyword, void label, Token semicolon) {}
+  void continueSwitchStatement(
+      StatementJudgment judgment,
+      Location location,
+      Token continueKeyword,
+      void label,
+      Token semicolon,
+      covariant Object labelBinder) {}
 
   void deferredCheck(ExpressionJudgment judgment, Location location,
           DartType inferredType) =>
@@ -326,8 +341,12 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
 
   void invalidInitializer(InitializerJudgment judgment, Location location) {}
 
-  void labeledStatement(StatementJudgment judgment, Location location,
-      Token label, Token colon, void statement) {}
+  void labeledStatement(List<Object> labels, void statement) {}
+
+  void statementLabel(covariant void binder, Token label, Token colon) {}
+
+  void binderForStatementLabel(
+      StatementJudgment judgment, int fileOffset, String name) {}
 
   void listLiteral(
           ExpressionJudgment judgment,
@@ -551,6 +570,14 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
       Token period,
       Token constructorName,
       covariant Object argumentList) {}
+
+  void switchCase(SwitchCaseJudgment judgment, List<Object> labels,
+      Token keyword, void expression, Token colon, List<void> statements) {}
+
+  void switchLabel(covariant void binder, Token label, Token colon) {}
+
+  void binderForSwitchLabel(
+      SwitchCaseJudgment judgment, int fileOffset, String name) {}
 
   void switchStatement(
       StatementJudgment judgment,
