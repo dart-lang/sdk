@@ -45,7 +45,6 @@ declare_args() {
 # ........dartdevc.dart.snapshot
 # ........dartdevk.dart.snapshot
 # ........kernel_worker.dart.snapshot
-# ........pub1.dart.snapshot
 # ........pub.dart.snapshot
 #.........resources/
 #...........dartdoc/
@@ -131,10 +130,6 @@ _platform_sdk_snapshots = [
     "../utils/dartfmt",
   ],
   [
-    "pub1",
-    "../utils/pub:pub1",
-  ],
-  [
     "pub",
     "../utils/pub",
   ],
@@ -172,10 +167,6 @@ _full_sdk_snapshots = [
   [
     "kernel_worker",
     "../utils/bazel:kernel_worker",
-  ],
-  [
-    "pub1",
-    "../utils/pub:pub1",
   ],
   [
     "pub",

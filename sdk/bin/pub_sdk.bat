@@ -29,7 +29,7 @@ if not "_%DART_VM_OPTIONS%_" == "__" (
 )
 
 if defined USING_DART_1 (
-  "%BIN_DIR%\dart" %VM_OPTIONS% "%BIN_DIR%\snapshots\pub1.dart.snapshot" %*
+  echo "Pub no longer supports Dart 1"
 ) else (
   "%BIN_DIR%\dart" %VM_OPTIONS% "%BIN_DIR%\snapshots\pub.dart.snapshot" %*
 )

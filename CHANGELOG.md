@@ -44,6 +44,8 @@ allowed when `exp` has type `void`.
 
 #### Pub
 
+* Pub no longer supports running with `DART_VM_OPTIONS=--no-preview-dart2`.
+
 #### Dart2js
 
 * Dart2js now compiles programs by default with Dart 2.0 semantics. Apps are
