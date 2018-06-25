@@ -1466,10 +1466,10 @@ R runZoned<R>(R body(),
   }
   void Function(Object) unaryOnError;
   void Function(Object, StackTrace) binaryOnError;
-  if (onError is void Function(Object)) {
-    unaryOnError = onError;
-  } else if (onError is void Function(Object, StackTrace)) {
+  if (onError is void Function(Object, StackTrace)) {
     binaryOnError = onError;
+  } else if (onError is void Function(Object)) {
+    unaryOnError = onError;
   } else {
     throw new ArgumentError("onError callback must take either an Object "
         "(the error), or both an Object (the error) and a StackTrace.");

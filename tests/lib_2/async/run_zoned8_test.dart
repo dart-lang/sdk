@@ -24,8 +24,9 @@ main() {
       events.add(counter);
       throw counter;
     });
-  }, onError: (e) {
+  }, onError: (e, [s]) {
     events.add("error: $e");
+    Expect.isNotNull(s); // Regression test for http://dartbug.com/33589
   });
 
   done.future.whenComplete(() {
