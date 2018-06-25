@@ -169,9 +169,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     asm.emitNativeCall(nativeEntryCpIndex);
   }
 
-  LibraryIndex _libraryIndex;
-  LibraryIndex get libraryIndex =>
-      _libraryIndex ??= new LibraryIndex.coreLibraries(component);
+  LibraryIndex get libraryIndex => coreTypes.index;
 
   Procedure _listFromLiteral;
   Procedure get listFromLiteral => _listFromLiteral ??=
@@ -211,6 +209,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       _closureFunctionTypeArguments ??= libraryIndex.getMember(
           'dart:core', '_Closure', '_function_type_arguments');
 
+  Field _closureDelayedTypeArguments;
+  Field get closureDelayedTypeArguments =>
+      _closureDelayedTypeArguments ??= libraryIndex.getMember(
+          'dart:core', '_Closure', '_delayed_type_arguments');
+
   Field _closureFunction;
   Field get closureFunction => _closureFunction ??=
       libraryIndex.getMember('dart:core', '_Closure', '_function');
@@ -222,6 +225,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   Procedure _prependTypeArguments;
   Procedure get prependTypeArguments => _prependTypeArguments ??=
       libraryIndex.getTopLevelMember('dart:_internal', '_prependTypeArguments');
+
+  Procedure _futureValue;
+  Procedure get futureValue =>
+      _futureValue ??= libraryIndex.getMember('dart:async', 'Future', 'value');
 
   void _genConstructorInitializers(Constructor node) {
     bool isRedirecting =
@@ -1109,9 +1116,18 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     asm.emitDrop1();
   }
 
-//  @override
-//  visitDirectMethodInvocation(DirectMethodInvocation node) {
-//  }
+  @override
+  visitDirectMethodInvocation(DirectMethodInvocation node) {
+    final args = node.arguments;
+    _genArguments(node.receiver, args);
+    final target = node.target;
+    if (target is Procedure && !target.isGetter && !target.isSetter) {
+      _genStaticCallWithArgs(target, args, hasReceiver: true);
+    } else {
+      throw new UnsupportedOperationError(
+          'Unsupported DirectMethodInvocation with target ${target.runtimeType} $target');
+    }
+  }
 
   @override
   visitDirectPropertyGet(DirectPropertyGet node) {
@@ -1125,22 +1141,58 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
   }
 
-//  @override
-//  visitDirectPropertySet(DirectPropertySet node) {
-//  }
+  @override
+  visitDirectPropertySet(DirectPropertySet node) {
+    node.receiver.accept(this);
+    node.value.accept(this);
+    final target = node.target;
+    if (target is Field || (target is Procedure && target.isSetter)) {
+      _genStaticCall(target, new ConstantArgDesc(2), 2, isSet: true);
+    } else {
+      throw new UnsupportedOperationError(
+          'Unsupported DirectPropertySet with target ${target.runtimeType} $target');
+    }
+  }
 
   @override
   visitFunctionExpression(FunctionExpression node) {
     _genClosure(node, '<anonymous closure>', node.function);
   }
 
-//  @override
-//  visitInstantiation(Instantiation node) {
-//  }
-//
-//  @override
-//  visitInvalidExpression(InvalidExpression node) {
-//  }
+  @override
+  visitInstantiation(Instantiation node) {
+    final int oldClosure = locals.tempIndexInFrame(node, tempIndex: 0);
+    final int newClosure = locals.tempIndexInFrame(node, tempIndex: 1);
+
+    node.expression.accept(this);
+    asm.emitPopLocal(oldClosure);
+
+    assert(closureClass.typeParameters.isEmpty);
+    asm.emitAllocate(cp.add(new ConstantClass(closureClass)));
+    asm.emitStoreLocal(newClosure);
+
+    _genTypeArguments(node.typeArguments);
+    asm.emitStoreFieldTOS(
+        cp.add(new ConstantFieldOffset(closureDelayedTypeArguments)));
+
+    // Copy the rest of the fields from old closure to a new closure.
+    final fieldsToCopy = <Field>[
+      closureInstantiatorTypeArguments,
+      closureFunctionTypeArguments,
+      closureFunction,
+      closureContext,
+    ];
+
+    for (Field field in fieldsToCopy) {
+      final fieldOffsetCpIndex = cp.add(new ConstantFieldOffset(field));
+      asm.emitPush(newClosure);
+      asm.emitPush(oldClosure);
+      asm.emitLoadFieldTOS(fieldOffsetCpIndex);
+      asm.emitStoreFieldTOS(fieldOffsetCpIndex);
+    }
+
+    asm.emitPush(newClosure);
+  }
 
   @override
   visitIsExpression(IsExpression node) {
@@ -1322,7 +1374,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   @override
   visitSuperPropertyGet(SuperPropertyGet node) {
     _genPushReceiver();
-    Member target =
+    final Member target =
         hierarchy.getDispatchTarget(enclosingClass.superclass, node.name);
     if (target == null) {
       throw new UnsupportedOperationError(
@@ -1336,9 +1388,23 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
   }
 
-//  @override
-//  visitSuperPropertySet(SuperPropertySet node) {
-//  }
+  @override
+  visitSuperPropertySet(SuperPropertySet node) {
+    _genPushReceiver();
+    node.value.accept(this);
+    final Member target = hierarchy
+        .getDispatchTarget(enclosingClass.superclass, node.name, setter: true);
+    if (target == null) {
+      throw new UnsupportedOperationError(
+          'Unsupported SuperPropertySet without target');
+    }
+    if (target is Field || (target is Procedure && target.isSetter)) {
+      _genStaticCall(target, new ConstantArgDesc(2), 2, isSet: true);
+    } else {
+      throw new UnsupportedOperationError(
+          'Unsupported SuperPropertySet with target ${target.runtimeType} $target');
+    }
+  }
 
   @override
   visitNot(Not node) {
@@ -1528,33 +1594,20 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
   }
 
-//  @override
-//  visitLoadLibrary(LoadLibrary node) {
-//  }
-//
-//  @override
-//  visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
-//  }
-//
-//  @override
-//  visitVectorCreation(VectorCreation node) {
-//  }
-//
-//  @override
-//  visitVectorGet(VectorGet node) {
-//  }
-//
-//  @override
-//  visitVectorSet(VectorSet node) {
-//  }
-//
-//  @override
-//  visitVectorCopy(VectorCopy node) {
-//  }
-//
-//  @override
-//  visitClosureCreation(ClosureCreation node) {
-//  }
+  void _genFutureNull() {
+    _genPushNull();
+    _genStaticCall(futureValue, new ConstantArgDesc(1), 1);
+  }
+
+  @override
+  visitLoadLibrary(LoadLibrary node) {
+    _genFutureNull();
+  }
+
+  @override
+  visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
+    _genFutureNull();
+  }
 
   @override
   visitAssertStatement(AssertStatement node) {
@@ -2163,16 +2216,15 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     asm.emitDrop1();
   }
 
-//  @override
-//  visitLocalInitializer(LocalInitializer node) {
-//  }
-//
-//  @override
-//  visitAssertInitializer(AssertInitializer node) {
-//  }
-//
-//  @override
-//  visitInvalidInitializer(InvalidInitializer node) {}
+  @override
+  visitLocalInitializer(LocalInitializer node) {
+    node.variable.accept(this);
+  }
+
+  @override
+  visitAssertInitializer(AssertInitializer node) {
+    node.statement.accept(this);
+  }
 
   @override
   visitConstantExpression(ConstantExpression node) {
@@ -2226,8 +2278,9 @@ class ConstantEmitter extends ConstantVisitor<int> {
   int visitTearOffConstant(TearOffConstant node) =>
       cp.add(new ConstantTearOff(node.procedure));
 
-//  @override
-//  int visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
+  @override
+  int visitTypeLiteralConstant(TypeLiteralConstant node) =>
+      cp.add(new ConstantType(node.type));
 }
 
 class UnsupportedOperationError {

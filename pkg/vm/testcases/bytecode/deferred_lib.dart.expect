@@ -1,0 +1,56 @@
+library #lib;
+import self as self;
+import "./hello.dart" as hel;
+
+[@vm.bytecode=
+Bytecode {
+  Entry                1
+  CheckStack
+  PushConstant         CP#0
+  PushConstant         CP#2
+  IndirectStaticCall   1, CP#1
+  PopLocal             r0
+  PushConstant         CP#4
+  IndirectStaticCall   0, CP#3
+  ReturnTOS
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Null
+  [1] = ArgDesc num-args 1, num-type-args 0, names []
+  [2] = StaticICData target 'dart.async::Future::value', arg-desc CP#1
+  [3] = ArgDesc num-args 0, num-type-args 0, names []
+  [4] = StaticICData target '#lib1::main', arg-desc CP#3
+}
+]static method callDeferred() → dynamic
+  return let final dynamic #t1 = CheckLibraryIsLoaded(lib) in hel::main();
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#0
+  PushConstant         CP#2
+  IndirectStaticCall   1, CP#1
+  ReturnTOS
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Null
+  [1] = ArgDesc num-args 1, num-type-args 0, names []
+  [2] = StaticICData target 'dart.async::Future::value', arg-desc CP#1
+}
+]static method testLoadLibrary() → dynamic
+  return LoadLibrary(lib);
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Null
+}
+]static method main() → dynamic {}
