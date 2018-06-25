@@ -247,25 +247,11 @@ inference/unsafe_block_closure_inference_method_call_implicit_type_param: Fail
 inference/unsafe_block_closure_inference_method_call_no_type_param: Fail
 inference/void_return_type_subtypes_dynamic: Fail
 
-instantiate_to_bound/non_simple_bound_due_to_non_simple: Fail
-instantiate_to_bound/non_simple_bound_due_to_variables: Fail
-instantiate_to_bound/non_simple_co_inductive: Fail
-instantiate_to_bound/non_simple_co_inductive_for_each: Fail
-instantiate_to_bound/non_simple_co_inductive_no_dup: Fail
-instantiate_to_bound/non_simple_folded_regress: Fail
-instantiate_to_bound/non_simple_for_each: Fail
-instantiate_to_bound/non_simple_generic_function_in_bound_regress: Fail
-instantiate_to_bound/non_simple_many: Fail
-instantiate_to_bound/non_simple_no_dup: Fail
-instantiate_to_bound/non_simple_suppress_consequence: Fail
-instantiate_to_bound/non_simple_variables_from_same: Fail
-instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: Fail
-instantiate_to_bound/non_simple_class_typedef_cycle: Fail
-instantiate_to_bound/non_simple_from_compiled: Fail
-instantiate_to_bound/non_simple_many_libs_same_name_cycle: Fail
-
 rasta/issue_000045: Fail
 rasta/issue_000046: Fail
 rasta/issue_000047: Fail
 rasta/native_is_illegal: Pass # Issue 29763
 rasta/type_with_parse_error: Fail
+
+instantiate_to_bound/body_typedef_super_bounded_type: Fail # Issue 33444
+instantiate_to_bound/typedef_super_bounded_type: Fail # Issue 33444
