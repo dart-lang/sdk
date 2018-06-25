@@ -1024,6 +1024,16 @@ RawFunction* InlineCacheMissHelper(const Instance& receiver,
                                    const String& target_name) {
   const Class& receiver_class = Class::Handle(receiver.clazz());
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // Handle noSuchMethod for dyn:methodName by getting a noSuchMethod dispatcher
+  // (or a call-through getter for methodName).
+  if (Function::IsDynamicInvocationForwaderName(target_name)) {
+    const String& demangled = String::Handle(
+        Function::DemangleDynamicInvocationForwarderName(target_name));
+    return InlineCacheMissHelper(receiver, args_descriptor, demangled);
+  }
+#endif
+
   Function& result = Function::Handle();
   if (!ResolveCallThroughGetter(receiver, receiver_class, target_name,
                                 args_descriptor, &result)) {

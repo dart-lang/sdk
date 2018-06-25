@@ -115,6 +115,10 @@ class TypeParameterHelper {
 
   void Finish() { ReadUntilExcluding(kEnd); }
 
+  bool IsGenericCovariantImpl() {
+    return (flags_ & kIsGenericCovariantImpl) != 0;
+  }
+
   TokenPosition position_;
   uint8_t flags_;
   StringIndex name_index_;
@@ -814,8 +818,8 @@ class StreamingScopeBuilder {
 
     // Only parameters *not* marked as covariant or generic-covariant-impl will
     // be checked. The rest would be checked in the method itself.
-    // Inverse of kTypeCheckOnlyGenericCovariantImplParameters.
-    kTypeCheckForTearOffOfNonDynamicallyInvokedMethod,
+    // Inverse of kTypeCheckForNonDynamicallyInvokedMethod.
+    kTypeCheckEverythingNotCheckedInNonDynamicallyInvokedMethod,
 
     // No parameters will be checked.
     kTypeCheckForStaticFunction,
@@ -1273,7 +1277,9 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
 
   virtual ~StreamingFlowGraphBuilder() {}
 
-  FlowGraph* BuildGraph(intptr_t kernel_offset);
+  bool NeedsDynamicInvocationForwarder(const Function& function);
+
+  FlowGraph* BuildGraph();
 
   void ReportUnexpectedTag(const char* variant, Tag tag) override;
 
@@ -1295,8 +1301,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   // will attach the forwarding stub target reference to the parsed function if
   // it crosses a procedure node for a concrete forwarding stub.
   void ReadUntilFunctionNode(ParsedFunction* set_forwarding_stub = NULL);
-
-  enum DispatchCategory { Interface, ViaThis, Closure, DynamicDispatch };
 
  private:
   void LoadAndSetupTypeParameters(ActiveClass* active_class,
@@ -1320,6 +1324,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildInitializers(const Class& parent_class);
   FlowGraph* BuildGraphOfImplicitClosureFunction(const Function& function);
   FlowGraph* BuildGraphOfFunction(bool constructor);
+  FlowGraph* BuildGraphOfDynamicInvocationForwarder();
   FlowGraph* BuildGraphOfNoSuchMethodForwarder(
       const Function& function,
       bool is_implicit_closure_function,
@@ -1418,15 +1423,23 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                         const InferredTypeMetadata* result_type = NULL);
 
   enum TypeChecksToBuild {
-    kDefaultTypeChecks,
-    kTypeChecksForNoDynamicInvocationsTearOff
+    kCheckAllTypeParameterBounds,
+    kCheckNonCovariantTypeParameterBounds,
+    kCheckCovariantTypeParameterBounds,
   };
 
   // Does not move the cursor.
   Fragment BuildDefaultTypeHandling(const Function& function,
                                     intptr_t type_parameters_offset);
 
-  Fragment BuildArgumentTypeChecks(TypeChecksToBuild mode = kDefaultTypeChecks);
+  struct PushedArguments {
+    intptr_t type_args_len;
+    intptr_t argument_count;
+    Array& argument_names;
+  };
+  Fragment PushAllArguments(PushedArguments* pushed);
+
+  Fragment BuildArgumentTypeChecks(TypeChecksToBuild mode);
 
   Fragment ThrowException(TokenPosition position);
   Fragment BooleanNegate();

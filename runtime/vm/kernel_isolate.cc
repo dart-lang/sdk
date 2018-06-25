@@ -265,6 +265,9 @@ bool KernelIsolate::Exists() {
 
 void KernelIsolate::SetKernelIsolate(Isolate* isolate) {
   MonitorLocker ml(monitor_);
+  if (isolate != nullptr) {
+    isolate->set_is_kernel_isolate(true);
+  }
   isolate_ = isolate;
 }
 

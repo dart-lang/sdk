@@ -433,6 +433,8 @@ class FunctionViewElement extends HtmlElement implements Renderable {
         return 'tag';
       case M.FunctionKind.signatureFunction:
         return 'signature function';
+      case M.FunctionKind.dynamicInvocationForwarder:
+        return 'dynamic invocation forwarder';
     }
     throw new Exception('Unknown Functionkind ($kind)');
   }

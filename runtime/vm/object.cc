@@ -2714,27 +2714,54 @@ void Class::CalculateFieldOffsets() const {
   set_next_field_offset(offset);
 }
 
+struct InvocationDispatcherCacheLayout {
+  enum { kNameIndex = 0, kArgsDescIndex, kFunctionIndex, kEntrySize };
+};
+
+void Class::AddInvocationDispatcher(const String& target_name,
+                                    const Array& args_desc,
+                                    const Function& dispatcher) const {
+  // Search for a free entry.
+  Array& cache = Array::Handle(invocation_dispatcher_cache());
+  intptr_t i = 0;
+  while (i < cache.Length() && cache.At(i) != Object::null()) {
+    i += InvocationDispatcherCacheLayout::kEntrySize;
+  }
+
+  if (i == cache.Length()) {
+    // Allocate new larger cache.
+    intptr_t new_len =
+        (cache.Length() == 0)
+            ? static_cast<intptr_t>(InvocationDispatcherCacheLayout::kEntrySize)
+            : cache.Length() * 2;
+    cache ^= Array::Grow(cache, new_len);
+    set_invocation_dispatcher_cache(cache);
+  }
+  cache.SetAt(i + InvocationDispatcherCacheLayout::kNameIndex, target_name);
+  cache.SetAt(i + InvocationDispatcherCacheLayout::kArgsDescIndex, args_desc);
+  cache.SetAt(i + InvocationDispatcherCacheLayout::kFunctionIndex, dispatcher);
+}
+
 RawFunction* Class::GetInvocationDispatcher(const String& target_name,
                                             const Array& args_desc,
                                             RawFunction::Kind kind,
                                             bool create_if_absent) const {
-  enum { kNameIndex = 0, kArgsDescIndex, kFunctionIndex, kEntrySize };
-
   ASSERT(kind == RawFunction::kNoSuchMethodDispatcher ||
-         kind == RawFunction::kInvokeFieldDispatcher);
+         kind == RawFunction::kInvokeFieldDispatcher ||
+         kind == RawFunction::kDynamicInvocationForwarder);
   Function& dispatcher = Function::Handle();
   Array& cache = Array::Handle(invocation_dispatcher_cache());
   ASSERT(!cache.IsNull());
   String& name = String::Handle();
   Array& desc = Array::Handle();
   intptr_t i = 0;
-  for (; i < cache.Length(); i += kEntrySize) {
-    name ^= cache.At(i + kNameIndex);
+  for (; i < cache.Length(); i += InvocationDispatcherCacheLayout::kEntrySize) {
+    name ^= cache.At(i + InvocationDispatcherCacheLayout::kNameIndex);
     if (name.IsNull()) break;  // Reached last entry.
     if (!name.Equals(target_name)) continue;
-    desc ^= cache.At(i + kArgsDescIndex);
+    desc ^= cache.At(i + InvocationDispatcherCacheLayout::kArgsDescIndex);
     if (desc.raw() != args_desc.raw()) continue;
-    dispatcher ^= cache.At(i + kFunctionIndex);
+    dispatcher ^= cache.At(i + InvocationDispatcherCacheLayout::kFunctionIndex);
     if (dispatcher.kind() == kind) {
       // Found match.
       ASSERT(dispatcher.IsFunction());
@@ -2743,18 +2770,8 @@ RawFunction* Class::GetInvocationDispatcher(const String& target_name,
   }
 
   if (dispatcher.IsNull() && create_if_absent) {
-    if (i == cache.Length()) {
-      // Allocate new larger cache.
-      intptr_t new_len = (cache.Length() == 0)
-                             ? static_cast<intptr_t>(kEntrySize)
-                             : cache.Length() * 2;
-      cache ^= Array::Grow(cache, new_len);
-      set_invocation_dispatcher_cache(cache);
-    }
     dispatcher ^= CreateInvocationDispatcher(target_name, args_desc, kind);
-    cache.SetAt(i + kNameIndex, target_name);
-    cache.SetAt(i + kArgsDescIndex, args_desc);
-    cache.SetAt(i + kFunctionIndex, dispatcher);
+    AddInvocationDispatcher(target_name, args_desc, dispatcher);
   }
   return dispatcher.raw();
 }
@@ -2873,6 +2890,81 @@ RawFunction* Function::GetMethodExtractor(const String& getter_name) const {
   ASSERT(result.kind() == RawFunction::kMethodExtractor);
   return result.raw();
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+RawFunction* Function::CreateDynamicInvocationForwarder(
+    const String& mangled_name) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  Function& forwarder = Function::Handle(zone);
+  forwarder ^= Object::Clone(*this, Heap::kOld);
+
+  forwarder.set_name(mangled_name);
+  forwarder.set_kind(RawFunction::kDynamicInvocationForwarder);
+  forwarder.set_is_debuggable(false);
+
+  // TODO(vegorov) for error reporting reasons it is better to make this
+  // function visible and instead use a TailCall to invoke the target.
+  // Our TailCall instruction is not ready for such usage though it
+  // blocks inlining and can't take Function-s only Code objects.
+  forwarder.set_is_visible(false);
+
+  forwarder.ClearICDataArray();
+  forwarder.ClearCode();
+  forwarder.set_usage_counter(0);
+  forwarder.set_deoptimization_counter(0);
+  forwarder.set_optimized_instruction_count(0);
+  forwarder.set_inlining_depth(0);
+  forwarder.set_optimized_call_site_count(0);
+  forwarder.set_kernel_offset(kernel_offset());
+
+  return forwarder.raw();
+}
+
+bool Function::IsDynamicInvocationForwaderName(const String& name) {
+  return name.StartsWith(Symbols::DynamicPrefix());
+}
+
+RawString* Function::CreateDynamicInvocationForwarderName(const String& name) {
+  return Symbols::FromConcat(Thread::Current(), Symbols::DynamicPrefix(), name);
+}
+
+RawString* Function::DemangleDynamicInvocationForwarderName(
+    const String& name) {
+  const intptr_t kDynamicPrefixLength = 4;  // "dyn:"
+  ASSERT(Symbols::DynamicPrefix().Length() == kDynamicPrefixLength);
+  return Symbols::New(Thread::Current(), name, kDynamicPrefixLength,
+                      name.Length() - kDynamicPrefixLength);
+}
+
+RawFunction* Function::GetDynamicInvocationForwarder(
+    const String& mangled_name,
+    bool allow_add /* = true */) const {
+  ASSERT(IsDynamicInvocationForwaderName(mangled_name));
+  const Class& owner = Class::Handle(Owner());
+  Function& result = Function::Handle(owner.GetInvocationDispatcher(
+      mangled_name, Array::null_array(),
+      RawFunction::kDynamicInvocationForwarder, /*create_if_absent=*/false));
+
+  if (!result.IsNull()) {
+    return result.raw();
+  }
+
+  // Check if function actually needs a dynamic invocation forwarder.
+  if (!kernel::FlowGraphBuilder::NeedsDynamicInvocationForwarder(*this)) {
+    result = raw();
+  } else if (allow_add) {
+    result = CreateDynamicInvocationForwarder(mangled_name);
+  }
+
+  if (allow_add) {
+    owner.AddInvocationDispatcher(mangled_name, Array::null_array(), result);
+  }
+
+  return result.raw();
+}
+#endif
 
 bool AbstractType::InstantiateAndTestSubtype(
     AbstractType* subtype,
@@ -6042,6 +6134,8 @@ const char* Function::KindToCString(RawFunction::Kind kind) {
     case RawFunction::kIrregexpFunction:
       return "IrregexpFunction";
       break;
+    case RawFunction::kDynamicInvocationForwarder:
+      return "DynamicInvocationForwarder";
     default:
       UNREACHABLE();
       return NULL;
@@ -7128,7 +7222,6 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   clone.set_optimized_instruction_count(0);
   clone.set_inlining_depth(0);
   clone.set_optimized_call_site_count(0);
-  clone.set_kernel_offset(kernel_offset());
 
   if (new_owner.NumTypeParameters() > 0) {
     // Adjust uninstantiated types to refer to type parameters of the new owner.
@@ -7968,6 +8061,9 @@ const char* Function::ToCString() const {
       break;
     case RawFunction::kNoSuchMethodDispatcher:
       kind_str = " no-such-method-dispatcher";
+      break;
+    case RawFunction::kDynamicInvocationForwarder:
+      kind_str = " dynamic-invocation-forwader";
       break;
     case RawFunction::kInvokeFieldDispatcher:
       kind_str = "invoke-field-dispatcher";
@@ -13694,8 +13790,18 @@ bool ICData::AddSmiSmiCheckForFastSmiStubs() const {
   const String& name = String::Handle(target_name());
   const Class& smi_class = Class::Handle(Smi::Class());
   Zone* zone = Thread::Current()->zone();
-  const Function& smi_op_target =
+  Function& smi_op_target =
       Function::Handle(Resolver::ResolveDynamicAnyArgs(zone, smi_class, name));
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (smi_op_target.IsNull() &&
+      Function::IsDynamicInvocationForwaderName(name)) {
+    const String& demangled =
+        String::Handle(Function::DemangleDynamicInvocationForwarderName(name));
+    smi_op_target = Resolver::ResolveDynamicAnyArgs(zone, smi_class, demangled);
+  }
+#endif
+
   if (NumberOfChecksIs(0)) {
     GrowableArray<intptr_t> class_ids(2);
     class_ids.Add(kSmiCid);
@@ -13753,6 +13859,13 @@ void ICData::AddTarget(const Function& target) const {
 }
 
 bool ICData::ValidateInterceptor(const Function& target) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  const String& name = String::Handle(target_name());
+  if (Function::IsDynamicInvocationForwaderName(name)) {
+    return Function::DemangleDynamicInvocationForwarderName(name) ==
+           target.name();
+  }
+#endif
   ObjectStore* store = Isolate::Current()->object_store();
   ASSERT((target.raw() == store->simple_instance_of_true_function()) ||
          (target.raw() == store->simple_instance_of_false_function()));

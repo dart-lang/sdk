@@ -367,6 +367,7 @@ class ObjectPointerVisitor;
   V(GetterPrefix, "get:")                                                      \
   V(SetterPrefix, "set:")                                                      \
   V(InitPrefix, "init:")                                                       \
+  V(DynamicPrefix, "dyn:")                                                     \
   V(Index, "index")                                                            \
   V(DartScheme, "dart:")                                                       \
   V(DartSchemePrivate, "dart:_")                                               \

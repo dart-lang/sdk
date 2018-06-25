@@ -69,16 +69,30 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(Zone* zone,
     THR_Print("ResolveDynamic '%s' for class %s\n", function_name.ToCString(),
               String::Handle(zone, cls.Name()).ToCString());
   }
+  Function& function = Function::Handle(zone);
+
+  String& demangled = String::Handle(zone);
 
   const bool is_getter = Field::IsGetterName(function_name);
-  String& field_name = String::Handle(zone);
   if (is_getter) {
-    field_name ^= Field::NameFromGetter(function_name);
+    demangled ^= Field::NameFromGetter(function_name);
   }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (Function::IsDynamicInvocationForwaderName(function_name)) {
+    ASSERT(!FLAG_precompiled_mode);
+    demangled ^=
+        Function::DemangleDynamicInvocationForwarderName(function_name);
+    function =
+        ResolveDynamicAnyArgs(zone, receiver_class, demangled, allow_add);
+    return function.IsNull() ? function.raw()
+                             : function.GetDynamicInvocationForwarder(
+                                   function_name, allow_add);
+  }
+#endif
 
   // Now look for an instance function whose name matches function_name
   // in the class.
-  Function& function = Function::Handle(zone);
   while (!cls.IsNull()) {
     function ^= cls.LookupDynamicFunction(function_name);
     if (!function.IsNull()) {
@@ -87,7 +101,7 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(Zone* zone,
     // Getter invocation might actually be a method extraction.
     if (FLAG_lazy_dispatchers) {
       if (is_getter && function.IsNull()) {
-        function ^= cls.LookupDynamicFunction(field_name);
+        function ^= cls.LookupDynamicFunction(demangled);
         if (!function.IsNull() && allow_add) {
           // We were looking for the getter but found a method with the same
           // name. Create a method extractor and return it.

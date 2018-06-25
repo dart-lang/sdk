@@ -3112,6 +3112,8 @@ M.FunctionKind stringToFunctionKind(String value) {
       return M.FunctionKind.tag;
     case 'SignatureFunction':
       return M.FunctionKind.signatureFunction;
+    case 'DynamicInvocationForwarder':
+      return M.FunctionKind.dynamicInvocationForwarder;
   }
   Logger.root.severe('Unrecognized function kind: $value');
   throw new FallThroughError();

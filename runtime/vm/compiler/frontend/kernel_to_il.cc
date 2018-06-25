@@ -2061,6 +2061,28 @@ void FlowGraphBuilder::InlineBailout(const char* reason) {
   }
 }
 
+bool FlowGraphBuilder::NeedsDynamicInvocationForwarder(
+    const Function& function) {
+  ASSERT(Isolate::Current()->strong());
+
+  Thread* thread = Thread::Current();
+  Zone* zone_ = thread->zone();
+
+  TranslationHelper helper(thread);
+  Script& script = Script::Handle(Z, function.script());
+  helper.InitFromScript(script);
+
+  const Class& owner_class = Class::Handle(Z, function.Owner());
+  ActiveClass active_class;
+  ActiveClassScope active_class_scope(&active_class, &owner_class);
+
+  StreamingFlowGraphBuilder streaming_flow_graph_builder(
+      &helper, script, Z, ExternalTypedData::Handle(Z, function.KernelData()),
+      function.KernelDataProgramOffset(), &active_class);
+
+  return streaming_flow_graph_builder.NeedsDynamicInvocationForwarder(function);
+}
+
 FlowGraph* FlowGraphBuilder::BuildGraph() {
   const Function& function = parsed_function_->function();
 
@@ -2080,8 +2102,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
       this, ExternalTypedData::Handle(Z, function.KernelData()),
       function.KernelDataProgramOffset());
   streaming_flow_graph_builder_ = &streaming_flow_graph_builder;
-  FlowGraph* result =
-      streaming_flow_graph_builder_->BuildGraph(function.kernel_offset());
+  FlowGraph* result = streaming_flow_graph_builder_->BuildGraph();
   streaming_flow_graph_builder_ = NULL;
   return result;
 }

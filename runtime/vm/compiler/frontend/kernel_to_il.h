@@ -217,6 +217,7 @@ class ActiveClass {
            function_kind == RawFunction::kGetterFunction ||
            function_kind == RawFunction::kSetterFunction ||
            function_kind == RawFunction::kMethodExtractor ||
+           function_kind == RawFunction::kDynamicInvocationForwarder ||
            member->IsFactory();
   }
 
@@ -704,6 +705,12 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   virtual ~FlowGraphBuilder();
 
   FlowGraph* BuildGraph();
+
+  // Returns true if the given function needs dynamic invocation forwarder:
+  // that is if any of the arguments require checking on the dynamic
+  // call-site: if function has no parameters or has only covariant parameters
+  // as such function already checks all of its parameters.
+  static bool NeedsDynamicInvocationForwarder(const Function& function);
 
  private:
   BlockEntryInstr* BuildPrologue(TargetEntryInstr* normal_entry,

@@ -867,6 +867,9 @@ class RawFunction : public RawObject {
     kNoSuchMethodDispatcher,  // invokes noSuchMethod.
     kInvokeFieldDispatcher,   // invokes a field as a closure.
     kIrregexpFunction,  // represents a generated irregexp matcher function.
+    kDynamicInvocationForwarder,  // represents forwarder which performs type
+                                  // checks for arguments of a dynamic
+                                  // invocation.
   };
 
   enum AsyncModifier {

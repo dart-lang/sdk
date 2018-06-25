@@ -1442,6 +1442,10 @@ class Class : public Object {
   void CheckReload(const Class& replacement,
                    IsolateReloadContext* context) const;
 
+  void AddInvocationDispatcher(const String& target_name,
+                               const Array& args_desc,
+                               const Function& dispatcher) const;
+
  private:
   bool CanReloadFinalized(const Class& replacement,
                           IsolateReloadContext* context) const;
@@ -2302,6 +2306,10 @@ class Function : public Object {
     return kind() == RawFunction::kInvokeFieldDispatcher;
   }
 
+  bool IsDynamicInvocationForwader() const {
+    return kind() == RawFunction::kDynamicInvocationForwarder;
+  }
+
   bool IsImplicitGetterOrSetter() const {
     return kind() == RawFunction::kImplicitGetter ||
            kind() == RawFunction::kImplicitSetter ||
@@ -2367,6 +2375,7 @@ class Function : public Object {
       case RawFunction::kMethodExtractor:
       case RawFunction::kNoSuchMethodDispatcher:
       case RawFunction::kInvokeFieldDispatcher:
+      case RawFunction::kDynamicInvocationForwarder:
         return true;
       case RawFunction::kClosureFunction:
       case RawFunction::kImplicitClosureFunction:
@@ -2400,6 +2409,7 @@ class Function : public Object {
       case RawFunction::kMethodExtractor:
       case RawFunction::kNoSuchMethodDispatcher:
       case RawFunction::kInvokeFieldDispatcher:
+      case RawFunction::kDynamicInvocationForwarder:
         return false;
       default:
         UNREACHABLE();
@@ -2609,6 +2619,7 @@ class Function : public Object {
       case RawFunction::kImplicitSetter:
       case RawFunction::kNoSuchMethodDispatcher:
       case RawFunction::kInvokeFieldDispatcher:
+      case RawFunction::kDynamicInvocationForwarder:
         return true;
       default:
         return false;
@@ -2769,6 +2780,17 @@ class Function : public Object {
 
   RawFunction* CreateMethodExtractor(const String& getter_name) const;
   RawFunction* GetMethodExtractor(const String& getter_name) const;
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  static bool IsDynamicInvocationForwaderName(const String& name);
+  static RawString* DemangleDynamicInvocationForwarderName(const String& name);
+  static RawString* CreateDynamicInvocationForwarderName(const String& name);
+
+  RawFunction* CreateDynamicInvocationForwarder(
+      const String& mangled_name) const;
+  RawFunction* GetDynamicInvocationForwarder(const String& mangled_name,
+                                             bool allow_add = true) const;
+#endif
 
   // Allocate new function object, clone values from this function. The
   // owner of the clone is new_owner.
