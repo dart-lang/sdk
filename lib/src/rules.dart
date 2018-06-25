@@ -55,6 +55,7 @@ import 'package:linter/src/rules/iterable_contains_unrelated_type.dart';
 import 'package:linter/src/rules/join_return_with_assignment.dart';
 import 'package:linter/src/rules/library_names.dart';
 import 'package:linter/src/rules/library_prefixes.dart';
+import 'package:linter/src/rules/lines_longer_than_80_chars.dart';
 import 'package:linter/src/rules/list_remove_unrelated_type.dart';
 import 'package:linter/src/rules/literal_only_boolean_expressions.dart';
 import 'package:linter/src/rules/no_adjacent_strings_in_list.dart';
@@ -177,6 +178,7 @@ void registerLintRules() {
     ..register(new JoinReturnWithAssignment())
     ..registerDefault(new LibraryNames())
     ..registerDefault(new LibraryPrefixes())
+    ..register(new LinesLongerThan80Chars())
     ..register(new ListRemoveUnrelatedType())
     ..register(new LiteralOnlyBooleanExpressions())
     ..register(new NoAdjacentStringsInList())
