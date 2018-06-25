@@ -1091,6 +1091,32 @@ Message _withArgumentsConstEvalNonConstantLiteral(String string) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        String
+            string)> templateConstEvalNonConstantVariableGet = const Template<
+        Message Function(String string)>(
+    messageTemplate:
+        r"""The variable '#string' is not a constant, only constant expressions are allowed.""",
+    withArguments: _withArgumentsConstEvalNonConstantVariableGet);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)>
+    codeConstEvalNonConstantVariableGet =
+    const Code<Message Function(String string)>(
+        "ConstEvalNonConstantVariableGet",
+        templateConstEvalNonConstantVariableGet,
+        analyzerCode: "NON_CONSTANT_VALUE_IN_INITIALIZER");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalNonConstantVariableGet(String string) {
+  return new Message(codeConstEvalNonConstantVariableGet,
+      message:
+          """The variable '${string}' is not a constant, only constant expressions are allowed.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
         String string,
         String
             string2)> templateConstEvalZeroDivisor = const Template<

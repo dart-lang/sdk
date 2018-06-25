@@ -131,6 +131,10 @@ ConstEvalFailedAssertionWithMessage:
   template: "This assertion failed with message: #string"
   analyzerCode: CONST_EVAL_THROWS_EXCEPTION
 
+ConstEvalNonConstantVariableGet:
+  template: "The variable '#string' is not a constant, only constant expressions are allowed."
+  analyzerCode: NON_CONSTANT_VALUE_IN_INITIALIZER
+
 NonAsciiIdentifier:
   template: "The non-ASCII character '#character' (#unicode) can't be used in identifiers, only in strings and comments."
   tip: "Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign)."

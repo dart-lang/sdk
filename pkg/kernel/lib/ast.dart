@@ -5200,7 +5200,7 @@ abstract class PrimitiveConstant<T> extends Constant {
 
   PrimitiveConstant(this.value);
 
-  String toString() => '${this.runtimeType}($value)';
+  String toString() => '$value';
 
   int get hashCode => value.hashCode;
 

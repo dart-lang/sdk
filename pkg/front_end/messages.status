@@ -84,6 +84,8 @@ ConstEvalNegativeShift/analyzerCode: Fail # http://dartbug.com/33481
 ConstEvalNegativeShift/example: Fail
 ConstEvalNonConstantLiteral/dart2jsCode: Fail
 ConstEvalNonConstantLiteral/example: Fail
+ConstEvalNonConstantVariableGet/dart2jsCode: Fail
+ConstEvalNonConstantVariableGet/example: Fail
 ConstEvalZeroDivisor/example: Fail
 ConstFieldWithoutInitializer/example: Fail
 ConstructorNotFound/analyzerCode: Fail
