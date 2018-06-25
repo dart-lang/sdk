@@ -976,14 +976,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void beginCascade(Token token) {
     debugEvent("beginCascade");
     Expression expression = popForValue();
-    if (expression is ShadowCascadeExpression) {
+    if (expression is CascadeJudgment) {
       push(expression);
       push(new VariableUseGenerator(this, token, expression.variable));
       expression.extend();
     } else {
       VariableDeclaration variable = new VariableDeclarationJudgment.forValue(
           expression, functionNestingLevel);
-      push(new ShadowCascadeExpression(variable));
+      push(new CascadeJudgment(variable));
       push(new VariableUseGenerator(this, token, variable));
     }
   }
@@ -992,7 +992,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void endCascade() {
     debugEvent("endCascade");
     Expression expression = popForEffect();
-    ShadowCascadeExpression cascadeReceiver = pop();
+    CascadeJudgment cascadeReceiver = pop();
     cascadeReceiver.finalize(expression);
     push(cascadeReceiver);
   }

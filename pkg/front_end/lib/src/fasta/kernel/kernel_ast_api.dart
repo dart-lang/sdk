@@ -69,7 +69,7 @@ export 'kernel_shadow_ast.dart'
         AssertInitializerJudgment,
         AssertStatementJudgment,
         BreakJudgment,
-        ShadowCascadeExpression,
+        CascadeJudgment,
         ComplexAssignmentJudgment,
         ConstructorInvocationJudgment,
         ContinueSwitchJudgment,

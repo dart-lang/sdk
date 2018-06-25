@@ -374,26 +374,37 @@ class ContinueJudgment extends BreakStatement implements StatementJudgment {
 /// variable"--this is the variable that remembers the value of the expression
 /// preceding the first `..` while the cascades are being evaluated.
 ///
-/// After constructing a [ShadowCascadeExpression], the caller should
+/// After constructing a [CascadeJudgment], the caller should
 /// call [finalize] with an expression representing the expression after the
 /// `..`.  If a further `..` follows that expression, the caller should call
 /// [extend] followed by [finalize] for each subsequent cascade.
-class ShadowCascadeExpression extends Let implements ExpressionJudgment {
+class CascadeJudgment extends Let implements ExpressionJudgment {
   DartType inferredType;
 
   /// Pointer to the last "let" expression in the cascade.
   Let nextCascade;
 
-  /// Creates a [ShadowCascadeExpression] using [variable] as the cascade
+  /// Creates a [CascadeJudgment] using [variable] as the cascade
   /// variable.  Caller is responsible for ensuring that [variable]'s
   /// initializer is the expression preceding the first `..` of the cascade
   /// expression.
-  ShadowCascadeExpression(VariableDeclarationJudgment variable)
+  CascadeJudgment(VariableDeclarationJudgment variable)
       : super(
             variable,
             makeLet(new VariableDeclaration.forValue(new _UnfinishedCascade()),
                 new VariableGet(variable))) {
     nextCascade = body;
+  }
+
+  ExpressionJudgment get targetJudgment => variable.initializer;
+
+  Iterable<ExpressionJudgment> get cascadeJudgments sync* {
+    Let section = body;
+    while (true) {
+      yield section.variable.initializer;
+      if (section.body is! Let) break;
+      section = section.body;
+    }
   }
 
   /// Adds a new unfinalized section to the end of the cascade.  Should be
@@ -420,17 +431,13 @@ class ShadowCascadeExpression extends Let implements ExpressionJudgment {
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    inferredType = inferrer.inferExpression(
-        factory, variable.initializer, typeContext, true);
+    inferredType =
+        inferrer.inferExpression(factory, targetJudgment, typeContext, true);
     if (inferrer.strongMode) {
       variable.type = inferredType;
     }
-    Let section = body;
-    while (true) {
-      inferrer.inferExpression(
-          factory, section.variable.initializer, const UnknownType(), false);
-      if (section.body is! Let) break;
-      section = section.body;
+    for (var judgment in cascadeJudgments) {
+      inferrer.inferExpression(factory, judgment, const UnknownType(), false);
     }
     inferrer.listener.cascadeExpression(this, fileOffset, inferredType);
     return null;
@@ -3392,7 +3399,7 @@ class VariableGetJudgment extends VariableGet implements ExpressionJudgment {
   bool _isInCascade() {
     TreeNode ancestor = variable.parent;
     while (ancestor is Let) {
-      if (ancestor is ShadowCascadeExpression) {
+      if (ancestor is CascadeJudgment) {
         return true;
       }
       ancestor = ancestor.parent;
