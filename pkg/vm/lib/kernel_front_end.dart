@@ -346,7 +346,7 @@ class ForwardConstantEvaluationErrors implements constants.ErrorReporter {
   }
 
   getFileOffset(TreeNode node) {
-    while (node.fileOffset == TreeNode.noOffset) {
+    while (node?.fileOffset == TreeNode.noOffset) {
       node = node.parent;
     }
     return node == null ? TreeNode.noOffset : node.fileOffset;

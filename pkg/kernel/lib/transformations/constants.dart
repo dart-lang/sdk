@@ -911,18 +911,19 @@ class ConstantEvaluator extends RecursiveVisitor {
     // TODO(kustermann): The heuristic of allowing all [VariableGet]s on [Let]
     // variables might allow more than it should.
     final VariableDeclaration variable = node.variable;
-    if (!variable.isConst &&
-        !_isFormalParameter(variable) &&
-        variable.parent is! Let) {
-      throw new Exception('The front-end should ensure we do not encounter a '
-          'variable get of a non-const variable.');
+    if (variable.parent is Let || _isFormalParameter(variable)) {
+      final Constant constant = env.lookupVariable(node.variable);
+      if (constant == null) {
+        errorReporter.nonConstantVariableGet(contextChain, node, variable.name);
+        throw const _AbortCurrentEvaluation();
+      }
+      return constant;
     }
-    final Constant constant = env.lookupVariable(node.variable);
-    if (constant == null) {
-      errorReporter.nonConstantVariableGet(contextChain, node, variable.name);
-      throw const _AbortCurrentEvaluation();
+    if (variable.isConst) {
+      return evaluate(variable.initializer);
     }
-    return constant;
+    throw new Exception('The front-end should ensure we do not encounter a '
+        'variable get of a non-const variable.');
   }
 
   visitStaticGet(StaticGet node) {
