@@ -1646,6 +1646,23 @@ class F {}
     }
   }
 
+  test_subtypes_partWithoutLibrary() async {
+    await _resolveTestUnit('''
+part of lib;
+
+class A {}
+class B extends A {}
+''');
+    ClassElement a = _findElement('A');
+
+    List<SubtypeResult> subtypes = await driver.search.subtypes(type: a);
+    expect(subtypes, hasLength(1));
+
+    SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
+    expect(b.libraryUri, testUri);
+    expect(b.id, '$testUri;$testUri;B');
+  }
+
   test_subtypes_discover() async {
     var pathT = _p('/test/lib/t.dart');
     var pathA = _p('/aaa/lib/a.dart');
