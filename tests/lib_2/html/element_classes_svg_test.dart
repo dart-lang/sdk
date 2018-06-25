@@ -34,12 +34,9 @@ topLevelQuerySelector() {
   expect(noElementsTop.length, 0);
   expect(noElementsTop is List, true);
 
-  var varWeird = querySelectorAll<svg.CircleElement>('path');
-  expect(varWeird.length, 1);
-  expect(varWeird is List, true);
-  expect(varWeird is List<svg.CircleElement>, true);
-  // Runtime error expected 'PathElement' is not a subtype of expected type 'CircleElement'.'
-  Expect.throwsTypeError(() => varWeird[0] is svg.CircleElement);
+  // Expect runtime error all elements in the list are not the proper type.
+  Expect.throwsAssertionError(() => querySelectorAll<svg.CircleElement>('path'),
+      'All elements not of type CircleElement');
 
   var simpleElems = querySelectorAll('circle');
   expect(simpleElems.length, 1);

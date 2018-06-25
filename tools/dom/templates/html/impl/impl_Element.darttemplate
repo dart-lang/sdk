@@ -263,7 +263,10 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
     implements ElementList<E>, NodeListWrapper {
   final List<Node> _nodeList;
 
-  _FrozenElementList._wrap(this._nodeList);
+  _FrozenElementList._wrap(this._nodeList) {
+     assert(this._nodeList.every((element) => element is E),
+         "Query expects only HTML elements of type $E but found ${this._nodeList.firstWhere((e) => e is! E)}");
+  }
 
   int get length => _nodeList.length;
 
