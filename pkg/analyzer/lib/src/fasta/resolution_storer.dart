@@ -664,13 +664,6 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
         inferredType: inferredType);
   }
 
-  void variableSet(
-          ExpressionJudgment judgment,
-          Location location,
-          covariant VariableDeclarationBinder variableBinder,
-          DartType inferredType) =>
-      genericExpression("variableSet", location, inferredType);
-
   void whileStatement(
       StatementJudgment judgment,
       Location location,

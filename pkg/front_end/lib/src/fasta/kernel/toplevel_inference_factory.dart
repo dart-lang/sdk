@@ -501,10 +501,6 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       bool isInCascade, covariant void variableBinder, DartType inferredType) {}
 
   @override
-  void variableSet(ExpressionJudgment judgment, int fileOffset,
-      covariant void variableBinder, DartType inferredType) {}
-
-  @override
   void whileStatement(
       StatementJudgment judgment,
       int fileOffset,

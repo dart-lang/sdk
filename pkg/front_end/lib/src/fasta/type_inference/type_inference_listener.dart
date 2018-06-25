@@ -435,9 +435,6 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
   void variableGet(ExpressionJudgment judgment, Location location,
       bool isInCascade, covariant Object variableBinder, DartType inferredType);
 
-  void variableSet(ExpressionJudgment judgment, Location location,
-      covariant Object variableBinder, DartType inferredType);
-
   void whileStatement(
       StatementJudgment judgment,
       Location location,
@@ -905,10 +902,6 @@ class KernelTypeInferenceListener
   @override
   void variableGet(ExpressionJudgment judgment, location, bool isInCascade,
       expressionVariable, DartType inferredType) {}
-
-  @override
-  void variableSet(ExpressionJudgment judgment, location,
-      covariant void variableBinder, DartType inferredType) {}
 
   @override
   void whileStatement(

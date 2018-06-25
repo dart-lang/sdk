@@ -436,9 +436,6 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Expression variableGet(ExpressionJudgment judgment, int fileOffset,
       bool isInCascade, covariant Object variableBinder, DartType inferredType);
 
-  Expression variableSet(ExpressionJudgment judgment, int fileOffset,
-      covariant Object variableBinder, DartType inferredType);
-
   Statement whileStatement(
       StatementJudgment judgment,
       int fileOffset,

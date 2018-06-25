@@ -668,12 +668,6 @@ class KernelFactory
   }
 
   @override
-  Expression variableSet(ExpressionJudgment judgment, int fileOffset,
-      covariant VariableDeclaration variableBinder, DartType inferredType) {
-    return judgment;
-  }
-
-  @override
   Statement whileStatement(
       StatementJudgment judgment,
       int fileOffset,
