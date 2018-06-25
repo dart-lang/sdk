@@ -25690,7 +25690,8 @@ class RtcPeerConnection extends EventTarget {
 
   List<RtcRtpSender> getSenders() native;
 
-  Future getStats() => promiseToFuture<dynamic>(JS("", "#.getStats()", this));
+  Future<RtcStatsReport> getStats() =>
+      promiseToFuture<RtcStatsReport>(JS("", "#.getStats()", this));
 
   void removeStream(MediaStream stream) native;
 

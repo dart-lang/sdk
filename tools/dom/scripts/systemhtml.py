@@ -817,7 +817,7 @@ promise_operations = monitored.Dict('systemhtml.promise_oper_type', {
   "PaymentRequestEvent.openWindow": { "type": "WindowClient" },
   "RTCPeerConnection.createOffer": { "type": "RtcSessionDescription" },
   "RTCPeerConnection.createAnswer": { "type": "RtcSessionDescription" },
-  "RTCPeerConnection.getStats": { "type": "dictionary", "maplike": "RTCStatsReport"},
+  "RTCPeerConnection.getStats": { "type": "RtcStatsReport", "maplike": "RTCStatsReport"},
   "RTCPeerConnection.generateCertificate": { "type": "RtcCertificate" },
   "Permissions.query": { "type": "PermissionStatus" },
   "Permissions.request": { "type": "PermissionStatus" },
@@ -1328,15 +1328,19 @@ class Dart2JSBackend(HtmlDartGenerator):
       promiseType = 'Future'
       promiseCall = 'promiseToFuture'
       if promiseFound is not(None):
+        paramType = promiseFound['type']
         if 'maplike' in promiseFound:
-          promiseCall = 'promiseToFuture<dynamic>'
-          promiseType = 'Future'
-        elif promiseFound['type'] == 'dictionary':
+          if paramType == 'dictionary':
+            promiseCall = 'promiseToFuture<dynamic>'
+            promiseType = 'Future'
+          else:
+            promiseCall = 'promiseToFuture<%s>' % paramType
+            promiseType = 'Future<%s>' % paramType
+        elif paramType == 'dictionary':
           # It's a dictionary so return as a Map.
           promiseCall = 'promiseToFutureAsMap'
           promiseType = 'Future<Map<String, dynamic>>'
         else:
-          paramType = promiseFound['type']
           promiseCall = 'promiseToFuture<%s>' % paramType
           promiseType = 'Future<%s>' % paramType
 
