@@ -179,6 +179,7 @@ def Build(dart_executable,
     if not silent:
       DisplayBootstrapWarning()
     command = [dart_executable, DART2JS_PATH]
+  command += ['--no-preview-dart-2']
   command += ['-DOBS_VER=' + utils.GetVersion(no_git_hash=True)]
   command += [script_path, '-o', output_path, '--packages=%s' % packages_path]
   # Add the defaults pub used

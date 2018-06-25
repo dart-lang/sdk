@@ -144,6 +144,11 @@ template("_prebuilt_tool_action") {
           "--packages=" + rebase_path(invoker.packages),
         ]
       }
+      if (defined(invoker.dfe)) {
+        args += [
+          "--dfe=" + rebase_path(invoker.dfe),
+        ]
+      }
       if (defined(invoker.script)) {
         args += [ rebase_path(invoker.script) ]
       }
@@ -219,9 +224,12 @@ template("prebuilt_dart_action") {
     forward_variables_from(invoker, "*")
     if (_is_fuchsia) {
       binary = prebuilt_dart
+      dfe = "$prebuilt_dart_sdk/bin/snapshots/kernel-service.dart.snapshot"
     } else {
       binary =
           "$_dart_root/tools/sdks/$host_os/dart-sdk/bin/dart$executable_suffix"
+      dfe =
+          "$_dart_root/tools/sdks/$host_os/dart-sdk/bin/snapshots/kernel-service.dart.snapshot"
     }
     target = "$_dart_root/runtime/bin:dart_bootstrap"
   }
