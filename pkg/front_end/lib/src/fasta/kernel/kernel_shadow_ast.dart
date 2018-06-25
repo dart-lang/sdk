@@ -867,7 +867,12 @@ class ConstructorInvocationJudgment extends ConstructorInvocation
 /// statement, in kernel form.
 class ContinueSwitchJudgment extends ContinueSwitchStatement
     implements StatementJudgment {
-  ContinueSwitchJudgment(SwitchCase target) : super(target);
+  final Token continueKeyword;
+  final Token semicolon;
+
+  ContinueSwitchJudgment(
+      this.continueKeyword, SwitchCase target, this.semicolon)
+      : super(target);
 
   SwitchCaseJudgment get targetJudgment => target;
 
@@ -876,8 +881,8 @@ class ContinueSwitchJudgment extends ContinueSwitchStatement
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory) {
     // No inference needs to be done.
-    inferrer.listener.continueSwitchStatement(this, fileOffset, null, null,
-        null, targetJudgment?.createBinder(inferrer));
+    inferrer.listener.continueSwitchStatement(this, fileOffset, continueKeyword,
+        null, semicolon, targetJudgment?.createBinder(inferrer));
   }
 }
 
@@ -907,7 +912,21 @@ class DeferredCheckJudgment extends Let implements ExpressionJudgment {
 
 /// Concrete shadow object representing a do loop in kernel form.
 class DoJudgment extends DoStatement implements StatementJudgment {
-  DoJudgment(Statement body, Expression condition) : super(body, condition);
+  final Token doKeyword;
+  final Token whileKeyword;
+  final Token leftParenthesis;
+  final Token rightParenthesis;
+  final Token semicolon;
+
+  DoJudgment(
+      this.doKeyword,
+      Statement body,
+      this.whileKeyword,
+      this.leftParenthesis,
+      Expression condition,
+      this.rightParenthesis,
+      this.semicolon)
+      : super(body, condition);
 
   StatementJudgment get bodyJudgment => body;
 
@@ -924,16 +943,18 @@ class DoJudgment extends DoStatement implements StatementJudgment {
         factory, conditionJudgment, boolType, !inferrer.isTopLevel);
     inferrer.ensureAssignable(boolType, conditionJudgment.inferredType,
         condition, condition.fileOffset);
-    inferrer.listener.doStatement(
-        this, fileOffset, null, null, null, null, null, null, null);
+    inferrer.listener.doStatement(this, fileOffset, doKeyword, null,
+        whileKeyword, leftParenthesis, null, rightParenthesis, semicolon);
   }
 }
 
 /// Concrete shadow object representing a double literal in kernel form.
 class DoubleJudgment extends DoubleLiteral implements ExpressionJudgment {
+  final Token literal;
+
   DartType inferredType;
 
-  DoubleJudgment(double value) : super(value);
+  DoubleJudgment(this.literal, double value) : super(value);
 
   @override
   Expression infer<Expression, Statement, Initializer, Type>(
@@ -941,7 +962,8 @@ class DoubleJudgment extends DoubleLiteral implements ExpressionJudgment {
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     inferredType = inferrer.coreTypes.doubleClass.rawType;
-    inferrer.listener.doubleLiteral(this, fileOffset, null, null, inferredType);
+    inferrer.listener
+        .doubleLiteral(this, fileOffset, literal, value, inferredType);
     return null;
   }
 }
@@ -962,18 +984,26 @@ abstract class ExpressionJudgment implements Expression {
 /// Concrete shadow object representing an empty statement in kernel form.
 class EmptyStatementJudgment extends EmptyStatement
     implements StatementJudgment {
+  final Token semicolon;
+
+  EmptyStatementJudgment(this.semicolon);
+
   @override
   void infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory) {
     // No inference needs to be done.
+    inferrer.listener.emptyStatement(semicolon);
   }
 }
 
 /// Concrete shadow object representing an expression statement in kernel form.
 class ExpressionStatementJudgment extends ExpressionStatement
     implements StatementJudgment {
-  ExpressionStatementJudgment(Expression expression) : super(expression);
+  final Token semicolon;
+
+  ExpressionStatementJudgment(Expression expression, this.semicolon)
+      : super(expression);
 
   Expression get judgment => expression;
 
@@ -982,7 +1012,7 @@ class ExpressionStatementJudgment extends ExpressionStatement
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory) {
     inferrer.inferExpression(factory, judgment, const UnknownType(), false);
-    inferrer.listener.expressionStatement(this, fileOffset, null, null);
+    inferrer.listener.expressionStatement(this, fileOffset, null, semicolon);
   }
 }
 
@@ -1122,12 +1152,27 @@ class ShadowFieldInitializer extends FieldInitializer
 
 /// Concrete shadow object representing a for-in loop in kernel form.
 class ForInJudgment extends ForInStatement implements StatementJudgment {
+  final Token awaitKeyword;
+  final Token forKeyword;
+  final Token leftParenthesis;
+  final Token inKeyword;
+  final Token rightParenthesis;
+
   final bool _declaresVariable;
 
   final ShadowSyntheticExpression _syntheticAssignment;
 
-  ForInJudgment(VariableDeclaration variable, Expression iterable,
-      Statement body, this._declaresVariable, this._syntheticAssignment,
+  ForInJudgment(
+      this.awaitKeyword,
+      this.forKeyword,
+      this.leftParenthesis,
+      VariableDeclaration variable,
+      this.inKeyword,
+      Expression iterable,
+      this.rightParenthesis,
+      Statement body,
+      this._declaresVariable,
+      this._syntheticAssignment,
       {bool isAsync: false})
       : super(variable, iterable, body, isAsync: isAsync);
 
@@ -1235,14 +1280,14 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
       inferrer.listener.forInStatement(
           this,
           fileOffset,
+          awaitKeyword,
+          forKeyword,
+          leftParenthesis,
           null,
           null,
-          null,
-          null,
-          null,
-          null,
+          inKeyword,
           iterable,
-          null,
+          rightParenthesis,
           body,
           variable?.createBinder(inferrer),
           variable?.type,
@@ -1254,14 +1299,14 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
       inferrer.listener.forInStatement(
           this,
           fileOffset,
+          awaitKeyword,
+          forKeyword,
+          leftParenthesis,
           null,
           null,
-          null,
-          null,
-          null,
-          null,
+          inKeyword,
           iterable,
-          null,
+          rightParenthesis,
           body,
           variable?.createBinder(inferrer),
           variable?.type,
@@ -1273,14 +1318,14 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
       inferrer.listener.forInStatement(
           this,
           fileOffset,
+          awaitKeyword,
+          forKeyword,
+          leftParenthesis,
           null,
           null,
-          null,
-          null,
-          null,
-          null,
+          inKeyword,
           iterable,
-          null,
+          rightParenthesis,
           body,
           variable?.createBinder(inferrer),
           variable?.type,
@@ -1293,14 +1338,14 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
       inferrer.listener.forInStatement(
           this,
           fileOffset,
+          awaitKeyword,
+          forKeyword,
+          leftParenthesis,
           null,
           null,
+          inKeyword,
           null,
-          null,
-          null,
-          null,
-          null,
-          null,
+          rightParenthesis,
           null,
           variable?.createBinder(inferrer),
           variable?.type,
@@ -1317,10 +1362,25 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
 
 /// Concrete shadow object representing a classic for loop in kernel form.
 class ForJudgment extends ForStatement implements StatementJudgment {
+  final Token forKeyword;
+  final Token leftParenthesis;
+  final Token leftSeparator;
+  final Token rightSeparator;
+  final Token rightParenthesis;
+
   final List<ExpressionJudgment> initializers;
 
-  ForJudgment(List<VariableDeclaration> variables, this.initializers,
-      ExpressionJudgment condition, List<Expression> updates, Statement body)
+  ForJudgment(
+      this.forKeyword,
+      this.leftParenthesis,
+      List<VariableDeclaration> variables,
+      this.initializers,
+      this.leftSeparator,
+      ExpressionJudgment condition,
+      this.rightSeparator,
+      List<Expression> updates,
+      this.rightParenthesis,
+      Statement body)
       : super(variables ?? [], condition, updates, body);
 
   List<VariableDeclarationJudgment> get variableJudgments => variables.cast();
@@ -1360,8 +1420,19 @@ class ForJudgment extends ForStatement implements StatementJudgment {
       inferrer.inferExpression(factory, update, const UnknownType(), false);
     }
     inferrer.inferStatement(factory, bodyJudgment);
-    inferrer.listener.forStatement(this, fileOffset, null, null, null, null,
-        null, condition, null, updates, null, body);
+    inferrer.listener.forStatement(
+        this,
+        fileOffset,
+        forKeyword,
+        leftParenthesis,
+        null,
+        null,
+        leftSeparator,
+        condition,
+        rightSeparator,
+        updates,
+        rightParenthesis,
+        body);
   }
 }
 
@@ -1673,9 +1744,11 @@ abstract class InitializerJudgment implements Initializer {
 
 /// Concrete shadow object representing an integer literal in kernel form.
 class IntJudgment extends IntLiteral implements ExpressionJudgment {
+  final Token literal;
+
   DartType inferredType;
 
-  IntJudgment(int value) : super(value);
+  IntJudgment(this.literal, int value) : super(value);
 
   @override
   Expression infer<Expression, Statement, Initializer, Type>(
@@ -1683,7 +1756,8 @@ class IntJudgment extends IntLiteral implements ExpressionJudgment {
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     inferredType = inferrer.coreTypes.intClass.rawType;
-    inferrer.listener.intLiteral(this, fileOffset, null, null, inferredType);
+    inferrer.listener
+        .intLiteral(this, fileOffset, literal, value, inferredType);
     return null;
   }
 }

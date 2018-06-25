@@ -142,6 +142,8 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
   void doubleLiteral(ExpressionJudgment judgment, Location location,
       Token literal, double value, DartType inferredType);
 
+  void emptyStatement(Token semicolon);
+
   void expressionStatement(StatementJudgment judgment, Location location,
       void expression, Token semicolon);
 
@@ -577,6 +579,9 @@ class KernelTypeInferenceListener
   @override
   void doubleLiteral(ExpressionJudgment judgment, location, Token literal,
       double value, DartType inferredType) {}
+
+  @override
+  void emptyStatement(Token semicolon) {}
 
   @override
   void expressionStatement(

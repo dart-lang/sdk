@@ -164,12 +164,12 @@ class Fangorn extends Forest {
 
   @override
   DoubleJudgment literalDouble(double value, Token token) {
-    return new DoubleJudgment(value)..fileOffset = offsetForToken(token);
+    return new DoubleJudgment(token, value)..fileOffset = offsetForToken(token);
   }
 
   @override
   IntJudgment literalInt(int value, Token token) {
-    return new IntJudgment(value)..fileOffset = offsetForToken(token);
+    return new IntJudgment(token, value)..fileOffset = offsetForToken(token);
   }
 
   @override
@@ -388,16 +388,19 @@ class Fangorn extends Forest {
   @override
   Statement doStatement(Token doKeyword, Statement body, Token whileKeyword,
       Expression condition, Token semicolon) {
-    return new DoJudgment(body, condition)..fileOffset = doKeyword.charOffset;
+    // TODO(brianwilkerson): Plumb through the left-and right parentheses.
+    return new DoJudgment(
+        doKeyword, body, whileKeyword, null, condition, null, semicolon)
+      ..fileOffset = doKeyword.charOffset;
   }
 
   Statement expressionStatement(Expression expression, Token semicolon) {
-    return new ExpressionStatementJudgment(expression);
+    return new ExpressionStatementJudgment(expression, semicolon);
   }
 
   @override
   Statement emptyStatement(Token semicolon) {
-    return new EmptyStatementJudgment();
+    return new EmptyStatementJudgment(semicolon);
   }
 
   @override
@@ -412,8 +415,18 @@ class Fangorn extends Forest {
       List<Expression> updaters,
       Token rightParenthesis,
       Statement body) {
+    // TODO(brianwilkerson): Plumb through the right separator.
     return new ForJudgment(
-        variableList, initializers, condition, updaters, body)
+        forKeyword,
+        leftParenthesis,
+        variableList,
+        initializers,
+        leftSeparator,
+        condition,
+        null,
+        updaters,
+        leftParenthesis.endGroup,
+        body)
       ..fileOffset = forKeyword.charOffset;
   }
 
@@ -465,7 +478,8 @@ class Fangorn extends Forest {
   @override
   Statement rethrowStatement(Token rethrowKeyword, Token semicolon) {
     return new ExpressionStatementJudgment(
-        new RethrowJudgment()..fileOffset = offsetForToken(rethrowKeyword));
+        new RethrowJudgment()..fileOffset = offsetForToken(rethrowKeyword),
+        semicolon);
   }
 
   @override

@@ -238,6 +238,8 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
           Token literal, double value, DartType inferredType) =>
       genericExpression("doubleLiteral", location, inferredType);
 
+  void emptyStatement(Token semicolon) {}
+
   void expressionStatement(StatementJudgment judgment, Location location,
       void expression, Token semicolon) {}
 

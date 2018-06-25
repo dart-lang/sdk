@@ -132,6 +132,8 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Expression doubleLiteral(ExpressionJudgment judgment, int fileOffset,
       Token literal, double value, DartType inferredType);
 
+  Statement emptyStatement(Token semicolon);
+
   Statement expressionStatement(StatementJudgment judgment, int fileOffset,
       Expression expression, Token semicolon);
 

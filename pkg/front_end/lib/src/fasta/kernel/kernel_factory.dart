@@ -194,6 +194,11 @@ class KernelFactory
   }
 
   @override
+  Statement emptyStatement(Token semicolon) {
+    return null;
+  }
+
+  @override
   Statement expressionStatement(StatementJudgment judgment, int fileOffset,
       Expression expression, Token semicolon) {
     return judgment;

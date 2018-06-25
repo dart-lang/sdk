@@ -3267,7 +3267,16 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           message, offsetForToken(token), lengthForToken(token)));
     }
     Statement result = new ForInJudgment(
-        variable, expression, kernelBody, declaresVariable, syntheticAssignment,
+        awaitToken,
+        forToken,
+        leftParenthesis,
+        variable,
+        inKeyword,
+        expression,
+        leftParenthesis.endGroup,
+        kernelBody,
+        declaresVariable,
+        syntheticAssignment,
         isAsync: awaitToken != null)
       ..fileOffset = awaitToken?.charOffset ?? forToken.charOffset
       ..bodyOffset = kernelBody.fileOffset;
@@ -3613,8 +3622,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
       if (target.isGotoTarget &&
           target.functionNestingLevel == functionNestingLevel) {
-        ContinueSwitchStatement statement = new ContinueSwitchJudgment(null)
-          ..fileOffset = continueKeyword.charOffset;
+        ContinueSwitchStatement statement =
+            new ContinueSwitchJudgment(continueKeyword, null, endToken)
+              ..fileOffset = continueKeyword.charOffset;
         target.addGoto(statement);
         push(statement);
         return;
@@ -3882,13 +3892,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   Statement deprecated_buildCompileTimeErrorStatement(error,
       [int charOffset = -1]) {
     return new ExpressionStatementJudgment(
-        deprecated_buildCompileTimeError(error, charOffset));
+        deprecated_buildCompileTimeError(error, charOffset), null);
   }
 
   Statement buildCompileTimeErrorStatement(Message message, int charOffset,
       {List<LocatedMessage> context}) {
     return new ExpressionStatementJudgment(
-        buildCompileTimeError(message, charOffset, noLength, context: context));
+        buildCompileTimeError(message, charOffset, noLength, context: context),
+        null);
   }
 
   Statement wrapInCompileTimeErrorStatement(

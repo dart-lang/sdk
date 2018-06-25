@@ -155,6 +155,9 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       double value, DartType inferredType) {}
 
   @override
+  void emptyStatement(Token semicolon) {}
+
+  @override
   void expressionStatement(StatementJudgment judgment, int fileOffset,
       void expression, Token semicolon) {}
 
