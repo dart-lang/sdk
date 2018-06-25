@@ -84,7 +84,7 @@ defineTests() {
             new File('test/_data/p4/_packages').absolute.path;
         await dartlint.runLinter(
             ['--packages', packagesFilePath, 'test/_data/p4'],
-            new LinterOptions([]));
+            new LinterOptions([])..previewDart2 = true);
         expect(collectingOut.trim(),
             startsWith('3 files analyzed, 0 issues found, in'));
       });
@@ -434,7 +434,7 @@ defineTests() {
         await dartlint.runLinter([
           'test/_data/always_require_non_null_named_parameters',
           '--rules=always_require_non_null_named_parameters'
-        ], new LinterOptions());
+        ], new LinterOptions()..previewDart2 = true);
         expect(exitCode, 1);
         expect(
             collectingOut.trim(),
@@ -460,7 +460,7 @@ defineTests() {
         await dartlint.runLinter([
           'test/_data/prefer_asserts_in_initializer_lists',
           '--rules=prefer_asserts_in_initializer_lists'
-        ], new LinterOptions());
+        ], new LinterOptions()..previewDart2 = true);
         expect(exitCode, 1);
         expect(
             collectingOut.trim(),
@@ -486,7 +486,7 @@ defineTests() {
         await dartlint.runLinter([
           'test/_data/prefer_const_constructors_in_immutables',
           '--rules=prefer_const_constructors_in_immutables'
-        ], new LinterOptions());
+        ], new LinterOptions()..previewDart2 = true);
         expect(exitCode, 1);
         expect(
             collectingOut.trim(),
@@ -514,7 +514,7 @@ defineTests() {
           '--rules=avoid_relative_lib_imports',
           '--packages',
           'test/_data/avoid_relative_lib_imports/_packages'
-        ], new LinterOptions());
+        ], new LinterOptions()..previewDart2 = true);
         expect(exitCode, 1);
         expect(
             collectingOut.trim(),

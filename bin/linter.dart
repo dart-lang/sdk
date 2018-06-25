@@ -17,7 +17,7 @@ import 'package:linter/src/formatter.dart';
 import 'package:linter/src/rules.dart';
 
 Future main(List<String> args) async {
-  await runLinter(args, new LinterOptions());
+  await runLinter(args, new LinterOptions()..previewDart2 = true);
 }
 
 const processFileFailedExitCode = 65;

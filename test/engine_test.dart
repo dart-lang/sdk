@@ -112,8 +112,8 @@ void defineLinterEngineTests() {
     group('lint driver', () {
       test('pubspec', () {
         bool visited;
-        var options =
-            new LinterOptions([new MockLinter((n) => visited = true)]);
+        var options = new LinterOptions([new MockLinter((n) => visited = true)])
+          ..previewDart2 = true;
         new SourceLinter(options).lintPubspecSource(contents: 'name: foo_bar');
         expect(visited, isTrue);
       });

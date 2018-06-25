@@ -334,6 +334,7 @@ testRule(String ruleName, File file, {bool debug: false}) {
     }
 
     LinterOptions options = new LinterOptions([rule])
+      ..previewDart2 = true
       ..mockSdk = new MockSdk(memoryResourceProvider)
       ..resourceProvider = resourceProvider
       ..packageConfigPath = packageConfigPath;
