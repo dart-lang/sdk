@@ -335,6 +335,7 @@ class HasConstErrorListener extends AnalysisErrorListener {
     CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,
     CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
     CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE,
+    CompileTimeErrorCode.CONST_WITH_NON_CONST,
     CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
     CompileTimeErrorCode.INVALID_CONSTANT,
     CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL,

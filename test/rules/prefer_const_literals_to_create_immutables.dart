@@ -85,3 +85,6 @@ var m15 = new A({1: null}); // LINT
 // ignore: undefined_class
 var e1 = new B([]); // OK
 
+// optional new
+class C {}
+var m16 = A([C()]); // OK

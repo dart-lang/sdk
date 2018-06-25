@@ -84,3 +84,12 @@ class G {
   static G m2(Map<G, G> m) => new G(m); // OK
   static G m3(G g) => new G({g: g}); // OK
 }
+
+// optional new : https://github.com/dart-lang/linter/issues/995
+class H {}
+class I {
+  final H foo;
+  const I({this.foo});
+
+  I makeI() => I(foo: H()); // OK
+}
