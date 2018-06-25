@@ -3989,10 +3989,12 @@ It is a compile-time error if a non-raw string literal contains a character sequ
   .
 
 {\bf stringContentTDQ:}\~{}( `$\backslash$' $|$ `{\escapegrammar \texttt{"""}}' $|$ `\$');
+  `$\backslash$' \~{}( NEWLINE );
   stringInterpolation
   .
 
 {\bf stringContentTSQ:}\~{}( `$\backslash$' $|$ `{\escapegrammar \code{'}\code{'}\code{'}}' $|$ `\$');
+  `$\backslash$' \~{}( NEWLINE );
   stringInterpolation
   .
 
