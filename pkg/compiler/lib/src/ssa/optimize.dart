@@ -927,7 +927,24 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitTypeConversion(HTypeConversion node) {
-    return node.isRedundant(_closedWorld) ? node.checkedInput : node;
+    if (node.isRedundant(_closedWorld)) return node.checkedInput;
+
+    // Simplify 'as T' where T is a simple type.
+    DartType checkedType = node.typeExpression;
+    if (checkedType is TypeVariableType && node.inputs.length == 2) {
+      HInstruction rep = node.typeRepresentation;
+      if (rep is HTypeInfoExpression &&
+          rep.kind == TypeInfoExpressionKind.COMPLETE &&
+          rep.inputs.isEmpty) {
+        DartType type = rep.dartType;
+        if (type.isInterfaceType && type.treatAsRaw) {
+          return node.checkedInput.convertType(_closedWorld, type, node.kind)
+            ..sourceInformation = node.sourceInformation;
+        }
+      }
+    }
+
+    return node;
   }
 
   HInstruction visitTypeKnown(HTypeKnown node) {
