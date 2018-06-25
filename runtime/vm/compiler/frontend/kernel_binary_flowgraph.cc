@@ -1814,8 +1814,12 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
     }
     case RawFunction::kDynamicInvocationForwarder: {
       if (builder_->PeekTag() == kField) {
-        ASSERT(Field::IsSetterName(String::Handle(function.name())));
-
+#ifdef DEBUG
+        String& name = String::Handle(Z, function.name());
+        ASSERT(Function::IsDynamicInvocationForwaderName(name));
+        name = Function::DemangleDynamicInvocationForwarderName(name);
+        ASSERT(Field::IsSetterName(name));
+#endif
         // Create [this] variable.
         const Class& klass = Class::Handle(Z, function.Owner());
         result_->this_variable =
