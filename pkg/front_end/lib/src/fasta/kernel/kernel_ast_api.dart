@@ -88,7 +88,7 @@ export 'kernel_shadow_ast.dart'
         IndexAssignmentJudgment,
         ShadowInvalidInitializer,
         LabeledStatementJudgment,
-        ShadowLogicalExpression,
+        LogicalJudgment,
         MethodInvocationJudgment,
         NamedFunctionExpressionJudgment,
         NullAwareMethodInvocationJudgment,

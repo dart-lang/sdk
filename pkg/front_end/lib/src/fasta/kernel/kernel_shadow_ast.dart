@@ -1933,12 +1933,15 @@ class ListLiteralJudgment extends ListLiteral implements ExpressionJudgment {
 }
 
 /// Shadow object for [LogicalExpression].
-class ShadowLogicalExpression extends LogicalExpression
-    implements ExpressionJudgment {
+class LogicalJudgment extends LogicalExpression implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowLogicalExpression(Expression left, String operator, Expression right)
+  LogicalJudgment(Expression left, String operator, Expression right)
       : super(left, operator, right);
+
+  ExpressionJudgment get leftJudgment => left;
+
+  ExpressionJudgment get rightJudgment => right;
 
   @override
   Expression infer<Expression, Statement, Initializer, Type>(
@@ -1946,12 +1949,16 @@ class ShadowLogicalExpression extends LogicalExpression
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     var boolType = inferrer.coreTypes.boolClass.rawType;
-    var leftType =
-        inferrer.inferExpression(factory, left, boolType, !inferrer.isTopLevel);
-    var rightType = inferrer.inferExpression(
-        factory, right, boolType, !inferrer.isTopLevel);
-    inferrer.ensureAssignable(boolType, leftType, left, left.fileOffset);
-    inferrer.ensureAssignable(boolType, rightType, right, right.fileOffset);
+    var leftJudgment = this.leftJudgment;
+    var rightJudgment = this.rightJudgment;
+    inferrer.inferExpression(
+        factory, leftJudgment, boolType, !inferrer.isTopLevel);
+    inferrer.inferExpression(
+        factory, rightJudgment, boolType, !inferrer.isTopLevel);
+    inferrer.ensureAssignable(
+        boolType, leftJudgment.inferredType, left, left.fileOffset);
+    inferrer.ensureAssignable(
+        boolType, rightJudgment.inferredType, right, right.fileOffset);
     inferredType = boolType;
     inferrer.listener
         .logicalExpression(this, fileOffset, null, null, null, inferredType);
