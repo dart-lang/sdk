@@ -5474,31 +5474,35 @@ class Parser {
     Token commaToken = null;
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
-    token = parseExpression(token).next;
-    if (optional(',', token)) {
-      if (optional(')', token.next)) {
-        token = token.next;
-      } else {
+
+    token = parseExpression(token);
+    if (optional(',', token.next)) {
+      token = token.next;
+      if (!optional(')', token.next)) {
         commaToken = token;
-        token = parseExpression(token).next;
-      }
-    }
-    if (optional(',', token)) {
-      Token firstExtra = token.next;
-      if (optional(')', firstExtra)) {
-        token = firstExtra;
-      } else {
-        while (optional(',', token)) {
-          Token begin = token.next;
-          token = parseExpression(token).next;
-          // TODO(danrubel): Consider removing the message argument.
-          listener.handleExtraneousExpression(
-              begin, fasta.messageAssertExtraneousArgument);
+        token = parseExpression(token);
+        if (optional(',', token.next)) {
+          // Trailing comma is ignored.
+          token = token.next;
         }
-        reportRecoverableError(
-            firstExtra, fasta.messageAssertExtraneousArgument);
       }
     }
+
+    Token endGroup = leftParenthesis.endGroup;
+    if (token.next == endGroup) {
+      token = endGroup;
+    } else {
+      // Recovery
+      if (endGroup.isSynthetic) {
+        // The scanner did not place the synthetic ')' correctly, so move it.
+        token = rewriter.moveSynthetic(token, endGroup);
+      } else {
+        reportRecoverableErrorWithToken(
+            token.next, fasta.templateUnexpectedToken);
+        token = endGroup;
+      }
+    }
+
     assert(optional(')', token));
     mayParseFunctionExpressions = old;
     if (kind == Assert.Expression) {
