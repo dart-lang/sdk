@@ -3142,24 +3142,43 @@ CallTargets* CallTargets::CreateAndExpand(Zone* zone, const ICData& ic_data) {
       }
     }
   }
+
   // Spread class-ids to following classes where a lookup yields the same
   // method.
+  const intptr_t max_cid = Isolate::Current()->class_table()->NumCids();
   for (int idx = 0; idx < length; idx++) {
     int upper_limit_cid =
-        (idx == length - 1) ? 1000000000 : targets[idx + 1].cid_start;
+        (idx == length - 1) ? max_cid : targets[idx + 1].cid_start;
     const Function& target = *targets.TargetAt(idx)->target;
     if (MethodRecognizer::PolymorphicTarget(target)) continue;
+    // The code below makes attempt to avoid spreading class-id range
+    // into a suffix that consists purely of abstract classes to
+    // shorten the range.
+    // However such spreading is beneficial when it allows to
+    // merge to consequtive ranges.
+    intptr_t cid_end_including_abstract = targets[idx].cid_end;
     for (int i = targets[idx].cid_end + 1; i < upper_limit_cid; i++) {
       bool class_is_abstract = false;
       if (FlowGraphCompiler::LookupMethodFor(i, name, args_desc, &fn,
                                              &class_is_abstract) &&
           fn.raw() == target.raw()) {
+        cid_end_including_abstract = i;
         if (!class_is_abstract) {
           targets[idx].cid_end = i;
         }
       } else {
         break;
       }
+    }
+
+    // Check if we have a suffix that consists of abstract classes
+    // and expand into it if that would allow us to merge this
+    // range with subsequent range.
+    if ((cid_end_including_abstract > targets[idx].cid_end) &&
+        (idx < length - 1) &&
+        ((cid_end_including_abstract + 1) == targets[idx + 1].cid_start) &&
+        (target.raw() == targets.TargetAt(idx + 1)->target->raw())) {
+      targets[idx].cid_end = cid_end_including_abstract;
     }
   }
   targets.MergeIntoRanges();
