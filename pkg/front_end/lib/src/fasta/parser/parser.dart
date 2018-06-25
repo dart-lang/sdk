@@ -63,7 +63,8 @@ import 'formal_parameter_kind.dart'
 
 import 'forwarding_listener.dart' show ForwardingListener;
 
-import 'identifier_context.dart' show IdentifierContext;
+import 'identifier_context.dart'
+    show IdentifierContext, looksLikeExpressionStart;
 
 import 'listener.dart' show Listener;
 
@@ -1902,27 +1903,6 @@ class Parser {
     listener.handleIdentifier(identifier, context);
     return identifier;
   }
-
-  /// Return `true` if the given [token] should be treated like the start of
-  /// an expression for the purposes of recovery.
-  bool isExpressionStartForRecovery(Token next) =>
-      next.isKeywordOrIdentifier ||
-      next.type == TokenType.DOUBLE ||
-      next.type == TokenType.HASH ||
-      next.type == TokenType.HEXADECIMAL ||
-      next.type == TokenType.IDENTIFIER ||
-      next.type == TokenType.INT ||
-      next.type == TokenType.STRING ||
-      optional('{', next) ||
-      optional('(', next) ||
-      optional('[', next) ||
-      optional('[]', next) ||
-      optional('<', next) ||
-      optional('!', next) ||
-      optional('-', next) ||
-      optional('~', next) ||
-      optional('++', next) ||
-      optional('--', next);
 
   Token expect(String string, Token token) {
     // TODO(danrubel): update all uses of expect(';'...) to ensureSemicolon
@@ -4010,7 +3990,7 @@ class Parser {
         }
 
         // Recovery
-        if (!isExpressionStartForRecovery(next)) {
+        if (!looksLikeExpressionStart(next)) {
           if (beginToken.endGroup.isSynthetic) {
             // The scanner has already reported an error,
             // but inserted `]` in the wrong place.
@@ -4070,7 +4050,7 @@ class Parser {
           break;
         }
         // Recovery
-        if (isExpressionStartForRecovery(next)) {
+        if (looksLikeExpressionStart(next)) {
           // If this looks like the start of an expression,
           // then report an error, insert the comma, and continue parsing.
           next = rewriteAndRecover(
@@ -4487,7 +4467,7 @@ class Parser {
           break;
         }
         // Recovery
-        if (isExpressionStartForRecovery(next)) {
+        if (looksLikeExpressionStart(next)) {
           // If this looks like the start of an expression,
           // then report an error, insert the comma, and continue parsing.
           next = rewriteAndRecover(
