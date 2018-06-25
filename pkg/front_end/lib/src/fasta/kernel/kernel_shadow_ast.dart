@@ -1538,9 +1538,11 @@ class FunctionExpressionJudgment extends FunctionExpression
 ///
 ///     let v = a in v == null ? b : v
 class IfNullJudgment extends Let implements ExpressionJudgment {
+  final Token operator;
+
   DartType inferredType;
 
-  IfNullJudgment(VariableDeclaration variable, Expression body)
+  IfNullJudgment(VariableDeclaration variable, this.operator, Expression body)
       : super(variable, body);
 
   @override
@@ -1584,14 +1586,27 @@ class IfNullJudgment extends Let implements ExpressionJudgment {
     if (inferrer.strongMode) {
       body.staticType = inferredType;
     }
-    inferrer.listener.ifNull(this, fileOffset, null, null, null, inferredType);
+    inferrer.listener
+        .ifNull(this, fileOffset, null, operator, null, inferredType);
     return null;
   }
 }
 
 /// Concrete shadow object representing an if statement in kernel form.
 class IfJudgment extends IfStatement implements StatementJudgment {
-  IfJudgment(Expression condition, Statement then, Statement otherwise)
+  final Token ifKeyword;
+  final Token leftParenthesis;
+  final Token rightParenthesis;
+  final Token elseKeyword;
+
+  IfJudgment(
+      this.ifKeyword,
+      this.leftParenthesis,
+      Expression condition,
+      this.rightParenthesis,
+      Statement then,
+      this.elseKeyword,
+      Statement otherwise)
       : super(condition, then, otherwise);
 
   ExpressionJudgment get conditionJudgment => condition;
@@ -1614,8 +1629,8 @@ class IfJudgment extends IfStatement implements StatementJudgment {
     if (otherwiseJudgment != null) {
       inferrer.inferStatement(factory, otherwiseJudgment);
     }
-    inferrer.listener.ifStatement(
-        this, fileOffset, null, null, null, null, null, null, null);
+    inferrer.listener.ifStatement(this, fileOffset, ifKeyword, leftParenthesis,
+        null, rightParenthesis, null, elseKeyword, null);
   }
 }
 
@@ -1786,11 +1801,14 @@ class ShadowInvalidInitializer extends LocalInitializer
 
 /// Concrete shadow object representing a non-inverted "is" test in kernel form.
 class IsJudgment extends IsExpression implements ExpressionJudgment {
+  final Token isOperator;
+
   DartType inferredType;
 
   ExpressionJudgment get judgment => operand;
 
-  IsJudgment(Expression operand, DartType type) : super(operand, type);
+  IsJudgment(Expression operand, this.isOperator, DartType type)
+      : super(operand, type);
 
   @override
   Expression infer<Expression, Statement, Initializer, Type>(
@@ -1799,14 +1817,17 @@ class IsJudgment extends IsExpression implements ExpressionJudgment {
       DartType typeContext) {
     inferrer.inferExpression(factory, judgment, const UnknownType(), false);
     inferredType = inferrer.coreTypes.boolClass.rawType;
-    inferrer.listener
-        .isExpression(this, fileOffset, null, null, null, type, inferredType);
+    inferrer.listener.isExpression(
+        this, fileOffset, null, isOperator, null, type, inferredType);
     return null;
   }
 }
 
 /// Concrete shadow object representing an inverted "is" test in kernel form.
 class IsNotJudgment extends Not implements ExpressionJudgment {
+  final Token isOperator;
+  final Token notOperator;
+
   DartType inferredType;
 
   @override
@@ -1814,7 +1835,8 @@ class IsNotJudgment extends Not implements ExpressionJudgment {
 
   ExpressionJudgment get judgment => operand.operand;
 
-  IsNotJudgment(Expression operand, DartType type, int charOffset)
+  IsNotJudgment(Expression operand, this.isOperator, this.notOperator,
+      DartType type, int charOffset)
       : super(new IsExpression(operand, type)..fileOffset = charOffset);
 
   @override
@@ -1826,8 +1848,8 @@ class IsNotJudgment extends Not implements ExpressionJudgment {
 
     inferrer.inferExpression(factory, judgment, const UnknownType(), false);
     inferredType = inferrer.coreTypes.boolClass.rawType;
-    inferrer.listener.isNotExpression(this, fileOffset, null, null, null, null,
-        isExpression.type, inferredType);
+    inferrer.listener.isNotExpression(this, fileOffset, null, isOperator,
+        notOperator, null, isExpression.type, inferredType);
     return null;
   }
 }
@@ -1862,13 +1884,18 @@ class LabeledStatementJudgment extends LabeledStatement
 
 /// Type inference derivation for [LiteralList].
 class ListLiteralJudgment extends ListLiteral implements ExpressionJudgment {
+  final Token constKeyword;
+  final Token leftBracket;
+  final Token rightBracket;
+
   DartType inferredType;
 
   List<Expression> get judgments => expressions;
 
   final DartType _declaredTypeArgument;
 
-  ListLiteralJudgment(List<Expression> expressions,
+  ListLiteralJudgment(this.constKeyword, this.leftBracket,
+      List<Expression> expressions, this.rightBracket,
       {DartType typeArgument, bool isConst: false})
       : _declaredTypeArgument = typeArgument,
         super(expressions,
@@ -1932,8 +1959,8 @@ class ListLiteralJudgment extends ListLiteral implements ExpressionJudgment {
       }
     }
     var inferredType = new InterfaceType(listClass, [inferredTypeArgument]);
-    inferrer.listener.listLiteral(
-        this, fileOffset, null, null, null, expressions, null, inferredType);
+    inferrer.listener.listLiteral(this, fileOffset, constKeyword, null,
+        leftBracket, expressions, rightBracket, inferredType);
     this.inferredType = inferredType;
     return null;
   }
@@ -1941,10 +1968,12 @@ class ListLiteralJudgment extends ListLiteral implements ExpressionJudgment {
 
 /// Shadow object for [LogicalExpression].
 class LogicalJudgment extends LogicalExpression implements ExpressionJudgment {
+  final Token operatorToken;
+
   DartType inferredType;
 
-  LogicalJudgment(Expression left, String operator, Expression right)
-      : super(left, operator, right);
+  LogicalJudgment(Expression left, this.operatorToken, Expression right)
+      : super(left, operatorToken.stringValue, right);
 
   ExpressionJudgment get leftJudgment => left;
 
@@ -1975,12 +2004,17 @@ class LogicalJudgment extends LogicalExpression implements ExpressionJudgment {
 
 /// Shadow object for [MapLiteral].
 class ShadowMapLiteral extends MapLiteral implements ExpressionJudgment {
+  final Token constKeyword;
+  final Token leftBracket;
+  final Token rightBracket;
+
   DartType inferredType;
 
   final DartType _declaredKeyType;
   final DartType _declaredValueType;
 
-  ShadowMapLiteral(List<MapEntry> entries,
+  ShadowMapLiteral(this.constKeyword, this.leftBracket, List<MapEntry> entries,
+      this.rightBracket,
       {DartType keyType, DartType valueType, bool isConst: false})
       : _declaredKeyType = keyType,
         _declaredValueType = valueType,
@@ -2064,8 +2098,8 @@ class ShadowMapLiteral extends MapLiteral implements ExpressionJudgment {
     }
     inferredType =
         new InterfaceType(mapClass, [inferredKeyType, inferredValueType]);
-    inferrer.listener.mapLiteral(
-        this, fileOffset, null, null, null, entries, null, inferredType);
+    inferrer.listener.mapLiteral(this, fileOffset, constKeyword, null,
+        leftBracket, entries, rightBracket, inferredType);
     return null;
   }
 }
@@ -2155,9 +2189,11 @@ class NamedFunctionExpressionJudgment extends Let
 
 /// Shadow object for [Not].
 class NotJudgment extends Not implements ExpressionJudgment {
+  final Token operator;
+
   DartType inferredType;
 
-  NotJudgment(ExpressionJudgment operand) : super(operand);
+  NotJudgment(this.operator, ExpressionJudgment operand) : super(operand);
 
   ExpressionJudgment get judgment => operand;
 
@@ -2173,7 +2209,7 @@ class NotJudgment extends Not implements ExpressionJudgment {
     inferrer.ensureAssignable(
         boolType, judgment.inferredType, operand, fileOffset);
     inferredType = boolType;
-    inferrer.listener.not(this, fileOffset, null, null, inferredType);
+    inferrer.listener.not(this, fileOffset, operator, null, inferredType);
     return null;
   }
 }
@@ -2250,7 +2286,11 @@ class NullAwarePropertyGetJudgment extends Let implements ExpressionJudgment {
 
 /// Concrete shadow object representing a null literal in kernel form.
 class NullJudgment extends NullLiteral implements ExpressionJudgment {
+  final Token literal;
+
   DartType inferredType;
+
+  NullJudgment(this.literal);
 
   @override
   Expression infer<Expression, Statement, Initializer, Type>(
@@ -2259,7 +2299,7 @@ class NullJudgment extends NullLiteral implements ExpressionJudgment {
       DartType typeContext) {
     inferredType = inferrer.coreTypes.nullClass.rawType;
     inferrer.listener
-        .nullLiteral(this, fileOffset, null, fileOffset == -1, inferredType);
+        .nullLiteral(this, fileOffset, literal, fileOffset == -1, inferredType);
     return null;
   }
 }
@@ -2426,7 +2466,11 @@ class RedirectingInitializerJudgment extends RedirectingInitializer
 
 /// Shadow object for [Rethrow].
 class RethrowJudgment extends Rethrow implements ExpressionJudgment {
+  final Token rethrowKeyword;
+
   DartType inferredType;
+
+  RethrowJudgment(this.rethrowKeyword);
 
   @override
   Expression infer<Expression, Statement, Initializer, Type>(
@@ -2434,14 +2478,18 @@ class RethrowJudgment extends Rethrow implements ExpressionJudgment {
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     inferredType = const BottomType();
-    inferrer.listener.rethrow_(this, fileOffset, null, inferredType);
+    inferrer.listener.rethrow_(this, fileOffset, rethrowKeyword, inferredType);
     return null;
   }
 }
 
 /// Concrete shadow object representing a return statement in kernel form.
 class ReturnJudgment extends ReturnStatement implements StatementJudgment {
-  ReturnJudgment([Expression expression]) : super(expression);
+  final Token returnKeyword;
+  final Token semicolon;
+
+  ReturnJudgment(this.returnKeyword, this.semicolon, [Expression expression])
+      : super(expression);
 
   ExpressionJudgment get judgment => expression;
 
@@ -2468,7 +2516,8 @@ class ReturnJudgment extends ReturnStatement implements StatementJudgment {
       closureContext.handleReturn(
           inferrer, inferredType, expression, fileOffset);
     }
-    inferrer.listener.returnStatement(this, fileOffset, null, null, null);
+    inferrer.listener
+        .returnStatement(this, fileOffset, returnKeyword, null, semicolon);
   }
 }
 
@@ -2610,9 +2659,11 @@ class StringConcatenationJudgment extends StringConcatenation
 /// Type inference derivation for [StringLiteral].
 class StringLiteralJudgment extends StringLiteral
     implements ExpressionJudgment {
+  final Token literal;
+
   DartType inferredType;
 
-  StringLiteralJudgment(String value) : super(value);
+  StringLiteralJudgment(this.literal, String value) : super(value);
 
   @override
   Expression infer<Expression, Statement, Initializer, Type>(
@@ -2620,7 +2671,8 @@ class StringLiteralJudgment extends StringLiteral
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     var inferredType = inferrer.coreTypes.stringClass.rawType;
-    inferrer.listener.stringLiteral(this, fileOffset, null, null, inferredType);
+    inferrer.listener
+        .stringLiteral(this, fileOffset, literal, value, inferredType);
     this.inferredType = inferredType;
     return null;
   }
@@ -2629,7 +2681,12 @@ class StringLiteralJudgment extends StringLiteral
 /// Concrete shadow object representing a super initializer in kernel form.
 class SuperInitializerJudgment extends SuperInitializer
     implements InitializerJudgment {
-  SuperInitializerJudgment(Constructor target, ArgumentsJudgment arguments)
+  final Token superKeyword;
+  final Token period;
+  final Token constructorName;
+
+  SuperInitializerJudgment(this.superKeyword, this.period, this.constructorName,
+      Constructor target, ArgumentsJudgment arguments)
       : super(target, arguments);
 
   ArgumentsJudgment get argumentJudgments => arguments;
@@ -2650,8 +2707,8 @@ class SuperInitializerJudgment extends SuperInitializer
         inferrer.thisType,
         argumentJudgments,
         skipTypeArgumentInference: true);
-    inferrer.listener
-        .superInitializer(this, fileOffset, null, null, null, null);
+    inferrer.listener.superInitializer(
+        this, fileOffset, superKeyword, period, constructorName, null);
   }
 }
 
@@ -2710,16 +2767,23 @@ class SuperPropertyGetJudgment extends SuperPropertyGet
 
 /// Concrete shadow object representing a switch case.
 class SwitchCaseJudgment extends SwitchCase {
+  final Token keyword;
+  final Token colon;
+
   Object binder;
 
-  SwitchCaseJudgment(
-      List<Expression> expressions, List<int> expressionOffsets, Statement body,
+  SwitchCaseJudgment(this.keyword, List<Expression> expressions,
+      List<int> expressionOffsets, this.colon, Statement body,
       {bool isDefault: false})
       : super(expressions, expressionOffsets, body, isDefault: isDefault);
 
-  SwitchCaseJudgment.defaultCase(Statement body) : super.defaultCase(body);
+  SwitchCaseJudgment.defaultCase(this.keyword, this.colon, Statement body)
+      : super.defaultCase(body);
 
-  SwitchCaseJudgment.empty() : super.empty();
+  SwitchCaseJudgment.empty()
+      : keyword = null,
+        colon = null,
+        super.empty();
 
   List<ExpressionJudgment> get expressionJudgments => expressions.cast();
 
@@ -2735,7 +2799,20 @@ class SwitchCaseJudgment extends SwitchCase {
 /// Concrete shadow object representing a switch statement in kernel form.
 class SwitchStatementJudgment extends SwitchStatement
     implements StatementJudgment {
-  SwitchStatementJudgment(Expression expression, List<SwitchCase> cases)
+  final Token switchKeyword;
+  final Token leftParenthesis;
+  final Token rightParenthesis;
+  final Token leftBracket;
+  final Token rightBracket;
+
+  SwitchStatementJudgment(
+      this.switchKeyword,
+      this.leftParenthesis,
+      Expression expression,
+      this.rightParenthesis,
+      this.leftBracket,
+      List<SwitchCase> cases,
+      this.rightBracket)
       : super(expression, cases);
 
   ExpressionJudgment get expressionJudgment => expression;
@@ -2760,7 +2837,15 @@ class SwitchStatementJudgment extends SwitchStatement
       inferrer.listener.switchCase(switchCase, null, null, null, null, null);
     }
     inferrer.listener.switchStatement(
-        this, fileOffset, null, null, expression, null, null, cases, null);
+        this,
+        fileOffset,
+        switchKeyword,
+        leftParenthesis,
+        expression,
+        rightParenthesis,
+        leftBracket,
+        cases,
+        rightBracket);
   }
 }
 
@@ -2853,7 +2938,11 @@ class ShadowSyntheticExpression extends Let implements ExpressionJudgment {
 }
 
 class ThisJudgment extends ThisExpression implements ExpressionJudgment {
+  final Token thisKeyword;
+
   DartType inferredType;
+
+  ThisJudgment(this.thisKeyword);
 
   @override
   Expression infer<Expression, Statement, Initializer, Type>(
@@ -2861,17 +2950,20 @@ class ThisJudgment extends ThisExpression implements ExpressionJudgment {
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     inferredType = inferrer.thisType ?? const DynamicType();
-    inferrer.listener.thisExpression(this, fileOffset, null, inferredType);
+    inferrer.listener
+        .thisExpression(this, fileOffset, thisKeyword, inferredType);
     return null;
   }
 }
 
 class ThrowJudgment extends Throw implements ExpressionJudgment {
+  final Token throwKeyword;
+
   DartType inferredType;
 
   ExpressionJudgment get judgment => expression;
 
-  ThrowJudgment(Expression expression) : super(expression);
+  ThrowJudgment(this.throwKeyword, Expression expression) : super(expression);
 
   @override
   Expression infer<Expression, Statement, Initializer, Type>(
@@ -2880,7 +2972,8 @@ class ThrowJudgment extends Throw implements ExpressionJudgment {
       DartType typeContext) {
     inferrer.inferExpression(factory, judgment, const UnknownType(), false);
     inferredType = const BottomType();
-    inferrer.listener.throw_(this, fileOffset, null, null, inferredType);
+    inferrer.listener
+        .throw_(this, fileOffset, throwKeyword, null, inferredType);
     return null;
   }
 }
@@ -2957,9 +3050,12 @@ class TryCatchJudgment extends TryCatch implements StatementJudgment {
 
 /// Concrete shadow object representing a try-finally block in kernel form.
 class TryFinallyJudgment extends TryFinally implements StatementJudgment {
+  final Token tryKeyword;
   final List<Catch> catches;
+  final Token finallyKeyword;
 
-  TryFinallyJudgment(Statement body, this.catches, Statement finalizer)
+  TryFinallyJudgment(this.tryKeyword, Statement body, this.catches,
+      this.finallyKeyword, Statement finalizer)
       : super(body, finalizer);
 
   List<CatchJudgment> get catchJudgments => catches?.cast();
@@ -2978,8 +3074,8 @@ class TryFinallyJudgment extends TryFinally implements StatementJudgment {
       body = new TryCatch(body, catches)..parent = this;
     }
     inferrer.inferStatement(factory, finalizerJudgment);
-    inferrer.listener
-        .tryFinally(this, fileOffset, null, body, catches, null, finalizer);
+    inferrer.listener.tryFinally(
+        this, fileOffset, tryKeyword, body, catches, finallyKeyword, finalizer);
   }
 }
 
@@ -3436,7 +3532,13 @@ class VariableGetJudgment extends VariableGet implements ExpressionJudgment {
 
 /// Concrete shadow object representing a while loop in kernel form.
 class WhileJudgment extends WhileStatement implements StatementJudgment {
-  WhileJudgment(Expression condition, Statement body) : super(condition, body);
+  final Token whileKeyword;
+  final Token leftParenthesis;
+  final Token rightParenthesis;
+
+  WhileJudgment(this.whileKeyword, this.leftParenthesis, Expression condition,
+      this.rightParenthesis, Statement body)
+      : super(condition, body);
 
   ExpressionJudgment get conditionJudgment => condition;
 
@@ -3453,15 +3555,20 @@ class WhileJudgment extends WhileStatement implements StatementJudgment {
     inferrer.ensureAssignable(expectedType, conditionJudgment.inferredType,
         condition, condition.fileOffset);
     inferrer.inferStatement(factory, bodyJudgment);
-    inferrer.listener
-        .whileStatement(this, fileOffset, null, null, null, null, null);
+    inferrer.listener.whileStatement(this, fileOffset, whileKeyword,
+        leftParenthesis, null, rightParenthesis, null);
   }
 }
 
 /// Concrete shadow object representing a yield statement in kernel form.
 class YieldJudgment extends YieldStatement implements StatementJudgment {
-  YieldJudgment(Expression expression, {bool isYieldStar: false})
-      : super(expression, isYieldStar: isYieldStar);
+  final Token yieldKeyword;
+  final Token star;
+  final Token semicolon;
+
+  YieldJudgment(
+      this.yieldKeyword, this.star, Expression expression, this.semicolon)
+      : super(expression, isYieldStar: star != null);
 
   ExpressionJudgment get judgment => expression;
 
@@ -3486,7 +3593,8 @@ class YieldJudgment extends YieldStatement implements StatementJudgment {
     }
     closureContext.handleYield(
         inferrer, isYieldStar, judgment.inferredType, expression, fileOffset);
-    inferrer.listener.yieldStatement(this, fileOffset, null, null, null, null);
+    inferrer.listener
+        .yieldStatement(this, fileOffset, yieldKeyword, star, null, semicolon);
   }
 }
 
@@ -3526,7 +3634,11 @@ class CheckLibraryIsLoadedJudgment extends CheckLibraryIsLoaded
 
 /// Concrete shadow object representing a named expression.
 class NamedExpressionJudgment extends NamedExpression {
-  NamedExpressionJudgment(String name, Expression value) : super(name, value);
+  final Token nameToken;
+  final Token colon;
+
+  NamedExpressionJudgment(this.nameToken, this.colon, Expression value)
+      : super(nameToken.lexeme, value);
 
   ExpressionJudgment get judgment => value;
 }

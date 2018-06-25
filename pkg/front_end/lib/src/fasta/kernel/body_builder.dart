@@ -784,7 +784,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
               .withLocation(uri, eof.charOffset, eof.length));
     }
 
-    ReturnJudgment fakeReturn = new ReturnJudgment(expression);
+    ReturnJudgment fakeReturn = new ReturnJudgment(null, null, expression);
 
     _typeInferrer.inferFunctionBody(
         this, factory, const DynamicType(), AsyncMarker.Sync, fakeReturn);
@@ -1081,6 +1081,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     VariableDeclaration variable = new VariableDeclaration.forValue(a);
     push(new IfNullJudgment(
         variable,
+        token,
         forest.conditionalExpression(
             buildIsNull(new VariableGet(variable), offsetForToken(token), this),
             token,
@@ -3001,7 +3002,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("NamedArgument");
     Expression value = popForValue();
     Identifier identifier = pop();
-    push(new NamedExpressionJudgment(identifier.name, value)
+    push(new NamedExpressionJudgment(identifier.token, colon, value)
       ..fileOffset = offsetForToken(identifier.token));
   }
 
@@ -3483,7 +3484,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     for (Expression expression in expressions) {
       expressionOffsets.add(forest.readOffset(expression));
     }
-    push(new SwitchCaseJudgment(expressions, expressionOffsets, block,
+    push(new SwitchCaseJudgment(defaultKeyword, expressions, expressionOffsets,
+        colonAfterDefault, block,
         isDefault: defaultKeyword != null)
       ..fileOffset = firstToken.charOffset);
     push(labels);
@@ -3498,7 +3500,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     exitSwitchScope();
     exitLocalScope();
     Expression expression = popForValue();
-    Statement result = new SwitchStatementJudgment(expression, cases)
+    // TODO(brianwilkerson): Plumb through the left and right parentheses and
+    // the left and right curly braces.
+    Statement result = new SwitchStatementJudgment(
+        switchKeyword, null, expression, null, null, cases, null)
       ..fileOffset = switchKeyword.charOffset;
     if (target.hasUsers) {
       result = new LabeledStatementJudgment(result);
@@ -4013,8 +4018,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           charOffset);
     }
     needsImplicitSuperInitializer = false;
+    // TODO(brianwilkerson): Plumb through the `super`, period, and constructor
+    // name tokens.
     return new SuperInitializerJudgment(
-        constructor, forest.castArguments(arguments))
+        null, null, null, constructor, forest.castArguments(arguments))
       ..fileOffset = charOffset
       ..isSynthetic = isSynthetic;
   }

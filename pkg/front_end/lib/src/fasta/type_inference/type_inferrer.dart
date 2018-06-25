@@ -1248,7 +1248,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         inferMetadataKeepingHelper(factory, parameter.annotations);
         if (i >= function.requiredParameterCount &&
             parameter.initializer == null) {
-          parameter.initializer = new NullJudgment()..parent = parameter;
+          parameter.initializer = new NullJudgment(null)..parent = parameter;
         }
         if (parameter.initializer != null) {
           inferExpression(
@@ -1258,7 +1258,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       for (var parameter in function.namedParameters) {
         inferMetadataKeepingHelper(factory, parameter.annotations);
         if (parameter.initializer == null) {
-          parameter.initializer = new NullJudgment()..parent = parameter;
+          parameter.initializer = new NullJudgment(null)..parent = parameter;
         }
         inferExpression(factory, parameter.initializer, parameter.type, false);
       }
