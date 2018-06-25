@@ -2758,10 +2758,11 @@ class SwitchStatementJudgment extends SwitchStatement
 }
 
 /// Shadow object for [SymbolLiteral].
-class ShadowSymbolLiteral extends SymbolLiteral implements ExpressionJudgment {
+class SymbolLiteralJudgment extends SymbolLiteral
+    implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowSymbolLiteral(String value) : super(value);
+  SymbolLiteralJudgment(String value) : super(value);
 
   @override
   Expression infer<Expression, Statement, Initializer, Type>(

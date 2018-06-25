@@ -98,7 +98,7 @@ import 'kernel_shadow_ast.dart'
         ReturnJudgment,
         StringConcatenationJudgment,
         StringLiteralJudgment,
-        ShadowSymbolLiteral,
+        SymbolLiteralJudgment,
         ShadowSyntheticExpression,
         TryCatchJudgment,
         TryFinallyJudgment,
@@ -216,13 +216,13 @@ class Fangorn extends Forest {
   }
 
   @override
-  ShadowSymbolLiteral literalSymbolMultiple(String value, Token hash, _) {
-    return new ShadowSymbolLiteral(value)..fileOffset = offsetForToken(hash);
+  SymbolLiteralJudgment literalSymbolMultiple(String value, Token hash, _) {
+    return new SymbolLiteralJudgment(value)..fileOffset = offsetForToken(hash);
   }
 
   @override
-  ShadowSymbolLiteral literalSymbolSingluar(String value, Token hash, _) {
-    return new ShadowSymbolLiteral(value)..fileOffset = offsetForToken(hash);
+  SymbolLiteralJudgment literalSymbolSingluar(String value, Token hash, _) {
+    return new SymbolLiteralJudgment(value)..fileOffset = offsetForToken(hash);
   }
 
   @override
