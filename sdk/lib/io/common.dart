@@ -53,16 +53,14 @@ class OSError {
   /** Constant used to indicate that no OS error code is available. */
   static const int noErrorCode = -1;
 
-  /**
-    * Error message supplied by the operating system. null if no message is
-    * associated with the error.
-    */
+  /// Error message supplied by the operating system. This may be `null` or
+  /// empty if no message is associated with the error.
   final String message;
 
-  /**
-    * Error code supplied by the operating system. Will have the value
-    * [noErrorCode] if there is no error code associated with the error.
-    */
+  /// Error code supplied by the operating system.
+  ///
+  /// Will have the value [OSError.noErrorCode] if there is no error code
+  /// associated with the error.
   final int errorCode;
 
   /** Creates an OSError object from a message and an errorCode. */
