@@ -36,7 +36,7 @@ import 'package:kernel/kernel.dart' show Component;
 import "package:testing/testing.dart"
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
 
-import "package:yaml/yaml.dart" show YamlMap, loadYamlNode;
+import "package:yaml/yaml.dart" show YamlList, YamlMap, loadYamlNode;
 
 import "incremental_utils.dart" as util;
 
@@ -115,10 +115,11 @@ class RunCompilations extends Step<TestData, TestData, Context> {
   }
 }
 
-Future<Null> basicTest(Map<String, String> sourceFiles, String entryPoint,
-    bool strong, List<String> invalidate, Directory outDir) async {
+Future<Null> basicTest(YamlMap sourceFiles, String entryPoint, bool strong,
+    YamlList invalidate, Directory outDir) async {
   Uri entryPointUri = outDir.uri.resolve(entryPoint);
-  Set<String> invalidateFilenames = invalidate?.toSet() ?? new Set<String>();
+  Set<String> invalidateFilenames =
+      invalidate == null ? new Set<String>() : new Set<String>.from(invalidate);
   List<Uri> invalidateUris = <Uri>[];
   Uri packagesUri;
   for (String filename in sourceFiles.keys) {
@@ -191,7 +192,7 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
   Map<String, String> sourceFiles;
   CompilerOptions options;
   TestIncrementalCompiler compiler;
-  for (Map<String, dynamic> world in worlds) {
+  for (YamlMap world in worlds) {
     bool brandNewWorld = true;
     if (world["worldType"] == "updated") {
       brandNewWorld = false;
@@ -212,7 +213,7 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
     if (brandNewWorld) {
       sourceFiles = new Map<String, String>.from(world["sources"]);
     } else {
-      sourceFiles.addAll(world["sources"]);
+      sourceFiles.addAll(new Map<String, String>.from(world["sources"]));
     }
     Uri packagesUri;
     for (String filename in sourceFiles.keys) {
@@ -313,7 +314,7 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
 }
 
 void performErrorAndWarningCheck(
-    Map<String, dynamic> world,
+    YamlMap world,
     bool gotError,
     List<String> formattedErrors,
     bool gotWarning,
