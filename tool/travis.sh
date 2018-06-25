@@ -34,7 +34,7 @@ else
   echo "Running main linter bot"
 
   # Run the tests.
-  dart -checked test/all.dart
+  dart --enable-asserts test/all.dart
 
   # Install dart_coveralls; gather and send coverage data.
   if [ "$COVERALLS_TOKEN" ]; then
