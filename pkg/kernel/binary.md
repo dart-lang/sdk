@@ -131,7 +131,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 7;
+  UInt32 formatVersion = 8;
   Library[] libraries;
   UriSource sourceMap;
   List<CanonicalName> canonicalNames;
