@@ -2410,6 +2410,18 @@ class CompileTimeErrorCode extends ErrorCode {
               ' of the larger declaration signature');
 
   /**
+   * It is a compile-time error if a generic function type is used as an actual
+   * type argument.
+   */
+  static const CompileTimeErrorCode GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT =
+      const CompileTimeErrorCode(
+          'GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT',
+          "Generic function has type parameters '<{0}>', so it may not be used"
+          ' as a type argument',
+          correction: "Try removing the type parameters '<{0}>', or using"
+              " 'dynamic' as the type argument here instead of a function.");
+
+  /**
    * 15.3.1 Typedef: Any self reference, either directly, or recursively via
    * another typedef, is a compile time error.
    */

@@ -33,7 +33,6 @@ final_syntax_test/03: Fail # Issue 11124
 final_syntax_test/04: Fail # Issue 11124
 function_type_parameter2_negative_test: CompileTimeError
 function_type_parameter_negative_test: CompileTimeError
-generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 30929
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 30929
 generic_local_functions_test: CompileTimeError # Issue 28515
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
@@ -1354,7 +1353,6 @@ generic_constructor_mixin3_test/01: MissingCompileTimeError
 generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_field_mixin6_test/01: MissingCompileTimeError
 generic_function_typedef2_test/04: MissingCompileTimeError
-generic_methods_generic_function_result_test/01: MissingCompileTimeError # Issue #30207
 generic_methods_overriding_test/01: MissingCompileTimeError
 generic_test/01: MissingCompileTimeError
 identical_const_test/01: MissingCompileTimeError

@@ -5947,11 +5947,19 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       for (int i = 0; i < loopThroughIndex; i++) {
         TypeAnnotation argumentNode = argumentNodes[i];
         DartType argType = argumentNode.type;
+        if (argType is FunctionType && argType.typeFormals.isNotEmpty) {
+          _errorReporter.reportTypeErrorForNode(
+              CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT,
+              argumentNode,
+              [argType.typeFormals.join(', ')]);
+          continue;
+        }
         DartType boundType = parameterElements[i].bound;
         if (argType != null && boundType != null) {
           if (shouldSubstitute) {
             boundType = boundType.substitute2(arguments, parameterTypes);
           }
+
           if (!_typeSystem.isSubtypeOf(argType, boundType)) {
             ErrorCode errorCode;
             if (_isInConstInstanceCreation) {
@@ -6471,6 +6479,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         //     <T extends Clonable<T>>
         //
         DartType argType = typeArgs[i];
+
+        if (argType is FunctionType && argType.typeFormals.isNotEmpty) {
+          _errorReporter.reportTypeErrorForNode(
+              CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT,
+              typeArgumentList[i],
+              [argType.typeFormals.join(', ')]);
+          continue;
+        }
+
         DartType bound =
             fnTypeParams[i].bound.substitute2(typeArgs, fnTypeParams);
         if (!_typeSystem.isSubtypeOf(argType, bound)) {

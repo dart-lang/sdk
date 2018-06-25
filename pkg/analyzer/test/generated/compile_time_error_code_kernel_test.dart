@@ -3133,6 +3133,34 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_genericFunctionTypeAsBound_typedef() async {
     await super.test_genericFunctionTypeAsBound_typedef();
   }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeArgument_class() async {
+    await super.test_genericFunctionTypeArgument_class();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeArgument_functionType() async {
+    await super.test_genericFunctionTypeArgument_functionType();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeArgument_function() async {
+    await super.test_genericFunctionTypeArgument_function();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeArgument_method() async {
+    await super.test_genericFunctionTypeArgument_method();
+  }
 }
 
 /// Tests marked with this annotation fail because of a Fasta problem.

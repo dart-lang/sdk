@@ -7063,6 +7063,98 @@ f() { return const G<B>(); }''');
     verify([source]);
   }
 
+  test_genericFunctionTypeArgument_class() async {
+    Source source = addSource(r'''
+class C<T> {}
+C<T Function<T>(T)> c;''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT]);
+    verify([source]);
+  }
+
+  test_genericFunctionTypeArgument_functionType() async {
+    Source source = addSource(r'''
+T Function<T>(T) f;
+main() { f<S Function<S>(S)>(null); }''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT]);
+    verify([source]);
+  }
+
+  test_genericFunctionTypeArgument_function() async {
+    Source source = addSource(r'''
+T f<T>(T) => null;
+main() { f<S Function<S>(S)>(null); }''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT]);
+    verify([source]);
+  }
+
+  test_genericFunctionTypeArgument_method() async {
+    Source source = addSource(r'''
+class C {
+  T f<T>(T) => null;
+}
+main() { new C().f<S Function<S>(S)>(null); }''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_genericFunctionTypeArgument_inference_functionType() async {
+    // TODO(mfairhurst) how should these inference errors be reported?
+    Source source = addSource(r'''
+T Function<T>(T) f;
+main() { f(<S>(S s) => s); }''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_genericFunctionTypeArgument_inference_function() async {
+    // TODO(mfairhurst) how should these inference errors be reported?
+    Source source = addSource(r'''
+T f<T>(T) => null;
+main() { f(<S>(S s) => s); }''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_genericFunctionTypeArgument_inference_method() async {
+    // TODO(mfairhurst) how should these inference errors be reported?
+    Source source = addSource(r'''
+class C {
+  T f<T>(T) => null;
+}
+main() { new C().f(<S>(S s) => s); }''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_genericFunctionTypeArgument_typedef() async {
+    // TODO(mfairhurst) diagnose these parse errors to give the correct error
+    Source source = addSource(r'''
+typedef T f<T>(T t);
+final T<Function<S>(int)> x = null;''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT]);
+    verify([source]);
+  }
+
   test_undefinedAnnotation_unresolved_identifier() async {
     Source source = addSource(r'''
 @unresolved
