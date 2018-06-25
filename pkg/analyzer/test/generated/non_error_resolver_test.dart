@@ -5386,7 +5386,7 @@ class B {
   }
 
   test_typeArgument_boundToFunctionType() async {
-    Source source = addSource("class A<T extends void Function<T>(T)>{}");
+    Source source = addSource("class A<T extends void Function(T)>{}");
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);

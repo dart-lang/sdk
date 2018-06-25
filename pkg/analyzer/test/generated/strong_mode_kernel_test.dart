@@ -653,13 +653,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
 
   @override
   @failingTest
-  test_notInstantiatedBound_ok_class_function() {
-    // Failed to resolve 1 nodes
-    return super.test_notInstantiatedBound_ok_class_function();
-  }
-
-  @override
-  @failingTest
   test_objectMethodOnFunctions_Typedef() {
     // UnimplementedError: TODO(paulberry): resynthesize generic typedef
     return super.test_objectMethodOnFunctions_Typedef();

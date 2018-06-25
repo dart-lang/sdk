@@ -444,13 +444,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_typeArgument_boundToFunctionType() async {
-    return super.test_typeArgument_boundToFunctionType();
-  }
-
-  @override
-  @failingTest
   test_undefinedGetter_static_conditionalAccess() {
     // Bad state: No data for A at 36
     return super.test_undefinedGetter_static_conditionalAccess();

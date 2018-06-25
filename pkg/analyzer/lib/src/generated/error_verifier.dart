@@ -1239,6 +1239,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _checkForTypeParameterSupertypeOfItsBound(node);
     _checkForTypeAnnotationDeferredClass(node.bound);
     _checkForImplicitDynamicType(node.bound);
+    _checkForGenericFunctionType(node.bound);
     if (_options.strongMode) node.bound?.accept(_uninstantiatedBoundChecker);
     return super.visitTypeParameter(node);
   }
@@ -4183,6 +4184,19 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  void _checkForGenericFunctionType(TypeAnnotation node) {
+    if (node == null) {
+      return;
+    }
+    DartType type = node.type;
+    if (type is FunctionType && type.typeFormals.isNotEmpty) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND,
+          node,
+          [type]);
+    }
+  }
+
   void _checkForImplicitDynamicTypedLiteral(TypedLiteral node) {
     if (_options.implicitDynamic || node.typeArguments != null) {
       return;
@@ -5905,7 +5919,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * Verify that the type arguments in the given [typeName] are all within
    * their bounds.
    *
-   * See [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
+   * See [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS],
+   * [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS],
+   * [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_BOUND].
    */
   void _checkForTypeArgumentNotMatchingBounds(TypeName typeName) {
     if (typeName.typeArguments == null) {

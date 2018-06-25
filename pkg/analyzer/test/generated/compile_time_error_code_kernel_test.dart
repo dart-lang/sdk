@@ -3098,6 +3098,41 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
     // Test passes, even though if fails in the superclass
     await super.test_yieldInNonGenerator_async();
   }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeAsBound_class() async {
+    await super.test_genericFunctionTypeAsBound_class();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeAsBound_genericFunction() async {
+    await super.test_genericFunctionTypeAsBound_genericFunction();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeAsBound_genericFunctionTypedef() async {
+    await super.test_genericFunctionTypeAsBound_genericFunctionTypedef();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeAsBound_parameterOfFunction() async {
+    await super.test_genericFunctionTypeAsBound_parameterOfFunction();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeAsBound_typedef() async {
+    await super.test_genericFunctionTypeAsBound_typedef();
+  }
 }
 
 /// Tests marked with this annotation fail because of a Fasta problem.

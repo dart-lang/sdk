@@ -4107,7 +4107,7 @@ class C<T extends A<B, B>> {}
 
   test_notInstantiatedBound_ok_class_function() async {
     String code = r'''
-class A<T extends void Function<Z>()> {}
+class A<T extends void Function()> {}
 class B<T extends A> {}
 ''';
     await resolveTestUnit(code);

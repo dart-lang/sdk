@@ -2400,6 +2400,16 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try using a type that is or is a subclass of '{1}'.");
 
   /**
+   * It is a compile-time error if a generic function type is used as a bound
+   * for a formal type parameter of a class or a function.
+   */
+  static const CompileTimeErrorCode GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND =
+      const CompileTimeErrorCode('GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND',
+          'Generic function types may not be used as type parameter bounds',
+          correction: 'Try making the free variable in the function type part'
+              ' of the larger declaration signature');
+
+  /**
    * 15.3.1 Typedef: Any self reference, either directly, or recursively via
    * another typedef, is a compile time error.
    */
