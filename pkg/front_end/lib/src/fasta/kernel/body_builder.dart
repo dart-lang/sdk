@@ -1192,7 +1192,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           isSetter: isSetter,
           isStatic: isStatic,
           isTopLevel: !isStatic && !isSuper);
-      return new ShadowSyntheticExpression(new Throw(error));
+      return new SyntheticExpressionJudgment(new Throw(error));
     }
   }
 
@@ -2898,7 +2898,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       } else if (b.isConstructor) {
         initialTarget = b.target;
         if (type.isAbstract) {
-          return new ShadowSyntheticExpression(evaluateArgumentsBefore(
+          return new SyntheticExpressionJudgment(evaluateArgumentsBefore(
               arguments,
               buildAbstractClassInstantiationError(
                   fasta.templateAbstractClassInstantiation
@@ -2920,7 +2920,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
               "Cyclic definition of factory '${name}'.", nameToken.charOffset);
         }
         if (target is Constructor && target.enclosingClass.isAbstract) {
-          return new ShadowSyntheticExpression(evaluateArgumentsBefore(
+          return new SyntheticExpressionJudgment(evaluateArgumentsBefore(
               arguments,
               buildAbstractClassInstantiationError(
                   fasta.templateAbstractRedirectedClassInstantiation
@@ -3112,7 +3112,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           // This must have been a compile-time error.
           assert(isErroneousNode(oldInitializer));
 
-          push(new ShadowSyntheticExpression(new Let(
+          push(new SyntheticExpressionJudgment(new Let(
               new VariableDeclaration.forValue(oldInitializer)
                 ..fileOffset = forest.readOffset(expression),
               expression)
@@ -3231,7 +3231,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
     VariableDeclaration variable;
     bool declaresVariable = false;
-    ShadowSyntheticExpression syntheticAssignment;
+    SyntheticExpressionJudgment syntheticAssignment;
     if (lvalue is VariableDeclaration) {
       declaresVariable = true;
       variable = lvalue;
@@ -3830,7 +3830,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       {List<LocatedMessage> context}) {
     library.addCompileTimeError(message, charOffset, length, uri,
         wasHandled: true, context: context);
-    return new ShadowSyntheticExpression(library.loader
+    return new SyntheticExpressionJudgment(library.loader
         .throwCompileConstantError(library.loader
             .buildCompileTimeError(message, charOffset, length, uri)));
   }
@@ -3847,7 +3847,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       {List<LocatedMessage> context}) {
     // TODO(askesc): Produce explicit error expression wrapping the original.
     // See [issue 29717](https://github.com/dart-lang/sdk/issues/29717)
-    return new ShadowSyntheticExpression(new Let(
+    return new SyntheticExpressionJudgment(new Let(
         new VariableDeclaration.forValue(buildCompileTimeError(
             message.messageObject, message.charOffset, message.length,
             context: context))

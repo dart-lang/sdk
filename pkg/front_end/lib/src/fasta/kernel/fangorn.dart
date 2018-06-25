@@ -99,7 +99,7 @@ import 'kernel_shadow_ast.dart'
         StringConcatenationJudgment,
         StringLiteralJudgment,
         SymbolLiteralJudgment,
-        ShadowSyntheticExpression,
+        SyntheticExpressionJudgment,
         TryCatchJudgment,
         TryFinallyJudgment,
         WhileJudgment,
@@ -599,8 +599,8 @@ class Fangorn extends Forest {
       VariableDeclaration variable = node;
       node = variable.initializer;
     }
-    if (node is ShadowSyntheticExpression) {
-      ShadowSyntheticExpression synth = node;
+    if (node is SyntheticExpressionJudgment) {
+      SyntheticExpressionJudgment synth = node;
       node = synth.desugared;
     }
     if (node is Let) {

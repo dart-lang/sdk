@@ -85,7 +85,7 @@ import 'kernel_ast_api.dart'
         SuperMethodInvocationJudgment,
         SuperPropertyGetJudgment,
         VariableAssignmentJudgment,
-        ShadowSyntheticExpression,
+        SyntheticExpressionJudgment,
         VariableDeclarationJudgment,
         VariableGetJudgment,
         StaticSet,
@@ -1222,7 +1222,7 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
         KernelInvalidTypeBuilder declaration = this.declaration;
         helper.addProblemErrorIfConst(
             declaration.message.messageObject, offset, token.length);
-        super.expression = new ShadowSyntheticExpression(
+        super.expression = new SyntheticExpressionJudgment(
             new Throw(forest.literalString(declaration.message.message, token))
               ..fileOffset = offset);
       } else {

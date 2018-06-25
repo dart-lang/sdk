@@ -504,7 +504,7 @@ class ShadowClass extends Class {
 ///
 /// TODO(paulberry): once we know exactly what constitutes a "complex
 /// assignment", document it here.
-abstract class ComplexAssignmentJudgment extends ShadowSyntheticExpression {
+abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
   /// In a compound assignment, the expression that reads the old value, or
   /// `null` if this is not a compound assignment.
   Expression read;
@@ -1167,7 +1167,7 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
 
   final bool _declaresVariable;
 
-  final ShadowSyntheticExpression _syntheticAssignment;
+  final SyntheticExpressionJudgment _syntheticAssignment;
 
   ForInJudgment(
       this.awaitKeyword,
@@ -1269,7 +1269,7 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
         variable.initializer = implicitDowncast..parent = variable;
         body = combineStatements(variable, body)..parent = this;
       }
-    } else if (syntheticAssignment is ShadowSyntheticExpression) {
+    } else if (syntheticAssignment is SyntheticExpressionJudgment) {
       if (syntheticAssignment is ComplexAssignmentJudgment) {
         inferrer.ensureAssignable(
             greatestClosure(inferrer.coreTypes, syntheticWriteType),
@@ -1341,7 +1341,7 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
           null,
           syntheticWrite.target);
     } else if (syntheticWrite == null ||
-        syntheticWrite is ShadowSyntheticExpression) {
+        syntheticWrite is SyntheticExpressionJudgment) {
       inferrer.listener.forInStatement(
           this,
           fileOffset,
@@ -2873,10 +2873,10 @@ class SymbolLiteralJudgment extends SymbolLiteral
 ///
 /// These expressions are removed by type inference and replaced with their
 /// desugared equivalents.
-class ShadowSyntheticExpression extends Let implements ExpressionJudgment {
+class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
   DartType inferredType;
 
-  ShadowSyntheticExpression(Expression desugared)
+  SyntheticExpressionJudgment(Expression desugared)
       : super(new VariableDeclaration('_', initializer: new NullLiteral()),
             desugared);
 
