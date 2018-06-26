@@ -61,20 +61,20 @@ const char kSnapshotsDirectory[] = "snapshots";
 static char* GetDirectoryPrefixFromExeName() {
   const char* name = Platform::GetExecutableName();
   const char* sep = File::PathSeparator();
-  // Locate the last occurance of |sep| in |name|.
-  intptr_t i;
-  for (i = strlen(name) - 1; i >= 0; --i) {
+  for (intptr_t i = strlen(name) - 1; i >= 0; --i) {
     const char* str = name + i;
-    if (strstr(str, sep) == str) {
-      break;
+    if (strstr(str, sep) == str
+#if defined(HOST_OS_WINDOWS)
+        // TODO(aam): GetExecutableName doesn't work reliably on Windows,
+        // the code below is a workaround for that (we would be using
+        // just single Platform::Separator instead of both slashes if it did).
+        || *str == '/'
+#endif
+      ) {
+      return Utils::StrNDup(name, i + 1);
     }
   }
-
-  if (i < 0) {
-    return strdup("");
-  }
-
-  return Utils::StrNDup(name, i + 1);
+  return strdup("");
 }
 
 DFE::DFE()
