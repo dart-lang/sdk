@@ -63,14 +63,15 @@ f() {
   @failingTest
   void test_functionInPlaceOfTypeName() {
     // https://github.com/dart-lang/sdk/issues/30370
-    // TODO(danrubel): Fix this crash
+    // TODO(danrubel): Improve recovery. Currently, the fasta scanner
+    // does not associate `<` with `>` in this situation.
     testRecovery('''
 f() {
   return <test('', (){});>[0, 1, 2];
 }
 ''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
 f() {
-  return <test>[0, 1, 2];
+  return _s_ < test('', (){}); _s_ > [0, 1, 2];
 }
 ''');
   }
