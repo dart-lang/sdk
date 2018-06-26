@@ -5384,8 +5384,12 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
   CHECK_CALLBACK_STATE(T);
   CHECK_COMPILATION_ALLOWED(I);
 
+  const char* error = nullptr;
   kernel::Program* program =
-      kernel::Program::ReadFromBuffer(buffer, buffer_size);
+      kernel::Program::ReadFromBuffer(buffer, buffer_size, &error);
+  if (program == nullptr) {
+    return Api::NewError("Can't load Kernel binary: %s.", error);
+  }
   const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
   delete program;
 
@@ -5681,8 +5685,12 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
   CHECK_CALLBACK_STATE(T);
   CHECK_COMPILATION_ALLOWED(I);
 
+  const char* error = nullptr;
   kernel::Program* program =
-      kernel::Program::ReadFromBuffer(buffer, buffer_size);
+      kernel::Program::ReadFromBuffer(buffer, buffer_size, &error);
+  if (program == nullptr) {
+    return Api::NewError("Can't load Kernel binary: %s.", error);
+  }
   const Object& result =
       kernel::KernelLoader::LoadEntireProgram(program, false);
   delete program;

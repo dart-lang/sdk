@@ -60,10 +60,12 @@ class Program {
   // Read a kernel Program from the given Reader. Note the returned Program
   // can potentially contain several "sub programs", though the library count
   // etc will reference the last "sub program" only.
-  static Program* ReadFrom(Reader* reader);
+  static Program* ReadFrom(Reader* reader, const char** error = nullptr);
 
   static Program* ReadFromFile(const char* script_uri);
-  static Program* ReadFromBuffer(const uint8_t* buffer, intptr_t buffer_length);
+  static Program* ReadFromBuffer(const uint8_t* buffer,
+                                 intptr_t buffer_length,
+                                 const char** error = nullptr);
 
   bool is_single_program() { return single_program_; }
   NameIndex main_method() { return main_method_reference_; }

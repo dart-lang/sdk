@@ -29,14 +29,49 @@ const char* Reader::TagName(Tag tag) {
   return "Unknown";
 }
 
-Program* Program::ReadFrom(Reader* reader) {
+const char* kKernelInvalidFilesize =
+    "File size is too small to a valid kernel file";
+const char* kKernelInvalidMagicIdentifier = "Invalid magic identifier";
+const char* kKernelInvalidBinaryFormatVersion =
+    "Invalid kernel binary format version";
+const char* kKernelInvalidSizeIndicated =
+    "Invalid kernel binary: Indicated size is invalid";
+
+Program* Program::ReadFrom(Reader* reader, const char** error) {
+  if (reader->size() < 59) {
+    // A kernel file currently contains at least the following:
+    //   * Magic number (32)
+    //   * Kernel version (32)
+    //   * Length of source map (32)
+    //   * Length of canonical name table (8)
+    //   * Metadata length (32)
+    //   * Length of string table (8)
+    //   * Length of constant table (8)
+    //   * Component index (10 * 32)
+    //
+    // so is at least 59 bytes.
+    // (Technically it will also contain an empty entry in both source map and
+    // string table, taking up another 8 bytes.)
+    if (error != nullptr) {
+      *error = kKernelInvalidFilesize;
+    }
+    return nullptr;
+  }
+
   uint32_t magic = reader->ReadUInt32();
-  if (magic != kMagicProgramFile) FATAL("Invalid magic identifier");
+  if (magic != kMagicProgramFile) {
+    if (error != nullptr) {
+      *error = kKernelInvalidMagicIdentifier;
+    }
+    return nullptr;
+  }
 
   uint32_t formatVersion = reader->ReadUInt32();
   if (formatVersion != kBinaryFormatVersion) {
-    FATAL2("Invalid kernel binary format version (found %u, expected %u)",
-           formatVersion, kBinaryFormatVersion);
+    if (error != nullptr) {
+      *error = kKernelInvalidBinaryFormatVersion;
+    }
+    return nullptr;
   }
 
   Program* program = new Program();
@@ -51,7 +86,11 @@ Program* Program::ReadFrom(Reader* reader) {
     intptr_t size = reader->ReadUInt32();
     intptr_t start = reader->offset() - size;
     if (start < 0) {
-      FATAL("Invalid kernel binary: Indicated size is invalid.");
+      if (error != nullptr) {
+        *error = kKernelInvalidSizeIndicated;
+      }
+      delete program;
+      return nullptr;
     }
     ++subprogram_count;
     if (subprogram_count > 1) break;
@@ -116,9 +155,10 @@ Program* Program::ReadFromFile(const char* script_uri) {
 }
 
 Program* Program::ReadFromBuffer(const uint8_t* buffer,
-                                 intptr_t buffer_length) {
+                                 intptr_t buffer_length,
+                                 const char** error) {
   kernel::Reader reader(buffer, buffer_length);
-  return kernel::Program::ReadFrom(&reader);
+  return kernel::Program::ReadFrom(&reader, error);
 }
 
 }  // namespace kernel

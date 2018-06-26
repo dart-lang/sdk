@@ -314,8 +314,17 @@ static RawError* BootstrapFromKernel(Thread* thread,
                                      const uint8_t* kernel_buffer,
                                      intptr_t kernel_buffer_size) {
   Zone* zone = thread->zone();
-  kernel::Program* program =
-      kernel::Program::ReadFromBuffer(kernel_buffer, kernel_buffer_size);
+  const char* error = nullptr;
+  kernel::Program* program = kernel::Program::ReadFromBuffer(
+      kernel_buffer, kernel_buffer_size, &error);
+  if (program == nullptr) {
+    const intptr_t kMessageBufferSize = 512;
+    char message_buffer[kMessageBufferSize];
+    Utils::SNPrint(message_buffer, kMessageBufferSize,
+                   "Can't load Kernel binary: %s.", error);
+    const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
+    return ApiError::New(msg, Heap::kOld);
+  }
   kernel::KernelLoader loader(program);
   Isolate* isolate = thread->isolate();
 
