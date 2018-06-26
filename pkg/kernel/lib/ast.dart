@@ -3199,6 +3199,10 @@ class StringLiteral extends BasicLiteral {
 }
 
 class IntLiteral extends BasicLiteral {
+  /// Note that this value holds a uint64 value.
+  /// E.g. "0x8000000000000000" will be saved as "-9223372036854775808" despite
+  /// technically (on some platforms, particularly Javascript) being positive.
+  /// If the number is meant to be negative it will be wrapped in a "unary-".
   int value;
 
   IntLiteral(this.value);
