@@ -78,8 +78,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     final body = node.body;
     if (body is BlockFunctionBody) {
-      final returnStatements = DartTypeUtilities
-          .traverseNodesInDFS(body.block,
+      final returnStatements = DartTypeUtilities.traverseNodesInDFS(body.block,
               excludeCriteria: _isFunctionExpression)
           .where(_isReturnStatement);
       if (returnStatements.isNotEmpty && returnStatements.every(_returnsThis)) {

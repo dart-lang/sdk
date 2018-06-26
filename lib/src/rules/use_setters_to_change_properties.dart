@@ -63,10 +63,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     void _visitExpression(Expression expression) {
       if (expression is AssignmentExpression) {
-        final leftOperand = DartTypeUtilities
-            .getCanonicalElementFromIdentifier(expression.leftHandSide);
-        final rightOperand = DartTypeUtilities
-            .getCanonicalElementFromIdentifier(expression.rightHandSide);
+        final leftOperand = DartTypeUtilities.getCanonicalElementFromIdentifier(
+            expression.leftHandSide);
+        final rightOperand =
+            DartTypeUtilities.getCanonicalElementFromIdentifier(
+                expression.rightHandSide);
         final parameterElement =
             DartTypeUtilities.getCanonicalElementFromIdentifier(
                 node.parameters.parameters.first.identifier);

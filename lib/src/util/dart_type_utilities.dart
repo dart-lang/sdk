@@ -150,8 +150,8 @@ class DartTypeUtilities {
     }
     for (final argument in arguments) {
       if (argument is NamedExpression) {
-        final element = DartTypeUtilities
-            .getCanonicalElementFromIdentifier(argument.expression);
+        final element = DartTypeUtilities.getCanonicalElementFromIdentifier(
+            argument.expression);
         if (element == null) {
           return false;
         }

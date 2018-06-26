@@ -98,10 +98,10 @@ void nestedOk5() {
 
 ''';
 
-Iterable<Element> _getElementsInExpression(Expression node) => DartTypeUtilities
-    .traverseNodesInDFS(node)
-    .map(DartTypeUtilities.getCanonicalElementFromIdentifier)
-    .where((e) => e != null);
+Iterable<Element> _getElementsInExpression(Expression node) =>
+    DartTypeUtilities.traverseNodesInDFS(node)
+        .map(DartTypeUtilities.getCanonicalElementFromIdentifier)
+        .where((e) => e != null);
 
 class InvariantBooleans extends LintRule implements NodeLintRule {
   InvariantBooleans()

@@ -6,8 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/resolver.dart'; // ignore: implementation_imports
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
@@ -84,8 +83,8 @@ class _UnnecessaryThisVisitor extends ScopedVisitor {
     if (parent is PropertyAccess) {
       lookUpElement = DartTypeUtilities.getCanonicalElement(
           nameScope.lookup(parent.propertyName, definingLibrary));
-      localElement = DartTypeUtilities
-          .getCanonicalElement(parent.propertyName.bestElement);
+      localElement = DartTypeUtilities.getCanonicalElement(
+          parent.propertyName.bestElement);
     } else if (parent is MethodInvocation) {
       lookUpElement = DartTypeUtilities.getCanonicalElement(
           nameScope.lookup(parent.methodName, definingLibrary));

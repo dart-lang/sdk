@@ -76,12 +76,12 @@ ExecutableElement _getExecutableElementFromMethodInvocation(
 Element _getPrefixElementFromExpression(Expression rawExpression) {
   final expression = rawExpression.unParenthesized;
   if (expression is PrefixedIdentifier) {
-    return DartTypeUtilities
-        .getCanonicalElementFromIdentifier(expression.prefix);
+    return DartTypeUtilities.getCanonicalElementFromIdentifier(
+        expression.prefix);
   } else if (expression is PropertyAccess &&
       _isInvokedWithoutNullAwareOperator(expression.operator)) {
-    return DartTypeUtilities
-        .getCanonicalElementFromIdentifier(expression.target);
+    return DartTypeUtilities.getCanonicalElementFromIdentifier(
+        expression.target);
   }
   return null;
 }

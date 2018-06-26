@@ -6,12 +6,12 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/resolver.dart'; // ignore: implementation_imports
 import 'package:linter/src/util/dart_type_utilities.dart';
 
-Element _getLeftElement(AssignmentExpression assignment) => DartTypeUtilities
-    .getCanonicalElementFromIdentifier(assignment.leftHandSide);
+Element _getLeftElement(AssignmentExpression assignment) =>
+    DartTypeUtilities.getCanonicalElementFromIdentifier(
+        assignment.leftHandSide);
 
 List<Expression> _splitConjunctions(Expression rawExpression) {
   final expression = rawExpression?.unParenthesized;
@@ -331,8 +331,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   bool _isRelevantOutsideOfForStatement(ForStatement node) =>
       !breakScope.hasBreak(node) &&
       node.condition != null &&
-      DartTypeUtilities
-          .traverseNodesInDFS(node.condition)
+      DartTypeUtilities.traverseNodesInDFS(node.condition)
           .where((n) => n is SimpleIdentifier)
           .map((n) => (n as SimpleIdentifier).bestElement?.computeNode())
           .every((n) =>

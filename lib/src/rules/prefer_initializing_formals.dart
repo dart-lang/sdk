@@ -56,14 +56,16 @@ Iterable<ConstructorFieldInitializer>
             .where((e) => e is ConstructorFieldInitializer)
             .map((e) => (e as ConstructorFieldInitializer));
 
-Element _getLeftElement(AssignmentExpression assignment) => DartTypeUtilities
-    .getCanonicalElementFromIdentifier(assignment.leftHandSide);
+Element _getLeftElement(AssignmentExpression assignment) =>
+    DartTypeUtilities.getCanonicalElementFromIdentifier(
+        assignment.leftHandSide);
 
 Iterable<Element> _getParameters(ConstructorDeclaration node) =>
     node.parameters.parameters.map((e) => e.identifier.bestElement);
 
-Element _getRightElement(AssignmentExpression assignment) => DartTypeUtilities
-    .getCanonicalElementFromIdentifier(assignment.rightHandSide);
+Element _getRightElement(AssignmentExpression assignment) =>
+    DartTypeUtilities.getCanonicalElementFromIdentifier(
+        assignment.rightHandSide);
 
 class PreferInitializingFormals extends LintRule implements NodeLintRule {
   PreferInitializingFormals()

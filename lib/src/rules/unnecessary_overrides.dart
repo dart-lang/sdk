@@ -227,8 +227,8 @@ class _UnnecessaryOperatorOverrideVisitor
     if (node.operator.type == declaration.name.token.type &&
         parameters.length == 1 &&
         parameters.first.identifier.bestElement ==
-            DartTypeUtilities
-                .getCanonicalElementFromIdentifier(node.rightOperand)) {
+            DartTypeUtilities.getCanonicalElementFromIdentifier(
+                node.rightOperand)) {
       final leftPart = node.leftOperand.unParenthesized;
       if (leftPart is SuperExpression) {
         visitSuperExpression(leftPart);
@@ -262,8 +262,8 @@ class _UnnecessarySetterOverrideVisitor
     final parameters = declaration.parameters.parameters;
     if (parameters.length == 1 &&
         parameters.first.identifier.bestElement ==
-            DartTypeUtilities
-                .getCanonicalElementFromIdentifier(node.rightHandSide)) {
+            DartTypeUtilities.getCanonicalElementFromIdentifier(
+                node.rightHandSide)) {
       final leftPart = node.leftHandSide.unParenthesized;
       if (leftPart is PropertyAccess) {
         _visitPropertyAccess(leftPart);

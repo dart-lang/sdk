@@ -65,8 +65,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (element != null) {
       final catchClause =
           node.getAncestor((e) => e is CatchClause) as CatchClause;
-      final exceptionParameter = DartTypeUtilities
-          .getCanonicalElementFromIdentifier(catchClause?.exceptionParameter);
+      final exceptionParameter =
+          DartTypeUtilities.getCanonicalElementFromIdentifier(
+              catchClause?.exceptionParameter);
       if (element == exceptionParameter) {
         rule.reportLint(node);
       }

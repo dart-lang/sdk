@@ -95,16 +95,15 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     final parameters = node.parameters?.parameters;
     if (node.name.token?.type == TokenType.EQ_EQ && parameters?.length == 1) {
-      final parameter = DartTypeUtilities
-          .getCanonicalElementFromIdentifier(parameters.first.identifier);
+      final parameter = DartTypeUtilities.getCanonicalElementFromIdentifier(
+          parameters.first.identifier);
       bool checkIfParameterIsNull(AstNode node) =>
           _isParameterWithQuestion(node, parameter) ||
           (node is BinaryExpression &&
               (_isParameterWithQuestionQuestion(node, parameter) ||
                   _isComparingParameterWithNull(node, parameter)));
 
-      DartTypeUtilities
-          .traverseNodesInDFS(node.body)
+      DartTypeUtilities.traverseNodesInDFS(node.body)
           .where(checkIfParameterIsNull)
           .forEach(rule.reportLint);
     }

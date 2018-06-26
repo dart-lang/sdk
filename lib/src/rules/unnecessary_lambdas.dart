@@ -41,8 +41,7 @@ bool _containsNullAwareInvocationInChain(AstNode node) =>
             _containsNullAwareInvocationInChain(node.target)));
 
 Iterable<Element> _extractElementsOfSimpleIdentifiers(AstNode node) =>
-    DartTypeUtilities
-        .traverseNodesInDFS(node)
+    DartTypeUtilities.traverseNodesInDFS(node)
         .where((e) => e is SimpleIdentifier)
         .map((e) => (e as SimpleIdentifier).bestElement);
 

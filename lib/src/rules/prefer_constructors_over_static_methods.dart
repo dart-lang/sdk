@@ -47,8 +47,7 @@ bool _hasNewInvocation(DartType returnType, FunctionBody body) {
   bool _isInstanceCreationExpression(AstNode node) =>
       node is InstanceCreationExpression && node.bestType == returnType;
 
-  return DartTypeUtilities
-      .traverseNodesInDFS(body)
+  return DartTypeUtilities.traverseNodesInDFS(body)
       .any(_isInstanceCreationExpression);
 }
 

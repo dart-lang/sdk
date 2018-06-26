@@ -39,8 +39,8 @@ String get fullName {
 
 bool _checkExpression(Expression expression, Element element) =>
     expression is AssignmentExpression &&
-    DartTypeUtilities
-            .getCanonicalElementFromIdentifier(expression.leftHandSide) ==
+    DartTypeUtilities.getCanonicalElementFromIdentifier(
+            expression.leftHandSide) ==
         element;
 
 bool _checkStatement(Statement statement, Element element) {
@@ -58,12 +58,12 @@ Element _getElementInCondition(Expression rawExpression) {
   if (expression is BinaryExpression &&
       expression.operator.type == TokenType.EQ_EQ) {
     if (DartTypeUtilities.isNullLiteral(expression.rightOperand)) {
-      return DartTypeUtilities
-          .getCanonicalElementFromIdentifier(expression.leftOperand);
+      return DartTypeUtilities.getCanonicalElementFromIdentifier(
+          expression.leftOperand);
     }
     if (DartTypeUtilities.isNullLiteral(expression.leftOperand)) {
-      return DartTypeUtilities
-          .getCanonicalElementFromIdentifier(expression.rightOperand);
+      return DartTypeUtilities.getCanonicalElementFromIdentifier(
+          expression.rightOperand);
     }
   }
   return null;
