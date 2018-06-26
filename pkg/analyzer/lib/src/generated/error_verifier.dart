@@ -5750,7 +5750,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
       // If we're not in one of the `void` related special cases
       // just check assignability.
-      if (!toType.isVoid && !fromType.isVoid) {
+      if (!expectedType.isVoid && !fromType.isVoid) {
         var checkWithType = (!_inAsync)
             ? fromType
             : _typeProvider.futureType.instantiate(<DartType>[fromType]);
