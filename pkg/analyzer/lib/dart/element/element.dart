@@ -1369,6 +1369,17 @@ abstract class FunctionTypeAliasElement
 
   @override
   TypeAlias computeNode();
+
+  /// Produces the function type resulting from instantiating this typedef with
+  /// the given type arguments.
+  ///
+  /// Note that for a generic typedef, this instantiates the typedef, not the
+  /// generic function type associated with it.  So, for example, if the typedef
+  /// is:
+  ///     typedef F<T> = void Function<U>(T, U);
+  /// then a single type argument should be provided, and it will be substituted
+  /// for T.
+  FunctionType instantiate(List<DartType> argumentTypes);
 }
 
 /**

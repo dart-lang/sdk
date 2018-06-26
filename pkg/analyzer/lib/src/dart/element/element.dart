@@ -5656,6 +5656,15 @@ class GenericTypeAliasElementImpl extends ElementImpl
     return null;
   }
 
+  @override
+  FunctionType instantiate(List<DartType> argumentTypes) {
+    if (argumentTypes.length != typeParameters.length) {
+      throw new ArgumentError('Wrong number of type arguments supplied');
+    }
+    if (typeParameters.isEmpty) return type;
+    return typeAfterSubstitution(argumentTypes);
+  }
+
   /**
    * Return the type of the function defined by this typedef after substituting
    * the given [typeArguments] for the type parameters defined for this typedef

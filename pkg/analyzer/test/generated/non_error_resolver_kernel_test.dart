@@ -48,13 +48,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_argumentTypeNotAssignable_invocation_typedef_generic() {
-    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
-    return super.test_argumentTypeNotAssignable_invocation_typedef_generic();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_beforeConstructor() async {
     return super.test_commentReference_beforeConstructor();
@@ -214,57 +207,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
     return super.test_functionTypeAlias_scope_signature();
   }
 
-  @override
-  @failingTest
-  test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters() {
-    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
-    return super.test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters();
-  }
-
-  @override
-  @failingTest
-  test_genericTypeAlias_castsAndTypeChecks_noTypeParameters() {
-    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
-    return super.test_genericTypeAlias_castsAndTypeChecks_noTypeParameters();
-  }
-
-  @override
-  @failingTest
-  test_genericTypeAlias_fieldAndReturnType_noTypeParameters() {
-    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
-    return super.test_genericTypeAlias_fieldAndReturnType_noTypeParameters();
-  }
-
-  @override
-  @failingTest
-  test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments() {
-    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
-    return super
-        .test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments();
-  }
-
-  @override
-  @failingTest
-  test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments() {
-    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
-    return super
-        .test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments();
-  }
-
-  @override
-  @failingTest
-  test_genericTypeAlias_noTypeParameters() {
-    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
-    return super.test_genericTypeAlias_noTypeParameters();
-  }
-
-  @override
-  @failingTest
-  test_genericTypeAlias_typeParameters() {
-    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
-    return super.test_genericTypeAlias_typeParameters();
-  }
-
   @override // passes with kernel
   test_infer_mixin() => super.test_infer_mixin();
 
@@ -318,13 +260,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
     // Bad state: No data for named at 29
     return super
         .test_invalidAnnotation_constConstructor_named_importWithPrefix();
-  }
-
-  @override
-  @failingTest
-  test_invocationOfNonFunction_functionTypeTypeParameter() {
-    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
-    return super.test_invocationOfNonFunction_functionTypeTypeParameter();
   }
 
   @override

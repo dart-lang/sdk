@@ -260,7 +260,8 @@ class KernelResynthesizer implements ElementResynthesizer {
   FunctionType _getFunctionType(
       ElementImpl context, kernel.FunctionType kernelType) {
     if (kernelType.typedef != null) {
-      return _getTypedefType(context, kernelType);
+      var translatedType = _getTypedefType(context, kernelType);
+      if (translatedType != null) return translatedType;
     }
 
     var element = new FunctionElementImpl('', -1);
@@ -329,51 +330,35 @@ class KernelResynthesizer implements ElementResynthesizer {
 
     GenericTypeAliasElementImpl typedefElement =
         getElementFromCanonicalName(typedef.canonicalName);
-    GenericFunctionTypeElementImpl functionElement = typedefElement.function;
 
     kernel.FunctionType typedefType = typedef.type;
-    var kernelTypeParameters = typedef.typeParameters.toList();
-    kernelTypeParameters.addAll(typedefType.typeParameters);
 
-    // If no type parameters, the raw type of the element will do.
-    FunctionTypeImpl rawType = functionElement.type;
-    if (kernelTypeParameters.isEmpty) {
-      return rawType;
+    if (kernelType.typeParameters.length != typedefType.typeParameters.length) {
+      // Type parameters don't match; just resynthesize as a synthetic function
+      // type.
+      return null;
     }
 
-    // Compute type arguments for kernel type parameters.
-    var kernelMap = kernel.unifyTypes(typedefType.withoutTypeParameters,
-        kernelType.withoutTypeParameters, kernelTypeParameters.toSet());
-
-    // Prepare Analyzer type parameters, in the same order as kernel ones.
-    var astTypeParameters = typedefElement.typeParameters.toList();
-    astTypeParameters.addAll(functionElement.typeParameters);
+    // In the general case imagine the typedef is:
+    //     typedef F<T, U> = ... Function<V, W>(...);
+    // And kernelType is:
+    //     ... Function<X, Y>(...);
+    // So the outer type parameters of the typedef have been instantiated (or
+    // there were none); the inner type parameters have not been instantiated
+    // (or there were none).
+    //
+    // Now we have to figure out what substitution was used to instantiate
+    // the typedef, since the kernel doesn't track that information.
+    var substitution = kernel.unifyTypes(
+        typedefType, kernelType, typedef.typeParameters.toSet());
 
     // Convert kernel type arguments into Analyzer types.
-    int length = astTypeParameters.length;
-    var usedTypeParameters = <TypeParameterElement>[];
-    var usedTypeArguments = <DartType>[];
-    for (var i = 0; i < length; i++) {
-      var kernelParameter = kernelTypeParameters[i];
-      var kernelArgument = kernelMap[kernelParameter];
-      if (kernelArgument == null ||
-          kernelArgument is kernel.TypeParameterType &&
-              kernelArgument.parameter.parent == null) {
-        continue;
-      }
-      TypeParameterElement astParameter = astTypeParameters[i];
-      DartType astArgument = getType(context, kernelArgument);
-      usedTypeParameters.add(astParameter);
-      usedTypeArguments.add(astArgument);
-    }
-
-    if (usedTypeParameters.isEmpty) {
-      return rawType;
-    }
-
-    // Replace Analyzer type parameters with type arguments.
-    throw new UnimplementedError(
-        'TODO(paulberry): resynthesize generic typedef');
+    var typeArguments = typedef.typeParameters
+        .map((t) => substitution.containsKey(t)
+            ? getType(context, substitution[t])
+            : _typeProvider.nullType)
+        .toList();
+    return typedefElement.instantiate(typeArguments);
   }
 
   /// Return the [TypeParameterElement] for the given [kernelTypeParameter].

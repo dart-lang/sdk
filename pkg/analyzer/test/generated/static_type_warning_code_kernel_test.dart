@@ -64,13 +64,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_bug21912() {
-    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
-    return super.test_bug21912();
-  }
-
-  @override
-  @failingTest
   test_expectedOneListTypeArgument() async {
     // Bad state: Found 1 argument types for 2 type arguments
     await super.test_expectedOneListTypeArgument();

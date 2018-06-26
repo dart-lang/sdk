@@ -361,7 +361,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     node.staticInvokeType = invokeType;
 
     List<DartType> typeArguments = data.argumentTypes;
-    if (node.typeArguments != null && typeArguments is TypeArgumentsDartType) {
+    if (node.typeArguments != null && typeArguments != null) {
       _applyTypeArgumentsToList(
           _enclosingLibraryElement,
           new TypeArgumentsDartType(typeArguments),

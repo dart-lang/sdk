@@ -63,14 +63,6 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_functionExpressionInvocation() {
-    // TODO(paulberry): broken because of in-progress FunctionTypeImpl rework
-    return super.test_functionExpressionInvocation();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_instanceCreation_prefixed() {
     // TODO(paulberry): broken because prefixes are not working properly
     return super.test_instanceCreation_prefixed();
@@ -92,14 +84,6 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
     // generic parameters not being properly associated with the generic
     // parameters from the kernel representation.
     return super.test_local_function_generic();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_type_functionTypeAlias() {
-    // TODO(paulberry): broken because of in-progress FunctionTypeImpl rework
-    return super.test_type_functionTypeAlias();
   }
 }
 
