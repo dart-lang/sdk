@@ -11097,7 +11097,8 @@ RawArray* Library::LoadedScripts() const {
 
 // TODO(hausner): we might want to add a script dictionary to the
 // library class to make this lookup faster.
-RawScript* Library::LookupScript(const String& url) const {
+RawScript* Library::LookupScript(const String& url,
+                                 bool useResolvedUri /* = false */) const {
   const intptr_t url_length = url.Length();
   if (url_length == 0) {
     return Script::null();
@@ -11108,7 +11109,11 @@ RawScript* Library::LookupScript(const String& url) const {
   const intptr_t num_scripts = scripts.Length();
   for (int i = 0; i < num_scripts; i++) {
     script ^= scripts.At(i);
-    script_url = script.url();
+    if (!useResolvedUri) {
+      script_url = script.url();
+    } else {
+      script_url = script.resolved_url();
+    }
     const intptr_t start_idx = script_url.Length() - url_length;
     if ((start_idx == 0) && url.Equals(script_url)) {
       return script.raw();

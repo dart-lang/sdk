@@ -1532,13 +1532,34 @@ const Object& KernelLoader::ClassForScriptAt(const Class& klass,
 
 RawScript* KernelLoader::LoadScriptAt(intptr_t index) {
   const String& uri_string = builder_.SourceTableUriFor(index);
-  const Script& script =
-      Script::Handle(Z, Script::New(uri_string, builder_.GetSourceFor(index),
-                                    RawScript::kKernelTag));
+  String& sources = builder_.GetSourceFor(index);
+  TypedData& line_starts =
+      TypedData::Handle(Z, builder_.GetLineStartsFor(index));
+  if (sources.Length() == 0 && line_starts.Length() == 0 &&
+      uri_string.Length() > 0) {
+    // Entry included only to provide URI - actual source should already exist
+    // in the VM, so try to find it.
+    Library& lib = Library::Handle(Z);
+    Script& script = Script::Handle(Z);
+    const GrowableObjectArray& libs =
+        GrowableObjectArray::Handle(isolate_->object_store()->libraries());
+    for (intptr_t i = 0; i < libs.Length(); i++) {
+      lib ^= libs.At(i);
+      script = lib.LookupScript(uri_string, /* useResolvedUri = */ true);
+      if (!script.IsNull() && script.kind() == RawScript::kKernelTag) {
+        sources ^= script.Source();
+        line_starts ^= script.line_starts();
+        break;
+      }
+    }
+  }
+
+  const Script& script = Script::Handle(
+      Z, Script::New(uri_string, sources, RawScript::kKernelTag));
+  String& script_url = String::Handle();
+  script_url = script.url();
   script.set_kernel_script_index(index);
   script.set_kernel_program_info(kernel_program_info_);
-  const TypedData& line_starts =
-      TypedData::Handle(Z, builder_.GetLineStartsFor(index));
   script.set_line_starts(line_starts);
   script.set_debug_positions(Array::Handle(Array::null()));
   script.set_yield_positions(Array::Handle(Array::null()));

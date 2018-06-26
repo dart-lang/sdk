@@ -3600,6 +3600,8 @@ class Script : public Object {
     return raw_ptr()->tokens_;
   }
 
+  RawTypedData* line_starts() const;
+
   void set_line_starts(const TypedData& value) const;
 
   void set_debug_positions(const Array& value) const;
@@ -3657,7 +3659,6 @@ class Script : public Object {
   void set_kind(RawScript::Kind value) const;
   void set_load_timestamp(int64_t value) const;
   void set_tokens(const TokenStream& value) const;
-  RawTypedData* line_starts() const;
   RawArray* debug_positions() const;
 
   static RawScript* New();
@@ -3807,7 +3808,7 @@ class Library : public Object {
   RawFunction* LookupFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupLocalFunction(const String& name) const;
   RawLibraryPrefix* LookupLocalLibraryPrefix(const String& name) const;
-  RawScript* LookupScript(const String& url) const;
+  RawScript* LookupScript(const String& url, bool useResolvedUri = false) const;
   RawArray* LoadedScripts() const;
 
   // Resolve name in the scope of this library. First check the cache

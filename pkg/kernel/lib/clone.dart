@@ -406,7 +406,8 @@ class CloneVisitor implements TreeVisitor {
       ..annotations = cloneAnnotations && !node.annotations.isEmpty
           ? node.annotations.map(clone).toList()
           : const <Expression>[]
-      ..flags = node.flags;
+      ..flags = node.flags
+      ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset);
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
