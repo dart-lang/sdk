@@ -1,0 +1,7 @@
+name: smith
+author: Dart Team <misc@dartlang.org>
+description: Shared code for working with the Dart SDK's tests and test runner.
+homepage: http://www.dartlang.org
+dev_dependencies:
+  expect:
+    path: ../expect
