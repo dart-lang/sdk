@@ -169,6 +169,7 @@ web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 [ $compiler == dartkp ]
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
+constant_string_interpolation2_test: DartkCrash # Issue 33628
 covariant_subtyping_test: RuntimeError
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
@@ -801,8 +802,8 @@ mock_writable_final_private_field_test: RuntimeError # Issue 30849
 named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
 named_parameters_default_eq_test/none: RuntimeError
 nested_generic_closure_test: RuntimeError
-no_main_test/01: DartkCrash
 no_main_test/01: Skip
+no_main_test/01: DartkCrash
 no_such_method_mock_test: RuntimeError # Issue 31426
 null_no_such_method_test: CompileTimeError # Issue 31533
 override_inheritance_field_test/04: CompileTimeError # Issue 31616
