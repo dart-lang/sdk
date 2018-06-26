@@ -30,7 +30,7 @@ import 'resynthesize_common.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ResynthesizeKernelStrongTest);
+    defineReflectiveTests(ResynthesizeTest_Kernel);
   });
 }
 
@@ -49,7 +49,7 @@ class FastaProblem {
 }
 
 @reflectiveTest
-class ResynthesizeKernelStrongTest extends ResynthesizeTest {
+class ResynthesizeTest_Kernel extends ResynthesizeTest {
   static const DEBUG = false;
 
   final resourceProvider = new MemoryResourceProvider();
