@@ -438,7 +438,8 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   if (checkedMode && strongMode) {
     checkedMode = false;
-    hints.add("Option '${Flags.enableCheckedMode}' is not needed in Dart 2.0.");
+    hints.add("Option '${Flags.enableCheckedMode}' is not needed in Dart 2.0. "
+        "To enable assertions use '${Flags.enableAsserts}' instead.");
   }
 
   if (trustTypeAnnotations && strongMode) {
