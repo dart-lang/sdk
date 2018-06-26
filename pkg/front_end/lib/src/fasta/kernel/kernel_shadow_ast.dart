@@ -830,8 +830,8 @@ class ConstructorInvocationJudgment extends ConstructorInvocation
           fileOffset,
           noLength);
     }
-    inferrer.listener
-        .constructorInvocation(this, fileOffset, target, inferredType);
+    inferrer.listener.constructorInvocation(
+        this, argumentJudgments.fileOffset, target, inferredType);
 
     if (isRedirected(this)) {
       InterfaceType returnType = inferredType;
@@ -1071,8 +1071,8 @@ class FactoryConstructorInvocationJudgment extends StaticInvocation
         argumentJudgments);
     var inferredType = inferenceResult.type;
     this.inferredType = inferredType;
-    inferrer.listener
-        .constructorInvocation(this, fileOffset, target, inferredType);
+    inferrer.listener.constructorInvocation(
+        this, argumentJudgments.fileOffset, target, inferredType);
 
     if (isRedirected(this)) {
       InterfaceType returnType = inferredType;

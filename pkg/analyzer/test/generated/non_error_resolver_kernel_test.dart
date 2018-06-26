@@ -26,6 +26,11 @@ class FastaProblem {
   const FastaProblem(String issueUri);
 }
 
+/// Tests marked with this annotation fail because of an Analyzer problem.
+class AnalyzerProblem {
+  const AnalyzerProblem(String issueUri);
+}
+
 @reflectiveTest
 class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
@@ -36,7 +41,7 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31625')
+  @AnalyzerProblem('https://github.com/dart-lang/sdk/issues/33636')
   test_ambiguousImport_showCombinator() async {
     return super.test_ambiguousImport_showCombinator();
   }
@@ -46,13 +51,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   test_argumentTypeNotAssignable_invocation_typedef_generic() {
     // UnimplementedError: TODO(paulberry): resynthesize generic typedef
     return super.test_argumentTypeNotAssignable_invocation_typedef_generic();
-  }
-
-  @override
-  @failingTest
-  test_argumentTypeNotAssignable_optionalNew() {
-    // Bad state: No data for (builder: () {return Widget();}) at 164
-    return super.test_argumentTypeNotAssignable_optionalNew();
   }
 
   @override
@@ -251,13 +249,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
     // UnimplementedError: TODO(paulberry): resynthesize generic typedef
     return super
         .test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericTypeAlias_invalidGenericFunctionType() async {
-    return super.test_genericTypeAlias_invalidGenericFunctionType();
   }
 
   @override

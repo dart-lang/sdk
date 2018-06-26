@@ -54,6 +54,13 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
 //    await super.test_asyncChangesDuringAnalysis_getErrors();
   }
 
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33642')
+  test_const_annotation_notConstConstructor() async {
+    await super.test_const_annotation_notConstConstructor();
+  }
+
   @failingTest
   @potentialAnalyzerProblem
   @override
@@ -66,13 +73,6 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @override
   test_const_externalConstFactory() async {
     await super.test_const_externalConstFactory();
-  }
-
-  @override
-  @failingTest
-  test_const_implicitCreation() {
-    // Bad state: No data for () at 69
-    return super.test_const_implicitCreation();
   }
 
   @failingTest

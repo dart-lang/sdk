@@ -282,13 +282,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_invocationOfNonFunction_class() async {
-    // Expected 1 errors of type StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION, found 0
-    await super.test_invocationOfNonFunction_class();
-  }
-
-  @override
-  @failingTest
   test_invocationOfNonFunction_localObject() async {
     // Expected 1 errors of type StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION, found 0
     await super.test_invocationOfNonFunction_localObject();
@@ -806,13 +799,6 @@ class StaticTypeWarningCodeTest_Kernel
   test_undefinedMethod_typeLiteral_conditionalAccess() async {
     // Bad state: No reference information for A at 18
     await super.test_undefinedMethod_typeLiteral_conditionalAccess();
-  }
-
-  @override
-  @failingTest
-  test_undefinedMethodWithConstructor() async {
-    // Bad state: No reference information for C at 35
-    await super.test_undefinedMethodWithConstructor();
   }
 
   @override

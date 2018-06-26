@@ -44,6 +44,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   @override
   void visitAnnotation(Annotation node) {
     SimpleIdentifier constructorName = node.constructorName;
+
     SyntacticEntity entity;
     if (constructorName != null) {
       entity = constructorName;
@@ -69,30 +70,29 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       topEntity = node.name;
     }
 
-    Element element = data.reference;
-    DartType type = data.inferredType;
-    node.element = element;
+    ArgumentList argumentList = node.arguments;
+    if (argumentList != null) {
+      var data = _get(argumentList);
+      ConstructorElement element = data.reference;
+      DartType type = data.inferredType;
 
-    if (element is ConstructorElement) {
+      node.element = element;
       topEntity.staticElement = element.enclosingElement;
+      topEntity.staticType = type;
 
       if (constructorName != null) {
         constructorName.staticElement = element;
         constructorName.staticType = element.type;
       }
 
-      ArgumentList argumentList = node.arguments;
-      if (argumentList != null) {
-        _applyResolutionToArguments(argumentList);
-        _resolveNamedArguments(argumentList, element.parameters);
-      }
+      _applyResolutionToArguments(argumentList);
+      _resolveNamedArguments(argumentList, element.parameters);
     } else {
+      Element element = data.reference;
+      DartType type = data.inferredType;
+      node.element = element;
       topEntity.staticElement = element;
       topEntity.staticType = type;
-      if (constructorName != null) {
-        constructorName.accept(this);
-        node.element = constructorName.staticElement;
-      }
     }
   }
 
@@ -395,14 +395,14 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    ConstructorName constructorName = node.constructorName;
-    var data = _get(constructorName);
+    var data = _get(node.argumentList);
 
     PrefixElement prefix = data.prefixInfo;
 
     ConstructorElement constructor = data.reference;
     DartType type = data.inferredType;
 
+    ConstructorName constructorName = node.constructorName;
     applyConstructorElement(
         _enclosingLibraryElement, prefix, constructor, type, constructorName);
 
