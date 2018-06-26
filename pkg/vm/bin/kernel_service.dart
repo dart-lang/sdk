@@ -26,6 +26,7 @@ import 'dart:io' show Platform, stderr hide FileSystemEntity;
 import 'dart:isolate';
 import 'dart:typed_data' show Uint8List;
 
+import 'package:build_integration/file_system/multi_root.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
@@ -199,15 +200,16 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
     {bool strongMode: false,
     bool suppressWarnings: false,
     bool syncAsync: false,
-    String packageConfig: null}) async {
+    String packageConfig: null,
+    String multirootFilepaths,
+    String multirootScheme}) async {
   IncrementalCompilerWrapper compiler = lookupIncrementalCompiler(isolateId);
   if (compiler != null) {
     updateSources(compiler, sourceFiles);
     invalidateSources(compiler, sourceFiles);
   } else {
-    final FileSystem fileSystem = sourceFiles.isEmpty && platformKernel == null
-        ? StandardFileSystem.instance
-        : _buildFileSystem(sourceFiles, platformKernel);
+    FileSystem fileSystem = _buildFileSystem(
+        sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
 
     // TODO(aam): IncrementalCompilerWrapper instance created below have to be
     // destroyed when corresponding isolate is shut down. To achieve that kernel
@@ -384,6 +386,8 @@ Future _processLoadRequest(request) async {
   final bool suppressWarnings = request[8];
   final bool syncAsync = request[9];
   final String packageConfig = request[10];
+  final String multirootFilepaths = request[11];
+  final String multirootScheme = request[12];
 
   Uri platformKernelPath = null;
   List<int> platformKernel = null;
@@ -436,11 +440,12 @@ Future _processLoadRequest(request) async {
         strongMode: strong,
         suppressWarnings: suppressWarnings,
         syncAsync: syncAsync,
-        packageConfig: packageConfig);
+        packageConfig: packageConfig,
+        multirootFilepaths: multirootFilepaths,
+        multirootScheme: multirootScheme);
   } else {
-    final FileSystem fileSystem = sourceFiles.isEmpty && platformKernel == null
-        ? StandardFileSystem.instance
-        : _buildFileSystem(sourceFiles, platformKernel);
+    FileSystem fileSystem = _buildFileSystem(
+        sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
     compiler = new SingleShotCompilerWrapper(fileSystem, platformKernelPath,
         requireMain: sourceFiles.isEmpty,
         strongMode: strong,
@@ -493,28 +498,46 @@ Future _processLoadRequest(request) async {
   }
 }
 
-/// Creates a file system containing the files specified in [namedSources] and
+/// Creates a file system containing the files specified in [sourceFiles] and
 /// that delegates to the underlying file system for any other file request.
-/// The [namedSources] list interleaves file name string and
+/// The [sourceFiles] list interleaves file name string and
 /// raw file content Uint8List.
 ///
 /// The result can be used instead of StandardFileSystem.instance by the
 /// frontend.
-FileSystem _buildFileSystem(List namedSources, List<int> platformKernel) {
-  MemoryFileSystem fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
-  if (namedSources != null) {
-    for (int i = 0; i < namedSources.length ~/ 2; i++) {
-      fileSystem
-          .entityForUri(Uri.parse(namedSources[i * 2]))
-          .writeAsBytesSync(namedSources[i * 2 + 1]);
+FileSystem _buildFileSystem(List sourceFiles, List<int> platformKernel,
+    String multirootFilepaths, String multirootScheme) {
+  FileSystem fileSystem;
+
+  if (sourceFiles.isEmpty && platformKernel == null) {
+    fileSystem = StandardFileSystem.instance;
+  } else {
+    MemoryFileSystem memoryFileSystem =
+        new MemoryFileSystem(Uri.parse('file:///'));
+    if (sourceFiles != null) {
+      for (int i = 0; i < sourceFiles.length ~/ 2; i++) {
+        memoryFileSystem
+            .entityForUri(Uri.parse(sourceFiles[i * 2]))
+            .writeAsBytesSync(sourceFiles[i * 2 + 1]);
+      }
     }
+    if (platformKernel != null) {
+      memoryFileSystem
+          .entityForUri(Uri.parse(platformKernelFile))
+          .writeAsBytesSync(platformKernel);
+    }
+    fileSystem = new HybridFileSystem(memoryFileSystem);
   }
-  if (platformKernel != null) {
-    fileSystem
-        .entityForUri(Uri.parse(platformKernelFile))
-        .writeAsBytesSync(platformKernel);
+
+  if (multirootFilepaths != null) {
+    List<Uri> list = multirootFilepaths
+        .split(',')
+        .map((String s) => Uri.base.resolveUri(new Uri.file(s)))
+        .toList();
+    fileSystem = new MultiRootFileSystem(
+        multirootScheme ?? "org-dartlang-root", list, fileSystem);
   }
-  return new HybridFileSystem(fileSystem);
+  return fileSystem;
 }
 
 train(String scriptUri, String platformKernelPath) {
@@ -546,6 +569,8 @@ train(String scriptUri, String platformKernelPath) {
     false /* suppress warnings */,
     false /* synchronous async */,
     null /* package_config */,
+    null /* multirootFilepaths */,
+    null /* multirootScheme */,
   ];
   _processLoadRequest(request);
 }

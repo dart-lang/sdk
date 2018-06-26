@@ -3319,7 +3319,9 @@ Dart_CompileSourcesToKernel(const char* script_uri,
                             int source_files_count,
                             Dart_SourceFile source_files[],
                             bool incremental_compile,
-                            const char* package_config);
+                            const char* package_config,
+                            const char* multiroot_filepaths,
+                            const char* multiroot_scheme);
 
 DART_EXPORT Dart_KernelCompilationResult Dart_KernelListDependencies();
 

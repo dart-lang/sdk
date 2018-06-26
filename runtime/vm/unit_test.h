@@ -319,14 +319,18 @@ class TestCase : TestCaseBase {
                                         const uint8_t** kernel_buffer,
                                         intptr_t* kernel_buffer_size,
                                         bool incrementally = true,
-                                        bool allow_compile_errors = false);
+                                        bool allow_compile_errors = false,
+                                        const char* multiroot_filepaths = NULL,
+                                        const char* multiroot_scheme = NULL);
   static char* CompileTestScriptWithDFE(const char* url,
                                         int sourcefiles_count,
                                         Dart_SourceFile sourcefiles[],
                                         const uint8_t** kernel_buffer,
                                         intptr_t* kernel_buffer_size,
                                         bool incrementally = true,
-                                        bool allow_compile_errors = false);
+                                        bool allow_compile_errors = false,
+                                        const char* multiroot_filepaths = NULL,
+                                        const char* multiroot_scheme = NULL);
   static Dart_Handle LoadTestScript(const char* script,
                                     Dart_NativeEntryResolver resolver,
                                     const char* lib_uri = USER_TEST_URI,
@@ -346,7 +350,10 @@ class TestCase : TestCaseBase {
       Dart_NativeEntryResolver resolver = NULL,
       bool finalize = true,
       bool incrementally = true,
-      bool allow_compile_errors = false);
+      bool allow_compile_errors = false,
+      const char* entry_script_uri = NULL,
+      const char* multiroot_filepaths = NULL,
+      const char* multiroot_scheme = NULL);
   static Dart_Handle LoadCoreTestScript(const char* script,
                                         Dart_NativeEntryResolver resolver);
 

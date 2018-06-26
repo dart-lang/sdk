@@ -233,7 +233,9 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
                                          const uint8_t** kernel_buffer,
                                          intptr_t* kernel_buffer_size,
                                          bool incrementally,
-                                         bool allow_compile_errors) {
+                                         bool allow_compile_errors,
+                                         const char* multiroot_filepaths,
+                                         const char* multiroot_scheme) {
   // clang-format off
   Dart_SourceFile sourcefiles[] = {
     {
@@ -245,7 +247,8 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
   // clang-format on
   return CompileTestScriptWithDFE(
       url, sizeof(sourcefiles) / sizeof(Dart_SourceFile), sourcefiles,
-      kernel_buffer, kernel_buffer_size, incrementally, allow_compile_errors);
+      kernel_buffer, kernel_buffer_size, incrementally, allow_compile_errors,
+      multiroot_filepaths, multiroot_scheme);
 }
 
 #if 0
@@ -303,12 +306,15 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
                                          const uint8_t** kernel_buffer,
                                          intptr_t* kernel_buffer_size,
                                          bool incrementally,
-                                         bool allow_compile_errors) {
+                                         bool allow_compile_errors,
+                                         const char* multiroot_filepaths,
+                                         const char* multiroot_scheme) {
   Zone* zone = Thread::Current()->zone();
   Dart_KernelCompilationResult compilation_result = Dart_CompileSourcesToKernel(
       url, FLAG_strong ? platform_strong_dill : platform_dill,
       FLAG_strong ? platform_strong_dill_size : platform_dill_size,
-      sourcefiles_count, sourcefiles, incrementally, NULL);
+      sourcefiles_count, sourcefiles, incrementally, NULL, multiroot_filepaths,
+      multiroot_scheme);
   return ValidateCompilationResult(zone, compilation_result, kernel_buffer,
                                    kernel_buffer_size, allow_compile_errors);
 }
@@ -546,15 +552,20 @@ Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
                                             Dart_NativeEntryResolver resolver,
                                             bool finalize,
                                             bool incrementally,
-                                            bool allow_compile_errors) {
+                                            bool allow_compile_errors,
+                                            const char* entry_script_uri,
+                                            const char* multiroot_filepaths,
+                                            const char* multiroot_scheme) {
   // First script is the main script.
   Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
   EXPECT_VALID(result);
   const uint8_t* kernel_buffer = NULL;
   intptr_t kernel_buffer_size = 0;
   char* error = TestCase::CompileTestScriptWithDFE(
-      sourcefiles[0].uri, sourcefiles_count, sourcefiles, &kernel_buffer,
-      &kernel_buffer_size, incrementally, allow_compile_errors);
+      entry_script_uri != NULL ? entry_script_uri : sourcefiles[0].uri,
+      sourcefiles_count, sourcefiles, &kernel_buffer, &kernel_buffer_size,
+      incrementally, allow_compile_errors, multiroot_filepaths,
+      multiroot_scheme);
   if ((kernel_buffer == NULL) && error != NULL) {
     return Dart_NewApiError(error);
   }
@@ -564,7 +575,8 @@ Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
   DART_CHECK_VALID(lib);
 
   // BOGUS: Kernel doesn't correctly represent the root library.
-  lib = Dart_LookupLibrary(Dart_NewStringFromCString(sourcefiles[0].uri));
+  lib = Dart_LookupLibrary(Dart_NewStringFromCString(
+      entry_script_uri != NULL ? entry_script_uri : sourcefiles[0].uri));
   DART_CHECK_VALID(lib);
   result = Dart_SetRootLibrary(lib);
   DART_CHECK_VALID(result);
