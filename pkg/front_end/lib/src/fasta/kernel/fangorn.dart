@@ -81,32 +81,33 @@ import 'kernel_shadow_ast.dart'
         DoJudgment,
         DoubleJudgment,
         EmptyStatementJudgment,
+        ExpressionStatementJudgment,
+        ForJudgment,
+        IfJudgment,
         IntJudgment,
         IsJudgment,
         IsNotJudgment,
         LabeledStatementJudgment,
-        LoadLibraryJudgment,
-        NullJudgment,
-        ExpressionStatementJudgment,
-        ForJudgment,
-        IfJudgment,
         ListLiteralJudgment,
+        LoadLibraryJudgment,
         LogicalJudgment,
-        ShadowMapLiteral,
+        MapEntryJudgment,
+        MapLiteralJudgment,
         NotJudgment,
+        NullJudgment,
         RethrowJudgment,
         ReturnJudgment,
         StringConcatenationJudgment,
         StringLiteralJudgment,
         SymbolLiteralJudgment,
         SyntheticExpressionJudgment,
-        TryCatchJudgment,
-        TryFinallyJudgment,
-        WhileJudgment,
-        YieldJudgment,
         ThisJudgment,
         ThrowJudgment,
-        TypeLiteralJudgment;
+        TryCatchJudgment,
+        TryFinallyJudgment,
+        TypeLiteralJudgment,
+        WhileJudgment,
+        YieldJudgment;
 
 import 'forest.dart'
     show
@@ -190,7 +191,7 @@ class Fangorn extends Forest {
   }
 
   @override
-  ShadowMapLiteral literalMap(
+  MapLiteralJudgment literalMap(
       Token constKeyword,
       bool isConst,
       DartType keyType,
@@ -201,7 +202,7 @@ class Fangorn extends Forest {
       Token rightBracket) {
     // TODO(brianwilkerson): The file offset computed below will not be correct
     // if there are type arguments but no `const` keyword.
-    return new ShadowMapLiteral(
+    return new MapLiteralJudgment(
         constKeyword, leftBracket, entries, rightBracket,
         keyType: keyType, valueType: valueType, isConst: isConst)
       ..fileOffset = offsetForToken(constKeyword ?? leftBracket);
@@ -235,12 +236,12 @@ class Fangorn extends Forest {
 
   @override
   MapEntry mapEntry(Expression key, Token colon, Expression value) {
-    return new MapEntry(key, value)..fileOffset = offsetForToken(colon);
+    return new MapEntryJudgment(key, value)..fileOffset = offsetForToken(colon);
   }
 
   @override
   List<MapEntry> mapEntryList(int length) {
-    return new List<MapEntry>.filled(length, null, growable: true);
+    return new List<MapEntryJudgment>.filled(length, null, growable: true);
   }
 
   @override

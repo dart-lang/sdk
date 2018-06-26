@@ -2002,23 +2002,55 @@ class LogicalJudgment extends LogicalExpression implements ExpressionJudgment {
   }
 }
 
-/// Shadow object for [MapLiteral].
-class ShadowMapLiteral extends MapLiteral implements ExpressionJudgment {
+/// Type inference derivation for [MapEntry].
+///
+/// This derivation is needed for uniformity.
+class MapEntryJudgment extends MapEntry {
+  DartType inferredKeyType;
+  DartType inferredValueType;
+
+  ExpressionJudgment get keyJudgment => key;
+
+  ExpressionJudgment get valueJudgment => value;
+
+  MapEntryJudgment(Expression key, Expression value) : super(key, value);
+
+  MapEntry infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory,
+      DartType keyTypeContext,
+      DartType valueTypeContext) {
+    ExpressionJudgment keyJudgment = this.keyJudgment;
+    inferrer.inferExpression(factory, keyJudgment, keyTypeContext, true);
+    inferredKeyType = keyJudgment.inferredType;
+
+    ExpressionJudgment valueJudgment = this.valueJudgment;
+    inferrer.inferExpression(factory, valueJudgment, valueTypeContext, true);
+    inferredValueType = valueJudgment.inferredType;
+
+    return null;
+  }
+}
+
+/// Type inference derivation for [MapLiteral].
+class MapLiteralJudgment extends MapLiteral implements ExpressionJudgment {
   final Token constKeyword;
   final Token leftBracket;
   final Token rightBracket;
 
   DartType inferredType;
 
+  List<MapEntryJudgment> get judgments => entries;
+
   final DartType _declaredKeyType;
   final DartType _declaredValueType;
 
-  ShadowMapLiteral(this.constKeyword, this.leftBracket, List<MapEntry> entries,
-      this.rightBracket,
+  MapLiteralJudgment(this.constKeyword, this.leftBracket,
+      List<MapEntryJudgment> judgments, this.rightBracket,
       {DartType keyType, DartType valueType, bool isConst: false})
       : _declaredKeyType = keyType,
         _declaredValueType = valueType,
-        super(entries,
+        super(judgments,
             keyType: keyType ?? const DynamicType(),
             valueType: valueType ?? const DynamicType(),
             isConst: isConst);
@@ -2053,17 +2085,18 @@ class ShadowMapLiteral extends MapLiteral implements ExpressionJudgment {
       inferredKeyType = _declaredKeyType ?? const DynamicType();
       inferredValueType = _declaredValueType ?? const DynamicType();
     }
+    List<ExpressionJudgment> cachedKeyJudgments =
+        judgments.map((j) => j.keyJudgment).toList();
+    List<ExpressionJudgment> cachedValueJudgments =
+        judgments.map((j) => j.valueJudgment).toList();
     if (inferenceNeeded || typeChecksNeeded) {
-      for (var entry in entries) {
-        var keyType = inferrer.inferExpression(factory, entry.key,
-            inferredKeyType, inferenceNeeded || typeChecksNeeded);
-        var valueType = inferrer.inferExpression(factory, entry.value,
-            inferredValueType, inferenceNeeded || typeChecksNeeded);
+      for (MapEntryJudgment judgment in judgments) {
+        judgment.infer(inferrer, factory, inferredKeyType, inferredValueType);
         if (inferenceNeeded) {
           formalTypes.addAll(mapType.typeArguments);
         }
-        actualTypes.add(keyType);
-        actualTypes.add(valueType);
+        actualTypes.add(judgment.inferredKeyType);
+        actualTypes.add(judgment.inferredValueType);
       }
     }
     if (inferenceNeeded) {
@@ -2086,14 +2119,14 @@ class ShadowMapLiteral extends MapLiteral implements ExpressionJudgment {
       valueType = inferredValueType;
     }
     if (typeChecksNeeded) {
-      for (int i = 0; i < entries.length; i++) {
-        var entry = entries[i];
-        var key = entry.key;
+      for (int i = 0; i < judgments.length; ++i) {
+        ExpressionJudgment keyJudgment = cachedKeyJudgments[i];
         inferrer.ensureAssignable(
-            keyType, actualTypes[2 * i], key, key.fileOffset);
-        var value = entry.value;
-        inferrer.ensureAssignable(
-            valueType, actualTypes[2 * i + 1], value, value.fileOffset);
+            keyType, actualTypes[2 * i], keyJudgment, keyJudgment.fileOffset);
+
+        ExpressionJudgment valueJudgment = cachedValueJudgments[i];
+        inferrer.ensureAssignable(valueType, actualTypes[2 * i + 1],
+            valueJudgment, valueJudgment.fileOffset);
       }
     }
     inferredType =
