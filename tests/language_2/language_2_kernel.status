@@ -164,6 +164,7 @@ type_promotion_functions_test/14: CompileTimeError
 type_promotion_functions_test/none: CompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError
 vm/type_cast_vm_test: RuntimeError
+web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $compiler == dartkp ]
 class_cycle_test/02: MissingCompileTimeError
