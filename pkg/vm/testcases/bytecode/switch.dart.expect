@@ -12,19 +12,19 @@ Bytecode {
   PopLocal             r1
   Push                 r1
   PushConstant         CP#2
-  InstanceCall2        2, CP#3
+  InstanceCall1        2, CP#3
   PushConstant         CP#4
   IfEqStrictTOS
   Jump                 L1
   Push                 r1
   PushConstant         CP#5
-  InstanceCall2        2, CP#6
+  InstanceCall1        2, CP#6
   PushConstant         CP#4
   IfEqStrictTOS
   Jump                 L2
   Push                 r1
   PushConstant         CP#7
-  InstanceCall2        2, CP#8
+  InstanceCall1        2, CP#8
   PushConstant         CP#4
   IfEqStrictTOS
   Jump                 L3
@@ -99,37 +99,37 @@ Bytecode {
   PopLocal             r1
   Push                 r1
   PushConstant         CP#2
-  InstanceCall2        2, CP#3
+  InstanceCall1        2, CP#3
   PushConstant         CP#4
   IfEqStrictTOS
   Jump                 L1
   Push                 r1
   PushConstant         CP#5
-  InstanceCall2        2, CP#6
+  InstanceCall1        2, CP#6
   PushConstant         CP#4
   IfEqStrictTOS
   Jump                 L1
   Push                 r1
   PushConstant         CP#7
-  InstanceCall2        2, CP#8
+  InstanceCall1        2, CP#8
   PushConstant         CP#4
   IfEqStrictTOS
   Jump                 L1
   Push                 r1
   PushConstant         CP#9
-  InstanceCall2        2, CP#10
+  InstanceCall1        2, CP#10
   PushConstant         CP#4
   IfEqStrictTOS
   Jump                 L2
   Push                 r1
   PushConstant         CP#11
-  InstanceCall2        2, CP#12
+  InstanceCall1        2, CP#12
   PushConstant         CP#4
   IfEqStrictTOS
   Jump                 L2
   Push                 r1
   PushConstant         CP#13
-  InstanceCall2        2, CP#14
+  InstanceCall1        2, CP#14
   PushConstant         CP#4
   IfEqStrictTOS
   Jump                 L2
@@ -212,37 +212,37 @@ Bytecode {
   PopLocal             r1
   Push                 r1
   PushConstant         CP#2
-  InstanceCall2        2, CP#3
+  InstanceCall1        2, CP#3
   PushConstant         CP#4
   IfEqStrictTOS
   Jump                 L1
   Push                 r1
   PushConstant         CP#5
-  InstanceCall2        2, CP#6
+  InstanceCall1        2, CP#6
   PushConstant         CP#4
   IfEqStrictTOS
   Jump                 L1
   Push                 r1
   PushConstant         CP#7
-  InstanceCall2        2, CP#8
+  InstanceCall1        2, CP#8
   PushConstant         CP#4
   IfEqStrictTOS
   Jump                 L1
   Push                 r1
   PushConstant         CP#9
-  InstanceCall2        2, CP#10
+  InstanceCall1        2, CP#10
   PushConstant         CP#4
   IfEqStrictTOS
   Jump                 L2
   Push                 r1
   PushConstant         CP#11
-  InstanceCall2        2, CP#12
+  InstanceCall1        2, CP#12
   PushConstant         CP#4
   IfEqStrictTOS
   Jump                 L2
   Push                 r1
   PushConstant         CP#13
-  InstanceCall2        2, CP#14
+  InstanceCall1        2, CP#14
   PushConstant         CP#4
   IfEqStrictTOS
   Jump                 L2

@@ -730,6 +730,7 @@ Closure CP#5 {
   LoadFieldTOS         CP#1
   PushConstant         CP#13
   InstanceCall1        2, CP#14
+  AssertBoolean        0
   PushConstant         CP#15
   IfNeStrictTOS
   Jump                 L1
@@ -894,6 +895,7 @@ L2:
   LoadFieldTOS         CP#2
   PushConstant         CP#7
   InstanceCall1        2, CP#9
+  AssertBoolean        0
   PushConstant         CP#10
   IfNeStrictTOS
   Jump                 L1

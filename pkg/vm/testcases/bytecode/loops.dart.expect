@@ -16,6 +16,7 @@ L2:
   Push                 FP[-5]
   InstanceCall1        1, CP#2
   InstanceCall1        2, CP#4
+  AssertBoolean        0
   PushConstant         CP#5
   IfNeStrictTOS
   Jump                 L1
@@ -71,6 +72,7 @@ L3:
   Push                 r1
   PushConstant         CP#0
   InstanceCall1        2, CP#2
+  AssertBoolean        0
   PushConstant         CP#3
   IfNeStrictTOS
   Jump                 L1
@@ -78,6 +80,7 @@ L3:
   Push                 FP[-5]
   InstanceCall1        1, CP#5
   InstanceCall1        2, CP#6
+  AssertBoolean        0
   PushConstant         CP#3
   IfNeStrictTOS
   Jump                 L2
@@ -142,12 +145,14 @@ L4:
   Push                 FP[-5]
   InstanceCall1        1, CP#4
   InstanceCall1        2, CP#6
+  AssertBoolean        0
   PushConstant         CP#7
   IfNeStrictTOS
   Jump                 L1
   Push                 r1
   PushConstant         CP#0
   InstanceCall1        2, CP#8
+  AssertBoolean        0
   PushConstant         CP#7
   IfNeStrictTOS
   Jump                 L2
@@ -215,6 +220,7 @@ L2:
   Push                 FP[-5]
   InstanceCall1        1, CP#2
   InstanceCall1        2, CP#4
+  AssertBoolean        0
   PushConstant         CP#5
   IfNeStrictTOS
   Jump                 L1
@@ -286,6 +292,7 @@ L1:
   Push                 FP[-5]
   InstanceCall1        1, CP#7
   InstanceCall1        2, CP#8
+  AssertBoolean        0
   PushConstant         CP#9
   IfEqStrictTOS
   Jump                 L1

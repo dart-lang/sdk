@@ -146,6 +146,7 @@ Bytecode {
   PushStatic           CP#0
   PushConstant         CP#1
   InstanceCall1        2, CP#3
+  AssertBoolean        0
   PushConstant         CP#4
   IfNeStrictTOS
   Jump                 L1
@@ -460,6 +461,7 @@ Bytecode {
   PushStatic           CP#0
   PushConstant         CP#1
   InstanceCall1        2, CP#3
+  AssertBoolean        0
   PushConstant         CP#4
   IfNeStrictTOS
   Jump                 L1
@@ -467,6 +469,7 @@ Bytecode {
   PushStatic           CP#5
   PushConstant         CP#1
   InstanceCall1        2, CP#6
+  AssertBoolean        0
   BooleanNegateTOS
   PopLocal             r0
   Jump                 L2
@@ -475,6 +478,7 @@ L1:
   PopLocal             r0
 L2:
   Push                 r0
+  AssertBoolean        0
   PushConstant         CP#4
   IfNeStrictTOS
   Jump                 L3
@@ -654,6 +658,7 @@ Bytecode {
   PushStatic           CP#0
   PushConstant         CP#1
   InstanceCall1        2, CP#3
+  AssertBoolean        0
   PushConstant         CP#4
   IfEqStrictTOS
   Jump                 L1
@@ -661,6 +666,7 @@ Bytecode {
   PushStatic           CP#0
   PushConstant         CP#5
   InstanceCall1        2, CP#6
+  AssertBoolean        0
   PopLocal             r1
   Jump                 L2
 L1:
@@ -668,6 +674,7 @@ L1:
   PopLocal             r1
 L2:
   Push                 r1
+  AssertBoolean        0
   PushConstant         CP#4
   IfEqStrictTOS
   Jump                 L3
@@ -675,6 +682,7 @@ L2:
   PushStatic           CP#0
   PushConstant         CP#7
   InstanceCall1        2, CP#8
+  AssertBoolean        0
   PopLocal             r0
   Jump                 L4
 L3:
@@ -682,6 +690,7 @@ L3:
   PopLocal             r0
 L4:
   Push                 r0
+  AssertBoolean        0
   PushConstant         CP#4
   IfNeStrictTOS
   Jump                 L5

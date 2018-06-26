@@ -95,7 +95,7 @@ class BytecodeDisassembler {
   void _scanForJumpTargets() {
     for (int i = 0; i < _instructions.length; i++) {
       final instr = _instructions[i];
-      if (instr.opcode == Opcode.kJump) {
+      if (isJump(instr.opcode)) {
         final target = i + instr.operands[0];
         assert(0 <= target && target < _instructions.length);
         if (!_labels.containsKey(target)) {

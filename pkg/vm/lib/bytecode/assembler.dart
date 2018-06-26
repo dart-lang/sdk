@@ -67,6 +67,10 @@ class BytecodeAssembler {
     bytecode.addAll(_encodeBufferOut);
   }
 
+  int _getOpcodeAt(int pos) {
+    return bytecode[pos]; // TODO(alexmarkov): Take endianness into account.
+  }
+
   void _setWord(int pos, int word) {
     _encodeBufferIn[0] = word; // TODO(alexmarkov): Which endianness to use?
     bytecode.setRange(pos, pos + _encodeBufferOut.length, _encodeBufferOut);
@@ -166,8 +170,14 @@ class BytecodeAssembler {
     emitWord(_encodeT(Opcode.kJump, label.jumpOperand(offset)));
   }
 
+  void emitJumpIfNoAsserts(Label label) {
+    emitWord(_encodeT(Opcode.kJumpIfNoAsserts, label.jumpOperand(offset)));
+  }
+
   void patchJump(int pos, int rt) {
-    _setWord(pos, _encodeT(Opcode.kJump, rt));
+    final Opcode opcode = Opcode.values[_getOpcodeAt(pos)];
+    assert(isJump(opcode));
+    _setWord(pos, _encodeT(opcode, rt));
   }
 
   void emitReturn(int ra) {
