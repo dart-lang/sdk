@@ -289,10 +289,10 @@ class JsClosedWorldBuilder {
       });
     }
 
-    closedWorld
+    closedWorld.classHierarchy
         .getClassHierarchyNode(closedWorld.commonElements.objectClass)
         .forEachSubclass((ClassEntity cls) {
-      convertClassSet(closedWorld.getClassSet(cls));
+      convertClassSet(closedWorld.classHierarchy.getClassSet(cls));
     }, ClassHierarchyNode.ALL);
 
     Set<MemberEntity> liveInstanceMembers =
