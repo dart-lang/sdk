@@ -4105,25 +4105,31 @@ class Parser {
   ///   genericFunctionLiteral ::=
   ///       typeParameters formalParameterList functionBody
   /// Provide token for [constKeyword] if preceded by 'const', null if not.
-  Token parseLiteralListOrMapOrFunction(Token token, Token constKeyword) {
+  Token parseLiteralListOrMapOrFunction(final Token start, Token constKeyword) {
+    assert(optional('<', start.next));
+    TypeParamOrArgInfo typeParamOrArg = computeTypeParamOrArg(start, true);
+    Token token = typeParamOrArg.skip(start);
     Token next = token.next;
-    assert(optional('<', next));
-    Token closeBrace = next.endGroup;
-    if (constKeyword == null &&
-        closeBrace != null &&
-        identical(closeBrace.next.kind, OPEN_PAREN_TOKEN)) {
-      token = computeTypeParamOrArg(token).parseVariables(token, this);
-      return parseLiteralFunctionSuffix(token);
-    } else {
-      token = computeTypeParamOrArg(token).parseArguments(token, this);
-      Token next = token.next;
-      if (optional('{', next)) {
-        return parseLiteralMapSuffix(token, constKeyword);
-      } else if ((optional('[', next)) || (optional('[]', next))) {
-        return parseLiteralListSuffix(token, constKeyword);
+    if (optional('(', next)) {
+      if (constKeyword != null) {
+        reportRecoverableErrorWithToken(
+            constKeyword, fasta.templateUnexpectedToken);
       }
-      return reportUnexpectedToken(token.next);
+      token = typeParamOrArg.parseVariables(start, this);
+      return parseLiteralFunctionSuffix(token);
     }
+    token = typeParamOrArg.parseArguments(start, this);
+    if (optional('{', next)) {
+      return parseLiteralMapSuffix(token, constKeyword);
+    }
+    if (!optional('[', next) && !optional('[]', next)) {
+      // TODO(danrubel): Improve this error message.
+      reportRecoverableError(
+          next, fasta.templateExpectedButGot.withArguments('['));
+      rewriter.insertTokenAfter(
+          token, new SyntheticToken(TokenType.INDEX, next.charOffset));
+    }
+    return parseLiteralListSuffix(token, constKeyword);
   }
 
   /// ```
