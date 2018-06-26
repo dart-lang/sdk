@@ -4,6 +4,30 @@
 
 ### Language
 
+#### Strong Mode
+
+### Dart VM
+
+### Tool Changes
+
+#### Pub
+
+#### Other Tools
+
+### Core library changes
+
+## 2.0.0-dev.65.0
+
+### Tool Changes
+
+#### Pub
+
+ * Pub no longer supports running with `DART_VM_OPTIONS=--no-preview-dart2`.
+
+## 2.0.0-dev.64.1
+
+### Language
+
 * Numerous corner case bugs around return statements in synchronous and
 asynchronous functions fixed.  Specifically:
   * Issues [31887][issue 31887], [32881][issue 32881]. Future flattening should
@@ -13,7 +37,7 @@ asynchronous functions fixed.  Specifically:
   * Issue [32233][issue 32233]. Errors when returning `FutureOr`
   * Issue [33218][issue 33218]. Returns in functions with void related types
   * Issue [31278][issue 31278]. Incorrect hint on empty returns in async
-    functions 
+    functions
 * An empty `return;` in an async function with return type `Future<Object>` will
     not report an error.
 * `return exp;` where `exp` has type `void` in an async function is now an error
@@ -41,10 +65,6 @@ allowed when `exp` has type `void`.
   release, when we no longer support Dart 1.0.
 
 ### Tool Changes
-
-#### Pub
-
-* Pub no longer supports running with `DART_VM_OPTIONS=--no-preview-dart2`.
 
 #### Dart2js
 
