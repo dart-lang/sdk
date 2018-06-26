@@ -10,18 +10,18 @@ class A {
 }
 
 void accessA_0() {
-  A a = A(); //OK
-  A a1 = A(
-    parent: A.a(), //OK
+  A a = A(); // LINT
+  A a1 = A( // LINT
+    parent: A.a(), // LINT
   );
 }
 
 void accessA_1() {
-  A a = new A(); //LINT
+  A a = new A(); // LINT
 }
 
 void accessA_2() {
-  A a = const A(); //OK
+  A a = const A(); // OK
 }
 
 class B {
@@ -29,7 +29,7 @@ class B {
 }
 
 void accessB() {
-  B b = new B(); //OK
+  B b = new B(); // OK
 }
 
 class C {
@@ -38,12 +38,12 @@ class C {
   const C(this.x);
 }
 
-C foo(int x) => new C(x); //OK
-C bar() => const C(5); //OK
-C baz() => new C(5); //LINT
+C foo(int x) => new C(x); // OK
+C bar() => const C(5); // OK
+C baz() => new C(5); // LINT
 
 void objectId() {
-  Object id = new Object(); //OK
+  Object id = new Object(); // OK
 }
 
 void accessD() {
