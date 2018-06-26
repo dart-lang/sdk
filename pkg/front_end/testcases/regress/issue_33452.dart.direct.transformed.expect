@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class ExistingClass extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  dynamic x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#ExistingClass.nonExistingConstructor, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#NonExistingClass, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}

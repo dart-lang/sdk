@@ -2952,6 +2952,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       errorName = debugName(getNodeName(type), name);
     }
     errorName ??= name;
+    if (nameToken.lexeme == type.name && name.isNotEmpty) {
+      nameToken = nameToken.next.next;
+    }
+
     return throwNoSuchMethodError(
         forest.literalNull(null)..fileOffset = charOffset,
         errorName,
