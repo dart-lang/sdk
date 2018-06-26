@@ -12,6 +12,8 @@
 
 #### Pub
 
+#### Dart2js
+
 #### Other Tools
 
 ### Core library changes
@@ -20,9 +22,16 @@
 
 ### Tool Changes
 
+#### dartfmt
+
+  * Add `--fix` to remove unneeded `new` and `const` keywords, and change `:`
+    to `=` before named parameter default values.
+  * Change formatting rules around static methods to uniformly format code with
+    and without `new` and `const`.
+
 #### Pub
 
- * Pub no longer supports running with `DART_VM_OPTIONS=--no-preview-dart2`.
+  * Pub no longer supports running with `DART_VM_OPTIONS=--no-preview-dart2`.
 
 ## 2.0.0-dev.64.1
 
@@ -52,8 +61,6 @@ allowed when `exp` has type `void`.
 [issue 33218]: https://github.com/dart-lang/sdk/issues/33218
 [issue 31278]: https://github.com/dart-lang/sdk/issues/31278
 
-#### Strong Mode
-
 ### Dart VM
 
 * The Dart VM now runs programs by default with Dart 2.0 semantics. The flag
@@ -80,8 +87,6 @@ allowed when `exp` has type `void`.
   * `--no-preview-dart-2`: a temporary flag to revert to Dart 1.0. This flag is
     temporary and only meant to help users in the migration process. The flag
     will go away in a future dev release, when we no longer support Dart 1.0.
-
-#### Other Tools
 
 ### Core library changes
 
