@@ -218,7 +218,8 @@ class FrontEndCompiler {
 
         // Compute new outlines.
         var newComponent = await _logger.runAsync('Compile', () async {
-          return await kernelTarget.buildOutlines(nameRoot: _component.root);
+          await kernelTarget.buildOutlines(nameRoot: _component.root);
+          return await kernelTarget.buildComponent();
         });
 
         // Add new libraries to the current component.

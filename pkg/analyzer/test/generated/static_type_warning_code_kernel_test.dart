@@ -261,6 +261,20 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
+  test_invalidAssignment_defaultValue_named() async {
+    // UnimplementedError: kernel: (Let) let final dynamic #t1 = 0 in let ...
+    await super.test_invalidAssignment_defaultValue_named();
+  }
+
+  @override
+  @failingTest
+  test_invalidAssignment_defaultValue_optional() async {
+    // UnimplementedError: kernel: (Let) let final dynamic #t2 = 0 in let ...
+    await super.test_invalidAssignment_defaultValue_optional();
+  }
+
+  @override
+  @failingTest
   test_invalidAssignment_dynamic() async {
     // Bad state: No reference information for dynamic at 11
     await super.test_invalidAssignment_dynamic();
@@ -701,13 +715,6 @@ class StaticTypeWarningCodeTest_Kernel
   test_undefinedFunction_inImportedLib() async {
     // Bad state: No reference information for f at 40
     await super.test_undefinedFunction_inImportedLib();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
-  test_undefinedGetter_proxy_annotation_fakeProxy() async {
-    await super.test_undefinedGetter_proxy_annotation_fakeProxy();
   }
 
   @override

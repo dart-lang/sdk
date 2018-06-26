@@ -31,6 +31,8 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @override
   bool get useCFE => true;
 
+//  @failingTest
+//  @potentialAnalyzerProblem
   @override
   test_asyncChangesDuringAnalysis_getErrors() async {
     // TODO(brianwilkerson) Re-enable this test. It was disabled because it
@@ -52,39 +54,11 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
 //    await super.test_asyncChangesDuringAnalysis_getErrors();
   }
 
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_const_annotation_notConstConstructor() async {
-    await super.test_const_annotation_notConstConstructor();
-  }
-
   @failingTest
   @potentialAnalyzerProblem
   @override
   test_const_annotation_withArgs() async {
     await super.test_const_annotation_withArgs();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_const_annotation_withoutArgs() async {
-    await super.test_const_annotation_withoutArgs();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_const_circular_reference() async {
-    await super.test_const_circular_reference();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_const_dependency_sameUnit() async {
-    await super.test_const_dependency_sameUnit();
   }
 
   @failingTest
@@ -106,13 +80,6 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @override
   test_const_implicitSuperConstructorInvocation() async {
     await super.test_const_implicitSuperConstructorInvocation();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_const_simple_topLevelVariable() async {
-    await super.test_const_simple_topLevelVariable();
   }
 
   @failingTest

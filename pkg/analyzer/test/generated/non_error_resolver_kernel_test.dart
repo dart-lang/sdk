@@ -283,13 +283,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
-  test_instance_creation_inside_annotation() async {
-    return super.test_instance_creation_inside_annotation();
-  }
-
-  @override
-  @failingTest
   @potentialAnalyzerProblem
   test_integerLiteralOutOfRange_negative_valid() async {
     return super.test_integerLiteralOutOfRange_negative_valid();
@@ -309,13 +302,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
     // of 'topEntity'
     return super
         .test_invalidAnnotation_constantVariable_field_importWithPrefix();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
-  test_invalidAnnotation_constantVariable_topLevel() async {
-    return super.test_invalidAnnotation_constantVariable_topLevel();
   }
 
   @override

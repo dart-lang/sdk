@@ -149,6 +149,13 @@ class CheckedModeCompileTimeErrorCodeTest_Kernel
 
   @failingTest
   @override
+  test_fieldTypeOk_generic() async {
+    // UnimplementedError: kernel: (Let) let final dynamic #t4 = #lib2::y in let ...
+    await super.test_fieldTypeOk_generic();
+  }
+
+  @failingTest
+  @override
   test_fieldTypeOk_unresolved_null() async {
     // UnimplementedError: kernel: (AsExpression) x as{TypeError} invalid-type
     await super.test_fieldTypeOk_unresolved_null();
