@@ -50,7 +50,8 @@ Future<String> getVersion(String channel, String revision) async {
         'dart-archive', 'channels/$channel/release/$revision/VERSION',
         downloadOptions: DownloadOptions.FullMedia);
 
-    var versionObject = await json.fuse(ascii).decoder.bind(media.stream).first;
+    var versionObject =
+        await json.fuse(ascii).decoder.bind(media.stream).first as Map;
     return versionObject['version'];
   } finally {
     client.close();
