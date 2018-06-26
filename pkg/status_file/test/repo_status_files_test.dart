@@ -7,7 +7,6 @@
 import 'dart:io';
 
 import 'package:expect/expect.dart';
-import 'package:path/path.dart' as p;
 import 'package:status_file/status_file.dart';
 
 final Uri repoRoot = Platform.script.resolve("../../../");

@@ -569,7 +569,7 @@ void _testRepeatedDigest() {
   expect(digest, sha.close());
 }
 
-void _testStandardVectors(inputs, mds) {
+void _testStandardVectors(List<List<int>> inputs, mds) {
   for (var i = 0; i < inputs.length; i++) {
     var hash = new SHA1();
     hash.add(inputs[i]);

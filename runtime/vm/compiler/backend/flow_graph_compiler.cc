@@ -682,8 +682,7 @@ CompilerDeoptInfo* FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id) {
 // See StackFrame::VisitObjectPointers for the details of how stack map is
 // interpreted.
 void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
-                                        intptr_t slow_path_argument_count,
-                                        Environment* env) {
+                                        intptr_t slow_path_argument_count) {
   if (is_optimizing() || locs->live_registers()->HasUntaggedValues()) {
     const intptr_t spill_area_size =
         is_optimizing() ? flow_graph_.graph_entry()->spill_slot_count() : 0;
@@ -2148,6 +2147,56 @@ void FlowGraphCompiler::FrameStateClear() {
   frame_state_.TruncateTo(0);
 }
 #endif  // defined(DEBUG) && !defined(TARGET_ARCH_DBC)
+
+#if !defined(TARGET_ARCH_DBC)
+#define __ compiler->assembler()->
+
+void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (Assembler::EmittingComments()) {
+    __ Comment("slow path %s operation", name());
+  }
+  const bool use_shared_stub =
+      instruction()->UseSharedSlowPathStub(compiler->is_optimizing());
+  const bool live_fpu_registers =
+      instruction()->locs()->live_registers()->FpuRegisterCount() > 0;
+  ASSERT(!use_shared_stub || num_args_ == 0);
+  __ Bind(entry_label());
+  EmitCodeAtSlowPathEntry(compiler);
+  LocationSummary* locs = instruction()->locs();
+  // Save registers as they are needed for lazy deopt / exception handling.
+  if (!use_shared_stub) {
+    compiler->SaveLiveRegisters(locs);
+  }
+  for (intptr_t i = 0; i < num_args_; ++i) {
+    __ PushRegister(locs->in(i).reg());
+  }
+  if (use_shared_stub) {
+    EmitSharedStubCall(compiler->assembler(), live_fpu_registers);
+  } else {
+    __ CallRuntime(runtime_entry_, num_args_);
+  }
+  // Can't query deopt_id() without checking if instruction can deoptimize...
+  intptr_t deopt_id = Thread::kNoDeoptId;
+  if (instruction()->CanDeoptimize() ||
+      instruction()->CanBecomeDeoptimizationTarget()) {
+    deopt_id = instruction()->deopt_id();
+  }
+  compiler->AddDescriptor(RawPcDescriptors::kOther,
+                          compiler->assembler()->CodeSize(), deopt_id,
+                          instruction()->token_pos(), try_index_);
+  AddMetadataForRuntimeCall(compiler);
+  compiler->RecordSafepoint(locs, num_args_);
+  if ((try_index_ != CatchClauseNode::kInvalidTryIndex) ||
+      (compiler->CurrentTryIndex() != CatchClauseNode::kInvalidTryIndex)) {
+    Environment* env =
+        compiler->SlowPathEnvironmentFor(instruction(), num_args_);
+    compiler->EmitCatchEntryState(env, try_index_);
+  }
+  __ Breakpoint();
+}
+
+#undef __
+#endif  //  !defined(TARGET_ARCH_DBC)
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 

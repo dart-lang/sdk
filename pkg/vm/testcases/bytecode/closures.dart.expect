@@ -2,6 +2,7 @@ library #lib;
 import self as self;
 import "dart:core" as core;
 
+typedef IntFunc = (core::int) → dynamic;
 class C1 extends core::Object {
 [@vm.bytecode=
 Bytecode {
@@ -1406,6 +1407,103 @@ ConstantPool {
   new self::A::•<self::C1, self::C2>().{self::A::foo}<self::C3, self::C4>();
   new self::A::•<self::C1, self::C2>().{self::A::foo}<core::List<self::C3>, core::List<self::C4>>();
   new self::A::•<core::List<self::C1>, core::List<self::C2>>().{self::A::foo}<core::List<self::C3>, core::List<self::C4>>();
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                6
+  CheckStack
+  Allocate             CP#12
+  StoreLocal           r3
+  Push                 r3
+  PushConstant         CP#7
+  StoreFieldTOS        CP#13
+  Push                 r3
+  PushConstant         CP#7
+  StoreFieldTOS        CP#2
+  Push                 r3
+  PushConstant         CP#0
+  StoreFieldTOS        CP#14
+  Push                 r3
+  Push                 r0
+  StoreFieldTOS        CP#1
+  PopLocal             r2
+  Push                 r2
+  PopLocal             r3
+  Allocate             CP#12
+  StoreLocal           r5
+  PushConstant         CP#15
+  StoreFieldTOS        CP#16
+  Push                 r5
+  Push                 r3
+  LoadFieldTOS         CP#13
+  StoreFieldTOS        CP#13
+  Push                 r5
+  Push                 r3
+  LoadFieldTOS         CP#2
+  StoreFieldTOS        CP#2
+  Push                 r5
+  Push                 r3
+  LoadFieldTOS         CP#14
+  StoreFieldTOS        CP#14
+  Push                 r5
+  Push                 r3
+  LoadFieldTOS         CP#1
+  StoreFieldTOS        CP#1
+  Push                 r5
+  PopLocal             r4
+  Push                 r4
+  ReturnTOS
+  PushConstant         CP#7
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ClosureFunction foo <T extends dart.core::Object = dynamic>(T t) → void;
+  [1] = FieldOffset dart.core::_Closure::_context
+  [2] = FieldOffset dart.core::_Closure::_function_type_arguments
+  [3] = Int 0
+  [4] = Int 1
+  [5] = ArgDesc num-args 4, num-type-args 0, names []
+  [6] = StaticICData target 'dart._internal::_prependTypeArguments', arg-desc CP#5
+  [7] = Null
+  [8] = Type T
+  [9] = String 't'
+  [10] = SubtypeTestCache
+  [11] = EndClosureFunctionScope
+  [12] = Class dart.core::_Closure
+  [13] = FieldOffset dart.core::_Closure::_instantiator_type_arguments
+  [14] = FieldOffset dart.core::_Closure::_function
+  [15] = TypeArgs [dart.core::int]
+  [16] = FieldOffset dart.core::_Closure::_delayed_type_arguments
+}
+Closure CP#0 {
+  Entry                2
+  CheckStack
+  Push                 FP[-6]
+  LoadFieldTOS         CP#1
+  PopLocal             r0
+  Push                 FP[-7]
+  Push                 FP[-6]
+  LoadFieldTOS         CP#2
+  PushConstant         CP#3
+  PushConstant         CP#4
+  PushConstant         CP#6
+  IndirectStaticCall   4, CP#5
+  PopLocal             FP[-7]
+  Push                 FP[-5]
+  PushConstant         CP#7
+  Push                 FP[-7]
+  PushConstant         CP#8
+  PushConstant         CP#9
+  AssertAssignable     0, CP#10
+  Drop1
+  PushConstant         CP#7
+  ReturnTOS
+
+}
+]static method testPartialInstantiation() → (core::int) → dynamic {
+  function foo<T extends core::Object = dynamic>(T t) → void {}
+  (core::int) → dynamic intFunc = foo<core::int>;
+  return intFunc;
 }
 [@vm.bytecode=
 Bytecode {

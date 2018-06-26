@@ -71,10 +71,4 @@ main() {
 class OccurrencesTest_UseCFE extends OccurrencesTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_occurrences() {
-    return super.test_occurrences();
-  }
 }

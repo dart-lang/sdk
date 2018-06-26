@@ -283,8 +283,10 @@ abstract class ParserAdapter implements Parser {
 
   @override
   TypeAnnotation parseTypeAnnotation(bool inExpression) {
-    currentToken = fastaParser
-        .parseType(fastaParser.syntheticPreviousToken(currentToken))
+    Token previous = fastaParser.syntheticPreviousToken(currentToken);
+    currentToken = fasta
+        .computeType(previous, true, !inExpression)
+        .parseType(previous, fastaParser)
         .next;
     return astBuilder.pop();
   }
@@ -301,8 +303,10 @@ abstract class ParserAdapter implements Parser {
 
   @override
   TypeName parseTypeName(bool inExpression) {
-    currentToken = fastaParser
-        .parseType(fastaParser.syntheticPreviousToken(currentToken))
+    Token previous = fastaParser.syntheticPreviousToken(currentToken);
+    currentToken = fasta
+        .computeType(previous, true, !inExpression)
+        .parseType(previous, fastaParser)
         .next;
     return astBuilder.pop();
   }

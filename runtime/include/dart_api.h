@@ -753,9 +753,11 @@ typedef Dart_Handle (*Dart_GetVMServiceAssetsArchive)();
  * \param version Identifies the version of the struct used by the client.
  *   should be initialized to DART_INITIALIZE_PARAMS_CURRENT_VERSION.
  * \param vm_isolate_snapshot A buffer containing a snapshot of the VM isolate
- *   or NULL if no snapshot is provided.
+ *   or NULL if no snapshot is provided. If provided, the buffer must remain
+ *   valid until Dart_Cleanup returns.
  * \param instructions_snapshot A buffer containing a snapshot of precompiled
- *   instructions, or NULL if no snapshot is provided.
+ *   instructions, or NULL if no snapshot is provided. If provided, the buffer
+ *   must remain valid until Dart_Cleanup returns.
  * \param create A function to be called during isolate creation.
  *   See Dart_IsolateCreateCallback.
  * \param shutdown A function to be called when an isolate is shutdown.
@@ -846,7 +848,8 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
  *   'main' or the name of the function passed to Isolate.spawn.
  * \param isolate_snapshot_data
  * \param isolate_snapshot_instructions Buffers containing a snapshot of the
- *   isolate or NULL if no snapshot is provided.
+ *   isolate or NULL if no snapshot is provided. If provided, the buffers must
+ *   remain valid until the isolate shuts down.
  * \param flags Pointer to VM specific flags or NULL for default flags.
  * \param callback_data Embedder data.  This data will be passed to
  *   the Dart_IsolateCreateCallback when new isolates are spawned from
@@ -883,7 +886,9 @@ Dart_CreateIsolate(const char* script_uri,
  * \param main The name of the main entry point this isolate will run. Provided
  *   only for advisory purposes to improve debugging messages. Typically either
  *   'main' or the name of the function passed to Isolate.spawn.
- * \param kernel_program The `dart::kernel::Program` object.
+ * \param kernel_buffer
+ * \param kernel_buffer_size A buffer which contains a kernel/DIL program. Must
+ *   remain valid until isolate shutdown.
  * \param flags Pointer to VM specific flags or NULL for default flags.
  * \param callback_data Embedder data.  This data will be passed to
  *   the Dart_IsolateCreateCallback when new isolates are spawned from
@@ -2990,7 +2995,8 @@ Dart_LoadScript(Dart_Handle url,
  * snapshot must have been created by Dart_CreateScriptSnapshot from a VM with
  * the same version.
  *
- * \param buffer A buffer which contains a snapshot of the script.
+ * \param buffer A buffer which contains a snapshot of the script. May be
+ *    released when this function returns.
  * \param buffer_len Length of the passed in buffer.
  *
  * \return If no error occurs, the Library object corresponding to the root
@@ -3006,7 +3012,7 @@ Dart_LoadScriptFromSnapshot(const uint8_t* script_snapshot_buffer,
  * Requires there to be no current root library.
  *
  * \param buffer A buffer which contains a kernel binary (see
- *               pkg/kernel/binary.md).
+ *     pkg/kernel/binary.md). Must remain valid until isolate shutdown.
  * \param buffer_size Length of the passed in buffer.
  *
  * \return A handle to the root library, or an error.
@@ -3128,7 +3134,7 @@ Dart_LoadLibrary(Dart_Handle url,
  * library.
  *
  * \param buffer A buffer which contains a kernel binary (see
- *               pkg/kernel/binary.md).
+ *     pkg/kernel/binary.md). Must remain valid until isolate shutdown.
  * \param buffer_size Length of the passed in buffer.
  *
  * \return A handle to the main library of the compilation unit, or an error.
@@ -3313,7 +3319,9 @@ Dart_CompileSourcesToKernel(const char* script_uri,
                             int source_files_count,
                             Dart_SourceFile source_files[],
                             bool incremental_compile,
-                            const char* package_config);
+                            const char* package_config,
+                            const char* multiroot_filepaths,
+                            const char* multiroot_scheme);
 
 DART_EXPORT Dart_KernelCompilationResult Dart_KernelListDependencies();
 

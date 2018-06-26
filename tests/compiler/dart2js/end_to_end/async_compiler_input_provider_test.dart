@@ -11,7 +11,7 @@ import "package:async_helper/async_helper.dart";
 import 'package:compiler/compiler.dart' as compiler;
 import 'package:compiler/src/filenames.dart';
 
-const SOURCES = const {
+const Map<String, String> SOURCES = const {
   "/main.dart": """
     import "foo.dart";
     main() => foo();

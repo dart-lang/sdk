@@ -523,10 +523,16 @@ class StaticUse {
   }
 
   /// Inlining of [element].
-  factory StaticUse.inlining(
-      FunctionEntity element, InterfaceType instanceType) {
+  factory StaticUse.constructorInlining(
+      ConstructorEntity element, InterfaceType instanceType) {
     return new StaticUse.internal(element, StaticUseKind.INLINING,
         type: instanceType);
+  }
+
+  /// Inlining of [element].
+  factory StaticUse.methodInlining(
+      FunctionEntity element, List<DartType> typeArguments) {
+    return new GenericStaticUse.methodInlining(element, typeArguments);
   }
 
   bool operator ==(other) {
@@ -540,7 +546,7 @@ class StaticUse {
   }
 
   String toString() =>
-      'StaticUse($element,$kind,$type,' '$typeArguments,$callStructure)';
+      'StaticUse($element,$kind,$type,$typeArguments,$callStructure)';
 }
 
 class GenericStaticUse extends StaticUse {
@@ -559,6 +565,10 @@ class GenericStaticUse extends StaticUse {
             "${callStructure?.typeArgumentCount ?? 0} but "
             "${typeArguments?.length ?? 0} were passed."));
   }
+
+  GenericStaticUse.methodInlining(FunctionEntity entity, this.typeArguments)
+      : super.internal(entity, StaticUseKind.INLINING,
+            typeArgumentsHash: Hashing.listHash(typeArguments));
 }
 
 enum TypeUseKind {

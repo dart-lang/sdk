@@ -668,7 +668,7 @@ void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
 /// processes user input.
 /// `compiler` is an optional parameter so it can be replaced with mocked
 /// version for testing.
-Future<int> starter(
+Future<void> starter(
   List<String> args, {
   CompilerInterface compiler,
   Stream<List<int>> input,
@@ -682,7 +682,7 @@ Future<int> starter(
   } catch (error) {
     print('ERROR: $error\n');
     print(usage);
-    return 1;
+    exit(1);
   }
 
   if (options['train']) {
@@ -726,14 +726,12 @@ Future<int> starter(
   );
 
   if (options.rest.isNotEmpty) {
-    return await compiler.compile(options.rest[0], options,
-            generator: generator)
+    exit(await compiler.compile(options.rest[0], options, generator: generator)
         ? 0
-        : 254;
+        : 254);
   }
 
   listenAndCompile(compiler, input ?? stdin, options, () {
     exit(0);
   }, generator: generator);
-  return 0;
 }

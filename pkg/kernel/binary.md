@@ -131,7 +131,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 7;
+  UInt32 formatVersion = 8;
   Library[] libraries;
   UriSource sourceMap;
   List<CanonicalName> canonicalNames;
@@ -284,7 +284,8 @@ type Class extends Node {
   CanonicalNameReference canonicalName;
   // An absolute path URI to the .dart file from which the class was created.
   UriReference fileUri;
-  FileOffset fileOffset;
+  FileOffset startFileOffset; // Offset of the start of the class including any annotations.
+  FileOffset fileOffset; // Offset of the name of the class.
   FileOffset fileEndOffset;
   Byte flags (levelBit0, levelBit1, isAbstract, isEnum, isAnonymousMixin,
               isEliminatedMixin); // Where level is index into ClassLevel
@@ -328,7 +329,8 @@ type Constructor extends Member {
   Byte tag = 5;
   CanonicalNameReference canonicalName;
   UriReference fileUri;
-  FileOffset fileOffset;
+  FileOffset startFileOffset; // Offset of the start of the constructor including any annotations.
+  FileOffset fileOffset; // Offset of the constructor name.
   FileOffset fileEndOffset;
   Byte flags (isConst, isExternal, isSynthetic);
   Name name;
@@ -352,7 +354,8 @@ type Procedure extends Member {
   CanonicalNameReference canonicalName;
   // An absolute path URI to the .dart file from which the class was created.
   UriReference fileUri;
-  FileOffset fileOffset;
+  FileOffset startFileOffset; // Offset of the start of the procedure including any annotations.
+  FileOffset fileOffset; // Offset of the procedure name.
   FileOffset fileEndOffset;
   Byte kind; // Index into the ProcedureKind enum above.
   Byte flags (isStatic, isAbstract, isExternal, isConst, isForwardingStub,

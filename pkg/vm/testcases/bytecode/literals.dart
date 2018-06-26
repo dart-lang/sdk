@@ -45,7 +45,7 @@ void test_constants2() {
   print(42);
   print('foo');
   print(A.elem2);
-  print(const [42, 'foo']);
+  print(const [42, 'foo', int]);
   print(const <String, A>{'E2': A.elem2, 'E4': A.elem4});
   print(
       const D(const C(4, 5, 6), const {'foo': 42, 'bar': const B(c2.length)}));

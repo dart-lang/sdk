@@ -171,7 +171,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
 
       Set<Uri> invalidatedUris = this.invalidatedUris.toSet();
-      if (fullComponent) {
+      if (data.includeUserLoadedLibraries || fullComponent) {
         invalidatedUris.add(entryPoint);
       }
 

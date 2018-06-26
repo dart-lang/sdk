@@ -2,14 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/scanner/token.dart' show Token;
-
 import 'package:kernel/ast.dart' show Catch, DartType, FunctionType, Node;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
+import '../../scanner/token.dart' show Token;
+
 import 'kernel_shadow_ast.dart'
-    show ExpressionJudgment, InitializerJudgment, StatementJudgment;
+    show
+        ExpressionJudgment,
+        InitializerJudgment,
+        StatementJudgment,
+        SwitchCaseJudgment;
 
 /// Abstract base class for factories that can construct trees of expressions,
 /// statements, initializers, and literal types based on tokens, inferred types,
@@ -53,8 +57,13 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Expression boolLiteral(ExpressionJudgment judgment, int fileOffset,
       Token literal, bool value, DartType inferredType);
 
-  Statement breakStatement(StatementJudgment judgment, int fileOffset,
-      Token breakKeyword, Expression label, Token semicolon);
+  Statement breakStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token breakKeyword,
+      Expression label,
+      Token semicolon,
+      covariant Object labelBinder);
 
   Expression cascadeExpression(
       ExpressionJudgment judgment, int fileOffset, DartType inferredType);
@@ -72,9 +81,9 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       Token rightParenthesis,
       Statement body,
       DartType guardType,
-      int exceptionOffset,
+      covariant Object exceptionBinder,
       DartType exceptionType,
-      int stackTraceOffset,
+      covariant Object stackTraceBinder,
       DartType stackTraceType);
 
   Expression conditionalExpression(
@@ -90,11 +99,21 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Expression constructorInvocation(ExpressionJudgment judgment, int fileOffset,
       Node expressionTarget, DartType inferredType);
 
-  Statement continueStatement(StatementJudgment judgment, int fileOffset,
-      Token continueKeyword, Expression label, Token semicolon);
+  Statement continueStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token continueKeyword,
+      Expression label,
+      Token semicolon,
+      covariant Object labelBinder);
 
-  Statement continueSwitchStatement(StatementJudgment judgment, int fileOffset,
-      Token continueKeyword, Expression label, Token semicolon);
+  Statement continueSwitchStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token continueKeyword,
+      Expression label,
+      Token semicolon,
+      covariant Object labelBinder);
 
   Expression deferredCheck(
       ExpressionJudgment judgment, int fileOffset, DartType inferredType);
@@ -113,6 +132,8 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Expression doubleLiteral(ExpressionJudgment judgment, int fileOffset,
       Token literal, double value, DartType inferredType);
 
+  Statement emptyStatement(Token semicolon);
+
   Statement expressionStatement(StatementJudgment judgment, int fileOffset,
       Expression expression, Token semicolon);
 
@@ -129,17 +150,41 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Statement forInStatement(
       StatementJudgment judgment,
       int fileOffset,
-      int variableOffset,
-      DartType variableType,
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      covariant Object loopVariable,
+      Token identifier,
+      Token inKeyword,
+      Expression iterator,
+      Token rightParenthesis,
+      Statement body,
+      covariant Object loopVariableBinder,
+      DartType loopVariableType,
       int writeOffset,
       DartType writeVariableType,
       int writeVariableDeclarationOffset,
       Node writeTarget);
 
-  Statement forStatement(StatementJudgment judgment, int fileOffset);
+  Statement forStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token forKeyword,
+      Token leftParenthesis,
+      covariant Object variableDeclarationList,
+      Expression initialization,
+      Token leftSeparator,
+      Expression condition,
+      Token rightSeparator,
+      List<Expression> updaters,
+      Token rightParenthesis,
+      Statement body);
 
   Statement functionDeclaration(
-      StatementJudgment judgment, int fileOffset, FunctionType inferredType);
+      covariant Object binder, FunctionType inferredType);
+
+  Object binderForFunctionDeclaration(
+      StatementJudgment judgment, int fileOffset, String name);
 
   Expression functionExpression(
       ExpressionJudgment judgment, int fileOffset, DartType inferredType);
@@ -190,10 +235,22 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       DartType testedType,
       DartType inferredType);
 
-  Statement labeledStatement(StatementJudgment judgment, int fileOffset);
+  Statement labeledStatement(List<Object> labels, Statement statement);
+
+  Object statementLabel(covariant Object binder, Token label, Token colon);
+
+  Object binderForStatementLabel(
+      StatementJudgment judgment, int fileOffset, String name);
 
   Expression listLiteral(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType);
+      ExpressionJudgment judgment,
+      int fileOffset,
+      Token constKeyword,
+      covariant Object typeArguments,
+      Token leftBracket,
+      List<Expression> elements,
+      Token rightBracket,
+      DartType inferredType);
 
   Expression logicalExpression(
       ExpressionJudgment judgment,
@@ -204,7 +261,17 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       DartType inferredType);
 
   Expression mapLiteral(
-      ExpressionJudgment judgment, int fileOffset, DartType typeContext);
+      ExpressionJudgment judgment,
+      int fileOffset,
+      Token constKeyword,
+      covariant Object typeArguments,
+      Token leftBracket,
+      List<Object> entries,
+      Token rightBracket,
+      DartType inferredType);
+
+  Object mapLiteralEntry(Object judgment, int fileOffset, Expression key,
+      Token separator, Expression value);
 
   Expression methodInvocation(
       ExpressionJudgment judgment,
@@ -225,8 +292,8 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       Substitution substitution,
       DartType inferredType);
 
-  Expression namedFunctionExpression(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType);
+  Expression namedFunctionExpression(ExpressionJudgment judgment,
+      covariant Object binder, DartType inferredType);
 
   Expression not(ExpressionJudgment judgment, int fileOffset, Token operator,
       Expression operand, DartType inferredType);
@@ -300,7 +367,29 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       Token constructorName,
       covariant Object argumentList);
 
-  Statement switchStatement(StatementJudgment judgment, int fileOffset);
+  Object switchCase(
+      SwitchCaseJudgment judgment,
+      List<Object> labels,
+      Token keyword,
+      Expression expression,
+      Token colon,
+      List<Statement> statements);
+
+  Object switchLabel(covariant Object binder, Token label, Token colon);
+
+  Object binderForSwitchLabel(
+      SwitchCaseJudgment judgment, int fileOffset, String name);
+
+  Statement switchStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token switchKeyword,
+      Token leftParenthesis,
+      Expression expression,
+      Token rightParenthesis,
+      Token leftBracket,
+      List<Object> members,
+      Token rightBracket);
 
   Expression symbolLiteral(
       ExpressionJudgment judgment,
@@ -318,7 +407,14 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
 
   Statement tryCatch(StatementJudgment judgment, int fileOffset);
 
-  Statement tryFinally(StatementJudgment judgment, int fileOffset);
+  Statement tryFinally(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token tryKeyword,
+      Statement body,
+      List<Object> catchClauses,
+      Token finallyKeyword,
+      Statement finallyBlock);
 
   Expression typeLiteral(ExpressionJudgment judgment, int fileOffset,
       Node expressionType, DartType inferredType);
@@ -331,18 +427,14 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       Node combiner,
       DartType inferredType);
 
-  Statement variableDeclaration(StatementJudgment judgment, int fileOffset,
-      DartType statementType, DartType inferredType);
+  Statement variableDeclaration(
+      covariant Object binder, DartType statementType, DartType inferredType);
 
-  Expression variableGet(
-      ExpressionJudgment judgment,
-      int fileOffset,
-      bool isInCascade,
-      int expressionVariableDeclarationOffset,
-      DartType inferredType);
+  Object binderForVariableDeclaration(
+      StatementJudgment judgment, int fileOffset, String name);
 
-  Expression variableSet(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType);
+  Expression variableGet(ExpressionJudgment judgment, int fileOffset,
+      bool isInCascade, covariant Object variableBinder, DartType inferredType);
 
   Statement whileStatement(
       StatementJudgment judgment,

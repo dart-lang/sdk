@@ -11,7 +11,7 @@ class A {
 }
 
 class B extends Object with A {
-  foo() => super.foo();
+  foo() => super.foo(); //# 01: compile-time error
 }
 
 main() {

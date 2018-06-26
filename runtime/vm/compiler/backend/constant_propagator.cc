@@ -933,15 +933,25 @@ void ConstantPropagator::VisitBinaryUint32Op(BinaryUint32OpInstr* instr) {
   VisitBinaryIntegerOp(instr);
 }
 
-void ConstantPropagator::VisitShiftUint32Op(ShiftUint32OpInstr* instr) {
-  VisitBinaryIntegerOp(instr);
-}
-
 void ConstantPropagator::VisitBinaryInt64Op(BinaryInt64OpInstr* instr) {
   VisitBinaryIntegerOp(instr);
 }
 
 void ConstantPropagator::VisitShiftInt64Op(ShiftInt64OpInstr* instr) {
+  VisitBinaryIntegerOp(instr);
+}
+
+void ConstantPropagator::VisitSpeculativeShiftInt64Op(
+    SpeculativeShiftInt64OpInstr* instr) {
+  VisitBinaryIntegerOp(instr);
+}
+
+void ConstantPropagator::VisitShiftUint32Op(ShiftUint32OpInstr* instr) {
+  VisitBinaryIntegerOp(instr);
+}
+
+void ConstantPropagator::VisitSpeculativeShiftUint32Op(
+    SpeculativeShiftUint32OpInstr* instr) {
   VisitBinaryIntegerOp(instr);
 }
 

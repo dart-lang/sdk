@@ -1442,6 +1442,10 @@ class Class : public Object {
   void CheckReload(const Class& replacement,
                    IsolateReloadContext* context) const;
 
+  void AddInvocationDispatcher(const String& target_name,
+                               const Array& args_desc,
+                               const Function& dispatcher) const;
+
  private:
   bool CanReloadFinalized(const Class& replacement,
                           IsolateReloadContext* context) const;
@@ -1640,10 +1644,10 @@ class PatchClass : public Object {
   RawClass* patched_class() const { return raw_ptr()->patched_class_; }
   RawClass* origin_class() const { return raw_ptr()->origin_class_; }
   RawScript* script() const { return raw_ptr()->script_; }
-  RawTypedData* library_kernel_data() const {
+  RawExternalTypedData* library_kernel_data() const {
     return raw_ptr()->library_kernel_data_;
   }
-  void set_library_kernel_data(const TypedData& data) const;
+  void set_library_kernel_data(const ExternalTypedData& data) const;
 
   intptr_t library_kernel_offset() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -2302,6 +2306,10 @@ class Function : public Object {
     return kind() == RawFunction::kInvokeFieldDispatcher;
   }
 
+  bool IsDynamicInvocationForwader() const {
+    return kind() == RawFunction::kDynamicInvocationForwarder;
+  }
+
   bool IsImplicitGetterOrSetter() const {
     return kind() == RawFunction::kImplicitGetter ||
            kind() == RawFunction::kImplicitSetter ||
@@ -2367,6 +2375,7 @@ class Function : public Object {
       case RawFunction::kMethodExtractor:
       case RawFunction::kNoSuchMethodDispatcher:
       case RawFunction::kInvokeFieldDispatcher:
+      case RawFunction::kDynamicInvocationForwarder:
         return true;
       case RawFunction::kClosureFunction:
       case RawFunction::kImplicitClosureFunction:
@@ -2400,6 +2409,7 @@ class Function : public Object {
       case RawFunction::kMethodExtractor:
       case RawFunction::kNoSuchMethodDispatcher:
       case RawFunction::kInvokeFieldDispatcher:
+      case RawFunction::kDynamicInvocationForwarder:
         return false;
       default:
         UNREACHABLE();
@@ -2523,12 +2533,12 @@ class Function : public Object {
   }
 
   void SetKernelDataAndScript(const Script& script,
-                              const TypedData& data,
+                              const ExternalTypedData& data,
                               intptr_t offset);
 
   intptr_t KernelDataProgramOffset() const;
 
-  RawTypedData* KernelData() const;
+  RawExternalTypedData* KernelData() const;
 
   bool IsOptimizable() const;
   void SetIsOptimizable(bool value) const;
@@ -2609,6 +2619,7 @@ class Function : public Object {
       case RawFunction::kImplicitSetter:
       case RawFunction::kNoSuchMethodDispatcher:
       case RawFunction::kInvokeFieldDispatcher:
+      case RawFunction::kDynamicInvocationForwarder:
         return true;
       default:
         return false;
@@ -2769,6 +2780,17 @@ class Function : public Object {
 
   RawFunction* CreateMethodExtractor(const String& getter_name) const;
   RawFunction* GetMethodExtractor(const String& getter_name) const;
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  static bool IsDynamicInvocationForwaderName(const String& name);
+  static RawString* DemangleDynamicInvocationForwarderName(const String& name);
+  static RawString* CreateDynamicInvocationForwarderName(const String& name);
+
+  RawFunction* CreateDynamicInvocationForwarder(
+      const String& mangled_name) const;
+  RawFunction* GetDynamicInvocationForwarder(const String& mangled_name,
+                                             bool allow_add = true) const;
+#endif
 
   // Allocate new function object, clone values from this function. The
   // owner of the clone is new_owner.
@@ -3137,7 +3159,7 @@ class Field : public Object {
 #endif
   }
 
-  RawTypedData* KernelData() const;
+  RawExternalTypedData* KernelData() const;
 
   intptr_t KernelDataProgramOffset() const;
 
@@ -3578,6 +3600,8 @@ class Script : public Object {
     return raw_ptr()->tokens_;
   }
 
+  RawTypedData* line_starts() const;
+
   void set_line_starts(const TypedData& value) const;
 
   void set_debug_positions(const Array& value) const;
@@ -3635,7 +3659,6 @@ class Script : public Object {
   void set_kind(RawScript::Kind value) const;
   void set_load_timestamp(int64_t value) const;
   void set_tokens(const TokenStream& value) const;
-  RawTypedData* line_starts() const;
   RawArray* debug_positions() const;
 
   static RawScript* New();
@@ -3785,7 +3808,7 @@ class Library : public Object {
   RawFunction* LookupFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupLocalFunction(const String& name) const;
   RawLibraryPrefix* LookupLocalLibraryPrefix(const String& name) const;
-  RawScript* LookupScript(const String& url) const;
+  RawScript* LookupScript(const String& url, bool useResolvedUri = false) const;
   RawArray* LoadedScripts() const;
 
   // Resolve name in the scope of this library. First check the cache
@@ -3886,8 +3909,8 @@ class Library : public Object {
 
   inline intptr_t UrlHash() const;
 
-  RawTypedData* kernel_data() const { return raw_ptr()->kernel_data_; }
-  void set_kernel_data(const TypedData& data) const;
+  RawExternalTypedData* kernel_data() const { return raw_ptr()->kernel_data_; }
+  void set_kernel_data(const ExternalTypedData& data) const;
 
   intptr_t kernel_offset() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -4057,10 +4080,10 @@ class Namespace : public Object {
 class KernelProgramInfo : public Object {
  public:
   static RawKernelProgramInfo* New(const TypedData& string_offsets,
-                                   const TypedData& string_data,
+                                   const ExternalTypedData& string_data,
                                    const TypedData& canonical_names,
-                                   const TypedData& metadata_payload,
-                                   const TypedData& metadata_mappings,
+                                   const ExternalTypedData& metadata_payload,
+                                   const ExternalTypedData& metadata_mappings,
                                    const Array& scripts);
 
   static intptr_t InstanceSize() {
@@ -4069,15 +4092,15 @@ class KernelProgramInfo : public Object {
 
   RawTypedData* string_offsets() const { return raw_ptr()->string_offsets_; }
 
-  RawTypedData* string_data() const { return raw_ptr()->string_data_; }
+  RawExternalTypedData* string_data() const { return raw_ptr()->string_data_; }
 
   RawTypedData* canonical_names() const { return raw_ptr()->canonical_names_; }
 
-  RawTypedData* metadata_payloads() const {
+  RawExternalTypedData* metadata_payloads() const {
     return raw_ptr()->metadata_payloads_;
   }
 
-  RawTypedData* metadata_mappings() const {
+  RawExternalTypedData* metadata_mappings() const {
     return raw_ptr()->metadata_mappings_;
   }
 
@@ -4990,7 +5013,7 @@ class Code : public Object {
                                bool optimized,
                                CodeStatistics* stats = nullptr);
 #if defined(DART_USE_INTERPRETER)
-  static RawCode* FinalizeBytecode(void* bytecode_data,
+  static RawCode* FinalizeBytecode(const void* bytecode_data,
                                    intptr_t bytecode_size,
                                    const ObjectPool& object_pool,
                                    CodeStatistics* stats = nullptr);

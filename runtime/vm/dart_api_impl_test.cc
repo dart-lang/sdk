@@ -259,7 +259,7 @@ void VerifyStackOverflowStackTraceInfo(const char* script,
 
 TEST_CASE(DartAPI_StackOverflowStackTraceInfoBraceFunction1) {
   int line = 2;
-  int col = FLAG_use_dart_frontend ? 10 : 3;
+  int col = 3;
   VerifyStackOverflowStackTraceInfo(
       "class C {\n"
       "  static foo(int i) { foo(i); }\n"
@@ -270,7 +270,7 @@ TEST_CASE(DartAPI_StackOverflowStackTraceInfoBraceFunction1) {
 
 TEST_CASE(DartAPI_StackOverflowStackTraceInfoBraceFunction2) {
   int line = 2;
-  int col = FLAG_use_dart_frontend ? 10 : 3;
+  int col = 3;
   VerifyStackOverflowStackTraceInfo(
       "class C {\n"
       "  static foo(int i, int j) {\n"
@@ -283,7 +283,7 @@ TEST_CASE(DartAPI_StackOverflowStackTraceInfoBraceFunction2) {
 
 TEST_CASE(DartAPI_StackOverflowStackTraceInfoArrowFunction) {
   int line = 2;
-  int col = FLAG_use_dart_frontend ? 10 : 3;
+  int col = 3;
   VerifyStackOverflowStackTraceInfo(
       "class C {\n"
       "  static foo(int i) => foo(i);\n"
@@ -6783,6 +6783,77 @@ TEST_CASE(DartAPI_ImportLibrary5) {
   EXPECT_VALID(result);
   result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
+}
+
+TEST_CASE(DartAPI_Multiroot_Valid) {
+  const char* kScriptChars =
+      "import 'lib.dart';\n"
+      "void main() {}\n";
+  const char* kLibraryChars = "library lib.dart;\n";
+  Dart_Handle result;
+  Dart_Handle lib;
+
+  // This tests only makes sense when dart frontend is used
+  if (!FLAG_use_dart_frontend) {
+    return;
+  }
+
+  Dart_SourceFile sourcefiles[] = {
+      {"file:///bar/main.dart", kScriptChars},
+      {"file:///baz/lib.dart", kLibraryChars},
+      {"file:///bar/.packages", "untitled:/"},
+  };
+  int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
+  lib = TestCase::LoadTestScriptWithDFE(
+      sourcefiles_count, sourcefiles, NULL, /* finalize= */ true,
+      /* incrementally= */ true, /* allow_compile_errors= */ false,
+      "foo:///main.dart",
+      /* multiroot_filepaths= */ "/bar,/baz",
+      /* multiroot_scheme= */ "foo");
+  EXPECT_VALID(lib);
+  Library& lib_obj = Library::Handle();
+  lib_obj ^= Api::UnwrapHandle(lib);
+  EXPECT_STREQ("foo:///main.dart", String::Handle(lib_obj.url()).ToCString());
+  const Array& lib_scripts = Array::Handle(lib_obj.LoadedScripts());
+  Script& script = Script::Handle();
+  String& uri = String::Handle();
+  for (intptr_t i = 0; i < lib_scripts.Length(); i++) {
+    script ^= lib_scripts.At(i);
+    uri = script.url();
+    const char* uri_str = uri.ToCString();
+    EXPECT(strstr(uri_str, "foo:///") == uri_str);
+  }
+  result = Dart_FinalizeLoading(false);
+  EXPECT_VALID(result);
+  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+}
+
+TEST_CASE(DartAPI_Multiroot_FailWhenUriIsWrong) {
+  const char* kScriptChars =
+      "import 'lib.dart';\n"
+      "void main() {}\n";
+  const char* kLibraryChars = "library lib.dart;\n";
+  Dart_Handle lib;
+
+  // This tests only makes sense when dart frontend is used
+  if (!FLAG_use_dart_frontend) {
+    return;
+  }
+
+  Dart_SourceFile sourcefiles[] = {
+      {"file:///bar/main.dart", kScriptChars},
+      {"file:///baz/lib.dart", kLibraryChars},
+      {"file:///bar/.packages", "untitled:/"},
+  };
+  int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
+  lib = TestCase::LoadTestScriptWithDFE(
+      sourcefiles_count, sourcefiles, NULL, /* finalize= */ true,
+      /* incrementally= */ true, /* allow_compile_errors= */ false,
+      "foo1:///main.dart",
+      /* multiroot_filepaths= */ "/bar,/baz",
+      /* multiroot_scheme= */ "foo");
+  EXPECT_ERROR(lib, "Compilation failed foo1");
 }
 
 void NewNativePort_send123(Dart_Port dest_port_id, Dart_CObject* message) {

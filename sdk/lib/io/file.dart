@@ -365,8 +365,8 @@ abstract class File implements FileSystemEntity {
 /**
  * Get the last-accessed time of the file.
  *
- * Returns the date and time when the file was last accessed, if the
- * information is available.
+ * Returns a `Future<DateTime>` that completes with the date and time when the
+ * file was last accessed, if the information is available.
  *
  * Throws a [FileSystemException] if the operation fails.
  */
@@ -386,6 +386,8 @@ abstract class File implements FileSystemEntity {
   /**
    * Modifies the time the file was last accessed.
    *
+   * Returns a [Future] that completes once the operation has completed.
+   *
    * Throws a [FileSystemException] if the time cannot be set.
    */
   Future setLastAccessed(DateTime time);
@@ -400,8 +402,8 @@ abstract class File implements FileSystemEntity {
 /**
  * Get the last-modified time of the file.
  *
- * Returns the date and time when the file was last modified, if the
- * information is available.
+ * Returns a `Future<DateTime>` that completes with the date and time when the
+ * file was last modified, if the information is available.
  *
  * Throws a [FileSystemException] if the operation fails.
  */
@@ -420,6 +422,8 @@ abstract class File implements FileSystemEntity {
 
   /**
    * Modifies the time the file was last modified.
+   *
+   * Returns a [Future] that completes once the operation has completed.
    *
    * Throws a [FileSystemException] if the time cannot be set.
    */

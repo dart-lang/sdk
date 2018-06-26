@@ -101,6 +101,7 @@ step_through_constructor_test: RuntimeError
 step_through_function_2_test: RuntimeError
 step_through_function_test: RuntimeError
 step_through_getter_test: RuntimeError
+step_through_mixin_from_sdk_test: RuntimeError
 step_through_property_get_test: RuntimeError
 step_through_property_set_test: RuntimeError
 step_through_setter_test: RuntimeError

@@ -33,7 +33,7 @@ action("build_observatory") {
 
   sources = rebase_path(observatory_sources, "", ".")
 
-  inputs = sources + [ rebase_path("dart2js.packages") ]
+  inputs = sources + [ rebase_path(".packages") ]
 
   script = "../../tools/observatory_tool.py"
   args = build_args + [
@@ -44,7 +44,7 @@ action("build_observatory") {
            "build",
            rebase_path("web/main.dart"),
            rebase_path("$target_gen_dir/observatory/web/main.dart.js"),
-           rebase_path("dart2js.packages"),
+           rebase_path(".packages"),
          ]
 
   outputs = [

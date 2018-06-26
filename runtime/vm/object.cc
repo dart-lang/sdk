@@ -1799,7 +1799,8 @@ RawError* Object::Init(Isolate* isolate,
     type = object_store->object_type();
     cls.set_super_type(type);
 
-    // Create and cache commonly used type arguments <int> and <String>
+    // Create and cache commonly used type arguments <int>, <double>,
+    // <String>, <String, dynamic> and <String, String>.
     type_args = TypeArguments::New(1);
     type = object_store->int_type();
     type_args.SetTypeAt(0, type);
@@ -1807,10 +1808,30 @@ RawError* Object::Init(Isolate* isolate,
     object_store->set_type_argument_int(type_args);
 
     type_args = TypeArguments::New(1);
+    type = object_store->double_type();
+    type_args.SetTypeAt(0, type);
+    type_args.Canonicalize();
+    object_store->set_type_argument_double(type_args);
+
+    type_args = TypeArguments::New(1);
     type = object_store->string_type();
     type_args.SetTypeAt(0, type);
     type_args.Canonicalize();
     object_store->set_type_argument_string(type_args);
+
+    type_args = TypeArguments::New(2);
+    type = object_store->string_type();
+    type_args.SetTypeAt(0, type);
+    type_args.SetTypeAt(1, Object::dynamic_type());
+    type_args.Canonicalize();
+    object_store->set_type_argument_string_dynamic(type_args);
+
+    type_args = TypeArguments::New(2);
+    type = object_store->string_type();
+    type_args.SetTypeAt(0, type);
+    type_args.SetTypeAt(1, type);
+    type_args.Canonicalize();
+    object_store->set_type_argument_string_string(type_args);
 
     // Finish the initialization by compiling the bootstrap scripts containing
     // the base interfaces and the implementation of the internal classes.
@@ -2693,27 +2714,54 @@ void Class::CalculateFieldOffsets() const {
   set_next_field_offset(offset);
 }
 
+struct InvocationDispatcherCacheLayout {
+  enum { kNameIndex = 0, kArgsDescIndex, kFunctionIndex, kEntrySize };
+};
+
+void Class::AddInvocationDispatcher(const String& target_name,
+                                    const Array& args_desc,
+                                    const Function& dispatcher) const {
+  // Search for a free entry.
+  Array& cache = Array::Handle(invocation_dispatcher_cache());
+  intptr_t i = 0;
+  while (i < cache.Length() && cache.At(i) != Object::null()) {
+    i += InvocationDispatcherCacheLayout::kEntrySize;
+  }
+
+  if (i == cache.Length()) {
+    // Allocate new larger cache.
+    intptr_t new_len =
+        (cache.Length() == 0)
+            ? static_cast<intptr_t>(InvocationDispatcherCacheLayout::kEntrySize)
+            : cache.Length() * 2;
+    cache ^= Array::Grow(cache, new_len);
+    set_invocation_dispatcher_cache(cache);
+  }
+  cache.SetAt(i + InvocationDispatcherCacheLayout::kNameIndex, target_name);
+  cache.SetAt(i + InvocationDispatcherCacheLayout::kArgsDescIndex, args_desc);
+  cache.SetAt(i + InvocationDispatcherCacheLayout::kFunctionIndex, dispatcher);
+}
+
 RawFunction* Class::GetInvocationDispatcher(const String& target_name,
                                             const Array& args_desc,
                                             RawFunction::Kind kind,
                                             bool create_if_absent) const {
-  enum { kNameIndex = 0, kArgsDescIndex, kFunctionIndex, kEntrySize };
-
   ASSERT(kind == RawFunction::kNoSuchMethodDispatcher ||
-         kind == RawFunction::kInvokeFieldDispatcher);
+         kind == RawFunction::kInvokeFieldDispatcher ||
+         kind == RawFunction::kDynamicInvocationForwarder);
   Function& dispatcher = Function::Handle();
   Array& cache = Array::Handle(invocation_dispatcher_cache());
   ASSERT(!cache.IsNull());
   String& name = String::Handle();
   Array& desc = Array::Handle();
   intptr_t i = 0;
-  for (; i < cache.Length(); i += kEntrySize) {
-    name ^= cache.At(i + kNameIndex);
+  for (; i < cache.Length(); i += InvocationDispatcherCacheLayout::kEntrySize) {
+    name ^= cache.At(i + InvocationDispatcherCacheLayout::kNameIndex);
     if (name.IsNull()) break;  // Reached last entry.
     if (!name.Equals(target_name)) continue;
-    desc ^= cache.At(i + kArgsDescIndex);
+    desc ^= cache.At(i + InvocationDispatcherCacheLayout::kArgsDescIndex);
     if (desc.raw() != args_desc.raw()) continue;
-    dispatcher ^= cache.At(i + kFunctionIndex);
+    dispatcher ^= cache.At(i + InvocationDispatcherCacheLayout::kFunctionIndex);
     if (dispatcher.kind() == kind) {
       // Found match.
       ASSERT(dispatcher.IsFunction());
@@ -2722,18 +2770,8 @@ RawFunction* Class::GetInvocationDispatcher(const String& target_name,
   }
 
   if (dispatcher.IsNull() && create_if_absent) {
-    if (i == cache.Length()) {
-      // Allocate new larger cache.
-      intptr_t new_len = (cache.Length() == 0)
-                             ? static_cast<intptr_t>(kEntrySize)
-                             : cache.Length() * 2;
-      cache ^= Array::Grow(cache, new_len);
-      set_invocation_dispatcher_cache(cache);
-    }
     dispatcher ^= CreateInvocationDispatcher(target_name, args_desc, kind);
-    cache.SetAt(i + kNameIndex, target_name);
-    cache.SetAt(i + kArgsDescIndex, args_desc);
-    cache.SetAt(i + kFunctionIndex, dispatcher);
+    AddInvocationDispatcher(target_name, args_desc, dispatcher);
   }
   return dispatcher.raw();
 }
@@ -2852,6 +2890,81 @@ RawFunction* Function::GetMethodExtractor(const String& getter_name) const {
   ASSERT(result.kind() == RawFunction::kMethodExtractor);
   return result.raw();
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+RawFunction* Function::CreateDynamicInvocationForwarder(
+    const String& mangled_name) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  Function& forwarder = Function::Handle(zone);
+  forwarder ^= Object::Clone(*this, Heap::kOld);
+
+  forwarder.set_name(mangled_name);
+  forwarder.set_kind(RawFunction::kDynamicInvocationForwarder);
+  forwarder.set_is_debuggable(false);
+
+  // TODO(vegorov) for error reporting reasons it is better to make this
+  // function visible and instead use a TailCall to invoke the target.
+  // Our TailCall instruction is not ready for such usage though it
+  // blocks inlining and can't take Function-s only Code objects.
+  forwarder.set_is_visible(false);
+
+  forwarder.ClearICDataArray();
+  forwarder.ClearCode();
+  forwarder.set_usage_counter(0);
+  forwarder.set_deoptimization_counter(0);
+  forwarder.set_optimized_instruction_count(0);
+  forwarder.set_inlining_depth(0);
+  forwarder.set_optimized_call_site_count(0);
+  forwarder.set_kernel_offset(kernel_offset());
+
+  return forwarder.raw();
+}
+
+bool Function::IsDynamicInvocationForwaderName(const String& name) {
+  return name.StartsWith(Symbols::DynamicPrefix());
+}
+
+RawString* Function::CreateDynamicInvocationForwarderName(const String& name) {
+  return Symbols::FromConcat(Thread::Current(), Symbols::DynamicPrefix(), name);
+}
+
+RawString* Function::DemangleDynamicInvocationForwarderName(
+    const String& name) {
+  const intptr_t kDynamicPrefixLength = 4;  // "dyn:"
+  ASSERT(Symbols::DynamicPrefix().Length() == kDynamicPrefixLength);
+  return Symbols::New(Thread::Current(), name, kDynamicPrefixLength,
+                      name.Length() - kDynamicPrefixLength);
+}
+
+RawFunction* Function::GetDynamicInvocationForwarder(
+    const String& mangled_name,
+    bool allow_add /* = true */) const {
+  ASSERT(IsDynamicInvocationForwaderName(mangled_name));
+  const Class& owner = Class::Handle(Owner());
+  Function& result = Function::Handle(owner.GetInvocationDispatcher(
+      mangled_name, Array::null_array(),
+      RawFunction::kDynamicInvocationForwarder, /*create_if_absent=*/false));
+
+  if (!result.IsNull()) {
+    return result.raw();
+  }
+
+  // Check if function actually needs a dynamic invocation forwarder.
+  if (!kernel::FlowGraphBuilder::NeedsDynamicInvocationForwarder(*this)) {
+    result = raw();
+  } else if (allow_add) {
+    result = CreateDynamicInvocationForwarder(mangled_name);
+  }
+
+  if (allow_add) {
+    owner.AddInvocationDispatcher(mangled_name, Array::null_array(), result);
+  }
+
+  return result.raw();
+}
+#endif
 
 bool AbstractType::InstantiateAndTestSubtype(
     AbstractType* subtype,
@@ -3219,12 +3332,6 @@ RawFunction* Function::EvaluateHelper(const Class& cls,
   return func.raw();
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-static void ReleaseFetchedBytes(uint8_t* buffer) {
-  free(buffer);
-}
-#endif
-
 RawObject* Class::Evaluate(const String& expr,
                            const Array& param_names,
                            const Array& param_values) const {
@@ -3245,7 +3352,8 @@ RawObject* Class::Evaluate(const String& expr,
     return UnhandledException::New(exception, stacktrace);
   }
 
-  ASSERT(Library::Handle(library()).kernel_data() == TypedData::null() ||
+  ASSERT(Library::Handle(library()).kernel_data() ==
+             ExternalTypedData::null() ||
          !FLAG_enable_kernel_expression_compilation);
   const Function& eval_func = Function::Handle(
       Function::EvaluateHelper(*this, expr, param_names, true));
@@ -3694,7 +3802,8 @@ TokenPosition Class::ComputeEndTokenPos() const {
   if (scr.kind() == RawScript::kKernelTag) {
     ASSERT(kernel_offset() > 0);
     const Library& lib = Library::Handle(zone, library());
-    const TypedData& kernel_data = TypedData::Handle(zone, lib.kernel_data());
+    const ExternalTypedData& kernel_data =
+        ExternalTypedData::Handle(zone, lib.kernel_data());
     ASSERT(!kernel_data.IsNull());
     const intptr_t library_kernel_offset = lib.kernel_offset();
     ASSERT(library_kernel_offset > 0);
@@ -5553,7 +5662,7 @@ void PatchClass::set_script(const Script& value) const {
   StorePointer(&raw_ptr()->script_, value.raw());
 }
 
-void PatchClass::set_library_kernel_data(const TypedData& data) const {
+void PatchClass::set_library_kernel_data(const ExternalTypedData& data) const {
   StorePointer(&raw_ptr()->library_kernel_data_, data.raw());
 }
 
@@ -6025,6 +6134,8 @@ const char* Function::KindToCString(RawFunction::Kind kind) {
     case RawFunction::kIrregexpFunction:
       return "IrregexpFunction";
       break;
+    case RawFunction::kDynamicInvocationForwarder:
+      return "DynamicInvocationForwarder";
     default:
       UNREACHABLE();
       return NULL;
@@ -7111,7 +7222,6 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   clone.set_optimized_instruction_count(0);
   clone.set_inlining_depth(0);
   clone.set_optimized_call_site_count(0);
-  clone.set_kernel_offset(kernel_offset());
 
   if (new_owner.NumTypeParameters() > 0) {
     // Adjust uninstantiated types to refer to type parameters of the new owner.
@@ -7301,7 +7411,8 @@ RawFunction* Function::ImplicitClosureFunction() const {
     kernel::TranslationHelper translation_helper(thread);
     kernel::StreamingFlowGraphBuilder builder(
         &translation_helper, function_script, zone,
-        TypedData::Handle(zone, KernelData()), KernelDataProgramOffset(),
+        ExternalTypedData::Handle(zone, KernelData()),
+        KernelDataProgramOffset(),
         /* active_class = */ NULL);
     translation_helper.InitFromScript(function_script);
     builder.SetOffset(kernel_offset());
@@ -7556,7 +7667,7 @@ RawClass* Function::origin() const {
 }
 
 void Function::SetKernelDataAndScript(const Script& script,
-                                      const TypedData& data,
+                                      const ExternalTypedData& data,
                                       intptr_t offset) {
   Array& data_field = Array::Handle(Array::New(3));
   data_field.SetAt(0, script);
@@ -7598,12 +7709,12 @@ RawScript* Function::script() const {
   return PatchClass::Cast(obj).script();
 }
 
-RawTypedData* Function::KernelData() const {
+RawExternalTypedData* Function::KernelData() const {
   Object& data = Object::Handle(raw_ptr()->data_);
   if (data.IsArray()) {
     Object& script = Object::Handle(Array::Cast(data).At(0));
     if (script.IsScript()) {
-      return TypedData::RawCast(Array::Cast(data).At(1));
+      return ExternalTypedData::RawCast(Array::Cast(data).At(1));
     }
   }
   if (IsClosureFunction()) {
@@ -7713,6 +7824,38 @@ RawString* Function::GetSource() const {
   }
   Zone* zone = Thread::Current()->zone();
   const Script& func_script = Script::Handle(zone, script());
+
+  if (func_script.kind() == RawScript::kKernelTag) {
+    intptr_t from_line;
+    intptr_t from_col;
+    intptr_t to_line;
+    intptr_t to_col;
+    intptr_t to_length;
+    func_script.GetTokenLocation(token_pos(), &from_line, &from_col);
+    func_script.GetTokenLocation(end_token_pos(), &to_line, &to_col,
+                                 &to_length);
+
+    if (to_length == 1) {
+      // Handle special cases for end tokens of closures (where we exclude the
+      // last token):
+      // (1) "foo(() => null, bar);": End token is `,', but we don't print it.
+      // (2) "foo(() => null);": End token is ')`, but we don't print it.
+      // (3) "var foo = () => null;": End token is `;', but in this case the
+      // token semicolon belongs to the assignment so we skip it.
+      const String& src = String::Handle(func_script.Source());
+      uint16_t end_char = src.CharAt(end_token_pos().value());
+      if ((end_char == ',') ||  // Case 1.
+          (end_char == ')') ||  // Case 2.
+          (end_char == ';' && String::Handle(zone, name())
+                                  .Equals("<anonymous closure>"))) {  // Case 3.
+        to_length = 0;
+      }
+    }
+
+    return func_script.GetSnippet(from_line, from_col, to_line,
+                                  to_col + to_length);
+  }
+
   const TokenStream& stream = TokenStream::Handle(zone, func_script.tokens());
   if (!func_script.HasSource()) {
     // When source is not available, avoid printing the whole token stream and
@@ -7918,6 +8061,9 @@ const char* Function::ToCString() const {
       break;
     case RawFunction::kNoSuchMethodDispatcher:
       kind_str = " no-such-method-dispatcher";
+      break;
+    case RawFunction::kDynamicInvocationForwarder:
+      kind_str = " dynamic-invocation-forwader";
       break;
     case RawFunction::kInvokeFieldDispatcher:
       kind_str = "invoke-field-dispatcher";
@@ -8152,7 +8298,7 @@ RawScript* Field::Script() const {
   return PatchClass::Cast(obj).script();
 }
 
-RawTypedData* Field::KernelData() const {
+RawExternalTypedData* Field::KernelData() const {
   const Object& obj = Object::Handle(this->raw_ptr()->owner_);
   if (obj.IsClass()) {
     Library& library = Library::Handle(Class::Cast(obj).library());
@@ -10227,7 +10373,7 @@ void Library::set_url(const String& name) const {
   StorePointer(&raw_ptr()->url_, name.raw());
 }
 
-void Library::set_kernel_data(const TypedData& data) const {
+void Library::set_kernel_data(const ExternalTypedData& data) const {
   StorePointer(&raw_ptr()->kernel_data_, data.raw());
 }
 
@@ -10951,7 +11097,8 @@ RawArray* Library::LoadedScripts() const {
 
 // TODO(hausner): we might want to add a script dictionary to the
 // library class to make this lookup faster.
-RawScript* Library::LookupScript(const String& url) const {
+RawScript* Library::LookupScript(const String& url,
+                                 bool useResolvedUri /* = false */) const {
   const intptr_t url_length = url.Length();
   if (url_length == 0) {
     return Script::null();
@@ -10962,7 +11109,11 @@ RawScript* Library::LookupScript(const String& url) const {
   const intptr_t num_scripts = scripts.Length();
   for (int i = 0; i < num_scripts; i++) {
     script ^= scripts.At(i);
-    script_url = script.url();
+    if (!useResolvedUri) {
+      script_url = script.url();
+    } else {
+      script_url = script.resolved_url();
+    }
     const intptr_t start_idx = script_url.Length() - url_length;
     if ((start_idx == 0) && url.Equals(script_url)) {
       return script.raw();
@@ -11399,7 +11550,7 @@ RawObject* Library::Evaluate(const String& expr,
                              const Array& param_values,
                              const Array& type_param_names,
                              const TypeArguments& type_param_values) const {
-  ASSERT(kernel_data() == TypedData::null() ||
+  ASSERT(kernel_data() == ExternalTypedData::null() ||
          !FLAG_enable_kernel_expression_compilation);
   // Evaluate the expression as a static function of the toplevel class.
   Class& top_level_class = Class::Handle(toplevel_class());
@@ -11489,14 +11640,12 @@ static RawObject* EvaluateCompiledExpressionHelper(
   Thread* T = Thread::Current();
 
   kernel::Program* kernel_pgm =
-      kernel::Program::ReadFromBuffer(kernel_bytes, kernel_length, true);
+      kernel::Program::ReadFromBuffer(kernel_bytes, kernel_length);
 
   if (kernel_pgm == NULL) {
     return ApiError::New(String::Handle(
         String::New("Kernel isolate returned ill-formed kernel.")));
   }
-
-  kernel_pgm->set_release_buffer_callback(ReleaseFetchedBytes);
 
   Function& callee = Function::Handle();
   intptr_t num_cids = I->class_table()->NumCids();
@@ -11531,7 +11680,7 @@ static RawObject* EvaluateCompiledExpressionHelper(
   // callee, so it doesn't require access it's parent library during
   // compilation.
   callee.SetKernelDataAndScript(Script::Handle(callee.script()),
-                                TypedData::Handle(loaded.kernel_data()),
+                                ExternalTypedData::Handle(loaded.kernel_data()),
                                 loaded.kernel_offset());
 
   // Reparent the callee to the real enclosing class so we can remove the fake
@@ -12291,12 +12440,13 @@ RawKernelProgramInfo* KernelProgramInfo::New() {
   return reinterpret_cast<RawKernelProgramInfo*>(raw);
 }
 
-RawKernelProgramInfo* KernelProgramInfo::New(const TypedData& string_offsets,
-                                             const TypedData& string_data,
-                                             const TypedData& canonical_names,
-                                             const TypedData& metadata_payloads,
-                                             const TypedData& metadata_mappings,
-                                             const Array& scripts) {
+RawKernelProgramInfo* KernelProgramInfo::New(
+    const TypedData& string_offsets,
+    const ExternalTypedData& string_data,
+    const TypedData& canonical_names,
+    const ExternalTypedData& metadata_payloads,
+    const ExternalTypedData& metadata_mappings,
+    const Array& scripts) {
   const KernelProgramInfo& info =
       KernelProgramInfo::Handle(KernelProgramInfo::New());
   info.StorePointer(&info.raw_ptr()->string_offsets_, string_offsets.raw());
@@ -13645,8 +13795,18 @@ bool ICData::AddSmiSmiCheckForFastSmiStubs() const {
   const String& name = String::Handle(target_name());
   const Class& smi_class = Class::Handle(Smi::Class());
   Zone* zone = Thread::Current()->zone();
-  const Function& smi_op_target =
+  Function& smi_op_target =
       Function::Handle(Resolver::ResolveDynamicAnyArgs(zone, smi_class, name));
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (smi_op_target.IsNull() &&
+      Function::IsDynamicInvocationForwaderName(name)) {
+    const String& demangled =
+        String::Handle(Function::DemangleDynamicInvocationForwarderName(name));
+    smi_op_target = Resolver::ResolveDynamicAnyArgs(zone, smi_class, demangled);
+  }
+#endif
+
   if (NumberOfChecksIs(0)) {
     GrowableArray<intptr_t> class_ids(2);
     class_ids.Add(kSmiCid);
@@ -13704,6 +13864,13 @@ void ICData::AddTarget(const Function& target) const {
 }
 
 bool ICData::ValidateInterceptor(const Function& target) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  const String& name = String::Handle(target_name());
+  if (Function::IsDynamicInvocationForwaderName(name)) {
+    return Function::DemangleDynamicInvocationForwarderName(name) ==
+           target.name();
+  }
+#endif
   ObjectStore* store = Isolate::Current()->object_store();
   ASSERT((target.raw() == store->simple_instance_of_true_function()) ||
          (target.raw() == store->simple_instance_of_false_function()));
@@ -14779,7 +14946,7 @@ RawCode* Code::FinalizeCode(const Function& function,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if defined(DART_USE_INTERPRETER)
-RawCode* Code::FinalizeBytecode(void* bytecode_data,
+RawCode* Code::FinalizeBytecode(const void* bytecode_data,
                                 intptr_t bytecode_size,
                                 const ObjectPool& object_pool,
                                 CodeStatistics* stats /* = nullptr */) {
@@ -14796,7 +14963,7 @@ RawCode* Code::FinalizeBytecode(void* bytecode_data,
   // Copy the bytecode data into the instruction area. No fixups to apply.
   MemoryRegion instrs_region(reinterpret_cast<void*>(instrs.PayloadStart()),
                              instrs.Size());
-  MemoryRegion bytecode_region(bytecode_data, bytecode_size);
+  MemoryRegion bytecode_region(const_cast<void*>(bytecode_data), bytecode_size);
   // TODO(regis): Avoid copying bytecode.
   instrs_region.CopyFrom(0, bytecode_region);
 
@@ -15816,7 +15983,7 @@ RawObject* Instance::Evaluate(const Class& method_cls,
   }
 
   const Library& library = Library::Handle(method_cls.library());
-  ASSERT(library.kernel_data() == TypedData::null() ||
+  ASSERT(library.kernel_data() == ExternalTypedData::null() ||
          !FLAG_enable_kernel_expression_compilation);
   const Function& eval_func = Function::Handle(
       Function::EvaluateHelper(method_cls, expr, param_names, false));
@@ -15929,6 +16096,8 @@ class CheckForPointers : public ObjectPointerVisitor {
 
 bool Instance::CheckAndCanonicalizeFields(Thread* thread,
                                           const char** error_str) const {
+  ASSERT(error_str != NULL);
+  ASSERT(*error_str == NULL);
   if (GetClassId() >= kNumPredefinedCids) {
     // Iterate over all fields, canonicalize numbers and strings, expect all
     // other instances to be canonical otherwise report error (return false).
@@ -15941,12 +16110,15 @@ bool Instance::CheckAndCanonicalizeFields(Thread* thread,
       obj = *this->FieldAddrAtOffset(offset);
       if (obj.IsInstance() && !obj.IsSmi() && !obj.IsCanonical()) {
         if (obj.IsNumber() || obj.IsString()) {
-          obj = Instance::Cast(obj).CheckAndCanonicalize(thread, NULL);
+          obj = Instance::Cast(obj).CheckAndCanonicalize(thread, error_str);
+          if (*error_str != NULL) {
+            return false;
+          }
           ASSERT(!obj.IsNull());
           this->SetFieldAtOffset(offset, obj);
         } else {
-          ASSERT(error_str != NULL);
-          char* chars = OS::SCreate(zone, "field: %s\n", obj.ToCString());
+          char* chars = OS::SCreate(zone, "field: %s, owner: %s\n",
+                                    obj.ToCString(), ToCString());
           *error_str = chars;
           return false;
         }
@@ -15965,6 +16137,8 @@ bool Instance::CheckAndCanonicalizeFields(Thread* thread,
 
 RawInstance* Instance::CheckAndCanonicalize(Thread* thread,
                                             const char** error_str) const {
+  ASSERT(error_str != NULL);
+  ASSERT(*error_str == NULL);
   ASSERT(!IsNull());
   if (this->IsCanonical()) {
     return this->raw();
@@ -21247,6 +21421,8 @@ RawArray* Array::MakeFixedLength(const GrowableObjectArray& growable_array,
 
 bool Array::CheckAndCanonicalizeFields(Thread* thread,
                                        const char** error_str) const {
+  ASSERT(error_str != NULL);
+  ASSERT(*error_str == NULL);
   intptr_t len = Length();
   if (len > 0) {
     Zone* zone = thread->zone();
@@ -21257,11 +21433,13 @@ bool Array::CheckAndCanonicalizeFields(Thread* thread,
       obj = At(i);
       if (obj.IsInstance() && !obj.IsSmi() && !obj.IsCanonical()) {
         if (obj.IsNumber() || obj.IsString()) {
-          obj = Instance::Cast(obj).CheckAndCanonicalize(thread, NULL);
+          obj = Instance::Cast(obj).CheckAndCanonicalize(thread, error_str);
+          if (*error_str != NULL) {
+            return false;
+          }
           ASSERT(!obj.IsNull());
           this->SetAt(i, obj);
         } else {
-          ASSERT(error_str != NULL);
           char* chars = OS::SCreate(zone, "element at index %" Pd ": %s\n", i,
                                     obj.ToCString());
           *error_str = chars;
@@ -21771,6 +21949,9 @@ RawExternalTypedData* ExternalTypedData::New(intptr_t class_id,
                                              uint8_t* data,
                                              intptr_t len,
                                              Heap::Space space) {
+  if (len < 0 || len > ExternalTypedData::MaxElements(class_id)) {
+    FATAL1("Fatal error in ExternalTypedData::New: invalid len %" Pd "\n", len);
+  }
   ExternalTypedData& result = ExternalTypedData::Handle();
   {
     RawObject* raw =

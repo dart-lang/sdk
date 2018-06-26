@@ -312,6 +312,13 @@ class ForwardConstantEvaluationErrors implements constants.ErrorReporter {
     reportIt(context, message, node);
   }
 
+  nonConstantVariableGet(
+      List<TreeNode> context, TreeNode node, String variableName) {
+    final message = codes.templateConstEvalNonConstantVariableGet
+        .withArguments(variableName);
+    reportIt(context, message, node);
+  }
+
   reportIt(List<TreeNode> context, codes.Message message, TreeNode node) {
     final Uri uri = getFileUri(node);
     final int fileOffset = getFileOffset(node);
@@ -339,7 +346,7 @@ class ForwardConstantEvaluationErrors implements constants.ErrorReporter {
   }
 
   getFileOffset(TreeNode node) {
-    while (node.fileOffset == TreeNode.noOffset) {
+    while (node?.fileOffset == TreeNode.noOffset) {
       node = node.parent;
     }
     return node == null ? TreeNode.noOffset : node.fileOffset;

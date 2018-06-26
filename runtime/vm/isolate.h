@@ -687,6 +687,13 @@ class Isolate : public BaseIsolate {
     isolate_flags_ = IsServiceIsolateBit::update(value, isolate_flags_);
   }
 
+  bool is_kernel_isolate() const {
+    return IsKernelIsolateBit::decode(isolate_flags_);
+  }
+  void set_is_kernel_isolate(bool value) {
+    isolate_flags_ = IsKernelIsolateBit::update(value, isolate_flags_);
+  }
+
   bool should_load_vmservice() const {
     return ShouldLoadVmServiceBit::decode(isolate_flags_);
   }
@@ -844,6 +851,7 @@ class Isolate : public BaseIsolate {
   V(ErrorsFatal)                                                               \
   V(IsRunnable)                                                                \
   V(IsServiceIsolate)                                                          \
+  V(IsKernelIsolate)                                                           \
   V(CompilationAllowed)                                                        \
   V(AllClassesFinalized)                                                       \
   V(RemappingCids)                                                             \

@@ -1328,6 +1328,10 @@ CompileType ShiftInt64OpInstr::ComputeType() const {
   return CompileType::Int();
 }
 
+CompileType SpeculativeShiftInt64OpInstr::ComputeType() const {
+  return CompileType::Int();
+}
+
 CompileType UnaryInt64OpInstr::ComputeType() const {
   return CompileType::Int();
 }

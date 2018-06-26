@@ -29,7 +29,7 @@ Future<int> main() async {
     final CompilerInterface compiler = new _MockedCompiler();
 
     test('train with mocked compiler completes', () async {
-      expect(await starter(<String>['--train'], compiler: compiler), equals(0));
+      await starter(<String>['--train'], compiler: compiler);
     });
   });
 
@@ -44,8 +44,7 @@ Future<int> main() async {
         '--sdk-root',
         'sdkroot',
       ];
-      final int exitcode = await starter(args, compiler: compiler);
-      expect(exitcode, equals(0));
+      await starter(args, compiler: compiler);
       final List<ArgResults> capturedArgs = verify(compiler.compile(
         argThat(equals('server.dart')),
         captureAny,
@@ -62,8 +61,7 @@ Future<int> main() async {
         'sdkroot',
         '--strong',
       ];
-      final int exitcode = await starter(args, compiler: compiler);
-      expect(exitcode, equals(0));
+      await starter(args, compiler: compiler);
       final List<ArgResults> capturedArgs = verify(compiler.compile(
         argThat(equals('server.dart')),
         captureAny,
@@ -82,8 +80,7 @@ Future<int> main() async {
         '--strong',
         '--no-sync-async',
       ];
-      final int exitcode = await starter(args, compiler: compiler);
-      expect(exitcode, equals(0));
+      await starter(args, compiler: compiler);
       final List<ArgResults> capturedArgs = verify(compiler.compile(
         argThat(equals('server.dart')),
         captureAny,
@@ -101,8 +98,7 @@ Future<int> main() async {
         'sdkroot',
         '--link-platform',
       ];
-      final int exitcode = await starter(args, compiler: compiler);
-      expect(exitcode, equals(0));
+      await starter(args, compiler: compiler);
       final List<ArgResults> capturedArgs = verify(compiler.compile(
         argThat(equals('server.dart')),
         captureAny,
@@ -135,12 +131,11 @@ Future<int> main() async {
         compileCalled.sendPort.send(true);
       });
 
-      final int exitcode = await starter(
+      await starter(
         args,
         compiler: compiler,
         input: inputStreamController.stream,
       );
-      expect(exitcode, equals(0));
       inputStreamController.add('compile server.dart\n'.codeUnits);
       await compileCalled.first;
       inputStreamController.close();
@@ -173,12 +168,11 @@ Future<int> main() async {
         compileCalled.sendPort.send(true);
       });
 
-      final int exitcode = await starter(
+      await starter(
         args,
         compiler: compiler,
         input: inputStreamController.stream,
       );
-      expect(exitcode, equals(0));
       inputStreamController.add('compile server.dart\n'.codeUnits);
       await compileCalled.first;
       inputStreamController.close();
@@ -197,12 +191,11 @@ Future<int> main() async {
         compileCalled.sendPort.send(true);
       });
 
-      final int exitcode = await starter(
+      await starter(
         strongArgs,
         compiler: compiler,
         input: inputStreamController.stream,
       );
-      expect(exitcode, equals(0));
       inputStreamController.add('compile server.dart\n'.codeUnits);
       await compileCalled.first;
       inputStreamController.close();
@@ -223,12 +216,11 @@ Future<int> main() async {
         compileCalled.sendPort.send(true);
       });
 
-      final int exitcode = await starter(
+      await starter(
         args,
         compiler: compiler,
         input: streamController.stream,
       );
-      expect(exitcode, equals(0));
       streamController.add('compile server1.dart\n'.codeUnits);
       streamController.add('compile server2.dart\n'.codeUnits);
       await compileCalled.first;
@@ -256,12 +248,11 @@ Future<int> main() async {
           .thenAnswer((Invocation invocation) {
         recompileCalled.sendPort.send(true);
       });
-      final int exitcode = await starter(
+      await starter(
         args,
         compiler: compiler,
         input: streamController.stream,
       );
-      expect(exitcode, equals(0));
       streamController
           .add('recompile abc\nfile1.dart\nfile2.dart\nabc\n'.codeUnits);
       await recompileCalled.first;
@@ -283,12 +274,11 @@ Future<int> main() async {
           .thenAnswer((Invocation invocation) {
         recompileCalled.sendPort.send(true);
       });
-      final int exitcode = await starter(
+      await starter(
         args,
         compiler: compiler,
         input: streamController.stream,
       );
-      expect(exitcode, equals(0));
       streamController.add(
           'recompile file2.dart abc\nfile1.dart\nfile2.dart\nabc\n'.codeUnits);
       await recompileCalled.first;
@@ -308,12 +298,11 @@ Future<int> main() async {
       when(compiler.acceptLastDelta()).thenAnswer((Invocation invocation) {
         acceptCalled.sendPort.send(true);
       });
-      final int exitcode = await starter(
+      await starter(
         args,
         compiler: compiler,
         input: inputStreamController.stream,
       );
-      expect(exitcode, equals(0));
       inputStreamController.add('accept\n'.codeUnits);
       await acceptCalled.first;
       inputStreamController.close();
@@ -327,12 +316,11 @@ Future<int> main() async {
           .thenAnswer((Invocation invocation) {
         resetCalled.sendPort.send(true);
       });
-      final int exitcode = await starter(
+      await starter(
         args,
         compiler: compiler,
         input: inputStreamController.stream,
       );
-      expect(exitcode, equals(0));
       inputStreamController.add('reset\n'.codeUnits);
       await resetCalled.first;
       inputStreamController.close();
@@ -347,12 +335,11 @@ Future<int> main() async {
           .thenAnswer((Invocation invocation) {
         recompileCalled.sendPort.send(true);
       });
-      final int exitcode = await starter(
+      await starter(
         args,
         compiler: compiler,
         input: streamController.stream,
       );
-      expect(exitcode, equals(0));
       streamController.add('compile file1.dart\n'.codeUnits);
       streamController.add('accept\n'.codeUnits);
       streamController
@@ -413,7 +400,7 @@ Future<int> main() async {
           new _MockedBinaryPrinterFactory();
       when(printerFactory.newBinaryPrinter(any))
           .thenReturn(new _MockedBinaryPrinter());
-      final int exitcode = await starter(
+      await starter(
         args,
         compiler: null,
         input: streamController.stream,
@@ -421,7 +408,6 @@ Future<int> main() async {
         generator: generator,
         binaryPrinterFactory: printerFactory,
       );
-      expect(exitcode, equals(0));
 
       streamController.add('compile file1.dart\n'.codeUnits);
       await receivedResult.first;
@@ -448,8 +434,7 @@ Future<int> main() async {
           '--output-incremental-dill',
           '/foo/bar/server.incremental.dart.dill',
         ];
-        final int exitcode = await starter(args, compiler: compiler);
-        expect(exitcode, equals(0));
+        await starter(args, compiler: compiler);
         final List<ArgResults> capturedArgs = verify(compiler.compile(
           argThat(equals('server.dart')),
           captureAny,
@@ -516,9 +501,7 @@ Future<int> main() async {
         }
       });
 
-      int exitcode =
-          await starter(args, input: streamController.stream, output: ioSink);
-      expect(exitcode, equals(0));
+      await starter(args, input: streamController.stream, output: ioSink);
       streamController.add('compile ${file.path}\n'.codeUnits);
       int count = 0;
       Completer<bool> allDone = new Completer<bool>();
@@ -621,9 +604,7 @@ Future<int> main() async {
           }
         }
       });
-      int exitcode =
-          await starter(args, input: streamController.stream, output: ioSink);
-      expect(exitcode, equals(0));
+      await starter(args, input: streamController.stream, output: ioSink);
       streamController.add('compile ${file.path}\n'.codeUnits);
       int count = 0;
       Completer<bool> allDone = new Completer<bool>();
@@ -694,9 +675,7 @@ Future<int> main() async {
           }
         }
       });
-      int exitcode =
-          await starter(args, input: streamController.stream, output: ioSink);
-      expect(exitcode, equals(0));
+      await starter(args, input: streamController.stream, output: ioSink);
       streamController.add('compile ${file.path}\n'.codeUnits);
       int count = 0;
       Completer<bool> allDone = new Completer<bool>();
@@ -760,8 +739,7 @@ Future<int> main() async {
         '--filesystem-scheme=test-scheme',
         'test-scheme:///foo.dart'
       ];
-      int exitcode = await starter(args);
-      expect(exitcode, equals(0));
+      await starter(args);
     });
 
     test('compile and produce deps file', () async {
@@ -779,9 +757,7 @@ Future<int> main() async {
         '--depfile=${depFile.path}',
         file.path
       ];
-      int exitcode = await starter(args);
-      expect(exitcode, equals(0));
-
+      await starter(args);
       expect(depFile.existsSync(), true);
       var depContents = depFile.readAsStringSync();
       var depContentsParsed = depContents.split(': ');
@@ -840,9 +816,7 @@ Future<int> main() async {
           }
         });
 
-        int exitcode =
-            await starter(args, input: streamController.stream, output: ioSink);
-        expect(exitcode, equals(0));
+        await starter(args, input: streamController.stream, output: ioSink);
         streamController.add('compile ${dart2js.path}\n'.codeUnits);
         int count = 0;
         Completer<bool> allDone = new Completer<bool>();

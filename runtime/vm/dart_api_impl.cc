@@ -5384,8 +5384,12 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
   CHECK_CALLBACK_STATE(T);
   CHECK_COMPILATION_ALLOWED(I);
 
-  kernel::Program* program = kernel::Program::ReadFromBuffer(
-      buffer, buffer_size, /*take_buffer_ownership=*/false);
+  const char* error = nullptr;
+  kernel::Program* program =
+      kernel::Program::ReadFromBuffer(buffer, buffer_size, &error);
+  if (program == nullptr) {
+    return Api::NewError("Can't load Kernel binary: %s.", error);
+  }
   const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
   delete program;
 
@@ -5681,8 +5685,12 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
   CHECK_CALLBACK_STATE(T);
   CHECK_COMPILATION_ALLOWED(I);
 
-  kernel::Program* program = kernel::Program::ReadFromBuffer(
-      buffer, buffer_size, false /* take_buffer_ownership */);
+  const char* error = nullptr;
+  kernel::Program* program =
+      kernel::Program::ReadFromBuffer(buffer, buffer_size, &error);
+  if (program == nullptr) {
+    return Api::NewError("Can't load Kernel binary: %s.", error);
+  }
   const Object& result =
       kernel::KernelLoader::LoadEntireProgram(program, false);
   delete program;
@@ -6067,7 +6075,9 @@ Dart_CompileSourcesToKernel(const char* script_uri,
                             int source_files_count,
                             Dart_SourceFile sources[],
                             bool incremental_compile,
-                            const char* package_config) {
+                            const char* package_config,
+                            const char* multiroot_filepaths,
+                            const char* multiroot_scheme) {
   Dart_KernelCompilationResult result;
 #if defined(DART_PRECOMPILED_RUNTIME)
   result.status = Dart_KernelCompilationStatus_Unknown;
@@ -6075,7 +6085,8 @@ Dart_CompileSourcesToKernel(const char* script_uri,
 #else
   result = KernelIsolate::CompileToKernel(
       script_uri, platform_kernel, platform_kernel_size, source_files_count,
-      sources, incremental_compile, package_config);
+      sources, incremental_compile, package_config, multiroot_filepaths,
+      multiroot_scheme);
   if (result.status == Dart_KernelCompilationStatus_Ok) {
     if (KernelIsolate::AcceptCompilation().status !=
         Dart_KernelCompilationStatus_Ok) {

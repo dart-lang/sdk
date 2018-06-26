@@ -29,6 +29,11 @@ dart_action("dart2js_create_snapshot_entry") {
     ":runtime_lib_files_stamp",
   ]
 
+  # dart_action() needs kernel service snapshot to run in Dart 2 mode.
+  # This can't be added as a dependency to dart_action() itself as it will
+  # create a circular dependency.
+  deps += [ "../../utils/kernel-service:copy_kernel_service_snapshot" ]
+
   output_dir = rebase_path(target_gen_dir)
 
   script = "create_snapshot_entry.dart"

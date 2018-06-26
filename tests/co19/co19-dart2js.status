@@ -7044,13 +7044,28 @@ Language/Statements/Continue/async_loops_t10: Timeout
 Language/Types/Type_Void/syntax_t09: MissingCompileTimeError
 LayoutTests/fast/canvas/gradient-addColorStop-with-invalid-color_t01: Pass, RuntimeError
 LayoutTests/fast/canvas/rgba-parsing_t01: Pass, RuntimeError
+LayoutTests/fast/files/blob-parts-slice-test_t01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+LayoutTests/fast/files/blob-slice-overflow_t01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+LayoutTests/fast/files/blob-slice-test_t01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+LibTest/core/Duration/Duration_A01_t01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+LibTest/core/Duration/Duration_A02_t01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+LibTest/core/Duration/inDays_A01_t01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+LibTest/core/Duration/inHours_A01_t01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+LibTest/core/Duration/inMilliseconds_A01_t01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+LibTest/core/Duration/inMinutes_A01_t01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+LibTest/core/Duration/inSeconds_A01_t01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 LibTest/core/Invocation/namedArguments_A01_t01: RuntimeError
 LibTest/core/double/isInfinite_A01_t03: CompileTimeError # Larger than 64 bit int
+LibTest/core/double/operator_GE_A01_t02: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+LibTest/core/double/operator_GT_A01_t02: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+LibTest/core/double/operator_LE_A01_t02: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+LibTest/core/double/operator_LT_A01_t02: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 LibTest/core/int/abs_A01_t01: CompileTimeError # Larger than 64 bit int
 LibTest/core/int/ceilToDouble_A01_t01: CompileTimeError # Larger than 64 bit int
 LibTest/core/int/ceil_A01_t01: CompileTimeError # Larger than 64 bit int
 LibTest/core/int/floorToDouble_A01_t01: CompileTimeError # Larger than 64 bit int
 LibTest/core/int/floor_A01_t01: CompileTimeError # Larger than 64 bit int
+LibTest/core/int/hashCode_A01_t01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 LibTest/core/int/isInfinite_A01_t01: CompileTimeError # Larger than 64 bit int
 LibTest/core/int/isNaN_A01_t01: CompileTimeError # Larger than 64 bit int
 LibTest/core/int/isNegative_A01_t01: CompileTimeError # Larger than 64 bit int

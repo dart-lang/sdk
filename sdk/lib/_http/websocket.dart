@@ -55,50 +55,38 @@ abstract class WebSocketStatus {
  * the options of WebSocket compression.
  */
 class CompressionOptions {
-  /**
-   * Default WebSocket Compression options.
-   * Compression will be enabled with the following options:
-   * clientNoContextTakeover: false
-   * serverNoContextTakeover: false
-   * clientMaxWindowBits: 15
-   * serverMaxWindowBits: 15
-   */
+  /// Default WebSocket Compression options.
+  ///
+  /// Compression will be enabled with the following options:
+  ///
+  /// * `clientNoContextTakeover`: false
+  /// * `serverNoContextTakeover`: false
+  /// * `clientMaxWindowBits`: 15
+  /// * `serverMaxWindowBits`: 15
   static const CompressionOptions compressionDefault =
       const CompressionOptions();
   @Deprecated("Use compressionDefault instead")
   static const CompressionOptions DEFAULT = compressionDefault;
 
-  /**
-   * Disables WebSocket Compression.
-   */
+  /// Disables WebSocket Compression.
   static const CompressionOptions compressionOff =
       const CompressionOptions(enabled: false);
   @Deprecated("Use compressionOff instead")
   static const CompressionOptions OFF = compressionOff;
 
-  /**
-   * Control whether the client will reuse it's compression instances.
-   */
+  /// Controls whether the client will reuse its compression instances.
   final bool clientNoContextTakeover;
 
-  /**
-   * Control whether the server will reuse it's compression instances.
-   */
+  /// Controls whether the server will reuse its compression instances.
   final bool serverNoContextTakeover;
 
-  /**
-   * Sets the Max Window Bits for the Client.
-   */
+  /// Determines the max window bits for the client.
   final int clientMaxWindowBits;
 
-  /**
-   * Sets the Max Window Bits for the Server.
-   */
+  /// Determines the max window bits for the server.
   final int serverMaxWindowBits;
 
-  /**
-   * Enables or disables WebSocket compression.
-   */
+  /// Enables or disables WebSocket compression.
   final bool enabled;
 
   const CompressionOptions(
@@ -109,10 +97,12 @@ class CompressionOptions {
       this.enabled: true});
 
   /// Parses list of requested server headers to return server compression
-  /// response headers. Uses [serverMaxWindowBits] value if set, otherwise will
-  /// attempt to use value from headers. Defaults to
-  /// [WebSocket.DEFAULT_WINDOW_BITS]. Returns a [_CompressionMaxWindowBits]
-  /// object which contains the response headers and negotiated max window bits.
+  /// response headers.
+  ///
+  /// Uses [serverMaxWindowBits] value if set, otherwise will attempt to use
+  /// value from headers. Defaults to [WebSocket.DEFAULT_WINDOW_BITS]. Returns a
+  /// [_CompressionMaxWindowBits] object which contains the response headers and
+  /// negotiated max window bits.
   _CompressionMaxWindowBits _createServerResponseHeader(HeaderValue requested) {
     var info = new _CompressionMaxWindowBits();
 
@@ -161,14 +151,16 @@ class CompressionOptions {
     return info;
   }
 
-  /// Create a Compression Header. If [requested] is null or contains
-  /// client request headers, returns Client compression request headers with
-  /// default settings for `client_max_window_bits` header value.
-  /// If [requested] contains server response headers this method returns
-  /// a Server compression response header negotiating the max window bits
-  /// for both client and server as requested server_max_window_bits value.
-  /// This method returns a [_CompressionMaxWindowBits] object with the
-  /// response headers and negotiated maxWindowBits value.
+  /// Create a Compression Header.
+  ///
+  /// If [requested] is null or contains client request headers, returns Client
+  /// compression request headers with default settings for
+  /// `client_max_window_bits` header value.  If [requested] contains server
+  /// response headers this method returns a Server compression response header
+  /// negotiating the max window bits for both client and server as requested
+  /// `server_max_window_bits` value.  This method returns a
+  /// [_CompressionMaxWindowBits] object with the response headers and
+  /// negotiated `maxWindowBits` value.
   _CompressionMaxWindowBits _createHeader([HeaderValue requested]) {
     var info = new _CompressionMaxWindowBits("", 0);
     if (!enabled) {

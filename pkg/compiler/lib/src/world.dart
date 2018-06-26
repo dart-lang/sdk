@@ -23,6 +23,7 @@ import 'js_backend/runtime_types.dart'
 import 'ordered_typeset.dart';
 import 'options.dart';
 import 'types/abstract_value_domain.dart';
+import 'universe/class_hierarchy.dart';
 import 'universe/class_set.dart';
 import 'universe/function_set.dart' show FunctionSet;
 import 'universe/selector.dart' show Selector;
@@ -67,6 +68,8 @@ abstract class JClosedWorld implements World {
   Iterable<ClassEntity> get liveNativeClasses;
 
   Iterable<MemberEntity> get processedMembers;
+
+  ClassHierarchy get classHierarchy;
 
   /// Returns `true` if [cls] is either directly or indirectly instantiated.
   bool isInstantiated(ClassEntity cls);
@@ -171,27 +174,6 @@ abstract class JClosedWorld implements World {
 
   /// Returns an iterable over the common supertypes of the [classes].
   Iterable<ClassEntity> commonSupertypesOf(Iterable<ClassEntity> classes);
-
-  /// Returns an iterable of the classes that are contained in the
-  /// strict subclass/subtype sets of both [cls1] and [cls2].
-  ///
-  /// Classes that are implied by included superclasses/supertypes are not
-  /// returned.
-  ///
-  /// For instance for this hierarchy
-  ///
-  ///     class A {}
-  ///     class B {}
-  ///     class C implements A, B {}
-  ///     class D extends C {}
-  ///
-  /// the query
-  ///
-  ///     commonSubclasses(A, ClassQuery.SUBTYPE, B, ClassQuery.SUBTYPE)
-  ///
-  /// return the set {C} because [D] is implied by [C].
-  Iterable<ClassEntity> commonSubclasses(
-      ClassEntity cls1, ClassQuery query1, ClassEntity cls2, ClassQuery query2);
 
   /// Returns an iterable over the live mixin applications that mixin [cls].
   Iterable<ClassEntity> mixinUsesOf(ClassEntity cls);
@@ -355,19 +337,6 @@ abstract class OpenWorld implements World {
   bool isInheritedInSubtypeOf(MemberEntity member, ClassEntity type);
 }
 
-/// Enum values defining subset of classes included in queries.
-enum ClassQuery {
-  /// Only the class itself is included.
-  EXACT,
-
-  /// The class and all subclasses (transitively) are included.
-  SUBCLASS,
-
-  /// The class and all classes that implement or subclass it (transitively)
-  /// are included.
-  SUBTYPE,
-}
-
 abstract class ClosedWorldBase implements JClosedWorld {
   final ConstantSystem constantSystem;
   final NativeData nativeData;
@@ -404,6 +373,8 @@ abstract class ClosedWorldBase implements JClosedWorld {
 
   final Iterable<MemberEntity> processedMembers;
 
+  final ClassHierarchy classHierarchy;
+
   ClosedWorldBase(
       this.elementEnvironment,
       this.dartTypes,
@@ -425,7 +396,9 @@ abstract class ClosedWorldBase implements JClosedWorld {
       AbstractValueStrategy abstractValueStrategy)
       : this._implementedClasses = implementedClasses,
         this._classHierarchyNodes = classHierarchyNodes,
-        this._classSets = classSets {}
+        this._classSets = classSets,
+        classHierarchy = new ClassHierarchyImpl(
+            commonElements, classHierarchyNodes, classSets) {}
 
   bool checkEntity(covariant Entity element);
 
@@ -665,27 +638,6 @@ abstract class ClosedWorldBase implements JClosedWorld {
     return classSet != null ? classSet.getLubOfInstantiatedSubtypes() : null;
   }
 
-  Set<ClassEntity> _commonContainedClasses(ClassEntity cls1, ClassQuery query1,
-      ClassEntity cls2, ClassQuery query2) {
-    Iterable<ClassEntity> xSubset = _containedSubset(cls1, query1);
-    if (xSubset == null) return null;
-    Iterable<ClassEntity> ySubset = _containedSubset(cls2, query2);
-    if (ySubset == null) return null;
-    return xSubset.toSet().intersection(ySubset.toSet());
-  }
-
-  Iterable<ClassEntity> _containedSubset(ClassEntity cls, ClassQuery query) {
-    switch (query) {
-      case ClassQuery.EXACT:
-        return null;
-      case ClassQuery.SUBCLASS:
-        return strictSubclassesOf(cls);
-      case ClassQuery.SUBTYPE:
-        return strictSubtypesOf(cls);
-    }
-    throw new ArgumentError('Unexpected query: $query.');
-  }
-
   /// Returns `true` if [cls] is mixed into a live class.
   bool isUsedAsMixin(ClassEntity cls) {
     return !mixinUsesOf(cls).isEmpty;
@@ -807,38 +759,6 @@ abstract class ClosedWorldBase implements JClosedWorld {
     }
     commonSupertypes.add(commonElements.objectClass);
     return commonSupertypes;
-  }
-
-  Iterable<ClassEntity> commonSubclasses(ClassEntity cls1, ClassQuery query1,
-      ClassEntity cls2, ClassQuery query2) {
-    // TODO(johnniwinther): Use [ClassSet] to compute this.
-    // Compute the set of classes that are contained in both class subsets.
-    Set<ClassEntity> common =
-        _commonContainedClasses(cls1, query1, cls2, query2);
-    if (common == null || common.isEmpty) return const <ClassEntity>[];
-    // Narrow down the candidates by only looking at common classes
-    // that do not have a superclass or supertype that will be a
-    // better candidate.
-    return common.where((ClassEntity each) {
-      bool containsSuperclass = common.contains(getSuperClass(each));
-      // If the superclass is also a candidate, then we don't want to
-      // deal with this class. If we're only looking for a subclass we
-      // know we don't have to look at the list of interfaces because
-      // they can never be in the common set.
-      if (containsSuperclass ||
-          query1 == ClassQuery.SUBCLASS ||
-          query2 == ClassQuery.SUBCLASS) {
-        return !containsSuperclass;
-      }
-      // Run through the direct supertypes of the class. If the common
-      // set contains the direct supertype of the class, we ignore the
-      // the class because the supertype is a better candidate.
-
-      for (ClassEntity interface in getInterfaces(each)) {
-        if (common.contains(interface)) return false;
-      }
-      return true;
-    });
   }
 
   /// Returns an iterable over the live mixin applications that mixin [cls].
@@ -1037,23 +957,11 @@ abstract class KClosedWorld {
   InterceptorData get interceptorData;
   ElementEnvironment get elementEnvironment;
   CommonElements get commonElements;
+  ClassHierarchy get classHierarchy;
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassEntity cls);
 
-  /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
-  /// of known classes.
-  ///
-  /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [JClosedWorld].
-  ClassHierarchyNode getClassHierarchyNode(ClassEntity cls);
-
-  /// Returns [ClassSet] for [cls] used to model the extends and implements
-  /// relations of known classes.
-  ///
-  /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [JClosedWorld].
-  ClassSet getClassSet(ClassEntity cls);
   Iterable<MemberEntity> get liveInstanceMembers;
   Map<ClassEntity, Set<ClassEntity>> get mixinUses;
   Map<ClassEntity, Set<ClassEntity>> get typesImplementedBySubclasses;
@@ -1065,42 +973,4 @@ abstract class KClosedWorld {
   Iterable<MemberEntity> get processedMembers;
   RuntimeTypesNeed get rtiNeed;
   NoSuchMethodData get noSuchMethodData;
-
-  /// Returns `true` if [x] is a subtype of [y], that is, if [x] implements an
-  /// instance of [y].
-  bool isSubtypeOf(ClassEntity x, ClassEntity y);
-
-  /// Returns an iterable of the classes that are contained in the
-  /// strict subclass/subtype sets of both [cls1] and [cls2].
-  ///
-  /// Classes that are implied by included superclasses/supertypes are not
-  /// returned.
-  ///
-  /// For instance for this hierarchy
-  ///
-  ///     class A {}
-  ///     class B {}
-  ///     class C implements A, B {}
-  ///     class D extends C {}
-  ///
-  /// the query
-  ///
-  ///     commonSubclasses(A, ClassQuery.SUBTYPE, B, ClassQuery.SUBTYPE)
-  ///
-  /// return the set {C} because [D] is implied by [C].
-  Iterable<ClassEntity> commonSubclasses(
-      ClassEntity cls1, ClassQuery query1, ClassEntity cls2, ClassQuery query2);
-
-  /// Returns an iterable over the directly instantiated that implement [cls]
-  /// possibly including [cls] itself, if it is live.
-  Iterable<ClassEntity> subtypesOf(ClassEntity cls);
-
-  /// Returns an iterable over the live classes that extend [cls] including
-  /// [cls] itself.
-  Iterable<ClassEntity> subclassesOf(ClassEntity cls);
-
-  /// Applies [f] to each live class that implements [cls] _not_ including [cls]
-  /// itself.
-  void forEachStrictSubtypeOf(
-      ClassEntity cls, IterationStep f(ClassEntity cls));
 }

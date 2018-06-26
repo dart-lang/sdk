@@ -6,8 +6,6 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS
 {
-  @DomName('SpeechSynthesis.getVoices')
-  @DocsEditable()
   List<SpeechSynthesisVoice> getVoices() {
     List<SpeechSynthesisVoice> voices = _getVoices();
     if (voices.length > 0)

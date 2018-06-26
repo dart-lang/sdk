@@ -2,28 +2,34 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*!omit.class: Class1:needsArgs*/
+/*kernel.class: Class1:needsArgs*/
+/*strong.class: Class1:needsArgs*/
 /*omit.class: Class1:*/
 class Class1<T> {
   /*kernel.element: Class1.:needsSignature*/
-  /*!kernel.element: Class1.:*/
+  /*strong.element: Class1.:*/
+  /*omit.element: Class1.:*/
   Class1();
 
-  /*!omit.element: Class1.method:needsSignature*/
+  /*kernel.element: Class1.method:needsSignature*/
+  /*strong.element: Class1.method:needsSignature*/
   /*omit.element: Class1.method:*/
   T method() => null;
 }
 
 /*kernel.class: Class2:needsArgs*/
-/*!kernel.class: Class2:*/
+/*strong.class: Class2:*/
+/*omit.class: Class2:*/
 class Class2<T> {
   /*kernel.element: Class2.:needsSignature*/
-  /*!kernel.element: Class2.:*/
+  /*strong.element: Class2.:*/
+  /*omit.element: Class2.:*/
   Class2();
 }
 
 /*kernel.element: main:needsSignature*/
-/*!kernel.element: main:*/
+/*strong.element: main:*/
+/*omit.element: main:*/
 main() {
   Class1<int> cls1 = new Class1<int>();
   print(cls1.method.runtimeType.toString());

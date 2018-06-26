@@ -5,10 +5,13 @@
 import 'package:expect/expect.dart';
 import 'package:meta/dart2js.dart';
 
-/*!strong.class: A:needsArgs*/
+/*kernel.class: A:needsArgs*/
 /*strong.class: A:direct,explicit=[A.T],needsArgs*/
+/*omit.class: A:*/
 class A<T> {
-  /*element: A.call:needsSignature*/
+  /*kernel.element: A.call:needsSignature*/
+  /*strong.element: A.call:*/
+  /*omit.element: A.call:*/
   call(T t) {}
 }
 

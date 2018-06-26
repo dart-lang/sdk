@@ -115,6 +115,10 @@ class TypeParameterHelper {
 
   void Finish() { ReadUntilExcluding(kEnd); }
 
+  bool IsGenericCovariantImpl() {
+    return (flags_ & kIsGenericCovariantImpl) != 0;
+  }
+
   TokenPosition position_;
   uint8_t flags_;
   StringIndex name_index_;
@@ -275,6 +279,7 @@ class ProcedureHelper {
     kStart,  // tag.
     kCanonicalName,
     kSourceUriIndex,
+    kStartPosition,
     kPosition,
     kEndPosition,
     kKind,
@@ -329,6 +334,7 @@ class ProcedureHelper {
   }
 
   NameIndex canonical_name_;
+  TokenPosition start_position_;
   TokenPosition position_;
   TokenPosition end_position_;
   Kind kind_;
@@ -357,6 +363,7 @@ class ConstructorHelper {
     kStart,  // tag.
     kCanonicalName,
     kSourceUriIndex,
+    kStartPosition,
     kPosition,
     kEndPosition,
     kFlags,
@@ -390,6 +397,7 @@ class ConstructorHelper {
   bool IsSynthetic() { return (flags_ & kSynthetic) != 0; }
 
   NameIndex canonical_name_;
+  TokenPosition start_position_;
   TokenPosition position_;
   TokenPosition end_position_;
   uint8_t flags_;
@@ -414,6 +422,7 @@ class ClassHelper {
     kStart,  // tag.
     kCanonicalName,
     kSourceUriIndex,
+    kStartPosition,
     kPosition,
     kEndPosition,
     kFlags,
@@ -458,6 +467,7 @@ class ClassHelper {
   }
 
   NameIndex canonical_name_;
+  TokenPosition start_position_;
   TokenPosition position_;
   TokenPosition end_position_;
   StringIndex name_index_;
@@ -808,8 +818,8 @@ class StreamingScopeBuilder {
 
     // Only parameters *not* marked as covariant or generic-covariant-impl will
     // be checked. The rest would be checked in the method itself.
-    // Inverse of kTypeCheckOnlyGenericCovariantImplParameters.
-    kTypeCheckForTearOffOfNonDynamicallyInvokedMethod,
+    // Inverse of kTypeCheckForNonDynamicallyInvokedMethod.
+    kTypeCheckEverythingNotCheckedInNonDynamicallyInvokedMethod,
 
     // No parameters will be checked.
     kTypeCheckForStaticFunction,
@@ -937,8 +947,7 @@ class StreamingConstantEvaluator {
  private:
   bool IsAllowedToEvaluate();
   void EvaluateAsExpression();
-  void EvaluateVariableGet();
-  void EvaluateVariableGet(uint8_t payload);
+  void EvaluateVariableGet(bool is_specialized);
   void EvaluatePropertyGet();
   void EvaluateDirectPropertyGet();
   void EvaluateStaticGet();
@@ -1015,7 +1024,7 @@ class KernelReaderHelper {
   KernelReaderHelper(Zone* zone,
                      TranslationHelper* translation_helper,
                      const Script& script,
-                     const TypedData& data,
+                     const ExternalTypedData& data,
                      intptr_t data_program_offset)
       : zone_(zone),
         translation_helper_(*translation_helper),
@@ -1143,7 +1152,7 @@ class KernelFingerprintHelper : public KernelReaderHelper {
   KernelFingerprintHelper(Zone* zone,
                           TranslationHelper* translation_helper,
                           const Script& script,
-                          const TypedData& data,
+                          const ExternalTypedData& data,
                           intptr_t data_program_offset)
       : KernelReaderHelper(zone,
                            translation_helper,
@@ -1192,7 +1201,7 @@ class KernelFingerprintHelper : public KernelReaderHelper {
 class StreamingFlowGraphBuilder : public KernelReaderHelper {
  public:
   StreamingFlowGraphBuilder(FlowGraphBuilder* flow_graph_builder,
-                            const TypedData& data,
+                            const ExternalTypedData& data,
                             intptr_t data_program_offset)
       : KernelReaderHelper(
             flow_graph_builder->zone_,
@@ -1244,7 +1253,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
                             const Script& script,
                             Zone* zone,
-                            const TypedData& data,
+                            const ExternalTypedData& data,
                             intptr_t data_program_offset,
                             ActiveClass* active_class)
       : KernelReaderHelper(zone,
@@ -1268,7 +1277,9 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
 
   virtual ~StreamingFlowGraphBuilder() {}
 
-  FlowGraph* BuildGraph(intptr_t kernel_offset);
+  bool NeedsDynamicInvocationForwarder(const Function& function);
+
+  FlowGraph* BuildGraph();
 
   void ReportUnexpectedTag(const char* variant, Tag tag) override;
 
@@ -1290,8 +1301,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   // will attach the forwarding stub target reference to the parsed function if
   // it crosses a procedure node for a concrete forwarding stub.
   void ReadUntilFunctionNode(ParsedFunction* set_forwarding_stub = NULL);
-
-  enum DispatchCategory { Interface, ViaThis, Closure, DynamicDispatch };
 
  private:
   void LoadAndSetupTypeParameters(ActiveClass* active_class,
@@ -1315,6 +1324,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildInitializers(const Class& parent_class);
   FlowGraph* BuildGraphOfImplicitClosureFunction(const Function& function);
   FlowGraph* BuildGraphOfFunction(bool constructor);
+  FlowGraph* BuildGraphOfDynamicInvocationForwarder();
   FlowGraph* BuildGraphOfNoSuchMethodForwarder(
       const Function& function,
       bool is_implicit_closure_function,
@@ -1413,15 +1423,23 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                         const InferredTypeMetadata* result_type = NULL);
 
   enum TypeChecksToBuild {
-    kDefaultTypeChecks,
-    kTypeChecksForNoDynamicInvocationsTearOff
+    kCheckAllTypeParameterBounds,
+    kCheckNonCovariantTypeParameterBounds,
+    kCheckCovariantTypeParameterBounds,
   };
 
   // Does not move the cursor.
   Fragment BuildDefaultTypeHandling(const Function& function,
                                     intptr_t type_parameters_offset);
 
-  Fragment BuildArgumentTypeChecks(TypeChecksToBuild mode = kDefaultTypeChecks);
+  struct PushedArguments {
+    intptr_t type_args_len;
+    intptr_t argument_count;
+    Array& argument_names;
+  };
+  Fragment PushAllArguments(PushedArguments* pushed);
+
+  Fragment BuildArgumentTypeChecks(TypeChecksToBuild mode);
 
   Fragment ThrowException(TokenPosition position);
   Fragment BooleanNegate();
@@ -1657,7 +1675,7 @@ class AlternativeReadingScope {
   }
 
   AlternativeReadingScope(Reader* reader,
-                          const TypedData* new_typed_data,
+                          const ExternalTypedData* new_typed_data,
                           intptr_t new_position)
       : reader_(reader),
         saved_size_(reader_->size()),
@@ -1690,7 +1708,7 @@ class AlternativeReadingScope {
   Reader* reader_;
   intptr_t saved_size_;
   const uint8_t* saved_raw_buffer_;
-  const TypedData* saved_typed_data_;
+  const ExternalTypedData* saved_typed_data_;
   intptr_t saved_offset_;
 };
 

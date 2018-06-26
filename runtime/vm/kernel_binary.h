@@ -20,7 +20,7 @@ namespace kernel {
 // package:kernel/binary.md.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-static const uint32_t kBinaryFormatVersion = 7;
+static const uint32_t kBinaryFormatVersion = 8;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -170,7 +170,7 @@ class Reader : public ValueObject {
         size_(size),
         offset_(0) {}
 
-  explicit Reader(const TypedData& typed_data)
+  explicit Reader(const ExternalTypedData& typed_data)
       : thread_(Thread::Current()),
         raw_buffer_(NULL),
         typed_data_(&typed_data),
@@ -330,26 +330,23 @@ class Reader : public ValueObject {
   intptr_t size() const { return size_; }
   void set_size(intptr_t size) { size_ = size; }
 
-  const TypedData* typed_data() const { return typed_data_; }
-  void set_typed_data(const TypedData* typed_data) { typed_data_ = typed_data; }
+  const ExternalTypedData* typed_data() const { return typed_data_; }
+  void set_typed_data(const ExternalTypedData* typed_data) {
+    typed_data_ = typed_data;
+  }
 
   const uint8_t* raw_buffer() const { return raw_buffer_; }
   void set_raw_buffer(const uint8_t* raw_buffer) { raw_buffer_ = raw_buffer; }
 
-  void CopyDataToVMHeap(const TypedData& typed_data,
-                        intptr_t offset,
-                        intptr_t size) {
-    NoSafepointScope no_safepoint(thread_);
-    memmove(typed_data.DataAddr(0), buffer() + offset, size);
+  RawExternalTypedData* ExternalDataFromTo(intptr_t start, intptr_t end) {
+    return ExternalTypedData::New(kExternalTypedDataUint8ArrayCid,
+                                  const_cast<uint8_t*>(buffer() + start),
+                                  end - start, Heap::kOld);
   }
 
-  uint8_t* CopyDataIntoZone(Zone* zone, intptr_t offset, intptr_t length) {
-    uint8_t* buffer_ = zone->Alloc<uint8_t>(length);
-    {
-      NoSafepointScope no_safepoint(thread_);
-      memmove(buffer_, buffer() + offset, length);
-    }
-    return buffer_;
+  const uint8_t* BufferAt(intptr_t offset) {
+    ASSERT((offset >= 0) && (offset < size_));
+    return &buffer()[offset];
   }
 
  private:
@@ -363,7 +360,7 @@ class Reader : public ValueObject {
 
   Thread* thread_;
   const uint8_t* raw_buffer_;
-  const TypedData* typed_data_;
+  const ExternalTypedData* typed_data_;
   intptr_t size_;
   intptr_t offset_;
   TokenPosition max_position_;

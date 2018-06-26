@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*!strong.class: A:needsArgs*/
+/*kernel.class: A:needsArgs*/
 /*strong.class: A:direct,explicit=[A.T],needsArgs*/
+/*omit.class: A:*/
 class A<T> {
-  /*element: A.m:needsSignature*/
+  /*kernel.element: A.m:needsSignature*/
+  /*strong.element: A.m:*/
+  /*omit.element: A.m:*/
   void m(T t) {}
 
   /*element: A.f:*/

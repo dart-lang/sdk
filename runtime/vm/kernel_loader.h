@@ -55,7 +55,7 @@ class Mapping {
 class LibraryIndex {
  public:
   // |kernel_data| is the kernel data for one library alone.
-  explicit LibraryIndex(const TypedData& kernel_data);
+  explicit LibraryIndex(const ExternalTypedData& kernel_data);
 
   intptr_t class_count() const { return class_count_; }
   intptr_t procedure_count() const { return procedure_count_; }
@@ -100,7 +100,7 @@ class ClassIndex {
 
   // |class_offset| is the offset of class' kernel data in |kernel_data|.
   // The size of the class' kernel data is |class_size|.
-  ClassIndex(const TypedData& kernel_data,
+  ClassIndex(const ExternalTypedData& kernel_data,
              intptr_t class_offset,
              intptr_t class_size);
 
@@ -199,10 +199,10 @@ class KernelLoader : public ValueObject {
   friend class BuildingTranslationHelper;
 
   KernelLoader(const Script& script,
-               const TypedData& kernel_data,
+               const ExternalTypedData& kernel_data,
                intptr_t data_program_offset);
 
-  void initialize_fields();
+  void InitializeFields();
   static void index_programs(kernel::Reader* reader,
                              GrowableArray<intptr_t>* subprogram_file_starts);
   void walk_incremental_kernel(BitVector* modified_libs);
@@ -302,7 +302,7 @@ class KernelLoader : public ValueObject {
 
   NameIndex skip_vmservice_library_;
 
-  TypedData& library_kernel_data_;
+  ExternalTypedData& library_kernel_data_;
   KernelProgramInfo& kernel_program_info_;
   BuildingTranslationHelper translation_helper_;
   StreamingFlowGraphBuilder builder_;

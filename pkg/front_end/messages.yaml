@@ -131,6 +131,10 @@ ConstEvalFailedAssertionWithMessage:
   template: "This assertion failed with message: #string"
   analyzerCode: CONST_EVAL_THROWS_EXCEPTION
 
+ConstEvalNonConstantVariableGet:
+  template: "The variable '#string' is not a constant, only constant expressions are allowed."
+  analyzerCode: NON_CONSTANT_VALUE_IN_INITIALIZER
+
 NonAsciiIdentifier:
   template: "The non-ASCII character '#character' (#unicode) can't be used in identifiers, only in strings and comments."
   tip: "Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign)."
@@ -2332,3 +2336,46 @@ InitializeFromDillUnknownProblem:
 MissingExplicitTypeArguments:
   template: "No type arguments provided, #count possible."
   severity: IGNORED
+
+WebLiteralCannotBeRepresentedExactly:
+  template: "The integer literal #string can't be represented exactly in JavaScript."
+  tip: "Try changing the literal to something that can be represented in Javascript. In Javascript #string2 is the nearest value that can be represented exactly."
+  severity: ERROR
+  dart2jsCode: "*fatal*"
+
+BoundIssueViaRawTypeWithNonSimpleBounds:
+  template: "Generic type '#name' can't be used without type arguments in a type variable bound."
+  tip: "Try providing type arguments to '#name' here."
+  severity: ERROR
+  analyzerCode: STRONG_MODE_NOT_INSTANTIATED_BOUND
+  dart2jsCode: "*fatal*"
+  script: >
+    class Hest<X extends Hest<X>> {}
+    class Fisk<Y extends Hest> {}
+
+NonSimpleBoundViaVariable:
+  template: "Bound of this variable references variable '#name' from the same declaration."
+  severity: CONTEXT
+
+BoundIssueViaLoopNonSimplicity:
+  template: "Generic type '#name' can't be used without type arguments in the bounds of its own type variables."
+  tip: "Try providing type arguments to '#name' here."
+  severity: ERROR
+  analyzerCode: STRONG_MODE_NOT_INSTANTIATED_BOUND
+  dart2jsCode: "*fatal*"
+  script: >
+    class Hest<X extends Hest> {}
+
+BoundIssueViaCycleNonSimplicity:
+  template: "Generic type '#name' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through '#name2'."
+  tip: "Try providing type arguments to '#name2' here or to some other raw types in the bounds along the reference chain."
+  severity: ERROR
+  analyzerCode: STRONG_MODE_NOT_INSTANTIATED_BOUND
+  dart2jsCode: "*fatal*"
+  script: >
+    class Hest<X extends Fisk> {}
+    class Fisk<Y extends Hest> {}
+
+NonSimpleBoundViaReference:
+  template: "Bound of this variable references raw type '#name'."
+  severity: CONTEXT

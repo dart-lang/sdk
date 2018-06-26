@@ -42,6 +42,7 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(ExtractNthOutput)                                                          \
   M(BinaryUint32Op)                                                            \
   M(ShiftUint32Op)                                                             \
+  M(SpeculativeShiftUint32Op)                                                  \
   M(UnaryUint32Op)                                                             \
   M(UnboxedIntConverter)
 
@@ -59,6 +60,7 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(Int64ToDouble)                                                             \
   M(BinaryInt64Op)                                                             \
   M(ShiftInt64Op)                                                              \
+  M(SpeculativeShiftInt64Op)                                                   \
   M(UnaryInt64Op)                                                              \
   M(CheckedSmiOp)                                                              \
   M(CheckedSmiComparison)                                                      \
@@ -1275,6 +1277,10 @@ CompileType BinaryUint32OpInstr::ComputeType() const {
 }
 
 CompileType ShiftUint32OpInstr::ComputeType() const {
+  return CompileType::Int();
+}
+
+CompileType SpeculativeShiftUint32OpInstr::ComputeType() const {
   return CompileType::Int();
 }
 

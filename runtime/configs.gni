@@ -206,12 +206,6 @@ template("library_for_all_configs") {
   if (defined(invoker.extra_deps)) {
     extra_deps += invoker.extra_deps
   }
-  not_needed(invoker,
-             [
-               "snapshot_sources",
-               "nosnapshot_sources",
-               "nosnapshot_deps",
-             ])
   foreach(conf, _all_configs) {
     target(invoker.target_type, "${target_name}${conf.suffix}") {
       forward_variables_from(invoker,
@@ -231,11 +225,20 @@ template("library_for_all_configs") {
       }
       deps = configured_deps + extra_deps
       if (conf.snapshot) {
-        if (defined(invoker.snapshot_sources)) {
+        if (defined(snapshot_sources)) {
           sources += snapshot_sources
         }
+        if (defined(nosnapshot_sources)) {
+          not_needed([ "nosnapshot_sources" ])
+        }
+        if (defined(nosnapshot_deps)) {
+          not_needed([ "nosnapshot_deps" ])
+        }
       } else {
-        if (defined(invoker.nosnapshot_sources)) {
+        if (defined(snapshot_sources)) {
+          not_needed([ "snapshot_sources" ])
+        }
+        if (defined(nosnapshot_sources)) {
           sources += nosnapshot_sources
         }
         if (defined(nosnapshot_deps)) {

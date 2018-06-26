@@ -11641,7 +11641,10 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
     implements ElementList<E>, NodeListWrapper {
   final List<Node> _nodeList;
 
-  _FrozenElementList._wrap(this._nodeList);
+  _FrozenElementList._wrap(this._nodeList) {
+    assert(this._nodeList.every((element) => element is E),
+        "Query expects only HTML elements of type $E but found ${this._nodeList.firstWhere((e) => e is! E)}");
+  }
 
   int get length => _nodeList.length;
 
@@ -13958,8 +13961,6 @@ class Element extends Node
   @JSName('removeAttributeNS')
   void _removeAttributeNS(String namespaceURI, String localName) native;
 
-  void requestFullscreen() native;
-
   void requestPointerLock() native;
 
   void scroll([options_OR_x, num y]) {
@@ -14051,6 +14052,21 @@ class Element extends Node
       String nativeScrollBehavior) native;
 
   void setPointerCapture(int pointerId) native;
+
+  @JSName('webkitRequestFullscreen')
+  /**
+   * Displays this element fullscreen.
+   *
+   * ## Other resources
+   *
+   * * [Using the fullscreen
+   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
+   *   tutorial from WebPlatform.org.
+   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
+   */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  void requestFullscreen() native;
 
   // From ChildNode
 
@@ -25674,7 +25690,8 @@ class RtcPeerConnection extends EventTarget {
 
   List<RtcRtpSender> getSenders() native;
 
-  Future getStats() => promiseToFuture<dynamic>(JS("", "#.getStats()", this));
+  Future<RtcStatsReport> getStats() =>
+      promiseToFuture<RtcStatsReport>(JS("", "#.getStats()", this));
 
   void removeStream(MediaStream stream) native;
 
@@ -27346,8 +27363,6 @@ class SpeechRecognitionResult extends Interceptor {
 
 @Native("SpeechSynthesis")
 class SpeechSynthesis extends EventTarget {
-  @DomName('SpeechSynthesis.getVoices')
-  @DocsEditable()
   List<SpeechSynthesisVoice> getVoices() {
     List<SpeechSynthesisVoice> voices = _getVoices();
     if (voices.length > 0) applyExtension('SpeechSynthesisVoice', voices[0]);

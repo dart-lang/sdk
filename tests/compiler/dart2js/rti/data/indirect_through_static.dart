@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*kernel.class: A:*/
-/*!kernel.class: A:implicit=[A]*/
+/*strong.class: A:implicit=[A]*/
+/*omit.class: A:implicit=[A]*/
 abstract class A {}
 
 class B implements A {}
@@ -31,7 +32,8 @@ void setup() {
 }
 
 /*kernel.element: lookup:direct,explicit=[C<lookup.T>]*/
-/*!kernel.element: lookup:direct,explicit=[C<lookup.T>],needsArgs*/
+/*strong.element: lookup:direct,explicit=[C<lookup.T>],needsArgs*/
+/*omit.element: lookup:direct,explicit=[C<lookup.T>],needsArgs*/
 C<T> lookup<T>(String key) {
   final value = map[key];
   if (value != null && value is C<T>) {

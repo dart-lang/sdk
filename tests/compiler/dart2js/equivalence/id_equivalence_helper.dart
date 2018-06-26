@@ -452,6 +452,31 @@ class MemberAnnotations<DataType> {
     }
     return _computedDataForEachFile[file];
   }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('MemberAnnotations(');
+    String comma = '';
+    if (_computedDataForEachFile.isNotEmpty &&
+        (_computedDataForEachFile.length > 1 ||
+            _computedDataForEachFile.values.single.isNotEmpty)) {
+      sb.write('data:{');
+      _computedDataForEachFile.forEach((Uri uri, Map<Id, DataType> data) {
+        sb.write(comma);
+        sb.write('$uri:');
+        sb.write(data);
+        comma = ',';
+      });
+      sb.write('}');
+    }
+    if (globalData.isNotEmpty) {
+      sb.write(comma);
+      sb.write('global:');
+      sb.write(globalData);
+    }
+    sb.write(')');
+    return sb.toString();
+  }
 }
 
 typedef void Callback();
@@ -501,10 +526,12 @@ Future checkTests(
     int end = entities.length * (shardIndex + 1) ~/ shards;
     entities = entities.sublist(start, end);
   }
+  int testCount = 0;
   for (FileSystemEntity entity in entities) {
     String name = entity.uri.pathSegments.last;
     if (args.isNotEmpty && !args.contains(name) && !continued) continue;
     if (shouldContinue) continued = true;
+    testCount++;
     List<String> testOptions = options.toList();
     bool strongModeOnlyTest = false;
     bool trustTypeAnnotations = false;
@@ -652,6 +679,7 @@ Future checkTests(
     }
   }
   Expect.isFalse(hasFailures, 'Errors found.');
+  Expect.isTrue(testCount > 0, "No files were tested.");
 }
 
 final Set<String> userFiles = new Set<String>();

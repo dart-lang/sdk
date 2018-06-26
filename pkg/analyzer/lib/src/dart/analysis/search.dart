@@ -387,7 +387,7 @@ class Search {
         if (index != null) {
           for (AnalysisDriverSubtype subtype in index.subtypes) {
             if (subtype.supertypes.contains(id)) {
-              FileState library = file.isPart ? file.library : file;
+              FileState library = file.library ?? file;
               results.add(new SubtypeResult(
                   library.uriStr,
                   library.uriStr + ';' + file.uriStr + ';' + subtype.name,

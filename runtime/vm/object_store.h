@@ -52,8 +52,11 @@ class ObjectPointerVisitor;
   RW(Type, int32x4_type)                                                       \
   RW(Type, float64x2_type)                                                     \
   RW(Type, string_type)                                                        \
-  RW(TypeArguments, type_argument_string)                                      \
   RW(TypeArguments, type_argument_int)                                         \
+  RW(TypeArguments, type_argument_double)                                      \
+  RW(TypeArguments, type_argument_string)                                      \
+  RW(TypeArguments, type_argument_string_dynamic)                              \
+  RW(TypeArguments, type_argument_string_string)                               \
   RW(Class, compiletime_error_class)                                           \
   RW(Class, pragma_class)                                                      \
   RW(Class, future_class)                                                      \

@@ -157,6 +157,10 @@ class CompilerImpl extends Compiler {
     });
   }
 
+  String _formatMs(int ms) {
+    return (ms / 1000).toStringAsFixed(3) + 's';
+  }
+
   void computeTimings(Duration setupDuration, StringBuffer timings) {
     timings.writeln("Timings:");
     Duration totalDuration = measurer.wallClock.elapsed;
@@ -167,13 +171,13 @@ class CompilerImpl extends Compiler {
       Duration duration = task.duration;
       if (duration != Duration.zero) {
         cumulatedDuration += duration;
-        timings.writeln('    $running${task.name} took'
-            ' ${duration.inMilliseconds}msec');
+        timings.writeln('    $running${task.name}:'
+            ' ${_formatMs(duration.inMilliseconds)}');
         for (String subtask in task.subtasks) {
           int subtime = task.getSubtaskTime(subtask);
           String running = task.getSubtaskIsRunning(subtask) ? "*" : "";
           timings.writeln(
-              '    $running${task.name} > $subtask took ${subtime}msec');
+              '    $running${task.name} > $subtask: ${_formatMs(subtime)}');
         }
       }
     }
@@ -181,10 +185,11 @@ class CompilerImpl extends Compiler {
         totalDuration - cumulatedDuration - setupDuration - asyncDuration;
     double percent =
         unaccountedDuration.inMilliseconds * 100 / totalDuration.inMilliseconds;
-    timings.write('    Total compile-time ${totalDuration.inMilliseconds}msec;'
-        ' setup ${setupDuration.inMilliseconds}msec;'
-        ' async ${asyncDuration.inMilliseconds}msec;'
-        ' unaccounted ${unaccountedDuration.inMilliseconds}msec'
+    timings.write(
+        '    Total compile-time ${_formatMs(totalDuration.inMilliseconds)};'
+        ' setup ${_formatMs(setupDuration.inMilliseconds)};'
+        ' async ${_formatMs(asyncDuration.inMilliseconds)};'
+        ' unaccounted ${_formatMs(unaccountedDuration.inMilliseconds)}'
         ' (${percent.toStringAsFixed(2)}%)');
   }
 

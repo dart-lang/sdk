@@ -91,7 +91,8 @@ class TestCompiler extends apiimpl.CompilerImpl {
           break;
         case 'NoSuchMethodError':
           onTest(testMarker, testType);
-          null.foo;
+          dynamic n;
+          n.foo;
           break;
         case '':
           onTest(testMarker, testType);
@@ -209,7 +210,8 @@ void main() {
 
   entry.enableWriteString = false;
 
-  Map _expectedExitCode({bool beforeRun: false, bool fatalWarnings: false}) {
+  Map<String, int> _expectedExitCode(
+      {bool beforeRun: false, bool fatalWarnings: false}) {
     if (beforeRun) {
       return {
         '': 0,

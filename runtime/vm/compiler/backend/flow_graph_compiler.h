@@ -240,6 +240,42 @@ class TemplateSlowPathCode : public SlowPathCode {
   }
 };
 
+#if !defined(TARGET_ARCH_DBC)
+
+// Slow path code which calls runtime entry to throw an exception.
+class ThrowErrorSlowPathCode : public TemplateSlowPathCode<Instruction> {
+ public:
+  ThrowErrorSlowPathCode(Instruction* instruction,
+                         const RuntimeEntry& runtime_entry,
+                         intptr_t num_args,
+                         intptr_t try_index)
+      : TemplateSlowPathCode(instruction),
+        runtime_entry_(runtime_entry),
+        num_args_(num_args),
+        try_index_(try_index) {}
+
+  // This name appears in disassembly.
+  virtual const char* name() = 0;
+
+  // Subclasses can override these methods to customize slow path code.
+  virtual void EmitCodeAtSlowPathEntry(FlowGraphCompiler* compiler) {}
+  virtual void AddMetadataForRuntimeCall(FlowGraphCompiler* compiler) {}
+
+  virtual void EmitSharedStubCall(Assembler* assembler,
+                                  bool save_fpu_registers) {
+    UNREACHABLE();
+  }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
+ private:
+  const RuntimeEntry& runtime_entry_;
+  const intptr_t num_args_;
+  const intptr_t try_index_;
+};
+
+#endif  // !defined(TARGET_ARCH_DBC)
+
 class FlowGraphCompiler : public ValueObject {
  private:
   class BlockInfo : public ZoneAllocated {
@@ -583,10 +619,8 @@ class FlowGraphCompiler : public ValueObject {
                     TokenPosition token_pos,
                     intptr_t null_check_name_idx);
 
-  // 'environment' is required if 'using_shared_stub'.
   void RecordSafepoint(LocationSummary* locs,
-                       intptr_t slow_path_argument_count = 0,
-                       Environment* env = NULL);
+                       intptr_t slow_path_argument_count = 0);
 
   Label* AddDeoptStub(intptr_t deopt_id,
                       ICData::DeoptReasonId reason,

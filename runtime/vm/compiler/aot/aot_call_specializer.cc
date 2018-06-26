@@ -605,6 +605,20 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
         break;
       }
 
+      case Token::kSHL:
+      case Token::kSHR: {
+        Value* left_value = instr->PushArgumentAt(receiver_index)->value();
+        Value* right_value = instr->PushArgumentAt(receiver_index + 1)->value();
+        CompileType* right_type = right_value->Type();
+        if (right_type->IsNullableInt()) {
+          left_value = PrepareReceiverOfDevirtualizedCall(left_value, kMintCid);
+          right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
+          replacement = new (Z) ShiftInt64OpInstr(
+              op_kind, left_value, right_value, Thread::kNoDeoptId);
+        }
+        break;
+      }
+
       default:
         break;
     }

@@ -217,6 +217,7 @@ class ActiveClass {
            function_kind == RawFunction::kGetterFunction ||
            function_kind == RawFunction::kSetterFunction ||
            function_kind == RawFunction::kMethodExtractor ||
+           function_kind == RawFunction::kDynamicInvocationForwarder ||
            member->IsFactory();
   }
 
@@ -327,17 +328,17 @@ class TranslationHelper {
   const TypedData& string_offsets() { return string_offsets_; }
   void SetStringOffsets(const TypedData& string_offsets);
 
-  const TypedData& string_data() { return string_data_; }
-  void SetStringData(const TypedData& string_data);
+  const ExternalTypedData& string_data() { return string_data_; }
+  void SetStringData(const ExternalTypedData& string_data);
 
   const TypedData& canonical_names() { return canonical_names_; }
   void SetCanonicalNames(const TypedData& canonical_names);
 
-  const TypedData& metadata_payloads() { return metadata_payloads_; }
-  void SetMetadataPayloads(const TypedData& metadata_payloads);
+  const ExternalTypedData& metadata_payloads() { return metadata_payloads_; }
+  void SetMetadataPayloads(const ExternalTypedData& metadata_payloads);
 
-  const TypedData& metadata_mappings() { return metadata_mappings_; }
-  void SetMetadataMappings(const TypedData& metadata_mappings);
+  const ExternalTypedData& metadata_mappings() { return metadata_mappings_; }
+  void SetMetadataMappings(const ExternalTypedData& metadata_mappings);
 
   const Array& constants() { return constants_; }
   void SetConstants(const Array& constants);
@@ -466,10 +467,10 @@ class TranslationHelper {
   Heap::Space allocation_space_;
 
   TypedData& string_offsets_;
-  TypedData& string_data_;
+  ExternalTypedData& string_data_;
   TypedData& canonical_names_;
-  TypedData& metadata_payloads_;
-  TypedData& metadata_mappings_;
+  ExternalTypedData& metadata_payloads_;
+  ExternalTypedData& metadata_mappings_;
   Array& constants_;
 };
 
@@ -704,6 +705,12 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   virtual ~FlowGraphBuilder();
 
   FlowGraph* BuildGraph();
+
+  // Returns true if the given function needs dynamic invocation forwarder:
+  // that is if any of the arguments require checking on the dynamic
+  // call-site: if function has no parameters or has only covariant parameters
+  // as such function already checks all of its parameters.
+  static bool NeedsDynamicInvocationForwarder(const Function& function);
 
  private:
   BlockEntryInstr* BuildPrologue(TargetEntryInstr* normal_entry,

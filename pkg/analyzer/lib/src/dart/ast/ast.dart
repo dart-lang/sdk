@@ -6747,13 +6747,12 @@ class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
     if (int.parse(lexeme.substring(index, index + 1)) < 9) {
       return true;
     }
-    int bound;
+    int bound = 223372036854775808;
     if (isNegative) {
-      bound = 223372036854775808;
+      return int.parse(lexeme.substring(index + 1)) <= bound;
     } else {
-      bound = 223372036854775807;
+      return int.parse(lexeme.substring(index + 1)) < bound;
     }
-    return int.parse(lexeme.substring(index + 1)) <= bound;
   }
 
   /**

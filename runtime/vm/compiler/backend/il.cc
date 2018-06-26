@@ -1569,8 +1569,8 @@ bool BinarySmiOpInstr::ComputeCanDeoptimize() const {
   }
 }
 
-bool ShiftInt64OpInstr::IsShiftCountInRange() const {
-  return RangeUtils::IsWithin(shift_range(), 0, kMintShiftCountLimit);
+bool ShiftIntegerOpInstr::IsShiftCountInRange(int64_t max) const {
+  return RangeUtils::IsWithin(shift_range(), 0, max);
 }
 
 bool BinaryIntegerOpInstr::RightIsPowerOfTwoConstant() const {
@@ -1780,14 +1780,16 @@ UnaryIntegerOpInstr* UnaryIntegerOpInstr::Make(Representation representation,
   return op;
 }
 
-BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(Representation representation,
-                                                 Token::Kind op_kind,
-                                                 Value* left,
-                                                 Value* right,
-                                                 intptr_t deopt_id,
-                                                 bool can_overflow,
-                                                 bool is_truncating,
-                                                 Range* range) {
+BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
+    Representation representation,
+    Token::Kind op_kind,
+    Value* left,
+    Value* right,
+    intptr_t deopt_id,
+    bool can_overflow,
+    bool is_truncating,
+    Range* range,
+    SpeculativeMode speculative_mode) {
   BinaryIntegerOpInstr* op = NULL;
   switch (representation) {
     case kTagged:
@@ -1801,14 +1803,23 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(Representation representation,
       break;
     case kUnboxedUint32:
       if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
-        op = new ShiftUint32OpInstr(op_kind, left, right, deopt_id);
+        if (speculative_mode == kNotSpeculative) {
+          op = new ShiftUint32OpInstr(op_kind, left, right, deopt_id);
+        } else {
+          op =
+              new SpeculativeShiftUint32OpInstr(op_kind, left, right, deopt_id);
+        }
       } else {
         op = new BinaryUint32OpInstr(op_kind, left, right, deopt_id);
       }
       break;
     case kUnboxedInt64:
       if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
-        op = new ShiftInt64OpInstr(op_kind, left, right, deopt_id);
+        if (speculative_mode == kNotSpeculative) {
+          op = new ShiftInt64OpInstr(op_kind, left, right, deopt_id);
+        } else {
+          op = new SpeculativeShiftInt64OpInstr(op_kind, left, right, deopt_id);
+        }
       } else {
         op = new BinaryInt64OpInstr(op_kind, left, right, deopt_id);
       }
@@ -1884,7 +1895,12 @@ RawInteger* UnaryIntegerOpInstr::Evaluate(const Integer& value) const {
       // specialized instructions that use this value under this assumption.
       return Integer::null();
     }
-    result ^= result.CheckAndCanonicalize(thread, NULL);
+
+    const char* error_str = NULL;
+    result ^= result.CheckAndCanonicalize(thread, &error_str);
+    if (error_str != NULL) {
+      FATAL1("Failed to canonicalize: %s", error_str);
+    }
   }
 
   return result.raw();
@@ -1941,7 +1957,11 @@ RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
       // specialized instructions that use this value under this assumption.
       return Integer::null();
     }
-    result ^= result.CheckAndCanonicalize(thread, NULL);
+    const char* error_str = NULL;
+    result ^= result.CheckAndCanonicalize(thread, &error_str);
+    if (error_str != NULL) {
+      FATAL1("Failed to canonicalize: %s", error_str);
+    }
   }
 
   return result.raw();
@@ -2085,7 +2105,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
         BinaryIntegerOpInstr* shift = BinaryIntegerOpInstr::Make(
             representation(), Token::kSHL, left()->CopyWithType(),
             new Value(constant_1), GetDeoptId(), can_overflow(),
-            is_truncating(), range());
+            is_truncating(), range(), speculative_mode());
         if (shift != NULL) {
           flow_graph->InsertBefore(this, shift, env(), FlowGraph::kValue);
           return shift;
@@ -3122,24 +3142,43 @@ CallTargets* CallTargets::CreateAndExpand(Zone* zone, const ICData& ic_data) {
       }
     }
   }
+
   // Spread class-ids to following classes where a lookup yields the same
   // method.
+  const intptr_t max_cid = Isolate::Current()->class_table()->NumCids();
   for (int idx = 0; idx < length; idx++) {
     int upper_limit_cid =
-        (idx == length - 1) ? 1000000000 : targets[idx + 1].cid_start;
+        (idx == length - 1) ? max_cid : targets[idx + 1].cid_start;
     const Function& target = *targets.TargetAt(idx)->target;
     if (MethodRecognizer::PolymorphicTarget(target)) continue;
+    // The code below makes attempt to avoid spreading class-id range
+    // into a suffix that consists purely of abstract classes to
+    // shorten the range.
+    // However such spreading is beneficial when it allows to
+    // merge to consequtive ranges.
+    intptr_t cid_end_including_abstract = targets[idx].cid_end;
     for (int i = targets[idx].cid_end + 1; i < upper_limit_cid; i++) {
       bool class_is_abstract = false;
       if (FlowGraphCompiler::LookupMethodFor(i, name, args_desc, &fn,
                                              &class_is_abstract) &&
           fn.raw() == target.raw()) {
+        cid_end_including_abstract = i;
         if (!class_is_abstract) {
           targets[idx].cid_end = i;
         }
       } else {
         break;
       }
+    }
+
+    // Check if we have a suffix that consists of abstract classes
+    // and expand into it if that would allow us to merge this
+    // range with subsequent range.
+    if ((cid_end_including_abstract > targets[idx].cid_end) &&
+        (idx < length - 1) &&
+        ((cid_end_including_abstract + 1) == targets[idx + 1].cid_start) &&
+        (target.raw() == targets.TargetAt(idx + 1)->target->raw())) {
+      targets[idx].cid_end = cid_end_including_abstract;
     }
   }
   targets.MergeIntoRanges();
@@ -3963,67 +4002,6 @@ LocationSummary* GenericCheckBoundInstr::MakeLocationSummary(Zone* zone,
   locs->set_in(kIndexPos, Location::RequiresRegister());
   return locs;
 }
-
-class ThrowErrorSlowPathCode : public TemplateSlowPathCode<Instruction> {
- public:
-  ThrowErrorSlowPathCode(Instruction* instruction,
-                         const RuntimeEntry& runtime_entry,
-                         intptr_t num_args,
-                         intptr_t try_index)
-      : TemplateSlowPathCode(instruction),
-        runtime_entry_(runtime_entry),
-        num_args_(num_args),
-        try_index_(try_index) {}
-
-  virtual const char* name() = 0;
-
-  virtual void AddMetadataForRuntimeCall(FlowGraphCompiler* compiler) {}
-
-  virtual void EmitSharedStubCall(Assembler* assembler,
-                                  bool save_fpu_registers) {
-    UNREACHABLE();
-  }
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    if (Assembler::EmittingComments()) {
-      __ Comment("slow path %s operation", name());
-    }
-    bool use_shared_stub =
-        instruction()->UseSharedSlowPathStub(compiler->is_optimizing());
-    bool live_fpu_registers =
-        instruction()->locs()->live_registers()->FpuRegisterCount() > 0;
-    ASSERT(!use_shared_stub || num_args_ == 0);
-    __ Bind(entry_label());
-    LocationSummary* locs = instruction()->locs();
-    // Save registers as they are needed for lazy deopt / exception handling.
-    if (!use_shared_stub) {
-      compiler->SaveLiveRegisters(locs);
-    }
-    for (intptr_t i = 0; i < num_args_; ++i) {
-      __ PushRegister(locs->in(i).reg());
-    }
-    if (use_shared_stub) {
-      EmitSharedStubCall(compiler->assembler(), live_fpu_registers);
-    } else {
-      __ CallRuntime(runtime_entry_, num_args_);
-    }
-    compiler->AddDescriptor(
-        RawPcDescriptors::kOther, compiler->assembler()->CodeSize(),
-        instruction()->deopt_id(), instruction()->token_pos(), try_index_);
-    AddMetadataForRuntimeCall(compiler);
-    ASSERT(instruction()->env() != nullptr);
-    compiler->RecordSafepoint(locs, num_args_, instruction()->env());
-    Environment* env =
-        compiler->SlowPathEnvironmentFor(instruction(), num_args_);
-    compiler->EmitCatchEntryState(env, try_index_);
-    __ Breakpoint();
-  }
-
- private:
-  const RuntimeEntry& runtime_entry_;
-  const intptr_t num_args_;
-  const intptr_t try_index_;
-};
 
 class RangeErrorSlowPath : public ThrowErrorSlowPathCode {
  public:

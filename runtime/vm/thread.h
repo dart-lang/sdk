@@ -564,6 +564,16 @@ class Thread : public BaseThread {
   void set_vm_tag(uword tag) { vm_tag_ = tag; }
   static intptr_t vm_tag_offset() { return OFFSET_OF(Thread, vm_tag_); }
 
+  int64_t unboxed_int64_runtime_arg() const {
+    return unboxed_int64_runtime_arg_;
+  }
+  void set_unboxed_int64_runtime_arg(int64_t value) {
+    unboxed_int64_runtime_arg_ = value;
+  }
+  static intptr_t unboxed_int64_runtime_arg_offset() {
+    return OFFSET_OF(Thread, unboxed_int64_runtime_arg_);
+  }
+
   RawGrowableObjectArray* pending_functions();
   void clear_pending_functions();
 
@@ -788,6 +798,12 @@ class Thread : public BaseThread {
   uword vm_tag_;
   TaskKind task_kind_;
   RawStackTrace* async_stack_trace_;
+  // Memory location dedicated for passing unboxed int64 values from
+  // generated code to runtime.
+  // TODO(dartbug.com/33549): Clean this up when unboxed values
+  // could be passed as arguments.
+  int64_t unboxed_int64_runtime_arg_;
+
 // State that is cached in the TLS for fast access in generated code.
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
   type_name member_name;

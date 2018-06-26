@@ -40,10 +40,4 @@ main() {
 class GetErrorsTest_UseCFE extends GetErrorsTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_getErrors() {
-    return super.test_getErrors();
-  }
 }

@@ -4,15 +4,12 @@
 
 part of dart.math;
 
-/**
- * A generator of random bool, int, or double values.
- *
- * The default implementation supplies a stream of
- * pseudo-random bits that are not suitable for cryptographic purposes.
- *
- * Use the Random.secure() constructor for cryptographic
- * purposes.
- */
+/// A generator of random bool, int, or double values.
+///
+/// The default implementation supplies a stream of pseudo-random bits that are
+/// not suitable for cryptographic purposes.
+///
+/// Use the [Random.secure]() constructor for cryptographic purposes.
 abstract class Random {
   /**
    * Creates a random number generator.

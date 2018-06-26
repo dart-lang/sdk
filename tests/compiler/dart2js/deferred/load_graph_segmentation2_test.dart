@@ -38,7 +38,7 @@ void main() {
 // lib1 and lib2 also import lib4 deferred, but lib1 uses lib4.bar1 and lib2
 // uses lib4.bar2.  So two output units should be created for lib4, one for each
 // import.
-const Map MEMORY_SOURCE_FILES = const {
+const Map<String, String> MEMORY_SOURCE_FILES = const {
   "main.dart": """
 import "dart:async";
 

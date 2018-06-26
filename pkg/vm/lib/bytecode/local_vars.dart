@@ -994,4 +994,9 @@ class _Allocator extends RecursiveVisitor<Null> {
   visitTryFinally(TryFinally node) {
     _visit(node, temps: 2);
   }
+
+  @override
+  visitInstantiation(Instantiation node) {
+    _visit(node, temps: 2);
+  }
 }

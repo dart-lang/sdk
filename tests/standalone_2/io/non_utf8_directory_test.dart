@@ -13,76 +13,80 @@ Future main() async {
   var syncDir;
 
   test('Non-UTF8 Directory Listing', () async {
-    Directory.current = await Directory.systemTemp.createTemp();
-    final rawPath = new Uint8List.fromList([182]);
-    asyncDir = new Directory.fromRawPath(rawPath);
-    if (Platform.isMacOS || Platform.isIOS) {
-      try {
-        await asyncDir.create();
-      } on FileSystemException catch (e) {
-        // Macos doesn't support non-UTF-8 paths.
-        return;
-      }
-    } else {
-      await asyncDir.create();
-    }
-    expect(await asyncDir.exists(), isTrue);
-
-    await for (final e in Directory.current.list()) {
-      // FIXME(bkonyi): reenable when rawPath is exposed.
-      /*
-      if (Platform.isWindows) {
-        // Windows replaces invalid characters with � when creating file system
-        // entities.
-        final raw = e.rawPath;
-        expect(raw.sublist(raw.length - 3), [239, 191, 189]);
+    Directory tmp;
+    try {
+      tmp = await Directory.systemTemp
+          .createTemp('non_utf8_directory_test_async');
+      final rawPath = new Uint8List.fromList([182]);
+      asyncDir = new Directory.fromRawPath(rawPath);
+      if (Platform.isMacOS || Platform.isIOS) {
+        try {
+          await asyncDir.create();
+        } on FileSystemException catch (e) {
+          // Macos doesn't support non-UTF-8 paths.
+          await tmp.delete(recursive: true);
+          return;
+        }
       } else {
-        expect(e.rawPath.last, 182);
+        await asyncDir.create();
       }
-      */
+      expect(await asyncDir.exists(), isTrue);
+
+      await for (final e in tmp.list()) {
+        // FIXME(bkonyi): reenable when rawPath is exposed.
+        /*
+        if (Platform.isWindows) {
+          // Windows replaces invalid characters with � when creating file system
+          // entities.
+          final raw = e.rawPath;
+          expect(raw.sublist(raw.length - 3), [239, 191, 189]);
+        } else {
+          expect(e.rawPath.last, 182);
+        }
+        */
+      }
+      await asyncDir.delete(recursive: true);
+    } finally {
+      await tmp.delete(recursive: true);
     }
-    await asyncDir.delete(recursive: true);
   });
 
   test('Non-UTF8 Directory Sync Listing', () {
-    Directory.current = Directory.systemTemp.createTempSync();
-    final rawPath = new Uint8List.fromList([182]);
-    syncDir = new Directory.fromRawPath(rawPath);
+    Directory tmp;
+    try {
+      tmp = Directory.systemTemp.createTempSync('non_utf8_directory_test_sync');
+      final rawPath = new Uint8List.fromList([182]);
+      syncDir = new Directory.fromRawPath(rawPath);
 
-    if (Platform.isMacOS || Platform.isIOS) {
-      try {
-        syncDir.createSync();
-      } on FileSystemException catch (e) {
-        // Macos doesn't support non-UTF-8 paths.
-        return;
-      }
-    } else {
-      syncDir.createSync();
-    }
-    expect(syncDir.existsSync(), isTrue);
-
-    for (final e in Directory.current.listSync()) {
-      // FIXME(bkonyi): reenable when rawPath is exposed.
-      /*
-      if (Platform.isWindows) {
-        // Windows replaces invalid characters with � when creating file system
-        // entities.
-        final raw = e.rawPath;
-        expect(raw.sublist(raw.length - 3), [239, 191, 189]);
+      if (Platform.isMacOS || Platform.isIOS) {
+        try {
+          syncDir.createSync();
+        } on FileSystemException catch (e) {
+          // Macos doesn't support non-UTF-8 paths.
+          tmp.deleteSync(recursive: true);
+          return;
+        }
       } else {
-        expect(e.rawPath.last, 182);
+        syncDir.createSync();
       }
-      */
-    }
-    syncDir.deleteSync(recursive: true);
-  });
+      expect(syncDir.existsSync(), isTrue);
 
-  tearDown(() {
-    if ((asyncDir != null) && asyncDir.existsSync()) {
-      asyncDir.deleteSync(recursive: true);
-    }
-    if ((syncDir != null) && syncDir.existsSync()) {
+      for (final e in tmp.listSync()) {
+        // FIXME(bkonyi): reenable when rawPath is exposed.
+        /*
+        if (Platform.isWindows) {
+          // Windows replaces invalid characters with � when creating file system
+          // entities.
+          final raw = e.rawPath;
+          expect(raw.sublist(raw.length - 3), [239, 191, 189]);
+        } else {
+          expect(e.rawPath.last, 182);
+        }
+        */
+      }
       syncDir.deleteSync(recursive: true);
+    } finally {
+      tmp.deleteSync(recursive: true);
     }
   });
 }

@@ -6,41 +6,50 @@ import "package:expect/expect.dart";
 
 /*class: A:needsArgs*/
 /*kernel.element: A.:needsSignature*/
-/*!kernel.element: A.:*/
+/*strong.element: A.:*/
+/*omit.element: A.:*/
 class A<X, Y, Z> {
   /*kernel.element: A.shift:needsSignature*/
-  /*!kernel.element: A.shift:*/
+  /*strong.element: A.shift:*/
+  /*omit.element: A.shift:*/
   shift() => new A<Z, X, Y>();
 
   /*kernel.element: A.swap:needsSignature*/
-  /*!kernel.element: A.swap:*/
+  /*strong.element: A.swap:*/
+  /*omit.element: A.swap:*/
   swap() => new A<Z, Y, X>();
 
   /*kernel.element: A.first:needsSignature*/
-  /*!kernel.element: A.first:*/
+  /*strong.element: A.first:*/
+  /*omit.element: A.first:*/
   first() => new A<X, X, X>();
 
   /*kernel.element: A.last:needsSignature*/
-  /*!kernel.element: A.last:*/
+  /*strong.element: A.last:*/
+  /*omit.element: A.last:*/
   last() => new A<Z, Z, Z>();
 
   /*kernel.element: A.wrap:needsSignature*/
-  /*!kernel.element: A.wrap:*/
+  /*strong.element: A.wrap:*/
+  /*omit.element: A.wrap:*/
   wrap() => new A<A<X, X, X>, A<Y, Y, Y>, A<Z, Z, Z>>();
 }
 
 /*kernel.element: B.:needsSignature*/
-/*!kernel.element: B.:*/
+/*strong.element: B.:*/
+/*omit.element: B.:*/
 class B extends A<U, V, W> {}
 
 /*class: C:needsArgs*/
 /*kernel.element: C.:needsSignature*/
-/*!kernel.element: C.:*/
+/*strong.element: C.:*/
+/*omit.element: C.:*/
 class C<T> extends A<U, T, W> {}
 
 /*class: D:needsArgs*/
 /*kernel.element: D.:needsSignature*/
-/*!kernel.element: D.:*/
+/*strong.element: D.:*/
+/*omit.element: D.:*/
 class D<X, Y, Z> extends A<Y, Z, X> {}
 
 class U {}
@@ -50,11 +59,13 @@ class V {}
 class W {}
 
 /*kernel.element: sameType:needsSignature*/
-/*!kernel.element: sameType:*/
+/*strong.element: sameType:*/
+/*omit.element: sameType:*/
 sameType(a, b) => Expect.equals(a.runtimeType, b.runtimeType);
 
 /*kernel.element: main:needsSignature*/
-/*!kernel.element: main:*/
+/*strong.element: main:*/
+/*omit.element: main:*/
 main() {
   A a = new A<U, V, W>();
   sameType(new A<W, U, V>(), a.shift());

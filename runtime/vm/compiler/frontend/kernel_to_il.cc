@@ -162,18 +162,18 @@ TranslationHelper::TranslationHelper(Thread* thread)
       isolate_(thread->isolate()),
       allocation_space_(thread->IsMutatorThread() ? Heap::kNew : Heap::kOld),
       string_offsets_(TypedData::Handle(Z)),
-      string_data_(TypedData::Handle(Z)),
+      string_data_(ExternalTypedData::Handle(Z)),
       canonical_names_(TypedData::Handle(Z)),
-      metadata_payloads_(TypedData::Handle(Z)),
-      metadata_mappings_(TypedData::Handle(Z)),
+      metadata_payloads_(ExternalTypedData::Handle(Z)),
+      metadata_mappings_(ExternalTypedData::Handle(Z)),
       constants_(Array::Handle(Z)) {}
 
 void TranslationHelper::Reset() {
   string_offsets_ = TypedData::null();
-  string_data_ = TypedData::null();
+  string_data_ = ExternalTypedData::null();
   canonical_names_ = TypedData::null();
-  metadata_payloads_ = TypedData::null();
-  metadata_mappings_ = TypedData::null();
+  metadata_payloads_ = ExternalTypedData::null();
+  metadata_mappings_ = ExternalTypedData::null();
   constants_ = Array::null();
 }
 
@@ -193,10 +193,10 @@ void TranslationHelper::InitFromScript(const Script& script) {
 void TranslationHelper::InitFromKernelProgramInfo(
     const KernelProgramInfo& info) {
   SetStringOffsets(TypedData::Handle(Z, info.string_offsets()));
-  SetStringData(TypedData::Handle(Z, info.string_data()));
+  SetStringData(ExternalTypedData::Handle(Z, info.string_data()));
   SetCanonicalNames(TypedData::Handle(Z, info.canonical_names()));
-  SetMetadataPayloads(TypedData::Handle(Z, info.metadata_payloads()));
-  SetMetadataMappings(TypedData::Handle(Z, info.metadata_mappings()));
+  SetMetadataPayloads(ExternalTypedData::Handle(Z, info.metadata_payloads()));
+  SetMetadataMappings(ExternalTypedData::Handle(Z, info.metadata_mappings()));
   SetConstants(Array::Handle(Z, info.constants()));
 }
 
@@ -205,7 +205,7 @@ void TranslationHelper::SetStringOffsets(const TypedData& string_offsets) {
   string_offsets_ = string_offsets.raw();
 }
 
-void TranslationHelper::SetStringData(const TypedData& string_data) {
+void TranslationHelper::SetStringData(const ExternalTypedData& string_data) {
   ASSERT(string_data_.IsNull());
   string_data_ = string_data.raw();
 }
@@ -216,13 +216,13 @@ void TranslationHelper::SetCanonicalNames(const TypedData& canonical_names) {
 }
 
 void TranslationHelper::SetMetadataPayloads(
-    const TypedData& metadata_payloads) {
+    const ExternalTypedData& metadata_payloads) {
   ASSERT(metadata_payloads_.IsNull());
   metadata_payloads_ = metadata_payloads.raw();
 }
 
 void TranslationHelper::SetMetadataMappings(
-    const TypedData& metadata_mappings) {
+    const ExternalTypedData& metadata_mappings) {
   ASSERT(metadata_mappings_.IsNull());
   metadata_mappings_ = metadata_mappings.raw();
 }
@@ -253,7 +253,7 @@ uint8_t* TranslationHelper::StringBuffer(StringIndex string_index) const {
   // expression will try to return the address that is one past the backing
   // store of the string_data_ table.  Though this is safe in C++ as long as the
   // address is not dereferenced, it will trigger the assert in
-  // TypedData::DataAddr.
+  // ExternalTypedData::DataAddr.
   ASSERT(Thread::Current()->no_safepoint_scope_depth() > 0);
   return reinterpret_cast<uint8_t*>(string_data_.DataAddr(0)) +
          StringOffset(string_index);
@@ -2061,6 +2061,28 @@ void FlowGraphBuilder::InlineBailout(const char* reason) {
   }
 }
 
+bool FlowGraphBuilder::NeedsDynamicInvocationForwarder(
+    const Function& function) {
+  ASSERT(Isolate::Current()->strong());
+
+  Thread* thread = Thread::Current();
+  Zone* zone_ = thread->zone();
+
+  TranslationHelper helper(thread);
+  Script& script = Script::Handle(Z, function.script());
+  helper.InitFromScript(script);
+
+  const Class& owner_class = Class::Handle(Z, function.Owner());
+  ActiveClass active_class;
+  ActiveClassScope active_class_scope(&active_class, &owner_class);
+
+  StreamingFlowGraphBuilder streaming_flow_graph_builder(
+      &helper, script, Z, ExternalTypedData::Handle(Z, function.KernelData()),
+      function.KernelDataProgramOffset(), &active_class);
+
+  return streaming_flow_graph_builder.NeedsDynamicInvocationForwarder(function);
+}
+
 FlowGraph* FlowGraphBuilder::BuildGraph() {
   const Function& function = parsed_function_->function();
 
@@ -2077,11 +2099,10 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
 #endif
 
   StreamingFlowGraphBuilder streaming_flow_graph_builder(
-      this, TypedData::Handle(Z, function.KernelData()),
+      this, ExternalTypedData::Handle(Z, function.KernelData()),
       function.KernelDataProgramOffset());
   streaming_flow_graph_builder_ = &streaming_flow_graph_builder;
-  FlowGraph* result =
-      streaming_flow_graph_builder_->BuildGraph(function.kernel_offset());
+  FlowGraph* result = streaming_flow_graph_builder_->BuildGraph();
   streaming_flow_graph_builder_ = NULL;
   return result;
 }
@@ -2835,7 +2856,7 @@ RawObject* EvaluateMetadata(const Field& metadata_field) {
 
     StreamingFlowGraphBuilder streaming_flow_graph_builder(
         &helper, Script::Handle(Z, metadata_field.Script()), Z,
-        TypedData::Handle(Z, metadata_field.KernelData()),
+        ExternalTypedData::Handle(Z, metadata_field.KernelData()),
         metadata_field.KernelDataProgramOffset(), &active_class);
     return streaming_flow_graph_builder.EvaluateMetadata(
         metadata_field.kernel_offset());
@@ -2859,7 +2880,7 @@ RawObject* BuildParameterDescriptor(const Function& function) {
 
     StreamingFlowGraphBuilder streaming_flow_graph_builder(
         &helper, Script::Handle(Z, function.script()), Z,
-        TypedData::Handle(Z, function.KernelData()),
+        ExternalTypedData::Handle(Z, function.KernelData()),
         function.KernelDataProgramOffset(), /* active_class = */ NULL);
     return streaming_flow_graph_builder.BuildParameterDescriptor(
         function.kernel_offset());
@@ -2909,7 +2930,7 @@ static RawArray* AsSortedDuplicateFreeArray(GrowableArray<intptr_t>* source) {
 }
 
 static void ProcessTokenPositionsEntry(
-    const TypedData& kernel_data,
+    const ExternalTypedData& kernel_data,
     const Script& script,
     const Script& entry_script,
     intptr_t kernel_offset,
@@ -2945,7 +2966,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
   Library& lib = Library::Handle(Z);
   Object& entry = Object::Handle(Z);
   Script& entry_script = Script::Handle(Z);
-  TypedData& data = TypedData::Handle(Z);
+  ExternalTypedData& data = ExternalTypedData::Handle(Z);
 
   auto& temp_array = Array::Handle(Z);
   auto& temp_field = Field::Handle(Z);
@@ -2955,7 +2976,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
     DictionaryIterator it(lib);
     while (it.HasNext()) {
       entry = it.GetNext();
-      data = TypedData::null();
+      data = ExternalTypedData::null();
       if (entry.IsClass()) {
         const Class& klass = Class::Cast(entry);
         if (klass.script() == interesting_script.raw()) {

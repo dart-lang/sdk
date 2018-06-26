@@ -38,6 +38,16 @@ DEFINE_FLAG(bool,
             suppress_fe_warnings,
             false,
             "Suppress warnings from the FE.");
+DEFINE_FLAG(charp,
+            kernel_multiroot_filepaths,
+            NULL,
+            "Comma-separated list of file paths that should be treated as roots"
+            " by frontend compiler.");
+DEFINE_FLAG(charp,
+            kernel_multiroot_scheme,
+            NULL,
+            "URI scheme that replaces filepaths prefixes specified"
+            " by kernel_multiroot_filepaths option");
 
 const char* KernelIsolate::kName = DART_KERNEL_ISOLATE_NAME;
 
@@ -265,6 +275,9 @@ bool KernelIsolate::Exists() {
 
 void KernelIsolate::SetKernelIsolate(Isolate* isolate) {
   MonitorLocker ml(monitor_);
+  if (isolate != nullptr) {
+    isolate->set_is_kernel_isolate(true);
+  }
   isolate_ = isolate;
 }
 
@@ -478,7 +491,9 @@ class KernelCompilationRequest : public ValueObject {
       int source_files_count,
       Dart_SourceFile source_files[],
       bool incremental_compile,
-      const char* package_config) {
+      const char* package_config,
+      const char* multiroot_filepaths,
+      const char* multiroot_scheme) {
     // Build the [null, send_port, script_uri, platform_kernel,
     // incremental_compile, isolate_id, [files]] message for the Kernel isolate.
     // tag is used to specify which operation the frontend should perform.
@@ -560,6 +575,33 @@ class KernelCompilationRequest : public ValueObject {
       package_config_uri.type = Dart_CObject_kNull;
     }
 
+    Dart_CObject multiroot_filepaths_object;
+    {
+      const char* filepaths = multiroot_filepaths != NULL
+                                  ? multiroot_filepaths
+                                  : FLAG_kernel_multiroot_filepaths;
+      if (filepaths != NULL) {
+        multiroot_filepaths_object.type = Dart_CObject_kString;
+        multiroot_filepaths_object.value.as_string =
+            const_cast<char*>(filepaths);
+      } else {
+        multiroot_filepaths_object.type = Dart_CObject_kNull;
+      }
+    }
+
+    Dart_CObject multiroot_scheme_object;
+    {
+      const char* scheme = multiroot_scheme != NULL
+                               ? multiroot_scheme
+                               : FLAG_kernel_multiroot_scheme;
+      if (scheme != NULL) {
+        multiroot_scheme_object.type = Dart_CObject_kString;
+        multiroot_scheme_object.value.as_string = const_cast<char*>(scheme);
+      } else {
+        multiroot_scheme_object.type = Dart_CObject_kNull;
+      }
+    }
+
     Dart_CObject* message_arr[] = {&tag,
                                    &send_port,
                                    &uri,
@@ -570,7 +612,9 @@ class KernelCompilationRequest : public ValueObject {
                                    &files,
                                    &suppress_warnings,
                                    &dart_sync_async,
-                                   &package_config_uri};
+                                   &package_config_uri,
+                                   &multiroot_filepaths_object,
+                                   &multiroot_scheme_object};
     message.value.as_array.values = message_arr;
     message.value.as_array.length = ARRAY_SIZE(message_arr);
     // Send the message.
@@ -701,7 +745,9 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
     int source_file_count,
     Dart_SourceFile source_files[],
     bool incremental_compile,
-    const char* package_config) {
+    const char* package_config,
+    const char* multiroot_filepaths,
+    const char* multiroot_scheme) {
   // This must be the main script to be loaded. Wait for Kernel isolate
   // to finish initialization.
   Dart_Port kernel_port = WaitForKernelPort();
@@ -716,7 +762,8 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
   return request.SendAndWaitForResponse(kCompileTag, kernel_port, script_uri,
                                         platform_kernel, platform_kernel_size,
                                         source_file_count, source_files,
-                                        incremental_compile, package_config);
+                                        incremental_compile, package_config,
+                                        multiroot_filepaths, multiroot_scheme);
 }
 
 Dart_KernelCompilationResult KernelIsolate::ListDependencies() {
@@ -730,7 +777,8 @@ Dart_KernelCompilationResult KernelIsolate::ListDependencies() {
 
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(kListDependenciesTag, kernel_port, NULL,
-                                        NULL, 0, 0, NULL, false, NULL);
+                                        NULL, 0, 0, NULL, false, NULL, NULL,
+                                        NULL);
 }
 
 Dart_KernelCompilationResult KernelIsolate::AcceptCompilation() {
@@ -746,7 +794,7 @@ Dart_KernelCompilationResult KernelIsolate::AcceptCompilation() {
 
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(kAcceptTag, kernel_port, NULL, NULL, 0,
-                                        0, NULL, true, NULL);
+                                        0, NULL, true, NULL, NULL, NULL);
 }
 
 Dart_KernelCompilationResult KernelIsolate::CompileExpressionToKernel(
@@ -786,7 +834,7 @@ Dart_KernelCompilationResult KernelIsolate::UpdateInMemorySources(
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(kUpdateSourcesTag, kernel_port, NULL,
                                         NULL, 0, source_files_count,
-                                        source_files, true, NULL);
+                                        source_files, true, NULL, NULL, NULL);
 }
 
 void KernelIsolate::NotifyAboutIsolateShutdown(const Isolate* isolate) {

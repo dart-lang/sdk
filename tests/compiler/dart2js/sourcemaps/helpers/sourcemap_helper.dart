@@ -19,6 +19,7 @@ import 'package:compiler/src/js/js_debug.dart';
 import 'package:compiler/src/js/js_source_mapping.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/source_file_provider.dart';
+import 'package:kernel/ast.dart' as ir;
 import '../../memory_compiler.dart';
 import '../../output_collector.dart';
 
@@ -187,7 +188,7 @@ class RecordedSourceInformationProcess {
 /// A wrapper of [JavaScriptSourceInformationStrategy] that records
 /// [RecordedSourceInformationProcess].
 class RecordingSourceInformationStrategy
-    extends JavaScriptSourceInformationStrategy {
+    extends JavaScriptSourceInformationStrategy<ir.Node> {
   final JavaScriptSourceInformationStrategy strategy;
   final Map<RecordedSourceInformationProcess, js.Node> processMap =
       <RecordedSourceInformationProcess, js.Node>{};
@@ -197,7 +198,8 @@ class RecordingSourceInformationStrategy
   RecordingSourceInformationStrategy(this.strategy);
 
   @override
-  SourceInformationBuilder createBuilderForContext(MemberEntity member) {
+  SourceInformationBuilder<ir.Node> createBuilderForContext(
+      MemberEntity member) {
     return strategy.createBuilderForContext(member);
   }
 

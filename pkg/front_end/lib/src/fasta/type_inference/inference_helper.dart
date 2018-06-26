@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart' show FunctionType;
+import 'package:kernel/ast.dart' show Arguments, Expression, FunctionType;
 
 import '../fasta_codes.dart' show LocatedMessage, Message;
 
-abstract class InferenceHelper<Expression, Statement, Arguments> {
+abstract class InferenceHelper {
   Expression wrapInCompileTimeError(Expression expression, Message message);
 
   Expression buildCompileTimeError(Message message, int charOffset, int length,

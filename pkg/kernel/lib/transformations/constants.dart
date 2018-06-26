@@ -413,6 +413,14 @@ class ConstantEvaluator extends RecursiveVisitor {
     }
   }
 
+  Constant runInsideContextIfNoContext(TreeNode node, Constant fun()) {
+    if (contextChain.isEmpty) {
+      return runInsideContext(node, fun);
+    } else {
+      return fun();
+    }
+  }
+
   pushContext(TreeNode contextNode) {
     contextChain.add(contextNode);
   }
@@ -533,11 +541,13 @@ class ConstantEvaluator extends RecursiveVisitor {
 
     // Start building a new instance.
     return withNewInstanceBuilder(klass, typeArguments, () {
-      // "Run" the constructor (and any super constructor calls), which will
-      // initialize the fields of the new instance.
-      handleConstructorInvocation(
-          constructor, typeArguments, positionals, named);
-      return canonicalize(instanceBuilder.buildInstance());
+      return runInsideContextIfNoContext(node, () {
+        // "Run" the constructor (and any super constructor calls), which will
+        // initialize the fields of the new instance.
+        handleConstructorInvocation(
+            constructor, typeArguments, positionals, named);
+        return canonicalize(instanceBuilder.buildInstance());
+      });
     });
   }
 
@@ -901,13 +911,19 @@ class ConstantEvaluator extends RecursiveVisitor {
     // TODO(kustermann): The heuristic of allowing all [VariableGet]s on [Let]
     // variables might allow more than it should.
     final VariableDeclaration variable = node.variable;
-    if (!variable.isConst &&
-        !_isFormalParameter(variable) &&
-        variable.parent is! Let) {
-      throw new Exception('The front-end should ensure we do not encounter a '
-          'variable get of a non-const variable.');
+    if (variable.parent is Let || _isFormalParameter(variable)) {
+      final Constant constant = env.lookupVariable(node.variable);
+      if (constant == null) {
+        errorReporter.nonConstantVariableGet(contextChain, node, variable.name);
+        throw const _AbortCurrentEvaluation();
+      }
+      return constant;
     }
-    return env.lookupVariable(node.variable);
+    if (variable.isConst) {
+      return evaluate(variable.initializer);
+    }
+    throw new Exception('The front-end should ensure we do not encounter a '
+        'variable get of a non-const variable.');
   }
 
   visitStaticGet(StaticGet node) {
@@ -1224,9 +1240,7 @@ class EvaluationEnvironment {
   }
 
   Constant lookupVariable(VariableDeclaration variable) {
-    final Constant value = _variables[variable];
-    assert(value != null);
-    return value;
+    return _variables[variable];
   }
 
   DartType subsituteType(DartType type) {
@@ -1272,6 +1286,8 @@ abstract class ErrorReporter {
   nonConstLiteral(List<TreeNode> context, TreeNode node, String klass);
   duplicateKey(List<TreeNode> context, TreeNode node, Constant key);
   failedAssertion(List<TreeNode> context, TreeNode node, String message);
+  nonConstantVariableGet(
+      List<TreeNode> context, TreeNode node, String variableName);
 }
 
 abstract class ErrorReporterBase implements ErrorReporter {
@@ -1372,6 +1388,15 @@ abstract class ErrorReporterBase implements ErrorReporter {
     report(
         context,
         'The assertion condition evaluated to "false" with message "$message"',
+        node);
+  }
+
+  nonConstantVariableGet(
+      List<TreeNode> context, TreeNode node, String variableName) {
+    report(
+        context,
+        'The variable "$variableName" cannot be used inside a constant '
+        'expression.',
         node);
   }
 }

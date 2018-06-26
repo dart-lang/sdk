@@ -465,7 +465,8 @@ compiler.''',
       }
     }
 
-    if (configuration['no_preview_dart_2'] && configuration['preview_dart_2']) {
+    if (configuration['no_preview_dart_2'] == true &&
+        configuration['preview_dart_2'] == true) {
       _fail('"--no-preview-dart-2" and "--preview-dart-2" specified,');
     }
 

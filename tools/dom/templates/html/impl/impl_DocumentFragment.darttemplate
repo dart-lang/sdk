@@ -58,7 +58,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
     new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
 
-
   String get innerHtml {
     final e = new DivElement();
     e.append(this.clone(true));

@@ -4,7 +4,7 @@
 
 library js_backend.backend.impact_transformer;
 
-import '../universe/class_hierarchy_builder.dart' show ClassHierarchyBuilder;
+import '../universe/class_hierarchy.dart' show ClassHierarchyBuilder;
 
 import '../common.dart';
 import '../common_elements.dart';

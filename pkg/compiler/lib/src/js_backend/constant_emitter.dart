@@ -13,6 +13,7 @@ import '../js/js.dart' show js;
 import '../js_emitter/code_emitter_task.dart';
 import '../options.dart';
 import '../universe/world_builder.dart';
+import 'allocator_analysis.dart' show JAllocatorAnalysis;
 import 'constant_system_javascript.dart';
 import 'js_backend.dart';
 import 'namer.dart';
@@ -40,6 +41,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   final CodegenWorldBuilder _worldBuilder;
   final RuntimeTypesNeed _rtiNeed;
   final RuntimeTypesEncoder _rtiEncoder;
+  final JAllocatorAnalysis _allocatorAnalysis;
   final Namer _namer;
   final CodeEmitterTask _task;
   final _ConstantReferenceGenerator constantReferenceGenerator;
@@ -56,6 +58,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
       this._worldBuilder,
       this._rtiNeed,
       this._rtiEncoder,
+      this._allocatorAnalysis,
       this._namer,
       this._task,
       this.constantReferenceGenerator,
@@ -325,7 +328,9 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
         _emitter.constructorAccess(constant.type.element);
     List<jsAst.Expression> fields = <jsAst.Expression>[];
     _worldBuilder.forEachInstanceField(element, (_, FieldEntity field) {
-      fields.add(constantReferenceGenerator(constant.fields[field]));
+      if (!_allocatorAnalysis.isInitializedInAllocator(field)) {
+        fields.add(constantReferenceGenerator(constant.fields[field]));
+      }
     });
     if (_rtiNeed.classNeedsTypeArguments(constant.type.element)) {
       fields.add(_reifiedTypeArguments(constant, constant.type.typeArguments));

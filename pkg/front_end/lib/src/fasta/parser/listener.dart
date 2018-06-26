@@ -904,20 +904,28 @@ class Listener implements UnescapeErrorListener {
   /// Substructures:
   /// - Metadata
   /// - Name (identifier)
-  void beginTypeVariable(Token name) {}
+  void beginTypeVariable(Token token) {}
 
-  /// Handle the end of a type formal parameter (e.g. "X extends Y").
+  /// Called when [beginTypeVariable] has been called for all of the variables
+  /// in a group, and before [endTypeVariable] has been called for any of the
+  /// variables in that same group.
+  void handleTypeVariablesDefined(Token token, int count) {}
+
+  /// Handle the end of a type formal parameter (e.g. "X extends Y")
+  /// where [index] is the index of the type variable in the list of
+  /// type variables being declared.
+  ///
   /// Substructures:
   /// - Type bound
   ///
   /// See [beginTypeVariable] for additional substructures.
-  void endTypeVariable(Token token, Token extendsOrSuper) {
+  void endTypeVariable(Token token, int index, Token extendsOrSuper) {
     logEvent("TypeVariable");
   }
 
   void beginTypeVariables(Token token) {}
 
-  void endTypeVariables(int count, Token beginToken, Token endToken) {
+  void endTypeVariables(Token beginToken, Token endToken) {
     logEvent("TypeVariables");
   }
 

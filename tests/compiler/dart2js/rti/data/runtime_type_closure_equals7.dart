@@ -5,11 +5,13 @@
 import 'package:expect/expect.dart';
 
 /*kernel.element: method1a:needsSignature*/
-/*!kernel.element: method1a:needsArgs*/
+/*strong.element: method1a:needsArgs*/
+/*omit.element: method1a:needsArgs*/
 T method1a<T>() => null;
 
 /*kernel.element: method1b:needsSignature*/
-/*!kernel.element: method1b:needsArgs*/
+/*strong.element: method1b:needsArgs*/
+/*omit.element: method1b:needsArgs*/
 T method1b<T>() => null;
 
 /*kernel.element: method2:needsSignature*/
@@ -18,15 +20,18 @@ T method1b<T>() => null;
 T method2<T>(T t, String s) => t;
 
 /*kernel.class: Class:needsArgs*/
-/*!kernel.class: Class:*/
+/*strong.class: Class:*/
+/*omit.class: Class:*/
 class Class<T> {
   /*kernel.element: Class.:needsSignature*/
-  /*!kernel.element: Class.:*/
+  /*strong.element: Class.:*/
+  /*omit.element: Class.:*/
   Class();
 }
 
 /*kernel.element: main:needsSignature*/
-/*!kernel.element: main:*/
+/*strong.element: main:*/
+/*omit.element: main:*/
 main() {
   Expect.isTrue(method1a.runtimeType == method1b.runtimeType);
   Expect.isFalse(method1a.runtimeType == method2.runtimeType);

@@ -1,3 +1,18 @@
+## 2.0.0-dev.65.0
+
+### Tool Changes
+
+#### dartfmt
+
+  * Add `--fix` to remove unneeded `new` and `const` keywords, and change `:`
+    to `=` before named parameter default values.
+  * Change formatting rules around static methods to uniformly format code with
+    and without `new` and `const`.
+
+#### Pub
+
+  * Pub no longer supports running with `DART_VM_OPTIONS=--no-preview-dart2`.
+
 ## 2.0.0-dev.64.1
 
 ### Language

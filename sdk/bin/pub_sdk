@@ -42,9 +42,9 @@ fi
 # Run the pub snapshot.
 DART="$BIN_DIR/dart"
 if array_contains "--no-preview-dart-2" "${VM_OPTIONS[@]}"; then
-  SNAPSHOT="$BIN_DIR/snapshots/pub.dart.snapshot"
-  exec "$DART" "${VM_OPTIONS[@]}" "$SNAPSHOT" "$@"
+  echo "Pub no longer supports Dart 1"
+  exit -1
 else
-  SNAPSHOT="$BIN_DIR/snapshots/pub2.dart.snapshot"
+  SNAPSHOT="$BIN_DIR/snapshots/pub.dart.snapshot"
   exec "$DART" "${VM_OPTIONS[@]}" "$SNAPSHOT" "$@"
 fi

@@ -48,8 +48,6 @@ ct_const_test: RuntimeError
 cyclic_type2_test: CompileTimeError
 cyclic_type_test/02: CompileTimeError
 cyclic_type_test/04: CompileTimeError
-cyclic_typedef_test/10: DartkCrash
-cyclic_typedef_test/11: DartkCrash
 deferred_call_empty_before_load_test: RuntimeError
 deferred_load_constants_test/none: RuntimeError
 deferred_not_loaded_check_test: RuntimeError
@@ -141,7 +139,6 @@ override_inheritance_method_test/28: CompileTimeError
 override_inheritance_method_test/29: CompileTimeError
 parser_quirks_test: CompileTimeError
 regress_22443_test: RuntimeError
-regress_23089_test: DartkCrash
 regress_23408_test: CompileTimeError
 regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError
@@ -167,6 +164,7 @@ type_promotion_functions_test/14: CompileTimeError
 type_promotion_functions_test/none: CompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError
 vm/type_cast_vm_test: RuntimeError
+web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $compiler == dartkp ]
 class_cycle_test/02: MissingCompileTimeError
@@ -176,6 +174,7 @@ duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_no_such_method_dispatcher_test: RuntimeError # Issue 31424
+web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $compiler == fasta ]
 assertion_initializer_const_error2_test/cc01: MissingCompileTimeError
@@ -189,6 +188,7 @@ assertion_initializer_const_error2_test/cc08: MissingCompileTimeError
 assertion_initializer_const_error2_test/cc09: MissingCompileTimeError
 assertion_initializer_const_error2_test/cc10: MissingCompileTimeError
 const_cast1_test/02: MissingCompileTimeError
+const_constructor_nonconst_param_test/01: MissingCompileTimeError
 generic_test/01: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e1: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e10: MissingCompileTimeError
@@ -214,6 +214,7 @@ vm/regress_33469_test/01: MissingCompileTimeError
 vm/regress_33469_test/02: MissingCompileTimeError
 vm/regress_33469_test/03: MissingCompileTimeError
 vm/regress_33469_test/04: MissingCompileTimeError
+web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $fasta ]
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue 32014.
@@ -740,8 +741,6 @@ ct_const_test: RuntimeError
 cyclic_type2_test: RuntimeError, CompileTimeError
 cyclic_type_test/02: RuntimeError, CompileTimeError
 cyclic_type_test/04: RuntimeError, CompileTimeError
-cyclic_typedef_test/10: Crash # Issue 32416.
-cyclic_typedef_test/11: Crash # Issue 32416.
 deferred_call_empty_before_load_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
 deferred_load_constants_test/none: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
 deferred_load_library_wrong_args_test/01: Pass # Passes by mistake. KernelVM bug: Deferred loading kernel issue 30273.
@@ -817,7 +816,6 @@ parser_quirks_test: CompileTimeError # Issue 31533
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 regress_22443_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
-regress_23089_test: Crash # Issue 32417.
 regress_23408_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 regress_23408_test: RuntimeError
 regress_29025_test: CompileTimeError # Issue 31402 (Variable declaration)
@@ -848,6 +846,7 @@ void_block_return_test/00: MissingCompileTimeError
 void_type_usage_test/conditional2_return_to_void: MissingCompileTimeError
 void_type_usage_test/conditional3_return_to_void: MissingCompileTimeError
 void_type_usage_test/conditional_return_to_void: MissingCompileTimeError
+web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 wrong_number_type_arguments_test/01: MissingCompileTimeError
 wrong_number_type_arguments_test/none: Pass
 
@@ -905,7 +904,6 @@ vm/type_vm_test/35: MissingRuntimeError
 vm/type_vm_test/36: MissingRuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled ]
-super_no_such_method5_test: RuntimeError # Issue 33517
 type_alias_equality_test/02: RuntimeError # Issue 31359
 type_alias_equality_test/03: RuntimeError # Issue 31359
 type_alias_equality_test/04: RuntimeError # Issue 31359
@@ -1038,8 +1036,6 @@ ct_const_test: RuntimeError
 cyclic_type2_test: Fail, OK
 cyclic_type_test/02: Fail, OK # Non-contractive types are not supported in the vm.
 cyclic_type_test/04: Fail, OK
-cyclic_typedef_test/10: Crash # Issue 32416.
-cyclic_typedef_test/11: Crash # Issue 32416.
 deferred_call_empty_before_load_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_load_constants_test/none: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
 deferred_load_library_wrong_args_test/01: Pass # Passes by mistake. KernelVM bug: Deferred loading kernel issue 30273.
@@ -1168,7 +1164,6 @@ regress_13462_0_test: SkipByDesign
 regress_13462_1_test: SkipByDesign
 regress_18535_test: SkipByDesign
 regress_22443_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
-regress_23089_test: Crash # Issue 32417.
 regress_23408_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 regress_23408_test: RuntimeError
 regress_28255_test: SkipByDesign
@@ -1281,8 +1276,6 @@ config_import_corelib_test: CompileTimeError
 config_import_test: Crash
 const_constructor3_test/04: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
-cyclic_typedef_test/10: Crash
-cyclic_typedef_test/11: Crash
 deferred_load_library_wrong_args_test/01: CompileTimeError
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
@@ -1365,7 +1358,6 @@ override_inheritance_generic_test/02: CompileTimeError
 override_inheritance_method_test/28: CompileTimeError
 override_inheritance_method_test/29: CompileTimeError
 parser_quirks_test: CompileTimeError
-regress_23089_test: Crash
 regress_23408_test: CompileTimeError
 regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError
@@ -1376,9 +1368,6 @@ setter_override_test/03: MissingCompileTimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
-super_operator_index6_test: CompileTimeError # Issue 33498
-super_operator_index7_test: CompileTimeError # Issue 33498
-super_operator_index8_test: CompileTimeError # Issue 33498
 try_catch_test/01: MissingCompileTimeError
 type_promotion_functions_test/02: CompileTimeError
 type_promotion_functions_test/03: CompileTimeError
@@ -1446,7 +1435,10 @@ prefix_transitive_import_prefix_test/02: MissingCompileTimeError
 prefix_transitive_import_prefix_test/03: MissingCompileTimeError
 prefix_transitive_import_test/01: MissingCompileTimeError
 prefix_transitive_import_test/02: MissingCompileTimeError
+regress_23089_test: MissingCompileTimeError
 setter_override2_test/02: MissingCompileTimeError
+super_no_such_method4_test/01: MissingCompileTimeError # Requires Dart 2 semantics. See http://dartbug.com/33380.
+super_no_such_method5_test/01: MissingCompileTimeError # Requires Dart 2 semantics. See http://dartbug.com/33380.
 variable_shadow_class_test/01: MissingCompileTimeError
 
 [ $mode == debug && $runtime == vm && $strong && ($compiler == app_jitk || $compiler == dartk) ]
@@ -2079,7 +2071,6 @@ regress_21912_test/01: MissingCompileTimeError
 regress_21912_test/02: MissingCompileTimeError
 regress_22438_test: MissingCompileTimeError
 regress_22936_test: MissingCompileTimeError
-regress_23089_test: MissingCompileTimeError
 regress_26133_test: MissingCompileTimeError
 regress_27572_test: MissingCompileTimeError
 regress_28217_test/01: MissingCompileTimeError
@@ -2244,10 +2235,6 @@ unresolved_top_level_var_test: MissingCompileTimeError
 *: SkipByDesign # language_2 is only supported in strong mode.
 
 [ ($compiler == app_jitk || $compiler == dartk || $compiler == dartkp) && ($runtime == dart_precompiled || $runtime == vm) ]
-super_no_such_method4_test: RuntimeError # Issue 33517
-super_operator_index6_test: CompileTimeError # Issue 33498
-super_operator_index7_test: CompileTimeError # Issue 33498
-super_operator_index8_test: CompileTimeError # Issue 33498
 type_alias_equality_test/02: RuntimeError # Issue 31359
 type_alias_equality_test/03: RuntimeError # Issue 31359
 type_alias_equality_test/04: RuntimeError # Issue 31359

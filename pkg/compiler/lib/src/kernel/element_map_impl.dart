@@ -43,7 +43,7 @@ import '../options.dart';
 import '../ordered_typeset.dart';
 import '../ssa/kernel_impact.dart';
 import '../ssa/type_builder.dart';
-import '../universe/class_hierarchy_builder.dart';
+import '../universe/class_hierarchy.dart';
 import '../universe/class_set.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
@@ -439,11 +439,20 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     }
     List<DartType> parameterTypes = <DartType>[];
     List<DartType> optionalParameterTypes = <DartType>[];
+
+    DartType getParameterType(ir.VariableDeclaration variable) {
+      if (variable.isCovariant || variable.isGenericCovariantImpl) {
+        // A covariant parameter has type `Object` in the method signature.
+        return commonElements.objectType;
+      }
+      return getDartType(variable.type);
+    }
+
     for (ir.VariableDeclaration variable in node.positionalParameters) {
       if (parameterTypes.length == node.requiredParameterCount) {
-        optionalParameterTypes.add(getDartType(variable.type));
+        optionalParameterTypes.add(getParameterType(variable));
       } else {
-        parameterTypes.add(getDartType(variable.type));
+        parameterTypes.add(getParameterType(variable));
       }
     }
     List<String> namedParameters = <String>[];
@@ -452,7 +461,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
         node.namedParameters.toList()..sort((a, b) => a.name.compareTo(b.name));
     for (ir.VariableDeclaration variable in sortedNamedParameters) {
       namedParameters.add(variable.name);
-      namedParameterTypes.add(getDartType(variable.type));
+      namedParameterTypes.add(getParameterType(variable));
     }
     List<FunctionTypeVariable> typeVariables;
     if (node.typeParameters.isNotEmpty && options.strongMode) {
@@ -2064,9 +2073,6 @@ class KClosedWorldImpl extends ClosedWorldRtiNeedMixin implements KClosedWorld {
 
   final Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses;
 
-  final Map<ClassEntity, ClassHierarchyNode> _classHierarchyNodes;
-  final Map<ClassEntity, ClassSet> _classSets;
-
   // TODO(johnniwinther): Can this be derived from [ClassSet]s?
   final Set<ClassEntity> _implementedClasses;
 
@@ -2079,6 +2085,8 @@ class KClosedWorldImpl extends ClosedWorldRtiNeedMixin implements KClosedWorld {
   final Iterable<ClassEntity> liveNativeClasses;
 
   final Iterable<MemberEntity> processedMembers;
+
+  final ClassHierarchy classHierarchy;
 
   KClosedWorldImpl(this.elementMap,
       {CompilerOptions options,
@@ -2102,160 +2110,14 @@ class KClosedWorldImpl extends ClosedWorldRtiNeedMixin implements KClosedWorld {
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassEntity, ClassSet> classSets})
       : _implementedClasses = implementedClasses,
-        _classHierarchyNodes = classHierarchyNodes,
-        _classSets = classSets {
+        classHierarchy = new ClassHierarchyImpl(
+            commonElements, classHierarchyNodes, classSets) {
     computeRtiNeed(resolutionWorldBuilder, rtiNeedBuilder, options);
   }
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassEntity cls) {
     return _implementedClasses.contains(cls);
-  }
-
-  /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
-  /// of known classes.
-  ///
-  /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [JClosedWorld].
-  ClassHierarchyNode getClassHierarchyNode(ClassEntity cls) {
-    return _classHierarchyNodes[cls];
-  }
-
-  /// Returns [ClassSet] for [cls] used to model the extends and implements
-  /// relations of known classes.
-  ///
-  /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [JClosedWorld].
-  ClassSet getClassSet(ClassEntity cls) {
-    return _classSets[cls];
-  }
-
-  // TODO(johnniwinther): Share the methods based on [ClassSet] and
-  // [ClassHierarchyNode] between KClosedWorld and JClosedWorld.
-  /// Returns `true` if [x] is a subtype of [y], that is, if [x] implements an
-  /// instance of [y].
-  bool isSubtypeOf(ClassEntity x, ClassEntity y) {
-    ClassSet classSet = _classSets[y];
-    assert(classSet != null,
-        failedAt(y, "No ClassSet for $y (${y.runtimeType}): ${_classSets}"));
-    ClassHierarchyNode classHierarchyNode = _classHierarchyNodes[x];
-    assert(classHierarchyNode != null,
-        failedAt(x, "No ClassHierarchyNode for $x"));
-    return classSet.hasSubtype(classHierarchyNode);
-  }
-
-  /// Returns an iterable over the directly instantiated that implement [cls]
-  /// possibly including [cls] itself, if it is live.
-  Iterable<ClassEntity> subtypesOf(ClassEntity cls) {
-    ClassSet classSet = _classSets[cls];
-    if (classSet == null) {
-      return const <ClassEntity>[];
-    } else {
-      return classSet
-          .subtypesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED);
-    }
-  }
-
-  /// Returns an iterable over the directly instantiated classes that extend
-  /// [cls] possibly including [cls] itself, if it is live.
-  Iterable<ClassEntity> subclassesOf(ClassEntity cls) {
-    ClassHierarchyNode hierarchy = _classHierarchyNodes[cls];
-    if (hierarchy == null) return const <ClassEntity>[];
-    return hierarchy
-        .subclassesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED);
-  }
-
-  /// Returns an iterable over the directly instantiated that implement [cls]
-  /// _not_ including [cls].
-  Iterable<ClassEntity> strictSubtypesOf(ClassEntity cls) {
-    ClassSet classSet = _classSets[cls];
-    if (classSet == null) {
-      return const <ClassEntity>[];
-    } else {
-      return classSet.subtypesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
-          strict: true);
-    }
-  }
-
-  Iterable<ClassEntity> getInterfaces(ClassEntity cls) {
-    return elementMap._getInterfaces(cls).map((t) => t.element);
-  }
-
-  ClassEntity getSuperClass(ClassEntity cls) {
-    return elementMap._getSuperType(cls)?.element;
-  }
-
-  /// Returns an iterable over the directly instantiated classes that extend
-  /// [cls] _not_ including [cls] itself.
-  Iterable<ClassEntity> strictSubclassesOf(ClassEntity cls) {
-    ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
-    if (subclasses == null) return const <ClassEntity>[];
-    return subclasses.subclassesByMask(
-        ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
-        strict: true);
-  }
-
-  Set<ClassEntity> _commonContainedClasses(ClassEntity cls1, ClassQuery query1,
-      ClassEntity cls2, ClassQuery query2) {
-    Iterable<ClassEntity> xSubset = _containedSubset(cls1, query1);
-    if (xSubset == null) return null;
-    Iterable<ClassEntity> ySubset = _containedSubset(cls2, query2);
-    if (ySubset == null) return null;
-    return xSubset.toSet().intersection(ySubset.toSet());
-  }
-
-  Iterable<ClassEntity> _containedSubset(ClassEntity cls, ClassQuery query) {
-    switch (query) {
-      case ClassQuery.EXACT:
-        return null;
-      case ClassQuery.SUBCLASS:
-        return strictSubclassesOf(cls);
-      case ClassQuery.SUBTYPE:
-        return strictSubtypesOf(cls);
-    }
-    throw new ArgumentError('Unexpected query: $query.');
-  }
-
-  Iterable<ClassEntity> commonSubclasses(ClassEntity cls1, ClassQuery query1,
-      ClassEntity cls2, ClassQuery query2) {
-    // TODO(johnniwinther): Use [ClassSet] to compute this.
-    // Compute the set of classes that are contained in both class subsets.
-    Set<ClassEntity> common =
-        _commonContainedClasses(cls1, query1, cls2, query2);
-    if (common == null || common.isEmpty) return const <ClassEntity>[];
-    // Narrow down the candidates by only looking at common classes
-    // that do not have a superclass or supertype that will be a
-    // better candidate.
-    return common.where((ClassEntity each) {
-      bool containsSuperclass = common.contains(getSuperClass(each));
-      // If the superclass is also a candidate, then we don't want to
-      // deal with this class. If we're only looking for a subclass we
-      // know we don't have to look at the list of interfaces because
-      // they can never be in the common set.
-      if (containsSuperclass ||
-          query1 == ClassQuery.SUBCLASS ||
-          query2 == ClassQuery.SUBCLASS) {
-        return !containsSuperclass;
-      }
-      // Run through the direct supertypes of the class. If the common
-      // set contains the direct supertype of the class, we ignore the
-      // the class because the supertype is a better candidate.
-
-      for (ClassEntity interface in getInterfaces(each)) {
-        if (common.contains(interface)) return false;
-      }
-      return true;
-    });
-  }
-
-  /// Applies [f] to each live class that implements [cls] _not_ including [cls]
-  /// itself.
-  void forEachStrictSubtypeOf(
-      ClassEntity cls, IterationStep f(ClassEntity cls)) {
-    ClassSet classSet = _classSets[cls];
-    if (classSet == null) return;
-    classSet.forEachSubtype(f, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
-        strict: true);
   }
 }
 

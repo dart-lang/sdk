@@ -537,13 +537,13 @@ class ActiveStats implements Stats {
   }
 
   void recordFrequency(id, value, [example]) {
-    Map<int, List> map = frequencyMaps.putIfAbsent(id, () => {});
+    Map<dynamic, List> map = frequencyMaps.putIfAbsent(id, () => {});
     map.putIfAbsent(value, () => []);
     map[value].add(example);
   }
 
   void recordFrequencies(id, Map<dynamic, Iterable> frequencyMap) {
-    Map<int, List> map = frequencyMaps.putIfAbsent(id, () => {});
+    Map<dynamic, List> map = frequencyMaps.putIfAbsent(id, () => {});
     frequencyMap.forEach((value, examples) {
       map.putIfAbsent(value, () => []);
       map[value].addAll(examples);
@@ -707,7 +707,7 @@ class ActiveStats implements Stats {
       {int limit, Map dataMap, bool includeCount: true}) {
     if (limit == 0) return;
 
-    Map childData = {};
+    Map<String, dynamic> childData = {};
     Iterable nonNullIterable = iterable.where((e) => e != null);
     if (nonNullIterable.isEmpty && !includeCount) {
       childData['name'] = title;
@@ -748,11 +748,11 @@ class ActiveStats implements Stats {
 ///
 /// If [isValidKey] is provided, this is used to determine with a value of [map]
 /// is a potential key of the inversion map.
-Map<dynamic, Set> inverseMap(Map map,
-    {bool equals(key1, key2),
-    int hashCode(key),
-    bool isValidKey(potentialKey)}) {
-  Map<dynamic, Set> result = new LinkedHashMap<dynamic, Set>(
+Map<V, Set<K>> inverseMap<K, V>(Map<K, V> map,
+    {bool equals(V key1, V key2),
+    int hashCode(V key),
+    bool isValidKey(V potentialKey)}) {
+  Map<V, Set<K>> result = new LinkedHashMap<V, Set<K>>(
       equals: equals, hashCode: hashCode, isValidKey: isValidKey);
   map.forEach((k, v) {
     if (isValidKey == null || isValidKey(v)) {
@@ -767,11 +767,11 @@ Map<dynamic, Set> inverseMap(Map map,
 /// the assumption that all keys are [Comparable].
 /// Otherwise, the keys are sorted as string using their `toString`
 /// representation.
-Map trySortMap(Map map) {
-  Iterable iterable = map.keys.where((k) => k != null);
+Map<K, V> trySortMap<K, V>(Map<K, V> map) {
+  Iterable<K> iterable = map.keys.where((K k) => k != null);
   if (iterable.isEmpty) return map;
   var key = iterable.first;
-  if (key is Comparable) {
+  if (key is Comparable<K>) {
     return sortMap(map);
   }
   return sortMap(map, (a, b) => '$a'.compareTo('$b'));
@@ -779,10 +779,10 @@ Map trySortMap(Map map) {
 
 /// Returns a new map in which the keys of [map] are sorted using [compare].
 /// If [compare] is null, the keys must be [Comparable].
-Map sortMap(Map map, [int compare(a, b)]) {
-  List keys = map.keys.toList();
+Map<K, V> sortMap<K, V>(Map<K, V> map, [int compare(K a, K b)]) {
+  List<K> keys = map.keys.toList();
   keys.sort(compare);
-  Map sortedMap = new Map();
-  keys.forEach((k) => sortedMap[k] = map[k]);
+  Map<K, V> sortedMap = new Map<K, V>();
+  keys.forEach((K k) => sortedMap[k] = map[k]);
   return sortedMap;
 }

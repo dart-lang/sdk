@@ -121,22 +121,4 @@ main() {
 class GetSuggestionsTest_UseCFE extends GetSuggestionsTest {
   @override
   bool get useCFE => true;
-
-  @override
-  @failingTest
-  test_getSuggestions() {
-    return super.test_getSuggestions();
-  }
-
-  @override
-  @failingTest
-  test_getSuggestions_onlyOverlay() {
-    return super.test_getSuggestions_onlyOverlay();
-  }
-
-  @override
-  @failingTest
-  test_getSuggestions_onlyOverlay_noWait() {
-    return super.test_getSuggestions_onlyOverlay_noWait();
-  }
 }

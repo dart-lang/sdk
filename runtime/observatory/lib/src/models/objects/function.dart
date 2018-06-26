@@ -23,7 +23,8 @@ enum FunctionKind {
   native,
   stub,
   tag,
-  signatureFunction
+  signatureFunction,
+  dynamicInvocationForwarder
 }
 
 bool isSyntheticFunction(FunctionKind kind) {

@@ -10,7 +10,6 @@ abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # I
 bad_initializer2_negative_test: Fail # Issue 14880
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/dynamic-gen: MissingCompileTimeError # Issue 28813
-cascade_test/none: Fail # Issue 11577
 config_import_corelib_test: StaticWarning, OK
 conflicting_type_variable_and_setter_test: CompileTimeError # Issue 25525
 const_cast2_test/01: CompileTimeError
@@ -34,7 +33,6 @@ final_syntax_test/03: Fail # Issue 11124
 final_syntax_test/04: Fail # Issue 11124
 function_type_parameter2_negative_test: CompileTimeError
 function_type_parameter_negative_test: CompileTimeError
-generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 30929
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 30929
 generic_local_functions_test: CompileTimeError # Issue 28515
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
@@ -237,6 +235,30 @@ void_type_usage_test/paren_literal_map_key_init: MissingCompileTimeError
 void_type_usage_test/paren_literal_map_value_init: MissingCompileTimeError
 void_type_usage_test/paren_return: MissingCompileTimeError
 void_type_usage_test/paren_void_init: MissingCompileTimeError
+web_int_literals_test/01: MissingCompileTimeError
+web_int_literals_test/02: MissingCompileTimeError
+web_int_literals_test/03: MissingCompileTimeError
+web_int_literals_test/10: MissingCompileTimeError
+web_int_literals_test/11: MissingCompileTimeError
+web_int_literals_test/12: MissingCompileTimeError
+web_int_literals_test/13: MissingCompileTimeError
+web_int_literals_test/14: MissingCompileTimeError
+web_int_literals_test/20: MissingCompileTimeError
+web_int_literals_test/21: MissingCompileTimeError
+web_int_literals_test/22: MissingCompileTimeError
+web_int_literals_test/23: MissingCompileTimeError
+web_int_literals_test/24: MissingCompileTimeError
+web_int_literals_test/25: MissingCompileTimeError
+web_int_literals_test/26: MissingCompileTimeError
+web_int_literals_test/27: MissingCompileTimeError
+web_int_literals_test/28: MissingCompileTimeError
+web_int_literals_test/29: MissingCompileTimeError
+web_int_literals_test/61: MissingCompileTimeError
+web_int_literals_test/62: MissingCompileTimeError
+web_int_literals_test/63: MissingCompileTimeError
+web_int_literals_test/64: MissingCompileTimeError
+web_int_literals_test/65: MissingCompileTimeError
+web_int_literals_test/70: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && $runtime == none ]
 error_stacktrace_test/00: MissingCompileTimeError
@@ -1170,6 +1192,8 @@ string_unicode2_negative_test: CompileTimeError
 string_unicode3_negative_test: CompileTimeError
 string_unicode4_negative_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
+super_no_such_method4_test/01: MissingCompileTimeError # Issue 33553
+super_no_such_method5_test/01: MissingCompileTimeError # Issue 33553
 super_setter_test: StaticWarning # Issue 28823
 switch_case_test/none: CompileTimeError
 syntax_test/60: MissingCompileTimeError
@@ -1353,7 +1377,6 @@ generic_constructor_mixin3_test/01: MissingCompileTimeError
 generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_field_mixin6_test/01: MissingCompileTimeError
 generic_function_typedef2_test/04: MissingCompileTimeError
-generic_methods_generic_function_result_test/01: MissingCompileTimeError # Issue #30207
 generic_methods_overriding_test/01: MissingCompileTimeError
 generic_test/01: MissingCompileTimeError
 identical_const_test/01: MissingCompileTimeError
@@ -1628,6 +1651,8 @@ string_no_operator_test/16: MissingCompileTimeError
 string_test/01: MissingCompileTimeError
 substring_test/01: MissingCompileTimeError
 super_assign_test/01: MissingCompileTimeError
+super_no_such_method4_test/01: MissingCompileTimeError # Requires Dart 2 semantics, related to issue 33553.
+super_no_such_method5_test/01: MissingCompileTimeError # Requires Dart 2 semantics, related to issue 33553.
 symbol_literal_test/01: MissingCompileTimeError
 sync_generator1_test/01: MissingCompileTimeError
 syntax_test/59: MissingCompileTimeError

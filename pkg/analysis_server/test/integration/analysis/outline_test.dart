@@ -75,10 +75,4 @@ class Class2 {
 class OutlineTest_UseCFE extends OutlineTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_outline() {
-    return super.test_outline();
-  }
 }

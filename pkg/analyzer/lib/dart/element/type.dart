@@ -4,9 +4,10 @@
 
 /**
  * Defines the type model. The type model is part of the
- * [element model](element.dart) in that most types are defined by Dart code
- * (the types `dynamic` and `void` being the notable exceptions). All types are
- * represented by an instance of a subclass of [DartType].
+ * [element model](../dart_element_element/dart_element_element-library.html)
+ * in that most types are defined by Dart code (the types `dynamic` and `void`
+ * being the notable exceptions). All types are represented by an instance of a
+ * subclass of [DartType].
  *
  * Other than `dynamic` and `void`, all of the types define either the interface
  * defined by a class (an instance of [InterfaceType]) or the type of a function

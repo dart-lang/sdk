@@ -3,15 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*kernel.class: Class:needsArgs*/
-/*!kernel.class: Class:*/
+/*strong.class: Class:*/
+/*omit.class: Class:*/
 class Class<T> {
   /*kernel.element: Class.:needsSignature*/
-  /*!kernel.element: Class.:*/
+  /*strong.element: Class.:*/
+  /*omit.element: Class.:*/
   Class();
 }
 
 /*kernel.element: main:needsSignature*/
-/*!kernel.element: main:*/
+/*strong.element: main:*/
+/*omit.element: main:*/
 main() {
   /*kernel.needsSignature*/
   /*strong.needsArgs,needsSignature*/

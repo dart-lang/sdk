@@ -48,7 +48,8 @@ class Class1b<T> {
 class Class2<T> {
   /*element: Class2.method2:hasThis*/
   method2() {
-    /*!strong.hasThis*/
+    /*kernel.hasThis*/
+    /*omit.hasThis*/
     /*strong.fields=[this],free=[this],hasThis*/
     dynamic local(T t) => t;
     return local;
@@ -63,7 +64,8 @@ class Class2<T> {
 class Class3<T> {
   /*element: Class3.method3:hasThis*/
   method3(dynamic o) {
-    /*!strong.fields=[o],free=[o],hasThis*/
+    /*kernel.fields=[o],free=[o],hasThis*/
+    /*omit.fields=[o],free=[o],hasThis*/
     /*strong.fields=[o,this],free=[o,this],hasThis*/
     T local() => o;
     return local;
@@ -106,7 +108,8 @@ class Class5<T> {
 class Class6<T> {
   /*element: Class6.method6:hasThis*/
   method6() {
-    /*!strong.hasThis*/
+    /*kernel.hasThis*/
+    /*omit.hasThis*/
     /*strong.fields=[this],free=[this],hasThis*/
     dynamic local(T t) {
       /*fields=[t],free=[t],hasThis*/
@@ -126,7 +129,8 @@ class Class6<T> {
 class Class7<T> {
   /*element: Class7.method7:hasThis*/
   method7(dynamic o) {
-    /*!strong.fields=[o],free=[o],hasThis*/
+    /*kernel.fields=[o],free=[o],hasThis*/
+    /*omit.fields=[o],free=[o],hasThis*/
     /*strong.fields=[o,this],free=[o,this],hasThis*/
     T local() {
       /*fields=[o],free=[o],hasThis*/

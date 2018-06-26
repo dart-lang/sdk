@@ -145,8 +145,8 @@ mirrors/load_library_test: RuntimeError
 mirrors/metadata_allowed_values_test/16: Skip # Flaky, crashes.
 mirrors/metadata_scope_test/none: RuntimeError
 mirrors/method_mirror_location_test: RuntimeError
-mirrors/method_mirror_source_line_ending_test: Crash
-mirrors/method_mirror_source_test: Crash
+mirrors/method_mirror_source_line_ending_test: RuntimeError # Issue 33478
+mirrors/method_mirror_source_test: RuntimeError # Issue 33041
 mirrors/mirrors_nsm_mismatch_test: CompileTimeError # Issue 31533
 mirrors/mirrors_nsm_test/dart2js: CompileTimeError # Issue 31533
 mirrors/mirrors_nsm_test/none: CompileTimeError # Issue 31533

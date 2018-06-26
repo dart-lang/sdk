@@ -33,6 +33,7 @@ import '../export.dart' show Export;
 
 import '../fasta_codes.dart'
     show
+        LocatedMessage,
         Message,
         messageConflictsWithTypeVariableCause,
         messageTypeVariableDuplicatedName,
@@ -99,6 +100,7 @@ import 'kernel_builder.dart'
         QualifiedName,
         Scope,
         TypeBuilder,
+        TypeDeclarationBuilder,
         TypeVariableBuilder,
         UnresolvedType,
         VoidTypeBuilder,
@@ -107,7 +109,11 @@ import 'kernel_builder.dart'
 
 import 'metadata_collector.dart';
 
-import 'type_algorithms.dart' show calculateBounds;
+import 'type_algorithms.dart'
+    show
+        calculateBounds,
+        getNonSimplicityIssuesForDeclaration,
+        getNonSimplicityIssuesForTypeVariables;
 
 class KernelLibraryBuilder
     extends SourceLibraryBuilder<KernelTypeBuilder, Library> {
@@ -180,6 +186,7 @@ class KernelLibraryBuilder
       List<TypeVariableBuilder> typeVariables,
       KernelTypeBuilder supertype,
       List<KernelTypeBuilder> interfaces,
+      int startCharOffset,
       int charOffset,
       int charEndOffset,
       int supertypeOffset) {
@@ -211,6 +218,7 @@ class KernelLibraryBuilder
         constructorScope,
         this,
         new List<ConstructorReferenceBuilder>.from(constructorReferences),
+        startCharOffset,
         charOffset,
         charEndOffset);
     loader.target.metadataCollector
@@ -441,6 +449,10 @@ class KernelLibraryBuilder
             }
           }
         }
+        final int startCharOffset =
+            (isNamedMixinApplication ? metadata : null) == null
+                ? charOffset
+                : metadata.first.charOffset;
         SourceClassBuilder application = new SourceClassBuilder(
             isNamedMixinApplication ? metadata : null,
             isNamedMixinApplication
@@ -457,6 +469,7 @@ class KernelLibraryBuilder
                 isModifiable: false),
             this,
             <ConstructorReferenceBuilder>[],
+            startCharOffset,
             charOffset,
             TreeNode.noOffset,
             null,
@@ -527,6 +540,7 @@ class KernelLibraryBuilder
       String constructorName,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
+      int startCharOffset,
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
@@ -540,6 +554,7 @@ class KernelLibraryBuilder
         typeVariables,
         formals,
         this,
+        startCharOffset,
         charOffset,
         charOpenParenOffset,
         charEndOffset,
@@ -563,6 +578,7 @@ class KernelLibraryBuilder
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       ProcedureKind kind,
+      int startCharOffset,
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
@@ -578,6 +594,7 @@ class KernelLibraryBuilder
         formals,
         kind,
         this,
+        startCharOffset,
         charOffset,
         charOpenParenOffset,
         charEndOffset,
@@ -598,6 +615,7 @@ class KernelLibraryBuilder
       Object name,
       List<FormalParameterBuilder> formals,
       ConstructorReferenceBuilder redirectionTarget,
+      int startCharOffset,
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
@@ -630,6 +648,7 @@ class KernelLibraryBuilder
               factoryDeclaration),
           formals,
           this,
+          startCharOffset,
           charOffset,
           charOpenParenOffset,
           charEndOffset,
@@ -647,6 +666,7 @@ class KernelLibraryBuilder
           formals,
           ProcedureKind.Factory,
           this,
+          startCharOffset,
           charOffset,
           charOpenParenOffset,
           charEndOffset,
@@ -1023,32 +1043,79 @@ class KernelLibraryBuilder
   int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder bottomType,
       ClassBuilder objectClass) {
     int count = 0;
-    bool strongMode = loader.target.strongMode;
 
-    int computeDefaultTypesForVariables(List<TypeVariableBuilder> variables) {
+    int computeDefaultTypesForVariables(
+        List<TypeVariableBuilder<TypeBuilder, Object>> variables,
+        bool strongMode) {
       if (variables == null) return 0;
-      List<KernelTypeBuilder> calculatedBounds = strongMode
-          ? calculateBounds(variables, dynamicType, bottomType, objectClass)
-          : null;
-      for (int i = 0; i < variables.length; ++i) {
-        variables[i].defaultType =
-            strongMode ? calculatedBounds[i] : dynamicType;
+
+      if (strongMode) {
+        List<KernelTypeBuilder> calculatedBounds =
+            calculateBounds(variables, dynamicType, bottomType, objectClass);
+        for (int i = 0; i < variables.length; ++i) {
+          variables[i].defaultType = calculatedBounds[i];
+        }
+      } else {
+        // In Dart 1, put `dynamic` everywhere.
+        for (int i = 0; i < variables.length; ++i) {
+          variables[i].defaultType = dynamicType;
+        }
       }
+
       return variables.length;
     }
 
+    void reportIssues(List<Object> issues) {
+      for (int i = 0; i < issues.length; i += 3) {
+        TypeDeclarationBuilder<TypeBuilder, Object> declaration = issues[i];
+        Message message = issues[i + 1];
+        List<LocatedMessage> context = issues[i + 2];
+
+        addProblem(message, declaration.charOffset, declaration.name.length,
+            declaration.fileUri,
+            context: context);
+      }
+    }
+
+    bool strongMode = loader.target.strongMode;
     for (var declaration in libraryDeclaration.members.values) {
       if (declaration is KernelClassBuilder) {
-        count += computeDefaultTypesForVariables(declaration.typeVariables);
+        {
+          List<Object> issues = strongMode
+              ? getNonSimplicityIssuesForDeclaration(declaration)
+              : const <Object>[];
+          reportIssues(issues);
+          // In case of issues, use non-strong mode for error recovery.
+          count += computeDefaultTypesForVariables(
+              declaration.typeVariables, strongMode && issues.length == 0);
+        }
         declaration.forEach((String name, Declaration member) {
           if (member is KernelProcedureBuilder) {
-            count += computeDefaultTypesForVariables(member.typeVariables);
+            List<Object> issues = strongMode
+                ? getNonSimplicityIssuesForTypeVariables(member.typeVariables)
+                : const <Object>[];
+            reportIssues(issues);
+            // In case of issues, use non-strong mode for error recovery.
+            count += computeDefaultTypesForVariables(
+                member.typeVariables, strongMode && issues.length == 0);
           }
         });
       } else if (declaration is KernelFunctionTypeAliasBuilder) {
-        count += computeDefaultTypesForVariables(declaration.typeVariables);
+        List<Object> issues = strongMode
+            ? getNonSimplicityIssuesForDeclaration(declaration)
+            : const <Object>[];
+        reportIssues(issues);
+        // In case of issues, use non-strong mode for error recovery.
+        count += computeDefaultTypesForVariables(
+            declaration.typeVariables, strongMode && issues.length == 0);
       } else if (declaration is KernelFunctionBuilder) {
-        count += computeDefaultTypesForVariables(declaration.typeVariables);
+        List<Object> issues = strongMode
+            ? getNonSimplicityIssuesForTypeVariables(declaration.typeVariables)
+            : const <Object>[];
+        reportIssues(issues);
+        // In case of issues, use non-strong mode for error recovery.
+        count += computeDefaultTypesForVariables(
+            declaration.typeVariables, strongMode && issues.length == 0);
       }
     }
 

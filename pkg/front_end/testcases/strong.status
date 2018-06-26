@@ -112,8 +112,9 @@ inference_new/infer_assign_to_index_upwards: TypeCheckError
 inference_new/infer_field_getter_setter_mismatch: TypeCheckError
 inference_new/infer_field_override_getter_overrides_setter: TypeCheckError
 
-instantiate_to_bound/typedef_super_bounded_type: Fail
-instantiate_to_bound/body_typedef_super_bounded_type: Fail
+instantiate_to_bound/body_typedef_super_bounded_type: Fail # Issue 33444
+instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: Crash # Issue 33479
+instantiate_to_bound/typedef_super_bounded_type: Fail # Issue 33444
 
 rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Fail
@@ -200,6 +201,7 @@ regress/issue_29982: Fail # Issue 29982.
 regress/issue_30836: RuntimeError # Issue 30836.
 regress/issue_31184: TypeCheckError
 regress/issue_31299: TypeCheckError
+regress/issue_33452: RuntimeError # Test has an intentional error
 
 runtime_checks/forwarding_stub_with_default_values: RuntimeError # Bug 31027
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError

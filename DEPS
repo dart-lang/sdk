@@ -61,7 +61,7 @@ vars = {
   "cli_util_tag" : "0.1.2+1",
   "collection_tag": "1.14.10",
   "convert_tag": "2.0.1",
-  "crypto_tag" : "2.0.2+1",
+  "crypto_tag" : "2.0.5",
   "csslib_tag" : "0.14.1",
   "dart2js_info_tag" : "0.5.6+4",
 
@@ -77,9 +77,9 @@ vars = {
   #     minutes later.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_tag": "1.0.14",  # Please see the note above before updating.
+  "dart_style_tag": "1.1.0",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "v0.20.0",
+  "dartdoc_tag" : "v0.20.1",
   "fixnum_tag": "0.10.5",
   "func_rev": "25eec48146a58967d75330075ab376b3838b18a8",
   "glob_tag": "1.1.5",
@@ -102,7 +102,7 @@ vars = {
   "mockito_tag": "d39ac507483b9891165e422ec98d9fb480037c8b",
   "mustache4dart_tag" : "v2.1.2",
   "oauth2_tag": "1.1.0",
-  "observatory_pub_packages_rev": "d3a3aebefbd35aa30fe7bbc2889b772b398f7d7f",
+  "observatory_pub_packages_rev": "caf0aecfb15077fc7a34d48e9df13606c793fddf",
   "package_config_tag": "1.0.3",
   "package_resolver_tag": "1.0.2+1",
   "path_tag": "1.5.1",
@@ -110,9 +110,9 @@ vars = {
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.4",
   "protobuf_tag": "0.7.1",
-  "pub_rev": "c84ffa0265fe746824aa6f382cb6c41abc406d42",
+  "pub_rev": "2258022cb7fd6ec43900d3b88012efb268020019",
   "pub_semver_tag": "1.4.1",
-  "quiver_tag": "5aaa3f58c48608af5b027444d561270b53f15dbf",
+  "quiver_tag": "0.29.0",
   "resource_rev":"af5a5bf65511943398146cf146e466e5f0b95cb9",
   "root_certificates_rev": "16ef64be64c7dfdff2b9f4b910726e635ccc519e",
   "shelf_static_rev": "v0.2.7",

@@ -53,8 +53,10 @@ import 'kernel_api.dart' show printQualifiedNameOn;
 
 import 'kernel_ast_api.dart'
     show
+        Arguments,
         DartType,
         DynamicType,
+        Expression,
         Initializer,
         InvalidType,
         Member,
@@ -86,7 +88,7 @@ export 'kernel_expression_generator.dart'
         ThisAccessGenerator,
         buildIsNull;
 
-abstract class ExpressionGenerator<Expression, Statement, Arguments> {
+abstract class ExpressionGenerator {
   /// Builds a [Expression] representing a read from the generator.
   Expression buildSimpleRead();
 
@@ -159,15 +161,14 @@ abstract class ExpressionGenerator<Expression, Statement, Arguments> {
 /// generate an invocation of `operator[]` or `operator[]=`, so we create a
 /// [Generator] object.  Later, after `= b` is parsed, [buildAssignment] will
 /// be called.
-abstract class Generator<Expression, Statement, Arguments>
-    implements ExpressionGenerator<Expression, Statement, Arguments> {
-  final ExpressionGeneratorHelper<Expression, Statement, Arguments> helper;
+abstract class Generator implements ExpressionGenerator {
+  final ExpressionGeneratorHelper helper;
 
   final Token token;
 
   Generator(this.helper, this.token);
 
-  Forest<Expression, Statement, Token, Arguments> get forest => helper.forest;
+  Forest get forest => helper.forest;
 
   String get plainNameForRead;
 
@@ -178,11 +179,6 @@ abstract class Generator<Expression, Statement, Arguments>
   String get plainNameForWrite => plainNameForRead;
 
   bool get isInitializer => false;
-
-  // TODO(ahe): Remove this method.
-  T storeOffset<T>(T node, int offset) {
-    return helper.storeOffset(node, offset);
-  }
 
   Expression buildForEffect() => buildSimpleRead();
 
@@ -212,14 +208,8 @@ abstract class Generator<Expression, Statement, Arguments>
         helper.deprecated_addCompileTimeError(
             offsetForToken(token), "Not a constant expression.");
       }
-      return PropertyAccessGenerator.make<Expression, Statement, Arguments>(
-          helper,
-          send.token,
-          buildSimpleRead(),
-          send.name,
-          null,
-          null,
-          isNullAware);
+      return PropertyAccessGenerator.make(helper, send.token, buildSimpleRead(),
+          send.name, null, null, isNullAware);
     }
   }
 
@@ -264,11 +254,8 @@ abstract class Generator<Expression, Statement, Arguments>
   }
 }
 
-abstract class VariableUseGenerator<Expression, Statement, Arguments>
-    implements Generator<Expression, Statement, Arguments> {
-  factory VariableUseGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Token token,
+abstract class VariableUseGenerator implements Generator {
+  factory VariableUseGenerator(ExpressionGeneratorHelper helper, Token token,
       VariableDeclaration variable,
       [DartType promotedType]) {
     return helper.forest
@@ -279,10 +266,9 @@ abstract class VariableUseGenerator<Expression, Statement, Arguments>
   String get debugName => "VariableUseGenerator";
 }
 
-abstract class PropertyAccessGenerator<Expression, Statement, Arguments>
-    implements Generator<Expression, Statement, Arguments> {
+abstract class PropertyAccessGenerator implements Generator {
   factory PropertyAccessGenerator.internal(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      ExpressionGeneratorHelper helper,
       Token token,
       Expression receiver,
       Name name,
@@ -292,23 +278,21 @@ abstract class PropertyAccessGenerator<Expression, Statement, Arguments>
         .propertyAccessGenerator(helper, token, receiver, name, getter, setter);
   }
 
-  static Generator<Expression, Statement, Arguments>
-      make<Expression, Statement, Arguments>(
-          ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-          Token token,
-          Expression receiver,
-          Name name,
-          Member getter,
-          Member setter,
-          bool isNullAware) {
+  static Generator make(
+      ExpressionGeneratorHelper helper,
+      Token token,
+      Expression receiver,
+      Name name,
+      Member getter,
+      Member setter,
+      bool isNullAware) {
     if (helper.forest.isThisExpression(receiver)) {
       return unsupported("ThisExpression", offsetForToken(token), helper.uri);
     } else {
       return isNullAware
-          ? new NullAwarePropertyAccessGenerator<Expression, Statement,
-              Arguments>(helper, token, receiver, name, getter, setter, null)
-          : new PropertyAccessGenerator<Expression, Statement,
-                  Arguments>.internal(
+          ? new NullAwarePropertyAccessGenerator(
+              helper, token, receiver, name, getter, setter, null)
+          : new PropertyAccessGenerator.internal(
               helper, token, receiver, name, getter, setter);
     }
   }
@@ -322,14 +306,9 @@ abstract class PropertyAccessGenerator<Expression, Statement, Arguments>
 
 /// Special case of [PropertyAccessGenerator] to avoid creating an indirect
 /// access to 'this'.
-abstract class ThisPropertyAccessGenerator<Expression, Statement, Arguments>
-    implements Generator<Expression, Statement, Arguments> {
-  factory ThisPropertyAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Token token,
-      Name name,
-      Member getter,
-      Member setter) {
+abstract class ThisPropertyAccessGenerator implements Generator {
+  factory ThisPropertyAccessGenerator(ExpressionGeneratorHelper helper,
+      Token token, Name name, Member getter, Member setter) {
     return helper.forest
         .thisPropertyAccessGenerator(helper, token, name, getter, setter);
   }
@@ -341,10 +320,9 @@ abstract class ThisPropertyAccessGenerator<Expression, Statement, Arguments>
   bool get isThisPropertyAccess => true;
 }
 
-abstract class NullAwarePropertyAccessGenerator<Expression, Statement,
-    Arguments> implements Generator<Expression, Statement, Arguments> {
+abstract class NullAwarePropertyAccessGenerator implements Generator {
   factory NullAwarePropertyAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      ExpressionGeneratorHelper helper,
       Token token,
       Expression receiverExpression,
       Name name,
@@ -359,14 +337,9 @@ abstract class NullAwarePropertyAccessGenerator<Expression, Statement,
   String get debugName => "NullAwarePropertyAccessGenerator";
 }
 
-abstract class SuperPropertyAccessGenerator<Expression, Statement, Arguments>
-    implements Generator<Expression, Statement, Arguments> {
-  factory SuperPropertyAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Token token,
-      Name name,
-      Member getter,
-      Member setter) {
+abstract class SuperPropertyAccessGenerator implements Generator {
+  factory SuperPropertyAccessGenerator(ExpressionGeneratorHelper helper,
+      Token token, Name name, Member getter, Member setter) {
     return helper.forest
         .superPropertyAccessGenerator(helper, token, name, getter, setter);
   }
@@ -375,10 +348,9 @@ abstract class SuperPropertyAccessGenerator<Expression, Statement, Arguments>
   String get debugName => "SuperPropertyAccessGenerator";
 }
 
-abstract class IndexedAccessGenerator<Expression, Statement, Arguments>
-    implements Generator<Expression, Statement, Arguments> {
+abstract class IndexedAccessGenerator implements Generator {
   factory IndexedAccessGenerator.internal(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      ExpressionGeneratorHelper helper,
       Token token,
       Expression receiver,
       Expression index,
@@ -388,20 +360,19 @@ abstract class IndexedAccessGenerator<Expression, Statement, Arguments>
         .indexedAccessGenerator(helper, token, receiver, index, getter, setter);
   }
 
-  static Generator<Expression, Statement, Arguments>
-      make<Expression, Statement, Arguments>(
-          ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-          Token token,
-          Expression receiver,
-          Expression index,
-          Procedure getter,
-          Procedure setter) {
+  static Generator make(
+      ExpressionGeneratorHelper helper,
+      Token token,
+      Expression receiver,
+      Expression index,
+      Procedure getter,
+      Procedure setter) {
     if (helper.forest.isThisExpression(receiver)) {
-      return new ThisIndexedAccessGenerator<Expression, Statement, Arguments>(
+      return new ThisIndexedAccessGenerator(
           helper, token, index, getter, setter);
     } else {
-      return new IndexedAccessGenerator<Expression, Statement,
-          Arguments>.internal(helper, token, receiver, index, getter, setter);
+      return new IndexedAccessGenerator.internal(
+          helper, token, receiver, index, getter, setter);
     }
   }
 
@@ -417,14 +388,9 @@ abstract class IndexedAccessGenerator<Expression, Statement, Arguments>
 
 /// Special case of [IndexedAccessGenerator] to avoid creating an indirect
 /// access to 'this'.
-abstract class ThisIndexedAccessGenerator<Expression, Statement, Arguments>
-    implements Generator<Expression, Statement, Arguments> {
-  factory ThisIndexedAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Token token,
-      Expression index,
-      Procedure getter,
-      Procedure setter) {
+abstract class ThisIndexedAccessGenerator implements Generator {
+  factory ThisIndexedAccessGenerator(ExpressionGeneratorHelper helper,
+      Token token, Expression index, Procedure getter, Procedure setter) {
     return helper.forest
         .thisIndexedAccessGenerator(helper, token, index, getter, setter);
   }
@@ -439,14 +405,9 @@ abstract class ThisIndexedAccessGenerator<Expression, Statement, Arguments>
   String get debugName => "ThisIndexedAccessGenerator";
 }
 
-abstract class SuperIndexedAccessGenerator<Expression, Statement, Arguments>
-    implements Generator<Expression, Statement, Arguments> {
-  factory SuperIndexedAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Token token,
-      Expression index,
-      Member getter,
-      Member setter) {
+abstract class SuperIndexedAccessGenerator implements Generator {
+  factory SuperIndexedAccessGenerator(ExpressionGeneratorHelper helper,
+      Token token, Expression index, Member getter, Member setter) {
     return helper.forest
         .superIndexedAccessGenerator(helper, token, index, getter, setter);
   }
@@ -458,22 +419,15 @@ abstract class SuperIndexedAccessGenerator<Expression, Statement, Arguments>
   String get debugName => "SuperIndexedAccessGenerator";
 }
 
-abstract class StaticAccessGenerator<Expression, Statement, Arguments>
-    implements Generator<Expression, Statement, Arguments> {
-  factory StaticAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Token token,
-      Member readTarget,
-      Member writeTarget) {
+abstract class StaticAccessGenerator implements Generator {
+  factory StaticAccessGenerator(ExpressionGeneratorHelper helper, Token token,
+      Member readTarget, Member writeTarget) {
     return helper.forest
         .staticAccessGenerator(helper, token, readTarget, writeTarget);
   }
 
-  factory StaticAccessGenerator.fromBuilder(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Declaration declaration,
-      Token token,
-      Declaration builderSetter) {
+  factory StaticAccessGenerator.fromBuilder(ExpressionGeneratorHelper helper,
+      Declaration declaration, Token token, Declaration builderSetter) {
     if (declaration is AccessErrorBuilder) {
       AccessErrorBuilder error = declaration;
       declaration = error.builder;
@@ -494,8 +448,7 @@ abstract class StaticAccessGenerator<Expression, Statement, Arguments>
         setter = builderSetter.target;
       }
     }
-    return new StaticAccessGenerator<Expression, Statement, Arguments>(
-        helper, token, getter, setter);
+    return new StaticAccessGenerator(helper, token, getter, setter);
   }
 
   Member get readTarget;
@@ -504,11 +457,8 @@ abstract class StaticAccessGenerator<Expression, Statement, Arguments>
   String get debugName => "StaticAccessGenerator";
 }
 
-abstract class LoadLibraryGenerator<Expression, Statement, Arguments>
-    implements Generator<Expression, Statement, Arguments> {
-  factory LoadLibraryGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Token token,
+abstract class LoadLibraryGenerator implements Generator {
+  factory LoadLibraryGenerator(ExpressionGeneratorHelper helper, Token token,
       LoadLibraryBuilder builder) {
     return helper.forest.loadLibraryGenerator(helper, token, builder);
   }
@@ -520,20 +470,16 @@ abstract class LoadLibraryGenerator<Expression, Statement, Arguments>
   String get debugName => "LoadLibraryGenerator";
 }
 
-abstract class DeferredAccessGenerator<Expression, Statement, Arguments>
-    implements Generator<Expression, Statement, Arguments> {
-  factory DeferredAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Token token,
-      PrefixBuilder builder,
-      Generator<Expression, Statement, Arguments> generator) {
+abstract class DeferredAccessGenerator implements Generator {
+  factory DeferredAccessGenerator(ExpressionGeneratorHelper helper, Token token,
+      PrefixBuilder builder, Generator generator) {
     return helper.forest
         .deferredAccessGenerator(helper, token, builder, generator);
   }
 
   PrefixBuilder get builder;
 
-  Generator<Expression, Statement, Arguments> get generator;
+  Generator get generator;
 
   @override
   buildPropertyAccess(
@@ -541,7 +487,7 @@ abstract class DeferredAccessGenerator<Expression, Statement, Arguments>
     var propertyAccess =
         generator.buildPropertyAccess(send, operatorOffset, isNullAware);
     if (propertyAccess is Generator) {
-      return new DeferredAccessGenerator<Expression, Statement, Arguments>(
+      return new DeferredAccessGenerator(
           helper, token, builder, propertyAccess);
     } else {
       Expression expression = propertyAccess;
@@ -586,10 +532,9 @@ abstract class DeferredAccessGenerator<Expression, Statement, Arguments>
   }
 }
 
-abstract class TypeUseGenerator<Expression, Statement, Arguments>
-    implements Generator<Expression, Statement, Arguments> {
+abstract class TypeUseGenerator implements Generator {
   factory TypeUseGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
+      ExpressionGeneratorHelper helper,
       Token token,
       PrefixBuilder prefix,
       int declarationReferenceOffset,
@@ -666,13 +611,9 @@ abstract class TypeUseGenerator<Expression, Statement, Arguments>
   }
 }
 
-abstract class ReadOnlyAccessGenerator<Expression, Statement, Arguments>
-    implements Generator<Expression, Statement, Arguments> {
-  factory ReadOnlyAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Token token,
-      Expression expression,
-      String plainNameForRead) {
+abstract class ReadOnlyAccessGenerator implements Generator {
+  factory ReadOnlyAccessGenerator(ExpressionGeneratorHelper helper, Token token,
+      Expression expression, String plainNameForRead) {
     return helper.forest
         .readOnlyAccessGenerator(helper, token, expression, plainNameForRead);
   }
@@ -681,11 +622,9 @@ abstract class ReadOnlyAccessGenerator<Expression, Statement, Arguments>
   String get debugName => "ReadOnlyAccessGenerator";
 }
 
-abstract class LargeIntAccessGenerator<Expression, Statement, Arguments>
-    implements Generator<Expression, Statement, Arguments> {
+abstract class LargeIntAccessGenerator implements Generator {
   factory LargeIntAccessGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Token token) {
+      ExpressionGeneratorHelper helper, Token token) {
     return helper.forest.largeIntAccessGenerator(helper, token);
   }
 
@@ -715,8 +654,7 @@ abstract class LargeIntAccessGenerator<Expression, Statement, Arguments>
   }
 }
 
-abstract class ErroneousExpressionGenerator<Expression, Statement, Arguments>
-    implements Generator<Expression, Statement, Arguments> {
+abstract class ErroneousExpressionGenerator implements Generator {
   /// Pass [arguments] that must be evaluated before throwing an error.  At
   /// most one of [isGetter] and [isSetter] should be true and they're passed
   /// to [ExpressionGeneratorHelper.buildThrowNoSuchMethodError] if it is used.
@@ -785,7 +723,7 @@ abstract class ErroneousExpressionGenerator<Expression, Statement, Arguments>
     // increment node that wraps an error.
     return buildError(
         forest.arguments(
-            <Expression>[storeOffset(forest.literalInt(1, null), offset)],
+            <Expression>[forest.literalInt(1, null)..fileOffset = offset],
             token),
         isGetter: true);
   }
@@ -797,7 +735,7 @@ abstract class ErroneousExpressionGenerator<Expression, Statement, Arguments>
     // node that wraps an error.
     return buildError(
         forest.arguments(
-            <Expression>[storeOffset(forest.literalInt(1, null), offset)],
+            <Expression>[forest.literalInt(1, null)..fileOffset = offset],
             token),
         isGetter: true);
   }
@@ -825,12 +763,9 @@ abstract class ErroneousExpressionGenerator<Expression, Statement, Arguments>
   }
 }
 
-abstract class UnresolvedNameGenerator<Expression, Statement, Arguments>
-    implements ErroneousExpressionGenerator<Expression, Statement, Arguments> {
+abstract class UnresolvedNameGenerator implements ErroneousExpressionGenerator {
   factory UnresolvedNameGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Token token,
-      Name name) {
+      ExpressionGeneratorHelper helper, Token token, Name name) {
     return helper.forest.unresolvedNameGenerator(helper, token, name);
   }
 
@@ -855,7 +790,7 @@ abstract class UnresolvedNameGenerator<Expression, Statement, Arguments>
       {bool isGetter: false, bool isSetter: false, int offset}) {
     offset ??= offsetForToken(this.token);
     return helper.throwNoSuchMethodError(
-        storeOffset(forest.literalNull(null), offset),
+        forest.literalNull(null)..fileOffset = offset,
         plainNameForRead,
         arguments,
         offset,
@@ -864,11 +799,8 @@ abstract class UnresolvedNameGenerator<Expression, Statement, Arguments>
   }
 }
 
-abstract class UnlinkedGenerator<Expression, Statement, Arguments>
-    implements Generator<Expression, Statement, Arguments> {
-  factory UnlinkedGenerator(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Token token,
+abstract class UnlinkedGenerator implements Generator {
+  factory UnlinkedGenerator(ExpressionGeneratorHelper helper, Token token,
       UnlinkedDeclaration declaration) {
     return helper.forest.unlinkedGenerator(helper, token, declaration);
   }
@@ -888,9 +820,8 @@ abstract class UnlinkedGenerator<Expression, Statement, Arguments>
   }
 }
 
-abstract class ContextAwareGenerator<Expression, Statement, Arguments>
-    implements Generator<Expression, Statement, Arguments> {
-  Generator<Expression, Statement, Arguments> get generator;
+abstract class ContextAwareGenerator implements Generator {
+  Generator get generator;
 
   @override
   String get plainNameForRead {
@@ -948,14 +879,9 @@ abstract class ContextAwareGenerator<Expression, Statement, Arguments>
   }
 }
 
-abstract class DelayedAssignment<Expression, Statement, Arguments>
-    implements ContextAwareGenerator<Expression, Statement, Arguments> {
-  factory DelayedAssignment(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Token token,
-      Generator<Expression, Statement, Arguments> generator,
-      Expression value,
-      String assignmentOperator) {
+abstract class DelayedAssignment implements ContextAwareGenerator {
+  factory DelayedAssignment(ExpressionGeneratorHelper helper, Token token,
+      Generator generator, Expression value, String assignmentOperator) {
     return helper.forest
         .delayedAssignment(helper, token, generator, value, assignmentOperator);
   }
@@ -1038,14 +964,9 @@ abstract class DelayedAssignment<Expression, Statement, Arguments>
   }
 }
 
-abstract class DelayedPostfixIncrement<Expression, Statement, Arguments>
-    implements ContextAwareGenerator<Expression, Statement, Arguments> {
-  factory DelayedPostfixIncrement(
-      ExpressionGeneratorHelper<Expression, Statement, Arguments> helper,
-      Token token,
-      Generator<Expression, Statement, Arguments> generator,
-      Name binaryOperator,
-      Procedure interfaceTarget) {
+abstract class DelayedPostfixIncrement implements ContextAwareGenerator {
+  factory DelayedPostfixIncrement(ExpressionGeneratorHelper helper, Token token,
+      Generator generator, Name binaryOperator, Procedure interfaceTarget) {
     return helper.forest.delayedPostfixIncrement(
         helper, token, generator, binaryOperator, interfaceTarget);
   }

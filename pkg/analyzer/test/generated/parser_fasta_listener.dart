@@ -508,8 +508,8 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginTypeVariable(Token name) {
-    super.beginTypeVariable(name);
+  void beginTypeVariable(Token token) {
+    super.beginTypeVariable(token);
     begin('TypeVariable');
   }
 
@@ -1037,15 +1037,15 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endTypeVariable(Token token, Token extendsOrSuper) {
+  void endTypeVariable(Token token, int index, Token extendsOrSuper) {
     end('TypeVariable');
-    super.endTypeVariable(token, extendsOrSuper);
+    super.endTypeVariable(token, index, extendsOrSuper);
   }
 
   @override
-  void endTypeVariables(int count, Token beginToken, Token endToken) {
+  void endTypeVariables(Token beginToken, Token endToken) {
     end('TypeVariables');
-    super.endTypeVariables(count, beginToken, endToken);
+    super.endTypeVariables(beginToken, endToken);
   }
 
   @override
@@ -1168,5 +1168,10 @@ class ForwardingTestListener extends ForwardingListener {
   void handleScript(Token token) {
     expectIn('CompilationUnit');
     listener.handleScript(token);
+  }
+
+  @override
+  void handleTypeVariablesDefined(Token token, int count) {
+    listener.handleTypeVariablesDefined(token, count);
   }
 }

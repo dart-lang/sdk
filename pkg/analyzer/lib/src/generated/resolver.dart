@@ -9043,7 +9043,10 @@ class TypeParameterBoundsResolver {
   TypeNameResolver typeNameResolver = null;
 
   TypeParameterBoundsResolver(
-      this.typeSystem, this.library, this.source, this.errorListener);
+      this.typeSystem, this.library, this.source, this.errorListener)
+      : libraryScope = new LibraryScope(library),
+        typeNameResolver = new TypeNameResolver(typeSystem,
+            typeSystem.typeProvider, library, source, errorListener);
 
   /**
    * Resolve bounds of type parameters of classes, class and function type
@@ -9070,27 +9073,40 @@ class TypeParameterBoundsResolver {
       typeNameResolver.resolveTypeName(type);
       // TODO(scheglov) report error when don't apply type bounds for type bounds
     } else if (type is GenericFunctionType) {
-      void resolveTypeParameter(TypeParameter t) {
-        _resolveTypeName(t.bound);
-      }
+      // While GenericFunctionTypes with free types are not allowed as bounds,
+      // those free types *should* ideally be recognized as type parameter types
+      // rather than classnames. Create a scope to accomplish that.
+      Scope previousScope = typeNameResolver.nameScope;
 
-      void resolveParameter(FormalParameter p) {
-        if (p is SimpleFormalParameter) {
-          _resolveTypeName(p.type);
-        } else if (p is DefaultFormalParameter) {
-          resolveParameter(p.parameter);
-        } else if (p is FieldFormalParameter) {
-          _resolveTypeName(p.type);
-        } else if (p is FunctionTypedFormalParameter) {
-          _resolveTypeName(p.returnType);
-          p.typeParameters?.typeParameters?.forEach(resolveTypeParameter);
-          p.parameters?.parameters?.forEach(resolveParameter);
+      try {
+        Scope typeParametersScope = new TypeParameterScope(
+            typeNameResolver.nameScope, type.type.element);
+        typeNameResolver.nameScope = typeParametersScope;
+
+        void resolveTypeParameter(TypeParameter t) {
+          _resolveTypeName(t.bound);
         }
-      }
 
-      _resolveTypeName(type.returnType);
-      type.typeParameters?.typeParameters?.forEach(resolveTypeParameter);
-      type.parameters?.parameters?.forEach(resolveParameter);
+        void resolveParameter(FormalParameter p) {
+          if (p is SimpleFormalParameter) {
+            _resolveTypeName(p.type);
+          } else if (p is DefaultFormalParameter) {
+            resolveParameter(p.parameter);
+          } else if (p is FieldFormalParameter) {
+            _resolveTypeName(p.type);
+          } else if (p is FunctionTypedFormalParameter) {
+            _resolveTypeName(p.returnType);
+            p.typeParameters?.typeParameters?.forEach(resolveTypeParameter);
+            p.parameters?.parameters?.forEach(resolveParameter);
+          }
+        }
+
+        _resolveTypeName(type.returnType);
+        type.typeParameters?.typeParameters?.forEach(resolveTypeParameter);
+        type.parameters?.parameters?.forEach(resolveParameter);
+      } finally {
+        typeNameResolver.nameScope = previousScope;
+      }
     }
   }
 
@@ -9111,10 +9127,10 @@ class TypeParameterBoundsResolver {
                 bound.type = typeParameterElement.bound;
               }
             } else {
-              libraryScope ??= new LibraryScope(library);
               typeParametersScope ??= createTypeParametersScope();
-              typeNameResolver ??= new TypeNameResolver(typeSystem,
-                  typeSystem.typeProvider, library, source, errorListener);
+              // _resolveTypeParameters is the entry point into each declaration
+              // with a separate scope. We can safely, and should, clobber the
+              // old scope here.
               typeNameResolver.nameScope = typeParametersScope;
               _resolveTypeName(bound);
               typeParameterElement.bound = bound.type;

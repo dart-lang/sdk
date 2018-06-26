@@ -218,6 +218,13 @@ DEFINE_RUNTIME_ENTRY(NullError, 0) {
   Exceptions::ThrowByType(Exceptions::kNoSuchMethod, args);
 }
 
+DEFINE_RUNTIME_ENTRY(ArgumentErrorUnboxedInt64, 0) {
+  // Unboxed value is passed through a dedicated slot in Thread.
+  int64_t unboxed_value = arguments.thread()->unboxed_int64_runtime_arg();
+  const Integer& value = Integer::Handle(zone, Integer::New(unboxed_value));
+  Exceptions::ThrowArgumentError(value);
+}
+
 // Allocation of a fixed length array of given element type.
 // This runtime entry is never called for allocating a List of a generic type,
 // because a prior run time call instantiates the element type if necessary.
@@ -1016,6 +1023,16 @@ RawFunction* InlineCacheMissHelper(const Instance& receiver,
                                    const Array& args_descriptor,
                                    const String& target_name) {
   const Class& receiver_class = Class::Handle(receiver.clazz());
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // Handle noSuchMethod for dyn:methodName by getting a noSuchMethod dispatcher
+  // (or a call-through getter for methodName).
+  if (Function::IsDynamicInvocationForwaderName(target_name)) {
+    const String& demangled = String::Handle(
+        Function::DemangleDynamicInvocationForwarderName(target_name));
+    return InlineCacheMissHelper(receiver, args_descriptor, demangled);
+  }
+#endif
 
   Function& result = Function::Handle();
   if (!ResolveCallThroughGetter(receiver, receiver_class, target_name,

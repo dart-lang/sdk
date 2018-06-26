@@ -107,19 +107,11 @@ class AnalysisErrorIntegrationTest_UseCFE extends AnalysisErrorIntegrationTest {
 
   @override
   @failingTest
-  test_detect_simple_error() {
-    return super.test_detect_simple_error();
-  }
-
-  @override
-  @failingTest
   test_super_mixins_disabled() {
-    // Disabling super mixins is not supported in the new FE.
     return super.test_super_mixins_disabled();
   }
 
   @override
-  @failingTest
   test_super_mixins_enabled() {
     return super.test_super_mixins_enabled();
   }

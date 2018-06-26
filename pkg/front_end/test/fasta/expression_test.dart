@@ -298,6 +298,8 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       File dillFile = new File.fromUri(dillFileUri);
       if (!await dillFile.exists()) {
         await writeComponentToFile(component, dillFileUri);
+        context.fileSystem.entityForUri(dillFileUri).writeAsBytesSync(
+            await new File.fromUri(dillFileUri).readAsBytes());
       }
 
       var dillCompiler =

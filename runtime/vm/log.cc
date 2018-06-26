@@ -115,7 +115,7 @@ intptr_t Log::cursor() const {
 
 bool Log::ShouldLogForIsolate(const Isolate* isolate) {
   if (FLAG_isolate_log_filter == NULL) {
-    if (isolate->is_service_isolate()) {
+    if (isolate->is_service_isolate() || isolate->is_kernel_isolate()) {
       // By default, do not log for the service isolate.
       return false;
     }

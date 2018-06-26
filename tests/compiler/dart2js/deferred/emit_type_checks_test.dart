@@ -39,7 +39,7 @@ void main() {
 // We force additional runtime type support to be output for A by instantiating
 // it with a type argument, and testing for the type. The extra support should
 // go to the deferred hunk.
-const Map MEMORY_SOURCE_FILES = const {
+const Map<String, String> MEMORY_SOURCE_FILES = const {
   "main.dart": """
 import 'lib.dart' deferred as lib show f, A, instance;
 

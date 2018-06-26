@@ -107,32 +107,27 @@
  * For example, here's a mini server that listens for 'ws' data
  * on a WebSocket:
  *
- *     runZoned(() {
- *       HttpServer.bind('127.0.0.1', 4040).then((server) {
- *         server.listen((HttpRequest req) {
- *           if (req.uri.path == '/ws') {
- *             WebSocketTransformer.upgrade(req).then((socket) {
- *               socket.listen(handleMsg);
- *             });
- *           }
- *         });
+ *     runZoned(() async {
+ *       var server = await HttpServer.bind('127.0.0.1', 4040);
+ *       server.listen((HttpRequest req) async {
+ *         if (req.uri.path == '/ws') {
+ *           var socket = await WebSocketTransformer.upgrade(req);
+ *           socket.listen(handleMsg);
+ *         }
  *       });
- *     },
- *     onError: (e) => print("An error occurred."));
+ *     }, onError: (e) => print("An error occurred."));
  *
  * The client connects to the WebSocket using the `connect()` method
  * and a URI that uses the Web Socket protocol.
  * The client can write to the WebSocket with the `add()` method.
  * For example,
  *
- *     WebSocket.connect('ws://127.0.0.1:4040/ws').then((socket) {
- *       socket.add('Hello, World!');
- *     });
+ *     var socket = await WebSocket.connect('ws://127.0.0.1:4040/ws');
+ *     socket.add('Hello, World!');
  *
  * Check out the
- * [dartiverse_search](https://github.com/dart-lang/sample-dartiverse-search)
- * sample for a client/server pair that uses
- * WebSockets to communicate.
+ * [websocket_sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/websockets/basics)
+ * app, which uses WebSockets to communicate with a server.
  *
  * ## Socket and ServerSocket
  *

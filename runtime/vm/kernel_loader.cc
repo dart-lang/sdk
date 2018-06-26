@@ -127,7 +127,7 @@ RawClass* BuildingTranslationHelper::LookupClassByKernelClass(NameIndex klass) {
   return loader_->LookupClass(klass).raw();
 }
 
-LibraryIndex::LibraryIndex(const TypedData& kernel_data)
+LibraryIndex::LibraryIndex(const ExternalTypedData& kernel_data)
     : reader_(kernel_data) {
   intptr_t data_size = reader_.size();
 
@@ -146,7 +146,7 @@ ClassIndex::ClassIndex(const uint8_t* buffer,
   Init(class_offset, class_size);
 }
 
-ClassIndex::ClassIndex(const TypedData& library_kernel_data,
+ClassIndex::ClassIndex(const ExternalTypedData& library_kernel_data,
                        intptr_t class_offset,
                        intptr_t class_size)
     : reader_(library_kernel_data) {
@@ -168,7 +168,7 @@ KernelLoader::KernelLoader(Program* program)
       library_kernel_offset_(-1),  // Set to the correct value in LoadLibrary
       correction_offset_(-1),      // Set to the correct value in LoadLibrary
       loading_native_wrappers_library_(false),
-      library_kernel_data_(TypedData::ZoneHandle(zone_)),
+      library_kernel_data_(ExternalTypedData::ZoneHandle(zone_)),
       kernel_program_info_(KernelProgramInfo::ZoneHandle(zone_)),
       translation_helper_(this, thread_),
       builder_(&translation_helper_,
@@ -189,7 +189,7 @@ KernelLoader::KernelLoader(Program* program)
   ASSERT(T.active_class_ == &active_class_);
   T.finalize_ = false;
 
-  initialize_fields();
+  InitializeFields();
 }
 
 Object& KernelLoader::LoadEntireProgram(Program* program,
@@ -214,7 +214,7 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
     reader.set_raw_buffer(program->kernel_data() + subprogram_start);
     reader.set_size(subprogram_end - subprogram_start);
     reader.set_offset(0);
-    Program* subprogram = Program::ReadFrom(&reader, false);
+    Program* subprogram = Program::ReadFrom(&reader);
     ASSERT(subprogram->is_single_program());
     KernelLoader loader(subprogram);
     Object& load_result = Object::Handle(loader.LoadProgram(false));
@@ -259,7 +259,7 @@ void KernelLoader::index_programs(
   subprogram_file_starts->Reverse();
 }
 
-void KernelLoader::initialize_fields() {
+void KernelLoader::InitializeFields() {
   const intptr_t source_table_size = builder_.SourceTableSize();
   const Array& scripts =
       Array::Handle(Z, Array::New(source_table_size, Heap::kOld));
@@ -279,10 +279,10 @@ void KernelLoader::initialize_fields() {
     offsets.SetUint32(i << 2, end_offset);
   }
 
-  // Copy the string data out of the binary and into the VM's heap.
-  TypedData& data = TypedData::Handle(
-      Z, TypedData::New(kTypedDataUint8ArrayCid, end_offset, Heap::kOld));
-  reader.CopyDataToVMHeap(data, reader.offset(), end_offset);
+  // Create view of the string data.
+  const ExternalTypedData& data = ExternalTypedData::Handle(
+      Z,
+      reader.ExternalDataFromTo(reader.offset(), reader.offset() + end_offset));
 
   // Copy the canonical names into the VM's heap.  Encode them as unsigned, so
   // the parent indexes are adjusted when extracted.
@@ -294,25 +294,15 @@ void KernelLoader::initialize_fields() {
     names.SetUint32(i << 2, reader.ReadUInt());
   }
 
-  // Copy metadata payloads into the VM's heap
-  const intptr_t metadata_payloads_start = program_->metadata_payloads_offset();
-  const intptr_t metadata_payloads_size =
-      program_->metadata_mappings_offset() - metadata_payloads_start;
-  TypedData& metadata_payloads =
-      TypedData::Handle(Z, TypedData::New(kTypedDataUint8ArrayCid,
-                                          metadata_payloads_size, Heap::kOld));
-  reader.CopyDataToVMHeap(metadata_payloads, metadata_payloads_start,
-                          metadata_payloads_size);
+  // Create view of metadata payloads.
+  const ExternalTypedData& metadata_payloads = ExternalTypedData::Handle(
+      Z, reader.ExternalDataFromTo(program_->metadata_payloads_offset(),
+                                   program_->metadata_mappings_offset()));
 
-  // Copy metadata mappings into the VM's heap
-  const intptr_t metadata_mappings_start = program_->metadata_mappings_offset();
-  const intptr_t metadata_mappings_size =
-      program_->string_table_offset() - metadata_mappings_start;
-  TypedData& metadata_mappings =
-      TypedData::Handle(Z, TypedData::New(kTypedDataUint8ArrayCid,
-                                          metadata_mappings_size, Heap::kOld));
-  reader.CopyDataToVMHeap(metadata_mappings, metadata_mappings_start,
-                          metadata_mappings_size);
+  // Create view of metadata mappings.
+  const ExternalTypedData& metadata_mappings = ExternalTypedData::Handle(
+      Z, reader.ExternalDataFromTo(program_->metadata_mappings_offset(),
+                                   program_->string_table_offset()));
 
   kernel_program_info_ = KernelProgramInfo::New(
       offsets, data, names, metadata_payloads, metadata_mappings, scripts);
@@ -327,7 +317,7 @@ void KernelLoader::initialize_fields() {
 }
 
 KernelLoader::KernelLoader(const Script& script,
-                           const TypedData& kernel_data,
+                           const ExternalTypedData& kernel_data,
                            intptr_t data_program_offset)
     : program_(NULL),
       thread_(Thread::Current()),
@@ -337,7 +327,7 @@ KernelLoader::KernelLoader(const Script& script,
       library_kernel_offset_(data_program_offset),
       correction_offset_(0),
       loading_native_wrappers_library_(false),
-      library_kernel_data_(TypedData::ZoneHandle(zone_)),
+      library_kernel_data_(ExternalTypedData::ZoneHandle(zone_)),
       kernel_program_info_(
           KernelProgramInfo::ZoneHandle(zone_, script.kernel_program_info())),
       translation_helper_(this, thread_),
@@ -663,7 +653,7 @@ void KernelLoader::FindModifiedLibraries(Program* program,
         reader.set_raw_buffer(program->kernel_data() + subprogram_start);
         reader.set_size(subprogram_end - subprogram_start);
         reader.set_offset(0);
-        Program* subprogram = Program::ReadFrom(&reader, false);
+        Program* subprogram = Program::ReadFrom(&reader);
         ASSERT(subprogram->is_single_program());
         KernelLoader loader(subprogram);
         loader.walk_incremental_kernel(modified_libs);
@@ -742,10 +732,8 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   ASSERT(!library_helper.IsExternal() || library.Loaded());
   if (library.Loaded()) return library.raw();
 
-  library_kernel_data_ =
-      TypedData::New(kTypedDataUint8ArrayCid, library_size, Heap::kOld);
-  builder_.reader_.CopyDataToVMHeap(library_kernel_data_,
-                                    library_kernel_offset_, library_size);
+  library_kernel_data_ = builder_.reader_.ExternalDataFromTo(
+      library_kernel_offset_, library_kernel_offset_ + library_size);
   library.set_kernel_data(library_kernel_data_);
   library.set_kernel_offset(library_kernel_offset_);
 
@@ -1092,8 +1080,8 @@ Class& KernelLoader::LoadClass(const Library& library,
     FixCoreLibraryScriptUri(library, script);
   }
   if (klass.token_pos() == TokenPosition::kNoSource) {
-    class_helper.ReadUntilIncluding(ClassHelper::kPosition);
-    klass.set_token_pos(class_helper.position_);
+    class_helper.ReadUntilIncluding(ClassHelper::kStartPosition);
+    klass.set_token_pos(class_helper.start_position_);
   }
 
   class_helper.ReadUntilIncluding(ClassHelper::kFlags);
@@ -1237,7 +1225,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                          false,  // is_abstract
                          constructor_helper.IsExternal(),
                          false,  // is_native
-                         *owner, constructor_helper.position_));
+                         *owner, constructor_helper.start_position_));
     function.set_end_token_pos(constructor_helper.end_position_);
     functions_.Add(&function);
     function.set_kernel_offset(constructor_offset);
@@ -1289,8 +1277,8 @@ void KernelLoader::FinishLoading(const Class& klass) {
   const Script& script = Script::Handle(zone, klass.script());
   const Library& library = Library::Handle(zone, klass.library());
   const Class& toplevel_class = Class::Handle(zone, library.toplevel_class());
-  const TypedData& library_kernel_data =
-      TypedData::Handle(zone, library.kernel_data());
+  const ExternalTypedData& library_kernel_data =
+      ExternalTypedData::Handle(zone, library.kernel_data());
   ASSERT(!library_kernel_data.IsNull());
   const intptr_t library_kernel_offset = library.kernel_offset();
   ASSERT(library_kernel_offset > 0);
@@ -1449,7 +1437,7 @@ void KernelLoader::LoadProcedure(const Library& library,
                        false,       // is_const
                        is_abstract, is_external,
                        !native_name.IsNull(),  // is_native
-                       script_class, procedure_helper.position_));
+                       script_class, procedure_helper.start_position_));
   function.set_has_pragma(has_pragma_annotation);
   function.set_end_token_pos(procedure_helper.end_position_);
   functions_.Add(&function);
@@ -1544,13 +1532,34 @@ const Object& KernelLoader::ClassForScriptAt(const Class& klass,
 
 RawScript* KernelLoader::LoadScriptAt(intptr_t index) {
   const String& uri_string = builder_.SourceTableUriFor(index);
-  const Script& script =
-      Script::Handle(Z, Script::New(uri_string, builder_.GetSourceFor(index),
-                                    RawScript::kKernelTag));
+  String& sources = builder_.GetSourceFor(index);
+  TypedData& line_starts =
+      TypedData::Handle(Z, builder_.GetLineStartsFor(index));
+  if (sources.Length() == 0 && line_starts.Length() == 0 &&
+      uri_string.Length() > 0) {
+    // Entry included only to provide URI - actual source should already exist
+    // in the VM, so try to find it.
+    Library& lib = Library::Handle(Z);
+    Script& script = Script::Handle(Z);
+    const GrowableObjectArray& libs =
+        GrowableObjectArray::Handle(isolate_->object_store()->libraries());
+    for (intptr_t i = 0; i < libs.Length(); i++) {
+      lib ^= libs.At(i);
+      script = lib.LookupScript(uri_string, /* useResolvedUri = */ true);
+      if (!script.IsNull() && script.kind() == RawScript::kKernelTag) {
+        sources ^= script.Source();
+        line_starts ^= script.line_starts();
+        break;
+      }
+    }
+  }
+
+  const Script& script = Script::Handle(
+      Z, Script::New(uri_string, sources, RawScript::kKernelTag));
+  String& script_url = String::Handle();
+  script_url = script.url();
   script.set_kernel_script_index(index);
   script.set_kernel_program_info(kernel_program_info_);
-  const TypedData& line_starts =
-      TypedData::Handle(Z, builder_.GetLineStartsFor(index));
   script.set_line_starts(line_starts);
   script.set_debug_positions(Array::Handle(Array::null()));
   script.set_yield_positions(Array::Handle(Array::null()));
@@ -1758,7 +1767,7 @@ RawFunction* CreateFieldInitializerFunction(Thread* thread,
       PatchClass::Handle(zone, PatchClass::New(field_owner, script));
   const Library& lib = Library::Handle(zone, field_owner.library());
   initializer_owner.set_library_kernel_data(
-      TypedData::Handle(zone, lib.kernel_data()));
+      ExternalTypedData::Handle(zone, lib.kernel_data()));
   initializer_owner.set_library_kernel_offset(lib.kernel_offset());
 
   // Create a static initializer.

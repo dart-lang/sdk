@@ -278,6 +278,7 @@ mirrors/variable_is_const_test/01: Pass # expects failure, but it fails for the 
 
 [ $compiler == dart2js && $fasta ]
 mirrors/*: SkipByDesign # mirrors not supported
+typed_data/int64_list_load_store_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 
 [ $compiler == dart2js && $fasta && $host_checked ]
 async/stream_controller_async_test: Crash

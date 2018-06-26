@@ -126,7 +126,7 @@ Future<T> reportCrash<T>(error, StackTrace trace,
       request = await client.postUrl(serverUri);
     } on SocketException {
       // Assume the crash logger isn't running.
-      await client.close(force: true);
+      client.close(force: true);
       return new Future<T>.error(
           new Crash(uri, charOffset, error, trace), trace);
     }
@@ -147,7 +147,7 @@ Future<T> reportCrash<T>(error, StackTrace trace,
     await note("\n${safeToString(e)}\n$s\n");
     await note("\n\n\nFE::ERROR::$json\n\n\n");
   }
-  await client.close(force: true);
+  client.close(force: true);
   await note("\n");
   return new Future<T>.error(error, trace);
 }

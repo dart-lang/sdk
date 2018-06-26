@@ -13,7 +13,7 @@ class A {
 class B extends Object with A {
   noSuchMethod(im) => 87;
 
-  foo() => super.foo();
+  foo() => super.foo(); //# 01: compile-time error
 }
 
 main() {

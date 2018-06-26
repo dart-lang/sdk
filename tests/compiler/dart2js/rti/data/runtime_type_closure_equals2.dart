@@ -5,22 +5,27 @@
 import 'package:expect/expect.dart';
 
 /*kernel.class: Class:needsArgs*/
-/*!kernel.class: Class:*/
+/*strong.class: Class:*/
+/*omit.class: Class:*/
 class Class<T> {
   /*kernel.element: Class.:needsSignature*/
-  /*!kernel.element: Class.:*/
+  /*strong.element: Class.:*/
+  /*omit.element: Class.:*/
   Class();
 }
 
 /*kernel.element: main:needsSignature*/
-/*!kernel.element: main:*/
+/*strong.element: main:*/
+/*omit.element: main:*/
 main() {
   /*kernel.needsSignature*/
-  /*!kernel.needsArgs,needsSignature*/
+  /*strong.needsArgs,needsSignature*/
+  /*omit.needsArgs,needsSignature*/
   T local1a<T>() => null;
 
   /*kernel.needsSignature*/
-  /*!kernel.needsArgs,needsSignature*/
+  /*strong.needsArgs,needsSignature*/
+  /*omit.needsArgs,needsSignature*/
   T local1b<T>() => null;
 
   /*kernel.needsSignature*/

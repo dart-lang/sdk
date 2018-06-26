@@ -392,8 +392,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginTypeVariable(Token name) {
-    listener?.beginTypeVariable(name);
+  void beginTypeVariable(Token token) {
+    listener?.beginTypeVariable(token);
   }
 
   @override
@@ -842,13 +842,13 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endTypeVariable(Token token, Token extendsOrSuper) {
-    listener?.endTypeVariable(token, extendsOrSuper);
+  void endTypeVariable(Token token, int index, Token extendsOrSuper) {
+    listener?.endTypeVariable(token, index, extendsOrSuper);
   }
 
   @override
-  void endTypeVariables(int count, Token beginToken, Token endToken) {
-    listener?.endTypeVariables(count, beginToken, endToken);
+  void endTypeVariables(Token beginToken, Token endToken) {
+    listener?.endTypeVariables(beginToken, endToken);
   }
 
   @override
@@ -1282,6 +1282,11 @@ class ForwardingListener implements Listener {
   @override
   void handleType(Token beginToken, Token endToken) {
     listener?.handleType(beginToken, endToken);
+  }
+
+  @override
+  void handleTypeVariablesDefined(Token token, int count) {
+    listener?.handleTypeVariablesDefined(token, count);
   }
 
   @override

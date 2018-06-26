@@ -6,7 +6,7 @@
  * Defines the AST model. The AST (Abstract Syntax Tree) model describes the
  * syntactic (as opposed to semantic) structure of Dart code. The semantic
  * structure of the code is modeled by the
- * [element model](../element/element.dart).
+ * [element model](../dart_element_element/dart_element_element-library.html).
  *
  * An AST consists of nodes (instances of a subclass of [AstNode]). The nodes
  * are organized in a tree structure in which the children of a node are the

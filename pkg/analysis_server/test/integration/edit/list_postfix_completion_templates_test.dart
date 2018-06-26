@@ -46,10 +46,4 @@ class ListPostfixCompletionTemplatesTest_UseCFE
     extends ListPostfixCompletionTemplatesTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_list_postfix_completion_templates() {
-    fail('Test crashes with CFE');
-  }
 }

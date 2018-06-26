@@ -513,10 +513,11 @@ class SimpleTypeArgument1 implements TypeParamOrArgInfo {
     listener.endMetadataStar(0);
     listener.handleIdentifier(token, IdentifierContext.typeVariableDeclaration);
     listener.beginTypeVariable(token);
+    listener.handleTypeVariablesDefined(token, 1);
     listener.handleNoType(token);
     token = processEndGroup(token, start, parser);
-    listener.endTypeVariable(token, null);
-    listener.endTypeVariables(1, start, token);
+    listener.endTypeVariable(token, 0, null);
+    listener.endTypeVariables(start, token);
     return token;
   }
 
@@ -654,25 +655,32 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
   @override
   Token parseVariables(Token token, Parser parser) {
     Token next = start;
+    Listener listener = parser.listener;
+    listener.beginTypeVariables(start);
     Token innerEndGroup = processBeginGroup(start, parser);
-    parser.listener.beginTypeVariables(start);
     int count = 0;
+
+    Link<Token> typeStarts = const Link<Token>();
+    Link<TypeInfo> superTypeInfos = const Link<TypeInfo>();
+
     while (true) {
       token = parser.parseMetadataStar(next);
       token = parser.ensureIdentifier(
           token, IdentifierContext.typeVariableDeclaration);
-      parser.listener.beginTypeVariable(token);
-      Token extendsOrSuper = null;
+      listener.beginTypeVariable(token);
+      typeStarts = typeStarts.prepend(token);
+
       next = token.next;
       if (optional('extends', next) || optional('super', next)) {
-        extendsOrSuper = next;
-        token = computeType(next, true, inDeclaration, innerEndGroup)
-            .ensureTypeOrVoid(next, parser);
+        TypeInfo typeInfo =
+            computeType(next, true, inDeclaration, innerEndGroup);
+        token = typeInfo.skipType(next);
         next = token.next;
+        superTypeInfos = superTypeInfos.prepend(typeInfo);
       } else {
-        parser.listener.handleNoType(token);
+        superTypeInfos = superTypeInfos.prepend(null);
       }
-      parser.listener.endTypeVariable(next, extendsOrSuper);
+
       ++count;
       if (!optional(',', next)) {
         if (!looksLikeTypeParamOrArg(inDeclaration, next)) {
@@ -688,8 +696,39 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
             .next;
       }
     }
+
+    assert(count > 0);
+    assert(typeStarts.slowLength() == count);
+    assert(superTypeInfos.slowLength() == count);
+    listener.handleTypeVariablesDefined(token, count);
+
+    token = null;
+    while (typeStarts.isNotEmpty) {
+      Token token2 = typeStarts.head;
+      TypeInfo typeInfo = superTypeInfos.head;
+
+      Token extendsOrSuper = null;
+      Token next2 = token2.next;
+      if (typeInfo != null) {
+        assert(optional('extends', next2) || optional('super', next2));
+        extendsOrSuper = next2;
+        token2 = typeInfo.ensureTypeOrVoid(next2, parser);
+        next2 = token2.next;
+      } else {
+        assert(!optional('extends', next2) && !optional('super', next2));
+        listener.handleNoType(token2);
+      }
+      // Type variables are "completed" in reverse order, so capture the last
+      // consumed token from the first "completed" type variable.
+      token ??= token2;
+      listener.endTypeVariable(next2, --count, extendsOrSuper);
+
+      typeStarts = typeStarts.tail;
+      superTypeInfos = superTypeInfos.tail;
+    }
+
     end = processEndGroup(token, start, parser);
-    parser.listener.endTypeVariables(count, start, end);
+    listener.endTypeVariables(start, end);
     return end;
   }
 

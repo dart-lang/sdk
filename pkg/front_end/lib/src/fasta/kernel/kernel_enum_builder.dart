@@ -84,9 +84,10 @@ class KernelEnumBuilder extends SourceClassBuilder
       this.objectType,
       this.stringType,
       LibraryBuilder parent,
+      int startCharOffset,
       int charOffset)
       : super(metadata, 0, name, null, null, null, scope, constructors, parent,
-            null, charOffset, TreeNode.noOffset, cls);
+            null, startCharOffset, charOffset, TreeNode.noOffset, cls);
 
   factory KernelEnumBuilder(
       MetadataCollector metadataCollector,
@@ -140,6 +141,7 @@ class KernelEnumBuilder extends SourceClassBuilder
         parent,
         charOffset,
         charOffset,
+        charOffset,
         charEndOffset);
     constructors[""] = constructorBuilder;
     KernelFieldBuilder valuesBuilder = new KernelFieldBuilder(null, listType,
@@ -154,6 +156,7 @@ class KernelEnumBuilder extends SourceClassBuilder
         null,
         ProcedureKind.Method,
         parent,
+        charOffset,
         charOffset,
         charOffset,
         charEndOffset);
@@ -192,6 +195,8 @@ class KernelEnumBuilder extends SourceClassBuilder
           fieldBuilder.target, documentationComment);
       members[name] = fieldBuilder;
     }
+    final int startCharOffset =
+        metadata == null ? charOffset : metadata.first.charOffset;
     KernelEnumBuilder enumBuilder = new KernelEnumBuilder.internal(
         metadata,
         name,
@@ -206,6 +211,7 @@ class KernelEnumBuilder extends SourceClassBuilder
         objectType,
         stringType,
         parent,
+        startCharOffset,
         charOffset);
     // TODO(sigmund): dynamic should be `covariant MemberBuilder`.
     void setParent(String name, dynamic b) {

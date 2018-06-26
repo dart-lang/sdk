@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../scanner/token.dart' show Token;
+import '../../scanner/token.dart' show Token, TokenType;
 
 import '../fasta_codes.dart' show Message, Template, templateExpectedIdentifier;
 
@@ -11,6 +11,8 @@ import '../scanner/token_constants.dart' show IDENTIFIER_TOKEN;
 import 'identifier_context_impl.dart';
 
 import 'parser.dart' show Parser;
+
+import 'util.dart' show isOneOfOrEof, optional;
 
 /// Information about the parser state that is passed to the listener at the
 /// time an identifier is encountered. It is also used by the parser for error
@@ -268,6 +270,46 @@ class IdentifierContext {
     return null;
   }
 }
+
+/// Return `true` if the given [token] should be treated like the start of
+/// an expression for the purposes of recovery.
+bool looksLikeExpressionStart(Token next) =>
+    next.isIdentifier ||
+    next.isKeyword && !looksLikeStatementStart(next) ||
+    next.type == TokenType.DOUBLE ||
+    next.type == TokenType.HASH ||
+    next.type == TokenType.HEXADECIMAL ||
+    next.type == TokenType.IDENTIFIER ||
+    next.type == TokenType.INT ||
+    next.type == TokenType.STRING ||
+    optional('{', next) ||
+    optional('(', next) ||
+    optional('[', next) ||
+    optional('[]', next) ||
+    optional('<', next) ||
+    optional('!', next) ||
+    optional('-', next) ||
+    optional('~', next) ||
+    optional('++', next) ||
+    optional('--', next);
+
+/// Return `true` if the given [token] should be treated like the start of
+/// a new statement for the purposes of recovery.
+bool looksLikeStatementStart(Token token) => isOneOfOrEof(token, const [
+      'assert',
+      'break',
+      'continue',
+      'do',
+      'final',
+      'for',
+      'if',
+      'return',
+      'switch',
+      'try',
+      'var',
+      'void',
+      'while'
+    ]);
 
 // TODO(ahe): Remove when analyzer supports generalized function syntax.
 typedef _MessageWithArgument<T> = Message Function(T);

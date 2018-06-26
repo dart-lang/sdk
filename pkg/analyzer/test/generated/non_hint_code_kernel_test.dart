@@ -48,11 +48,10 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
 
   @override
   @failingTest
-  test_deprecatedAnnotationUse_namedParameter_inNestedLocalFunction() {
-    // Failed assertion: line 215 pos 14: 'node.parent is PartOfDirective ||
-    // node.parent is EnumConstantDeclaration': is not true.
+  test_deprecatedAnnotationUse_namedParameter_inDefiningLocalFunction() {
+    // Failed to resolve 1 nodes
     return super
-        .test_deprecatedAnnotationUse_namedParameter_inNestedLocalFunction();
+        .test_deprecatedAnnotationUse_namedParameter_inDefiningLocalFunction();
   }
 
   @override
@@ -65,10 +64,25 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
 
   @override
   @failingTest
-  test_deprecatedAnnotationUse_namedParameter_inDefiningLocalFunction() {
-    // Failed to resolve 1 nodes
+  test_deprecatedAnnotationUse_namedParameter_inNestedLocalFunction() {
+    // Failed assertion: line 215 pos 14: 'node.parent is PartOfDirective ||
+    // node.parent is EnumConstantDeclaration': is not true.
     return super
-        .test_deprecatedAnnotationUse_namedParameter_inDefiningLocalFunction();
+        .test_deprecatedAnnotationUse_namedParameter_inNestedLocalFunction();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
+  test_deprecatedMemberUse_inDeprecatedClass() async {
+    await super.test_deprecatedMemberUse_inDeprecatedClass();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
+  test_deprecatedMemberUse_inDeprecatedFunction() async {
+    await super.test_deprecatedMemberUse_inDeprecatedFunction();
   }
 
   @failingTest
@@ -78,6 +92,113 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
     // LibraryAnalyzer is not applying resolution data to annotations on
     // directives.
     await super.test_deprecatedMemberUse_inDeprecatedLibrary();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
+  test_deprecatedMemberUse_inDeprecatedMethod() async {
+    await super.test_deprecatedMemberUse_inDeprecatedMethod();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
+  test_deprecatedMemberUse_inDeprecatedMethod_inDeprecatedClass() async {
+    await super.test_deprecatedMemberUse_inDeprecatedMethod_inDeprecatedClass();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
+  test_missingReturn_alwaysThrows() async {
+    await super.test_missingReturn_alwaysThrows();
+  }
+
+  @override
+  @failingTest
+  test_overrideOnNonOverridingField_inInterface() {
+    // Expected 1 errors of type
+    // StrongModeCode.STRONG_MODE_INVALID_METHOD_OVERRIDE, found 0
+    return super.test_overrideOnNonOverridingField_inInterface();
+  }
+
+  @override
+  @failingTest
+  test_overrideOnNonOverridingField_inSuperclass() {
+    // Expected 1 errors of type
+    // StrongModeCode.STRONG_MODE_INVALID_METHOD_OVERRIDE, found 0
+    return super.test_overrideOnNonOverridingField_inSuperclass();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
+  test_overrideOnNonOverridingGetter_inInterface() async {
+    await super.test_overrideOnNonOverridingGetter_inInterface();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
+  test_overrideOnNonOverridingGetter_inSuperclass() async {
+    await super.test_overrideOnNonOverridingGetter_inSuperclass();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
+  test_overrideOnNonOverridingMethod_inInterface() async {
+    await super.test_overrideOnNonOverridingMethod_inInterface();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
+  test_overrideOnNonOverridingMethod_inSuperclass() async {
+    await super.test_overrideOnNonOverridingMethod_inSuperclass();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
+  test_overrideOnNonOverridingMethod_inSuperclass_abstract() async {
+    await super.test_overrideOnNonOverridingMethod_inSuperclass_abstract();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
+  test_overrideOnNonOverridingSetter_inInterface() async {
+    await super.test_overrideOnNonOverridingSetter_inInterface();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
+  test_overrideOnNonOverridingSetter_inSuperclass() async {
+    await super.test_overrideOnNonOverridingSetter_inSuperclass();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
+  test_proxy_annotation_prefixed() async {
+    await super.test_proxy_annotation_prefixed();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
+  test_proxy_annotation_prefixed2() async {
+    await super.test_proxy_annotation_prefixed2();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
+  test_proxy_annotation_prefixed3() async {
+    await super.test_proxy_annotation_prefixed3();
   }
 
   @override
@@ -131,22 +252,6 @@ void g(bool c) {
     // TODO(scheglov) We don't yet parse annotations on import directives.
     fail('This test fails in checked mode (indirectly)');
 //    await super.test_unusedImport_annotationOnDirective();
-  }
-
-  @override
-  @failingTest
-  test_overrideOnNonOverridingField_inSuperclass() {
-    // Expected 1 errors of type
-    // StrongModeCode.STRONG_MODE_INVALID_METHOD_OVERRIDE, found 0
-    return super.test_overrideOnNonOverridingField_inSuperclass();
-  }
-
-  @override
-  @failingTest
-  test_overrideOnNonOverridingField_inInterface() {
-    // Expected 1 errors of type
-    // StrongModeCode.STRONG_MODE_INVALID_METHOD_OVERRIDE, found 0
-    return super.test_overrideOnNonOverridingField_inInterface();
   }
 
   @failingTest

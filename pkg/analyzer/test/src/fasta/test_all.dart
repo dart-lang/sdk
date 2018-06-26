@@ -7,13 +7,11 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'ast_builder_test.dart' as ast_builder;
 import 'message_coverage_test.dart' as message_coverage;
 import 'recovery/test_all.dart' as recovery;
-import 'resolution_test.dart' as resolution;
 
 main() {
   defineReflectiveSuite(() {
     ast_builder.main();
     message_coverage.main();
     recovery.main();
-    resolution.main();
   }, name: 'fasta');
 }

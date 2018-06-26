@@ -58,6 +58,9 @@ class DevCompilerTarget extends Target {
   bool get nativeExtensionExpectsString => false;
 
   @override
+  bool get errorOnUnexactWebIntLiterals => true;
+
+  @override
   bool get enableNoSuchMethodForwarders => true;
 
   @override

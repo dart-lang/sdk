@@ -11,7 +11,7 @@ import 'package:compiler/src/js_backend/annotations.dart' as optimizerHints;
 import 'package:compiler/src/world.dart' show KClosedWorld;
 import '../memory_compiler.dart';
 
-const Map MEMORY_SOURCE_FILES = const {
+const Map<String, String> MEMORY_SOURCE_FILES = const {
   'main.dart': r"""
 import 'package:meta/dart2js.dart';
 

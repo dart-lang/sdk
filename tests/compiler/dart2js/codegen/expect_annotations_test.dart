@@ -14,7 +14,7 @@ import 'package:compiler/src/world.dart' show JClosedWorld;
 import '../inference/type_mask_test_helper.dart';
 import '../memory_compiler.dart';
 
-const Map MEMORY_SOURCE_FILES = const {
+const Map<String, String> MEMORY_SOURCE_FILES = const {
   'main.dart': r"""
 import 'package:expect/expect.dart';
 

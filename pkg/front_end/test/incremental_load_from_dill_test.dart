@@ -36,7 +36,7 @@ import 'package:kernel/kernel.dart' show Component;
 import "package:testing/testing.dart"
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
 
-import "package:yaml/yaml.dart" show YamlMap, loadYamlNode;
+import "package:yaml/yaml.dart" show YamlList, YamlMap, loadYamlNode;
 
 import "incremental_utils.dart" as util;
 
@@ -115,10 +115,11 @@ class RunCompilations extends Step<TestData, TestData, Context> {
   }
 }
 
-Future<Null> basicTest(Map<String, String> sourceFiles, String entryPoint,
-    bool strong, List<String> invalidate, Directory outDir) async {
+Future<Null> basicTest(YamlMap sourceFiles, String entryPoint, bool strong,
+    YamlList invalidate, Directory outDir) async {
   Uri entryPointUri = outDir.uri.resolve(entryPoint);
-  Set<String> invalidateFilenames = invalidate?.toSet() ?? new Set<String>();
+  Set<String> invalidateFilenames =
+      invalidate == null ? new Set<String>() : new Set<String>.from(invalidate);
   List<Uri> invalidateUris = <Uri>[];
   Uri packagesUri;
   for (String filename in sourceFiles.keys) {
@@ -191,7 +192,7 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
   Map<String, String> sourceFiles;
   CompilerOptions options;
   TestIncrementalCompiler compiler;
-  for (Map<String, dynamic> world in worlds) {
+  for (YamlMap world in worlds) {
     bool brandNewWorld = true;
     if (world["worldType"] == "updated") {
       brandNewWorld = false;
@@ -212,7 +213,7 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
     if (brandNewWorld) {
       sourceFiles = new Map<String, String>.from(world["sources"]);
     } else {
-      sourceFiles.addAll(world["sources"]);
+      sourceFiles.addAll(new Map<String, String>.from(world["sources"]));
     }
     Uri packagesUri;
     for (String filename in sourceFiles.keys) {
@@ -255,9 +256,12 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
       compiler = new TestIncrementalCompiler(options, entry, initializeFrom);
     }
 
+    List<Uri> invalidated = new List<Uri>();
     if (world["invalidate"] != null) {
       for (String filename in world["invalidate"]) {
-        compiler.invalidate(base.resolve(filename));
+        Uri uri = base.resolve(filename);
+        invalidated.add(uri);
+        compiler.invalidate(uri);
       }
     }
 
@@ -282,18 +286,20 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
           "$expectInitializeFromDill but was ${compiler.initializedFromDill}";
     }
     if (world["checkInvalidatedFiles"] != false) {
+      Set<Uri> filteredInvalidated =
+          compiler.getFilteredInvalidatedImportUrisForTesting(invalidated);
       if (world["invalidate"] != null) {
-        Expect.equals(world["invalidate"].length,
-            compiler.invalidatedImportUrisForTesting?.length ?? 0);
+        Expect.equals(
+            world["invalidate"].length, filteredInvalidated?.length ?? 0);
         List expectedInvalidatedUri = world["expectedInvalidatedUri"];
         if (expectedInvalidatedUri != null) {
           Expect.setEquals(
               expectedInvalidatedUri
                   .map((s) => Uri.parse(substituteVariables(s, base))),
-              compiler.invalidatedImportUrisForTesting);
+              filteredInvalidated);
         }
       } else {
-        Expect.isNull(compiler.invalidatedImportUrisForTesting);
+        Expect.isNull(filteredInvalidated);
         Expect.isNull(world["expectedInvalidatedUri"]);
       }
     }
@@ -313,7 +319,7 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
 }
 
 void performErrorAndWarningCheck(
-    Map<String, dynamic> world,
+    YamlMap world,
     bool gotError,
     List<String> formattedErrors,
     bool gotWarning,
@@ -388,8 +394,10 @@ Future<bool> initializedCompile(
   bool result = compiler.initializedFromDill;
   new File.fromUri(output)
       .writeAsBytesSync(util.postProcess(initializedComponent));
-  int actuallyInvalidatedCount =
-      compiler.invalidatedImportUrisForTesting?.length ?? 0;
+  int actuallyInvalidatedCount = compiler
+          .getFilteredInvalidatedImportUrisForTesting(invalidateUris)
+          ?.length ??
+      0;
   if (result && actuallyInvalidatedCount < invalidateUris.length) {
     Expect.fail("Expected at least ${invalidateUris.length} invalidated uris, "
         "got $actuallyInvalidatedCount");
@@ -409,8 +417,10 @@ Future<bool> initializedCompile(
 
   Component partialComponent = await compiler.computeDelta();
   util.throwOnEmptyMixinBodies(partialComponent);
-  actuallyInvalidatedCount =
-      (compiler.invalidatedImportUrisForTesting?.length ?? 0);
+  actuallyInvalidatedCount = (compiler
+          .getFilteredInvalidatedImportUrisForTesting(invalidateUris)
+          ?.length ??
+      0);
   if (actuallyInvalidatedCount < invalidateUris.length) {
     Expect.fail("Expected at least ${invalidateUris.length} invalidated uris, "
         "got $actuallyInvalidatedCount");
@@ -441,8 +451,28 @@ String substituteVariables(String source, Uri base) {
 
 class TestIncrementalCompiler extends IncrementalCompiler {
   Set<Uri> invalidatedImportUrisForTesting;
+  final Uri entryPoint;
 
-  TestIncrementalCompiler(CompilerOptions options, Uri entryPoint,
+  /// Filter out the automatically added entryPoint, unless it's explicitly
+  /// specified as being invalidated.
+  /// This is not perfect, but works for what it's currently used for.
+  Set<Uri> getFilteredInvalidatedImportUrisForTesting(
+      List<Uri> invalidatedUris) {
+    if (invalidatedImportUrisForTesting == null) return null;
+    Set<String> invalidatedFilenames =
+        invalidatedUris.map((uri) => uri.pathSegments.last).toSet();
+    if (invalidatedFilenames.contains(entryPoint.pathSegments.last)) {
+      return invalidatedImportUrisForTesting;
+    }
+
+    Set<Uri> result = new Set<Uri>();
+    for (Uri uri in invalidatedImportUrisForTesting) {
+      if (invalidatedFilenames.contains(uri.pathSegments.last)) result.add(uri);
+    }
+    return result;
+  }
+
+  TestIncrementalCompiler(CompilerOptions options, this.entryPoint,
       [Uri initializeFrom])
       : super(new CompilerContext(new ProcessedOptions(options, [entryPoint])),
             initializeFrom);

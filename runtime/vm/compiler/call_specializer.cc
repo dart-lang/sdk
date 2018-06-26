@@ -760,8 +760,9 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
   } else if (operands_type == kMintCid) {
     if (!FlowGraphCompiler::SupportsUnboxedInt64()) return false;
     if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
-      ShiftInt64OpInstr* shift_op = new (Z) ShiftInt64OpInstr(
-          op_kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
+      SpeculativeShiftInt64OpInstr* shift_op = new (Z)
+          SpeculativeShiftInt64OpInstr(op_kind, new (Z) Value(left),
+                                       new (Z) Value(right), call->deopt_id());
       ReplaceCall(call, shift_op);
     } else {
       BinaryInt64OpInstr* bin_op = new (Z) BinaryInt64OpInstr(

@@ -128,7 +128,7 @@ Future<bool> computeKernel(List<String> args,
   if (multiRoots.isEmpty) multiRoots.add(Uri.base);
   var fileSystem = new MultiRootFileSystem(parsedArgs['multi-root-scheme'],
       multiRoots, fe.StandardFileSystem.instance);
-  var sources = parsedArgs['source'].map(Uri.parse).toList();
+  var sources = (parsedArgs['source'] as List<String>).map(Uri.parse).toList();
   Target target;
   var summaryOnly = parsedArgs['summary-only'] as bool;
   var excludeNonSources = parsedArgs['exclude-non-sources'] as bool;
@@ -143,8 +143,12 @@ Future<bool> computeKernel(List<String> args,
       null,
       Uri.base.resolve(parsedArgs['dart-sdk-summary']),
       Uri.base.resolve(parsedArgs['packages-file']),
-      parsedArgs['input-summary'].map(Uri.base.resolve).toList(),
-      parsedArgs['input-linked'].map(Uri.base.resolve).toList(),
+      (parsedArgs['input-summary'] as List<String>)
+          .map(Uri.base.resolve)
+          .toList(),
+      (parsedArgs['input-linked'] as List<String>)
+          .map(Uri.base.resolve)
+          .toList(),
       target,
       fileSystem);
 

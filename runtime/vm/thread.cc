@@ -69,6 +69,7 @@ Thread::Thread(Isolate* isolate)
       vm_tag_(0),
       task_kind_(kUnknownTask),
       async_stack_trace_(StackTrace::null()),
+      unboxed_int64_runtime_arg_(0),
       dart_stream_(NULL),
       os_thread_(NULL),
       thread_lock_(new Monitor()),

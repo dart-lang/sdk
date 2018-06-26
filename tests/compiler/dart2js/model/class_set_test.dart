@@ -68,7 +68,7 @@ testIterators() async {
 
   void checkClass(ClassEntity cls,
       {bool directlyInstantiated: false, bool indirectlyInstantiated: false}) {
-    ClassHierarchyNode node = world.getClassHierarchyNode(cls);
+    ClassHierarchyNode node = world.classHierarchy.getClassHierarchyNode(cls);
     Expect.isNotNull(node, "Expected ClassHierarchyNode for $cls.");
     Expect.equals(
         directlyInstantiated || indirectlyInstantiated,
@@ -139,7 +139,7 @@ testIterators() async {
   }
 
   iterator = new ClassHierarchyNodeIterable(
-          world.getClassHierarchyNode(G), ClassHierarchyNode.ALL)
+          world.classHierarchy.getClassHierarchyNode(G), ClassHierarchyNode.ALL)
       .iterator;
   checkState(G, currentNode: null, stack: null);
   Expect.isNull(iterator.current);
@@ -151,7 +151,7 @@ testIterators() async {
   Expect.isNull(iterator.current);
 
   iterator = new ClassHierarchyNodeIterable(
-          world.getClassHierarchyNode(G), ClassHierarchyNode.ALL,
+          world.classHierarchy.getClassHierarchyNode(G), ClassHierarchyNode.ALL,
           includeRoot: false)
       .iterator;
   checkState(G, currentNode: null, stack: null);
@@ -161,7 +161,7 @@ testIterators() async {
   Expect.isNull(iterator.current);
 
   iterator = new ClassHierarchyNodeIterable(
-          world.getClassHierarchyNode(C), ClassHierarchyNode.ALL)
+          world.classHierarchy.getClassHierarchyNode(C), ClassHierarchyNode.ALL)
       .iterator;
   checkState(C, currentNode: null, stack: null);
   Expect.isNull(iterator.current);
@@ -182,7 +182,7 @@ testIterators() async {
   Expect.isNull(iterator.current);
 
   iterator = new ClassHierarchyNodeIterable(
-          world.getClassHierarchyNode(D), ClassHierarchyNode.ALL)
+          world.classHierarchy.getClassHierarchyNode(D), ClassHierarchyNode.ALL)
       .iterator;
   checkState(D, currentNode: null, stack: null);
   Expect.isNull(iterator.current);
@@ -194,7 +194,7 @@ testIterators() async {
   Expect.isNull(iterator.current);
 
   iterator = new ClassHierarchyNodeIterable(
-          world.getClassHierarchyNode(B), ClassHierarchyNode.ALL)
+          world.classHierarchy.getClassHierarchyNode(B), ClassHierarchyNode.ALL)
       .iterator;
   checkState(B, currentNode: null, stack: null);
   Expect.isNull(iterator.current);
@@ -209,7 +209,7 @@ testIterators() async {
   Expect.isNull(iterator.current);
 
   iterator = new ClassHierarchyNodeIterable(
-          world.getClassHierarchyNode(B), ClassHierarchyNode.ALL,
+          world.classHierarchy.getClassHierarchyNode(B), ClassHierarchyNode.ALL,
           includeRoot: false)
       .iterator;
   checkState(B, currentNode: null, stack: null);
@@ -222,7 +222,7 @@ testIterators() async {
   Expect.isNull(iterator.current);
 
   iterator = new ClassHierarchyNodeIterable(
-      world.getClassHierarchyNode(B),
+      world.classHierarchy.getClassHierarchyNode(B),
       new EnumSet<Instantiation>.fromValues(<Instantiation>[
         Instantiation.DIRECTLY_INSTANTIATED,
         Instantiation.UNINSTANTIATED
@@ -237,7 +237,7 @@ testIterators() async {
   Expect.isNull(iterator.current);
 
   iterator = new ClassHierarchyNodeIterable(
-          world.getClassHierarchyNode(A), ClassHierarchyNode.ALL)
+          world.classHierarchy.getClassHierarchyNode(A), ClassHierarchyNode.ALL)
       .iterator;
   checkState(A, currentNode: null, stack: null);
   Expect.isNull(iterator.current);
@@ -267,7 +267,7 @@ testIterators() async {
   Expect.isNull(iterator.current);
 
   iterator = new ClassHierarchyNodeIterable(
-          world.getClassHierarchyNode(A), ClassHierarchyNode.ALL,
+          world.classHierarchy.getClassHierarchyNode(A), ClassHierarchyNode.ALL,
           includeRoot: false)
       .iterator;
   checkState(A, currentNode: null, stack: null);
@@ -295,7 +295,7 @@ testIterators() async {
   Expect.isNull(iterator.current);
 
   iterator = new ClassHierarchyNodeIterable(
-      world.getClassHierarchyNode(A),
+      world.classHierarchy.getClassHierarchyNode(A),
       new EnumSet<Instantiation>.fromValues(<Instantiation>[
         Instantiation.DIRECTLY_INSTANTIATED,
         Instantiation.UNINSTANTIATED
@@ -325,7 +325,7 @@ testIterators() async {
   Expect.isNull(iterator.current);
 
   iterator = new ClassHierarchyNodeIterable(
-          world.getClassHierarchyNode(A),
+          world.classHierarchy.getClassHierarchyNode(A),
           new EnumSet<Instantiation>.fromValues(<Instantiation>[
             Instantiation.DIRECTLY_INSTANTIATED,
             Instantiation.UNINSTANTIATED
@@ -400,7 +400,7 @@ testForEach() async {
   ClassEntity X = env.getClass("X");
 
   void checkForEachSubclass(ClassEntity cls, List<ClassEntity> expected) {
-    ClassSet classSet = world.getClassSet(cls);
+    ClassSet classSet = world.classHierarchy.getClassSet(cls);
     List<ClassEntity> visited = <ClassEntity>[];
     classSet.forEachSubclass((cls) {
       visited.add(cls);
@@ -437,7 +437,7 @@ testForEach() async {
   checkForEachSubclass(X, [X]);
 
   void checkForEachSubtype(ClassEntity cls, List<ClassEntity> expected) {
-    ClassSet classSet = world.getClassSet(cls);
+    ClassSet classSet = world.classHierarchy.getClassSet(cls);
     List<ClassEntity> visited = <ClassEntity>[];
     classSet.forEachSubtype((cls) {
       visited.add(cls);
@@ -482,7 +482,7 @@ testForEach() async {
       mask = ClassHierarchyNode.ALL;
     }
 
-    ClassSet classSet = world.getClassSet(cls);
+    ClassSet classSet = world.classHierarchy.getClassSet(cls);
     List<ClassEntity> visited = <ClassEntity>[];
 
     IterationStep visit(_cls) {
@@ -539,7 +539,7 @@ testForEach() async {
 
   void checkAny(ClassEntity cls, List<ClassEntity> expected,
       {ClassEntity find, bool expectedResult, bool anySubtype: false}) {
-    ClassSet classSet = world.getClassSet(cls);
+    ClassSet classSet = world.classHierarchy.getClassSet(cls);
     List<ClassEntity> visited = <ClassEntity>[];
 
     bool visit(cls) {

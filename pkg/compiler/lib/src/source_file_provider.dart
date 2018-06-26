@@ -465,10 +465,10 @@ class BazelInputProvider extends SourceFileProvider {
   BazelInputProvider(List<String> searchPaths)
       : dirs = searchPaths.map(_resolve).toList();
 
-  static _resolve(String path) => currentDirectory.resolve(path);
+  static Uri _resolve(String path) => currentDirectory.resolve(path);
 
   @override
-  Future<api.Input> readFromUri(Uri uri,
+  Future<api.Input<List<int>>> readFromUri(Uri uri,
       {InputKind inputKind: InputKind.UTF8}) async {
     var resolvedUri = uri;
     var path = uri.path;
@@ -482,7 +482,8 @@ class BazelInputProvider extends SourceFileProvider {
         }
       }
     }
-    api.Input result = await readBytesFromUri(resolvedUri, inputKind);
+    api.Input<List<int>> result =
+        await readBytesFromUri(resolvedUri, inputKind);
     switch (inputKind) {
       case InputKind.UTF8:
         utf8SourceFiles[uri] = utf8SourceFiles[resolvedUri];

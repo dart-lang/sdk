@@ -672,6 +672,15 @@ enum ClassLevel {
 /// transform a mixin application to become a regular class, and vice versa.
 @coq
 class Class extends NamedNode implements FileUriNode {
+  /// Start offset of the class in the source file it comes from.
+  ///
+  /// Note that this includes annotations if any.
+  ///
+  /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset]) if the file
+  /// start offset is not available (this is the default if none is specifically
+  /// set).
+  int startFileOffset = TreeNode.noOffset;
+
   /// End offset in the source file it comes from. Valid values are from 0 and
   /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
   /// (this is the default if none is specifically set).
@@ -973,9 +982,11 @@ class Class extends NamedNode implements FileUriNode {
 
 @coq
 abstract class Member extends NamedNode implements FileUriNode {
-  /// End offset in the source file it comes from. Valid values are from 0 and
-  /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
-  /// (this is the default if none is specifically set).
+  /// End offset in the source file it comes from.
+  ///
+  /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset]) if the file
+  /// end offset is not available (this is the default if none is specifically
+  /// set).
   int fileEndOffset = TreeNode.noOffset;
 
   /// List of metadata annotations on the member.
@@ -1224,6 +1235,15 @@ class Field extends Member {
 ///
 /// For unnamed constructors, the name is an empty string (in a [Name]).
 class Constructor extends Member {
+  /// Start offset of the constructor in the source file it comes from.
+  ///
+  /// Note that this includes annotations if any.
+  ///
+  /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset]) if the file
+  /// start offset is not available (this is the default if none is specifically
+  /// set).
+  int startFileOffset = TreeNode.noOffset;
+
   int flags = 0;
   FunctionNode function;
   List<Initializer> initializers;
@@ -1450,6 +1470,15 @@ class RedirectingFactoryConstructor extends Member {
 /// except for the unary minus operator, whose name is `unary-`.
 @coq
 class Procedure extends Member {
+  /// Start offset of the function in the source file it comes from.
+  ///
+  /// Note that this includes annotations if any.
+  ///
+  /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset]) if the file
+  /// start offset is not available (this is the default if none is specifically
+  /// set).
+  int startFileOffset = TreeNode.noOffset;
+
   ProcedureKind kind;
   int flags = 0;
   // function is null if and only if abstract, external.
@@ -3170,6 +3199,10 @@ class StringLiteral extends BasicLiteral {
 }
 
 class IntLiteral extends BasicLiteral {
+  /// Note that this value holds a uint64 value.
+  /// E.g. "0x8000000000000000" will be saved as "-9223372036854775808" despite
+  /// technically (on some platforms, particularly Javascript) being positive.
+  /// If the number is meant to be negative it will be wrapped in a "unary-".
   int value;
 
   IntLiteral(this.value);
@@ -5171,7 +5204,7 @@ abstract class PrimitiveConstant<T> extends Constant {
 
   PrimitiveConstant(this.value);
 
-  String toString() => '${this.runtimeType}($value)';
+  String toString() => '$value';
 
   int get hashCode => value.hashCode;
 

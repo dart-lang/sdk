@@ -26,7 +26,9 @@ void main() {
       LibraryEntity mainLibrary =
           env.compiler.frontendStrategy.elementEnvironment.mainLibrary;
       Iterable<ClassEntity> expectedClasses =
-          directlyInstantiatedClasses.map(env.getElement);
+          directlyInstantiatedClasses.map((String name) {
+        return env.getElement(name);
+      });
       Iterable<ClassEntity> actualClasses = env
           .compiler.resolutionWorldBuilder.directlyInstantiatedClasses
           .where((c) => c.library == mainLibrary);

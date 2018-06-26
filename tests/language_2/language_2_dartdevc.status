@@ -162,6 +162,8 @@ string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
 super_call4_test/01: MissingCompileTimeError
+super_no_such_method4_test/01: MissingCompileTimeError # Requires Dart 2 semantics. See http://dartbug.com/33380.
+super_no_such_method5_test/01: MissingCompileTimeError # Requires Dart 2 semantics. See http://dartbug.com/33380.
 super_operator_index5_test: RuntimeError # 33470
 super_operator_index7_test: RuntimeError # 33470
 super_operator_index8_test: RuntimeError # 33470
@@ -282,10 +284,35 @@ void_type_usage_test/paren_literal_map_key_init: MissingCompileTimeError
 void_type_usage_test/paren_literal_map_value_init: MissingCompileTimeError
 void_type_usage_test/paren_return: MissingCompileTimeError
 void_type_usage_test/paren_void_init: MissingCompileTimeError
+web_int_literals_test/01: MissingCompileTimeError
+web_int_literals_test/02: MissingCompileTimeError
+web_int_literals_test/03: MissingCompileTimeError
+web_int_literals_test/10: MissingCompileTimeError
+web_int_literals_test/11: MissingCompileTimeError
+web_int_literals_test/12: MissingCompileTimeError
+web_int_literals_test/13: MissingCompileTimeError
+web_int_literals_test/14: MissingCompileTimeError
+web_int_literals_test/20: MissingCompileTimeError
+web_int_literals_test/21: MissingCompileTimeError
+web_int_literals_test/22: MissingCompileTimeError
+web_int_literals_test/23: MissingCompileTimeError
+web_int_literals_test/24: MissingCompileTimeError
+web_int_literals_test/25: MissingCompileTimeError
+web_int_literals_test/26: MissingCompileTimeError
+web_int_literals_test/27: MissingCompileTimeError
+web_int_literals_test/28: MissingCompileTimeError
+web_int_literals_test/29: MissingCompileTimeError
+web_int_literals_test/61: MissingCompileTimeError
+web_int_literals_test/62: MissingCompileTimeError
+web_int_literals_test/63: MissingCompileTimeError
+web_int_literals_test/64: MissingCompileTimeError
+web_int_literals_test/65: MissingCompileTimeError
+web_int_literals_test/70: MissingCompileTimeError
 
 [ $compiler == dartdevk ]
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
+arithmetic_int64_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
@@ -294,6 +321,9 @@ async_return_types_test/wrongReturnType: MissingCompileTimeError
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
+bit_operations_test/03: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+bit_operations_test/04: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+bit_operations_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 built_in_identifier_type_annotation_test/dynamic-funarg: RuntimeError # Issue 30450, test name contains hyphen
 built_in_identifier_type_annotation_test/dynamic-funret: RuntimeError # Issue 30450, test name contains hyphen
 built_in_identifier_type_annotation_test/dynamic-list: RuntimeError # Issue 30450, test name contains hyphen
@@ -326,6 +356,7 @@ config_import_test: CompileTimeError
 const_cast1_test/02: MissingCompileTimeError
 const_constructor3_test/04: MissingCompileTimeError
 const_constructor_nonconst_field_test/01: MissingCompileTimeError
+const_constructor_nonconst_param_test/01: MissingCompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError
 const_instance_field_test/01: MissingCompileTimeError
 const_map2_test/00: MissingCompileTimeError
@@ -343,8 +374,6 @@ cyclic_type_variable_test/01: MissingCompileTimeError
 cyclic_type_variable_test/02: MissingCompileTimeError
 cyclic_type_variable_test/03: MissingCompileTimeError
 cyclic_type_variable_test/04: MissingCompileTimeError
-cyclic_typedef_test/10: Crash
-cyclic_typedef_test/11: Crash
 default_factory2_test/01: MissingCompileTimeError
 default_factory_test/01: MissingCompileTimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
@@ -352,6 +381,8 @@ deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
+deopt_inlined_function_lazy_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+deopt_smi_op_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in ddk
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
@@ -377,6 +408,7 @@ function_propagation_test: RuntimeError
 function_type_parameter2_negative_test: Fail
 function_type_parameter_negative_test: Fail
 generic_function_bounds_test: RuntimeError
+generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 29920
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29920
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
@@ -387,6 +419,8 @@ getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
 getter_override_test/03: MissingCompileTimeError
+guess_cid_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+identical_closure2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 identical_const_test/01: MissingCompileTimeError
 identical_const_test/02: MissingCompileTimeError
 identical_const_test/03: MissingCompileTimeError
@@ -403,6 +437,7 @@ implicit_creation/implicit_const_not_default_values_test/e30: Pass
 implicit_creation/implicit_const_not_default_values_test/e6: Pass
 implicit_creation/implicit_const_not_default_values_test/e9: Pass
 instantiate_tearoff_of_call_test: CompileTimeError
+int2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 issue18628_2_test/01: MissingCompileTimeError
 issue31596_override_test/07: MissingCompileTimeError
 issue31596_override_test/08: MissingCompileTimeError
@@ -411,6 +446,7 @@ issue31596_super_test/02: MissingCompileTimeError
 issue31596_super_test/03: CompileTimeError
 issue31596_super_test/04: MissingCompileTimeError
 issue31596_super_test/05: RuntimeError
+list_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 malbounded_instantiation_test/01: MissingCompileTimeError
 malbounded_instantiation_test/02: MissingCompileTimeError
 malbounded_instantiation_test/03: MissingCompileTimeError
@@ -434,6 +470,9 @@ method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
 method_override_test: CompileTimeError # Issue 31616
+mint_arithmetic_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+mint_compares_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+mint_identical_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
@@ -515,6 +554,7 @@ named_constructor_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 no_such_method_mock_test: RuntimeError # Issue 31426 - Kernel does not introduce nSM for implemented fields.
 null_no_such_method_test: CompileTimeError # Issue 31533
+number_identity_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 override_field_test/01: MissingCompileTimeError
 override_field_test/02: MissingCompileTimeError
 override_inheritance_field_test/04: CompileTimeError # Issue 31616
@@ -534,15 +574,14 @@ redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 redirecting_factory_reflection_test: RuntimeError # UnimplementedError: node <InvalidExpression> `invalid-expression`
-regress_23089_test: Crash # Crashes in KernelClassBuilder.buildTypeArguments
 regress_23408_test: CompileTimeError # Issue 31533
 regress_24283_test: RuntimeError # Expect.equals(expected: <-1>, actual: <4294967295>) fails.
 regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError # Issue 31402 Error: A value of type '#lib2::Foo' can't be assigned to a variable of type '(#lib2::Foo) → void'.
 regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
-regress_30339_test: CompileTimeError
 regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
+regress_30339_test: CompileTimeError
 setter4_test: MissingCompileTimeError
 setter_no_getter_test/01: CompileTimeError
 setter_override_test/00: MissingCompileTimeError
@@ -553,9 +592,6 @@ string_split_test: CompileTimeError # Issue 31616
 string_supertype_checked_test: CompileTimeError # Issue 31616
 super_bound_closure_test/none: CompileTimeError # Issue 31533
 super_call4_test/01: MissingCompileTimeError
-super_operator_index6_test: CompileTimeError # Issue 33498
-super_operator_index7_test: CompileTimeError # Issue 33498
-super_operator_index8_test: CompileTimeError # Issue 33498
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
@@ -655,7 +691,6 @@ flatten_test/09: MissingRuntimeError # Issue 29920
 flatten_test/12: MissingRuntimeError # Issue 29920
 for_variable_capture_test: RuntimeError # Issue 29920; Expect.equals(expected: <1>, actual: <0>) fails.
 function_subtype_inline2_test: RuntimeError # Expect.fail('Missing type error: 'new C.c1(m2)'.')
-generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 29920
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 29920
 generic_instanceof2_test: RuntimeError # Issue 29920; ReferenceError: FooOfK$String is not defined
 generic_is_check_test: RuntimeError # Issue 29920; Expect.isTrue(false) fails.

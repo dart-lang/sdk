@@ -52,7 +52,7 @@ void deferredTest2() {
 
 // lib1 imports lib2 deferred. But mainlib never uses DeferredLibrary.
 // Test that this case works.
-const Map TEST1 = const {
+const Map<String, String> TEST1 = const {
   "main.dart": """
 library mainlib;
 
@@ -80,7 +80,7 @@ void foo2() {}
 
 // main indirectly uses class A from shared. A should still be included in the
 // main fragment.
-const Map TEST2 = const {
+const Map<String, String> TEST2 = const {
   "main.dart": """
 import 'def.dart' deferred as def;
 import 'shared.dart';

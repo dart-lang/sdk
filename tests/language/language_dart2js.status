@@ -335,6 +335,7 @@ deferred_load_library_wrong_args_test/01: MissingRuntimeError
 deferred_not_loaded_check_test: RuntimeError
 deferred_redirecting_factory_test: RuntimeError
 deopt_inlined_function_lazy_test: CompileTimeError # Int larger than 64 bits.
+deopt_smi_op_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 double_int_to_string_test: RuntimeError
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
@@ -387,6 +388,7 @@ issue21079_test: RuntimeError
 left_shift_test: RuntimeError
 library_env_test/has_mirror_support: RuntimeError, OK
 list_literal4_test: RuntimeError
+list_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 main_not_a_function_test/01: CompileTimeError
 many_overridden_no_such_method_test: RuntimeError
 method_override5_test: RuntimeError
@@ -395,6 +397,7 @@ method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
+mint_arithmetic_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 mint_arithmetic_test: RuntimeError
 mint_compares_test: CompileTimeError # Int larger than 64 bits
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError

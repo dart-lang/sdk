@@ -414,7 +414,11 @@ RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
 
   // Share the immutable descriptor when possible by canonicalizing it.
   descriptor.MakeImmutable();
-  descriptor ^= descriptor.CheckAndCanonicalize(thread, NULL);
+  const char* error_str = NULL;
+  descriptor ^= descriptor.CheckAndCanonicalize(thread, &error_str);
+  if (error_str != NULL) {
+    FATAL1("Failed to canonicalize: %s", error_str);
+  }
   ASSERT(!descriptor.IsNull());
   return descriptor.raw();
 }
@@ -459,7 +463,11 @@ RawArray* ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
   // Share the immutable descriptor when possible by canonicalizing it.
   descriptor.MakeImmutable();
   if (canonicalize) {
-    descriptor ^= descriptor.CheckAndCanonicalize(thread, NULL);
+    const char* error_str = NULL;
+    descriptor ^= descriptor.CheckAndCanonicalize(thread, &error_str);
+    if (error_str != NULL) {
+      FATAL1("Failed to canonicalize: %s", error_str);
+    }
   }
   ASSERT(!descriptor.IsNull());
   return descriptor.raw();

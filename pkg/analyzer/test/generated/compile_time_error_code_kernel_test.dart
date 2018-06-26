@@ -526,16 +526,16 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_constWithNonConst_with() async {
-    // Bad state: No type information for C at 72
-    await super.test_constWithNonConst_with();
+  test_constWithNonConst_in_const_context() async {
+    // Bad state: No data for () at 58
+    await super.test_constWithNonConst_in_const_context();
   }
 
   @override
   @failingTest
-  test_constWithNonConst_in_const_context() async {
-    // Bad state: No data for () at 58
-    await super.test_constWithNonConst_in_const_context();
+  test_constWithNonConst_with() async {
+    // Bad state: No type information for C at 72
+    await super.test_constWithNonConst_with();
   }
 
   @override
@@ -3097,6 +3097,69 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_yieldInNonGenerator_async() async {
     // Test passes, even though if fails in the superclass
     await super.test_yieldInNonGenerator_async();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeAsBound_class() async {
+    await super.test_genericFunctionTypeAsBound_class();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeAsBound_genericFunction() async {
+    await super.test_genericFunctionTypeAsBound_genericFunction();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeAsBound_genericFunctionTypedef() async {
+    await super.test_genericFunctionTypeAsBound_genericFunctionTypedef();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeAsBound_parameterOfFunction() async {
+    await super.test_genericFunctionTypeAsBound_parameterOfFunction();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeAsBound_typedef() async {
+    await super.test_genericFunctionTypeAsBound_typedef();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeArgument_class() async {
+    await super.test_genericFunctionTypeArgument_class();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeArgument_functionType() async {
+    await super.test_genericFunctionTypeArgument_functionType();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeArgument_function() async {
+    await super.test_genericFunctionTypeArgument_function();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeArgument_method() async {
+    await super.test_genericFunctionTypeArgument_method();
   }
 }
 

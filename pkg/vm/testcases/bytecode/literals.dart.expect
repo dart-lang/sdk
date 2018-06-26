@@ -360,19 +360,19 @@ Bytecode {
   PushConstant         CP#9
   IndirectStaticCall   1, CP#1
   Drop1
-  PushConstant         CP#10
   PushConstant         CP#11
+  PushConstant         CP#12
   IndirectStaticCall   1, CP#1
   Drop1
-  PushConstant         CP#19
   PushConstant         CP#20
+  PushConstant         CP#21
   IndirectStaticCall   1, CP#1
   Drop1
-  PushConstant         CP#30
   PushConstant         CP#31
+  PushConstant         CP#32
   IndirectStaticCall   1, CP#1
   Drop1
-  PushConstant         CP#32
+  PushConstant         CP#33
   ReturnTOS
 }
 ConstantPool {
@@ -386,35 +386,36 @@ ConstantPool {
   [7] = String 'A.elem2'
   [8] = Instance #lib::A type-args CP#5 {index: 6, _name: 7}
   [9] = StaticICData target 'dart.core::print', arg-desc CP#1
-  [10] = List type-arg dart.core::Object, entries CP# [0, 3]
-  [11] = StaticICData target 'dart.core::print', arg-desc CP#1
-  [12] = TypeArgs [dart.core::String, #lib::A]
-  [13] = String 'E2'
-  [14] = String 'E4'
-  [15] = Int 3
-  [16] = String 'A.elem4'
-  [17] = Instance #lib::A type-args CP#5 {index: 15, _name: 16}
-  [18] = List type-arg dynamic, entries CP# [13, 8, 14, 17]
-  [19] = Instance dart.core::_ImmutableMap type-args CP#12 {_kvPairs: 18}
-  [20] = StaticICData target 'dart.core::print', arg-desc CP#1
-  [21] = Int 9
-  [22] = Int 30
-  [23] = Instance #lib::C type-args CP#5 {j: 21, i: 22}
-  [24] = TypeArgs [dart.core::String, dart.core::Object]
-  [25] = String 'bar'
-  [26] = Int 6
-  [27] = Instance #lib::B type-args CP#5 {i: 26}
-  [28] = List type-arg dynamic, entries CP# [3, 0, 25, 27]
-  [29] = Instance dart.core::_ImmutableMap type-args CP#24 {_kvPairs: 28}
-  [30] = Instance #lib::D type-args CP#5 {x: 23, y: 29}
-  [31] = StaticICData target 'dart.core::print', arg-desc CP#1
-  [32] = Null
+  [10] = Type dart.core::int
+  [11] = List type-arg dart.core::Object, entries CP# [0, 3, 10]
+  [12] = StaticICData target 'dart.core::print', arg-desc CP#1
+  [13] = TypeArgs [dart.core::String, #lib::A]
+  [14] = String 'E2'
+  [15] = String 'E4'
+  [16] = Int 3
+  [17] = String 'A.elem4'
+  [18] = Instance #lib::A type-args CP#5 {index: 16, _name: 17}
+  [19] = List type-arg dynamic, entries CP# [14, 8, 15, 18]
+  [20] = Instance dart.core::_ImmutableMap type-args CP#13 {_kvPairs: 19}
+  [21] = StaticICData target 'dart.core::print', arg-desc CP#1
+  [22] = Int 9
+  [23] = Int 30
+  [24] = Instance #lib::C type-args CP#5 {j: 22, i: 23}
+  [25] = TypeArgs [dart.core::String, dart.core::Object]
+  [26] = String 'bar'
+  [27] = Int 6
+  [28] = Instance #lib::B type-args CP#5 {i: 27}
+  [29] = List type-arg dynamic, entries CP# [3, 0, 26, 28]
+  [30] = Instance dart.core::_ImmutableMap type-args CP#25 {_kvPairs: 29}
+  [31] = Instance #lib::D type-args CP#5 {x: 24, y: 30}
+  [32] = StaticICData target 'dart.core::print', arg-desc CP#1
+  [33] = Null
 }
 ]static method test_constants2() → void {
   core::print(42);
   core::print("foo");
   core::print(self::A::elem2);
-  core::print(const <core::Object>[42, "foo"]);
+  core::print(const <core::Object>[42, "foo", core::int]);
   core::print(const <core::String, self::A>{"E2": self::A::elem2, "E4": self::A::elem4});
   core::print(const self::D::•(const self::C::•(4, 5, 6), const <core::String, core::Object>{"foo": 42, "bar": const self::B::•(self::c2.{core::String::length})}));
 }

@@ -54,10 +54,4 @@ main() {
 class StatusTest_UseCFE extends StatusTest {
   @override
   bool get useCFE => true;
-
-  @override
-  @failingTest
-  test_status() {
-    fail('This test crashes CFE');
-  }
 }

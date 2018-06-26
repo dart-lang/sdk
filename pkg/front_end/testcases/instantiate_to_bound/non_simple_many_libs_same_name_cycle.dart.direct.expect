@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "./non_simple_many_libs_same_name_cycle_lib.dart" as non;
+import "dart:core" as core;
+
+class Hest<TypeX extends non::Hest<dynamic> = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

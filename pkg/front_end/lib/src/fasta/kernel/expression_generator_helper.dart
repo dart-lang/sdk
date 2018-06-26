@@ -26,8 +26,10 @@ import 'kernel_builder.dart' show KernelTypeBuilder, PrefixBuilder;
 
 import 'kernel_ast_api.dart'
     show
+        Arguments,
         Constructor,
         DartType,
+        Expression,
         FunctionNode,
         FunctionType,
         Initializer,
@@ -45,8 +47,7 @@ import 'kernel_builder.dart'
         PrefixBuilder,
         TypeDeclarationBuilder;
 
-abstract class ExpressionGeneratorHelper<Expression, Statement, Arguments>
-    implements InferenceHelper<Expression, Statement, Arguments> {
+abstract class ExpressionGeneratorHelper implements InferenceHelper {
   LibraryBuilder get library;
 
   Uri get uri;
@@ -57,7 +58,7 @@ abstract class ExpressionGeneratorHelper<Expression, Statement, Arguments>
 
   ConstantContext get constantContext;
 
-  Forest<Expression, Statement, Token, Arguments> get forest;
+  Forest get forest;
 
   Constructor lookupConstructor(Name name, {bool isSuper});
 
@@ -152,6 +153,4 @@ abstract class ExpressionGeneratorHelper<Expression, Statement, Arguments>
   Message warnUnresolvedMethod(Name name, int charOffset, {bool isSuper});
 
   void warnTypeArgumentsMismatch(String name, int expected, int charOffset);
-
-  T storeOffset<T>(T node, int offset);
 }

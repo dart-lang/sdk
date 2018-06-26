@@ -512,11 +512,10 @@ interface AudioScheduledSourceNode {
     [DartName=start2] void start(optional double when);
 };
 
-// Remove operations webkitRequestFullscreen replaced w/ requestFullscreen.
+// Remove operation requestFullscreen only use webKitRequestFullscreen.
 [DartSupplemental]
 interface Element : Node {
-    [DartSuppress] void webkitRequestFullScreen([Default=Undefined] optional unsigned short flags);
-    [DartSuppress] void webkitRequestFullscreen();
+    [DartSuppress] void requestFullscreen();
 };
 
 [DartSupplemental]

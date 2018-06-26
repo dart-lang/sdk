@@ -80,8 +80,7 @@ import '../kernel/kernel_builder.dart'
     show
         KernelFormalParameterBuilder,
         KernelNamedTypeBuilder,
-        KernelTypeBuilder,
-        KernelTypeVariableBuilder;
+        KernelTypeBuilder;
 
 enum MethodBody {
   Abstract,
@@ -130,10 +129,10 @@ class OutlineBuilder extends StackListener {
     String postfix = popIfNotNull(periodBeforeName);
     List<TypeBuilder> typeArguments = pop();
     if (arguments == null) {
-      int charOffset = pop();
+      pop(); // charOffset
       Object expression = pop();
       push(new MetadataBuilder.fromExpression(
-          expression, postfix, library, charOffset));
+          expression, postfix, library, beginToken.charOffset));
     } else {
       int charOffset = pop();
       Object typeName = pop();
@@ -465,6 +464,9 @@ class OutlineBuilder extends StackListener {
     }
     List<MetadataBuilder> metadata = pop();
 
+    final int startCharOffset =
+        metadata == null ? beginToken.charOffset : metadata.first.charOffset;
+
     library.addClass(
         documentationComment,
         metadata,
@@ -473,6 +475,7 @@ class OutlineBuilder extends StackListener {
         typeVariables,
         supertype,
         interfaces,
+        startCharOffset,
         charOffset,
         endToken.charOffset,
         supertypeOffset);
@@ -521,6 +524,8 @@ class OutlineBuilder extends StackListener {
     library
         .endNestedDeclaration("#method")
         .resolveTypes(typeVariables, library);
+    final int startCharOffset =
+        metadata == null ? beginToken.charOffset : metadata.first.charOffset;
     library.addProcedure(
         documentationComment,
         metadata,
@@ -530,6 +535,7 @@ class OutlineBuilder extends StackListener {
         typeVariables,
         formals,
         computeProcedureKind(getOrSet),
+        startCharOffset,
         charOffset,
         formalsOffset,
         endToken.charOffset,
@@ -710,6 +716,8 @@ class OutlineBuilder extends StackListener {
             messageConstructorWithReturnType, beginToken, beginToken);
         returnType = null;
       }
+      final int startCharOffset =
+          metadata == null ? beginToken.charOffset : metadata.first.charOffset;
       library.addConstructor(
           documentationComment,
           metadata,
@@ -719,6 +727,7 @@ class OutlineBuilder extends StackListener {
           constructorName,
           typeVariables,
           formals,
+          startCharOffset,
           charOffset,
           formalsOffset,
           endToken.charOffset,
@@ -728,6 +737,8 @@ class OutlineBuilder extends StackListener {
         addCompileTimeError(messageConstMethod, varFinalOrConstOffset, 5);
         modifiers &= ~constMask;
       }
+      final int startCharOffset =
+          metadata == null ? beginToken.charOffset : metadata.first.charOffset;
       library.addProcedure(
           documentationComment,
           metadata,
@@ -737,6 +748,7 @@ class OutlineBuilder extends StackListener {
           typeVariables,
           formals,
           kind,
+          startCharOffset,
           charOffset,
           formalsOffset,
           endToken.charOffset,
@@ -803,21 +815,6 @@ class OutlineBuilder extends StackListener {
             new List<KernelNamedTypeBuilder>.filled(count, null,
                 growable: true)) ??
         NullValue.TypeList);
-  }
-
-  @override
-  void endTypeVariables(int count, Token beginToken, Token endToken) {
-    debugEvent("TypeVariables");
-    push(popList(
-            count,
-            new List<KernelTypeVariableBuilder>.filled(count, null,
-                growable: true)) ??
-        NullValue.TypeVariables);
-    if (inConstructorName) {
-      addProblem(messageConstructorWithTypeParameters,
-          offsetForToken(beginToken), lengthOfSpan(beginToken, endToken));
-      inConstructorName = false;
-    }
   }
 
   @override
@@ -1109,18 +1106,41 @@ class OutlineBuilder extends StackListener {
   @override
   void beginTypeVariable(Token token) {
     debugEvent("beginTypeVariable");
-  }
-
-  @override
-  void endTypeVariable(Token token, Token extendsOrSuper) {
-    debugEvent("endTypeVariable");
-    TypeBuilder bound = pop();
     int charOffset = pop();
     String name = pop();
     // TODO(paulberry): type variable metadata should not be ignored.  See
     // dartbug.com/28981.
     /* List<MetadataBuilder> metadata = */ pop();
-    push(library.addTypeVariable(name, bound, charOffset));
+
+    push(library.addTypeVariable(name, null, charOffset));
+  }
+
+  @override
+  void handleTypeVariablesDefined(Token token, int count) {
+    debugEvent("TypeVariablesDefined");
+    assert(count > 0);
+    push(popList(count, new List<TypeVariableBuilder>(count)));
+  }
+
+  @override
+  void endTypeVariable(Token token, int index, Token extendsOrSuper) {
+    debugEvent("endTypeVariable");
+    TypeBuilder bound = pop();
+    // Peek to leave type parameters on top of stack.
+    List typeParameters = peek();
+
+    typeParameters[index].bound = bound;
+  }
+
+  @override
+  void endTypeVariables(Token beginToken, Token endToken) {
+    debugEvent("endTypeVariables");
+
+    if (inConstructorName) {
+      addProblem(messageConstructorWithTypeParameters,
+          offsetForToken(beginToken), lengthOfSpan(beginToken, endToken));
+      inConstructorName = false;
+    }
   }
 
   @override
@@ -1183,6 +1203,7 @@ class OutlineBuilder extends StackListener {
         name,
         formals,
         redirectionTarget,
+        beginToken.charOffset,
         charOffset,
         formalsOffset,
         endToken.charOffset,

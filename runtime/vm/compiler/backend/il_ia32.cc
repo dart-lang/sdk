@@ -5247,15 +5247,204 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+static void EmitShiftInt64ByConstant(FlowGraphCompiler* compiler,
+                                     Token::Kind op_kind,
+                                     Register left_lo,
+                                     Register left_hi,
+                                     const Object& right) {
+  const int64_t shift = Integer::Cast(right).AsInt64Value();
+  ASSERT(shift >= 0);
+  switch (op_kind) {
+    case Token::kSHR: {
+      if (shift > 31) {
+        __ movl(left_lo, left_hi);        // Shift by 32.
+        __ sarl(left_hi, Immediate(31));  // Sign extend left hi.
+        if (shift > 32) {
+          __ sarl(left_lo, Immediate(shift > 63 ? 31 : shift - 32));
+        }
+      } else {
+        __ shrdl(left_lo, left_hi, Immediate(shift));
+        __ sarl(left_hi, Immediate(shift));
+      }
+      break;
+    }
+    case Token::kSHL: {
+      ASSERT(shift < 64);
+      if (shift > 31) {
+        __ movl(left_hi, left_lo);  // Shift by 32.
+        __ xorl(left_lo, left_lo);  // Zero left_lo.
+        if (shift > 32) {
+          __ shll(left_hi, Immediate(shift - 32));
+        }
+      } else {
+        __ shldl(left_hi, left_lo, Immediate(shift));
+        __ shll(left_lo, Immediate(shift));
+      }
+      break;
+    }
+    default:
+      UNREACHABLE();
+  }
+}
+
+static void EmitShiftInt64ByECX(FlowGraphCompiler* compiler,
+                                Token::Kind op_kind,
+                                Register left_lo,
+                                Register left_hi) {
+  // sarl operation masks the count to 5 bits and
+  // shrdl is undefined with count > operand size (32)
+  Label done, large_shift;
+  switch (op_kind) {
+    case Token::kSHR: {
+      __ cmpl(ECX, Immediate(31));
+      __ j(ABOVE, &large_shift);
+
+      __ shrdl(left_lo, left_hi, ECX);  // Shift count in CL.
+      __ sarl(left_hi, ECX);            // Shift count in CL.
+      __ jmp(&done, Assembler::kNearJump);
+
+      __ Bind(&large_shift);
+      // No need to subtract 32 from CL, only 5 bits used by sarl.
+      __ movl(left_lo, left_hi);        // Shift by 32.
+      __ sarl(left_hi, Immediate(31));  // Sign extend left hi.
+      __ sarl(left_lo, ECX);            // Shift count: CL % 32.
+      break;
+    }
+    case Token::kSHL: {
+      __ cmpl(ECX, Immediate(31));
+      __ j(ABOVE, &large_shift);
+
+      __ shldl(left_hi, left_lo, ECX);  // Shift count in CL.
+      __ shll(left_lo, ECX);            // Shift count in CL.
+      __ jmp(&done, Assembler::kNearJump);
+
+      __ Bind(&large_shift);
+      // No need to subtract 32 from CL, only 5 bits used by shll.
+      __ movl(left_hi, left_lo);  // Shift by 32.
+      __ xorl(left_lo, left_lo);  // Zero left_lo.
+      __ shll(left_hi, ECX);      // Shift count: CL % 32.
+      break;
+    }
+    default:
+      UNREACHABLE();
+  }
+  __ Bind(&done);
+}
+
+static void EmitShiftUint32ByConstant(FlowGraphCompiler* compiler,
+                                      Token::Kind op_kind,
+                                      Register left,
+                                      const Object& right) {
+  const int64_t shift = Integer::Cast(right).AsInt64Value();
+  if (shift >= 32) {
+    __ xorl(left, left);
+  } else {
+    switch (op_kind) {
+      case Token::kSHR: {
+        __ shrl(left, Immediate(shift));
+        break;
+      }
+      case Token::kSHL: {
+        __ shll(left, Immediate(shift));
+        break;
+      }
+      default:
+        UNREACHABLE();
+    }
+  }
+}
+
+static void EmitShiftUint32ByECX(FlowGraphCompiler* compiler,
+                                 Token::Kind op_kind,
+                                 Register left) {
+  switch (op_kind) {
+    case Token::kSHR: {
+      __ shrl(left, ECX);
+      break;
+    }
+    case Token::kSHL: {
+      __ shll(left, ECX);
+      break;
+    }
+    default:
+      UNREACHABLE();
+  }
+}
+
+class ShiftInt64OpSlowPath : public ThrowErrorSlowPathCode {
+ public:
+  static const intptr_t kNumberOfArguments = 0;
+
+  ShiftInt64OpSlowPath(ShiftInt64OpInstr* instruction, intptr_t try_index)
+      : ThrowErrorSlowPathCode(instruction,
+                               kArgumentErrorUnboxedInt64RuntimeEntry,
+                               kNumberOfArguments,
+                               try_index) {}
+
+  const char* name() override { return "int64 shift"; }
+
+  void EmitCodeAtSlowPathEntry(FlowGraphCompiler* compiler) override {
+    PairLocation* right_pair = instruction()->locs()->in(1).AsPairLocation();
+    Register right_lo = right_pair->At(0).reg();
+    Register right_hi = right_pair->At(1).reg();
+    PairLocation* out_pair = instruction()->locs()->out(0).AsPairLocation();
+    Register out_lo = out_pair->At(0).reg();
+    Register out_hi = out_pair->At(1).reg();
+#if defined(DEBUG)
+    PairLocation* left_pair = instruction()->locs()->in(0).AsPairLocation();
+    Register left_lo = left_pair->At(0).reg();
+    Register left_hi = left_pair->At(1).reg();
+    ASSERT(out_lo == left_lo);
+    ASSERT(out_hi == left_hi);
+#endif  // defined(DEBUG)
+
+    Label throw_error;
+    __ testl(right_hi, right_hi);
+    __ j(NEGATIVE, &throw_error);
+
+    switch (instruction()->AsShiftInt64Op()->op_kind()) {
+      case Token::kSHR:
+        __ sarl(out_hi, Immediate(31));
+        __ movl(out_lo, out_hi);
+        break;
+      case Token::kSHL: {
+        __ xorl(out_lo, out_lo);
+        __ xorl(out_hi, out_hi);
+        break;
+      }
+      default:
+        UNREACHABLE();
+    }
+    __ jmp(exit_label());
+
+    __ Bind(&throw_error);
+
+    // Can't pass unboxed int64 value directly to runtime call, as all
+    // arguments are expected to be tagged (boxed).
+    // The unboxed int64 argument is passed through a dedicated slot in Thread.
+    // TODO(dartbug.com/33549): Clean this up when unboxed values
+    // could be passed as arguments.
+    __ movl(Address(THR, Thread::unboxed_int64_runtime_arg_offset()), right_lo);
+    __ movl(
+        Address(THR, Thread::unboxed_int64_runtime_arg_offset() + kWordSize),
+        right_hi);
+  }
+};
+
 LocationSummary* ShiftInt64OpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  LocationSummary* summary = new (zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::Pair(Location::RequiresRegister(),
                                     Location::RequiresRegister()));
-  summary->set_in(1, Location::FixedRegisterOrSmiConstant(right(), ECX));
+  if (ConstantInstr* constant = right()->definition()->AsConstant()) {
+    summary->set_in(1, Location::Constant(constant));
+  } else {
+    summary->set_in(1, Location::Pair(Location::RegisterLocation(ECX),
+                                      Location::RequiresRegister()));
+  }
   summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
@@ -5271,92 +5460,217 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(out_hi == left_hi);
   ASSERT(!can_overflow());
 
-  Label* deopt = NULL;
-  if (CanDeoptimize()) {
-    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryInt64Op);
-  }
   if (locs()->in(1).IsConstant()) {
-    // Code for a constant shift amount.
-    ASSERT(locs()->in(1).constant().IsSmi());
-    const int32_t shift = Smi::Cast(locs()->in(1).constant()).Value();
-    ASSERT(shift >= 0);
-    switch (op_kind()) {
-      case Token::kSHR: {
-        if (shift > 31) {
-          __ movl(left_lo, left_hi);        // Shift by 32.
-          __ sarl(left_hi, Immediate(31));  // Sign extend left hi.
-          if (shift > 32) {
-            __ sarl(left_lo, Immediate(shift > 63 ? 31 : shift - 32));
-          }
-        } else {
-          __ shrdl(left_lo, left_hi, Immediate(shift));
-          __ sarl(left_hi, Immediate(shift));
-        }
-        break;
-      }
-      case Token::kSHL: {
-        ASSERT(shift < 64);
-        if (shift > 31) {
-          __ movl(left_hi, left_lo);  // Shift by 32.
-          __ xorl(left_lo, left_lo);  // Zero left_lo.
-          if (shift > 32) {
-            __ shll(left_hi, Immediate(shift - 32));
-          }
-        } else {
-          __ shldl(left_hi, left_lo, Immediate(shift));
-          __ shll(left_lo, Immediate(shift));
-        }
-        break;
-      }
-      default:
-        UNREACHABLE();
-    }
+    EmitShiftInt64ByConstant(compiler, op_kind(), left_lo, left_hi,
+                             locs()->in(1).constant());
   } else {
     // Code for a variable shift amount.
-    // Deoptimize if shift count is > 63.
-    // sarl operation masks the count to 5 bits and
-    // shrdl is undefined with count > operand size (32)
-    __ SmiUntag(ECX);
+    ASSERT(locs()->in(1).AsPairLocation()->At(0).reg() == ECX);
+    Register right_hi = locs()->in(1).AsPairLocation()->At(1).reg();
+
+    // Jump to a slow path if shift count is > 63 or negative.
+    ShiftInt64OpSlowPath* slow_path = NULL;
     if (!IsShiftCountInRange()) {
-      __ cmpl(ECX, Immediate(kMintShiftCountLimit));
+      slow_path =
+          new (Z) ShiftInt64OpSlowPath(this, compiler->CurrentTryIndex());
+      compiler->AddSlowPathCode(slow_path);
+      __ testl(right_hi, right_hi);
+      __ j(NOT_ZERO, slow_path->entry_label());
+      __ cmpl(ECX, Immediate(kShiftCountLimit));
+      __ j(ABOVE, slow_path->entry_label());
+    }
+
+    EmitShiftInt64ByECX(compiler, op_kind(), left_lo, left_hi);
+
+    if (slow_path != NULL) {
+      __ Bind(slow_path->exit_label());
+    }
+  }
+}
+
+LocationSummary* SpeculativeShiftInt64OpInstr::MakeLocationSummary(
+    Zone* zone,
+    bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::Pair(Location::RequiresRegister(),
+                                    Location::RequiresRegister()));
+  summary->set_in(1, Location::FixedRegisterOrSmiConstant(right(), ECX));
+  summary->set_out(0, Location::SameAsFirstInput());
+  return summary;
+}
+
+void SpeculativeShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  PairLocation* left_pair = locs()->in(0).AsPairLocation();
+  Register left_lo = left_pair->At(0).reg();
+  Register left_hi = left_pair->At(1).reg();
+  PairLocation* out_pair = locs()->out(0).AsPairLocation();
+  Register out_lo = out_pair->At(0).reg();
+  Register out_hi = out_pair->At(1).reg();
+  ASSERT(out_lo == left_lo);
+  ASSERT(out_hi == left_hi);
+  ASSERT(!can_overflow());
+
+  if (locs()->in(1).IsConstant()) {
+    EmitShiftInt64ByConstant(compiler, op_kind(), left_lo, left_hi,
+                             locs()->in(1).constant());
+  } else {
+    ASSERT(locs()->in(1).reg() == ECX);
+    __ SmiUntag(ECX);
+
+    // Deoptimize if shift count is > 63 or negative.
+    if (!IsShiftCountInRange()) {
+      ASSERT(CanDeoptimize());
+      Label* deopt =
+          compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryInt64Op);
+      __ cmpl(ECX, Immediate(kShiftCountLimit));
       __ j(ABOVE, deopt);
     }
-    Label done, large_shift;
-    switch (op_kind()) {
-      case Token::kSHR: {
-        __ cmpl(ECX, Immediate(31));
-        __ j(ABOVE, &large_shift);
 
-        __ shrdl(left_lo, left_hi, ECX);  // Shift count in CL.
-        __ sarl(left_hi, ECX);            // Shift count in CL.
-        __ jmp(&done, Assembler::kNearJump);
+    EmitShiftInt64ByECX(compiler, op_kind(), left_lo, left_hi);
+  }
+}
 
-        __ Bind(&large_shift);
-        // No need to subtract 32 from CL, only 5 bits used by sarl.
-        __ movl(left_lo, left_hi);        // Shift by 32.
-        __ sarl(left_hi, Immediate(31));  // Sign extend left hi.
-        __ sarl(left_lo, ECX);            // Shift count: CL % 32.
-        break;
-      }
-      case Token::kSHL: {
-        __ cmpl(ECX, Immediate(31));
-        __ j(ABOVE, &large_shift);
+class ShiftUint32OpSlowPath : public ThrowErrorSlowPathCode {
+ public:
+  static const intptr_t kNumberOfArguments = 0;
 
-        __ shldl(left_hi, left_lo, ECX);  // Shift count in CL.
-        __ shll(left_lo, ECX);            // Shift count in CL.
-        __ jmp(&done, Assembler::kNearJump);
+  ShiftUint32OpSlowPath(ShiftUint32OpInstr* instruction, intptr_t try_index)
+      : ThrowErrorSlowPathCode(instruction,
+                               kArgumentErrorUnboxedInt64RuntimeEntry,
+                               kNumberOfArguments,
+                               try_index) {}
 
-        __ Bind(&large_shift);
-        // No need to subtract 32 from CL, only 5 bits used by shll.
-        __ movl(left_hi, left_lo);  // Shift by 32.
-        __ xorl(left_lo, left_lo);  // Zero left_lo.
-        __ shll(left_hi, ECX);      // Shift count: CL % 32.
-        break;
-      }
-      default:
-        UNREACHABLE();
+  const char* name() override { return "uint32 shift"; }
+
+  void EmitCodeAtSlowPathEntry(FlowGraphCompiler* compiler) override {
+    PairLocation* right_pair = instruction()->locs()->in(1).AsPairLocation();
+    Register right_lo = right_pair->At(0).reg();
+    Register right_hi = right_pair->At(1).reg();
+    const Register out = instruction()->locs()->out(0).reg();
+    ASSERT(out == instruction()->locs()->in(0).reg());
+
+    Label throw_error;
+    __ testl(right_hi, right_hi);
+    __ j(NEGATIVE, &throw_error);
+
+    __ xorl(out, out);
+    __ jmp(exit_label());
+
+    __ Bind(&throw_error);
+
+    // Can't pass unboxed int64 value directly to runtime call, as all
+    // arguments are expected to be tagged (boxed).
+    // The unboxed int64 argument is passed through a dedicated slot in Thread.
+    // TODO(dartbug.com/33549): Clean this up when unboxed values
+    // could be passed as arguments.
+    __ movl(Address(THR, Thread::unboxed_int64_runtime_arg_offset()), right_lo);
+    __ movl(
+        Address(THR, Thread::unboxed_int64_runtime_arg_offset() + kWordSize),
+        right_hi);
+  }
+};
+
+LocationSummary* ShiftUint32OpInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+  summary->set_in(0, Location::RequiresRegister());
+  if (ConstantInstr* constant = right()->definition()->AsConstant()) {
+    summary->set_in(1, Location::Constant(constant));
+  } else {
+    summary->set_in(1, Location::Pair(Location::RegisterLocation(ECX),
+                                      Location::RequiresRegister()));
+  }
+  summary->set_out(0, Location::SameAsFirstInput());
+  return summary;
+}
+
+void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register left = locs()->in(0).reg();
+  Register out = locs()->out(0).reg();
+  ASSERT(left == out);
+
+  if (locs()->in(1).IsConstant()) {
+    EmitShiftUint32ByConstant(compiler, op_kind(), left,
+                              locs()->in(1).constant());
+  } else {
+    // Code for a variable shift amount.
+    ASSERT(locs()->in(1).AsPairLocation()->At(0).reg() == ECX);
+    Register right_hi = locs()->in(1).AsPairLocation()->At(1).reg();
+
+    // Jump to a slow path if shift count is > 31 or negative.
+    ShiftUint32OpSlowPath* slow_path = NULL;
+    if (!IsShiftCountInRange(kUint32ShiftCountLimit)) {
+      slow_path =
+          new (Z) ShiftUint32OpSlowPath(this, compiler->CurrentTryIndex());
+      compiler->AddSlowPathCode(slow_path);
+
+      __ testl(right_hi, right_hi);
+      __ j(NOT_ZERO, slow_path->entry_label());
+      __ cmpl(ECX, Immediate(kUint32ShiftCountLimit));
+      __ j(ABOVE, slow_path->entry_label());
     }
-    __ Bind(&done);
+
+    EmitShiftUint32ByECX(compiler, op_kind(), left);
+
+    if (slow_path != NULL) {
+      __ Bind(slow_path->exit_label());
+    }
+  }
+}
+
+LocationSummary* SpeculativeShiftUint32OpInstr::MakeLocationSummary(
+    Zone* zone,
+    bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(1, Location::FixedRegisterOrSmiConstant(right(), ECX));
+  summary->set_out(0, Location::SameAsFirstInput());
+  return summary;
+}
+
+void SpeculativeShiftUint32OpInstr::EmitNativeCode(
+    FlowGraphCompiler* compiler) {
+  Register left = locs()->in(0).reg();
+  Register out = locs()->out(0).reg();
+  ASSERT(left == out);
+
+  if (locs()->in(1).IsConstant()) {
+    EmitShiftUint32ByConstant(compiler, op_kind(), left,
+                              locs()->in(1).constant());
+  } else {
+    ASSERT(locs()->in(1).reg() == ECX);
+    __ SmiUntag(ECX);
+
+    if (!IsShiftCountInRange(kUint32ShiftCountLimit)) {
+      if (!IsShiftCountInRange()) {
+        // Deoptimize if shift count is negative.
+        ASSERT(CanDeoptimize());
+        Label* deopt =
+            compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryInt64Op);
+
+        __ testl(ECX, ECX);
+        __ j(LESS, deopt);
+      }
+
+      Label cont;
+      __ cmpl(ECX, Immediate(kUint32ShiftCountLimit));
+      __ j(LESS_EQUAL, &cont);
+
+      __ xorl(left, left);
+
+      __ Bind(&cont);
+    }
+
+    EmitShiftUint32ByECX(compiler, op_kind(), left);
   }
 }
 
@@ -5394,90 +5708,12 @@ CompileType ShiftUint32OpInstr::ComputeType() const {
   return CompileType::Int();
 }
 
-CompileType UnaryUint32OpInstr::ComputeType() const {
+CompileType SpeculativeShiftUint32OpInstr::ComputeType() const {
   return CompileType::Int();
 }
 
-LocationSummary* ShiftUint32OpInstr::MakeLocationSummary(Zone* zone,
-                                                         bool opt) const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::FixedRegisterOrSmiConstant(right(), ECX));
-  summary->set_out(0, Location::SameAsFirstInput());
-  return summary;
-}
-
-void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const intptr_t kShifterLimit = 31;
-
-  Register left = locs()->in(0).reg();
-  Register out = locs()->out(0).reg();
-  ASSERT(left == out);
-
-  Label* deopt =
-      compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryInt64Op);
-
-  if (locs()->in(1).IsConstant()) {
-    // Shifter is constant.
-
-    const Object& constant = locs()->in(1).constant();
-    ASSERT(constant.IsSmi());
-    const intptr_t shift_value = Smi::Cast(constant).Value();
-
-    // Do the shift: (shift_value > 0) && (shift_value <= kShifterLimit).
-    switch (op_kind()) {
-      case Token::kSHR:
-        __ shrl(left, Immediate(shift_value));
-        break;
-      case Token::kSHL:
-        __ shll(left, Immediate(shift_value));
-        break;
-      default:
-        UNREACHABLE();
-    }
-    return;
-  }
-
-  // Non constant shift value.
-
-  Register shifter = locs()->in(1).reg();
-  ASSERT(shifter == ECX);
-
-  Label done;
-  Label zero;
-
-  // TODO(johnmccutchan): Use range information to avoid these checks.
-  __ SmiUntag(shifter);
-  __ cmpl(shifter, Immediate(0));
-  // If shift value is < 0, deoptimize.
-  __ j(NEGATIVE, deopt);
-  __ cmpl(shifter, Immediate(kShifterLimit));
-  // If shift value is >= 32, return zero.
-  __ j(ABOVE, &zero);
-
-  // Do the shift.
-  switch (op_kind()) {
-    case Token::kSHR:
-      __ shrl(left, shifter);
-      __ jmp(&done);
-      break;
-    case Token::kSHL:
-      __ shll(left, shifter);
-      __ jmp(&done);
-      break;
-    default:
-      UNREACHABLE();
-  }
-
-  __ Bind(&zero);
-  // Shift was greater than 31 bits, just return zero.
-  __ xorl(left, left);
-
-  // Exit path.
-  __ Bind(&done);
+CompileType UnaryUint32OpInstr::ComputeType() const {
+  return CompileType::Int();
 }
 
 LocationSummary* UnaryUint32OpInstr::MakeLocationSummary(Zone* zone,

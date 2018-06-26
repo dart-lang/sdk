@@ -254,8 +254,9 @@ void RangeAnalysis::CollectValues() {
           values_.Add(defn);
           if (defn->IsBinaryInt64Op()) {
             binary_int64_ops_.Add(defn->AsBinaryInt64Op());
-          } else if (defn->IsShiftInt64Op()) {
-            shift_int64_ops_.Add(defn->AsShiftInt64Op());
+          } else if (defn->IsShiftInt64Op() ||
+                     defn->IsSpeculativeShiftInt64Op()) {
+            shift_int64_ops_.Add(defn->AsShiftIntegerOp());
           }
         }
       } else if (current->IsCheckArrayBound()) {
@@ -1497,7 +1498,7 @@ static void NarrowBinaryInt64Op(BinaryInt64OpInstr* int64_op) {
   }
 }
 
-static void NarrowShiftInt64Op(ShiftInt64OpInstr* int64_op) {
+static void NarrowShiftInt64Op(ShiftIntegerOpInstr* int64_op) {
   if (RangeUtils::Fits(int64_op->range(), RangeBoundary::kRangeBoundaryInt32) &&
       RangeUtils::Fits(int64_op->left()->definition()->range(),
                        RangeBoundary::kRangeBoundaryInt32) &&
@@ -1552,7 +1553,8 @@ bool IntegerInstructionSelector::IsPotentialUint32Definition(Definition* def) {
   // & untagged of intermediate results.
   // TODO(johnmccutchan): Consider phis.
   return def->IsBoxInt64() || def->IsUnboxInt64() || def->IsBinaryInt64Op() ||
-         def->IsShiftInt64Op() || def->IsUnaryInt64Op();
+         def->IsShiftInt64Op() || def->IsSpeculativeShiftInt64Op() ||
+         def->IsUnaryInt64Op();
 }
 
 void IntegerInstructionSelector::FindPotentialUint32Definitions() {
@@ -1625,6 +1627,13 @@ bool IntegerInstructionSelector::AllUsesAreUint32Narrowing(Value* list_head) {
         !selected_uint32_defs_->Contains(defn->ssa_temp_index())) {
       return false;
     }
+    // Right-hand side operand of ShiftInt64Op is not narrowing (all its bits
+    // should be taken into account).
+    if (ShiftIntegerOpInstr* shift = defn->AsShiftIntegerOp()) {
+      if (use == shift->right()) {
+        return false;
+      }
+    }
   }
   return true;
 }
@@ -1638,8 +1647,8 @@ bool IntegerInstructionSelector::CanBecomeUint32(Definition* def) {
   }
   // A right shift with an input outside of Uint32 range cannot be converted
   // because we need the high bits.
-  if (def->IsShiftInt64Op()) {
-    ShiftInt64OpInstr* op = def->AsShiftInt64Op();
+  if (def->IsShiftInt64Op() || def->IsSpeculativeShiftInt64Op()) {
+    ShiftIntegerOpInstr* op = def->AsShiftIntegerOp();
     if (op->op_kind() == Token::kSHR) {
       Definition* shift_input = op->left()->definition();
       ASSERT(shift_input != NULL);
@@ -1699,13 +1708,22 @@ Definition* IntegerInstructionSelector::ConstructReplacementFor(
   ASSERT(IsPotentialUint32Definition(def));
   // Should not see constant instructions.
   ASSERT(!def->IsConstant());
-  if (def->IsBinaryInt64Op()) {
-    BinaryInt64OpInstr* op = def->AsBinaryInt64Op();
+  if (def->IsBinaryIntegerOp()) {
+    BinaryIntegerOpInstr* op = def->AsBinaryIntegerOp();
     Token::Kind op_kind = op->op_kind();
     Value* left = op->left()->CopyWithType();
     Value* right = op->right()->CopyWithType();
     intptr_t deopt_id = op->DeoptimizationTarget();
-    return new (Z) BinaryUint32OpInstr(op_kind, left, right, deopt_id);
+    if (def->IsBinaryInt64Op()) {
+      return new (Z) BinaryUint32OpInstr(op_kind, left, right, deopt_id);
+    } else if (def->IsShiftInt64Op()) {
+      return new (Z) ShiftUint32OpInstr(op_kind, left, right, deopt_id);
+    } else if (def->IsSpeculativeShiftInt64Op()) {
+      return new (Z)
+          SpeculativeShiftUint32OpInstr(op_kind, left, right, deopt_id);
+    } else {
+      UNREACHABLE();
+    }
   } else if (def->IsBoxInt64()) {
     Value* value = def->AsBoxInt64()->value()->CopyWithType();
     return new (Z) BoxUint32Instr(value);
@@ -1720,13 +1738,6 @@ Definition* IntegerInstructionSelector::ConstructReplacementFor(
     Value* value = op->value()->CopyWithType();
     intptr_t deopt_id = op->DeoptimizationTarget();
     return new (Z) UnaryUint32OpInstr(op_kind, value, deopt_id);
-  } else if (def->IsShiftInt64Op()) {
-    ShiftInt64OpInstr* op = def->AsShiftInt64Op();
-    Token::Kind op_kind = op->op_kind();
-    Value* left = op->left()->CopyWithType();
-    Value* right = op->right()->CopyWithType();
-    intptr_t deopt_id = op->DeoptimizationTarget();
-    return new (Z) ShiftUint32OpInstr(op_kind, left, right, deopt_id);
   }
   UNREACHABLE();
   return NULL;
@@ -2504,7 +2515,7 @@ void Definition::set_range(const Range& range) {
 void Definition::InferRange(RangeAnalysis* analysis, Range* range) {
   if (Type()->ToCid() == kSmiCid) {
     *range = Range::Full(RangeBoundary::kRangeBoundarySmi);
-  } else if (IsMintDefinition()) {
+  } else if (IsInt64Definition()) {
     *range = Range::Full(RangeBoundary::kRangeBoundaryInt64);
   } else if (IsInt32Definition()) {
     *range = Range::Full(RangeBoundary::kRangeBoundaryInt32);
@@ -2844,7 +2855,7 @@ void BinaryInt64OpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
                    right()->definition()->range(), range);
 }
 
-void ShiftInt64OpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+void ShiftIntegerOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   CacheRange(&shift_range_, right()->definition()->range(),
              RangeBoundary::kRangeBoundaryInt64);
   InferRangeHelper(left()->definition()->range(),
@@ -2903,7 +2914,7 @@ void UnboxInt64Instr::InferRange(RangeAnalysis* analysis, Range* range) {
   const Range* value_range = value()->definition()->range();
   if (value_range != NULL) {
     *range = *value_range;
-  } else if (!value()->definition()->IsMintDefinition() &&
+  } else if (!value()->definition()->IsInt64Definition() &&
              (value()->definition()->Type()->ToCid() != kSmiCid)) {
     *range = Range::Full(RangeBoundary::kRangeBoundaryInt64);
   }

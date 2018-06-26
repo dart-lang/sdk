@@ -192,6 +192,13 @@ abstract class Target {
   // we should at least unify the VM and non-VM variants.
   bool get nativeExtensionExpectsString => false;
 
+  /// Whether integer literals that cannot be represented exactly on the web
+  /// (i.e. in Javascript) should cause an error to be issued.
+  /// An example of such a number is `2^53 + 1` where in Javascript - because
+  /// integers are represented as doubles
+  /// `Math.pow(2, 53) = Math.pow(2, 53) + 1`.
+  bool get errorOnUnexactWebIntLiterals => false;
+
   /// Builds an expression that instantiates an [Invocation] that can be passed
   /// to [noSuchMethod].
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,

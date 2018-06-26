@@ -41,7 +41,7 @@ void main() {
 
 // Make sure that the implicit references to supers are found by the deferred
 // loading dependency mechanism.
-const Map MEMORY_SOURCE_FILES = const {
+const Map<String, String> MEMORY_SOURCE_FILES = const {
   "main.dart": """
 import "lib.dart" deferred as lib;
 

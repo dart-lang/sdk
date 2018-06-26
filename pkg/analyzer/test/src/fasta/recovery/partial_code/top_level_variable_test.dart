@@ -214,7 +214,15 @@ class TopLevelVariableTest extends PartialCodeTest {
               ParserErrorCode.EXPECTED_TOKEN
             ],
             "var a = _s_;",
-            failing: allExceptEof,
+            failing: [
+              'class',
+              'typedef',
+              'functionVoid',
+              'functionNonVoid',
+              'const',
+              'getter',
+              'setter'
+            ],
           ),
           new TestDescriptor(
             'varNameEqualsExpression',

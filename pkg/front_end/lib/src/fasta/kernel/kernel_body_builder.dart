@@ -4,9 +4,7 @@
 
 library fasta.kernel_body_builder;
 
-import 'package:kernel/ast.dart' show Arguments, Expression, Statement;
-
-import '../scanner.dart' show Token;
+import 'package:kernel/ast.dart' show Expression;
 
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
 
@@ -21,10 +19,9 @@ import 'kernel_api.dart' show ClassHierarchy, CoreTypes;
 import 'kernel_builder.dart'
     show KernelClassBuilder, KernelLibraryBuilder, ModifierBuilder, Scope;
 
-class KernelBodyBuilder extends BodyBuilder<Expression, Statement, Arguments> {
+class KernelBodyBuilder extends BodyBuilder {
   @override
-  final Forest<Expression, Statement, Token, Arguments> forest =
-      const Fangorn();
+  final Forest forest = const Fangorn();
 
   KernelBodyBuilder(
       KernelLibraryBuilder library,

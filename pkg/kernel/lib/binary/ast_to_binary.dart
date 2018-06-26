@@ -220,16 +220,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   // Returns the new active file uri.
   Uri writeUriReference(Uri uri) {
-    if (_knownSourceUri.contains(uri)) {
-      final int index = _sourceUriIndexer.put(uri);
-      writeUInt30(index);
-      return uri;
-    } else {
-      // This is equivalent to `index = _sourceUriIndexer[null];`.
-      final int index = 0;
-      writeUInt30(index);
-      return null;
-    }
+    final int index = _sourceUriIndexer.put(uri);
+    writeUInt30(index);
+    return uri;
   }
 
   void writeList<T>(List<T> items, void writeItem(T x)) {
@@ -496,8 +489,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     Utf8Encoder utf8Encoder = const Utf8Encoder();
     for (Uri uri in _sourceUriIndexer.index.keys) {
       index[i] = getBufferOffset();
-
-      Source source = uriToSource[uri] ?? new Source(<int>[], const <int>[]);
+      Source source =
+          (_knownSourceUri.contains(uri) ? uriToSource[uri] : null) ??
+              new Source(<int>[], const <int>[]);
 
       writeByteList(utf8Encoder.convert(uri == null ? "" : "$uri"));
       writeByteList(source.source);
@@ -746,8 +740,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     final Uri activeFileUriSaved = _activeFileUri;
     _activeFileUri = writeUriReference(node.fileUri);
 
+    writeOffset(node.startFileOffset);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
+
     writeByte(flags);
     writeStringReference(node.name ?? '');
 
@@ -788,8 +784,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     final Uri activeFileUriSaved = _activeFileUri;
     _activeFileUri = writeUriReference(node.fileUri);
 
+    writeOffset(node.startFileOffset);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
+
     writeByte(node.flags);
     writeName(node.name ?? _emptyName);
 
@@ -820,6 +818,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     final Uri activeFileUriSaved = _activeFileUri;
     _activeFileUri = writeUriReference(node.fileUri);
 
+    writeOffset(node.startFileOffset);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.kind.index);

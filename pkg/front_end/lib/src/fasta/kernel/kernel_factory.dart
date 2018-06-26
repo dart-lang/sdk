@@ -11,15 +11,22 @@ import 'package:kernel/ast.dart'
         Expression,
         FunctionType,
         Initializer,
+        LabeledStatement,
         Node,
-        Statement;
+        Statement,
+        SwitchCase,
+        VariableDeclaration;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
 import 'factory.dart' show Factory;
 
 import 'kernel_shadow_ast.dart'
-    show ExpressionJudgment, InitializerJudgment, StatementJudgment;
+    show
+        ExpressionJudgment,
+        InitializerJudgment,
+        StatementJudgment,
+        SwitchCaseJudgment;
 
 /// Implementation of [Factory] that builds source code into a kernel
 /// representation.
@@ -82,8 +89,13 @@ class KernelFactory
   }
 
   @override
-  Statement breakStatement(StatementJudgment judgment, int fileOffset,
-      Token breakKeyword, Expression label, Token semicolon) {
+  Statement breakStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token breakKeyword,
+      Expression label,
+      Token semicolon,
+      covariant LabeledStatement labelBinder) {
     return judgment;
   }
 
@@ -107,9 +119,9 @@ class KernelFactory
       Token rightParenthesis,
       Statement body,
       DartType guardType,
-      int exceptionOffset,
+      covariant VariableDeclaration exceptionBinder,
       DartType exceptionType,
-      int stackTraceOffset,
+      covariant VariableDeclaration stackTraceBinder,
       DartType stackTraceType) {
     return judgment;
   }
@@ -134,14 +146,24 @@ class KernelFactory
   }
 
   @override
-  Statement continueStatement(StatementJudgment judgment, int fileOffset,
-      Token continueKeyword, Expression label, Token semicolon) {
+  Statement continueStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token continueKeyword,
+      Expression label,
+      Token semicolon,
+      covariant LabeledStatement labelBinder) {
     return judgment;
   }
 
   @override
-  Statement continueSwitchStatement(StatementJudgment judgment, int fileOffset,
-      Token continueKeyword, Expression label, Token semicolon) {
+  Statement continueSwitchStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token continueKeyword,
+      Expression label,
+      Token semicolon,
+      covariant LabeledStatement labelBinder) {
     return judgment;
   }
 
@@ -172,6 +194,11 @@ class KernelFactory
   }
 
   @override
+  Statement emptyStatement(Token semicolon) {
+    return null;
+  }
+
+  @override
   Statement expressionStatement(StatementJudgment judgment, int fileOffset,
       Expression expression, Token semicolon) {
     return judgment;
@@ -194,8 +221,17 @@ class KernelFactory
   Statement forInStatement(
       StatementJudgment judgment,
       int fileOffset,
-      int variableOffset,
-      DartType variableType,
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      Object loopVariable,
+      Token identifier,
+      Token inKeyword,
+      Expression iterator,
+      Token rightParenthesis,
+      Statement body,
+      covariant Object loopVariableBinder,
+      DartType loopVariableType,
       int writeOffset,
       DartType writeVariableType,
       int writeVariableDeclarationOffset,
@@ -204,13 +240,31 @@ class KernelFactory
   }
 
   @override
-  Statement forStatement(StatementJudgment judgment, int fileOffset) {
+  Statement forStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token forKeyword,
+      Token leftParenthesis,
+      Object variableDeclarationList,
+      Expression initialization,
+      Token leftSeparator,
+      Expression condition,
+      Token rightSeparator,
+      List<Expression> updaters,
+      Token rightParenthesis,
+      Statement body) {
     return judgment;
   }
 
   @override
   Statement functionDeclaration(
-      StatementJudgment judgment, int fileOffset, FunctionType inferredType) {
+      covariant VariableDeclaration binder, FunctionType inferredType) {
+    return binder;
+  }
+
+  @override
+  Object binderForFunctionDeclaration(
+      StatementJudgment judgment, int fileOffset, String name) {
     return judgment;
   }
 
@@ -288,13 +342,31 @@ class KernelFactory
   }
 
   @override
-  Statement labeledStatement(StatementJudgment judgment, int fileOffset) {
+  Statement labeledStatement(List<Object> labels, Statement statement) {
+    return labels[0];
+  }
+
+  Object statementLabel(
+      covariant StatementJudgment binder, Token label, Token colon) {
+    return binder;
+  }
+
+  @override
+  Object binderForStatementLabel(
+      StatementJudgment judgment, int fileOffset, String name) {
     return judgment;
   }
 
   @override
   Expression listLiteral(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {
+      ExpressionJudgment judgment,
+      int fileOffset,
+      Token constKeyword,
+      Object typeArguments,
+      Token leftBracket,
+      List<Expression> elements,
+      Token rightBracket,
+      DartType inferredType) {
     return judgment;
   }
 
@@ -311,7 +383,20 @@ class KernelFactory
 
   @override
   Expression mapLiteral(
-      ExpressionJudgment judgment, int fileOffset, DartType typeContext) {
+      ExpressionJudgment judgment,
+      int fileOffset,
+      Token constKeyword,
+      Object typeArguments,
+      Token leftBracket,
+      List<Object> entries,
+      Token rightBracket,
+      DartType inferredType) {
+    return judgment;
+  }
+
+  @override
+  Object mapLiteralEntry(Object judgment, int fileOffset, Expression key,
+      Token separator, Expression value) {
     return judgment;
   }
 
@@ -341,8 +426,8 @@ class KernelFactory
   }
 
   @override
-  Expression namedFunctionExpression(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {
+  Expression namedFunctionExpression(ExpressionJudgment judgment,
+      covariant VariableDeclaration binder, DartType inferredType) {
     return judgment;
   }
 
@@ -469,8 +554,37 @@ class KernelFactory
     return judgment;
   }
 
+  SwitchCase switchCase(
+      SwitchCaseJudgment judgment,
+      List<Object> labels,
+      Token keyword,
+      Expression expression,
+      Token colon,
+      List<Statement> statements) {
+    return judgment;
+  }
+
+  SwitchCase switchLabel(
+      covariant SwitchCase binder, Token label, Token colon) {
+    return binder;
+  }
+
+  SwitchCase binderForSwitchLabel(
+      SwitchCaseJudgment judgment, int fileOffset, String name) {
+    return judgment;
+  }
+
   @override
-  Statement switchStatement(StatementJudgment judgment, int fileOffset) {
+  Statement switchStatement(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token switchKeyword,
+      Token leftParenthesis,
+      Expression expression,
+      Token rightParenthesis,
+      Token leftBracket,
+      List<Object> members,
+      Token rightBracket) {
     return judgment;
   }
 
@@ -503,7 +617,14 @@ class KernelFactory
   }
 
   @override
-  Statement tryFinally(StatementJudgment judgment, int fileOffset) {
+  Statement tryFinally(
+      StatementJudgment judgment,
+      int fileOffset,
+      Token tryKeyword,
+      Statement body,
+      List<Object> catchClauses,
+      Token finallyKeyword,
+      Statement finallyBlock) {
     return judgment;
   }
 
@@ -525,8 +646,14 @@ class KernelFactory
   }
 
   @override
-  Statement variableDeclaration(StatementJudgment judgment, int fileOffset,
+  Statement variableDeclaration(covariant VariableDeclaration binder,
       DartType statementType, DartType inferredType) {
+    return binder;
+  }
+
+  @override
+  Object binderForVariableDeclaration(
+      StatementJudgment judgment, int fileOffset, String name) {
     return judgment;
   }
 
@@ -535,14 +662,8 @@ class KernelFactory
       ExpressionJudgment judgment,
       int fileOffset,
       bool isInCascade,
-      int expressionVariableDeclarationOffset,
+      covariant VariableDeclaration variableBinder,
       DartType inferredType) {
-    return judgment;
-  }
-
-  @override
-  Expression variableSet(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {
     return judgment;
   }
 

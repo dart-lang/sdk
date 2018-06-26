@@ -23,6 +23,27 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
+  test_annotation() async {
+    await super.test_annotation();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
+  test_annotation_constructor_withNestedConstructorInvocation() async {
+    await super.test_annotation_constructor_withNestedConstructorInvocation();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
+  test_annotation_kind_reference() async {
+    await super.test_annotation_kind_reference();
+  }
+
+  @override
+  @failingTest
   @potentialAnalyzerProblem
   test_annotation_prefixed_classConstructor() {
     // TODO(paulberry): broken because prefixes are not working properly

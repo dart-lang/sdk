@@ -56,10 +56,4 @@ void foo() { }
 class GetPostfixCompletionTest_UseCFE extends GetPostfixCompletionTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_postfix_completion() {
-    return super.test_postfix_completion();
-  }
 }

@@ -215,6 +215,96 @@ const MessageCode messageAwaitNotAsync = const MessageCode("AwaitNotAsync",
     message: r"""'await' can only be used in 'async' or 'async*' methods.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            name2)> templateBoundIssueViaCycleNonSimplicity = const Template<
+        Message Function(String name,
+            String name2)>(
+    messageTemplate:
+        r"""Generic type '#name' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through '#name2'.""",
+    tipTemplate:
+        r"""Try providing type arguments to '#name2' here or to some other raw types in the bounds along the reference chain.""",
+    withArguments: _withArgumentsBoundIssueViaCycleNonSimplicity);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeBoundIssueViaCycleNonSimplicity =
+    const Code<Message Function(String name, String name2)>(
+        "BoundIssueViaCycleNonSimplicity",
+        templateBoundIssueViaCycleNonSimplicity,
+        analyzerCode: "STRONG_MODE_NOT_INSTANTIATED_BOUND",
+        dart2jsCode: "*fatal*",
+        severity: Severity.error);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsBoundIssueViaCycleNonSimplicity(
+    String name, String name2) {
+  return new Message(codeBoundIssueViaCycleNonSimplicity,
+      message:
+          """Generic type '${name}' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through '${name2}'.""",
+      tip: """Try providing type arguments to '${name2}' here or to some other raw types in the bounds along the reference chain.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateBoundIssueViaLoopNonSimplicity = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Generic type '#name' can't be used without type arguments in the bounds of its own type variables.""",
+    tipTemplate: r"""Try providing type arguments to '#name' here.""",
+    withArguments: _withArgumentsBoundIssueViaLoopNonSimplicity);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeBoundIssueViaLoopNonSimplicity =
+    const Code<Message Function(String name)>("BoundIssueViaLoopNonSimplicity",
+        templateBoundIssueViaLoopNonSimplicity,
+        analyzerCode: "STRONG_MODE_NOT_INSTANTIATED_BOUND",
+        dart2jsCode: "*fatal*",
+        severity: Severity.error);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsBoundIssueViaLoopNonSimplicity(String name) {
+  return new Message(codeBoundIssueViaLoopNonSimplicity,
+      message:
+          """Generic type '${name}' can't be used without type arguments in the bounds of its own type variables.""",
+      tip: """Try providing type arguments to '${name}' here.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateBoundIssueViaRawTypeWithNonSimpleBounds =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Generic type '#name' can't be used without type arguments in a type variable bound.""",
+        tipTemplate: r"""Try providing type arguments to '#name' here.""",
+        withArguments: _withArgumentsBoundIssueViaRawTypeWithNonSimpleBounds);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeBoundIssueViaRawTypeWithNonSimpleBounds =
+    const Code<Message Function(String name)>(
+        "BoundIssueViaRawTypeWithNonSimpleBounds",
+        templateBoundIssueViaRawTypeWithNonSimpleBounds,
+        analyzerCode: "STRONG_MODE_NOT_INSTANTIATED_BOUND",
+        dart2jsCode: "*fatal*",
+        severity: Severity.error);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsBoundIssueViaRawTypeWithNonSimpleBounds(String name) {
+  return new Message(codeBoundIssueViaRawTypeWithNonSimpleBounds,
+      message:
+          """Generic type '${name}' can't be used without type arguments in a type variable bound.""",
+      tip: """Try providing type arguments to '${name}' here.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeBreakOutsideOfLoop = messageBreakOutsideOfLoop;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -995,6 +1085,32 @@ Message _withArgumentsConstEvalNonConstantLiteral(String string) {
   return new Message(codeConstEvalNonConstantLiteral,
       message:
           """Can't have a non-constant ${string} literal within a const context.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            string)> templateConstEvalNonConstantVariableGet = const Template<
+        Message Function(String string)>(
+    messageTemplate:
+        r"""The variable '#string' is not a constant, only constant expressions are allowed.""",
+    withArguments: _withArgumentsConstEvalNonConstantVariableGet);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)>
+    codeConstEvalNonConstantVariableGet =
+    const Code<Message Function(String string)>(
+        "ConstEvalNonConstantVariableGet",
+        templateConstEvalNonConstantVariableGet,
+        analyzerCode: "NON_CONSTANT_VALUE_IN_INITIALIZER");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalNonConstantVariableGet(String string) {
+  return new Message(codeConstEvalNonConstantVariableGet,
+      message:
+          """The variable '${string}' is not a constant, only constant expressions are allowed.""",
       arguments: {'string': string});
 }
 
@@ -4541,6 +4657,51 @@ const MessageCode messageNonPartOfDirectiveInPart = const MessageCode(
         r"""Try removing the other directives, or moving them to the library for which this is a part.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateNonSimpleBoundViaReference =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Bound of this variable references raw type '#name'.""",
+        withArguments: _withArgumentsNonSimpleBoundViaReference);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNonSimpleBoundViaReference =
+    const Code<Message Function(String name)>(
+        "NonSimpleBoundViaReference", templateNonSimpleBoundViaReference,
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonSimpleBoundViaReference(String name) {
+  return new Message(codeNonSimpleBoundViaReference,
+      message: """Bound of this variable references raw type '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateNonSimpleBoundViaVariable = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Bound of this variable references variable '#name' from the same declaration.""",
+    withArguments: _withArgumentsNonSimpleBoundViaVariable);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNonSimpleBoundViaVariable =
+    const Code<Message Function(String name)>(
+        "NonSimpleBoundViaVariable", templateNonSimpleBoundViaVariable,
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonSimpleBoundViaVariable(String name) {
+  return new Message(codeNonSimpleBoundViaVariable,
+      message:
+          """Bound of this variable references variable '${name}' from the same declaration.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String name,
@@ -6324,6 +6485,38 @@ const MessageCode messageVarReturnType = const MessageCode("VarReturnType",
     message: r"""The return type can't be 'var'.""",
     tip:
         r"""Try removing the keyword 'var', or replacing it with the name of the return type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        String
+            string2)> templateWebLiteralCannotBeRepresentedExactly = const Template<
+        Message Function(String string, String string2)>(
+    messageTemplate:
+        r"""The integer literal #string can't be represented exactly in JavaScript.""",
+    tipTemplate:
+        r"""Try changing the literal to something that can be represented in Javascript. In Javascript #string2 is the nearest value that can be represented exactly.""",
+    withArguments: _withArgumentsWebLiteralCannotBeRepresentedExactly);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeWebLiteralCannotBeRepresentedExactly =
+    const Code<Message Function(String string, String string2)>(
+        "WebLiteralCannotBeRepresentedExactly",
+        templateWebLiteralCannotBeRepresentedExactly,
+        dart2jsCode: "*fatal*",
+        severity: Severity.error);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsWebLiteralCannotBeRepresentedExactly(
+    String string, String string2) {
+  return new Message(codeWebLiteralCannotBeRepresentedExactly,
+      message:
+          """The integer literal ${string} can't be represented exactly in JavaScript.""",
+      tip: """Try changing the literal to something that can be represented in Javascript. In Javascript ${string2} is the nearest value that can be represented exactly.""",
+      arguments: {'string': string, 'string2': string2});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeWithBeforeExtends = messageWithBeforeExtends;

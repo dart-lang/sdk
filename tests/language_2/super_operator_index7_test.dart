@@ -6,7 +6,7 @@
 
 import "package:expect/expect.dart";
 
-abstract class A {
+class A {
   var indexField = new List(2);
 
   operator []=(index, value);

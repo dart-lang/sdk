@@ -445,6 +445,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
         }
         break;
       case StaticUseKind.INLINING:
+        registerStaticInvocation(staticUse);
         break;
     }
     if (useSet.isNotEmpty) {

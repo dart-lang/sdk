@@ -761,6 +761,13 @@ Dart_CObject* ApiMessageReader::ReadIndexedObject(intptr_t object_id) {
     // Always return dynamic type (this is only a marker).
     return &dynamic_type_marker;
   }
+  if (object_id == kIntTypeArguments || object_id == kDoubleTypeArguments ||
+      object_id == kStringTypeArguments ||
+      object_id == kStringDynamicTypeArguments ||
+      object_id == kStringStringTypeArguments) {
+    return &type_arguments_marker;
+  }
+
   intptr_t index = object_id - kMaxPredefinedObjectIds;
   ASSERT((0 <= index) && (index < backward_references_.length()));
   ASSERT(backward_references_[index]->reference() != NULL);
