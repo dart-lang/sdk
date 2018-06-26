@@ -1,3 +1,8 @@
+## 0.32.2
+
+* Improved const evaluation analysis (new errors for `const A(B())` if `B` is non-const).
+* Parser recovery improvements.
+
 ## 0.32.1
 
 * The Parser() class now by default will parse with optional new or const. This
