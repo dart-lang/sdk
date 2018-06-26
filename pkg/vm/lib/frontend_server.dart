@@ -714,7 +714,7 @@ Future<void> starter(
       compiler.acceptLastDelta();
       await compiler.recompileDelta();
       compiler.acceptLastDelta();
-      return 0;
+      return;
     } finally {
       temp.deleteSync(recursive: true);
     }

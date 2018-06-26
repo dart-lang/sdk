@@ -11,6 +11,8 @@ void main() {
   test1();
   test2();
   test3();
+  test4();
+  test5();
 }
 
 // Testing that a block bodied async function may have an empty return
@@ -34,4 +36,14 @@ void test3([bool b]) async {
   } else {
     return voidValue;
   }
+}
+
+// Testing that a block bodied async function may return Null
+void test4() async {
+  return null;
+}
+
+// Testing that a block bodied async function may return dynamic
+void test5() async {
+  return null as dynamic;
 }
