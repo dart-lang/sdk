@@ -1361,7 +1361,7 @@ RawArray* Parser::EvaluateMetadata() {
 
 SequenceNode* Parser::ParseStaticInitializer() {
   ExpectIdentifier("field name expected");
-  CheckToken(Token::kASSIGN, "field initialier expected");
+  CheckToken(Token::kASSIGN, "field initializer expected");
   ConsumeToken();
   OpenFunctionBlock(parsed_function()->function());
   TokenPosition expr_pos = TokenPos();
