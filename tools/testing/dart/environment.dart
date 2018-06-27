@@ -13,6 +13,8 @@ typedef bool _BoolLookUpFunction(Configuration configuration);
 // consider adding support for "!" to status expressions.
 final _variables = {
   "analyzer": new _Variable.bool((c) => c.compiler == Compiler.dart2analyzer),
+  "analyzer_use_fasta_parser":
+      new _Variable.bool((c) => c.useAnalyzerFastaParser),
   "arch": new _Variable((c) => c.architecture.name, Architecture.names),
   "browser": new _Variable.bool((c) => c.runtime.isBrowser),
   "builder_tag": new _Variable((c) => c.builderTag ?? "", const []),

@@ -46,6 +46,8 @@ class Configuration {
       this.reportInJson,
       this.resetBrowser,
       this.skipCompilation,
+      this.useAnalyzerCfe,
+      this.useAnalyzerFastaParser,
       this.useBlobs,
       this.useSdk,
       this.useFastStartup,
@@ -120,6 +122,8 @@ class Configuration {
   final bool reportInJson;
   final bool resetBrowser;
   final bool skipCompilation;
+  final bool useAnalyzerCfe;
+  final bool useAnalyzerFastaParser;
   final bool useBlobs;
   final bool useSdk;
   final bool useFastStartup;
@@ -194,7 +198,7 @@ class Configuration {
     return fastaCompilers.contains(compiler) ||
         (compiler == Compiler.dart2js && !useDart2JSOldFrontend) ||
         (compiler == Compiler.dart2analyzer &&
-            builderTag == 'analyzer_use_fasta');
+            (builderTag == 'analyzer_use_fasta' || useAnalyzerCfe));
   }
 
   /// The base directory named for this configuration, like:
@@ -471,6 +475,8 @@ class Configuration {
         'fast_startup': useFastStartup,
         'timeout': timeout,
         'no_preview_dart_2': noPreviewDart2,
+        'use_cfe': useAnalyzerCfe,
+        'analyzer_use_fasta_parser': useAnalyzerFastaParser,
         'dart2js_with_kernel': useDart2JSWithKernel,
         'dart2js_old_frontend': useDart2JSOldFrontend,
         'enable_asserts': useEnableAsserts,

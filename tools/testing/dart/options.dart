@@ -173,6 +173,12 @@ simdbc, simdbc64''',
     new _Option.bool(
         'no_preview_dart_2', 'Pass the --no-preview-dart-2 flag to analyzer',
         hide: true),
+    new _Option.bool('use_cfe', 'Pass the --use-cfe flag to analyzer',
+        hide: true),
+    new _Option.bool('analyzer_use_fasta_parser',
+        'Pass the --use-fasta-parser flag to analyzer',
+        hide: true),
+
     // TODO(sigmund): replace dart2js_with_kernel with preview-dart-2.
     new _Option.bool(
         'dart2js_with_kernel', 'Pass the --use-kernel flag to dart2js.',
@@ -656,6 +662,9 @@ compiler.''',
                 reportInJson: data["report_in_json"] as bool,
                 resetBrowser: data["reset_browser_configuration"] as bool,
                 skipCompilation: data["skip_compilation"] as bool,
+                useAnalyzerCfe: data["use_cfe"] as bool,
+                useAnalyzerFastaParser:
+                    data["analyzer_use_fasta_parser"] as bool,
                 useBlobs: data["use_blobs"] as bool,
                 useSdk: data["use_sdk"] as bool,
                 useFastStartup: data["fast_startup"] as bool,
