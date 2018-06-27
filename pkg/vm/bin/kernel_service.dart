@@ -136,19 +136,58 @@ abstract class Compiler {
   Future<Component> compileInternal(Uri script);
 }
 
+class _CompilationOptions {
+  bool strongMode;
+  bool suppressWarnings;
+  bool syncAsync;
+  String packageConfig;
+  String multirootFilepaths;
+  String multirootScheme;
+
+  _CompilationOptions(this.strongMode, this.suppressWarnings, this.syncAsync,
+      this.packageConfig, this.multirootFilepaths, this.multirootScheme);
+
+  @override
+  bool operator ==(dynamic other) {
+    if (other is! _CompilationOptions) {
+      return false;
+    }
+    _CompilationOptions options = other as _CompilationOptions;
+    return strongMode == options.strongMode &&
+        suppressWarnings == options.suppressWarnings &&
+        syncAsync == options.syncAsync &&
+        packageConfig == options.packageConfig &&
+        multirootFilepaths == options.multirootFilepaths &&
+        multirootScheme == options.multirootScheme;
+  }
+
+  @override
+  int get hashCode =>
+      strongMode.hashCode ^
+      suppressWarnings.hashCode ^
+      syncAsync.hashCode ^
+      packageConfig.hashCode ^
+      multirootFilepaths.hashCode ^
+      multirootScheme.hashCode;
+}
+
 class IncrementalCompilerWrapper extends Compiler {
   IncrementalCompiler generator;
+  _CompilationOptions compilationOptions;
 
-  IncrementalCompilerWrapper(FileSystem fileSystem, Uri platformKernelPath,
-      {bool strongMode: false,
-      bool suppressWarnings: false,
-      bool syncAsync: false,
-      String packageConfig: null})
-      : super(fileSystem, platformKernelPath,
-            strongMode: strongMode,
-            suppressWarnings: suppressWarnings,
-            syncAsync: syncAsync,
-            packageConfig: packageConfig);
+  IncrementalCompilerWrapper(List sourceFiles, Uri platformKernelPath,
+      List<int> platformKernel, this.compilationOptions)
+      : super(
+            _buildFileSystem(
+                sourceFiles,
+                platformKernel,
+                compilationOptions.multirootFilepaths,
+                compilationOptions.multirootScheme),
+            platformKernelPath,
+            strongMode: compilationOptions.strongMode,
+            suppressWarnings: compilationOptions.suppressWarnings,
+            syncAsync: compilationOptions.syncAsync,
+            packageConfig: compilationOptions.packageConfig);
 
   @override
   Future<Component> compileInternal(Uri script) async {
@@ -195,31 +234,26 @@ IncrementalCompilerWrapper lookupIncrementalCompiler(int isolateId) {
   return isolateCompilers[isolateId];
 }
 
-Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
-    List sourceFiles, Uri platformKernelPath, List<int> platformKernel,
-    {bool strongMode: false,
-    bool suppressWarnings: false,
-    bool syncAsync: false,
-    String packageConfig: null,
-    String multirootFilepaths,
-    String multirootScheme}) async {
+Future<Compiler> lookupOrBuildNewIncrementalCompiler(
+    int isolateId,
+    List sourceFiles,
+    Uri platformKernelPath,
+    List<int> platformKernel,
+    _CompilationOptions options) async {
   IncrementalCompilerWrapper compiler = lookupIncrementalCompiler(isolateId);
   if (compiler != null) {
+    if (compiler.compilationOptions != options) {
+      throw "Unexpected change in compiler options";
+    }
     updateSources(compiler, sourceFiles);
     invalidateSources(compiler, sourceFiles);
   } else {
-    FileSystem fileSystem = _buildFileSystem(
-        sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
-
     // TODO(aam): IncrementalCompilerWrapper instance created below have to be
     // destroyed when corresponding isolate is shut down. To achieve that kernel
     // isolate needs to receive a message indicating that particular
     // isolate was shut down. Message should be handled here in this script.
-    compiler = new IncrementalCompilerWrapper(fileSystem, platformKernelPath,
-        strongMode: strongMode,
-        suppressWarnings: suppressWarnings,
-        syncAsync: syncAsync,
-        packageConfig: packageConfig);
+    compiler = new IncrementalCompilerWrapper(
+        sourceFiles, platformKernelPath, platformKernel, options);
     isolateCompilers[isolateId] = compiler;
   }
   return compiler;
@@ -434,28 +468,30 @@ Future _processLoadRequest(request) async {
   // one compiler or another. We should always use an incremental
   // compiler as its functionality is a super set of the other one. We need to
   // watch the performance though.
-  if (incremental) {
-    compiler = await lookupOrBuildNewIncrementalCompiler(
-        isolateId, sourceFiles, platformKernelPath, platformKernel,
-        strongMode: strong,
-        suppressWarnings: suppressWarnings,
-        syncAsync: syncAsync,
-        packageConfig: packageConfig,
-        multirootFilepaths: multirootFilepaths,
-        multirootScheme: multirootScheme);
-  } else {
-    FileSystem fileSystem = _buildFileSystem(
-        sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
-    compiler = new SingleShotCompilerWrapper(fileSystem, platformKernelPath,
-        requireMain: sourceFiles.isEmpty,
-        strongMode: strong,
-        suppressWarnings: suppressWarnings,
-        syncAsync: syncAsync,
-        packageConfig: packageConfig);
-  }
-
   CompilationResult result;
   try {
+    if (incremental) {
+      _CompilationOptions options = new _CompilationOptions(
+          strong,
+          suppressWarnings,
+          syncAsync,
+          packageConfig,
+          multirootFilepaths,
+          multirootScheme);
+
+      compiler = await lookupOrBuildNewIncrementalCompiler(
+          isolateId, sourceFiles, platformKernelPath, platformKernel, options);
+    } else {
+      FileSystem fileSystem = _buildFileSystem(
+          sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
+      compiler = new SingleShotCompilerWrapper(fileSystem, platformKernelPath,
+          requireMain: sourceFiles.isEmpty,
+          strongMode: strong,
+          suppressWarnings: suppressWarnings,
+          syncAsync: syncAsync,
+          packageConfig: packageConfig);
+    }
+
     if (verbose) {
       print("DFE: scriptUri: ${script}");
     }

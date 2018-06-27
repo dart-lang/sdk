@@ -597,9 +597,9 @@ void IsolateReloadContext::Reload(bool force_reload,
       Dart_KernelCompilationResult retval;
       {
         TransitionVMToNative transition(thread);
-        retval = KernelIsolate::CompileToKernel(root_lib_url.ToCString(), NULL,
-                                                0, modified_scripts_count,
-                                                modified_scripts, true, NULL);
+        retval = KernelIsolate::CompileToKernel(
+            root_lib_url.ToCString(), NULL, 0, modified_scripts_count,
+            modified_scripts, true, packages_url_);
       }
 
       if (retval.status != Dart_KernelCompilationStatus_Ok) {

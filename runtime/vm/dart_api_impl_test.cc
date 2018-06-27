@@ -6856,6 +6856,40 @@ TEST_CASE(DartAPI_Multiroot_FailWhenUriIsWrong) {
   EXPECT_ERROR(lib, "Compilation failed foo1");
 }
 
+TEST_CASE(DartAPI_Multiroot_FailWhenOptionsChange) {
+  const char* kScriptChars =
+      "import 'lib.dart';\n"
+      "void main() {}\n";
+  const char* kLibraryChars = "library lib.dart;\n";
+  Dart_Handle lib;
+
+  // This tests only makes sense when dart frontend is used
+  if (!FLAG_use_dart_frontend) {
+    return;
+  }
+
+  Dart_SourceFile sourcefiles[] = {
+      {"file:///bar/main.dart", kScriptChars},
+      {"file:///baz/lib.dart", kLibraryChars},
+      {"file:///bar/.packages", "untitled:/"},
+  };
+  int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
+  lib = TestCase::LoadTestScriptWithDFE(
+      sourcefiles_count, sourcefiles, NULL, /* finalize= */ true,
+      /* incrementally= */ true, /* allow_compile_errors= */ false,
+      "foo:///main.dart",
+      /* multiroot_filepaths= */ "/bar,/baz",
+      /* multiroot_scheme= */ "foo");
+  EXPECT_VALID(lib);
+  lib = TestCase::LoadTestScriptWithDFE(
+      sourcefiles_count, sourcefiles, NULL, /* finalize= */ true,
+      /* incrementally= */ true, /* allow_compile_errors= */ false,
+      "foo:///main.dart",
+      /* multiroot_filepaths= */ "/bar,/baz,/bad",
+      /* multiroot_scheme= */ "foo");
+  EXPECT_ERROR(lib, "Compilation failed Unexpected change in compiler options");
+}
+
 void NewNativePort_send123(Dart_Port dest_port_id, Dart_CObject* message) {
   // Gets a send port message.
   EXPECT_NOTNULL(message);
