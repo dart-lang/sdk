@@ -1109,20 +1109,12 @@ class Parser {
   }
 
   Token skipFormalParameters(Token token, MemberKind kind) {
-    Token lastConsumed = token;
     token = token.next;
+    assert(optional('(', token));
     // TODO(ahe): Shouldn't this be `beginFormalParameters`?
     listener.beginOptionalFormalParameters(token);
-    if (!optional('(', token)) {
-      if (optional(';', token)) {
-        reportRecoverableError(token, fasta.messageExpectedOpenParens);
-        listener.endFormalParameters(0, token, token, kind);
-        return lastConsumed;
-      }
-      listener.endFormalParameters(0, token, token, kind);
-      return reportUnexpectedToken(token);
-    }
     Token closeBrace = token.endGroup;
+    assert(optional(')', closeBrace));
     listener.endFormalParameters(0, token, closeBrace, kind);
     return closeBrace;
   }
@@ -1902,17 +1894,6 @@ class Parser {
     }
     listener.handleIdentifier(identifier, context);
     return identifier;
-  }
-
-  Token expect(String string, Token token) {
-    // TODO(danrubel): update all uses of expect(';'...) to ensureSemicolon
-    // then add assert(!identical(';', string));
-    if (!identical(string, token.stringValue)) {
-      return reportUnrecoverableError(
-              token, fasta.templateExpectedButGot.withArguments(string))
-          .next;
-    }
-    return token.next;
   }
 
   bool notEofOrValue(String value, Token token) {
@@ -3216,8 +3197,8 @@ class Parser {
       ++statementCount;
     }
     token = token.next;
+    assert(optional('}', token));
     listener.endBlockFunctionBody(statementCount, begin, token);
-    expect('}', token);
     loopState = savedLoopState;
     return token;
   }
@@ -3298,7 +3279,7 @@ class Parser {
       // This happens for degenerate programs, for example, a lot of nested
       // if-statements. The language test deep_nesting2_negative_test, for
       // example, provokes this.
-      return recoverFromStackOverflow(token.next);
+      return recoverFromStackOverflow(token);
     }
     Token result = parseStatementX(token);
     statementDepth--;
@@ -5053,8 +5034,8 @@ class Parser {
     Token begin = token = ensureBlock(token, null);
     listener.beginBlock(begin);
     int statementCount = 0;
-    while (notEofOrValue('}', token.next)) {
-      Token startToken = token.next;
+    Token startToken = token.next;
+    while (notEofOrValue('}', startToken)) {
       token = parseStatement(token);
       if (identical(token.next, startToken)) {
         // No progress was made, so we report the current token as being invalid
@@ -5064,10 +5045,11 @@ class Parser {
             token, fasta.templateUnexpectedToken.withArguments(token));
       }
       ++statementCount;
+      startToken = token.next;
     }
     token = token.next;
+    assert(optional('}', token));
     listener.endBlock(statementCount, begin, token);
-    expect('}', token);
     return token;
   }
 
@@ -5665,25 +5647,20 @@ class Parser {
   }
 
   /// Report that the nesting depth of the code being parsed is too large for
-  /// the parser to safely handle. Return the EOF token in order to cause the
-  /// parser to unwind and exit.
+  /// the parser to safely handle. Return the next `}` or EOF.
   Token recoverFromStackOverflow(Token token) {
-    listener.handleRecoverableError(fasta.messageStackOverflow, token, token);
-    Token semicolon = new SyntheticToken(TokenType.SEMICOLON, token.offset);
-    listener.handleEmptyStatement(semicolon);
-    return skipToEof(token);
-  }
+    Token next = token.next;
+    reportRecoverableError(next, fasta.messageStackOverflow);
 
-  /// Don't call this method. Should only be used as a last resort when there
-  /// is no feasible way to recover from a parser error.
-  Token reportUnrecoverableError(Token token, Message message) {
-    Token next;
-    if (token is ErrorToken) {
-      next = reportErrorToken(token, false);
-    } else {
-      next = listener.handleUnrecoverableError(token, message);
+    next = new SyntheticToken(TokenType.SEMICOLON, token.offset);
+    rewriter.insertTokenAfter(token, next);
+    listener.handleEmptyStatement(next);
+
+    while (notEofOrValue('}', next)) {
+      token = next;
+      next = token.next;
     }
-    return next ?? skipToEof(token);
+    return token;
   }
 
   void reportRecoverableError(Token token, Message message) {

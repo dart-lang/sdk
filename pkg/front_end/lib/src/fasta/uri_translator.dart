@@ -4,8 +4,6 @@
 
 library fasta.uri_translator;
 
-import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
-
 /// Instances of [UriTranslator] translate absolute URIs into corresponding
 /// file URIs in a [FileSystem]. Translated URIs are typically `file:` URIs,
 /// but may use a different scheme depending on the used custom file system.
