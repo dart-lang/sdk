@@ -596,6 +596,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     _genPrologue(node, node.function);
     _setupInitialContext(node.function);
+    if (node is Procedure && node.isInstanceMember) {
+      _checkArguments(node.function);
+    }
     _genEqualsOperatorNullHandling(node);
   }
 
@@ -704,10 +707,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
       }
     }
-
-    if (isClosure || (node is Procedure && node.isInstanceMember)) {
-      _checkArguments(function);
-    }
   }
 
   void _setupInitialContext(FunctionNode function) {
@@ -811,6 +810,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
 
     _setupInitialContext(function);
+    _checkArguments(function);
 
     // TODO(alexmarkov): support --causal_async_stacks.
 
@@ -929,9 +929,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (contextSize > 0) {
       asm.emitAllocateContext(contextSize);
 
-      _genDupTOS(locals.scratchVarIndexInFrame);
-      asm.emitPush(locals.contextVarIndexInFrame);
-      asm.emitStoreFieldTOS(cp.add(new ConstantContextOffset.parent()));
+      if (locals.currentContextLevel > 0) {
+        _genDupTOS(locals.scratchVarIndexInFrame);
+        asm.emitPush(locals.contextVarIndexInFrame);
+        asm.emitStoreFieldTOS(cp.add(new ConstantContextOffset.parent()));
+      }
 
       asm.emitPopLocal(locals.contextVarIndexInFrame);
     }

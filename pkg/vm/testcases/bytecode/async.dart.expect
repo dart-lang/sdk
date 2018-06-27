@@ -201,22 +201,18 @@ Bytecode {
   Entry                4
   CheckStack
   AllocateContext      2
-  StoreLocal           r1
-  Push                 r1
-  Push                 r0
-  StoreFieldTOS        CP#0
   PopLocal             r0
   Push                 r0
   Push                 FP[-6]
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Push                 r0
   Push                 FP[-5]
-  StoreFieldTOS        CP#2
+  StoreFieldTOS        CP#1
   AllocateContext      9
   StoreLocal           r1
   Push                 r1
   Push                 r0
-  StoreFieldTOS        CP#0
+  StoreFieldTOS        CP#2
   PopLocal             r0
   Push                 r0
   PushConstant         CP#3
@@ -236,10 +232,10 @@ Bytecode {
   StoreFieldTOS        CP#10
   Push                 r0
   PushConstant         CP#11
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Push                 r0
   PushConstant         CP#7
-  StoreFieldTOS        CP#2
+  StoreFieldTOS        CP#1
   Push                 r0
   PushConstant         CP#7
   StoreFieldTOS        CP#12
@@ -297,15 +293,15 @@ Bytecode {
   InstanceCall1        1, CP#38
   ReturnTOS
   Push                 r0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#2
   PopLocal             r0
   PushConstant         CP#7
   ReturnTOS
 }
 ConstantPool {
-  [0] = ContextOffset parent
-  [1] = ContextOffset var [0]
-  [2] = ContextOffset var [1]
+  [0] = ContextOffset var [0]
+  [1] = ContextOffset var [1]
+  [2] = ContextOffset parent
   [3] = TypeArgumentsForInstanceAllocation dart.async::Completer [dart.core::int]
   [4] = ArgDesc num-args 1, num-type-args 0, names []
   [5] = StaticICData target 'dart.async::Completer::sync', arg-desc CP#4
@@ -354,7 +350,7 @@ Closure CP#14 {
   LoadFieldTOS         CP#15
   PopLocal             r4
   Push                 r4
-  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#0
   StoreLocal           r5
   PushConstant         CP#11
   IfNeStrictNumTOS
@@ -365,13 +361,13 @@ Closure CP#14 {
 Try #0 start:
   Push                 r4
   PushConstant         CP#16
+  StoreFieldTOS        CP#0
+  Push                 r4
+  Push                 r4
   StoreFieldTOS        CP#1
   Push                 r4
-  Push                 r4
-  StoreFieldTOS        CP#2
-  Push                 r4
+  LoadFieldTOS         CP#2
   LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#1
   Push                 r4
   LoadFieldTOS         CP#9
   Push                 r4
@@ -398,13 +394,13 @@ L2:
   Drop1
   Push                 r4
   PushConstant         CP#20
+  StoreFieldTOS        CP#0
+  Push                 r4
+  Push                 r4
   StoreFieldTOS        CP#1
   Push                 r4
-  Push                 r4
-  StoreFieldTOS        CP#2
-  Push                 r4
-  LoadFieldTOS         CP#0
   LoadFieldTOS         CP#2
+  LoadFieldTOS         CP#1
   Push                 r4
   LoadFieldTOS         CP#9
   Push                 r4
@@ -469,7 +465,7 @@ L5:
   ReturnTOS
 L1:
   Push                 r4
-  LoadFieldTOS         CP#2
+  LoadFieldTOS         CP#1
   PopLocal             r4
   Push                 r5
   PushConstant         CP#16
@@ -515,19 +511,15 @@ Bytecode {
   Entry                4
   CheckStack
   AllocateContext      1
-  StoreLocal           r1
-  Push                 r1
-  Push                 r0
-  StoreFieldTOS        CP#0
   PopLocal             r0
   Push                 r0
   Push                 FP[-5]
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   AllocateContext      10
   StoreLocal           r1
   Push                 r1
   Push                 r0
-  StoreFieldTOS        CP#0
+  StoreFieldTOS        CP#1
   PopLocal             r0
   Push                 r0
   PushConstant         CP#2
@@ -547,7 +539,7 @@ Bytecode {
   StoreFieldTOS        CP#9
   Push                 r0
   PushConstant         CP#10
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Push                 r0
   PushConstant         CP#6
   StoreFieldTOS        CP#11
@@ -611,14 +603,14 @@ Bytecode {
   InstanceCall1        1, CP#51
   ReturnTOS
   Push                 r0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
   PopLocal             r0
   PushConstant         CP#6
   ReturnTOS
 }
 ConstantPool {
-  [0] = ContextOffset parent
-  [1] = ContextOffset var [0]
+  [0] = ContextOffset var [0]
+  [1] = ContextOffset parent
   [2] = TypeArgumentsForInstanceAllocation dart.async::Completer [dart.core::int]
   [3] = ArgDesc num-args 1, num-type-args 0, names []
   [4] = StaticICData target 'dart.async::Completer::sync', arg-desc CP#3
@@ -681,7 +673,7 @@ Closure CP#15 {
   LoadFieldTOS         CP#16
   PopLocal             r4
   Push                 r4
-  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#0
   StoreLocal           r5
   PushConstant         CP#10
   IfNeStrictNumTOS
@@ -694,24 +686,24 @@ Try #0 start:
   StoreLocal           r5
   Push                 r5
   Push                 r4
-  StoreFieldTOS        CP#0
+  StoreFieldTOS        CP#1
   PopLocal             r4
   Push                 r4
   PushConstant         CP#10
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   AllocateContext      1
   StoreLocal           r5
   Push                 r5
   Push                 r4
-  StoreFieldTOS        CP#0
+  StoreFieldTOS        CP#1
   PopLocal             r4
   Push                 r4
   PushConstant         CP#10
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
 L6:
   CheckStack
   Push                 r4
-  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#0
   PushConstant         CP#17
   InstanceCall1        2, CP#19
   AssertBoolean        0
@@ -722,23 +714,23 @@ L6:
   StoreLocal           r5
   Push                 r5
   Push                 r4
-  StoreFieldTOS        CP#0
+  StoreFieldTOS        CP#1
   PopLocal             r4
   Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
   LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#0
   InstanceCall1        1, CP#21
   PopLocal             r8
   Push                 r4
   Push                 r8
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
 L5:
   CheckStack
   Push                 r4
-  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#0
   StoreLocal           r8
   InstanceCall1        1, CP#22
   PushConstant         CP#20
@@ -748,75 +740,75 @@ L5:
   StoreLocal           r5
   Push                 r5
   Push                 r4
-  StoreFieldTOS        CP#0
+  StoreFieldTOS        CP#1
   PopLocal             r4
   Push                 r4
   Push                 r8
   InstanceCall1        1, CP#23
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
   LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  Push                 r4
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#0
   StoreLocal           r9
   StoreFieldTOS        CP#14
   Push                 r9
   Drop1
   Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
   LoadFieldTOS         CP#1
   Push                 r4
   LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#0
+  Push                 r4
+  LoadFieldTOS         CP#0
   InstanceCall1        2, CP#24
   StoreLocal           r9
   StoreFieldTOS        CP#13
   Push                 r9
   Drop1
   Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
   PushConstant         CP#25
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
   Push                 r4
   StoreFieldTOS        CP#11
   PushConstant         CP#27
   IndirectStaticCall   0, CP#26
   Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
   LoadFieldTOS         CP#8
   Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
   LoadFieldTOS         CP#9
   Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
   LoadFieldTOS         CP#28
   PushConstant         CP#30
   IndirectStaticCall   4, CP#29
@@ -831,52 +823,52 @@ L11:
   Throw                1
 L4:
   Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
   Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
   LoadFieldTOS         CP#14
   Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
   LoadFieldTOS         CP#13
   Push                 r1
   InstanceCall1        2, CP#31
   InstanceCall1        2, CP#32
   StoreLocal           r9
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Push                 r9
   Drop1
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
   PopLocal             r4
   Jump                 L5
 L3:
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
   PopLocal             r4
   Push                 r4
   CloneContext
   PopLocal             r4
   Push                 r4
   Push                 r4
-  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#0
   PushConstant         CP#25
   InstanceCall1        2, CP#33
   StoreLocal           r8
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Push                 r8
   Drop1
   Jump                 L6
 L2:
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
   PopLocal             r4
   PushConstant         CP#10
   PopLocal             r8
@@ -891,11 +883,11 @@ L8:
   Jump                 L7
   Push                 r4
   Push                 r4
-  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#0
   Push                 r8
   InstanceCall1        2, CP#35
   StoreLocal           r9
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Push                 r9
   Drop1
   Push                 r8
@@ -906,19 +898,19 @@ L8:
   Jump                 L8
 L7:
   Push                 r4
-  LoadFieldTOS         CP#0
-  Push                 r4
   LoadFieldTOS         CP#1
+  Push                 r4
+  LoadFieldTOS         CP#0
   StoreLocal           r8
   StoreFieldTOS        CP#7
   Push                 r8
   Drop1
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
   PopLocal             r4
   Jump                 L9
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
   PopLocal             r4
 L9:
   Push                 r4
@@ -1008,25 +1000,21 @@ Bytecode {
   Entry                4
   CheckStack
   AllocateContext      3
-  StoreLocal           r1
-  Push                 r1
-  Push                 r0
-  StoreFieldTOS        CP#0
   PopLocal             r0
   Push                 r0
   Push                 FP[-7]
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Push                 r0
   Push                 FP[-6]
-  StoreFieldTOS        CP#2
+  StoreFieldTOS        CP#1
   Push                 r0
   Push                 FP[-5]
-  StoreFieldTOS        CP#3
+  StoreFieldTOS        CP#2
   AllocateContext      13
   StoreLocal           r1
   Push                 r1
   Push                 r0
-  StoreFieldTOS        CP#0
+  StoreFieldTOS        CP#3
   PopLocal             r0
   Push                 r0
   PushConstant         CP#4
@@ -1046,10 +1034,10 @@ Bytecode {
   StoreFieldTOS        CP#11
   Push                 r0
   PushConstant         CP#12
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Push                 r0
   PushConstant         CP#8
-  StoreFieldTOS        CP#2
+  StoreFieldTOS        CP#1
   Push                 r0
   PushConstant         CP#8
   StoreFieldTOS        CP#13
@@ -1067,7 +1055,7 @@ Bytecode {
   StoreFieldTOS        CP#17
   Push                 r0
   PushConstant         CP#8
-  StoreFieldTOS        CP#3
+  StoreFieldTOS        CP#2
   Push                 r0
   Allocate             CP#51
   StoreLocal           r3
@@ -1119,16 +1107,16 @@ Bytecode {
   InstanceCall1        1, CP#60
   ReturnTOS
   Push                 r0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   PopLocal             r0
   PushConstant         CP#8
   ReturnTOS
 }
 ConstantPool {
-  [0] = ContextOffset parent
-  [1] = ContextOffset var [0]
-  [2] = ContextOffset var [1]
-  [3] = ContextOffset var [2]
+  [0] = ContextOffset var [0]
+  [1] = ContextOffset var [1]
+  [2] = ContextOffset var [2]
+  [3] = ContextOffset parent
   [4] = TypeArgumentsForInstanceAllocation dart.async::Completer [dart.core::int]
   [5] = ArgDesc num-args 1, num-type-args 0, names []
   [6] = StaticICData target 'dart.async::Completer::sync', arg-desc CP#5
@@ -1198,7 +1186,7 @@ Closure CP#18 {
   LoadFieldTOS         CP#19
   PopLocal             r4
   Push                 r4
-  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#0
   StoreLocal           r5
   PushConstant         CP#12
   IfNeStrictNumTOS
@@ -1211,49 +1199,49 @@ Try #0 start:
   StoreLocal           r5
   Push                 r5
   Push                 r4
-  StoreFieldTOS        CP#0
+  StoreFieldTOS        CP#3
   PopLocal             r4
   Push                 r4
   PushConstant         CP#20
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   Push                 r4
   StoreFieldTOS        CP#14
 Try #1 start:
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   Push                 r4
   StoreFieldTOS        CP#15
 Try #2 start:
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   Push                 r4
-  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#0
   StoreLocal           r12
-  StoreFieldTOS        CP#3
+  StoreFieldTOS        CP#2
   Push                 r12
   Drop1
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   PushConstant         CP#20
+  StoreFieldTOS        CP#0
+  Push                 r4
+  LoadFieldTOS         CP#3
+  Push                 r4
   StoreFieldTOS        CP#1
   Push                 r4
+  LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#3
   LoadFieldTOS         CP#0
   Push                 r4
-  StoreFieldTOS        CP#2
-  Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#1
-  Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   LoadFieldTOS         CP#10
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   LoadFieldTOS         CP#11
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   LoadFieldTOS         CP#21
   PushConstant         CP#23
   IndirectStaticCall   4, CP#22
@@ -1269,12 +1257,12 @@ L13:
 L2:
   Push                 r4
   Push                 r4
-  LoadFieldTOS         CP#0
   LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#2
   Push                 r1
   InstanceCall1        2, CP#25
   StoreLocal           r12
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Push                 r12
   Drop1
   Jump                 L3
@@ -1289,24 +1277,24 @@ Try #2 handler:
   MoveSpecial          r10, exception
   MoveSpecial          r11, stackTrace
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   Push                 r10
   StoreFieldTOS        CP#16
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   Push                 r11
   StoreFieldTOS        CP#17
   AllocateContext      1
   StoreLocal           r5
   Push                 r5
   Push                 r4
-  StoreFieldTOS        CP#0
+  StoreFieldTOS        CP#3
   PopLocal             r4
   Push                 r4
   Push                 r10
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Push                 r4
-  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#0
   PushConstant         CP#8
   PushConstant         CP#8
   PushConstant         CP#27
@@ -1316,8 +1304,8 @@ Try #2 handler:
   IfNeStrictTOS
   Jump                 L4
   Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#3
   PushConstant         CP#30
   StoreLocal           r12
   StoreFieldTOS        CP#9
@@ -1326,41 +1314,41 @@ Try #2 handler:
   Jump                 L5
 L4:
   Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#3
   Push                 r4
+  LoadFieldTOS         CP#3
   LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#1
   StoreLocal           r12
-  StoreFieldTOS        CP#3
+  StoreFieldTOS        CP#2
   Push                 r12
   Drop1
   Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#3
   PushConstant         CP#31
+  StoreFieldTOS        CP#0
+  Push                 r4
+  LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#3
+  Push                 r4
   StoreFieldTOS        CP#1
   Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#1
   Push                 r4
-  StoreFieldTOS        CP#2
-  Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#2
-  Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#3
   LoadFieldTOS         CP#10
   Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#3
   LoadFieldTOS         CP#11
   Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#3
   LoadFieldTOS         CP#21
   PushConstant         CP#32
   IndirectStaticCall   4, CP#22
@@ -1375,29 +1363,29 @@ L14:
   Throw                1
 L6:
   Push                 r4
-  LoadFieldTOS         CP#0
-  Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
   LoadFieldTOS         CP#3
+  Push                 r4
+  LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#2
   Push                 r1
   InstanceCall1        2, CP#33
   StoreLocal           r12
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Push                 r12
   Drop1
   Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#3
   LoadFieldTOS         CP#16
   Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#3
   LoadFieldTOS         CP#17
   Throw                1
   Drop1
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   PopLocal             r4
   Jump                 L3
 L3:
@@ -1413,11 +1401,11 @@ Try #1 handler:
   MoveSpecial          r8, exception
   MoveSpecial          r9, stackTrace
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   Push                 r8
   StoreFieldTOS        CP#16
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   Push                 r9
   StoreFieldTOS        CP#17
   PushConstant         CP#34
@@ -1425,33 +1413,33 @@ Try #1 handler:
   IndirectStaticCall   1, CP#5
   Drop1
   Push                 r4
-  LoadFieldTOS         CP#0
-  Push                 r4
-  LoadFieldTOS         CP#1
-  StoreLocal           r10
-  StoreFieldTOS        CP#3
-  Push                 r10
-  Drop1
-  Push                 r4
-  LoadFieldTOS         CP#0
-  PushConstant         CP#36
-  StoreFieldTOS        CP#1
-  Push                 r4
-  LoadFieldTOS         CP#0
-  Push                 r4
-  StoreFieldTOS        CP#2
-  Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
   LoadFieldTOS         CP#3
   Push                 r4
   LoadFieldTOS         CP#0
+  StoreLocal           r10
+  StoreFieldTOS        CP#2
+  Push                 r10
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#3
+  PushConstant         CP#36
+  StoreFieldTOS        CP#0
+  Push                 r4
+  LoadFieldTOS         CP#3
+  Push                 r4
+  StoreFieldTOS        CP#1
+  Push                 r4
+  LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#2
+  Push                 r4
+  LoadFieldTOS         CP#3
   LoadFieldTOS         CP#10
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   LoadFieldTOS         CP#11
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   LoadFieldTOS         CP#21
   PushConstant         CP#37
   IndirectStaticCall   4, CP#22
@@ -1467,31 +1455,31 @@ L15:
 L8:
   Push                 r4
   Push                 r4
-  LoadFieldTOS         CP#0
   LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#2
   Push                 r1
   InstanceCall1        2, CP#38
   StoreLocal           r10
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Push                 r10
   Drop1
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   Push                 r4
-  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#0
   StoreLocal           r10
   StoreFieldTOS        CP#9
   Push                 r10
   Drop1
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   PopLocal             r4
   Jump                 L9
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   LoadFieldTOS         CP#16
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   LoadFieldTOS         CP#17
   Throw                1
 L5:
@@ -1506,33 +1494,33 @@ L5:
   IndirectStaticCall   1, CP#5
   Drop1
   Push                 r4
-  LoadFieldTOS         CP#0
-  Push                 r4
-  LoadFieldTOS         CP#1
-  StoreLocal           r10
-  StoreFieldTOS        CP#3
-  Push                 r10
-  Drop1
-  Push                 r4
-  LoadFieldTOS         CP#0
-  PushConstant         CP#40
-  StoreFieldTOS        CP#1
-  Push                 r4
-  LoadFieldTOS         CP#0
-  Push                 r4
-  StoreFieldTOS        CP#2
-  Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
   LoadFieldTOS         CP#3
   Push                 r4
   LoadFieldTOS         CP#0
+  StoreLocal           r10
+  StoreFieldTOS        CP#2
+  Push                 r10
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#3
+  PushConstant         CP#40
+  StoreFieldTOS        CP#0
+  Push                 r4
+  LoadFieldTOS         CP#3
+  Push                 r4
+  StoreFieldTOS        CP#1
+  Push                 r4
+  LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#2
+  Push                 r4
+  LoadFieldTOS         CP#3
   LoadFieldTOS         CP#10
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   LoadFieldTOS         CP#11
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   LoadFieldTOS         CP#21
   PushConstant         CP#41
   IndirectStaticCall   4, CP#22
@@ -1548,28 +1536,28 @@ L16:
 L10:
   Push                 r4
   Push                 r4
-  LoadFieldTOS         CP#0
   LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#2
   Push                 r1
   InstanceCall1        2, CP#42
   StoreLocal           r10
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Push                 r10
   Drop1
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   Push                 r4
-  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#0
   StoreLocal           r10
   StoreFieldTOS        CP#9
   Push                 r10
   Drop1
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   PopLocal             r4
   Jump                 L9
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   PopLocal             r4
   Jump                 L9
 L7:
@@ -1584,33 +1572,33 @@ L7:
   IndirectStaticCall   1, CP#5
   Drop1
   Push                 r4
-  LoadFieldTOS         CP#0
-  Push                 r4
-  LoadFieldTOS         CP#1
-  StoreLocal           r10
-  StoreFieldTOS        CP#3
-  Push                 r10
-  Drop1
-  Push                 r4
-  LoadFieldTOS         CP#0
-  PushConstant         CP#44
-  StoreFieldTOS        CP#1
-  Push                 r4
-  LoadFieldTOS         CP#0
-  Push                 r4
-  StoreFieldTOS        CP#2
-  Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
   LoadFieldTOS         CP#3
   Push                 r4
   LoadFieldTOS         CP#0
+  StoreLocal           r10
+  StoreFieldTOS        CP#2
+  Push                 r10
+  Drop1
+  Push                 r4
+  LoadFieldTOS         CP#3
+  PushConstant         CP#44
+  StoreFieldTOS        CP#0
+  Push                 r4
+  LoadFieldTOS         CP#3
+  Push                 r4
+  StoreFieldTOS        CP#1
+  Push                 r4
+  LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#2
+  Push                 r4
+  LoadFieldTOS         CP#3
   LoadFieldTOS         CP#10
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   LoadFieldTOS         CP#11
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   LoadFieldTOS         CP#21
   PushConstant         CP#45
   IndirectStaticCall   4, CP#22
@@ -1626,28 +1614,28 @@ L17:
 L11:
   Push                 r4
   Push                 r4
-  LoadFieldTOS         CP#0
   LoadFieldTOS         CP#3
+  LoadFieldTOS         CP#2
   Push                 r1
   InstanceCall1        2, CP#46
   StoreLocal           r10
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Push                 r10
   Drop1
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   Push                 r4
-  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#0
   StoreLocal           r10
   StoreFieldTOS        CP#9
   Push                 r10
   Drop1
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   PopLocal             r4
   Jump                 L9
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#3
   PopLocal             r4
 L9:
   Push                 r4
@@ -1685,7 +1673,7 @@ L12:
   ReturnTOS
 L1:
   Push                 r4
-  LoadFieldTOS         CP#2
+  LoadFieldTOS         CP#1
   PopLocal             r4
   Push                 r5
   PushConstant         CP#20
@@ -1767,23 +1755,19 @@ Bytecode {
   Entry                4
   CheckStack
   AllocateContext      1
-  StoreLocal           r1
-  Push                 r1
-  Push                 r0
-  StoreFieldTOS        CP#0
   PopLocal             r0
   Push                 r0
   Push                 FP[-5]
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   AllocateContext      1
   StoreLocal           r1
   Push                 r1
   Push                 r0
-  StoreFieldTOS        CP#0
+  StoreFieldTOS        CP#1
   PopLocal             r0
   Push                 r0
   PushConstant         CP#2
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Allocate             CP#35
   StoreLocal           r3
   Push                 r3
@@ -1802,14 +1786,14 @@ Bytecode {
   Push                 r2
   ReturnTOS
   Push                 r0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
   PopLocal             r0
   PushConstant         CP#9
   ReturnTOS
 }
 ConstantPool {
-  [0] = ContextOffset parent
-  [1] = ContextOffset var [0]
+  [0] = ContextOffset var [0]
+  [1] = ContextOffset parent
   [2] = Int 3
   [3] = ClosureFunction nested () → dart.async::Future<dart.core::int> /* originally async */ ;
   [4] = FieldOffset dart.core::_Closure::_context
@@ -1866,7 +1850,7 @@ Closure CP#17 {
   LoadFieldTOS         CP#4
   PopLocal             r4
   Push                 r4
-  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#0
   StoreLocal           r5
   PushConstant         CP#13
   IfNeStrictNumTOS
@@ -1879,45 +1863,45 @@ Try #0 start:
   StoreLocal           r5
   Push                 r5
   Push                 r4
-  StoreFieldTOS        CP#0
+  StoreFieldTOS        CP#1
   PopLocal             r4
   Push                 r4
   PushConstant         CP#18
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
   Push                 r4
   StoreFieldTOS        CP#16
 Try #1 start:
   Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
   PushConstant         CP#19
   StoreLocal           r10
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Push                 r10
   Drop1
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
   PushConstant         CP#20
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
   Push                 r4
   StoreFieldTOS        CP#14
   Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
   LoadFieldTOS         CP#1
-  Push                 r4
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
   LoadFieldTOS         CP#0
+  Push                 r4
+  LoadFieldTOS         CP#1
   LoadFieldTOS         CP#11
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
   LoadFieldTOS         CP#12
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
   LoadFieldTOS         CP#21
   PushConstant         CP#23
   IndirectStaticCall   4, CP#22
@@ -1928,17 +1912,17 @@ L6:
   Push                 r4
   Push                 r1
   StoreLocal           r10
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Push                 r10
   Drop1
   Push                 r4
-  LoadFieldTOS         CP#0
-  Push                 r4
-  LoadFieldTOS         CP#0
-  LoadFieldTOS         CP#0
   LoadFieldTOS         CP#1
   Push                 r4
   LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#0
+  Push                 r4
+  LoadFieldTOS         CP#0
   InstanceCall1        2, CP#25
   StoreLocal           r10
   StoreFieldTOS        CP#10
@@ -1975,7 +1959,7 @@ L2:
   IndirectStaticCall   1, CP#6
   Drop1
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
   PopLocal             r4
   Jump                 L4
 L3:
@@ -1990,7 +1974,7 @@ L3:
   IndirectStaticCall   1, CP#6
   Drop1
   Push                 r4
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
   PopLocal             r4
 L4:
   Push                 r4
@@ -2044,7 +2028,7 @@ Closure CP#3 {
   StoreLocal           r1
   Push                 r1
   Push                 r0
-  StoreFieldTOS        CP#0
+  StoreFieldTOS        CP#1
   PopLocal             r0
   Push                 r0
   PushConstant         CP#5
@@ -2064,7 +2048,7 @@ Closure CP#3 {
   StoreFieldTOS        CP#12
   Push                 r0
   PushConstant         CP#13
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Push                 r0
   PushConstant         CP#9
   StoreFieldTOS        CP#14
@@ -2125,7 +2109,7 @@ Closure CP#3 {
   InstanceCall1        1, CP#44
   ReturnTOS
   Push                 r0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
   PopLocal             r0
   PushConstant         CP#9
   ReturnTOS
@@ -2178,19 +2162,15 @@ Bytecode {
   Entry                4
   CheckStack
   AllocateContext      1
-  StoreLocal           r1
-  Push                 r1
-  Push                 r0
-  StoreFieldTOS        CP#0
   PopLocal             r0
   Push                 r0
   Push                 FP[-5]
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   AllocateContext      8
   StoreLocal           r1
   Push                 r1
   Push                 r0
-  StoreFieldTOS        CP#0
+  StoreFieldTOS        CP#1
   PopLocal             r0
   Push                 r0
   PushConstant         CP#2
@@ -2210,7 +2190,7 @@ Bytecode {
   StoreFieldTOS        CP#9
   Push                 r0
   PushConstant         CP#10
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Push                 r0
   PushConstant         CP#6
   StoreFieldTOS        CP#11
@@ -2268,14 +2248,14 @@ Bytecode {
   InstanceCall1        1, CP#41
   ReturnTOS
   Push                 r0
-  LoadFieldTOS         CP#0
+  LoadFieldTOS         CP#1
   PopLocal             r0
   PushConstant         CP#6
   ReturnTOS
 }
 ConstantPool {
-  [0] = ContextOffset parent
-  [1] = ContextOffset var [0]
+  [0] = ContextOffset var [0]
+  [1] = ContextOffset parent
   [2] = TypeArgumentsForInstanceAllocation dart.async::Completer [dart.core::int]
   [3] = ArgDesc num-args 1, num-type-args 0, names []
   [4] = StaticICData target 'dart.async::Completer::sync', arg-desc CP#3
@@ -2328,7 +2308,7 @@ Closure CP#13 {
   LoadFieldTOS         CP#14
   PopLocal             r4
   Push                 r4
-  LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#0
   StoreLocal           r5
   PushConstant         CP#10
   IfNeStrictNumTOS
@@ -2340,13 +2320,13 @@ Try #0 start:
   JumpIfNoAsserts      L2
   Push                 r4
   PushConstant         CP#15
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#0
   Push                 r4
   Push                 r4
   StoreFieldTOS        CP#11
   Push                 r4
-  LoadFieldTOS         CP#0
   LoadFieldTOS         CP#1
+  LoadFieldTOS         CP#0
   Push                 r4
   LoadFieldTOS         CP#8
   Push                 r4

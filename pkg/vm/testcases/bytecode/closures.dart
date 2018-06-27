@@ -139,4 +139,10 @@ IntFunc testPartialInstantiation() {
   return intFunc;
 }
 
+class D<T> {
+  foo(T t) {
+    return () => t;
+  }
+}
+
 main() {}
