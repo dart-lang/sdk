@@ -18654,7 +18654,7 @@ bool TypeParameter::CheckBound(const AbstractType& bounded_type,
       // meaningless, therefore use the token index of this type parameter.
       *bound_error = LanguageError::NewFormatted(
           *bound_error, script, token_pos(), Report::AtLocation,
-          Report::kMalboundedType, Heap::kNew,
+          Report::kMalboundedType, Heap::kOld,
           "type parameter '%s' of class '%s' must extend bound '%s', "
           "but type argument '%s' is not a subtype of '%s'",
           type_param_name.ToCString(), class_name.ToCString(),
