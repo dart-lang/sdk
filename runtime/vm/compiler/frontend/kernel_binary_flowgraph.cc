@@ -8315,8 +8315,8 @@ Fragment StreamingFlowGraphBuilder::BuildImplicitClosureCreation(
   return flow_graph_builder_->BuildImplicitClosureCreation(target);
 }
 
-Fragment StreamingFlowGraphBuilder::CheckBoolean() {
-  return flow_graph_builder_->CheckBoolean();
+Fragment StreamingFlowGraphBuilder::CheckBoolean(TokenPosition position) {
+  return flow_graph_builder_->CheckBoolean(position);
 }
 
 Fragment StreamingFlowGraphBuilder::CheckAssignableInCheckedMode(
@@ -8375,8 +8375,9 @@ Fragment StreamingFlowGraphBuilder::TranslateCondition(bool* negate) {
   if (*negate) {
     SkipBytes(1);  // Skip Not tag, thus go directly to the inner expression.
   }
-  Fragment instructions = BuildExpression();  // read expression.
-  instructions += CheckBoolean();
+  TokenPosition position = TokenPosition::kNoSource;
+  Fragment instructions = BuildExpression(&position);  // read expression.
+  instructions += CheckBoolean(position);
   return instructions;
 }
 
@@ -9621,8 +9622,10 @@ Fragment StreamingFlowGraphBuilder::BuildConstructorInvocation(
 Fragment StreamingFlowGraphBuilder::BuildNot(TokenPosition* position) {
   if (position != NULL) *position = TokenPosition::kNoSource;
 
-  Fragment instructions = BuildExpression();  // read expression.
-  instructions += CheckBoolean();
+  TokenPosition operand_position = TokenPosition::kNoSource;
+  Fragment instructions =
+      BuildExpression(&operand_position);  // read expression.
+  instructions += CheckBoolean(operand_position);
   instructions += BooleanNegate();
   return instructions;
 }
@@ -10291,16 +10294,17 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement() {
   // The call to `_AssertionError._evaluateAssertion()` will take care of both
   // and returns a boolean.
   instructions += BuildExpression();  // read condition.
+
+  const TokenPosition condition_start_offset =
+      ReadPosition();  // read condition start offset.
+  const TokenPosition condition_end_offset =
+      ReadPosition();  // read condition end offset.
+
   instructions += PushArgument();
   instructions += EvaluateAssertion();
-  instructions += CheckBoolean();
+  instructions += CheckBoolean(condition_start_offset);
   instructions += Constant(Bool::True());
   instructions += BranchIfEqual(&then, &otherwise, false);
-
-  TokenPosition condition_start_offset =
-      ReadPosition();  // read condition start offset.
-  TokenPosition condition_end_offset =
-      ReadPosition();  // read condition end offset.
 
   const Class& klass =
       Class::ZoneHandle(Z, Library::LookupCoreClass(Symbols::AssertionError()));
