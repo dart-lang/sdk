@@ -255,8 +255,3 @@ rasta/type_with_parse_error: Fail
 
 instantiate_to_bound/body_typedef_super_bounded_type: Fail # Issue 33444
 instantiate_to_bound/typedef_super_bounded_type: Fail # Issue 33444
-
-no_such_method_forwarders/abstract_accessors_from_field: Fail
-no_such_method_forwarders/abstract_accessors_from_field_arent_mixed_in: Fail
-no_such_method_forwarders/abstract_accessors_from_field_one_defined: Fail
-no_such_method_forwarders/abstract_accessors_from_field_with_substitution: Fail

@@ -1,0 +1,23 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class A<X extends core::Object = dynamic> extends core::Object {
+  field core::List<self::A::X> foo;
+  synthetic constructor •() → void
+    ;
+}
+class B extends core::Object implements self::A<core::int> {
+  synthetic constructor •() → void
+    ;
+  method noSuchMethod(dynamic i) → dynamic
+    ;
+  no-such-method-forwarder get foo() → core::List<core::int>
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withoutType("get:foo", const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false)) as{TypeError} core::List<core::int>;
+  no-such-method-forwarder set foo(core::List<core::int> value) → void
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withoutType("set:foo", const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false));
+}
+static method expectTypeError(() → dynamic callback) → void
+  ;
+static method main() → dynamic
+  ;

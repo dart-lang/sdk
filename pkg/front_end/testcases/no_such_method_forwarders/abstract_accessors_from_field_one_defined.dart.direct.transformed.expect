@@ -1,0 +1,55 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  field core::int foo = null;
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+abstract class B extends core::Object implements self::A {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  get foo() → core::int
+    return 42;
+  method noSuchMethod(dynamic i) → dynamic
+    return "bar";
+}
+class C extends self::B {
+  synthetic constructor •() → void
+    : super self::B::•()
+    ;
+  no-such-method-forwarder set foo(core::int value) → void
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withoutType("set:foo", const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false));
+}
+abstract class D extends core::Object implements self::A {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  set foo(core::int value) → void {}
+  method noSuchMethod(dynamic i) → dynamic
+    return "bar";
+}
+class E extends self::D {
+  synthetic constructor •() → void
+    : super self::D::•()
+    ;
+  no-such-method-forwarder get foo() → core::int
+    return this.{self::D::noSuchMethod}(new core::_InvocationMirror::_withoutType("get:foo", const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false)) as{TypeError} core::int;
+}
+static method expectTypeError(() → dynamic callback) → void {
+  try {
+    callback.call();
+    throw "Expected TypeError, did not occur";
+  }
+  on core::TypeError catch(no-exception-var) {
+  }
+}
+static method main() → dynamic {
+  dynamic c = new self::C::•();
+  self::expectTypeError(() → dynamic => (c as dynamic).foo = "bar");
+  dynamic e = new self::E::•();
+  self::expectTypeError(() → dynamic => e.foo);
+}

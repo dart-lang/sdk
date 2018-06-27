@@ -223,8 +223,3 @@ incomplete_field_formal_parameter: Fail # Fasta doesn't recover well
 co19_language_metadata_syntax_t04: RuntimeError # Fasta doesn't recover well
 
 external_import: RuntimeError # The native extension to import doesn't exist. This is ok.
-
-no_such_method_forwarders/abstract_accessors_from_field: Fail
-no_such_method_forwarders/abstract_accessors_from_field_arent_mixed_in: Fail
-no_such_method_forwarders/abstract_accessors_from_field_one_defined: Fail
-no_such_method_forwarders/abstract_accessors_from_field_with_substitution: Fail
