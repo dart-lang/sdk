@@ -447,13 +447,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
 
   @override
   @failingTest
-  test_inferClosureType_parameters() {
-    // See dartbug.com/33641
-    return super.test_inferClosureType_parameters();
-  }
-
-  @override
-  @failingTest
   test_notInstantiatedBound_class_error_recursion_typedef() {
     // Expected 2 errors of type
     // StrongModeCode.STRONG_MODE_NOT_INSTANTIATED_BOUND, found 0; 1 errors of

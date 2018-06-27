@@ -5661,7 +5661,7 @@ class GenericTypeAliasElementImpl extends ElementImpl
     if (argumentTypes.length != typeParameters.length) {
       throw new ArgumentError('Wrong number of type arguments supplied');
     }
-    if (typeParameters.isEmpty) return type;
+    if (typeParameters.isEmpty) return function.type;
     return typeAfterSubstitution(argumentTypes);
   }
 

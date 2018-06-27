@@ -147,20 +147,6 @@ class C {
   test_const_constructor_inferred_args() =>
       super.test_const_constructor_inferred_args();
 
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_const_reference_type_functionType() {
-    return super.test_const_reference_type_functionType();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_const_topLevel_typedList_typedefArgument() {
-    return super.test_const_topLevel_typedList_typedefArgument();
-  }
-
   @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
   test_constructor_redirected_factory_named_generic() async {
@@ -195,13 +181,6 @@ class C {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
   test_constructor_redirected_factory_unnamed_prefixed_generic() async {
     await super.test_constructor_redirected_factory_unnamed_prefixed_generic();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_executable_parameter_type_typedef() {
-    return super.test_executable_parameter_type_typedef();
   }
 
   @failingTest
@@ -270,27 +249,6 @@ class C {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30725')
   test_import_invalidUri_metadata() async {
     await super.test_import_invalidUri_metadata();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_infer_generic_typedef_simple() {
-    return super.test_infer_generic_typedef_simple();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_inferred_type_is_typedef() {
-    return super.test_inferred_type_is_typedef();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_inferred_type_refers_to_function_typed_param_of_typedef() {
-    return super.test_inferred_type_refers_to_function_typed_param_of_typedef();
   }
 
   @override
@@ -401,104 +359,6 @@ class C {
   @potentialAnalyzerProblem
   test_type_inference_based_on_loadLibrary() async {
     await super.test_type_inference_based_on_loadLibrary();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_type_reference_lib_to_lib() {
-    return super.test_type_reference_lib_to_lib();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_type_reference_lib_to_part() {
-    return super.test_type_reference_lib_to_part();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_type_reference_part_to_lib() {
-    return super.test_type_reference_part_to_lib();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_type_reference_part_to_other_part() {
-    return super.test_type_reference_part_to_other_part();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_type_reference_part_to_part() {
-    return super.test_type_reference_part_to_part();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_type_reference_to_import() {
-    return super.test_type_reference_to_import();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_type_reference_to_import_export() {
-    return super.test_type_reference_to_import_export();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_type_reference_to_import_export_export() {
-    return super.test_type_reference_to_import_export_export();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_type_reference_to_import_export_export_in_subdirs() {
-    return super.test_type_reference_to_import_export_export_in_subdirs();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_type_reference_to_import_export_in_subdirs() {
-    return super.test_type_reference_to_import_export_in_subdirs();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_type_reference_to_import_part() {
-    return super.test_type_reference_to_import_part();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_type_reference_to_import_part_in_subdir() {
-    return super.test_type_reference_to_import_part_in_subdir();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_type_reference_to_import_relative() {
-    return super.test_type_reference_to_import_relative();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_type_reference_to_typedef() {
-    return super.test_type_reference_to_typedef();
   }
 
   @failingTest
