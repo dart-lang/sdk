@@ -1073,11 +1073,13 @@ class ImportSet {
   /// this current set. This should only be called from [ImportSetLattice],
   /// since it is where we preserve this invariant.
   ImportSet _add(_DeferredImport import) {
-    return _transitions.putIfAbsent(import, () {
-      var result = new ImportSet(new List.from(_imports)..add(import));
+    ImportSet result = _transitions[import];
+    if (result == null) {
+      result = new ImportSet(new List.from(_imports)..add(import));
       result._transitions[import] = result;
-      return result;
-    });
+      _transitions[import] = result;
+    }
+    return result;
   }
 
   String toString() {

@@ -304,12 +304,10 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
     Selector selector = dynamicUse.selector;
     String name = selector.name;
     Object constraint = dynamicUse.receiverConstraint;
-    Map<Selector, SelectorConstraints> selectors = selectorMap.putIfAbsent(
-        name, () => new Maplet<Selector, SelectorConstraints>());
-    UniverseSelectorConstraints constraints =
-        selectors.putIfAbsent(selector, () {
-      return selectorConstraintsStrategy.createSelectorConstraints(selector);
-    });
+    Map<Selector, SelectorConstraints> selectors =
+        selectorMap[name] ??= new Maplet<Selector, SelectorConstraints>();
+    UniverseSelectorConstraints constraints = selectors[selector] ??=
+        selectorConstraintsStrategy.createSelectorConstraints(selector);
     return constraints.addReceiverConstraint(constraint);
   }
 

@@ -398,12 +398,14 @@ class TypeSystem<T> {
   MemberTypeInformation getInferredTypeOfMember(MemberEntity member) {
     assert(!member.isAbstract,
         failedAt(member, "Unexpected abstract member $member."));
-    return memberTypeInformations.putIfAbsent(member, () {
-      MemberTypeInformation typeInformation =
-          strategy.createMemberTypeInformation(_abstractValueDomain, member);
-      _orderedTypeInformations.add(typeInformation);
-      return typeInformation;
-    });
+    return memberTypeInformations[member] ??= _getInferredTypeOfMember(member);
+  }
+
+  MemberTypeInformation _getInferredTypeOfMember(MemberEntity member) {
+    MemberTypeInformation typeInformation =
+        strategy.createMemberTypeInformation(_abstractValueDomain, member);
+    _orderedTypeInformations.add(typeInformation);
+    return typeInformation;
   }
 
   /**

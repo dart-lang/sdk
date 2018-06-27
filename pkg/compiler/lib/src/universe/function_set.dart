@@ -20,7 +20,7 @@ class FunctionSet {
     Map<String, FunctionSetNode> nodes = new Map<String, FunctionSetNode>();
     for (MemberEntity member in liveInstanceMembers) {
       String name = member.name;
-      nodes.putIfAbsent(name, () => new FunctionSetNode(name)).add(member);
+      (nodes[name] ??= new FunctionSetNode(name)).add(member);
     }
     return new FunctionSet.internal(nodes);
   }
