@@ -304,7 +304,7 @@ class AnalysisDriverTest extends AbstractDriverTest {
     expect(analysisDriver.performAnalysisTask(), true);
     CaughtException exception = context.getCacheEntry(target).exception;
     expect(exception, isNotNull);
-    expect(exception.exception, new isInstanceOf<InfiniteTaskLoopException>());
+    expect(exception.exception, new TypeMatcher<InfiniteTaskLoopException>());
   }
 
   test_performAnalysisTask_inputsFirst() {

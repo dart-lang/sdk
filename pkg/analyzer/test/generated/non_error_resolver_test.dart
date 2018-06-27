@@ -1003,7 +1003,7 @@ abstract class A {
     {
       SimpleIdentifier ref =
           EngineTestCase.findSimpleIdentifier(unit, code, "p]");
-      expect(ref.staticElement, new isInstanceOf<ParameterElement>());
+      expect(ref.staticElement, new TypeMatcher<ParameterElement>());
     }
   }
 
@@ -1056,7 +1056,7 @@ foo(int p) {
     CompilationUnit unit = analysisResult.unit;
     SimpleIdentifier ref =
         EngineTestCase.findSimpleIdentifier(unit, code, 'p]');
-    expect(ref.staticElement, new isInstanceOf<ParameterElement>());
+    expect(ref.staticElement, new TypeMatcher<ParameterElement>());
   }
 
   test_commentReference_beforeFunction_expressionBody() async {
@@ -1070,7 +1070,7 @@ foo(int p) => null;''';
     CompilationUnit unit = analysisResult.unit;
     SimpleIdentifier ref =
         EngineTestCase.findSimpleIdentifier(unit, code, 'p]');
-    expect(ref.staticElement, new isInstanceOf<ParameterElement>());
+    expect(ref.staticElement, new TypeMatcher<ParameterElement>());
   }
 
   test_commentReference_beforeFunctionTypeAlias() async {
@@ -1085,7 +1085,7 @@ typedef Foo(int p);
     CompilationUnit unit = analysisResult.unit;
     SimpleIdentifier ref =
         EngineTestCase.findSimpleIdentifier(unit, code, 'p]');
-    expect(ref.staticElement, new isInstanceOf<ParameterElement>());
+    expect(ref.staticElement, new TypeMatcher<ParameterElement>());
   }
 
   test_commentReference_beforeGenericTypeAlias() async {
@@ -1105,9 +1105,9 @@ typedef Foo<T> = Function<S>(int p);
           .staticElement;
     }
 
-    expect(getElement('T]'), new isInstanceOf<TypeParameterElement>());
-    expect(getElement('S]'), new isInstanceOf<TypeParameterElement>());
-    expect(getElement('p]'), new isInstanceOf<ParameterElement>());
+    expect(getElement('T]'), new TypeMatcher<TypeParameterElement>());
+    expect(getElement('S]'), new TypeMatcher<TypeParameterElement>());
+    expect(getElement('p]'), new TypeMatcher<ParameterElement>());
   }
 
   test_commentReference_beforeGetter() async {
@@ -1148,7 +1148,7 @@ abstract class A {
     assertIsParameter(String search) {
       SimpleIdentifier ref =
           EngineTestCase.findSimpleIdentifier(unit, code, search);
-      expect(ref.staticElement, new isInstanceOf<ParameterElement>());
+      expect(ref.staticElement, new TypeMatcher<ParameterElement>());
     }
 
     assertIsParameter('p1');
@@ -1172,7 +1172,7 @@ class A {
     CompilationUnit unit = analysisResult.unit;
     SimpleIdentifier ref =
         EngineTestCase.findSimpleIdentifier(unit, code, 'foo]');
-    expect(ref.staticElement, new isInstanceOf<MethodElement>());
+    expect(ref.staticElement, new TypeMatcher<MethodElement>());
   }
 
   test_commentReference_setter() async {
@@ -1195,12 +1195,12 @@ class B extends A {
     {
       SimpleIdentifier ref =
           EngineTestCase.findSimpleIdentifier(unit, code, "x] in A");
-      expect(ref.staticElement, new isInstanceOf<PropertyAccessorElement>());
+      expect(ref.staticElement, new TypeMatcher<PropertyAccessorElement>());
     }
     {
       SimpleIdentifier ref =
           EngineTestCase.findSimpleIdentifier(unit, code, 'x] in B');
-      expect(ref.staticElement, new isInstanceOf<PropertyAccessorElement>());
+      expect(ref.staticElement, new TypeMatcher<PropertyAccessorElement>());
     }
   }
 

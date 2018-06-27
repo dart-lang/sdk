@@ -1236,7 +1236,7 @@ library l;''');
       }
       // next tokens
       if (original is CommentToken) {
-        expect(clone, new isInstanceOf<CommentToken>());
+        expect(clone, new TypeMatcher<CommentToken>());
         skipOriginalComment = original;
         skipCloneComment = clone;
         original = (original as CommentToken).parent;

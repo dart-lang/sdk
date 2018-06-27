@@ -871,7 +871,7 @@ class C {
     FunctionElement initializerElement = fieldElement.initializer;
     expect(initializerElement, isNotNull);
     expect(initializerElement.hasImplicitReturnType, isTrue);
-    expect(initializer.element, new isInstanceOf<FunctionElement>());
+    expect(initializer.element, new TypeMatcher<FunctionElement>());
     LocalVariableElement variableElement = variable.element;
     expect(variableElement.hasImplicitType, isTrue);
     expect(variableElement.isConst, isFalse);
@@ -946,7 +946,7 @@ class C {
     List<TopLevelVariableElement> variables = holder.topLevelVariables;
     expect(variables, hasLength(1));
     TopLevelVariableElement variable = variables[0];
-    expect(variable, new isInstanceOf<ConstTopLevelVariableElementImpl>());
+    expect(variable, new TypeMatcher<ConstTopLevelVariableElementImpl>());
     expect(variable.initializer, isNotNull);
     expect(variable.initializer.type, isNotNull);
     expect(variable.initializer.hasImplicitReturnType, isTrue);
@@ -1308,7 +1308,7 @@ abstract class _ApiElementBuilderTestMixin {
 
   void test_metadata_visitExportDirective() {
     buildElementsForText('@a export "foo.dart";');
-    expect(compilationUnit.directives[0], new isInstanceOf<ExportDirective>());
+    expect(compilationUnit.directives[0], new TypeMatcher<ExportDirective>());
     ExportDirective exportDirective = compilationUnit.directives[0];
     checkAnnotation(exportDirective.metadata);
   }
@@ -1354,14 +1354,14 @@ abstract class _ApiElementBuilderTestMixin {
 
   void test_metadata_visitImportDirective() {
     buildElementsForText('@a import "foo.dart";');
-    expect(compilationUnit.directives[0], new isInstanceOf<ImportDirective>());
+    expect(compilationUnit.directives[0], new TypeMatcher<ImportDirective>());
     ImportDirective importDirective = compilationUnit.directives[0];
     checkAnnotation(importDirective.metadata);
   }
 
   void test_metadata_visitLibraryDirective() {
     buildElementsForText('@a library L;');
-    expect(compilationUnit.directives[0], new isInstanceOf<LibraryDirective>());
+    expect(compilationUnit.directives[0], new TypeMatcher<LibraryDirective>());
     LibraryDirective libraryDirective = compilationUnit.directives[0];
     checkAnnotation(libraryDirective.metadata);
   }
@@ -1390,7 +1390,7 @@ abstract class _ApiElementBuilderTestMixin {
 
   void test_metadata_visitPartDirective() {
     buildElementsForText('@a part "foo.dart";');
-    expect(compilationUnit.directives[0], new isInstanceOf<PartDirective>());
+    expect(compilationUnit.directives[0], new TypeMatcher<PartDirective>());
     PartDirective partDirective = compilationUnit.directives[0];
     checkAnnotation(partDirective.metadata);
   }
@@ -1399,7 +1399,7 @@ abstract class _ApiElementBuilderTestMixin {
     // We don't build ElementAnnotation objects for `part of` directives, since
     // analyzer ignores them in favor of annotations on the library directive.
     buildElementsForText('@a part of L;');
-    expect(compilationUnit.directives[0], new isInstanceOf<PartOfDirective>());
+    expect(compilationUnit.directives[0], new TypeMatcher<PartOfDirective>());
     PartOfDirective partOfDirective = compilationUnit.directives[0];
     expect(partOfDirective.metadata, hasLength(1));
     expect(partOfDirective.metadata[0].elementAnnotation, isNull);
@@ -2586,10 +2586,10 @@ abstract class _BaseTest extends ParserTestCase {
    */
   void checkAnnotation(NodeList<Annotation> metadata) {
     expect(metadata, hasLength(1));
-    expect(metadata[0], new isInstanceOf<AnnotationImpl>());
+    expect(metadata[0], new TypeMatcher<AnnotationImpl>());
     AnnotationImpl annotation = metadata[0];
     expect(annotation.elementAnnotation,
-        new isInstanceOf<ElementAnnotationImpl>());
+        new TypeMatcher<ElementAnnotationImpl>());
     ElementAnnotationImpl elementAnnotation = annotation.elementAnnotation;
     expect(elementAnnotation.element, isNull); // Not yet resolved
     expect(elementAnnotation.compilationUnit, isNotNull);
@@ -2602,7 +2602,7 @@ abstract class _BaseTest extends ParserTestCase {
    */
   void checkMetadata(Element element) {
     expect(element.metadata, hasLength(1));
-    expect(element.metadata[0], new isInstanceOf<ElementAnnotationImpl>());
+    expect(element.metadata[0], new TypeMatcher<ElementAnnotationImpl>());
     ElementAnnotationImpl elementAnnotation = element.metadata[0];
     expect(elementAnnotation.element, isNull); // Not yet resolved
     expect(elementAnnotation.compilationUnit, isNotNull);

@@ -18,7 +18,7 @@ main() {
   });
 }
 
-isInstanceOf isParseYamlTask = new isInstanceOf<ParseYamlTask>();
+final isParseYamlTask = new TypeMatcher<ParseYamlTask>();
 
 @reflectiveTest
 class ParseYamlTaskTest extends AbstractContextTest {
@@ -34,7 +34,7 @@ rules:
     YamlDocument document = outputs[YAML_DOCUMENT];
     expect(document, isNotNull);
     var value = document.contents.value;
-    expect(value, new isInstanceOf<Map>());
+    expect(value, new TypeMatcher<Map>());
     expect(value['rules']['style_guide']['camel_case_types'], isFalse);
     expect(outputs[YAML_ERRORS], hasLength(0));
     LineInfo lineInfo = outputs[LINE_INFO];

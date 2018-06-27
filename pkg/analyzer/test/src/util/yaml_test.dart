@@ -104,7 +104,7 @@ bool containsKey(Map<dynamic, YamlNode> map, dynamic key) =>
 
 void expectEquals(YamlNode actual, YamlNode expected) {
   if (expected is YamlScalar) {
-    expect(actual, new isInstanceOf<YamlScalar>());
+    expect(actual, new TypeMatcher<YamlScalar>());
     expect(expected.value, actual.value);
   } else if (expected is YamlList) {
     if (actual is YamlList) {

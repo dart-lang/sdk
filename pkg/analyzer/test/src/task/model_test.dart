@@ -28,14 +28,14 @@ class AnalysisTaskTest extends EngineTestCase {
     AnalysisTask task = new TestAnalysisTask(null, target);
     task.inputs = {'a': 'b'};
     expect(() => task.getRequiredInput('c'),
-        throwsA(new isInstanceOf<AnalysisException>()));
+        throwsA(new TypeMatcher<AnalysisException>()));
   }
 
   test_getRequiredInput_noInputs() {
     AnalysisTarget target = new TestSource();
     AnalysisTask task = new TestAnalysisTask(null, target);
     expect(() => task.getRequiredInput('x'),
-        throwsA(new isInstanceOf<AnalysisException>()));
+        throwsA(new TypeMatcher<AnalysisException>()));
   }
 
   test_getRequiredInput_valid() {

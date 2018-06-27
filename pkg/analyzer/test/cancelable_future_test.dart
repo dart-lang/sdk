@@ -41,7 +41,7 @@ class CancelableCompleterTests {
         .then((_) {
           fail('Expected error completion');
         }, onError: (error) {
-          expect(error, new isInstanceOf<FutureCanceledError>());
+          expect(error, new TypeMatcher<FutureCanceledError>());
           // And make sure nothing else happens.
         })
         .then((_) => pumpEventQueue())
@@ -57,7 +57,7 @@ class CancelableCompleterTests {
       fail('Expected error completion');
     }, onError: (error) {
       expect(callbackInvoked, isFalse);
-      expect(error, new isInstanceOf<FutureCanceledError>());
+      expect(error, new TypeMatcher<FutureCanceledError>());
       callbackInvoked = true;
     });
     expect(cancelCount, 0);
@@ -106,7 +106,7 @@ class CancelableCompleterTests {
       fail('Expected error completion');
     }, onError: (error) {
       expect(callbackInvoked, isFalse);
-      expect(error, new isInstanceOf<FutureCanceledError>());
+      expect(error, new TypeMatcher<FutureCanceledError>());
       callbackInvoked = true;
     });
     // The callback should be deferred to a microtask.
@@ -134,7 +134,7 @@ class CancelableCompleterTests {
         .then((_) {
           fail('Expected error completion');
         }, onError: (error) {
-          expect(error, new isInstanceOf<FutureCanceledError>());
+          expect(error, new TypeMatcher<FutureCanceledError>());
           // And make sure nothing else happens.
         })
         .then((_) => pumpEventQueue())
@@ -235,7 +235,7 @@ class CancelableCompleterTests {
         .then((_) {
           fail('Expected error completion');
         }, onError: (error) {
-          expect(error, new isInstanceOf<FutureCanceledError>());
+          expect(error, new TypeMatcher<FutureCanceledError>());
           // And make sure nothing else happens.
         })
         .then((_) => pumpEventQueue())

@@ -241,7 +241,7 @@ abstract class SummaryTest {
    * a file reachable via the given [absoluteUri].
    */
   void checkDependency(int dependency, String absoluteUri) {
-    expect(dependency, new isInstanceOf<int>());
+    expect(dependency, new TypeMatcher<int>());
     expect(linked.dependencies[dependency].uri, absoluteUri);
   }
 
@@ -293,7 +293,7 @@ abstract class SummaryTest {
   void checkExportName(LinkedExportName exportName, String absoluteUri,
       String expectedName, ReferenceKind expectedKind,
       {int expectedTargetUnit: 0}) {
-    expect(exportName, new isInstanceOf<LinkedExportName>());
+    expect(exportName, new TypeMatcher<LinkedExportName>());
     // Exported names must come from other libraries.
     expect(exportName.dependency, isNot(0));
     checkDependency(exportName.dependency, absoluteUri);
@@ -455,7 +455,7 @@ abstract class SummaryTest {
    * having the given [deBruijnIndex].
    */
   void checkParamTypeRef(EntityRef typeRef, int deBruijnIndex) {
-    expect(typeRef, new isInstanceOf<EntityRef>());
+    expect(typeRef, new TypeMatcher<EntityRef>());
     expect(typeRef.reference, 0);
     expect(typeRef.typeArguments, isEmpty);
     expect(typeRef.paramReference, deBruijnIndex);
@@ -555,7 +555,7 @@ abstract class SummaryTest {
       int numTypeParameters: 0,
       bool unresolvedHasName: false}) {
     linkedSourceUnit ??= definingUnit;
-    expect(typeRef, new isInstanceOf<EntityRef>());
+    expect(typeRef, new TypeMatcher<EntityRef>());
     expect(typeRef.paramReference, 0);
     int index = typeRef.reference;
     expect(typeRef.typeArguments, hasLength(numTypeArguments));
@@ -2652,7 +2652,7 @@ const int v = p.a.length;
       0 // Size of the list
     ], referenceValidators: [
       (EntityRef reference) {
-        expect(reference, new isInstanceOf<EntityRef>());
+        expect(reference, new TypeMatcher<EntityRef>());
         expect(reference.entityKind, EntityRefKind.genericFunctionType);
         expect(reference.syntheticParams, hasLength(1));
         {
@@ -2678,24 +2678,24 @@ const int v = p.a.length;
       0 // Size of the list
     ], referenceValidators: [
       (EntityRef reference) {
-        expect(reference, new isInstanceOf<EntityRef>());
+        expect(reference, new TypeMatcher<EntityRef>());
         expect(reference.entityKind, EntityRefKind.genericFunctionType);
         expect(reference.syntheticParams, hasLength(1));
         {
           final param = reference.syntheticParams[0];
-          expect(param.type, new isInstanceOf<EntityRef>());
+          expect(param.type, new TypeMatcher<EntityRef>());
           expect(param.type.entityKind, EntityRefKind.genericFunctionType);
           expect(param.type.syntheticParams, hasLength(2));
           {
             final subparam = param.type.syntheticParams[0];
             expect(subparam.name, ''); // no name for generic type parameters
-            expect(subparam.type, new isInstanceOf<EntityRef>());
+            expect(subparam.type, new TypeMatcher<EntityRef>());
             expect(subparam.type.paramReference, 2);
           }
           {
             final subparam = param.type.syntheticParams[1];
             expect(subparam.name, ''); // no name for generic type parameters
-            expect(subparam.type, new isInstanceOf<EntityRef>());
+            expect(subparam.type, new TypeMatcher<EntityRef>());
             expect(subparam.type.paramReference, 1);
           }
         }

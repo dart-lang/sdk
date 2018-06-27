@@ -880,7 +880,7 @@ main() {}''');
     future.then((CompilationUnit unit) {
       fail('Future should have completed with error');
     }, onError: (error) {
-      expect(error, new isInstanceOf<AnalysisNotScheduledError>());
+      expect(error, new TypeMatcher<AnalysisNotScheduledError>());
       completed = true;
     });
     return pumpEventQueue().then((_) {
@@ -900,7 +900,7 @@ main() {}''');
     future.then((CompilationUnit unit) {
       fail('Future should have been canceled');
     }, onError: (error) {
-      expect(error, new isInstanceOf<FutureCanceledError>());
+      expect(error, new TypeMatcher<FutureCanceledError>());
       completed = true;
     });
     expect(completed, isFalse);
@@ -925,7 +925,7 @@ main() {}''');
     future.then((CompilationUnit unit) {
       fail('Future should have completed with error');
     }, onError: (error) {
-      expect(error, new isInstanceOf<AnalysisNotScheduledError>());
+      expect(error, new TypeMatcher<AnalysisNotScheduledError>());
       completed = true;
     });
     expect(completed, isFalse);

@@ -600,7 +600,7 @@ var v = (() {
     CompilationUnit unit2 = _cloneResolveUnit(unit);
     SimpleIdentifier getterName = _findSimpleIdentifier(unit2, code, 'zzz =>');
     // Local getters are not allowed, so a FunctionElement is created.
-    expect(getterName.staticElement, new isInstanceOf<FunctionElement>());
+    expect(getterName.staticElement, new TypeMatcher<FunctionElement>());
   }
 
   test_invalid_functionDeclaration_setter_inFunction() async {
@@ -616,7 +616,7 @@ var v = (() {
     CompilationUnit unit2 = _cloneResolveUnit(unit);
     SimpleIdentifier setterName = _findSimpleIdentifier(unit2, code, 'zzz(x)');
     // Local getters are not allowed, so a FunctionElement is created.
-    expect(setterName.staticElement, new isInstanceOf<FunctionElement>());
+    expect(setterName.staticElement, new TypeMatcher<FunctionElement>());
   }
 
   test_visitExportDirective_notExistingSource() async {

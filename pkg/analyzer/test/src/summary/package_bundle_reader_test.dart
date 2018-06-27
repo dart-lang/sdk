@@ -21,8 +21,8 @@ main() {
 }
 
 /// A matcher for ConflictingSummaryException.
-const Matcher isConflictingSummaryException =
-    const _ConflictingSummaryException();
+const isConflictingSummaryException =
+    const TypeMatcher<ConflictingSummaryException>();
 
 UnlinkedPublicNamespace _namespaceWithParts(List<String> parts) {
   _UnlinkedPublicNamespaceMock namespace = new _UnlinkedPublicNamespaceMock();
@@ -287,11 +287,6 @@ class SummaryDataStoreTest {
     bundle2.apiSignature = 'signature2';
     store.addBundle('/p2.ds', bundle2);
   }
-}
-
-class _ConflictingSummaryException extends TypeMatcher {
-  const _ConflictingSummaryException() : super("ConflictingSummaryException");
-  bool matches(item, Map matchState) => item is ConflictingSummaryException;
 }
 
 class _InternalAnalysisContextMock implements InternalAnalysisContext {

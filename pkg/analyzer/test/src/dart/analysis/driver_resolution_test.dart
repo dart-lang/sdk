@@ -23,7 +23,7 @@ main() {
   });
 }
 
-Matcher isUndefinedType = new isInstanceOf<UndefinedTypeImpl>();
+final isUndefinedType = new TypeMatcher<UndefinedTypeImpl>();
 
 /**
  * Integration tests for resolution.

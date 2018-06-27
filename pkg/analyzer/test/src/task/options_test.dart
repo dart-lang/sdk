@@ -36,8 +36,8 @@ main() {
   });
 }
 
-isInstanceOf isGenerateOptionsErrorsTask =
-    new isInstanceOf<GenerateOptionsErrorsTask>();
+final isGenerateOptionsErrorsTask =
+    new TypeMatcher<GenerateOptionsErrorsTask>();
 
 @reflectiveTest
 class ContextConfigurationTest extends AbstractContextTest {

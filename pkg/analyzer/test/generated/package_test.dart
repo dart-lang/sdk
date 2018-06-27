@@ -68,7 +68,7 @@ class DependencyFinderTest extends ResolverTestCase {
 
     DependencyFinder finder = new DependencyFinder(resourceProvider);
     expect(() => finder.transitiveDependenciesFor(packageMap, packagePath),
-        throwsA(new isInstanceOf<AnalysisException>()));
+        throwsA(new TypeMatcher<AnalysisException>()));
   }
 
   void test_transitiveDependenciesFor_noDependencies() {

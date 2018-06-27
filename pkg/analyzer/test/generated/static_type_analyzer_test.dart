@@ -92,7 +92,7 @@ main() {
 """;
     await resolveTestUnit(code);
     // "foo" should be resolved to the "Foo" type
-    expectIdentifierType("foo();", new isInstanceOf<FunctionType>());
+    expectIdentifierType("foo();", new TypeMatcher<FunctionType>());
   }
 
   test_MethodInvocation_nameType_parameter_FunctionTypeAlias() async {
@@ -104,7 +104,7 @@ main(Foo foo) {
 """;
     await resolveTestUnit(code);
     // "foo" should be resolved to the "Foo" type
-    expectIdentifierType("foo();", new isInstanceOf<FunctionType>());
+    expectIdentifierType("foo();", new TypeMatcher<FunctionType>());
   }
 
   test_MethodInvocation_nameType_parameter_propagatedType() async {
