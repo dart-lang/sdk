@@ -1,3 +1,8 @@
+# 0.1.55
+
+* fixed an issue in `const` error handling
+* updated `linter` binary to use `previewDart2`
+
 # 0.1.54
 
 * new `unnecessary_const` lint
