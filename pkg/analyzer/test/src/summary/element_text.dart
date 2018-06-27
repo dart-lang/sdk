@@ -837,7 +837,7 @@ class _ElementWriter {
 
   void writeTypeParameterElement(TypeParameterElement e) {
     writeName(e);
-    if (e.bound != null) {
+    if (e.bound != null && !e.bound.isObject) {
       buffer.write(' extends ');
       writeType(e.bound);
     }

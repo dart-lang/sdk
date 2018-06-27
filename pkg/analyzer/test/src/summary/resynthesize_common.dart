@@ -2389,7 +2389,7 @@ class C<T extends Object, U extends D> {}
 class D {}
 ''');
     checkElementText(library, r'''
-class C<T extends Object, U extends D> {
+class C<T, U extends D> {
 }
 class D {
 }
@@ -10081,7 +10081,7 @@ typedef F<T, U> = U Function(T t);
     var library = await checkLibrary(
         'typedef U F<T extends Object, U extends D>(T t); class D {}');
     checkElementText(library, r'''
-typedef F<T extends Object, U extends D> = U Function(T t);
+typedef F<T, U extends D> = U Function(T t);
 class D {
 }
 ''');

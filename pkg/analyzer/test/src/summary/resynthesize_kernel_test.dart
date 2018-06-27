@@ -134,15 +134,6 @@ class C {
 ''');
   }
 
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_class_type_parameters_bound() async {
-    // https://github.com/dart-lang/sdk/issues/29561
-    // Fasta does not provide a flag for explicit vs. implicit Object bound.
-    await super.test_class_type_parameters_bound();
-  }
-
   @failingTest // See dartbug.com/32290
   test_const_constructor_inferred_args() =>
       super.test_const_constructor_inferred_args();
@@ -323,13 +314,6 @@ class C {
   @potentialAnalyzerProblem
   test_type_inference_based_on_loadLibrary() async {
     await super.test_type_inference_based_on_loadLibrary();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typedef_type_parameters_bound() async {
-    // https://github.com/dart-lang/sdk/issues/29561
-    await super.test_typedef_type_parameters_bound();
   }
 
   @failingTest
