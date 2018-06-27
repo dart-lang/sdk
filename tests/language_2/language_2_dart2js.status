@@ -167,13 +167,11 @@ async_star_pause_test: RuntimeError
 async_star_regression_23116_test: RuntimeError
 async_star_test/02: RuntimeError
 await_test: RuntimeError
-bad_override_test/03: MissingCompileTimeError
 bit_operations_test/03: RuntimeError
 bit_operations_test/04: RuntimeError
 bit_operations_test/none: RuntimeError
 branch_canonicalization_test: RuntimeError
 canonical_const2_test: RuntimeError, OK # non JS number semantics
-check_member_static_test/02: MissingCompileTimeError
 checked_method_error_order_test: RuntimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
@@ -296,12 +294,6 @@ external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
 factory_redirection_test/07: MissingCompileTimeError
-fauxverride_test/03: MissingCompileTimeError
-fauxverride_test/05: MissingCompileTimeError
-field_override3_test/00: MissingCompileTimeError
-field_override3_test/01: MissingCompileTimeError
-field_override3_test/02: MissingCompileTimeError
-field_override3_test/03: MissingCompileTimeError
 final_attempt_reinitialization_test/01: MissingCompileTimeError
 final_attempt_reinitialization_test/02: MissingCompileTimeError
 full_stacktrace1_test: RuntimeError # Issue 12698
@@ -311,9 +303,6 @@ generalized_void_syntax_test: CompileTimeError # Issue #30176.
 generic_function_dcall_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_typedef_test: RuntimeError
-getter_override_test/00: MissingCompileTimeError
-getter_override_test/01: MissingCompileTimeError
-getter_override_test/02: MissingCompileTimeError
 identical_closure2_test: RuntimeError # non JS number semantics
 implicit_downcast_during_assert_initializer_test: RuntimeError
 infinity_test: RuntimeError # non JS number semantics - Issue 4984
@@ -340,9 +329,6 @@ list_literal_syntax_test/03: MissingCompileTimeError
 malformed2_test/00: MissingCompileTimeError
 map_literal1_test/01: MissingCompileTimeError
 map_literal8_test: RuntimeError
-method_override7_test/00: MissingCompileTimeError
-method_override7_test/01: MissingCompileTimeError
-method_override7_test/02: MissingCompileTimeError
 mint_arithmetic_test: RuntimeError # non JS number semantics
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
@@ -442,7 +428,6 @@ not_enough_positional_arguments_test/06: MissingCompileTimeError
 not_enough_positional_arguments_test/07: MissingCompileTimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError, OK # non JS number semantics
-override_field_test/01: MissingCompileTimeError
 positional_parameters_type_test/01: MissingCompileTimeError
 positional_parameters_type_test/02: MissingCompileTimeError
 private_super_constructor_test/01: MissingCompileTimeError
@@ -462,8 +447,6 @@ regress_29784_test/01: Crash # Assertion failure: Cannot find value Instance of 
 regress_29784_test/02: MissingCompileTimeError # Issue 29784
 regress_30339_test: RuntimeError # Issue 26429
 regress_31057_test: Crash # Unsupported operation: Unsupported type parameter type node B.
-setter_override_test/00: MissingCompileTimeError
-setter_override_test/03: MissingCompileTimeError
 stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/withtraceparameter: RuntimeError # Issue 12698
@@ -519,11 +502,9 @@ async_await_test/03: RuntimeError
 async_await_test/none: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
 async_star_test/02: RuntimeError
-bad_override_test/03: MissingCompileTimeError
 bit_operations_test: RuntimeError
 branch_canonicalization_test: RuntimeError
 canonical_const2_test: RuntimeError, OK # non JS number semantics
-check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 compile_time_constant_o_test/01: MissingCompileTimeError
@@ -579,14 +560,8 @@ external_test/20: MissingRuntimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
 f_bounded_quantification4_test: RuntimeError
-fauxverride_test/03: MissingCompileTimeError
-fauxverride_test/05: MissingCompileTimeError
 field_initialization_order_test/01: MissingCompileTimeError
 field_initialization_order_test/none: RuntimeError
-field_override3_test/00: MissingCompileTimeError
-field_override3_test/01: MissingCompileTimeError
-field_override3_test/02: MissingCompileTimeError
-field_override3_test/03: MissingCompileTimeError
 flatten_test/05: MissingRuntimeError
 flatten_test/08: MissingRuntimeError
 flatten_test/09: MissingRuntimeError
@@ -608,9 +583,6 @@ generic_methods_unused_parameter_test: RuntimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
-getter_override_test/00: MissingCompileTimeError
-getter_override_test/01: MissingCompileTimeError
-getter_override_test/02: MissingCompileTimeError
 identical_closure2_test: RuntimeError # non JS number semantics
 if_null_precedence_test/none: RuntimeError
 infinity_test: RuntimeError # non JS number semantics - Issue 4984
@@ -637,9 +609,6 @@ library_env_test/has_mirror_support: RuntimeError
 local_function2_test/none: RuntimeError
 local_function3_test/none: RuntimeError
 local_function_test/none: RuntimeError
-method_override7_test/00: MissingCompileTimeError
-method_override7_test/01: MissingCompileTimeError
-method_override7_test/02: MissingCompileTimeError
 method_override_test: CompileTimeError
 minify_closure_variable_collision_test: CompileTimeError
 mint_arithmetic_test: RuntimeError # non JS number semantics
@@ -727,7 +696,6 @@ no_such_method_mock_test: RuntimeError
 null_no_such_method_test: CompileTimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError, OK # non JS number semantics
-override_field_test/01: MissingCompileTimeError
 override_inheritance_field_test/04: CompileTimeError
 override_inheritance_field_test/06: CompileTimeError
 override_inheritance_field_test/26: CompileTimeError
@@ -749,8 +717,6 @@ regress_29784_test/01: Crash # Assertion failure: Cannot find value Instance of 
 regress_29784_test/02: MissingCompileTimeError # Issue 29784
 regress_30339_test: CompileTimeError
 setter_no_getter_test/01: CompileTimeError
-setter_override_test/00: MissingCompileTimeError
-setter_override_test/03: MissingCompileTimeError
 stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/withtraceparameter: RuntimeError # Issue 12698
@@ -870,16 +836,12 @@ async_return_types_test/wrongReturnType: Crash # 'file:*/pkg/compiler/lib/src/js
 async_star_cancel_while_paused_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
 async_star_test/02: RuntimeError
 await_not_started_immediately_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-bad_override_test/01: MissingCompileTimeError
-bad_override_test/02: MissingCompileTimeError
-bad_override_test/03: MissingCompileTimeError
 bit_operations_test: RuntimeError
 branch_canonicalization_test: RuntimeError
 call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
 canonical_const2_test: RuntimeError, OK # non JS number semantics
 check_member_static_test/01: MissingCompileTimeError
-check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 class_literal_static_test/01: MissingCompileTimeError
@@ -953,15 +915,9 @@ f_bounded_quantification4_test: RuntimeError
 f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
 factory4_test/00: MissingCompileTimeError
-fauxverride_test/03: MissingCompileTimeError
-fauxverride_test/05: MissingCompileTimeError
 field3_test/01: MissingCompileTimeError
 field_initialization_order_test/01: MissingCompileTimeError
 field_initialization_order_test/none: RuntimeError
-field_override3_test/00: MissingCompileTimeError
-field_override3_test/01: MissingCompileTimeError
-field_override3_test/02: MissingCompileTimeError
-field_override3_test/03: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
 flatten_test/05: MissingRuntimeError
@@ -988,10 +944,6 @@ generic_methods_unused_parameter_test: Crash # Assertion failure: kind=special,m
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
-getter_override_test/00: MissingCompileTimeError
-getter_override_test/01: MissingCompileTimeError
-getter_override_test/02: MissingCompileTimeError
-getter_override_test/03: MissingCompileTimeError
 identical_closure2_test: RuntimeError # non JS number semantics
 identical_const_test/01: MissingCompileTimeError
 identical_const_test/02: MissingCompileTimeError
@@ -1046,10 +998,6 @@ malbounded_type_test_test/02: MissingCompileTimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
-method_override7_test/00: MissingCompileTimeError
-method_override7_test/01: MissingCompileTimeError
-method_override7_test/02: MissingCompileTimeError
-method_override7_test/03: MissingCompileTimeError
 method_override_test: CompileTimeError
 minify_closure_variable_collision_test: CompileTimeError
 mint_arithmetic_test: RuntimeError # non JS number semantics
@@ -1165,7 +1113,6 @@ no_such_method_mock_test: RuntimeError
 null_no_such_method_test: CompileTimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError, OK # non JS number semantics
-override_field_test/01: MissingCompileTimeError
 override_field_test/02: MissingCompileTimeError
 override_field_test/03: MissingCompileTimeError
 override_inheritance_field_test/04: CompileTimeError
@@ -1203,10 +1150,6 @@ regress_29784_test/02: MissingCompileTimeError # Issue 29784
 regress_30339_test: CompileTimeError
 setter4_test: MissingCompileTimeError
 setter_no_getter_test/01: CompileTimeError
-setter_override_test/00: MissingCompileTimeError
-setter_override_test/01: MissingCompileTimeError
-setter_override_test/02: MissingCompileTimeError
-setter_override_test/03: MissingCompileTimeError
 stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/withtraceparameter: RuntimeError # Issue 12698
@@ -1352,9 +1295,6 @@ async_return_types_test/wrongReturnType: Crash # Interpolated value #1 is not an
 async_star_cancel_while_paused_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
 async_star_test/02: RuntimeError
 await_not_started_immediately_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-bad_override_test/01: MissingCompileTimeError
-bad_override_test/02: MissingCompileTimeError
-bad_override_test/03: MissingCompileTimeError
 bit_operations_test: RuntimeError
 branch_canonicalization_test: RuntimeError
 call_non_method_field_test/01: MissingCompileTimeError
@@ -1362,7 +1302,6 @@ call_non_method_field_test/02: MissingCompileTimeError
 call_with_no_such_method_test: RuntimeError
 canonical_const2_test: RuntimeError, OK # non JS number semantics
 check_member_static_test/01: MissingCompileTimeError
-check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 class_literal_static_test/01: MissingCompileTimeError
@@ -1431,15 +1370,9 @@ f_bounded_quantification4_test: RuntimeError # Issue 12605
 f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
 factory4_test/00: MissingCompileTimeError
-fauxverride_test/03: MissingCompileTimeError
-fauxverride_test/05: MissingCompileTimeError
 field3_test/01: MissingCompileTimeError
 field_initialization_order_test/01: MissingCompileTimeError
 field_initialization_order_test/none: RuntimeError
-field_override3_test/00: MissingCompileTimeError
-field_override3_test/01: MissingCompileTimeError
-field_override3_test/02: MissingCompileTimeError
-field_override3_test/03: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
 flatten_test/05: MissingRuntimeError
@@ -1466,10 +1399,6 @@ generic_methods_unused_parameter_test: RuntimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
-getter_override_test/00: MissingCompileTimeError
-getter_override_test/01: MissingCompileTimeError
-getter_override_test/02: MissingCompileTimeError
-getter_override_test/03: MissingCompileTimeError
 identical_closure2_test: RuntimeError # non JS number semantics
 identical_const_test/01: MissingCompileTimeError
 identical_const_test/02: MissingCompileTimeError
@@ -1527,10 +1456,6 @@ many_overridden_no_such_method_test: RuntimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
-method_override7_test/00: MissingCompileTimeError
-method_override7_test/01: MissingCompileTimeError
-method_override7_test/02: MissingCompileTimeError
-method_override7_test/03: MissingCompileTimeError
 method_override_test: CompileTimeError
 minify_closure_variable_collision_test: CompileTimeError
 mint_arithmetic_test: RuntimeError # non JS number semantics
@@ -1652,7 +1577,6 @@ null_no_such_method_test: CompileTimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError, OK # non JS number semantics
 overridden_no_such_method_test: RuntimeError
-override_field_test/01: MissingCompileTimeError
 override_field_test/02: MissingCompileTimeError
 override_field_test/03: MissingCompileTimeError
 override_inheritance_field_test/04: CompileTimeError
@@ -1688,10 +1612,6 @@ regress_29784_test/02: MissingCompileTimeError # Issue 29784
 regress_30339_test: CompileTimeError
 setter4_test: MissingCompileTimeError
 setter_no_getter_test/01: CompileTimeError
-setter_override_test/00: MissingCompileTimeError
-setter_override_test/01: MissingCompileTimeError
-setter_override_test/02: MissingCompileTimeError
-setter_override_test/03: MissingCompileTimeError
 stack_trace_test: RuntimeError, OK # Stack trace not preserved in minified code.
 stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
