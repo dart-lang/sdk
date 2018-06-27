@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
@@ -446,8 +447,9 @@ class _ExprBuilder {
   ConstructorInitializer buildInitializer(kernel.Initializer k) {
     if (k is kernel.FieldInitializer) {
       Expression value = build(k.value);
-      ConstructorFieldInitializer initializer = AstTestFactory
-          .constructorFieldInitializer(false, k.field.name.name, value);
+      ConstructorFieldInitializer initializer =
+          AstTestFactory.constructorFieldInitializer(
+              false, k.field.name.name, value);
       initializer.fieldName.staticElement = _getElement(k.fieldReference);
       return initializer;
     }
@@ -716,8 +718,8 @@ class _ExprBuilder {
       ..staticElement = element;
     Element enclosingElement = element.enclosingElement;
     if (enclosingElement is ClassElement) {
-      SimpleIdentifier classRef = AstTestFactory
-          .identifier3(enclosingElement.name)
+      SimpleIdentifier classRef =
+          AstTestFactory.identifier3(enclosingElement.name)
             ..staticElement = enclosingElement;
       return AstTestFactory.identifier(classRef, property);
     } else {
@@ -1140,7 +1142,7 @@ class _KernelUnitResynthesizerContextImpl
   }
 
   @override
-  ConstructorElementImpl getRedirectedConstructor(
+  ConstructorElement getRedirectedConstructor(ElementImpl context,
       kernel.Constructor kernelConstructor, kernel.Procedure kernelFactory) {
     if (kernelConstructor != null) {
       for (var initializer in kernelConstructor.initializers) {
@@ -1156,9 +1158,25 @@ class _KernelUnitResynthesizerContextImpl
       if (body is RedirectingFactoryBody) {
         kernel.Member target = body.target;
         if (target != null) {
-          return libraryContext.resynthesizer
-                  .getElementFromCanonicalName(target.reference.canonicalName)
-              as ConstructorElementImpl;
+          ConstructorElementImpl constructorElement = libraryContext
+              .resynthesizer
+              .getElementFromCanonicalName(target.reference.canonicalName);
+          var typeArguments = body.typeArguments;
+          if (typeArguments != null) {
+            var classElement = constructorElement.enclosingElement;
+
+            var instantiatedType = new InterfaceTypeImpl.elementWithNameAndArgs(
+                classElement, classElement.name, () {
+              List<DartType> arguments = typeArguments
+                  .map((kernel.DartType k) => getType(context, k))
+                  .toList(growable: false);
+              return arguments;
+            });
+
+            return ConstructorMember.from(constructorElement, instantiatedType);
+          } else {
+            return constructorElement;
+          }
         }
       }
     }

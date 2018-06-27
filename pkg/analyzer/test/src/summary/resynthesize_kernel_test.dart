@@ -148,42 +148,6 @@ class C {
       super.test_const_constructor_inferred_args();
 
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
-  test_constructor_redirected_factory_named_generic() async {
-    await super.test_constructor_redirected_factory_named_generic();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
-  test_constructor_redirected_factory_named_imported_generic() async {
-    await super.test_constructor_redirected_factory_named_imported_generic();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
-  test_constructor_redirected_factory_named_prefixed_generic() async {
-    await super.test_constructor_redirected_factory_named_prefixed_generic();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
-  test_constructor_redirected_factory_unnamed_generic() async {
-    await super.test_constructor_redirected_factory_unnamed_generic();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
-  test_constructor_redirected_factory_unnamed_imported_generic() async {
-    await super.test_constructor_redirected_factory_unnamed_imported_generic();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
-  test_constructor_redirected_factory_unnamed_prefixed_generic() async {
-    await super.test_constructor_redirected_factory_unnamed_prefixed_generic();
-  }
-
-  @failingTest
   @notForDart2
   test_export_configurations_useFirst() async {
     await super.test_export_configurations_useFirst();

@@ -31,13 +31,6 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31605')
-  test_constructor_redirected_generic() async {
-    await super.test_constructor_redirected_generic();
-  }
-
-  @override
-  @failingTest
   @potentialAnalyzerProblem
   test_instanceCreation_prefixed() {
     // TODO(paulberry): broken because prefixes are not working properly
