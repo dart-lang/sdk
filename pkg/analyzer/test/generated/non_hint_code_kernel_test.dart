@@ -80,14 +80,6 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
     await super.test_deprecatedMemberUse_inDeprecatedLibrary();
   }
 
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_importDeferredLibraryWithLoadFunction() async {
-    // Bad state: Invalid location: -1
-    await super.test_importDeferredLibraryWithLoadFunction();
-  }
-
   @override
   @failingTest
   test_overrideOnNonOverridingField_inInterface() {

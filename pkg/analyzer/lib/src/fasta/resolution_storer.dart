@@ -229,9 +229,10 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
       Token semicolon,
       covariant Object labelBinder) {}
 
-  void deferredCheck(ExpressionJudgment judgment, Location location,
-          DartType inferredType) =>
-      genericExpression("deferredCheck", location, inferredType);
+  void deferredCheck(
+      ExpressionJudgment judgment, Location location, DartType inferredType) {
+    // This judgment has no semantic value for Analyzer.
+  }
 
   void doStatement(
       StatementJudgment judgment,

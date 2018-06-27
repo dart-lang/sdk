@@ -289,14 +289,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_sharedDeferredPrefix() async {
-    // Bad state: Invalid location: -1
-    return super.test_sharedDeferredPrefix();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_typePromotion_booleanAnd_useInRight() async {
     // Bad state: Invalid location: -1
     return super.test_typePromotion_booleanAnd_useInRight();
