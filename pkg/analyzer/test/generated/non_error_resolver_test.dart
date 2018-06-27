@@ -6383,6 +6383,32 @@ f() sync* {
     verify([source]);
   }
 
+  Future test_issue32114() async {
+    addNamedSource('/a.dart', '''
+class O {}
+
+typedef T Func<T extends O>(T e);
+''');
+    addNamedSource('/b.dart', '''
+import 'a.dart';
+export 'a.dart' show Func;
+
+abstract class A<T extends O> {
+  Func<T> get func;
+}
+''');
+    final Source source = addSource('''
+import 'b.dart';
+
+class B extends A {
+  Func get func => (x) => x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   Future<Null> _check_wrongNumberOfParametersForOperator(
       String name, String parameters) async {
     Source source = addSource("""

@@ -8615,21 +8615,6 @@ class TypeNameResolver {
     DartType type = annotation.type;
     if (type == null) {
       return undefinedType;
-    } else if (type is FunctionType) {
-      Element element = type.element;
-      if (annotation is TypeName && element is GenericTypeAliasElementImpl) {
-        TypeArgumentList argumentList = annotation.typeArguments;
-        List<DartType> typeArguments = null;
-        if (argumentList != null) {
-          List<TypeAnnotation> arguments = argumentList.arguments;
-          int argumentCount = arguments.length;
-          typeArguments = new List<DartType>(argumentCount);
-          for (int i = 0; i < argumentCount; i++) {
-            typeArguments[i] = _getType(arguments[i]);
-          }
-        }
-        return element.typeAfterSubstitution(typeArguments) ?? dynamicType;
-      }
     }
     return type;
   }

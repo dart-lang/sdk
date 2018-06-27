@@ -7521,6 +7521,37 @@ typedef F<T extends num> = dynamic Function(T p);
     }
   }
 
+  test_instantiateToBounds_functionTypeAlias_reexported() async {
+    addLibrarySource('/a.dart', r'''
+class O {}
+typedef T F<T extends O>(T p);
+''');
+    addLibrarySource('/b.dart', r'''
+export 'a.dart' show F;
+''');
+    var library = await checkLibrary('''
+import 'b.dart';
+class C {
+  F f() => null;
+}
+''');
+    if (isStrongMode) {
+      checkElementText(library, r'''
+import 'b.dart';
+class C {
+  (O) → O f() {}
+}
+''');
+    } else {
+      checkElementText(library, r'''
+import 'b.dart';
+class C {
+  (dynamic) → dynamic f() {}
+}
+''');
+    }
+  }
+
   test_instantiateToBounds_simple() async {
     var library = await checkLibrary('''
 class C<T extends num> {}
