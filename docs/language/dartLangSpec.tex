@@ -61,6 +61,7 @@
 % - Add appendix listing the major differences between 64-bit integers
 %   and JavaScript integers.
 % - Remove appendix on naming conventions.
+% - Make it explicit that "dynamic" is exported from dart:core.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -10051,7 +10052,10 @@ Other tools can interpret the type information more aggressively and warn about 
 }
 
 \LMHash{}
-The name \DYNAMIC{} denotes a \code{Type} object even though \DYNAMIC{} is not a class.
+The built-in type declaration \code{dynamic},
+which is declared in the library \code{dart:core},
+denotes the \DYNAMIC{} type.
+When the name \DYNAMIC{} exported by \code{dart:core} is evaluated as an expression, it evaluates to a \code{Type} object representing the \DYNAMIC{} type, even though \DYNAMIC{} is not a class.
 
 \LMHash{}
 The built-in type declaration \code{FutureOr},
