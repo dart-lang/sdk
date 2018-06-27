@@ -23,6 +23,14 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
 
   @override
   @failingTest
+  @potentialAnalyzerProblem
+  test_binaryExpression_notEqual() {
+    // Bad state: Invalid location: -1
+    return super.test_binaryExpression_notEqual();
+  }
+
+  @override
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31605')
   test_constructor_redirected_generic() async {
     await super.test_constructor_redirected_generic();

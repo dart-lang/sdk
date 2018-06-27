@@ -150,6 +150,13 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @override
   @failingTest
+  test_importDeferredLibraryWithLoadFunction() {
+    // Bad state: Invalid location: -1
+    return super.test_importDeferredLibraryWithLoadFunction();
+  }
+
+  @override
+  @failingTest
   test_invalidRequiredParam_on_named_parameter_with_default() async {
     return super.test_invalidRequiredParam_on_named_parameter_with_default();
   }
@@ -240,6 +247,13 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   test_mustCallSuper_indirect() async {
     // Expected 1 errors of type HintCode.MUST_CALL_SUPER, found 0
     return super.test_mustCallSuper_indirect();
+  }
+
+  @override
+  @failingTest
+  test_nullAwareBeforeOperator_ok_not_equal() {
+    // Bad state: Invalid location: -1
+    return super.test_nullAwareBeforeOperator_ok_not_equal();
   }
 
   @override

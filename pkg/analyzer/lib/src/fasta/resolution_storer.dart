@@ -47,6 +47,13 @@ class ResolutionStorer extends _ResolutionStorer<int, int, Node, int>
         Factory<void, void, void, void> {
   ResolutionStorer(Map<int, ResolutionData<DartType, int, Node, int>> data)
       : super(data);
+
+  @override
+  void _validateLocation(int location) {
+    if (location < 0) {
+      throw new StateError('Invalid location: $location');
+    }
+  }
 }
 
 /// Implementation of [ResolutionStorer], with types parameterized to avoid
@@ -73,6 +80,7 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
       Reference reference,
       bool replace = false,
       DartType writeContext}) {
+    _validateLocation(location);
     if (!replace && _data.containsKey(location)) {
       throw new StateError('Data already stored for offset $location');
     }
@@ -94,6 +102,8 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
   void _unstore(Location location) {
     _data.remove(location) == null;
   }
+
+  void _validateLocation(Location location) {}
 
   void asExpression(
       ExpressionJudgment judgment,
