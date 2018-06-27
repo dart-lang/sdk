@@ -28,14 +28,6 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
     // Bad state: Invalid location: -1
     return super.test_binaryExpression_notEqual();
   }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_instanceCreation_prefixed() {
-    // TODO(paulberry): broken because prefixes are not working properly
-    return super.test_instanceCreation_prefixed();
-  }
 }
 
 /// Tests marked with this annotation fail because of a Fasta problem.

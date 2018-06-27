@@ -369,19 +369,57 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    var data = _get(node.argumentList);
+    ConstructorName constructorName = node.constructorName;
+    Identifier typeIdentifier = constructorName.type.name;
+    SimpleIdentifier classIdentifier;
+    SimpleIdentifier constructorIdentifier;
 
-    PrefixElement prefix = data.prefixInfo;
+    var data = _get(typeIdentifier);
+    TypeName newTypeName;
+    if (typeIdentifier is SimpleIdentifier) {
+      classIdentifier = typeIdentifier;
+      constructorIdentifier = constructorName.name;
+    } else if (typeIdentifier is PrefixedIdentifier) {
+      if (data.prefixInfo != null) {
+        typeIdentifier.prefix.staticElement = data.prefixInfo;
+
+        classIdentifier = typeIdentifier.identifier;
+        constructorIdentifier = node.constructorName.name;
+
+        data = _get(classIdentifier);
+      } else {
+        classIdentifier = typeIdentifier.prefix;
+        constructorIdentifier = typeIdentifier.identifier;
+
+        TypeArgumentList typeArguments = constructorName.type.typeArguments;
+        newTypeName = astFactory.typeName(classIdentifier, typeArguments);
+        constructorName.type = newTypeName;
+        constructorName.period = typeIdentifier.period;
+        constructorName.name = constructorIdentifier;
+      }
+    }
+    classIdentifier.staticElement = data.reference;
+
+    data = _get(node.argumentList);
 
     ConstructorElement constructor = data.reference;
     DartType type = data.inferredType;
 
-    ConstructorName constructorName = node.constructorName;
-    applyConstructorElement(
-        _enclosingLibraryElement, prefix, constructor, type, constructorName);
+    TypeArgumentList typeArguments = constructorName.type.typeArguments;
+    if (typeArguments != null) {
+      _applyTypeArgumentsToList(
+          _enclosingLibraryElement, type, typeArguments.arguments);
+    }
 
     node.staticElement = constructor;
     node.staticType = type;
+
+    node.constructorName.staticElement = constructor;
+    node.constructorName.type.type = constructor.returnType;
+
+    typeIdentifier.staticType = type;
+    classIdentifier.staticType = type;
+    constructorIdentifier?.staticElement = constructor;
 
     ArgumentList argumentList = node.argumentList;
     _applyResolutionToArguments(argumentList);

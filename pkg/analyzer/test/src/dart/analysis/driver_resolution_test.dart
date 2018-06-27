@@ -2307,6 +2307,123 @@ main() {
     }
   }
 
+  test_instanceCreation_unprefixed() async {
+    addTestFile(r'''
+main() {
+  new C(0);
+  new C<bool>(false);
+  new C.named(1.2);
+  new C<bool>.named(false);
+}
+
+class C<T> {
+  C(T p);
+  C.named(T p);
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    CompilationUnitElement unitElement = unit.element;
+    var typeProvider = unitElement.context.typeProvider;
+
+    ClassElement cElement = unitElement.getType('C');
+    ConstructorElement defaultConstructor = cElement.constructors[0];
+    ConstructorElement namedConstructor = cElement.constructors[1];
+    InterfaceType cType = cElement.type;
+    var cTypeDynamic = cType.instantiate([DynamicTypeImpl.instance]);
+
+    var statements = _getMainStatements(result);
+    {
+      var cTypeInt = cType.instantiate([typeProvider.intType]);
+
+      ExpressionStatement statement = statements[0];
+      InstanceCreationExpression creation = statement.expression;
+      expect(creation.staticElement, defaultConstructor);
+      expect(creation.staticType, cTypeInt);
+
+      TypeName typeName = creation.constructorName.type;
+      expect(typeName.typeArguments, isNull);
+
+      SimpleIdentifier typeIdentifier = typeName.name;
+      expect(typeIdentifier.staticElement, same(cElement));
+      if (useCFE) {
+        expect(typeIdentifier.staticType, cTypeInt);
+      } else {
+        expect(typeIdentifier.staticType, cTypeDynamic);
+      }
+
+      expect(creation.constructorName.name, isNull);
+    }
+
+    {
+      var cTypeBool = cType.instantiate([typeProvider.boolType]);
+
+      ExpressionStatement statement = statements[1];
+      InstanceCreationExpression creation = statement.expression;
+      expect(creation.staticElement, defaultConstructor);
+      expect(creation.staticType, cTypeBool);
+
+      TypeName typeName = creation.constructorName.type;
+      expect(typeName.typeArguments.arguments, hasLength(1));
+      _assertTypeNameSimple(
+          typeName.typeArguments.arguments[0], typeProvider.boolType);
+
+      SimpleIdentifier typeIdentifier = typeName.name;
+      expect(typeIdentifier.staticElement, same(cElement));
+      expect(typeIdentifier.staticType, cTypeBool);
+
+      expect(creation.constructorName.name, isNull);
+    }
+
+    {
+      var cTypeDouble = cType.instantiate([typeProvider.doubleType]);
+
+      ExpressionStatement statement = statements[2];
+      InstanceCreationExpression creation = statement.expression;
+      expect(creation.staticElement, namedConstructor);
+      expect(creation.staticType, cTypeDouble);
+
+      TypeName typeName = creation.constructorName.type;
+      expect(typeName.typeArguments, isNull);
+
+      SimpleIdentifier typeIdentifier = typeName.name;
+      expect(typeIdentifier.staticElement, cElement);
+      if (useCFE) {
+        expect(typeIdentifier.staticType, cTypeDouble);
+      } else {
+        expect(typeIdentifier.staticType, cTypeDynamic);
+      }
+
+      expect(typeIdentifier.staticElement, same(cElement));
+
+      SimpleIdentifier constructorName = creation.constructorName.name;
+      expect(constructorName.staticElement, namedConstructor);
+      expect(constructorName.staticType, isNull);
+    }
+
+    {
+      var cTypeBool = cType.instantiate([typeProvider.boolType]);
+
+      ExpressionStatement statement = statements[3];
+      InstanceCreationExpression creation = statement.expression;
+      expect(creation.staticElement, namedConstructor);
+      expect(creation.staticType, cTypeBool);
+
+      TypeName typeName = creation.constructorName.type;
+      expect(typeName.typeArguments.arguments, hasLength(1));
+      _assertTypeNameSimple(
+          typeName.typeArguments.arguments[0], typeProvider.boolType);
+
+      SimpleIdentifier typeIdentifier = typeName.name;
+      expect(typeIdentifier.staticElement, cElement);
+      expect(typeIdentifier.staticType, cTypeBool);
+
+      SimpleIdentifier constructorName = creation.constructorName.name;
+      expect(constructorName.staticElement, namedConstructor);
+      expect(constructorName.staticType, isNull);
+    }
+  }
+
   test_instanceCreation_withTypeArguments() async {
     String content = r'''
 class C<K, V> {

@@ -355,30 +355,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @failingTest
   @override
-  test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_explicit_type_params_prefixed() {
-    // NoSuchMethodError: The setter 'enclosingElement=' was called on null.
-    return super
-        .test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_explicit_type_params_prefixed();
-  }
-
-  @failingTest
-  @override
-  test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_not_generic_prefixed() {
-    // NoSuchMethodError: The getter 'element' was called on null.
-    return super
-        .test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_not_generic_prefixed();
-  }
-
-  @failingTest
-  @override
-  test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_prefixed() {
-    // NoSuchMethodError: The getter 'element' was called on null.
-    return super
-        .test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_prefixed();
-  }
-
-  @failingTest
-  @override
   test_undefinedOperator_binaryExpression() async {
     // Expected 1 errors of type HintCode.UNDEFINED_OPERATOR, found 0
     return super.test_undefinedOperator_binaryExpression();
