@@ -382,13 +382,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
 
   @override
   @failingTest
-  test_genericMethod_nestedFunctions() {
-    // Expected: '<S>(S) → <S>(S) → S'; Actual: '<S₀>(S) → <S>(S) → S'
-    return super.test_genericMethod_nestedFunctions();
-  }
-
-  @override
-  @failingTest
   test_genericMethod_override_differentContextsSameBounds() {
     // UnimplementedError: TODO(paulberry): TypeParameterType
     return super.test_genericMethod_override_differentContextsSameBounds();

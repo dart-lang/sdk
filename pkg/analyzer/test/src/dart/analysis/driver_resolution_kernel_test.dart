@@ -43,16 +43,6 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
     // TODO(paulberry): broken because prefixes are not working properly
     return super.test_instanceCreation_prefixed();
   }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_local_function_generic() {
-    // TODO(paulberry): I suspect this is broken due to the function type's
-    // generic parameters not being properly associated with the generic
-    // parameters from the kernel representation.
-    return super.test_local_function_generic();
-  }
 }
 
 /// Tests marked with this annotation fail because of a Fasta problem.

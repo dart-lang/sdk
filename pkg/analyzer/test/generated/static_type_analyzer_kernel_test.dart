@@ -19,11 +19,4 @@ class StaticTypeAnalyzer2Test_Kernel extends StaticTypeAnalyzer2Test_Driver {
 
   @override
   bool get useCFE => true;
-
-  @override
-  @failingTest
-  test_staticMethods_classTypeParameters_genericMethod() async {
-    // Expected: '(dynamic) → void'
-    await super.test_staticMethods_classTypeParameters_genericMethod();
-  }
 }

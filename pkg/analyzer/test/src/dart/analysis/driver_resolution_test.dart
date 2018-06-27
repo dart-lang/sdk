@@ -2649,6 +2649,46 @@ void main() {
 //    }
   }
 
+  test_local_function_generic_with_named_parameter() async {
+    addTestFile('''
+void main() {
+  void F<T>({T x}) {}
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    FunctionDeclarationStatement fStatement = mainStatements[0];
+    FunctionDeclaration fNode = fStatement.functionDeclaration;
+    FunctionElement fElement = fNode.element;
+
+    expect(fElement.type.toString(), '<T>({x: T}) → void');
+    var tElement = fElement.typeParameters[0];
+    expect(fElement.type.typeFormals[0], same(tElement));
+    expect((fElement.type.parameters[0].type as TypeParameterType).element,
+        same(tElement));
+  }
+
+  test_local_function_generic_with_optional_parameter() async {
+    addTestFile('''
+void main() {
+  void F<T>([T x]) {}
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    FunctionDeclarationStatement fStatement = mainStatements[0];
+    FunctionDeclaration fNode = fStatement.functionDeclaration;
+    FunctionElement fElement = fNode.element;
+
+    expect(fElement.type.toString(), '<T>([T]) → void');
+    var tElement = fElement.typeParameters[0];
+    expect(fElement.type.typeFormals[0], same(tElement));
+    expect((fElement.type.parameters[0].type as TypeParameterType).element,
+        same(tElement));
+  }
+
   test_local_function_namedParameters() async {
     addTestFile(r'''
 void main() {

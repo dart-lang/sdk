@@ -717,18 +717,30 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
   void _storeFunctionType(DartType type, FunctionElementImpl element) {
     if (type is FunctionType && element != null) {
-      element.returnType = type.returnType;
+      DartType Function(DartType) substituteConstituentType;
+      if (type.typeFormals.length == element.typeParameters.length &&
+          type.typeFormals.length != 0) {
+        var argumentTypes = element.typeParameters.map((e) => e.type).toList();
+        var parameterTypes = type.typeFormals.map((e) => e.type).toList();
+        substituteConstituentType =
+            (DartType t) => t.substitute2(argumentTypes, parameterTypes);
+      } else {
+        substituteConstituentType = (DartType t) => t;
+      }
+      element.returnType = substituteConstituentType(type.returnType);
       int normalParameterIndex = 0;
       int optionalParameterIndex = 0;
       for (ParameterElementImpl parameter in element.parameters) {
         if (parameter.isNamed) {
-          parameter.type = type.namedParameterTypes[parameter.name];
+          parameter.type = substituteConstituentType(
+              type.namedParameterTypes[parameter.name]);
         } else if (normalParameterIndex < type.normalParameterTypes.length) {
-          parameter.type = type.normalParameterTypes[normalParameterIndex++];
+          parameter.type = substituteConstituentType(
+              type.normalParameterTypes[normalParameterIndex++]);
         } else if (optionalParameterIndex <
             type.optionalParameterTypes.length) {
-          parameter.type =
-              type.optionalParameterTypes[optionalParameterIndex++];
+          parameter.type = substituteConstituentType(
+              type.optionalParameterTypes[optionalParameterIndex++]);
         }
       }
     }
