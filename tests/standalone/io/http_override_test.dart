@@ -13,6 +13,7 @@ class MyHttpClient1 implements HttpClient {
   MyHttpClient1(SecurityContext context);
 
   Duration idleTimeout;
+  Duration connectionTimeout;
   int maxConnectionsPerHost;
   bool autoUncompress;
 
@@ -51,6 +52,7 @@ class MyHttpClient2 implements HttpClient {
   MyHttpClient2(SecurityContext context);
 
   Duration idleTimeout;
+  Duration connectionTimeout;
   int maxConnectionsPerHost;
   bool autoUncompress;
 

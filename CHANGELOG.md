@@ -18,6 +18,9 @@
 
 ### Core library changes
 
+  * `dart:io`
+    * Adds `HttpClient.connectionTimeout`.
+
 ## 2.0.0-dev.65.0
 
 ### Tool Changes

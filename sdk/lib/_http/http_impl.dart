@@ -1922,8 +1922,9 @@ class _ConnectionTarget {
 
     Future socketFuture = (isSecure && proxy.isDirect
         ? SecureSocket.connect(host, port,
-            context: context, onBadCertificate: callback)
-        : Socket.connect(host, port));
+            context: context, onBadCertificate: callback,
+            timeout: client.connectionTimeout)
+        : Socket.connect(host, port, timeout: client.connectionTimeout));
     _connecting++;
     return socketFuture.then((socket) {
       _connecting--;
@@ -1969,6 +1970,8 @@ class _HttpClient implements HttpClient {
   BadCertificateCallback _badCertificateCallback;
 
   Duration get idleTimeout => _idleTimeout;
+
+  Duration connectionTimeout;
 
   int maxConnectionsPerHost;
 
