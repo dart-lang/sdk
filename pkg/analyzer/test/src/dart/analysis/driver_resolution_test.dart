@@ -2649,6 +2649,28 @@ void main() {
 //    }
   }
 
+  test_local_function_generic_f_bounded() async {
+    addTestFile('''
+void main() {
+  void F<T extends U, U, V extends U>(T x, U y, V z) {}
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    FunctionDeclarationStatement fStatement = mainStatements[0];
+    FunctionDeclaration fNode = fStatement.functionDeclaration;
+    FunctionElement fElement = fNode.element;
+
+    expect(fElement.type.toString(),
+        '<T extends U,U,V extends U>(T, U, V) → void');
+    var tElement = fElement.typeParameters[0];
+    var uElement = fElement.typeParameters[1];
+    var vElement = fElement.typeParameters[2];
+    expect((tElement.bound as TypeParameterType).element, same(uElement));
+    expect((vElement.bound as TypeParameterType).element, same(uElement));
+  }
+
   test_local_function_generic_with_named_parameter() async {
     addTestFile('''
 void main() {

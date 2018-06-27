@@ -288,7 +288,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         List<TypeParameter> typeParameters = typeParameterList.typeParameters;
         for (var i = 0; i < typeParameters.length; i++) {
           TypeParameter typeParameter = typeParameters[i];
-          assert(typeParameter.bound == null);
           typeParameter.name.staticElement = element.typeParameters[i];
           typeParameter.name.staticType = _typeContext.typeType;
         }
@@ -724,6 +723,12 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         var parameterTypes = type.typeFormals.map((e) => e.type).toList();
         substituteConstituentType =
             (DartType t) => t.substitute2(argumentTypes, parameterTypes);
+        for (int i = 0; i < type.typeFormals.length; i++) {
+          (element.typeParameters[i] as TypeParameterElementImpl).bound =
+              type.typeFormals[i].bound == null
+                  ? null
+                  : substituteConstituentType(type.typeFormals[i].bound);
+        }
       } else {
         substituteConstituentType = (DartType t) => t;
       }
