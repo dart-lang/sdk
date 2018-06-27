@@ -24,33 +24,9 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_annotation_prefixed_classConstructor() {
-    // TODO(paulberry): broken because prefixes are not working properly
-    return super.test_annotation_prefixed_classConstructor();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_annotation_prefixed_classConstructorNamed() {
-    // TODO(paulberry): broken because prefixes are not working properly
-    return super.test_annotation_prefixed_classConstructorNamed();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_annotation_prefixed_classField() {
     // TODO(paulberry): broken because prefixes are not working properly
     return super.test_annotation_prefixed_classField();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_annotation_prefixed_topLevelVariable() {
-    // TODO(paulberry): broken because prefixes are not working properly
-    return super.test_annotation_prefixed_topLevelVariable();
   }
 
   @override

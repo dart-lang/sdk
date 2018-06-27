@@ -43,42 +43,33 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
   @override
   void visitAnnotation(Annotation node) {
+    Identifier name = node.name;
     SimpleIdentifier constructorName = node.constructorName;
 
-    SyntacticEntity entity;
-    if (constructorName != null) {
-      entity = constructorName;
-    } else {
-      var name = node.name;
-      if (name is PrefixedIdentifier) {
-        entity = name.identifier;
+    var data = _get(name);
+    if (name is SimpleIdentifier) {
+      name.staticElement = data.reference;
+      name.staticType = data.inferredType;
+      node.element = data.reference;
+    } else if (name is PrefixedIdentifier) {
+      if (data.prefixInfo != null) {
+        name.prefix.staticElement = data.prefixInfo;
+
+        data = _get(name.identifier);
+        name.identifier.staticElement = data.reference;
+        name.identifier.staticType = data.inferredType;
       } else {
-        entity = name;
+        name.prefix.staticElement = data.reference;
+        name.prefix.staticType = data.inferredType;
+        constructorName = name.identifier;
       }
-    }
-    var data = _get(entity);
-
-    SimpleIdentifier topEntity;
-    if (data.prefixInfo != null) {
-      PrefixedIdentifier prefixedIdentifier = node.name;
-
-      SimpleIdentifier prefix = prefixedIdentifier.prefix;
-      prefix.staticElement = data.prefixInfo;
-
-      topEntity = prefixedIdentifier.identifier;
-    } else {
-      topEntity = node.name;
     }
 
     ArgumentList argumentList = node.arguments;
     if (argumentList != null) {
       var data = _get(argumentList);
       ConstructorElement element = data.reference;
-      DartType type = data.inferredType;
-
       node.element = element;
-      topEntity.staticElement = element.enclosingElement;
-      topEntity.staticType = type;
 
       if (constructorName != null) {
         constructorName.staticElement = element;
@@ -87,24 +78,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
       _applyResolutionToArguments(argumentList);
       _resolveNamedArguments(argumentList, element.parameters);
-    } else {
-      Element element = data.reference;
-      DartType type = data.inferredType;
-      node.element = element;
-      topEntity.staticElement = element;
-      topEntity.staticType = type;
     }
-  }
-
-  ResolutionData<DartType, Element, Element, PrefixElement> _get(
-      SyntacticEntity entity,
-      {bool failIfAbsent: true}) {
-    int entityOffset = entity.offset;
-    var data = _data[entityOffset];
-    if (failIfAbsent && data == null) {
-      throw new StateError('No data for $entity at $entityOffset');
-    }
-    return data;
   }
 
   @override
@@ -331,25 +305,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     }
 
     _typeContext.exitLocalFunction(element);
-  }
-
-  void _storeFunctionType(DartType type, FunctionElementImpl element) {
-    if (type is FunctionType && element != null) {
-      element.returnType = type.returnType;
-      int normalParameterIndex = 0;
-      int optionalParameterIndex = 0;
-      for (ParameterElementImpl parameter in element.parameters) {
-        if (parameter.isNamed) {
-          parameter.type = type.namedParameterTypes[parameter.name];
-        } else if (normalParameterIndex < type.normalParameterTypes.length) {
-          parameter.type = type.normalParameterTypes[normalParameterIndex++];
-        } else if (optionalParameterIndex <
-            type.optionalParameterTypes.length) {
-          parameter.type =
-              type.optionalParameterTypes[optionalParameterIndex++];
-        }
-      }
-    }
   }
 
   @override
@@ -694,6 +649,17 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     }
   }
 
+  ResolutionData<DartType, Element, Element, PrefixElement> _get(
+      SyntacticEntity entity,
+      {bool failIfAbsent: true}) {
+    int entityOffset = entity.offset;
+    var data = _data[entityOffset];
+    if (failIfAbsent && data == null) {
+      throw new StateError('No data for $entity at $entityOffset');
+    }
+    return data;
+  }
+
   /// Return the [SyntacticEntity] with which the front-end associates
   /// assignment to the given [leftHandSide].
   SyntacticEntity _getAssignmentEntity(Expression leftHandSide) {
@@ -724,6 +690,25 @@ class ResolutionApplier extends GeneralizingAstVisitor {
               break;
             }
           }
+        }
+      }
+    }
+  }
+
+  void _storeFunctionType(DartType type, FunctionElementImpl element) {
+    if (type is FunctionType && element != null) {
+      element.returnType = type.returnType;
+      int normalParameterIndex = 0;
+      int optionalParameterIndex = 0;
+      for (ParameterElementImpl parameter in element.parameters) {
+        if (parameter.isNamed) {
+          parameter.type = type.namedParameterTypes[parameter.name];
+        } else if (normalParameterIndex < type.normalParameterTypes.length) {
+          parameter.type = type.normalParameterTypes[normalParameterIndex++];
+        } else if (optionalParameterIndex <
+            type.optionalParameterTypes.length) {
+          parameter.type =
+              type.optionalParameterTypes[optionalParameterIndex++];
         }
       }
     }

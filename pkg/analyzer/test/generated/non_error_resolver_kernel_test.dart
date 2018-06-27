@@ -211,31 +211,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_invalidAnnotation_constantVariable_topLevel_importWithPrefix() {
-    // type 'PrefixedIdentifierImpl' is not a subtype of type 'SimpleIdentifier'
-    // of 'topEntity'
-    return super
-        .test_invalidAnnotation_constantVariable_topLevel_importWithPrefix();
-  }
-
-  @override
-  @failingTest
-  test_invalidAnnotation_constConstructor_importWithPrefix() {
-    // type 'PrefixedIdentifierImpl' is not a subtype of type 'SimpleIdentifier'
-    // of 'topEntity'
-    return super.test_invalidAnnotation_constConstructor_importWithPrefix();
-  }
-
-  @override
-  @failingTest
-  test_invalidAnnotation_constConstructor_named_importWithPrefix() {
-    // Bad state: No data for named at 29
-    return super
-        .test_invalidAnnotation_constConstructor_named_importWithPrefix();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
   test_invocationOfNonFunction_Object() async {
     return super.test_invocationOfNonFunction_Object();
@@ -317,13 +292,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_returnOfInvalidType_typeParameter_18468() async {
     return super.test_returnOfInvalidType_typeParameter_18468();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_staticAccessToInstanceMember_annotation() async {
-    return super.test_staticAccessToInstanceMember_annotation();
   }
 
   @override
