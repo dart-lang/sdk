@@ -118,13 +118,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_const_dynamic() {
-    // UnimplementedError: TODO(paulberry): DynamicType
-    return super.test_const_dynamic();
-  }
-
-  @override
-  @failingTest
   @potentialAnalyzerProblem
   test_constConstructorWithNonConstSuper_unresolved() async {
     return super.test_constConstructorWithNonConstSuper_unresolved();
@@ -156,13 +149,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   test_duplicateDefinition_emptyName() {
     // NoSuchMethodError: The setter 'enclosingElement=' was called on null.
     return super.test_duplicateDefinition_emptyName();
-  }
-
-  @override
-  @failingTest
-  test_dynamicIdentifier() {
-    // UnimplementedError: TODO(paulberry): DynamicType
-    return super.test_dynamicIdentifier();
   }
 
   @override

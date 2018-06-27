@@ -1151,6 +1151,8 @@ class _ResolutionApplierContext implements TypeContext {
       element = resynthesizer
           .getElementFromCanonicalName(referencedNode.classNode.canonicalName);
       assert(element != null);
+    } else if (referencedNode is kernel.DynamicType) {
+      element = DynamicElementImpl.instance;
     } else {
       throw new UnimplementedError(
           'TODO(paulberry): ${referencedNode.runtimeType}');
