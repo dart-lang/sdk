@@ -13,6 +13,9 @@ deferred_inheritance_constraints_test/redirecting_constructor: Crash
 [ $compiler != dart2analyzer ]
 switch_case_warn_test: Skip # Analyzer only, see language_analyzer2.status
 
+[ $mode == debug ]
+large_class_declaration_test: Slow, Pass
+
 [ $mode == product ]
 assertion_test: SkipByDesign # Requires checked mode.
 generic_test: SkipByDesign # Requires checked mode.
