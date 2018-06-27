@@ -4053,7 +4053,8 @@ Finally, the result of the evaluation of $s$ is the concatenation of the strings
 \LMLabel{symbols}
 
 \LMHash{}
-A {\em symbol literal} denotes the name of a declaration in a Dart program.
+A {\em symbol literal} denotes a name that would be either
+a valid declaration name or a valid library name in a Dart program.
 
 \begin{grammar}
 {\bf symbolLiteral:}`\#' (operator $|$ (identifier (`{\escapegrammar .}' identifier)*))
@@ -4061,10 +4062,39 @@ A {\em symbol literal} denotes the name of a declaration in a Dart program.
 \end{grammar}
 
 \LMHash{}
-A symbol literal \code{\#\id} where \id{} does not begin with an underscore ('\code{\_}') is equivalent to the expression \code{\CONST{} Symbol('\id')}.
+A symbol literal \code{\#$id$} where $id$ is an identifier
+that does not begin with an underscore ('\code{\_}'),
+evaluates to an instance of \code{Symbol} representing the identifier $id$.
+All occurences of \code{\#$id$} evaluate to the same instance
+\commentary{(symbol instances are canonicalized)},
+and no other symbol literals evaluate to that \code{Symbol} instance
+or to a \code{Symbol} instance that is equal
+(according to the \code{==} operator \ref{equality}) to that instance.
 
 \LMHash{}
-A symbol literal \code{\#\_\id} evaluates to the object that would be returned by the call \code{MirrorSystem.getSymbol("\_\id", \metavar{libraryMirror})} where \metavar{libraryMirror} is an instance of the class \code{LibraryMirror} defined in the library \code{dart:mirrors}, reflecting the current library.
+A symbol literal \code{\#$id$.$id_2$\ldots$id_n$}
+where $id$ \ldots $id_n$ are identifiers,
+evaluates to an instance of \code{Symbol} representing that particular sequence of identifiers.
+All occurences of \code{\#$id$.$id_2$\ldots$id_n$} with the same sequence of identifiers
+evaluate to the same instance,
+and no other symbol literals evaluate to that \code{Symbol} instance
+or to a \code{Symbol} instance that is \code{==} to that instance.
+\commentary{This kind of symbol literal denotes the name of a library declaration. Library names are not subject to library privacy, even
+if some of its identifiers begin with an underscore.}
+
+\LMHash{}
+A symbol literal \code{\#\metavar{operator}} evaluates to an instance of \code{Symbol}
+representing that particular operator name.
+All occurences of \code{\#\metavar{operator}} evaluate to the same instance,
+and no other symbol literals evaluate to that \code{Symbol} instance
+or to a \code{Symbol} instance that is \code{==} to that instance.
+
+\LMHash{}
+A symbol literal \code{\#\_$id$}, evaluates to an instance of \code{Symbol}
+representing the private identifier \code{_$id} of the containing library.
+All occurences of \code{\#\_$id$} {\em in the same library} evaluate to the same instance,
+and no other symbol literals evaluate to that \code{Symbol} instance
+or to a \code{Symbol} instance that is \code{==} to that instance.
 
 \rationale{
 One may well ask what is the motivation for introducing literal symbols? In some languages, symbols are canonicalized whereas strings are not.
@@ -4076,14 +4106,13 @@ Minification compresses identifiers consistently throughout a program in order t
 This practice poses difficulties for reflective programs that refer to program declarations via strings.
 A string will refer to an identifier in the source, but the identifier will no longer be used in the minified code, and reflective code using these would fail.
 Therefore, Dart reflection uses objects of type \code{Symbol} rather than strings.
-Instances of \code{Symbol} are guaranteed to be stable with repeat to minification.
+Instances of \code{Symbol} are guaranteed to be stable with respect to minification.
 Providing a literal form for symbols makes reflective code easier to read and write.
 The fact that symbols are easy to type and can often act as convenient substitutes for enums are secondary benefits.
 }
 
 \LMHash{}
 The static type of a symbol literal is \code{Symbol}.
-
 
 \subsection{Lists}
 \LMLabel{lists}
@@ -5605,14 +5634,7 @@ If $o$ is an instance of \code{Type} but $e$ is not a constant type literal,
 then if $g$ is a getter that forwards to a static getter, getter lookup fails.
 If the getter lookup succeeded,
 let $v_g$ be the value of the getter invocation $e.m$.
-Then the value of $i$ is the result of invoking the static method
-\code{Function.apply()}
-with arguments
-$v_g$,
-\code{[$o_1, \ldots, o_n$]},
-\code{\{$\#x_{n+1}$: $o_{n+1}, \ldots, \#x_{n+k}$: $o_{n+k}$\}},
-and
-\code{[$t_1, \ldots, t_r$]}.
+Now repeat from finding $f$ above, this time with $o$ being $v_g$ and $m$ being \code{call}.
 
 \LMHash{}
 If getter lookup has also failed,
@@ -5801,14 +5823,7 @@ If the method lookup has failed,
 then let $g$ be the result of looking up getter (\ref{getterAndSetterLookup}) $m$ in $S_{dynamic}$ with respect to $L$.
 If the getter lookup succeeded,
 let $v_g$ be the value of the getter invocation $\SUPER{}.m$.
-Then the value of $i$ is the result of invoking
-the static method
-\code{Function.apply()}
-with arguments
-$v_g,
-[o_1, \ldots, o_n],
-\{\#x_{n+1}: o_{n+1}, \ldots, \#x_{n+k}: o_{n+k}\},
-[t_1, \ldots, t_r]$.
+Now repeat from finding $f$ above, this time with $o$ being $v_g$ and $m$ being \code{call}.
 
 \LMHash{}
 If getter lookup has also failed,
