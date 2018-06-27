@@ -1410,7 +1410,7 @@ void BytecodeMetadataHelper::ReadExceptionsTable(const Code& bytecode) {
     const ObjectPool& pool =
         ObjectPool::Handle(builder_->zone_, bytecode.object_pool());
     AbstractType& handler_type = AbstractType::Handle(builder_->zone_);
-    Array& handler_types = Array::Handle(builder_->zone_);
+    Array& handler_types = Array::ZoneHandle(builder_->zone_);
     DescriptorList* pc_descriptors_list =
         new (builder_->zone_) DescriptorList(64);
     ExceptionHandlerList* exception_handlers_list =
@@ -6872,9 +6872,24 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
   // TODO(regis): Clean up this logic of when to compile.
   // If the bytecode was previously loaded, we really want to compile.
   if (!function.HasBytecode()) {
-    bytecode_metadata_helper_.ReadMetadata(function);
-    if (function.HasBytecode()) {
-      return NULL;
+    // TODO(regis): For now, we skip bytecode loading for functions that were
+    // synthesized and that do not have bytecode. Since they inherited the
+    // kernel offset of a concrete function, the wrong bytecode would be loaded.
+    switch (function.kind()) {
+      case RawFunction::kImplicitGetter:
+      case RawFunction::kImplicitSetter:
+      case RawFunction::kMethodExtractor:
+      case RawFunction::kNoSuchMethodDispatcher:
+      case RawFunction::kInvokeFieldDispatcher:
+      case RawFunction::kDynamicInvocationForwarder:
+      case RawFunction::kImplicitClosureFunction:
+        break;
+      default: {
+        bytecode_metadata_helper_.ReadMetadata(function);
+        if (function.HasBytecode()) {
+          return NULL;
+        }
+      }
     }
   }
 #endif
