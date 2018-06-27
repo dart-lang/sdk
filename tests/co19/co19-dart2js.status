@@ -480,7 +480,6 @@ LayoutTests/fast/css/content/content-none_t01: RuntimeError # Please triage this
 LayoutTests/fast/css/content/content-normal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/counters/complex-before_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/css-escaped-identifier_t01: RuntimeError # co19 issue 14
-LayoutTests/fast/css/css-properties-case-insensitive_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/css3-nth-tokens-style_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/cssText-shorthand_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/csstext-of-content-string_t01: Pass, RuntimeError # Please triage this failure
@@ -796,8 +795,6 @@ LayoutTests/fast/forms/textarea-maxlength_t01: RuntimeError # Please triage this
 LayoutTests/fast/forms/textarea-paste-newline_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textfield-focus-out_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/forms/validationMessage_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/validity-property_t01: RuntimeError # Issue 25155
-LayoutTests/fast/forms/willvalidate_t01: RuntimeError # Issue 25155
 LayoutTests/fast/html/article-element_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/html/aside-element_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/html/details-add-child-1_t01: RuntimeError # Please triage this failure
@@ -7084,31 +7081,15 @@ LibTest/core/int/round_A01_t01: CompileTimeError # Larger than 64 bit int
 LibTest/core/int/toInt_A01_t01: CompileTimeError # Larger than 64 bit int
 LibTest/core/int/truncateToDouble_A01_t01: CompileTimeError # Larger than 64 bit int
 LibTest/core/int/truncate_A01_t01: CompileTimeError # Larger than 64 bit int
-LibTest/html/Document/dispatchEvent_A01_t01: Crash
-LibTest/html/Document/on_A01_t01: Crash
-LibTest/html/Document/on_A01_t02: Crash
-LibTest/html/HttpRequest/abort_A01_t01: Crash
-LibTest/html/HttpRequest/dispatchEvent_A01_t01: Crash
 LibTest/html/HttpRequest/getAllResponseHeaders_A01_t01: Crash
 LibTest/html/HttpRequest/getResponseHeader_A01_t01: Crash
 LibTest/html/HttpRequest/getString_A01_t01: Crash
-LibTest/html/HttpRequest/onAbort_A01_t01: Crash
-LibTest/html/HttpRequest/onLoadEnd_A01_t01: Crash
-LibTest/html/HttpRequest/onLoadStart_A01_t01: Crash
-LibTest/html/HttpRequest/onLoad_A01_t01: Crash
-LibTest/html/HttpRequest/onReadyStateChange_A01_t01: Crash
 LibTest/html/HttpRequest/overrideMimeType_A01_t01: Crash
-LibTest/html/HttpRequest/readyStateChangeEvent_A01_t01: Crash
 LibTest/html/HttpRequest/request_A01_t01: Crash
-LibTest/html/HttpRequest/responseText_A01_t01: Crash
 LibTest/html/HttpRequest/setRequestHeader_A01_t01: Crash
 LibTest/html/HttpRequest/statusText_A01_t01: Crash
 LibTest/html/HttpRequest/status_A01_t01: Crash
-LibTest/html/HttpRequestUpload/onAbort_A01_t01: Crash
 LibTest/html/IFrameElement/contentWindow_A01_t01: Crash
-LibTest/html/IFrameElement/dispatchEvent_A01_t01: Crash
-LibTest/html/Node/dispatchEvent_A01_t01: Crash
-LibTest/html/Window/dispatchEvent_A01_t01: Crash
 LibTest/html/Window/postMessage_A01_t02: Crash
 LibTest/html/Window/requestFileSystem_A01_t01: Crash
 LibTest/html/Window/requestFileSystem_A01_t02: Crash
@@ -7151,37 +7132,21 @@ Language/Functions/setter_modifier_t06: Crash
 Language/Statements/For/syntax_t13: Crash
 Language/Statements/For/syntax_t20: Crash
 LibTest/core/Invocation/namedArguments_A01_t01: Crash
-LibTest/html/Document/dispatchEvent_A01_t01: Crash
-LibTest/html/Document/on_A01_t01: Crash
-LibTest/html/Document/on_A01_t02: Crash
-LibTest/html/HttpRequest/abort_A01_t01: Crash
-LibTest/html/HttpRequest/dispatchEvent_A01_t01: Crash
 LibTest/html/HttpRequest/getAllResponseHeaders_A01_t01: Crash
 LibTest/html/HttpRequest/getResponseHeader_A01_t01: Crash
 LibTest/html/HttpRequest/getString_A01_t01: Crash
-LibTest/html/HttpRequest/onAbort_A01_t01: Crash
 LibTest/html/HttpRequest/onError_A01_t02: Crash
-LibTest/html/HttpRequest/onLoadEnd_A01_t01: Crash
-LibTest/html/HttpRequest/onLoadStart_A01_t01: Crash
-LibTest/html/HttpRequest/onLoad_A01_t01: Crash
-LibTest/html/HttpRequest/onReadyStateChange_A01_t01: Crash
 LibTest/html/HttpRequest/overrideMimeType_A01_t01: Crash
-LibTest/html/HttpRequest/readyStateChangeEvent_A01_t01: Crash
 LibTest/html/HttpRequest/request_A01_t01: Crash
-LibTest/html/HttpRequest/responseText_A01_t01: Crash
 LibTest/html/HttpRequest/responseText_A01_t02: Crash
 LibTest/html/HttpRequest/setRequestHeader_A01_t01: Crash
 LibTest/html/HttpRequest/statusText_A01_t01: Crash
 LibTest/html/HttpRequest/status_A01_t01: Crash
-LibTest/html/HttpRequestUpload/onAbort_A01_t01: Crash
 LibTest/html/HttpRequestUpload/onError_A01_t02: Crash
 LibTest/html/HttpRequestUpload/onLoadEnd_A01_t01: Crash
 LibTest/html/HttpRequestUpload/onLoadStart_A01_t01: Crash
 LibTest/html/HttpRequestUpload/onLoad_A01_t01: Crash
 LibTest/html/IFrameElement/contentWindow_A01_t01: Crash
-LibTest/html/IFrameElement/dispatchEvent_A01_t01: Crash
-LibTest/html/Node/dispatchEvent_A01_t01: Crash
-LibTest/html/Window/dispatchEvent_A01_t01: Crash
 LibTest/html/Window/postMessage_A01_t02: Crash
 LibTest/html/Window/requestFileSystem_A01_t01: Crash
 LibTest/html/Window/requestFileSystem_A01_t02: Crash
