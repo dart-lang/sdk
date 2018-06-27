@@ -448,7 +448,8 @@ class Fangorn extends Forest {
       Expression operand, isOperator, Token notOperator, covariant type) {
     int offset = offsetForToken(isOperator);
     if (notOperator != null) {
-      return new IsNotJudgment(operand, isOperator, notOperator, type, offset);
+      return new IsNotJudgment(operand, isOperator, notOperator, type, offset)
+        ..fileOffset = offset;
     }
     return new IsJudgment(operand, isOperator, type)..fileOffset = offset;
   }

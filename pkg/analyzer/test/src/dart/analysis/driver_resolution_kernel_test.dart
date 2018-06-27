@@ -47,14 +47,6 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_isExpression_not() {
-    // TODO(paulberry): I suspect that the special case for is! has bit rotted
-    return super.test_isExpression_not();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_local_function_generic() {
     // TODO(paulberry): I suspect this is broken due to the function type's
     // generic parameters not being properly associated with the generic

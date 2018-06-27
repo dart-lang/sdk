@@ -179,13 +179,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
     return super.test_invalidRequiredParam_valid();
   }
 
-  @override
-  @failingTest
-  test_isNotDouble() {
-    // Bad state: No data for is at 10
-    return super.test_isNotDouble();
-  }
-
   @failingTest
   @override
   test_js_lib_OK() async {
@@ -247,13 +240,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   test_mustCallSuper_indirect() async {
     // Expected 1 errors of type HintCode.MUST_CALL_SUPER, found 0
     return super.test_mustCallSuper_indirect();
-  }
-
-  @failingTest
-  @override
-  test_nullAwareBeforeOperator_ok_is_not() {
-    // Bad state: No data for is at 14
-    return super.test_nullAwareBeforeOperator_ok_is_not();
   }
 
   @override
@@ -386,13 +372,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @failingTest
   @override
-  test_typeCheck_type_not_Null() {
-    // Bad state: No data for is at 20
-    return super.test_typeCheck_type_not_Null();
-  }
-
-  @failingTest
-  @override
   test_undefinedOperator_binaryExpression() async {
     // Expected 1 errors of type HintCode.UNDEFINED_OPERATOR, found 0
     return super.test_undefinedOperator_binaryExpression();
@@ -417,27 +396,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   test_undefinedOperator_indexSetter() async {
     // Expected 1 errors of type HintCode.UNDEFINED_OPERATOR, found 0
     return super.test_undefinedOperator_indexSetter();
-  }
-
-  @failingTest
-  @override
-  test_unnecessaryTypeCheck_null_not_Null() {
-    // Bad state: No data for is at 14
-    return super.test_unnecessaryTypeCheck_null_not_Null();
-  }
-
-  @failingTest
-  @override
-  test_unnecessaryTypeCheck_type_not_dynamic() {
-    // Bad state: No data for is at 20
-    return super.test_unnecessaryTypeCheck_type_not_dynamic();
-  }
-
-  @failingTest
-  @override
-  test_unnecessaryTypeCheck_type_not_object() {
-    // Bad state: No data for is at 20
-    return super.test_unnecessaryTypeCheck_type_not_object();
   }
 
   @failingTest
