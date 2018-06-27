@@ -530,7 +530,6 @@ mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
 mixin_type_parameters_errors_test/03: MissingCompileTimeError
 mixin_type_parameters_errors_test/04: MissingCompileTimeError
-mock_writable_final_field_test: RuntimeError # Issue 30847
 mock_writable_final_private_field_test: RuntimeError
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError

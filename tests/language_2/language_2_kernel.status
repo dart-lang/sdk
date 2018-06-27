@@ -124,7 +124,6 @@ mixin_illegal_superclass_test/27: MissingCompileTimeError
 mixin_illegal_superclass_test/28: MissingCompileTimeError
 mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
-mock_writable_final_private_field_test: RuntimeError
 named_parameters_default_eq_test/none: RuntimeError
 nested_generic_closure_test: RuntimeError
 no_main_test/01: Crash
@@ -792,7 +791,6 @@ method_override6_test/03: MissingCompileTimeError
 method_override_test: CompileTimeError # Issue 31616
 mixin_illegal_super_use_test: Skip # Issues 24478 and 23773
 mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
-mock_writable_final_private_field_test: RuntimeError # Issue 30849
 named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
 named_parameters_default_eq_test/none: RuntimeError
 nested_generic_closure_test: RuntimeError
@@ -1119,7 +1117,6 @@ method_override6_test/03: MissingCompileTimeError
 method_override_test: CompileTimeError # Issue 31616
 mixin_illegal_super_use_test: Skip # Issues 24478 and 23773
 mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
-mock_writable_final_private_field_test: RuntimeError # Issue 30849
 named_parameters_default_eq_test/none: RuntimeError
 nested_generic_closure_test: RuntimeError
 no_main_test/01: Skip
