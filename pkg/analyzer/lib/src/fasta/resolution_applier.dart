@@ -44,7 +44,10 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   @override
   void visitAnnotation(Annotation node) {
     Identifier name = node.name;
-    SimpleIdentifier constructorName = node.constructorName;
+    ArgumentList argumentList = node.arguments;
+
+    SimpleIdentifier fieldName;
+    SimpleIdentifier constructorName;
 
     var data = _get(name);
     if (name is SimpleIdentifier) {
@@ -58,14 +61,31 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         data = _get(name.identifier);
         name.identifier.staticElement = data.reference;
         name.identifier.staticType = data.inferredType;
+
+        if (argumentList == null) {
+          fieldName = node.constructorName;
+        } else {
+          constructorName = node.constructorName;
+        }
       } else {
         name.prefix.staticElement = data.reference;
         name.prefix.staticType = data.inferredType;
-        constructorName = name.identifier;
+
+        if (argumentList == null) {
+          fieldName = name.identifier;
+        } else {
+          constructorName = name.identifier;
+        }
       }
     }
 
-    ArgumentList argumentList = node.arguments;
+    if (fieldName != null) {
+      data = _get(fieldName);
+      node.element = data.reference;
+      fieldName.staticElement = data.reference;
+      fieldName.staticType = data.inferredType;
+    }
+
     if (argumentList != null) {
       var data = _get(argumentList);
       ConstructorElement element = data.reference;

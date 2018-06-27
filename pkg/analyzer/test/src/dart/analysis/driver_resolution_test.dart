@@ -290,6 +290,37 @@ main() {}
     expect(annotation.arguments, isNull);
   }
 
+  test_annotation_unprefixed_classField() async {
+    addTestFile(r'''
+@A.a
+main() {}
+
+class A {
+  static const a = 1;
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    CompilationUnitElement unitElement = unit.element;
+    var typeProvider = unitElement.context.typeProvider;
+
+    ClassElement aClass = unitElement.getType('A');
+    var aGetter = aClass.getField('a').getter;
+
+    Annotation annotation = unit.declarations[0].metadata.single;
+    expect(annotation.element, same(aGetter));
+    PrefixedIdentifier prefixed = annotation.name;
+
+    expect(prefixed.prefix.staticElement, same(aClass));
+    expect(prefixed.prefix.staticType, aClass.type);
+
+    expect(prefixed.identifier.staticElement, same(aGetter));
+    expect(prefixed.identifier.staticType, typeProvider.intType);
+
+    expect(annotation.constructorName, isNull);
+    expect(annotation.arguments, isNull);
+  }
+
   test_annotation_unprefixed_constructor() async {
     addTestFile(r'''
 @A(1, b: 2)

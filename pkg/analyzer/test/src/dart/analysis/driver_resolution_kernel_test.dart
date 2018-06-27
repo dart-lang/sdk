@@ -23,14 +23,6 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_annotation_prefixed_classField() {
-    // TODO(paulberry): broken because prefixes are not working properly
-    return super.test_annotation_prefixed_classField();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31605')
   test_constructor_redirected_generic() async {
     await super.test_constructor_redirected_generic();

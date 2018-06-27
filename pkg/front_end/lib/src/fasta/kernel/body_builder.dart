@@ -456,8 +456,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             this, identifier.token, new Name(identifier.name, library.library));
       }
       if (name?.isNotEmpty ?? false) {
-        Token period = periodBeforeName ?? beginToken.next;
+        Token period = periodBeforeName ?? beginToken.next.next;
         Generator generator = expression;
+        if (generator is TypeUseGenerator) {
+          _typeInferrer.storeTypeUse(generator);
+        }
         expression = generator.buildPropertyAccess(
             new IncompletePropertyAccessGenerator(
                 this, period.next, new Name(name, library.library)),

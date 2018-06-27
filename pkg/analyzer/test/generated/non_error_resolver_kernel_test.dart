@@ -21,14 +21,14 @@ const notForDart2 = const Object();
 /// them, or know that this is an analyzer problem.
 const potentialAnalyzerProblem = const Object();
 
-/// Tests marked with this annotation fail because of a Fasta problem.
-class FastaProblem {
-  const FastaProblem(String issueUri);
-}
-
 /// Tests marked with this annotation fail because of an Analyzer problem.
 class AnalyzerProblem {
   const AnalyzerProblem(String issueUri);
+}
+
+/// Tests marked with this annotation fail because of a Fasta problem.
+class FastaProblem {
+  const FastaProblem(String issueUri);
 }
 
 @reflectiveTest
@@ -192,22 +192,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override // Passes with kernel
   test_infer_mixin_multiplyConstrained() =>
       super.test_infer_mixin_multiplyConstrained();
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31641')
-  test_invalidAnnotation_constantVariable_field() async {
-    return super.test_invalidAnnotation_constantVariable_field();
-  }
-
-  @override
-  @failingTest
-  test_invalidAnnotation_constantVariable_field_importWithPrefix() {
-    // type 'PrefixedIdentifierImpl' is not a subtype of type 'SimpleIdentifier'
-    // of 'topEntity'
-    return super
-        .test_invalidAnnotation_constantVariable_field_importWithPrefix();
-  }
 
   @override
   @failingTest
