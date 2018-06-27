@@ -324,7 +324,7 @@ class HasConstErrorListener extends AnalysisErrorListener {
 
   @override
   void onError(AnalysisError error) {
-    hasConstError = errorCodes.contains(error.errorCode);
+    hasConstError = hasConstError || errorCodes.contains(error.errorCode);
   }
 
   static const List<CompileTimeErrorCode> errorCodes = const [
@@ -340,6 +340,7 @@ class HasConstErrorListener extends AnalysisErrorListener {
     CompileTimeErrorCode.INVALID_CONSTANT,
     CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL,
     CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL,
+    CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION,
     CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT,
     CompileTimeErrorCode.NON_CONSTANT_MAP_KEY,
     CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE,

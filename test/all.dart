@@ -4,6 +4,7 @@
 
 import 'package:analyzer/src/lint/io.dart';
 
+import 'ast_test.dart' as ast_test;
 import 'engine_test.dart' as engine_test;
 import 'formatter_test.dart' as formatter_test;
 import 'integration_test.dart' as integration_test;
@@ -17,6 +18,7 @@ main() {
   // Redirect output.
   outSink = new MockIOSink();
 
+  ast_test.main();
   engine_test.main();
   formatter_test.main();
   integration_test.main();
