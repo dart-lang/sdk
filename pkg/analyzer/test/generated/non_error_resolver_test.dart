@@ -1314,6 +1314,18 @@ const int value = 12345;
     verify([source]);
   }
 
+  test_constConstructorWithMixinWithField() async {
+    Source source = addSource(r'''
+class M {
+}
+class A extends Object with M {
+  const A();
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_constConstructorWithNonConstSuper_explicit() async {
     Source source = addSource(r'''
 class A {
@@ -1365,19 +1377,6 @@ class A {
 }''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_constConstructorWithNonFinalField_mixin() async {
-    Source source = addSource(r'''
-class A {
-  a() {}
-}
-class B extends Object with A {
-  const B();
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN]);
     verify([source]);
   }
 

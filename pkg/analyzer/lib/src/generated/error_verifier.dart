@@ -3242,11 +3242,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return;
     }
     // check for mixins
-    if (_enclosingClass.mixins.length != 0) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN,
-          constructor.returnType);
-      return;
+    for (var mixin in _enclosingClass.mixins) {
+      if (mixin.element.fields.isNotEmpty) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
+            constructor.returnType);
+        return;
+      }
     }
     // try to find and check super constructor invocation
     for (ConstructorInitializer initializer in constructor.initializers) {

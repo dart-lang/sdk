@@ -33,6 +33,8 @@ conflicting_generic_interfaces_simple_test: MissingCompileTimeError
 conflicting_type_variable_and_setter_test: CompileTimeError
 const_cast2_test/01: CompileTimeError
 const_cast2_test/none: CompileTimeError
+const_constructor_mixin3_test/01: MissingCompileTimeError # Issue 33644
+const_constructor_mixin_test/01: MissingCompileTimeError # Issue 33644
 const_for_in_variable_test/01: MissingCompileTimeError
 const_types_test/07: MissingCompileTimeError
 const_types_test/08: MissingCompileTimeError

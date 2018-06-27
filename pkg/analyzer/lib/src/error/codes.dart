@@ -484,14 +484,19 @@ class CompileTimeErrorCode extends ErrorCode {
    * specify a constant constructor of the superclass of the immediately
    * enclosing class or a compile-time error occurs.
    *
-   * 9 Mixins: For each generative constructor named ... an implicitly declared
-   * constructor named ... is declared.
+   * 12.1 Mixin Application: For each generative constructor named ... an
+   * implicitly declared constructor named ... is declared. If Sq is a
+   * generative const constructor, and M does not declare any fields, Cq is
+   * also a const constructor.
    */
-  static const CompileTimeErrorCode CONST_CONSTRUCTOR_WITH_MIXIN =
-      const CompileTimeErrorCode('CONST_CONSTRUCTOR_WITH_MIXIN',
-          "Const constructor can't be declared for a class with a mixin.",
-          correction: "Try removing the 'const' keyword, or "
-              "removing the 'with' clause from the class declaration.");
+  static const CompileTimeErrorCode CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD =
+      const CompileTimeErrorCode(
+          'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
+          "Const constructor can't be declared for a class with a mixin "
+          "that declares a field.",
+          correction: "Try removing the 'const' keyword or "
+              "removing the 'with' clause from the class declaration, "
+              "or removing fields from the mixin class.");
 
   /**
    * 7.6.3 Constant Constructors: The superinitializer that appears, explicitly

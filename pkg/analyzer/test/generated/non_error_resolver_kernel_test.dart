@@ -126,13 +126,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_constConstructorWithNonFinalField_mixin() async {
-    return super.test_constConstructorWithNonFinalField_mixin();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_constDeferredClass_new() async {
     return super.test_constDeferredClass_new();
   }

@@ -240,9 +240,16 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_constConstructorWithMixin() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN, found 0
-    await super.test_constConstructorWithMixin();
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33645')
+  test_constConstructorWithMixinWithField() async {
+    return super.test_constConstructorWithMixinWithField();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33645')
+  test_constConstructorWithMixinWithField_final() async {
+    return super.test_constConstructorWithMixinWithField_final();
   }
 
   @override
