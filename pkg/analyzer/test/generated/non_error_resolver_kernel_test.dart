@@ -202,13 +202,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_integerLiteralOutOfRange_negative_valid() async {
-    return super.test_integerLiteralOutOfRange_negative_valid();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31641')
   test_invalidAnnotation_constantVariable_field() async {
     return super.test_invalidAnnotation_constantVariable_field();

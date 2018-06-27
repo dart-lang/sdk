@@ -2907,6 +2907,12 @@ class A {
     assertNoErrors(source);
   }
 
+  test_integerLiteralOutOfRange_negative_small() async {
+    Source source = addSource('int x = -42;');
+    await computeAnalysisResult(source);
+    assertErrors(source);
+  }
+
   test_integerLiteralOutOfRange_negative_valid() async {
     Source source = addSource('int x = -9223372036854775808;');
     await computeAnalysisResult(source);
