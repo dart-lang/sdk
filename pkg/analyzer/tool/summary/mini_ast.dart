@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/problems.dart'
-    show internalProblem, unsupported;
 import 'package:front_end/src/fasta/messages.dart' show Message;
 import 'package:front_end/src/fasta/parser.dart';
+import 'package:front_end/src/fasta/problems.dart'
+    show internalProblem, unsupported;
 import 'package:front_end/src/fasta/source/stack_listener.dart';
 import 'package:front_end/src/scanner/token.dart';
 
@@ -176,7 +176,7 @@ class MiniAstBuilder extends StackListener {
   void endClassBody(int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassBody");
     push(popList(memberCount,
-        new List<dynamic>.filled(memberCount, null, growable: true)));
+        new List<ClassMember>.filled(memberCount, null, growable: true)));
   }
 
   @override
@@ -331,9 +331,9 @@ class MiniAstBuilder extends StackListener {
   @override
   void endMetadataStar(int count) {
     debugEvent("MetadataStar");
-    push(
-        popList(count, new List<dynamic>.filled(count, null, growable: true)) ??
-            NullValue.Metadata);
+    push(popList(
+            count, new List<Annotation>.filled(count, null, growable: true)) ??
+        NullValue.Metadata);
   }
 
   void endMethod(
@@ -382,7 +382,8 @@ class MiniAstBuilder extends StackListener {
   @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     debugEvent("TypeArguments");
-    push(popList(count, new List<dynamic>.filled(count, null, growable: true)));
+    push(
+        popList(count, new List<TypeName>.filled(count, null, growable: true)));
   }
 
   @override
