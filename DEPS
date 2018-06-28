@@ -135,7 +135,7 @@ vars = {
   "test_tag": "1.0.0",
   "tuple_tag": "v1.0.1",
   "typed_data_tag": "1.1.3",
-  "usage_tag": "3.3.0",
+  "usage_tag": "3.4.0",
   "utf_tag": "0.9.0+4",
   "watcher_tag": "0.9.7+8",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
