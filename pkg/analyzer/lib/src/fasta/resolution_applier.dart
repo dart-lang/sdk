@@ -680,10 +680,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     if (node.parent is TopLevelVariableDeclaration) {
       node.variables.accept(this);
     } else {
-      if (node.metadata.isNotEmpty) {
-        // TODO(paulberry): handle this case
-        throw new UnimplementedError('Metadata on a variable declaration list');
-      }
+      node.metadata.accept(this);
       node.variables.accept(this);
       if (node.type != null) {
         DartType type = node.variables[0].name.staticType;

@@ -128,6 +128,67 @@ void topLevelFunction() {}
     }
   }
 
+  test_annotation_onVariableList_constructor() async {
+    String content = r'''
+class C {
+  final Object x;
+  const C(this.x);
+}
+main() {
+  @C(C(42))
+  var foo = null;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+
+    ClassDeclaration c = result.unit.declarations[0];
+    ConstructorDeclaration constructor = c.members[1];
+    ConstructorElement element = constructor.element;
+
+    FunctionDeclaration main = result.unit.declarations[1];
+    VariableDeclarationStatement statement =
+        (main.functionExpression.body as BlockFunctionBody).block.statements[0];
+    Annotation annotation = statement.variables.metadata[0];
+    expect(annotation.element, same(element));
+
+    SimpleIdentifier identifier_1 = annotation.name;
+    expect(identifier_1.staticElement, same(c.element));
+  }
+
+  test_annotation_onVariableList_topLevelVariable() async {
+    String content = r'''
+const myAnnotation = 1;
+
+class C {
+  void method() {
+    @myAnnotation
+    int var1 = 4, var2 = 5;
+  }
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    TopLevelVariableDeclaration myDeclaration = result.unit.declarations[0];
+    VariableDeclaration myVariable = myDeclaration.variables.variables[0];
+    TopLevelVariableElement myElement = myVariable.element;
+
+    ClassDeclaration classNode = result.unit.declarations[1];
+    MethodDeclaration node = classNode.members[0];
+    VariableDeclarationStatement statement =
+        (node.body as BlockFunctionBody).block.statements[0];
+    Annotation annotation = statement.variables.metadata[0];
+    expect(annotation.element, same(myElement.getter));
+
+    SimpleIdentifier identifier_1 = annotation.name;
+    expect(identifier_1.staticElement, same(myElement.getter));
+    expect(identifier_1.staticType, typeProvider.intType);
+  }
+
   test_annotation_prefixed_classField() async {
     var a = _p('/test/lib/a.dart');
     provider.newFile(a, r'''

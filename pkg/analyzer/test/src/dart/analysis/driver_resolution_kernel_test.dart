@@ -20,6 +20,11 @@ const potentialAnalyzerProblem = const Object();
 class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   @override
   bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_annotation_onVariableList_topLevelVariable() =>
+      super.test_annotation_onVariableList_topLevelVariable();
 }
 
 /// Tests marked with this annotation fail because of a Fasta problem.
