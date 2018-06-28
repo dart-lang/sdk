@@ -92,11 +92,18 @@ class KernelContext {
       // This is probably OK, because we consume them lazily.
       var libraryMap = <String, kernel.Library>{};
       var libraryExistMap = <String, bool>{};
+      bool coreFound = false;
       for (var library in compilationResult.component.libraries) {
         String uriStr = library.importUri.toString();
+        if (uriStr == 'dart:core') {
+          coreFound = true;
+        }
         libraryMap[uriStr] = library;
         FileState file = fsState.getFileForUri(library.importUri);
         libraryExistMap[uriStr] = file?.exists ?? false;
+      }
+      if (!coreFound) {
+        throw new StateError('No dart:core library found (dartbug.com/33686)');
       }
 
       if (DEBUG) {
