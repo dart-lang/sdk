@@ -363,7 +363,7 @@ class C {
         fsState,
         resourceProvider.pathContext);
 
-    LibraryOutlineResult libraryResult = await compiler.getOutline(testUri);
+    LibraryCompilationResult libraryResult = await compiler.compile(testUri);
 
     // Remember Kernel libraries produced by the compiler.
     var libraryMap = <String, kernel.Library>{};

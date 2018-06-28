@@ -61,13 +61,13 @@ class FileCompilationResult {
 /// The wrapper around FrontEnd compiler that can be used incrementally.
 ///
 /// When the client needs the kernel, resolution information, and errors for
-/// a library, it should call [getResolution].  The compiler will compile the library
+/// a library, it should call [compile].  The compiler will compile the library
 /// and the transitive closure of its dependencies.  The results are cached,
 /// so the next invocation for a dependency will be served from the cache.
 ///
 /// If a file is changed, [invalidate] should be invoked.  This will invalidate
 /// the file, its library, and the transitive closure of dependencies.  So, the
-/// next invocation of [getResolution] will recompile libraries required for the
+/// next invocation of [compile] will recompile libraries required for the
 /// requested library.
 class FrontEndCompiler {
   static const MSG_PENDING_COMPILE =
@@ -88,6 +88,10 @@ class FrontEndCompiler {
   /// The listener / recorder for compilation errors produced by the compiler.
   final _ErrorListener _errorListener;
 
+  /// Each key is the absolute URI of a library.
+  /// Each value is the compilation result of the key library.
+  final Map<Uri, LibraryCompilationResult> _results = {};
+
   /// The [Component] with currently valid libraries. When a file is invalidated,
   /// we remove the file, its library, and everything affected from [_component].
   Component _component = new Component();
@@ -104,7 +108,7 @@ class FrontEndCompiler {
   /// Each value is the file system URI of the library that sources the part.
   final Map<Uri, Uri> _partToLibrary = {};
 
-  /// Whether [getResolution] is executing.
+  /// Whether [compile] is executing.
   bool _isCompileExecuting = false;
 
   factory FrontEndCompiler(
@@ -175,125 +179,38 @@ class FrontEndCompiler {
       : _logger = _options.logger,
         _fileSystem = _options.fileSystem;
 
-  /// Return the outline of the library with the given absolute [uri], and
-  /// everything it depends on.
+  /// Compile the library with the given absolute [uri], and everything it
+  /// depends on. Return the result of the requested library compilation.
   ///
-  /// If there is the cached outline for the library (computed directly, or as
-  /// a result of computing the outline of another library), it will be
-  /// returned quickly.
+  /// If there is the cached result for the library (compiled directly, or as
+  /// a result of compilation of another library), it will be returned quickly.
   ///
   /// Throw [StateError] if another compilation is pending.
-  Future<LibraryOutlineResult> getOutline(Uri uri) {
+  Future<LibraryCompilationResult> compile(Uri uri) {
     if (_isCompileExecuting) {
       throw new StateError(MSG_PENDING_COMPILE);
     }
     _isCompileExecuting = true;
 
-    // TODO(scheglov) Do we need a map?
-    if (_component.root.hasChild('$uri')) {
-      _isCompileExecuting = false;
-      // TODO(scheglov) Can we keep the same instance?
-      var types = new TypeEnvironment(
-          new CoreTypes(_component), new ClassHierarchy(_component));
-      var result = new LibraryOutlineResult(_component, types);
-      return new Future.value(result);
-    }
-
-    return _runWithFrontEndContext('Compute outline', () async {
-      try {
-        var dillTarget =
-            new DillTarget(_options.ticker, uriTranslator, _options.target);
-
-        // Append all libraries what we still have in the current component.
-        await _logger.runAsync('Load dill libraries', () async {
-          dillTarget.loader.appendLibraries(_component);
-          await dillTarget.buildOutlines();
-        });
-
-        // Create the target for computing the outline of the library.
-        var kernelTarget = new KernelTarget(
-            _fileSystem, true, dillTarget, uriTranslator,
-            metadataCollector: new AnalyzerMetadataCollector());
-        kernelTarget.read(uri);
-
-        // Compute new outlines.
-        var newComponent = await _logger.runAsync('Compile', () async {
-          await kernelTarget.buildOutlines(nameRoot: _component.root);
-          return await kernelTarget.buildComponent();
-        });
-
-        // Add new libraries to the current component.
-        if (newComponent != null) {
-          // When a file is used in a `part` directive of a library, but does
-          // not have a `part of` itself, we get this file both as a part,
-          // and as a library. This causes an exception later in resolution.
-          var partFileUris = new Set<Uri>();
-          for (var library in newComponent.libraries) {
-            var libraryFileUri = library.fileUri;
-            for (var part in library.parts) {
-              var partFileUri = libraryFileUri.resolve(part.partUri);
-              if (partFileUri != libraryFileUri) {
-                partFileUris.add(partFileUri);
-              }
-            }
-          }
-          // Do add new libraries.
-          for (var library in newComponent.libraries) {
-            if (!partFileUris.contains(library.fileUri)) {
-              Uri uri = library.importUri;
-              if (!_component.root.hasChild('$uri')) {
-                _component.root.getChildFromUri(uri).bindTo(library.reference);
-                library.computeCanonicalNames();
-                _component.libraries.add(library);
-              }
-            }
-          }
-        }
-
-        _logger.run('Compute dependencies', _computeDependencies);
-
-        // TODO(scheglov) Can we keep the same instance?
-        var types = new TypeEnvironment(
-            new CoreTypes(_component), new ClassHierarchy(_component));
-        return new LibraryOutlineResult(_component, types);
-      } finally {
+    {
+      LibraryCompilationResult result = _results[uri];
+      if (result != null) {
         _isCompileExecuting = false;
+        return new Future.value(result);
       }
-    });
-  }
-
-  /// Compute resolution for the library with the given absolute [uri] and
-  /// all its parts.
-  ///
-  /// Throw [StateError] if another compilation is pending.
-  Future<LibraryCompilationResult> getResolution(Uri uri) {
-    if (_isCompileExecuting) {
-      throw new StateError(MSG_PENDING_COMPILE);
     }
-    _isCompileExecuting = true;
 
     return _runWithFrontEndContext('Compile', () async {
+      // TODO(brianwilkerson) Determine whether this await is necessary.
+      await null;
       try {
-        // Remove the requested library outline from the component.
-        Library libraryOutline;
-        for (var library in _component.libraries) {
-          if (library.importUri == uri) {
-            libraryOutline = library;
-            _component.libraries.remove(library);
-            _component.root.removeChild('$uri');
-            break;
-          }
-        }
-        if (libraryOutline == null) {
-          throw new StateError('Expected to find $uri in the component.');
-        }
-        libraryOutline.canonicalName.getChild('IntWrapper');
-
         var dillTarget =
             new DillTarget(_options.ticker, uriTranslator, _options.target);
 
         // Append all libraries what we still have in the current component.
         await _logger.runAsync('Load dill libraries', () async {
+          // TODO(brianwilkerson) Determine whether this await is necessary.
+          await null;
           dillTarget.loader.appendLibraries(_component);
           await dillTarget.buildOutlines();
         });
@@ -303,54 +220,54 @@ class FrontEndCompiler {
             uriTranslator, new AnalyzerMetadataCollector());
         kernelTarget.read(uri);
 
-        // Resolve the requested library.
-        Component newComponent = await _logger.runAsync('Compile', () async {
+        // Compile the entry point into the new component.
+        _component = await _logger.runAsync('Compile', () async {
+          // TODO(brianwilkerson) Determine whether this await is necessary.
+          await null;
           await kernelTarget.buildOutlines(nameRoot: _component.root);
-          return await kernelTarget.buildComponent();
+          return await kernelTarget.buildComponent() ?? _component;
         });
 
-        // Put the library outline back into the current component.
-        _component.root.adoptChild(libraryOutline.canonicalName);
-        _component.libraries.add(libraryOutline);
+        // TODO(scheglov) Only for new libraries?
+        _component.computeCanonicalNames();
 
-        // Compute canonical names for the resolved library.
-        for (var library in newComponent.libraries) {
-          if (library.importUri == uri) {
-            library.reference.canonicalName = _component.root.getChild('$uri');
-            library.computeCanonicalNames();
-            break;
-          }
-        }
+        _logger.run('Compute dependencies', _computeDependencies);
 
         // TODO(scheglov) Can we keep the same instance?
         var types = new TypeEnvironment(
             new CoreTypes(_component), new ClassHierarchy(_component));
 
-        Uri libraryFileUri = libraryOutline.fileUri;
-        var libraryResolutions = kernelTarget.resolutions[libraryFileUri];
-        if (libraryResolutions == null) {
-          throw new StateError('Expected to find $uri in resolutions.');
-        }
-        // TODO(scheglov) Check that we have exactly one resolution?
-        var files = <Uri, FileCompilationResult>{};
+        // Add results for new libraries.
+        for (var library in _component.libraries) {
+          if (!_results.containsKey(library.importUri)) {
+            Map<Uri, List<CollectedResolution>> libraryResolutions =
+                kernelTarget.resolutions[library.fileUri];
 
-        void addFileResult(Uri fileUri) {
-          if (libraryResolutions != null) {
-            files[fileUri] = new FileCompilationResult(
-                fileUri,
-                libraryResolutions[fileUri] ?? [],
-                _errorListener.fileUriToErrors[fileUri] ?? []);
+            var files = <Uri, FileCompilationResult>{};
+
+            void addFileResult(Uri fileUri) {
+              if (libraryResolutions != null) {
+                files[fileUri] = new FileCompilationResult(
+                    fileUri,
+                    libraryResolutions[fileUri] ?? [],
+                    _errorListener.fileUriToErrors[fileUri] ?? []);
+              }
+            }
+
+            addFileResult(library.fileUri);
+            for (var part in library.parts) {
+              addFileResult(library.fileUri.resolve(part.partUri));
+            }
+
+            var libraryResult = new LibraryCompilationResult(
+                _component, types, library.importUri, library, files);
+            _results[library.importUri] = libraryResult;
           }
-        }
-
-        addFileResult(libraryFileUri);
-        for (var part in libraryOutline.parts) {
-          addFileResult(libraryFileUri.resolve(part.partUri));
         }
         _errorListener.fileUriToErrors.clear();
 
-        return new LibraryCompilationResult(
-            _component, types, libraryOutline.importUri, libraryOutline, files);
+        // The result must have been computed.
+        return _results[uri];
       } finally {
         _isCompileExecuting = false;
       }
@@ -359,7 +276,7 @@ class FrontEndCompiler {
 
   /// Invalidate the file with the given file [uri], its library and the
   /// transitive the of libraries that use it.  The next time when any of these
-  /// libraries is be requested in [getResolution], it will be recompiled again.
+  /// libraries is be requested in [compile], it will be recompiled again.
   void invalidate(Uri uri) {
     void invalidateLibrary(Uri libraryUri) {
       Library library = _uriToLibrary.remove(libraryUri);
@@ -369,6 +286,7 @@ class FrontEndCompiler {
       _component.libraries.remove(library);
       _component.root.removeChild('${library.importUri}');
       _component.uriToSource.remove(libraryUri);
+      _results.remove(library.importUri);
 
       // Recursively invalidate dependencies.
       Set<Uri> directDependencies =
@@ -443,20 +361,6 @@ class LibraryCompilationResult {
 
   LibraryCompilationResult(
       this.component, this.types, this.uri, this.kernel, this.files);
-}
-
-/// The outline result for a single library.
-class LibraryOutlineResult {
-  /// The full current [Component]. It has all libraries that are required by
-  /// this library, but might also have other libraries, that are not required.
-  ///
-  /// The object is mutable, and is changed when files are invalidated.
-  final Component component;
-
-  /// The [TypeEnvironment] for the [component].
-  final TypeEnvironment types;
-
-  LibraryOutlineResult(this.component, this.types);
 }
 
 /// The [DietListener] that record resolution information.

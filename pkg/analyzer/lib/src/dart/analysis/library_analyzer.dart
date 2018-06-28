@@ -205,7 +205,7 @@ class LibraryAnalyzer {
         _resolveDirectives(units);
 
         var libraryResult = await _logger.runAsync('Compile library', () {
-          return _frontEndCompiler.getResolution(_library.uri);
+          return _frontEndCompiler.compile(_library.uri);
         });
 
         _logger.run('Apply resolution', () {
