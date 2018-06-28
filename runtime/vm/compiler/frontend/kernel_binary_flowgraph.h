@@ -7,9 +7,8 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
-#include <map>
-
 #include "vm/compiler/frontend/kernel_to_il.h"
+#include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/kernel.h"
 #include "vm/kernel_binary.h"
 #include "vm/object.h"
@@ -18,590 +17,6 @@ namespace dart {
 namespace kernel {
 
 class KernelReaderHelper;
-
-// Helper class that reads a kernel FunctionNode from binary.
-//
-// Use ReadUntilExcluding to read up to but not including a field.
-// One can then for instance read the field from the call-site (and remember to
-// call SetAt to inform this helper class), and then use this to read more.
-// Simple fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a compound field (e.g. an expression) it will be skipped.
-class FunctionNodeHelper {
- public:
-  enum Field {
-    kStart,  // tag.
-    kPosition,
-    kEndPosition,
-    kAsyncMarker,
-    kDartAsyncMarker,
-    kTypeParameters,
-    kTotalParameterCount,
-    kRequiredParameterCount,
-    kPositionalParameters,
-    kNamedParameters,
-    kReturnType,
-    kBody,
-    kEnd,
-  };
-
-  enum AsyncMarker {
-    kSync = 0,
-    kSyncStar = 1,
-    kAsync = 2,
-    kAsyncStar = 3,
-    kSyncYielding = 4,
-  };
-
-  explicit FunctionNodeHelper(KernelReaderHelper* helper) {
-    helper_ = helper;
-    next_read_ = kStart;
-  }
-
-  void ReadUntilIncluding(Field field) {
-    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
-  }
-
-  void ReadUntilExcluding(Field field);
-
-  void SetNext(Field field) { next_read_ = field; }
-  void SetJustRead(Field field) { next_read_ = field + 1; }
-
-  TokenPosition position_;
-  TokenPosition end_position_;
-  AsyncMarker async_marker_;
-  AsyncMarker dart_async_marker_;
-  intptr_t total_parameter_count_;
-  intptr_t required_parameter_count_;
-
- private:
-  KernelReaderHelper* helper_;
-  intptr_t next_read_;
-};
-
-class TypeParameterHelper {
- public:
-  enum Field {
-    kStart,  // tag.
-    kFlags,
-    kAnnotations,
-    kName,
-    kBound,
-    kDefaultType,
-    kEnd,
-  };
-
-  enum Flag {
-    kIsGenericCovariantImpl = 1 << 0,
-  };
-
-  explicit TypeParameterHelper(KernelReaderHelper* helper) {
-    helper_ = helper;
-    next_read_ = kStart;
-  }
-
-  void ReadUntilIncluding(Field field) {
-    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
-  }
-
-  void ReadUntilExcluding(Field field);
-
-  void SetNext(Field field) { next_read_ = field; }
-  void SetJustRead(Field field) { next_read_ = field + 1; }
-
-  void ReadUntilExcludingAndSetJustRead(Field field) {
-    ReadUntilExcluding(field);
-    SetJustRead(field);
-  }
-
-  void Finish() { ReadUntilExcluding(kEnd); }
-
-  bool IsGenericCovariantImpl() {
-    return (flags_ & kIsGenericCovariantImpl) != 0;
-  }
-
-  TokenPosition position_;
-  uint8_t flags_;
-  StringIndex name_index_;
-
- private:
-  KernelReaderHelper* helper_;
-  intptr_t next_read_;
-};
-
-// Helper class that reads a kernel VariableDeclaration from binary.
-//
-// Use ReadUntilExcluding to read up to but not including a field.
-// One can then for instance read the field from the call-site (and remember to
-// call SetAt to inform this helper class), and then use this to read more.
-// Simple fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a compound field (e.g. an expression) it will be skipped.
-class VariableDeclarationHelper {
- public:
-  enum Field {
-    kPosition,
-    kEqualPosition,
-    kAnnotations,
-    kFlags,
-    kNameIndex,
-    kType,
-    kInitializer,
-    kEnd,
-  };
-
-  enum Flag {
-    kFinal = 1 << 0,
-    kConst = 1 << 1,
-    kCovariant = 1 << 3,
-    kIsGenericCovariantImpl = 1 << 5,
-  };
-
-  explicit VariableDeclarationHelper(KernelReaderHelper* helper)
-      : helper_(helper), next_read_(kPosition) {}
-
-  void ReadUntilIncluding(Field field) {
-    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
-  }
-
-  void ReadUntilExcluding(Field field);
-
-  void SetNext(Field field) { next_read_ = field; }
-  void SetJustRead(Field field) { next_read_ = field + 1; }
-
-  bool IsConst() { return (flags_ & kConst) != 0; }
-  bool IsFinal() { return (flags_ & kFinal) != 0; }
-  bool IsCovariant() { return (flags_ & kCovariant) != 0; }
-
-  bool IsGenericCovariantImpl() {
-    return (flags_ & kIsGenericCovariantImpl) != 0;
-  }
-
-  TokenPosition position_;
-  TokenPosition equals_position_;
-  uint8_t flags_;
-  StringIndex name_index_;
-
- private:
-  KernelReaderHelper* helper_;
-  intptr_t next_read_;
-};
-
-// Helper class that reads a kernel Field from binary.
-//
-// Use ReadUntilExcluding to read up to but not including a field.
-// One can then for instance read the field from the call-site (and remember to
-// call SetAt to inform this helper class), and then use this to read more.
-// Simple fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a compound field (e.g. an expression) it will be skipped.
-class FieldHelper {
- public:
-  enum Field {
-    kStart,  // tag.
-    kCanonicalName,
-    kSourceUriIndex,
-    kPosition,
-    kEndPosition,
-    kFlags,
-    kName,
-    kAnnotations,
-    kType,
-    kInitializer,
-    kEnd,
-  };
-
-  enum Flag {
-    kFinal = 1 << 0,
-    kConst = 1 << 1,
-    kStatic = 1 << 2,
-    kIsCovariant = 1 << 5,
-    kIsGenericCovariantImpl = 1 << 6,
-  };
-
-  explicit FieldHelper(KernelReaderHelper* helper)
-      : helper_(helper),
-        next_read_(kStart),
-        has_function_literal_initializer_(false) {}
-
-  FieldHelper(KernelReaderHelper* helper, intptr_t offset);
-
-  void ReadUntilIncluding(Field field) {
-    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
-  }
-
-  void ReadUntilExcluding(Field field,
-                          bool detect_function_literal_initializer = false);
-
-  void SetNext(Field field) { next_read_ = field; }
-  void SetJustRead(Field field) { next_read_ = field + 1; }
-
-  bool IsConst() { return (flags_ & kConst) != 0; }
-  bool IsFinal() { return (flags_ & kFinal) != 0; }
-  bool IsStatic() { return (flags_ & kStatic) != 0; }
-  bool IsCovariant() const { return (flags_ & kIsCovariant) != 0; }
-  bool IsGenericCovariantImpl() {
-    return (flags_ & kIsGenericCovariantImpl) != 0;
-  }
-
-  bool FieldHasFunctionLiteralInitializer(TokenPosition* start,
-                                          TokenPosition* end) {
-    if (has_function_literal_initializer_) {
-      *start = function_literal_start_;
-      *end = function_literal_end_;
-    }
-    return has_function_literal_initializer_;
-  }
-
-  NameIndex canonical_name_;
-  TokenPosition position_;
-  TokenPosition end_position_;
-  uint8_t flags_;
-  intptr_t source_uri_index_;
-  intptr_t annotation_count_;
-
- private:
-  KernelReaderHelper* helper_;
-  intptr_t next_read_;
-
-  bool has_function_literal_initializer_;
-  TokenPosition function_literal_start_;
-  TokenPosition function_literal_end_;
-};
-
-// Helper class that reads a kernel Procedure from binary.
-//
-// Use ReadUntilExcluding to read up to but not including a field.
-// One can then for instance read the field from the call-site (and remember to
-// call SetAt to inform this helper class), and then use this to read more.
-// Simple fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a compound field (e.g. an expression) it will be skipped.
-class ProcedureHelper {
- public:
-  enum Field {
-    kStart,  // tag.
-    kCanonicalName,
-    kSourceUriIndex,
-    kStartPosition,
-    kPosition,
-    kEndPosition,
-    kKind,
-    kFlags,
-    kName,
-    kAnnotations,
-    kForwardingStubSuperTarget,
-    kForwardingStubInterfaceTarget,
-    kFunction,
-    kEnd,
-  };
-
-  enum Kind {
-    kMethod,
-    kGetter,
-    kSetter,
-    kOperator,
-    kFactory,
-  };
-
-  enum Flag {
-    kStatic = 1 << 0,
-    kAbstract = 1 << 1,
-    kExternal = 1 << 2,
-    kConst = 1 << 3,  // Only for external const factories.
-    kForwardingStub = 1 << 4,
-
-    // TODO(29841): Remove this line after the issue is resolved.
-    kRedirectingFactoryConstructor = 1 << 6,
-    kNoSuchMethodForwarder = 1 << 7,
-  };
-
-  explicit ProcedureHelper(KernelReaderHelper* helper)
-      : helper_(helper), next_read_(kStart) {}
-
-  void ReadUntilIncluding(Field field) {
-    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
-  }
-
-  void ReadUntilExcluding(Field field);
-
-  void SetNext(Field field) { next_read_ = field; }
-  void SetJustRead(Field field) { next_read_ = field + 1; }
-
-  bool IsStatic() { return (flags_ & kStatic) != 0; }
-  bool IsAbstract() { return (flags_ & kAbstract) != 0; }
-  bool IsExternal() { return (flags_ & kExternal) != 0; }
-  bool IsConst() { return (flags_ & kConst) != 0; }
-  bool IsForwardingStub() { return (flags_ & kForwardingStub) != 0; }
-  bool IsRedirectingFactoryConstructor() {
-    return (flags_ & kRedirectingFactoryConstructor) != 0;
-  }
-
-  NameIndex canonical_name_;
-  TokenPosition start_position_;
-  TokenPosition position_;
-  TokenPosition end_position_;
-  Kind kind_;
-  uint8_t flags_;
-  intptr_t source_uri_index_;
-  intptr_t annotation_count_;
-
-  // Only valid if the 'isForwardingStub' flag is set.
-  NameIndex forwarding_stub_super_target_;
-
- private:
-  KernelReaderHelper* helper_;
-  intptr_t next_read_;
-};
-
-// Helper class that reads a kernel Constructor from binary.
-//
-// Use ReadUntilExcluding to read up to but not including a field.
-// One can then for instance read the field from the call-site (and remember to
-// call SetAt to inform this helper class), and then use this to read more.
-// Simple fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a compound field (e.g. an expression) it will be skipped.
-class ConstructorHelper {
- public:
-  enum Field {
-    kStart,  // tag.
-    kCanonicalName,
-    kSourceUriIndex,
-    kStartPosition,
-    kPosition,
-    kEndPosition,
-    kFlags,
-    kName,
-    kAnnotations,
-    kFunction,
-    kInitializers,
-    kEnd,
-  };
-
-  enum Flag {
-    kConst = 1 << 0,
-    kExternal = 1 << 1,
-    kSynthetic = 1 << 2,
-  };
-
-  explicit ConstructorHelper(KernelReaderHelper* helper)
-      : helper_(helper), next_read_(kStart) {}
-
-  void ReadUntilIncluding(Field field) {
-    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
-  }
-
-  void ReadUntilExcluding(Field field);
-
-  void SetNext(Field field) { next_read_ = field; }
-  void SetJustRead(Field field) { next_read_ = field + 1; }
-
-  bool IsExternal() { return (flags_ & kExternal) != 0; }
-  bool IsConst() { return (flags_ & kConst) != 0; }
-  bool IsSynthetic() { return (flags_ & kSynthetic) != 0; }
-
-  NameIndex canonical_name_;
-  TokenPosition start_position_;
-  TokenPosition position_;
-  TokenPosition end_position_;
-  uint8_t flags_;
-  intptr_t source_uri_index_;
-  intptr_t annotation_count_;
-
- private:
-  KernelReaderHelper* helper_;
-  intptr_t next_read_;
-};
-
-// Helper class that reads a kernel Class from binary.
-//
-// Use ReadUntilExcluding to read up to but not including a field.
-// One can then for instance read the field from the call-site (and remember to
-// call SetAt to inform this helper class), and then use this to read more.
-// Simple fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a compound field (e.g. an expression) it will be skipped.
-class ClassHelper {
- public:
-  enum Field {
-    kStart,  // tag.
-    kCanonicalName,
-    kSourceUriIndex,
-    kStartPosition,
-    kPosition,
-    kEndPosition,
-    kFlags,
-    kNameIndex,
-    kAnnotations,
-    kTypeParameters,
-    kSuperClass,
-    kMixinType,
-    kImplementedClasses,
-    kFields,
-    kConstructors,
-    kProcedures,
-    kClassIndex,
-    kEnd,
-  };
-
-  enum Flag {
-    kIsAbstract = 1 << 2,
-    kIsEnumClass = 1 << 3,
-    kIsAnonymousMixin = 1 << 4,
-    kIsEliminatedMixin = 1 << 5,
-  };
-
-  explicit ClassHelper(KernelReaderHelper* helper)
-      : helper_(helper), next_read_(kStart) {}
-
-  void ReadUntilIncluding(Field field) {
-    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
-  }
-
-  void ReadUntilExcluding(Field field);
-
-  void SetNext(Field field) { next_read_ = field; }
-  void SetJustRead(Field field) { next_read_ = field + 1; }
-
-  bool is_abstract() const { return flags_ & Flag::kIsAbstract; }
-
-  bool is_enum_class() const { return flags_ & Flag::kIsEnumClass; }
-
-  bool is_transformed_mixin_application() const {
-    return flags_ & Flag::kIsEliminatedMixin;
-  }
-
-  NameIndex canonical_name_;
-  TokenPosition start_position_;
-  TokenPosition position_;
-  TokenPosition end_position_;
-  StringIndex name_index_;
-  intptr_t source_uri_index_;
-  intptr_t annotation_count_;
-  intptr_t procedure_count_;
-  uint8_t flags_;
-
- private:
-  KernelReaderHelper* helper_;
-  intptr_t next_read_;
-};
-
-// Helper class that reads a kernel Library from binary.
-//
-// Use ReadUntilExcluding to read up to but not including a field.
-// One can then for instance read the field from the call-site (and remember to
-// call SetAt to inform this helper class), and then use this to read more.
-// Simple fields are stored (e.g. integers) and can be fetched from this class.
-// If asked to read a compound field (e.g. an expression) it will be skipped.
-class LibraryHelper {
- public:
-  enum Field {
-    kFlags,
-    kCanonicalName,
-    kName,
-    kSourceUriIndex,
-    kAnnotations,
-    kDependencies,
-    kAdditionalExports,
-    kParts,
-    kTypedefs,
-    kClasses,
-    kToplevelField,
-    kToplevelProcedures,
-    kLibraryIndex,
-    kEnd,
-  };
-
-  enum Flag {
-    kExternal = 1,
-  };
-
-  explicit LibraryHelper(KernelReaderHelper* helper)
-      : helper_(helper), next_read_(kFlags) {}
-
-  void ReadUntilIncluding(Field field) {
-    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
-  }
-
-  void ReadUntilExcluding(Field field);
-
-  void SetNext(Field field) { next_read_ = field; }
-  void SetJustRead(Field field) { next_read_ = field + 1; }
-
-  bool IsExternal() const { return (flags_ & kExternal) != 0; }
-
-  uint8_t flags_;
-  NameIndex canonical_name_;
-  StringIndex name_index_;
-  intptr_t source_uri_index_;
-  intptr_t class_count_;
-  intptr_t procedure_count_;
-
- private:
-  KernelReaderHelper* helper_;
-  intptr_t next_read_;
-};
-
-class LibraryDependencyHelper {
- public:
-  enum Field {
-    kFileOffset,
-    kFlags,
-    kAnnotations,
-    kTargetLibrary,
-    kName,
-    kCombinators,
-    kEnd,
-  };
-
-  enum Flag {
-    Export = 1 << 0,
-    Deferred = 1 << 1,
-  };
-
-  enum CombinatorFlag {
-    Show = 1 << 0,
-  };
-
-  explicit LibraryDependencyHelper(KernelReaderHelper* helper)
-      : helper_(helper), next_read_(kFileOffset) {}
-
-  void ReadUntilIncluding(Field field) {
-    ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
-  }
-
-  void ReadUntilExcluding(Field field);
-
-  uint8_t flags_;
-  StringIndex name_index_;
-  NameIndex target_library_canonical_name_;
-
- private:
-  KernelReaderHelper* helper_;
-  intptr_t next_read_;
-};
-
-// Base class for helpers accessing metadata of a certain kind.
-// Assumes that metadata is accessed in linear order.
-class MetadataHelper {
- public:
-  explicit MetadataHelper(StreamingFlowGraphBuilder* builder);
-
-  void SetMetadataMappings(intptr_t mappings_offset, intptr_t mappings_num);
-
- protected:
-  // Look for metadata mapping with node offset greater or equal than the given.
-  intptr_t FindMetadataMapping(intptr_t node_offset);
-
-  // Return offset of the metadata payload corresponding to the given node,
-  // or -1 if there is no metadata.
-  // Assumes metadata is accesses for nodes in linear order most of the time.
-  intptr_t GetNextMetadataPayloadOffset(intptr_t node_offset);
-
-  StreamingFlowGraphBuilder* builder_;
-  TranslationHelper& translation_helper_;
-
- private:
-  intptr_t mappings_offset_;
-  intptr_t mappings_num_;
-  intptr_t last_node_offset_;
-  intptr_t last_mapping_index_;
-};
 
 struct DirectCallMetadata {
   DirectCallMetadata(const Function& target, bool check_receiver_for_null)
@@ -616,8 +31,7 @@ class DirectCallMetadataHelper : public MetadataHelper {
  public:
   static const char* tag() { return "vm.direct-call.metadata"; }
 
-  explicit DirectCallMetadataHelper(StreamingFlowGraphBuilder* builder)
-      : MetadataHelper(builder) {}
+  explicit DirectCallMetadataHelper(StreamingFlowGraphBuilder* builder);
 
   DirectCallMetadata GetDirectTargetForPropertyGet(intptr_t node_offset);
   DirectCallMetadata GetDirectTargetForPropertySet(intptr_t node_offset);
@@ -627,6 +41,8 @@ class DirectCallMetadataHelper : public MetadataHelper {
   bool ReadMetadata(intptr_t node_offset,
                     NameIndex* target_name,
                     bool* check_receiver_for_null);
+
+  StreamingFlowGraphBuilder* builder_;
 };
 
 struct InferredTypeMetadata {
@@ -644,10 +60,12 @@ class InferredTypeMetadataHelper : public MetadataHelper {
  public:
   static const char* tag() { return "vm.inferred-type.metadata"; }
 
-  explicit InferredTypeMetadataHelper(StreamingFlowGraphBuilder* builder)
-      : MetadataHelper(builder) {}
+  explicit InferredTypeMetadataHelper(StreamingFlowGraphBuilder* builder);
 
   InferredTypeMetadata GetInferredType(intptr_t node_offset);
+
+ private:
+  StreamingFlowGraphBuilder* builder_;
 };
 
 struct ProcedureAttributesMetadata {
@@ -667,14 +85,16 @@ class ProcedureAttributesMetadataHelper : public MetadataHelper {
  public:
   static const char* tag() { return "vm.procedure-attributes.metadata"; }
 
-  explicit ProcedureAttributesMetadataHelper(StreamingFlowGraphBuilder* builder)
-      : MetadataHelper(builder) {}
+  explicit ProcedureAttributesMetadataHelper(
+      StreamingFlowGraphBuilder* builder);
 
   ProcedureAttributesMetadata GetProcedureAttributes(intptr_t node_offset);
 
  private:
   bool ReadMetadata(intptr_t node_offset,
                     ProcedureAttributesMetadata* metadata);
+
+  StreamingFlowGraphBuilder* builder_;
 };
 
 // Helper class which provides access to bytecode metadata.
@@ -682,8 +102,7 @@ class BytecodeMetadataHelper : public MetadataHelper {
  public:
   static const char* tag() { return "vm.bytecode"; }
 
-  explicit BytecodeMetadataHelper(StreamingFlowGraphBuilder* builder)
-      : MetadataHelper(builder) {}
+  explicit BytecodeMetadataHelper(StreamingFlowGraphBuilder* builder);
 
 #if defined(DART_USE_INTERPRETER)
   void ReadMetadata(const Function& function);
@@ -698,6 +117,8 @@ class BytecodeMetadataHelper : public MetadataHelper {
   void ReadExceptionsTable(const Code& bytecode);
   RawTypedData* NativeEntry(const Function& function,
                             const String& external_name);
+
+  StreamingFlowGraphBuilder* builder_;
 #endif
 };
 
@@ -1017,134 +438,6 @@ class StreamingConstantEvaluator {
 
   const Script& script_;
   Instance& result_;
-};
-
-class KernelReaderHelper {
- public:
-  KernelReaderHelper(Zone* zone,
-                     TranslationHelper* translation_helper,
-                     const Script& script,
-                     const ExternalTypedData& data,
-                     intptr_t data_program_offset)
-      : zone_(zone),
-        translation_helper_(*translation_helper),
-        reader_(data),
-        script_(script),
-        data_program_offset_(data_program_offset) {}
-
-  KernelReaderHelper(Zone* zone,
-                     TranslationHelper* translation_helper,
-                     const uint8_t* data_buffer,
-                     intptr_t buffer_length,
-                     intptr_t data_program_offset)
-      : zone_(zone),
-        translation_helper_(*translation_helper),
-        reader_(data_buffer, buffer_length),
-        script_(Script::Handle(zone_)),
-        data_program_offset_(data_program_offset) {}
-
-  virtual ~KernelReaderHelper() {}
-
-  void SetOffset(intptr_t offset);
-
-  intptr_t ReadListLength();
-  virtual void ReportUnexpectedTag(const char* variant, Tag tag);
-
- protected:
-  const Script& script() const { return script_; }
-
-  virtual void set_current_script_id(intptr_t id) {
-    // Do nothing by default. This is overridden in StreamingFlowGraphBuilder.
-    USE(id);
-  }
-
-  virtual void RecordYieldPosition(TokenPosition position) {
-    // Do nothing by default. This is overridden in StreamingFlowGraphBuilder.
-    USE(position);
-  }
-
-  virtual void RecordTokenPosition(TokenPosition position) {
-    // Do nothing by default. This is overridden in StreamingFlowGraphBuilder.
-    USE(position);
-  }
-
-  intptr_t ReaderOffset() const;
-  void SkipBytes(intptr_t skip);
-  bool ReadBool();
-  uint8_t ReadByte();
-  uint32_t ReadUInt();
-  uint32_t ReadUInt32();
-  uint32_t PeekUInt();
-  double ReadDouble();
-  uint32_t PeekListLength();
-  StringIndex ReadStringReference();
-  NameIndex ReadCanonicalNameReference();
-  StringIndex ReadNameAsStringIndex();
-  const String& ReadNameAsMethodName();
-  const String& ReadNameAsGetterName();
-  const String& ReadNameAsSetterName();
-  const String& ReadNameAsFieldName();
-  void SkipFlags();
-  void SkipStringReference();
-  void SkipConstantReference();
-  void SkipCanonicalNameReference();
-  void SkipDartType();
-  void SkipOptionalDartType();
-  void SkipInterfaceType(bool simple);
-  void SkipFunctionType(bool simple);
-  void SkipStatementList();
-  void SkipListOfExpressions();
-  void SkipListOfDartTypes();
-  void SkipListOfStrings();
-  void SkipListOfVariableDeclarations();
-  void SkipTypeParametersList();
-  void SkipInitializer();
-  void SkipExpression();
-  void SkipStatement();
-  void SkipFunctionNode();
-  void SkipName();
-  void SkipArguments();
-  void SkipVariableDeclaration();
-  void SkipLibraryCombinator();
-  void SkipLibraryDependency();
-  void SkipLibraryPart();
-  void SkipLibraryTypedef();
-  TokenPosition ReadPosition(bool record = true);
-  Tag ReadTag(uint8_t* payload = NULL);
-  Tag PeekTag(uint8_t* payload = NULL);
-  uint8_t ReadFlags() { return reader_.ReadFlags(); }
-
-  Zone* zone_;
-  TranslationHelper& translation_helper_;
-  Reader reader_;
-  const Script& script_;
-  // Some items like variables are specified in the kernel binary as
-  // absolute offsets (as in, offsets within the whole kernel program)
-  // of their declaration nodes. Hence, to cache and/or access them
-  // uniquely from within a function's kernel data, we need to
-  // add/subtract the offset of the kernel data in the over all
-  // kernel program.
-  intptr_t data_program_offset_;
-
-  friend class ClassHelper;
-  friend class ConstantHelper;
-  friend class ConstructorHelper;
-  friend class DirectCallMetadataHelper;
-  friend class ProcedureAttributesMetadataHelper;
-  friend class FieldHelper;
-  friend class FunctionNodeHelper;
-  friend class InferredTypeMetadataHelper;
-  friend class KernelLoader;
-  friend class LibraryDependencyHelper;
-  friend class LibraryHelper;
-  friend class MetadataHelper;
-  friend class ProcedureHelper;
-  friend class SimpleExpressionConverter;
-  friend class StreamingConstantEvaluator;
-  friend class StreamingDartTypeTranslator;
-  friend class StreamingScopeBuilder;
-  friend class VariableDeclarationHelper;
-  friend class TypeParameterHelper;
 };
 
 class KernelFingerprintHelper : public KernelReaderHelper {
@@ -1604,7 +897,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
 
   // Scan through metadata mappings section and cache offsets for recognized
   // metadata kinds.
-  void EnsureMetadataIsScanned();
+  void EnsureMetadataIsScanned() override;
 
   FlowGraphBuilder* flow_graph_builder_;
   ActiveClass* const active_class_;
@@ -1659,57 +952,6 @@ class AlternativeScriptScope {
 
   TranslationHelper* helper_;
   const Script& old_script_;
-};
-
-// A helper class that saves the current reader position, goes to another reader
-// position, and upon destruction, resets to the original reader position.
-class AlternativeReadingScope {
- public:
-  AlternativeReadingScope(Reader* reader, intptr_t new_position)
-      : reader_(reader),
-        saved_size_(reader_->size()),
-        saved_raw_buffer_(reader_->raw_buffer()),
-        saved_typed_data_(reader_->typed_data()),
-        saved_offset_(reader_->offset()) {
-    reader_->set_offset(new_position);
-  }
-
-  AlternativeReadingScope(Reader* reader,
-                          const ExternalTypedData* new_typed_data,
-                          intptr_t new_position)
-      : reader_(reader),
-        saved_size_(reader_->size()),
-        saved_raw_buffer_(reader_->raw_buffer()),
-        saved_typed_data_(reader_->typed_data()),
-        saved_offset_(reader_->offset()) {
-    reader_->set_raw_buffer(NULL);
-    reader_->set_typed_data(new_typed_data);
-    reader_->set_size(new_typed_data->Length());
-    reader_->set_offset(new_position);
-  }
-
-  explicit AlternativeReadingScope(Reader* reader)
-      : reader_(reader),
-        saved_size_(reader_->size()),
-        saved_raw_buffer_(reader_->raw_buffer()),
-        saved_typed_data_(reader_->typed_data()),
-        saved_offset_(reader_->offset()) {}
-
-  ~AlternativeReadingScope() {
-    reader_->set_raw_buffer(saved_raw_buffer_);
-    reader_->set_typed_data(saved_typed_data_);
-    reader_->set_size(saved_size_);
-    reader_->set_offset(saved_offset_);
-  }
-
-  intptr_t saved_offset() { return saved_offset_; }
-
- private:
-  Reader* reader_;
-  intptr_t saved_size_;
-  const uint8_t* saved_raw_buffer_;
-  const ExternalTypedData* saved_typed_data_;
-  intptr_t saved_offset_;
 };
 
 // Helper class that reads a kernel Constant from binary.
