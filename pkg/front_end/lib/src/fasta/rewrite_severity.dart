@@ -30,7 +30,6 @@ Severity rewriteSeverity(
       case "kernel/kernel_procedure_builder.dart":
       case "kernel/kernel_target.dart":
       case "kernel/kernel_type_variable_builder.dart":
-      case "quote.dart":
       case "source/diet_listener.dart":
       case "source/source_library_builder.dart":
       case "source/source_loader.dart":
