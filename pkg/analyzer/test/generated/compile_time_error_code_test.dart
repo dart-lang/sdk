@@ -3911,7 +3911,7 @@ class A {
     // using fasta parser.
     assertErrors(
         source,
-        usingFastaParser
+        usingFastaParser && !useCFE
             ? [
                 CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
                 CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER
@@ -3928,7 +3928,7 @@ class A {
     await computeAnalysisResult(source);
     assertErrors(
         source,
-        usingFastaParser
+        usingFastaParser && !useCFE
             ? [
                 CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
                 CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER
@@ -3945,7 +3945,7 @@ class A {
     await computeAnalysisResult(source);
     assertErrors(
         source,
-        usingFastaParser
+        usingFastaParser && !useCFE
             ? [
                 CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
                 CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER
@@ -3959,7 +3959,7 @@ class A {
     await computeAnalysisResult(source);
     assertErrors(
         source,
-        usingFastaParser
+        usingFastaParser && !useCFE
             ? [
                 CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
                 CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER
@@ -3973,7 +3973,7 @@ class A {
     await computeAnalysisResult(source);
     assertErrors(
         source,
-        usingFastaParser
+        usingFastaParser && !useCFE
             ? [
                 CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
                 CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER
@@ -3987,7 +3987,7 @@ class A {
     await computeAnalysisResult(source);
     assertErrors(
         source,
-        usingFastaParser
+        usingFastaParser && !useCFE
             ? [
                 CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
                 CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER
