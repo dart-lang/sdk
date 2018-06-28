@@ -1,0 +1,15 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo(core::int x) → void {}
+  no-such-method-forwarder set foo(core::int x) → void
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withoutType("set:foo", const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false));
+  method noSuchMethod(core::Invocation i) → dynamic
+    return null;
+}
+static method main() → dynamic {}
