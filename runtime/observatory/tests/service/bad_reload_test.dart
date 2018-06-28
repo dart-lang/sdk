@@ -62,7 +62,8 @@ var tests = <IsolateTest>[
 
     // Reload to v2.
     var response = await spawnedIsolate.reloadSources(
-        rootLibUri: v2Uri.toString(), packagesUri: Platform.packageConfig);
+      rootLibUri: v2Uri.toString(),
+    );
     // Observe that it failed.
     expect(response['success'], isFalse);
     List notices = response['details']['notices'];

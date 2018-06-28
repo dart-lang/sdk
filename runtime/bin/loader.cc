@@ -772,8 +772,7 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
       uint8_t* kernel_buffer = NULL;
       intptr_t kernel_buffer_size = -1;
       dfe.CompileAndReadScript(url_string, &kernel_buffer, &kernel_buffer_size,
-                               &error, &exit_code, true /* strong */,
-                               isolate_data->resolved_packages_config());
+                               &error, &exit_code, true /* strong */, NULL);
       if (exit_code == 0) {
         return Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
       } else if (exit_code == kCompilationErrorExitCode) {
