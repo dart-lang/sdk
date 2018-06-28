@@ -231,10 +231,18 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
     return _makeWrite(value, voidContext, complexAssignment);
   }
 
-  Expression _makeRead(ComplexAssignmentJudgment complexAssignment);
+  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
+    Expression read = makeInvalidRead();
+    complexAssignment?.read = read;
+    return read;
+  }
 
   Expression _makeWrite(Expression value, bool voidContext,
-      ComplexAssignmentJudgment complexAssignment);
+      ComplexAssignmentJudgment complexAssignment) {
+    Expression write = makeInvalidWrite(value);
+    complexAssignment?.write = write;
+    return write;
+  }
 
   Expression _finish(
       Expression body, ComplexAssignmentJudgment complexAssignment) {
@@ -1132,14 +1140,6 @@ class KernelLoadLibraryGenerator extends KernelGenerator
   }
 
   @override
-  Expression _makeWrite(Expression value, bool voidContext,
-      ComplexAssignmentJudgment complexAssignment) {
-    Expression write = makeInvalidWrite(value);
-    write.fileOffset = offsetForToken(token);
-    return write;
-  }
-
-  @override
   Expression doInvocation(int offset, Arguments arguments) {
     if (forest.argumentsPositional(arguments).length > 0 ||
         forest.argumentsNamed(arguments).length > 0) {
@@ -1320,14 +1320,6 @@ class KernelReadOnlyAccessGenerator extends KernelGenerator
   }
 
   @override
-  Expression _makeWrite(Expression value, bool voidContext,
-      ComplexAssignmentJudgment complexAssignment) {
-    var write = makeInvalidWrite(value);
-    complexAssignment?.write = write;
-    return write;
-  }
-
-  @override
   Expression _finish(
           Expression body, ComplexAssignmentJudgment complexAssignment) =>
       super._finish(makeLet(value, body), complexAssignment);
@@ -1387,17 +1379,6 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
       : super(helper, token);
 
   @override
-  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    return unsupported("_makeRead", offsetForToken(token), uri);
-  }
-
-  @override
-  Expression _makeWrite(Expression value, bool voidContext,
-      ComplexAssignmentJudgment complexAssignment) {
-    return unsupported("_makeWrite", offsetForToken(token), uri);
-  }
-
-  @override
   void printOn(StringSink sink) {
     sink.write(", name: ");
     sink.write(name.name);
@@ -1418,17 +1399,6 @@ class KernelUnlinkedGenerator extends KernelGenerator with UnlinkedGenerator {
         receiver = new InvalidExpression(declaration.name)
           ..fileOffset = offsetForToken(token),
         super(helper, token);
-
-  @override
-  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    return unsupported("_makeRead", offsetForToken(token), uri);
-  }
-
-  @override
-  Expression _makeWrite(Expression value, bool voidContext,
-      ComplexAssignmentJudgment complexAssignment) {
-    return unsupported("_makeWrite", offsetForToken(token), uri);
-  }
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext}) {
@@ -1456,17 +1426,6 @@ abstract class KernelContextAwareGenerator extends KernelGenerator
   KernelContextAwareGenerator(
       ExpressionGeneratorHelper helper, Token token, this.generator)
       : super(helper, token);
-
-  @override
-  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    return unsupported("_makeRead", offsetForToken(token), uri);
-  }
-
-  @override
-  Expression _makeWrite(Expression value, bool voidContext,
-      ComplexAssignmentJudgment complexAssignment) {
-    return unsupported("_makeWrite", offsetForToken(token), uri);
-  }
 }
 
 class KernelDelayedAssignment extends KernelContextAwareGenerator

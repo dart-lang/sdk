@@ -163,17 +163,6 @@ class ThisAccessGenerator extends KernelGenerator {
   }
 
   @override
-  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    return unsupported("_makeRead", offsetForToken(token), uri);
-  }
-
-  @override
-  Expression _makeWrite(Expression value, bool voidContext,
-      ComplexAssignmentJudgment complexAssignment) {
-    return unsupported("_makeWrite", offsetForToken(token), uri);
-  }
-
-  @override
   void printOn(StringSink sink) {
     sink.write(", isInitializer: ");
     sink.write(isInitializer);
@@ -192,17 +181,6 @@ abstract class IncompleteSendGenerator extends KernelGenerator {
   withReceiver(Object receiver, int operatorOffset, {bool isNullAware});
 
   Arguments get arguments => null;
-
-  @override
-  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    return unsupported("_makeRead", offsetForToken(token), uri);
-  }
-
-  @override
-  Expression _makeWrite(Expression value, bool voidContext,
-      ComplexAssignmentJudgment complexAssignment) {
-    return unsupported("_makeWrite", offsetForToken(token), uri);
-  }
 
   @override
   void printOn(StringSink sink) {
