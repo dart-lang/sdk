@@ -677,13 +677,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_typePromotion_booleanAnd_useInRight_mutatedInRight() async {
-    // Bad state: Invalid location: -1
-    await super.test_typePromotion_booleanAnd_useInRight_mutatedInRight();
-  }
-
-  @override
-  @failingTest
   test_typePromotion_if_and_right_hasAssignment() async {
     // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 0
     await super.test_typePromotion_if_and_right_hasAssignment();

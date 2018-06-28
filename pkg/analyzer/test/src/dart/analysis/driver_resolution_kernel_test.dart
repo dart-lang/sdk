@@ -20,14 +20,6 @@ const potentialAnalyzerProblem = const Object();
 class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   @override
   bool get useCFE => true;
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_binaryExpression_notEqual() {
-    // Bad state: Invalid location: -1
-    return super.test_binaryExpression_notEqual();
-  }
 }
 
 /// Tests marked with this annotation fail because of a Fasta problem.

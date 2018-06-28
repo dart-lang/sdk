@@ -254,7 +254,8 @@ abstract class Forest {
   Expression logicalExpression(
       Expression leftOperand, Token operator, Expression rightOperand);
 
-  Expression notExpression(Expression operand, Token location);
+  Expression notExpression(
+      Expression operand, Token location, bool isSynthetic);
 
   /// Return a representation of a parenthesized condition consisting of the
   /// given [expression] between the [leftParenthesis] and [rightParenthesis].

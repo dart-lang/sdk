@@ -471,8 +471,9 @@ class Fangorn extends Forest {
   }
 
   @override
-  Expression notExpression(Expression operand, Token token) {
-    return new NotJudgment(token, operand)..fileOffset = offsetForToken(token);
+  Expression notExpression(Expression operand, Token token, bool isSynthetic) {
+    return new NotJudgment(isSynthetic, token, operand)
+      ..fileOffset = offsetForToken(token);
   }
 
   @override

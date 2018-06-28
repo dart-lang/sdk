@@ -1064,7 +1064,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           // evaluating [a] and [b].
           isConstantExpression: !isSuper,
           isSuper: isSuper);
-      return negate ? forest.notExpression(result, null) : result;
+      return negate ? forest.notExpression(result, null, true) : result;
     }
   }
 
@@ -2488,7 +2488,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("UnaryPrefixExpression");
     Object receiver = pop();
     if (optional("!", token)) {
-      push(forest.notExpression(toValue(receiver), token));
+      push(forest.notExpression(toValue(receiver), token, false));
     } else {
       String operator = token.stringValue;
       Expression receiverValue;

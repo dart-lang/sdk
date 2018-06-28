@@ -244,13 +244,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @override
   @failingTest
-  test_nullAwareBeforeOperator_ok_not_equal() {
-    // Bad state: Invalid location: -1
-    return super.test_nullAwareBeforeOperator_ok_not_equal();
-  }
-
-  @override
-  @failingTest
   test_required_constructor_param() async {
     return super.test_required_constructor_param();
   }

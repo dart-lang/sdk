@@ -125,21 +125,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_constDeferredClass_new() async {
-    return super.test_constDeferredClass_new();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_constEvalTypeBoolNumString_notEqual() async {
-    // Bad state: Invalid location: -1
-    return super.test_constEvalTypeBoolNumString_notEqual();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_constructorDeclaration_scope_signature() async {
     return super.test_constructorDeclaration_scope_signature();
@@ -284,14 +269,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_returnOfInvalidType_typeParameter_18468() async {
     return super.test_returnOfInvalidType_typeParameter_18468();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typePromotion_booleanAnd_useInRight() async {
-    // Bad state: Invalid location: -1
-    return super.test_typePromotion_booleanAnd_useInRight();
   }
 
   @override

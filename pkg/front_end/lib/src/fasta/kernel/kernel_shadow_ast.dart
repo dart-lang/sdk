@@ -2222,11 +2222,13 @@ class NamedFunctionExpressionJudgment extends Let
 
 /// Shadow object for [Not].
 class NotJudgment extends Not implements ExpressionJudgment {
+  final bool isSynthetic;
   final Token operator;
 
   DartType inferredType;
 
-  NotJudgment(this.operator, ExpressionJudgment operand) : super(operand);
+  NotJudgment(this.isSynthetic, this.operator, ExpressionJudgment operand)
+      : super(operand);
 
   ExpressionJudgment get judgment => operand;
 
@@ -2242,7 +2244,10 @@ class NotJudgment extends Not implements ExpressionJudgment {
     inferrer.ensureAssignable(
         boolType, judgment.inferredType, operand, fileOffset);
     inferredType = boolType;
-    inferrer.listener.not(this, fileOffset, operator, null, inferredType);
+    // TODO(scheglov) Temporary: https://github.com/dart-lang/sdk/issues/33666
+    if (!isSynthetic) {
+      inferrer.listener.not(this, fileOffset, operator, null, inferredType);
+    }
     return null;
   }
 }
