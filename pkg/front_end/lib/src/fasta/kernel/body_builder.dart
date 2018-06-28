@@ -2159,7 +2159,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void handleAsOperator(Token operator, Token endToken) {
+  void handleAsOperator(Token operator) {
     debugEvent("AsOperator");
     DartType type = pop();
     Expression expression = popForValue();
@@ -2172,19 +2172,20 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void handleIsOperator(Token operator, Token not, Token endToken) {
+  void handleIsOperator(Token isOperator, Token not) {
     debugEvent("IsOperator");
     DartType type = pop();
     Expression operand = popForValue();
     bool isInverted = not != null;
-    Expression isExpression = forest.isExpression(operand, operator, not, type);
+    Expression isExpression =
+        forest.isExpression(operand, isOperator, not, type);
     if (operand is VariableGet) {
       typePromoter.handleIsCheck(isExpression, isInverted, operand.variable,
           type, functionNestingLevel);
     }
     if (constantContext != ConstantContext.none) {
       push(deprecated_buildCompileTimeError(
-          "Not a constant expression.", operator.charOffset));
+          "Not a constant expression.", isOperator.charOffset));
     } else {
       push(isExpression);
     }

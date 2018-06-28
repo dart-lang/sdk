@@ -4487,15 +4487,8 @@ class Parser {
       not = token = token.next;
     }
     token = computeType(token, true).ensureTypeNotVoid(token, this);
-    Token next = token.next;
-    listener.handleIsOperator(operator, not, next);
-    String value = next.stringValue;
-    if (identical(value, 'is') || identical(value, 'as')) {
-      // The is- and as-operators cannot be chained, but they can take part of
-      // expressions like: foo is Foo || foo is Bar.
-      reportUnexpectedToken(next);
-    }
-    return token;
+    listener.handleIsOperator(operator, not);
+    return skipChainedAsIsOperators(token);
   }
 
   /// ```
@@ -4507,14 +4500,27 @@ class Parser {
     Token operator = token = token.next;
     assert(optional('as', operator));
     token = computeType(token, true).ensureTypeNotVoid(token, this);
-    Token next = token.next;
-    listener.handleAsOperator(operator, next);
-    String value = next.stringValue;
-    if (identical(value, 'is') || identical(value, 'as')) {
+    listener.handleAsOperator(operator);
+    return skipChainedAsIsOperators(token);
+  }
+
+  Token skipChainedAsIsOperators(Token token) {
+    while (true) {
+      Token next = token.next;
+      String value = next.stringValue;
+      if (!identical(value, 'is') && !identical(value, 'as')) {
+        return token;
+      }
       // The is- and as-operators cannot be chained.
-      reportUnexpectedToken(next);
+      // TODO(danrubel): Consider a better error message.
+      reportRecoverableErrorWithToken(next, fasta.templateUnexpectedToken);
+      if (optional('!', next.next)) {
+        next = next.next;
+      }
+      token = computeType(next, true).skipType(next);
+      next = token.next;
+      value = next.stringValue;
     }
-    return token;
   }
 
   /// Returns true if [token] could be the start of a function declaration

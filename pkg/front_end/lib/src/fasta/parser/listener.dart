@@ -956,7 +956,7 @@ class Listener implements UnescapeErrorListener {
     logEvent("WhileStatement");
   }
 
-  void handleAsOperator(Token operator, Token endToken) {
+  void handleAsOperator(Token operator) {
     logEvent("AsOperator");
   }
 
@@ -1017,7 +1017,7 @@ class Listener implements UnescapeErrorListener {
     logEvent("IndexedExpression");
   }
 
-  void handleIsOperator(Token operator, Token not, Token endToken) {
+  void handleIsOperator(Token isOperator, Token not) {
     logEvent("IsOperator");
   }
 

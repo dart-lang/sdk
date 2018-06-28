@@ -922,7 +922,7 @@ class AstBuilder extends StackListener {
     }
   }
 
-  void handleAsOperator(Token asOperator, Token endToken) {
+  void handleAsOperator(Token asOperator) {
     assert(optional('as', asOperator));
     debugEvent("AsOperator");
 
@@ -964,7 +964,7 @@ class AstBuilder extends StackListener {
     push(ast.continueStatement(continueKeyword, label, semicolon));
   }
 
-  void handleIsOperator(Token isOperator, Token not, Token endToken) {
+  void handleIsOperator(Token isOperator, Token not) {
     assert(optional('is', isOperator));
     assert(optionalOrNull('!', not));
     debugEvent("IsOperator");

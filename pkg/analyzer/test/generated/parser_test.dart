@@ -8006,6 +8006,19 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(asExpression.type, new TypeMatcher<TypeName>());
   }
 
+  void test_parseRelationalExpression_as_chained() {
+    AsExpression asExpression = parseExpression('x as Y as Z',
+        errors: usingFastaParser
+            ? [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 2)]
+            : []);
+    expect(asExpression, isNotNull);
+    SimpleIdentifier identifier = asExpression.expression;
+    expect(identifier.name, 'x');
+    expect(asExpression.asOperator, isNotNull);
+    TypeName typeName = asExpression.type;
+    expect(typeName.name.name, 'Y');
+  }
+
   void test_parseRelationalExpression_as_simple_function() {
     Expression expression = parseRelationalExpression('x as Function');
     expect(expression, isNotNull);
@@ -8025,6 +8038,19 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(isExpression.isOperator, isNotNull);
     expect(isExpression.notOperator, isNull);
     expect(isExpression.type, isNotNull);
+  }
+
+  void test_parseRelationalExpression_is_chained() {
+    IsExpression isExpression = parseExpression('x is Y is! Z',
+        errors: usingFastaParser
+            ? [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 2)]
+            : []);
+    expect(isExpression, isNotNull);
+    SimpleIdentifier identifier = isExpression.expression;
+    expect(identifier.name, 'x');
+    expect(isExpression.isOperator, isNotNull);
+    TypeName typeName = isExpression.type;
+    expect(typeName.name.name, 'Y');
   }
 
   void test_parseRelationalExpression_isNot() {
