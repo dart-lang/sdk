@@ -4037,6 +4037,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   Initializer buildRedirectingInitializer(
       Constructor constructor, Arguments arguments,
       [int charOffset = -1]) {
+    if (classBuilder.checkConstructorCyclic(
+        member.name, constructor.name.name)) {
+      int length = constructor.name.name.length;
+      if (length == 0) length = "this".length;
+      addProblem(fasta.messageConstructorCyclic, charOffset, length);
+      // TODO(askesc): Produce invalid initializer.
+    }
     needsImplicitSuperInitializer = false;
     return new RedirectingInitializerJudgment(
         constructor, forest.castArguments(arguments))

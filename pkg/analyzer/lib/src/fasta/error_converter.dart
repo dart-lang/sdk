@@ -509,6 +509,12 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.PREFIX_AFTER_COMBINATOR, offset, length);
         return;
+      case "RECURSIVE_CONSTRUCTOR_REDIRECT":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT,
+            offset,
+            length);
+        return;
       case "REDIRECTING_CONSTRUCTOR_WITH_BODY":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY, offset, length);

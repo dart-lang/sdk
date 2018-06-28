@@ -1191,6 +1191,19 @@ const MessageCode messageConstMethod = const MessageCode("ConstMethod",
     tip: r"""Try removing the 'const' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstructorCyclic = messageConstructorCyclic;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstructorCyclic = const MessageCode(
+    "ConstructorCyclic",
+    analyzerCode: "RECURSIVE_CONSTRUCTOR_REDIRECT",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message: r"""Redirecting constructers can't be cyclic.""",
+    tip:
+        r"""Try to have all constructors eventually redirect to a non-redirecting constructor.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateConstructorNotFound =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Couldn't find constructor '#name'.""",

@@ -2496,17 +2496,10 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   }
 
   @override
-  @failingTest
+  @failingTest // Fasta deliberately only reports this error once.
   test_recursiveConstructorRedirect() async {
-    // Expected 2 errors of type CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT, found 0
+    // Expected 2 errors of type CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT, found 1
     await super.test_recursiveConstructorRedirect();
-  }
-
-  @override
-  @failingTest
-  test_recursiveConstructorRedirect_directSelfReference() async {
-    // Expected 1 errors of type CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT, found 0
-    await super.test_recursiveConstructorRedirect_directSelfReference();
   }
 
   @override

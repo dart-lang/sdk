@@ -1096,6 +1096,15 @@ ConstructorWithWrongNameContext:
   template: "The name of the enclosing class is '#name'."
   severity: CONTEXT
 
+ConstructorCyclic:
+  template: "Redirecting constructers can't be cyclic."
+  tip: "Try to have all constructors eventually redirect to a non-redirecting constructor."
+  severity: ERROR
+  analyzerCode: RECURSIVE_CONSTRUCTOR_REDIRECT
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { C.foo() : this.bar(); C.bar() : this.foo(); }"
+
 FieldInitializerOutsideConstructor:
   template: "Field formal parameters can only be used in a constructor."
   tip: "Try removing 'this.'."
