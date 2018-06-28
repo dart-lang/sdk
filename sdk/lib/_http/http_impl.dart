@@ -1039,9 +1039,8 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
 
   Future<HttpClientResponse> get done {
     if (_response == null) {
-      _response =
-          Future.wait([_responseCompleter.future, super.done], eagerError: true)
-              .then((list) => list[0]);
+      _response = Future.wait([_responseCompleter.future, super.done],
+          eagerError: true).then((list) => list[0]);
     }
     return _response;
   }
@@ -1255,8 +1254,7 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
           outbound.headers.chunkedTransferEncoding) {
         List acceptEncodings =
             response._httpRequest.headers[HttpHeaders.acceptEncodingHeader];
-        List contentEncoding =
-            outbound.headers[HttpHeaders.contentEncodingHeader];
+        List contentEncoding = outbound.headers[HttpHeaders.contentEncodingHeader];
         if (acceptEncodings != null &&
             acceptEncodings
                 .expand((list) => list.split(","))
@@ -1659,8 +1657,8 @@ class _HttpClientConnection {
     if (proxy.isAuthenticated) {
       // If the proxy configuration contains user information use that
       // for proxy basic authorization.
-      String auth = _CryptoUtils.bytesToBase64(
-          utf8.encode("${proxy.username}:${proxy.password}"));
+      String auth = _CryptoUtils
+          .bytesToBase64(utf8.encode("${proxy.username}:${proxy.password}"));
       request.headers.set(HttpHeaders.proxyAuthorizationHeader, "Basic $auth");
     } else if (!proxy.isDirect && _httpClient._proxyCredentials.length > 0) {
       proxyCreds = _httpClient._findProxyCredentials(proxy);
@@ -1768,8 +1766,7 @@ class _HttpClientConnection {
   void close() {
     closed = true;
     _httpClient._connectionClosed(this);
-    _streamFuture
-        .timeout(_httpClient.idleTimeout)
+    _streamFuture.timeout(_httpClient.idleTimeout)
         .then((_) => _socket.destroy());
   }
 
@@ -1780,8 +1777,8 @@ class _HttpClientConnection {
     if (proxy.isAuthenticated) {
       // If the proxy configuration contains user information use that
       // for proxy basic authorization.
-      String auth = _CryptoUtils.bytesToBase64(
-          utf8.encode("${proxy.username}:${proxy.password}"));
+      String auth = _CryptoUtils
+          .bytesToBase64(utf8.encode("${proxy.username}:${proxy.password}"));
       request.headers.set(HttpHeaders.proxyAuthorizationHeader, "Basic $auth");
     }
     return request.close().then((response) {
@@ -1840,7 +1837,6 @@ class _ConnectionTarget {
   final SecurityContext context;
   final Set<_HttpClientConnection> _idle = new HashSet();
   final Set<_HttpClientConnection> _active = new HashSet();
-  final Set<ConnectionTask> _socketTasks = new HashSet();
   final Queue _pending = new ListQueue();
   int _connecting = 0;
 
@@ -1888,14 +1884,6 @@ class _ConnectionTarget {
   }
 
   void close(bool force) {
-    // Always cancel pending socket connections.
-    for (var t in _socketTasks.toList()) {
-      // Make sure the socket is destroyed if the ConnectionTask is cancelled.
-      t.socket.then((s) {
-        s.destroy();
-      }, onError: (e) {});
-      t.cancel();
-    }
     if (force) {
       for (var c in _idle.toList()) {
         c.destroy();
@@ -1932,48 +1920,35 @@ class _ConnectionTarget {
       return currentBadCertificateCallback(certificate, uriHost, uriPort);
     }
 
-    Future<ConnectionTask> connectionTask = (isSecure && proxy.isDirect
-        ? SecureSocket.startConnect(host, port,
-            context: context, onBadCertificate: callback)
-        : Socket.startConnect(host, port));
+    Future socketFuture = (isSecure && proxy.isDirect
+        ? SecureSocket.connect(host, port,
+            context: context, onBadCertificate: callback,
+            timeout: client.connectionTimeout)
+        : Socket.connect(host, port, timeout: client.connectionTimeout));
     _connecting++;
-    return connectionTask.then((ConnectionTask task) {
-      _socketTasks.add(task);
-      Future socketFuture = task.socket;
-      if (client.connectionTimeout != null) {
-        socketFuture =
-            socketFuture.timeout(client.connectionTimeout, onTimeout: () {
-          _socketTasks.remove(task);
-          task.cancel();
+    return socketFuture.then((socket) {
+      _connecting--;
+      socket.setOption(SocketOption.tcpNoDelay, true);
+      var connection =
+          new _HttpClientConnection(key, socket, client, false, context);
+      if (isSecure && !proxy.isDirect) {
+        connection._dispose = true;
+        return connection
+            .createProxyTunnel(uriHost, uriPort, proxy, callback)
+            .then((tunnel) {
+          client
+              ._getConnectionTarget(uriHost, uriPort, true)
+              .addNewActive(tunnel);
+          return new _ConnectionInfo(tunnel, proxy);
         });
+      } else {
+        addNewActive(connection);
+        return new _ConnectionInfo(connection, proxy);
       }
-      return socketFuture.then((socket) {
-        _connecting--;
-        socket.setOption(SocketOption.tcpNoDelay, true);
-        var connection =
-            new _HttpClientConnection(key, socket, client, false, context);
-        if (isSecure && !proxy.isDirect) {
-          connection._dispose = true;
-          return connection
-              .createProxyTunnel(uriHost, uriPort, proxy, callback)
-              .then((tunnel) {
-            client
-                ._getConnectionTarget(uriHost, uriPort, true)
-                .addNewActive(tunnel);
-            _socketTasks.remove(task);
-            return new _ConnectionInfo(tunnel, proxy);
-          });
-        } else {
-          addNewActive(connection);
-          _socketTasks.remove(task);
-          return new _ConnectionInfo(connection, proxy);
-        }
-      }, onError: (error) {
-        _connecting--;
-        _socketTasks.remove(task);
-        _checkPending();
-        throw error;
-      });
+    }, onError: (error) {
+      _connecting--;
+      _checkPending();
+      throw error;
     });
   }
 }
@@ -2128,8 +2103,9 @@ class _HttpClient implements HttpClient {
     bool isSecure = (uri.scheme == "https");
     int port = uri.port;
     if (port == 0) {
-      port =
-          isSecure ? HttpClient.defaultHttpsPort : HttpClient.defaultHttpPort;
+      port = isSecure
+          ? HttpClient.defaultHttpsPort
+          : HttpClient.defaultHttpPort;
     }
     // Check to see if a proxy server should be used for this connection.
     var proxyConf = const _ProxyConfiguration.direct();
@@ -2526,8 +2502,8 @@ class _HttpServer extends Stream<HttpRequest>
 
   static Future<HttpServer> bind(
       address, int port, int backlog, bool v6Only, bool shared) {
-    return ServerSocket.bind(address, port,
-            backlog: backlog, v6Only: v6Only, shared: shared)
+    return ServerSocket
+        .bind(address, port, backlog: backlog, v6Only: v6Only, shared: shared)
         .then<HttpServer>((socket) {
       return new _HttpServer._(socket, true);
     });
@@ -2541,7 +2517,8 @@ class _HttpServer extends Stream<HttpRequest>
       bool v6Only,
       bool requestClientCertificate,
       bool shared) {
-    return SecureServerSocket.bind(address, port, context,
+    return SecureServerSocket
+        .bind(address, port, context,
             backlog: backlog,
             v6Only: v6Only,
             requestClientCertificate: requestClientCertificate,
@@ -3000,8 +2977,8 @@ class _SiteCredentials extends _Credentials {
     if (scheme != null && credentials.scheme != scheme) return false;
     if (uri.host != this.uri.host) return false;
     int thisPort =
-        this.uri.port == 0 ? HttpClient.defaultHttpPort : this.uri.port;
-    int otherPort = uri.port == 0 ? HttpClient.defaultHttpPort : uri.port;
+        this.uri.port == 0 ? HttpClient.defaultHttpPort: this.uri.port;
+    int otherPort = uri.port == 0 ? HttpClient.defaultHttpPort: uri.port;
     if (otherPort != thisPort) return false;
     return uri.path.startsWith(this.uri.path);
   }
@@ -3139,14 +3116,14 @@ class _HttpClientDigestCredentials extends _HttpClientCredentials
   }
 
   void authorize(_Credentials credentials, HttpClientRequest request) {
-    request.headers.set(
-        HttpHeaders.authorizationHeader, authorization(credentials, request));
+    request.headers
+        .set(HttpHeaders.authorizationHeader, authorization(credentials, request));
   }
 
   void authorizeProxy(
       _ProxyCredentials credentials, HttpClientRequest request) {
-    request.headers.set(HttpHeaders.proxyAuthorizationHeader,
-        authorization(credentials, request));
+    request.headers.set(
+        HttpHeaders.proxyAuthorizationHeader, authorization(credentials, request));
   }
 }
 

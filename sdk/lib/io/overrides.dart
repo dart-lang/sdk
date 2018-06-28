@@ -83,9 +83,6 @@ abstract class IOOverrides {
       Future<Socket> Function(dynamic, int,
               {dynamic sourceAddress, Duration timeout})
           socketConnect,
-      Future<ConnectionTask<Socket>> Function(dynamic, int,
-              {dynamic sourceAddress})
-          socketStartConnect,
 
       // Optional Zone parameters
       ZoneSpecification zoneSpecification,
@@ -119,7 +116,6 @@ abstract class IOOverrides {
 
       // Socket
       socketConnect,
-      socketStartConnect,
     );
     return _asyncRunZoned<R>(body,
         zoneValues: {_ioOverridesToken: overrides},
@@ -258,21 +254,11 @@ abstract class IOOverrides {
   /// Asynchronously returns a [Socket] connected to the given host and port.
   ///
   /// When this override is installed, this functions overrides the behavior of
-  /// `Socket.connect(...)`.
+  /// `Socet.connect(...)`.
   Future<Socket> socketConnect(host, int port,
       {sourceAddress, Duration timeout}) {
     return Socket._connect(host, port,
         sourceAddress: sourceAddress, timeout: timeout);
-  }
-
-  /// Asynchronously returns a [ConnectionTask] that connects to the given host
-  /// and port when successful.
-  ///
-  /// When this override is installed, this functions overrides the behavior of
-  /// `Socket.startConnect(...)`.
-  Future<ConnectionTask<Socket>> socketStartConnect(host, int port,
-      {sourceAddress}) {
-    return Socket._startConnect(host, port, sourceAddress: sourceAddress);
   }
 }
 
@@ -308,8 +294,6 @@ class _IOOverridesScope extends IOOverrides {
   // Socket
   Future<Socket> Function(dynamic, int,
       {dynamic sourceAddress, Duration timeout}) _socketConnect;
-  Future<ConnectionTask<Socket>> Function(dynamic, int, {dynamic sourceAddress})
-      _socketStartConnect;
 
   _IOOverridesScope(
     // Directory
@@ -340,7 +324,6 @@ class _IOOverridesScope extends IOOverrides {
 
     // Socket
     this._socketConnect,
-    this._socketStartConnect,
   );
 
   // Directory
@@ -464,18 +447,5 @@ class _IOOverridesScope extends IOOverrides {
     }
     return super.socketConnect(host, port,
         sourceAddress: sourceAddress, timeout: timeout);
-  }
-
-  @override
-  Future<ConnectionTask<Socket>> socketStartConnect(host, int port,
-      {sourceAddress}) {
-    if (_socketStartConnect != null) {
-      return _socketStartConnect(host, port, sourceAddress: sourceAddress);
-    }
-    if (_previous != null) {
-      return _previous.socketStartConnect(host, port,
-          sourceAddress: sourceAddress);
-    }
-    return super.socketStartConnect(host, port, sourceAddress: sourceAddress);
   }
 }

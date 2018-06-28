@@ -74,21 +74,6 @@ void testSimpleConnect() {
   });
 }
 
-void testCancelConnect() {
-  asyncStart();
-  RawSocket.startConnect(InternetAddress.loopbackIPv4, 0)
-      .then((ConnectionTask<RawSocket> task) {
-    task.cancel();
-    task.socket.catchError((error) {
-      Expect.isTrue(error is SocketException);
-      asyncEnd();
-    });
-    task.socket.then((s) {
-      Expect.fail("Unreachable");
-    });
-  });
-}
-
 void testCloseOneEnd(String toClose) {
   asyncStart();
   Completer serverDone = new Completer();
@@ -482,7 +467,6 @@ main() {
   testCloseOneEnd("server");
   testInvalidBind();
   testSimpleConnect();
-  testCancelConnect();
   testServerListenAfterConnect();
   testSimpleReadWrite(dropReads: false);
   testSimpleReadWrite(dropReads: true);

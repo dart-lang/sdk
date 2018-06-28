@@ -461,12 +461,6 @@ class RawSocket {
       {sourceAddress, Duration timeout}) {
     throw UnsupportedError("RawSocket constructor");
   }
-
-  @patch
-  static Future<ConnectionTask<RawSocket>> startConnect(host, int port,
-      {sourceAddress}) {
-    throw UnsupportedError("RawSocket constructor");
-  }
 }
 
 @patch
@@ -474,12 +468,6 @@ class Socket {
   @patch
   static Future<Socket> _connect(host, int port,
       {sourceAddress, Duration timeout}) {
-    throw UnsupportedError("Socket constructor");
-  }
-
-  @patch
-  static Future<ConnectionTask<Socket>> _startConnect(host, int port,
-      {sourceAddress}) {
     throw UnsupportedError("Socket constructor");
   }
 }
