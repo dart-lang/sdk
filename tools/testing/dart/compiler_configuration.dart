@@ -1089,7 +1089,7 @@ abstract class VMKernelCompilerMixin {
     final args = [
       _isAot ? '--aot' : '--no-aot',
       '--strong-mode',
-      '--sync-async',
+      _configuration.noPreviewDart2 ? '--no-sync-async' : '--sync-async',
       '--platform=$vmPlatform',
       '-o',
       dillFile,
