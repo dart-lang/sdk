@@ -676,7 +676,6 @@ def CheckedInSdkPath():
   tools_dir = os.path.dirname(os.path.realpath(__file__))
   return os.path.join(tools_dir,
                       'sdks',
-                      osname,
                       'dart-sdk')
 
 

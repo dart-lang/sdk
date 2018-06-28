@@ -13,6 +13,6 @@ if %SCRIPTPATH:~-1%==\ set SCRIPTPATH=%SCRIPTPATH:~0,-1%
 
 set SDK_DIR=%SCRIPTPATH%/../../../
 
-set DART=%SDK_DIR%/tools/sdks/win/dart-sdk/bin/dart.exe
+set DART=%SDK_DIR%/tools/sdks/dart-sdk/bin/dart.exe
 
 "%DART%" %DART_VM_OPTIONS% "%SDK_DIR%/pkg/vm/bin/gen_kernel.dart" %*

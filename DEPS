@@ -8,6 +8,7 @@
 
 allowed_hosts = [
   'boringssl.googlesource.com',
+  'chrome-infra-packages.appspot.com',
   'chromium.googlesource.com',
   'dart.googlesource.com',
   'fuchsia.googlesource.com',
@@ -67,7 +68,7 @@ vars = {
 
   # Note: updates to dart_style have to be coordinated carefully with
   # the infrastructure-team so that the internal formatter in
-  # `sdk/tools/sdks/*/dart-sdk/bin/dartfmt` matches the version here.
+  # `sdk/tools/sdks/dart-sdk/bin/dartfmt` matches the version here.
   #
   # Please follow this process to make updates:
   #   * file an issue with area-infrastructure requesting a roll for this
@@ -152,10 +153,20 @@ deps = {
     Var("chromium_git") + "/chromium/llvm-project/cfe/tools/clang-format.git" +
     "@" + Var("clang_format_scripts_rev"),
 
+  Var("dart_root") + "/tools/sdks": {
+      "packages": [
+          {
+              "package": "dart/dart-sdk/${{platform}}",
+              "version": "version:2.0.0-dev.65.0",
+          },
+      ],
+      "dep_type": "cipd",
+  },
+
   Var("dart_root") + "/tests/co19/src":
       Var("dart_git") + "co19.git" + "@" + Var("co19_rev"),
 
-Var("dart_root") + "/tests/co19_2/src":
+  Var("dart_root") + "/tests/co19_2/src":
       Var("chromium_git") + "/external/github.com/dart-lang/co19.git" +
       "@" + Var("co19_2_rev"),
 
@@ -371,22 +382,6 @@ hooks = [
       '--recursive',
       '--directory',
       Var('dart_root') + '/third_party/d8',
-    ],
-  },
-  {
-    "name": "checked_in_dart_sdks",
-    "pattern": ".",
-    "action": [
-      "download_from_google_storage",
-      "--no_auth",
-      "--no_resume",
-      "--bucket",
-      "dart-dependencies",
-      "--recursive",
-      "--auto_platform",
-      "--extract",
-      "--directory",
-      Var('dart_root') + "/tools/sdks",
     ],
   },
   {
