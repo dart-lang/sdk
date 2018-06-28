@@ -1,19 +1,13 @@
-This directory contains the hashes of tar.gz files uploaded to cloud storage.
-Hooks in the DEPS files run "download_from_google_storage" to download these
-tarfiles, and unpack them. These tar files contain a stable Dart SDK, which
-is used to build the observatory and to run the test scripts.
+This directory contains a stable Dart SDK, which is used to build the
+observatory and to run the test scripts.
 
-The hooks use the --auto-platform feature, so that only the SDK for the
-current platform (linux, macos, or windows) is downloaded. This requires
-the subdirectories to have the special names "linux", "win", and "mac", which
-the download script is hardcoded to recognize.
+The DEPS use CIPD's ${platform} syntax find the right SDK for the platform.
 
-The linux SDK has two extra dart executables added to the bin directory.
-'dart-arm' and 'dart-arm64' are executables compiled to run on
-arm and arm64 (aarch64) processors, respectively. We are currently
-using the 32-bit ia32 build as the default on windows, and the 64-bit x64
-build as the default on linux and macos.
+We are currently using the 32-bit ia32 build as the default on Windows, and the
+64-bit x64 build as the default on Linux and Mac. arm and arm64 CIPD packages
+are used on Linux.
 
-To upload new versions of these tar files, run "./update.sh" in this directory.
-Because these SDKs are used for the presubmit dartfmt check on changed files,
-they may need to be updated often when dartfmt is changing rapidly.
+To upload new versions of these CIPD packages, run "./update.sh" in this
+directory. Because these SDKs are used for the presubmit dartfmt check on
+changed files, they may need to be updated often when dartfmt is changing
+rapidly. Access to the project-dart-admins Luci auth group is required to do so.
