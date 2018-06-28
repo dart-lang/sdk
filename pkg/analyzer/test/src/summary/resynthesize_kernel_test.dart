@@ -156,27 +156,6 @@ class C {
     await super.test_exportImport_configurations_useFirst();
   }
 
-  @failingTest
-  @override
-  test_futureOr() async {
-    // TODO(brianwilkerson) Triage this failure.
-    fail('Inconsistent results');
-  }
-
-  @failingTest
-  @override
-  test_futureOr_const() async {
-    // TODO(brianwilkerson) Triage this failure.
-    fail('Inconsistent results');
-  }
-
-  @failingTest
-  @override
-  test_futureOr_inferred() async {
-    // TODO(brianwilkerson) Triage this failure.
-    fail('Inconsistent results');
-  }
-
   test_getElement_unit() async {
     String text = 'class C {}';
     Source source = addLibrarySource('/test.dart', text);
