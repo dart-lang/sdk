@@ -11,7 +11,6 @@ import '../constant_context.dart' show ConstantContext;
 
 import '../fasta_codes.dart'
     show
-        LocatedMessage,
         messageInvalidInitializer,
         templateDeferredTypeAnnotation,
         templateIntegerLiteralIsOutOfRange,
@@ -138,16 +137,6 @@ abstract class ExpressionGenerator {
   ///
   /// At runtime, [value] will be evaluated before throwing an exception.
   Expression makeInvalidWrite(Expression value);
-
-  /* Expression | Generator */ buildThrowNoSuchMethodError(
-      Expression receiver, Arguments arguments,
-      {bool isSuper,
-      bool isGetter,
-      bool isSetter,
-      bool isStatic,
-      String name,
-      int offset,
-      LocatedMessage argMessage});
 }
 
 /// A generator represents a subexpression for which we can't yet build an
@@ -218,25 +207,6 @@ abstract class Generator implements ExpressionGenerator {
     helper.addProblem(templateNotAType.withArguments(token.lexeme),
         offsetForToken(token), lengthForToken(token));
     return const InvalidType();
-  }
-
-  @override
-  /* Expression | Generator */ buildThrowNoSuchMethodError(
-      Expression receiver, Arguments arguments,
-      {bool isSuper: false,
-      bool isGetter: false,
-      bool isSetter: false,
-      bool isStatic: false,
-      String name,
-      int offset,
-      LocatedMessage argMessage}) {
-    return helper.throwNoSuchMethodError(receiver, name ?? plainNameForWrite,
-        arguments, offset ?? offsetForToken(this.token),
-        isGetter: isGetter,
-        isSetter: isSetter,
-        isSuper: isSuper,
-        isStatic: isStatic,
-        argMessage: argMessage);
   }
 
   bool get isThisPropertyAccess => false;
@@ -657,7 +627,7 @@ abstract class LargeIntAccessGenerator implements Generator {
 abstract class ErroneousExpressionGenerator implements Generator {
   /// Pass [arguments] that must be evaluated before throwing an error.  At
   /// most one of [isGetter] and [isSetter] should be true and they're passed
-  /// to [ExpressionGeneratorHelper.buildThrowNoSuchMethodError] if it is used.
+  /// to [ExpressionGeneratorHelper.throwNoSuchMethodError] if it is used.
   Expression buildError(Arguments arguments,
       {bool isGetter: false, bool isSetter: false, int offset});
 
@@ -686,18 +656,6 @@ abstract class ErroneousExpressionGenerator implements Generator {
       IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
     return send.withReceiver(buildSimpleRead(), operatorOffset,
         isNullAware: isNullAware);
-  }
-
-  @override
-  buildThrowNoSuchMethodError(Expression receiver, Arguments arguments,
-      {bool isSuper: false,
-      bool isGetter: false,
-      bool isSetter: false,
-      bool isStatic: false,
-      String name,
-      int offset,
-      LocatedMessage argMessage}) {
-    return this;
   }
 
   @override

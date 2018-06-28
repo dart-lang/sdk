@@ -116,6 +116,8 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
 
   Forest get forest;
 
+  String get plainNameForRead;
+
   @override
   Expression buildSimpleRead() {
     return _finish(_makeSimpleRead(), null);
@@ -212,15 +214,21 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
 
   @override
   Expression makeInvalidRead() {
-    return buildThrowNoSuchMethodError(
-        forest.literalNull(token), forest.argumentsEmpty(noLocation),
+    return helper.throwNoSuchMethodError(
+        forest.literalNull(token),
+        plainNameForRead,
+        forest.argumentsEmpty(noLocation),
+        offsetForToken(token),
         isGetter: true);
   }
 
   @override
   Expression makeInvalidWrite(Expression value) {
-    return buildThrowNoSuchMethodError(forest.literalNull(token),
+    return helper.throwNoSuchMethodError(
+        forest.literalNull(token),
+        plainNameForRead,
         forest.arguments(<Expression>[value], noLocation),
+        offsetForToken(token),
         isSetter: true);
   }
 
@@ -1236,10 +1244,12 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
 
   @override
   Expression makeInvalidWrite(Expression value) {
-    return buildThrowNoSuchMethodError(
+    return helper.throwNoSuchMethodError(
         forest.literalNull(token),
+        plainNameForRead,
         forest.arguments(<Expression>[value], null)
           ..fileOffset = value.fileOffset,
+        offsetForToken(token),
         isSetter: true);
   }
 

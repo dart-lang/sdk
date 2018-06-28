@@ -109,11 +109,12 @@ class ThisAccessGenerator extends KernelGenerator {
           constructor.function, arguments, offset, <TypeParameter>[]);
     }
     if (constructor == null || argMessage != null) {
-      return helper.buildInvalidInitializer(buildThrowNoSuchMethodError(
-          forest.literalNull(null)..fileOffset = offset, arguments,
+      return helper.buildInvalidInitializer(helper.throwNoSuchMethodError(
+          forest.literalNull(null)..fileOffset = offset,
+          name.name,
+          arguments,
+          offset,
           isSuper: isSuper,
-          name: name.name,
-          offset: offset,
           argMessage: argMessage));
     } else if (isSuper) {
       return helper.buildSuperInitializer(
