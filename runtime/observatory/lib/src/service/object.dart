@@ -2114,8 +2114,9 @@ M.ErrorKind stringToErrorKind(String value) {
     case 'TerminationError':
       return M.ErrorKind.terminationError;
   }
-  Logger.root.severe('Unrecognized error kind: $value');
-  throw new FallThroughError();
+  var message = 'Unrecognized error kind: $value';
+  Logger.root.severe(message);
+  throw new ArgumentError(message);
 }
 
 /// A [DartError] is peered to a Dart Error object.
@@ -2747,8 +2748,9 @@ M.InstanceKind stringToInstanceKind(String s) {
     case 'BoundedType':
       return M.InstanceKind.boundedType;
   }
-  Logger.root.severe("Unrecognized InstanceKind: '$s'");
-  throw new FallThroughError();
+  var message = 'Unrecognized instance kind: $s';
+  Logger.root.severe(message);
+  throw new ArgumentError(message);
 }
 
 class Guarded<T extends ServiceObject> implements M.Guarded<T> {
@@ -3115,8 +3117,9 @@ M.FunctionKind stringToFunctionKind(String value) {
     case 'DynamicInvocationForwarder':
       return M.FunctionKind.dynamicInvocationForwarder;
   }
-  Logger.root.severe('Unrecognized function kind: $value');
-  throw new FallThroughError();
+  var message = 'Unrecognized function kind: $value';
+  Logger.root.severe(message);
+  throw new ArgumentError(message);
 }
 
 class ServiceFunction extends HeapObject implements M.ServiceFunction {
@@ -3220,8 +3223,9 @@ M.SentinelKind stringToSentinelKind(String s) {
     case 'Free':
       return M.SentinelKind.free;
   }
-  Logger.root.severe("Unrecognized SentinelKind: '$s'");
-  throw new FallThroughError();
+  var message = 'Unrecognized sentinel kind: $s';
+  Logger.root.severe(message);
+  throw new ArgumentError(message);
 }
 
 class Sentinel extends ServiceObject implements M.Sentinel {
@@ -4234,8 +4238,9 @@ M.CodeKind stringToCodeKind(String s) {
   } else if (s == 'Stub') {
     return M.CodeKind.stub;
   }
-  Logger.root.severe("Unrecognized code kind: '$s'");
-  throw new FallThroughError();
+  var message = 'Unrecognized code kind: $s';
+  Logger.root.severe(message);
+  throw new ArgumentError(message);
 }
 
 class CodeInlineInterval {
@@ -4475,8 +4480,9 @@ class SocketKind {
     } else if (s == 'Internal') {
       return Internal;
     }
-    Logger.root.warning('Unknown socket kind $s');
-    throw new FallThroughError();
+    var message = 'Unrecognized socket kind: $s';
+    Logger.root.warning(message);
+    throw new ArgumentError(message);
   }
 
   static const Listening = const SocketKind._internal('Listening');

@@ -200,7 +200,7 @@ class ObservatoryApplication {
         return;
       }
     }
-    throw new FallThroughError();
+    throw new ArgumentError.value(uri, 'uri');
   }
 
   /// Set the Observatory application page.
