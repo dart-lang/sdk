@@ -99,7 +99,7 @@ Future testConfigurations(List<Configuration> configurations) async {
         configuration.architecture.name
       ];
       if (configuration.isChecked) settings.add('checked');
-      if (configuration.isStrong) settings.add('strong');
+      if (configuration.noPreviewDart2) settings.add('no-preview-dart-2');
       if (configuration.useFastStartup) settings.add('fast-startup');
       if (configuration.useEnableAsserts) settings.add('enable-asserts');
       outputWords.add(settings.join('_'));

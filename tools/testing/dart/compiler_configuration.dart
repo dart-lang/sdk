@@ -36,7 +36,6 @@ abstract class CompilerConfiguration {
 
   bool get _isDebug => _configuration.mode.isDebug;
   bool get _isChecked => _configuration.isChecked;
-  bool get _isStrong => _configuration.isStrong;
   bool get _isHostChecked => _configuration.isHostChecked;
   bool get _useSdk => _configuration.useSdk;
   bool get _useEnableAsserts => _configuration.useEnableAsserts;
@@ -740,9 +739,6 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       args.add('--obfuscate');
     }
 
-    if (_isStrong) {
-      args.add('--strong');
-    }
     if (previewDart2) {
       args.addAll(_replaceDartFiles(arguments, tempKernelFile(tempDir)));
     } else {
@@ -1003,12 +999,11 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
     arguments = arguments.toList();
-    if (_isChecked || _isStrong) {
+    if (_isChecked || previewDart2) {
       arguments.add('--enable_type_checks');
     }
-    if (_isStrong) {
-      arguments.add('--strong');
-    } else {
+    if (!previewDart2) {
+      arguments.add('--no-preview-dart-2');
       arguments.add('--no-strong');
     }
     if (_configuration.useAnalyzerCfe) {
@@ -1066,7 +1061,6 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
 abstract class VMKernelCompilerMixin {
   Configuration get _configuration;
   bool get _useSdk;
-  bool get _isStrong;
   bool get _isAot;
   bool get _isChecked;
   bool get _useEnableAsserts;
@@ -1094,10 +1088,8 @@ abstract class VMKernelCompilerMixin {
 
     final args = [
       _isAot ? '--aot' : '--no-aot',
-      // Specify strong mode irrespective of the value of _isStrong
-      // as preview_dart_2 implies strong mode anyway.
       '--strong-mode',
-      _isStrong ? '--sync-async' : '--no-sync-async',
+      '--sync-async',
       '--platform=$vmPlatform',
       '-o',
       dillFile,
@@ -1133,7 +1125,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
 
   final Uri _vmExecutable;
 
-  bool get _isLegacy => !_configuration.isStrong;
+  bool get _isLegacy => _configuration.noPreviewDart2;
 
   factory FastaCompilerConfiguration(Configuration configuration) {
     var buildDirectory =
@@ -1144,7 +1136,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
       dillDir = buildDirectory.resolve("dart-sdk/lib/_internal/");
     }
 
-    var suffix = configuration.isStrong ? "_strong" : "";
+    var suffix = !configuration.noPreviewDart2 ? "_strong" : "";
     var platformDill = dillDir.resolve("vm_platform$suffix.dill");
 
     var vmExecutable = buildDirectory

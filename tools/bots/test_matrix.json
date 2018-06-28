@@ -1596,8 +1596,6 @@
           "name": "analyze pkg tests",
           "arguments": [
             "--compiler=dart2analyzer",
-            "--preview-dart-2",
-            "--strong",
             "--use-sdk",
             "pkg"
           ]
@@ -1606,8 +1604,6 @@
           "name": "analyze tests preview-dart2",
           "arguments": [
             "--compiler=dart2analyzer",
-            "--preview-dart-2",
-            "--strong",
             "--use-sdk"
           ]
         }
