@@ -23,6 +23,8 @@ main() {
   });
 }
 
+final isDynamicType = new TypeMatcher<DynamicTypeImpl>();
+
 final isUndefinedType = new TypeMatcher<UndefinedTypeImpl>();
 
 /**
@@ -2610,6 +2612,36 @@ var b = new C<num, String>.named(4, 'five');
       Expression argument = value.argumentList.arguments[0];
       _assertArgumentToParameter(argument, namedConstructor.parameters[0]);
     }
+  }
+
+  test_invalid_methodInvocation_simpleIdentifier() async {
+    addTestFile(r'''
+int foo = 0;
+main() {
+  foo(1);
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isNotEmpty);
+
+    var typeProvider = result.unit.element.context.typeProvider;
+    TopLevelVariableElement foo = _getTopLevelVariable(result, 'foo');
+
+    List<Statement> statements = _getMainStatements(result);
+    ExpressionStatement statement = statements[0];
+
+    MethodInvocation invocation = statement.expression;
+    expect(invocation.staticType, isDynamicType);
+    if (useCFE) {
+      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/33682
+      expect(invocation.staticInvokeType.toString(), '() → dynamic');
+    } else {
+      expect(invocation.staticInvokeType, typeProvider.intType);
+    }
+
+    SimpleIdentifier name = invocation.methodName;
+    expect(name.staticElement, same(foo.getter));
+    expect(name.staticType, typeProvider.intType);
   }
 
   test_isExpression() async {
@@ -5975,6 +6007,648 @@ typedef void F(int p);
     }
   }
 
+  test_unresolved_instanceCreation_name_11() async {
+    addTestFile(r'''
+main() {
+  new Foo<int, double>();
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isNotEmpty);
+
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    List<Statement> statements = _getMainStatements(result);
+    ExpressionStatement statement = statements[0];
+
+    InstanceCreationExpression creation = statement.expression;
+    if (useCFE) {
+      expect(creation.staticType, isDynamicType);
+    }
+
+    ConstructorName constructorName = creation.constructorName;
+    expect(constructorName.name, isNull);
+
+    TypeName typeName = constructorName.type;
+    if (useCFE) {
+      expect(typeName.type, isDynamicType);
+    }
+
+    SimpleIdentifier typeIdentifier = typeName.name;
+    expect(typeIdentifier.staticElement, isNull);
+    if (useCFE) {
+      expect(typeIdentifier.staticType, isDynamicType);
+    }
+
+    List<TypeAnnotation> arguments = typeName.typeArguments.arguments;
+    expect(arguments, hasLength(2));
+    _assertTypeNameSimple(arguments[0], typeProvider.intType);
+    _assertTypeNameSimple(arguments[1], typeProvider.doubleType);
+  }
+
+  test_unresolved_instanceCreation_name_21() async {
+    addTestFile(r'''
+main() {
+  new foo.Bar<int, double>();
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isNotEmpty);
+
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    List<Statement> statements = _getMainStatements(result);
+    ExpressionStatement statement = statements[0];
+
+    InstanceCreationExpression creation = statement.expression;
+    if (useCFE) {
+      expect(creation.staticType, isDynamicType);
+    }
+
+    ConstructorName constructorName = creation.constructorName;
+    expect(constructorName.name, isNull);
+
+    TypeName typeName = constructorName.type;
+    if (useCFE) {
+      expect(typeName.type, isDynamicType);
+    }
+
+    PrefixedIdentifier typePrefixed = typeName.name;
+    expect(typePrefixed.staticElement, isNull);
+    if (useCFE) {
+      expect(typePrefixed.staticType, isDynamicType);
+    }
+
+    SimpleIdentifier typePrefix = typePrefixed.prefix;
+    expect(typePrefix.staticElement, isNull);
+    if (useCFE) {
+      expect(typePrefix.staticType, isDynamicType);
+    }
+
+    SimpleIdentifier typeIdentifier = typePrefixed.identifier;
+    expect(typeIdentifier.staticElement, isNull);
+    if (useCFE) {
+      expect(typePrefix.staticType, isDynamicType);
+    }
+
+    List<TypeAnnotation> arguments = typeName.typeArguments.arguments;
+    expect(arguments, hasLength(2));
+    _assertTypeNameSimple(arguments[0], typeProvider.intType);
+    _assertTypeNameSimple(arguments[1], typeProvider.doubleType);
+  }
+
+  test_unresolved_instanceCreation_name_22() async {
+    addTestFile(r'''
+import 'dart:math' as foo;
+main() {
+  new foo.Bar<int, double>();
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isNotEmpty);
+
+    var unitElement = result.unit.element;
+    var typeProvider = unitElement.context.typeProvider;
+    var foo = unitElement.library.imports[0].prefix;
+
+    List<Statement> statements = _getMainStatements(result);
+    ExpressionStatement statement = statements[0];
+
+    InstanceCreationExpression creation = statement.expression;
+    if (useCFE) {
+      expect(creation.staticType, isDynamicType);
+    }
+
+    ConstructorName constructorName = creation.constructorName;
+    expect(constructorName.name, isNull);
+
+    TypeName typeName = constructorName.type;
+    if (useCFE) {
+      expect(typeName.type, isDynamicType);
+    }
+
+    PrefixedIdentifier typePrefixed = typeName.name;
+    expect(typePrefixed.staticElement, isNull);
+    if (useCFE) {
+      expect(typePrefixed.staticType, isDynamicType);
+    }
+
+    SimpleIdentifier typePrefix = typePrefixed.prefix;
+    expect(typePrefix.staticElement, same(foo));
+    expect(typePrefix.staticType, isNull);
+
+    SimpleIdentifier typeIdentifier = typePrefixed.identifier;
+    expect(typeIdentifier.staticElement, isNull);
+    if (useCFE) {
+      expect(typePrefix.staticType, isDynamicType);
+    }
+
+    List<TypeAnnotation> arguments = typeName.typeArguments.arguments;
+    expect(arguments, hasLength(2));
+    _assertTypeNameSimple(arguments[0], typeProvider.intType);
+    _assertTypeNameSimple(arguments[1], typeProvider.doubleType);
+  }
+
+  test_unresolved_instanceCreation_name_31() async {
+    addTestFile(r'''
+main() {
+  new foo.Bar<int, double>.baz();
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isNotEmpty);
+
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    List<Statement> statements = _getMainStatements(result);
+    ExpressionStatement statement = statements[0];
+
+    InstanceCreationExpression creation = statement.expression;
+    if (useCFE) {
+      expect(creation.staticType, isDynamicType);
+    }
+
+    ConstructorName constructorName = creation.constructorName;
+
+    TypeName typeName = constructorName.type;
+    if (useCFE) {
+      expect(typeName.type, isDynamicType);
+    }
+
+    PrefixedIdentifier typePrefixed = typeName.name;
+    expect(typePrefixed.staticElement, isNull);
+    if (useCFE) {
+      expect(typePrefixed.staticType, isDynamicType);
+    }
+
+    SimpleIdentifier typePrefix = typePrefixed.prefix;
+    expect(typePrefix.staticElement, isNull);
+    if (useCFE) {
+      expect(typePrefix.staticType, isDynamicType);
+    }
+
+    SimpleIdentifier typeIdentifier = typePrefixed.identifier;
+    expect(typeIdentifier.staticElement, isNull);
+    if (useCFE) {
+      expect(typePrefix.staticType, isDynamicType);
+    }
+
+    List<TypeAnnotation> arguments = typeName.typeArguments.arguments;
+    expect(arguments, hasLength(2));
+    _assertTypeNameSimple(arguments[0], typeProvider.intType);
+    _assertTypeNameSimple(arguments[1], typeProvider.doubleType);
+
+    expect(constructorName.name.staticElement, isNull);
+    if (useCFE) {
+      expect(constructorName.name.staticType, isDynamicType);
+    }
+  }
+
+  test_unresolved_instanceCreation_name_32() async {
+    addTestFile(r'''
+import 'dart:math' as foo;
+main() {
+  new foo.Bar<int, double>.baz();
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isNotEmpty);
+
+    var unitElement = result.unit.element;
+    var typeProvider = unitElement.context.typeProvider;
+    var mathImport = unitElement.library.imports[0];
+    var foo = mathImport.prefix;
+
+    List<Statement> statements = _getMainStatements(result);
+    ExpressionStatement statement = statements[0];
+
+    InstanceCreationExpression creation = statement.expression;
+    if (useCFE) {
+      expect(creation.staticType, isDynamicType);
+    }
+
+    ConstructorName constructorName = creation.constructorName;
+
+    TypeName typeName = constructorName.type;
+    if (useCFE) {
+      expect(typeName.type, isDynamicType);
+    }
+
+    PrefixedIdentifier typePrefixed = typeName.name;
+    expect(typePrefixed.staticElement, isNull);
+    if (useCFE) {
+      expect(typePrefixed.staticType, isDynamicType);
+    }
+
+    SimpleIdentifier typePrefix = typePrefixed.prefix;
+    expect(typePrefix.staticElement, same(foo));
+    expect(typePrefix.staticType, isNull);
+
+    SimpleIdentifier typeIdentifier = typePrefixed.identifier;
+    expect(typeIdentifier.staticElement, isNull);
+    if (useCFE) {
+      expect(typePrefix.staticType, isNull);
+    }
+
+    List<TypeAnnotation> arguments = typeName.typeArguments.arguments;
+    expect(arguments, hasLength(2));
+    _assertTypeNameSimple(arguments[0], typeProvider.intType);
+    _assertTypeNameSimple(arguments[1], typeProvider.doubleType);
+
+    expect(constructorName.name.staticElement, isNull);
+    expect(constructorName.name.staticType, isNull);
+  }
+
+  test_unresolved_instanceCreation_name_33() async {
+    addTestFile(r'''
+import 'dart:math' as foo;
+main() {
+  new foo.Random<int, double>.baz();
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isNotEmpty);
+
+    var unitElement = result.unit.element;
+    var typeProvider = unitElement.context.typeProvider;
+    var mathImport = unitElement.library.imports[0];
+    var foo = mathImport.prefix;
+    var randomElement = mathImport.importedLibrary.getType('Random');
+
+    List<Statement> statements = _getMainStatements(result);
+    ExpressionStatement statement = statements[0];
+
+    InstanceCreationExpression creation = statement.expression;
+    if (useCFE) {
+      expect(creation.staticType, isDynamicType);
+    }
+
+    ConstructorName constructorName = creation.constructorName;
+
+    TypeName typeName = constructorName.type;
+    if (useCFE) {
+      expect(typeName.type, isDynamicType);
+    }
+
+    PrefixedIdentifier typePrefixed = typeName.name;
+    expect(typePrefixed.staticElement, same(randomElement));
+    expect(typePrefixed.staticType, randomElement.type);
+
+    SimpleIdentifier typePrefix = typePrefixed.prefix;
+    expect(typePrefix.staticElement, same(foo));
+    expect(typePrefix.staticType, isNull);
+
+    SimpleIdentifier typeIdentifier = typePrefixed.identifier;
+    expect(typeIdentifier.staticElement, same(randomElement));
+    expect(typePrefix.staticType, isNull);
+
+    List<TypeAnnotation> arguments = typeName.typeArguments.arguments;
+    expect(arguments, hasLength(2));
+    _assertTypeNameSimple(arguments[0], typeProvider.intType);
+    _assertTypeNameSimple(arguments[1], typeProvider.doubleType);
+
+    expect(constructorName.name.staticElement, isNull);
+    expect(constructorName.name.staticType, isNull);
+  }
+
+  test_unresolved_methodInvocation_argument_resolved_named() async {
+    addTestFile(r'''
+int bar;
+main() {
+  foo(a: bar);
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isNotEmpty);
+
+    var typeProvider = result.unit.element.context.typeProvider;
+    TopLevelVariableElement barElement = _getTopLevelVariable(result, 'bar');
+
+    List<Statement> statements = _getMainStatements(result);
+    ExpressionStatement statement = statements[0];
+
+    MethodInvocation invocation = statement.expression;
+    expect(invocation.target, isNull);
+    expect(invocation.staticType, isDynamicType);
+    expect(invocation.staticInvokeType, isDynamicType);
+
+    SimpleIdentifier name = invocation.methodName;
+    expect(name.staticElement, isNull);
+    expect(name.staticType, isDynamicType);
+
+    {
+      NamedExpression named = invocation.argumentList.arguments[0];
+
+      SimpleIdentifier name = named.name.label;
+      expect(name.staticElement, isNull);
+      if (useCFE) {
+        expect(name.staticType, isDynamicType);
+      }
+
+      SimpleIdentifier bar = named.expression;
+      expect(bar.staticElement, same(barElement.getter));
+      expect(bar.staticType, typeProvider.intType);
+    }
+  }
+
+  test_unresolved_methodInvocation_argument_resolved_required() async {
+    addTestFile(r'''
+int bar;
+main() {
+  foo(bar);
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isNotEmpty);
+
+    var typeProvider = result.unit.element.context.typeProvider;
+    TopLevelVariableElement barElement = _getTopLevelVariable(result, 'bar');
+
+    List<Statement> statements = _getMainStatements(result);
+    ExpressionStatement statement = statements[0];
+
+    MethodInvocation invocation = statement.expression;
+    expect(invocation.target, isNull);
+    expect(invocation.staticType, isDynamicType);
+    expect(invocation.staticInvokeType, isDynamicType);
+
+    SimpleIdentifier name = invocation.methodName;
+    expect(name.staticElement, isNull);
+    expect(name.staticType, isDynamicType);
+
+    SimpleIdentifier bar = invocation.argumentList.arguments[0];
+    expect(bar.staticElement, same(barElement.getter));
+    expect(bar.staticType, typeProvider.intType);
+  }
+
+  test_unresolved_methodInvocation_noTarget() async {
+    addTestFile(r'''
+main() {
+  foo();
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isNotEmpty);
+
+    List<Statement> statements = _getMainStatements(result);
+    ExpressionStatement statement = statements[0];
+
+    MethodInvocation invocation = statement.expression;
+    expect(invocation.target, isNull);
+    expect(invocation.staticType, isDynamicType);
+    expect(invocation.staticInvokeType, isDynamicType);
+
+    SimpleIdentifier name = invocation.methodName;
+    expect(name.staticElement, isNull);
+    expect(name.staticType, isDynamicType);
+  }
+
+  test_unresolved_methodInvocation_target_resolved() async {
+    addTestFile(r'''
+Object foo;
+main() {
+  foo.bar();
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isNotEmpty);
+
+    var typeProvider = result.unit.element.context.typeProvider;
+    TopLevelVariableElement foo = _getTopLevelVariable(result, 'foo');
+
+    List<Statement> statements = _getMainStatements(result);
+    ExpressionStatement statement = statements[0];
+
+    MethodInvocation invocation = statement.expression;
+    expect(invocation.staticType, isDynamicType);
+    if (useCFE) {
+      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/33682
+      expect(invocation.staticInvokeType.toString(), '() → dynamic');
+    } else {
+      expect(invocation.staticInvokeType, isDynamicType);
+    }
+
+    SimpleIdentifier target = invocation.target;
+    expect(target.staticElement, same(foo.getter));
+    expect(target.staticType, typeProvider.objectType);
+
+    SimpleIdentifier name = invocation.methodName;
+    expect(name.staticElement, isNull);
+    if (useCFE) {
+      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/33682
+      expect(name.staticType.toString(), '() → dynamic');
+    } else {
+      expect(name.staticType, isDynamicType);
+    }
+  }
+
+  test_unresolved_methodInvocation_target_unresolved() async {
+    addTestFile(r'''
+main() {
+  foo.bar();
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isNotEmpty);
+
+    List<Statement> statements = _getMainStatements(result);
+    ExpressionStatement statement = statements[0];
+
+    MethodInvocation invocation = statement.expression;
+    expect(invocation.staticType, isDynamicType);
+    expect(invocation.staticInvokeType, isDynamicType);
+
+    SimpleIdentifier target = invocation.target;
+    expect(target.staticElement, isNull);
+    expect(target.staticType, isDynamicType);
+
+    SimpleIdentifier name = invocation.methodName;
+    expect(name.staticElement, isNull);
+    expect(name.staticType, isDynamicType);
+  }
+
+  test_unresolved_prefixedIdentifier_identifier() async {
+    addTestFile(r'''
+Object foo;
+main() {
+  foo.bar;
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isNotEmpty);
+
+    var typeProvider = result.unit.element.context.typeProvider;
+    TopLevelVariableElement foo = _getTopLevelVariable(result, 'foo');
+
+    List<Statement> statements = _getMainStatements(result);
+    ExpressionStatement statement = statements[0];
+
+    PrefixedIdentifier prefixed = statement.expression;
+    expect(prefixed.staticElement, isNull);
+    expect(prefixed.staticType, isDynamicType);
+
+    SimpleIdentifier prefix = prefixed.prefix;
+    expect(prefix.staticElement, same(foo.getter));
+    expect(prefix.staticType, typeProvider.objectType);
+
+    SimpleIdentifier identifier = prefixed.identifier;
+    expect(identifier.staticElement, isNull);
+    expect(identifier.staticType, isDynamicType);
+  }
+
+  test_unresolved_prefixedIdentifier_prefix() async {
+    addTestFile(r'''
+main() {
+  foo.bar;
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isNotEmpty);
+
+    List<Statement> statements = _getMainStatements(result);
+    ExpressionStatement statement = statements[0];
+
+    PrefixedIdentifier prefixed = statement.expression;
+    expect(prefixed.staticElement, isNull);
+    expect(prefixed.staticType, isDynamicType);
+
+    SimpleIdentifier prefix = prefixed.prefix;
+    expect(prefix.staticElement, isNull);
+    expect(prefix.staticType, isDynamicType);
+
+    SimpleIdentifier identifier = prefixed.identifier;
+    expect(identifier.staticElement, isNull);
+    expect(identifier.staticType, isDynamicType);
+  }
+
+  test_unresolved_propertyAccess_1() async {
+    addTestFile(r'''
+main() {
+  foo.bar.baz;
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isNotEmpty);
+
+    List<Statement> statements = _getMainStatements(result);
+    ExpressionStatement statement = statements[0];
+
+    PropertyAccess propertyAccess = statement.expression;
+    expect(propertyAccess.staticType, isDynamicType);
+
+    {
+      PrefixedIdentifier prefixed = propertyAccess.target;
+      expect(prefixed.staticElement, isNull);
+      expect(prefixed.staticType, isDynamicType);
+
+      SimpleIdentifier prefix = prefixed.prefix;
+      expect(prefix.staticElement, isNull);
+      expect(prefix.staticType, isDynamicType);
+
+      SimpleIdentifier identifier = prefixed.identifier;
+      expect(identifier.staticElement, isNull);
+      expect(identifier.staticType, isDynamicType);
+    }
+
+    SimpleIdentifier property = propertyAccess.propertyName;
+    expect(property.staticElement, isNull);
+    expect(property.staticType, isDynamicType);
+  }
+
+  test_unresolved_propertyAccess_2() async {
+    addTestFile(r'''
+Object foo;
+main() {
+  foo.bar.baz;
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isNotEmpty);
+
+    var typeProvider = result.unit.element.context.typeProvider;
+    TopLevelVariableElement foo = _getTopLevelVariable(result, 'foo');
+
+    List<Statement> statements = _getMainStatements(result);
+    ExpressionStatement statement = statements[0];
+
+    PropertyAccess propertyAccess = statement.expression;
+    expect(propertyAccess.staticType, isDynamicType);
+
+    {
+      PrefixedIdentifier prefixed = propertyAccess.target;
+      expect(prefixed.staticElement, isNull);
+      expect(prefixed.staticType, isDynamicType);
+
+      SimpleIdentifier prefix = prefixed.prefix;
+      expect(prefix.staticElement, same(foo.getter));
+      expect(prefix.staticType, typeProvider.objectType);
+
+      SimpleIdentifier identifier = prefixed.identifier;
+      expect(identifier.staticElement, isNull);
+      expect(identifier.staticType, isDynamicType);
+    }
+
+    SimpleIdentifier property = propertyAccess.propertyName;
+    expect(property.staticElement, isNull);
+    expect(property.staticType, isDynamicType);
+  }
+
+  test_unresolved_propertyAccess_3() async {
+    addTestFile(r'''
+Object foo;
+main() {
+  foo.hashCode.baz;
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isNotEmpty);
+
+    var typeProvider = result.unit.element.context.typeProvider;
+    PropertyAccessorElement objectHashCode =
+        typeProvider.objectType.getGetter('hashCode');
+    TopLevelVariableElement foo = _getTopLevelVariable(result, 'foo');
+
+    List<Statement> statements = _getMainStatements(result);
+    ExpressionStatement statement = statements[0];
+
+    PropertyAccess propertyAccess = statement.expression;
+    expect(propertyAccess.staticType, isDynamicType);
+
+    {
+      PrefixedIdentifier prefixed = propertyAccess.target;
+      expect(prefixed.staticElement, same(objectHashCode));
+      expect(prefixed.staticType, typeProvider.intType);
+
+      SimpleIdentifier prefix = prefixed.prefix;
+      expect(prefix.staticElement, same(foo.getter));
+      expect(prefix.staticType, typeProvider.objectType);
+
+      SimpleIdentifier identifier = prefixed.identifier;
+      expect(identifier.staticElement, same(objectHashCode));
+      expect(identifier.staticType, typeProvider.intType);
+    }
+
+    SimpleIdentifier property = propertyAccess.propertyName;
+    expect(property.staticElement, isNull);
+    expect(property.staticType, isDynamicType);
+  }
+
+  test_unresolved_simpleIdentifier() async {
+    addTestFile(r'''
+main() {
+  foo;
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isNotEmpty);
+
+    List<Statement> statements = _getMainStatements(result);
+    ExpressionStatement statement = statements[0];
+    SimpleIdentifier identifier = statement.expression;
+    expect(identifier.staticElement, isNull);
+    expect(identifier.staticType, isDynamicType);
+  }
+
   /// Assert that the [argument] is associated with the [expectedParameter],
   /// if [useCFE] is `null`. If the [argument] is a [NamedExpression],
   /// the name must be resolved to the parameter in both cases.
@@ -6078,6 +6752,16 @@ typedef void F(int p);
       }
     }
     fail('Not found main() in ${result.unit}');
+  }
+
+  TopLevelVariableElement _getTopLevelVariable(
+      AnalysisResult result, String name) {
+    for (var variable in result.unit.element.topLevelVariables) {
+      if (variable.name == name) {
+        return variable;
+      }
+    }
+    fail('Not found $name');
   }
 
   /**
