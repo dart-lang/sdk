@@ -20,6 +20,9 @@
 
   * `dart:io`
     * Adds `HttpClient.connectionTimeout`.
+    * Adds `{Socket,RawSocket,SecureSocket}.startConnect`. These return a
+      `ConnectionTask`, which can be used to cancel an in-flight connection
+      attempt.
 
 ## 2.0.0-dev.65.0
 
