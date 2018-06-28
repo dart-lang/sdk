@@ -161,6 +161,9 @@ regress_30339_test: CompileTimeError # As expected. Should we make this a multi 
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 29920
 setter_override2_test/02: MissingCompileTimeError # Issue 14736
 stacktrace_test: RuntimeError # Issue 29920
+static_setter_conflicts_test/02: MissingCompileTimeError
+static_setter_conflicts_test/11: MissingCompileTimeError
+static_setter_conflicts_test/12: MissingCompileTimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError

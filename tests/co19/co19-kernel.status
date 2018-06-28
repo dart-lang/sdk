@@ -203,6 +203,7 @@ Language/Classes/Setters/same_name_getter_different_type_t02: CompileTimeError
 Language/Classes/Setters/type_object_t01: CompileTimeError
 Language/Classes/Setters/type_object_t02: CompileTimeError
 Language/Classes/Static_Methods/declaration_t03: CompileTimeError
+Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeError # Invalid test, see #33237
 Language/Classes/Static_Methods/type_object_t01: CompileTimeError
 Language/Classes/Static_Methods/type_object_t02: CompileTimeError
 Language/Classes/Static_Variables/inheritance_t01: CompileTimeError
@@ -1692,6 +1693,7 @@ Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t05
 Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t06: MissingCompileTimeError
 Language/Classes/Instance_Variables/constant_t01: MissingCompileTimeError
 Language/Classes/Static_Methods/declaration_t01: MissingCompileTimeError
+Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeError # Invalid test, see #33237
 Language/Classes/Superclasses/wrong_superclass_t08: MissingCompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError
 Language/Classes/same_name_instance_and_static_members_t01: MissingCompileTimeError

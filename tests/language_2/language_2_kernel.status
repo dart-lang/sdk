@@ -2061,6 +2061,10 @@ static_final_field2_test/01: MissingCompileTimeError
 static_getter_no_setter1_test/01: MissingCompileTimeError
 static_getter_no_setter2_test/01: MissingCompileTimeError
 static_initializer_type_error_test: MissingCompileTimeError
+static_setter_conflicts_test/01: MissingCompileTimeError
+static_setter_conflicts_test/03: MissingCompileTimeError
+static_setter_conflicts_test/04: MissingCompileTimeError
+static_setter_conflicts_test/07: MissingCompileTimeError
 static_setter_get_test/01: MissingCompileTimeError
 string_interpolation_test/01: MissingCompileTimeError
 string_no_operator_test/01: MissingCompileTimeError
