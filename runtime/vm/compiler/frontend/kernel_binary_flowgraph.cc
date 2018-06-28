@@ -522,7 +522,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
       } break;
       case ConstantPoolTag::kContextOffset: {
         intptr_t index = builder_->ReadUInt();
-        if (i == 0) {
+        if (index == 0) {
           obj = Smi::New(Context::parent_offset() / kWordSize);
         } else {
           obj = Smi::New(Context::variable_offset(index - 1) / kWordSize);
