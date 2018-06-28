@@ -123,48 +123,50 @@ class _AllowedLongLineVisitor extends RecursiveAstVisitor {
   }
 }
 
-class _AllowedCommentVisitor extends GeneralizingAstVisitor {
+class _AllowedCommentVisitor extends SimpleAstVisitor {
   _AllowedCommentVisitor(this.lineInfo);
 
   final LineInfo lineInfo;
   final allowedLines = <int>[];
 
   @override
-  visitNode(AstNode node) {
-    final comments = <CommentToken>[]
-      ..addAll(_getPrecedingComments(node.beginToken))
-      ..addAll(_getPrecedingComments(node.endToken));
-    for (final comment in comments) {
-      final content = comment.toString();
-      final lines = [];
-      if (content.startsWith('///')) {
-        lines.add(content.substring(3));
-      } else if (content.startsWith('//')) {
-        lines.add(content.substring(2));
-      } else if (content.startsWith('/*')) {
-        // remove last slash before finding slash
-        lines.addAll(content.substring(2, content.length - 2).split('\n'));
-      }
-      for (var i = 0; i < lines.length; i++) {
-        final value = lines[i];
-        if (_looksLikeUriOrPath(value)) {
-          final line = lineInfo.getLocation(comment.offset).lineNumber + i;
-          allowedLines.add(line);
-        }
-      }
+  visitCompilationUnit(CompilationUnit node) {
+    var token = node.beginToken;
+    while (token != null) {
+      _getPrecedingComments(token).forEach(_visitComment);
+      if (token == token.next) break;
+      token = token.next;
     }
-    node.visitChildren(this);
   }
 
-  List<CommentToken> _getPrecedingComments(Token token) {
-    var comments = <CommentToken>[];
-    var comment = token.precedingComments;
-    while (comment is CommentToken) {
-      comments.add(comment);
+  Iterable<CommentToken> _getPrecedingComments(Token token) sync* {
+    CommentToken comment = token.precedingComments;
+    while (comment != null) {
+      yield comment;
       comment = comment.next;
     }
-    return comments;
+  }
+
+  void _visitComment(CommentToken comment) {
+    final content = comment.toString();
+    final lines = [];
+    if (content.startsWith('///')) {
+      lines.add(content.substring(3));
+    } else if (content.startsWith('//')) {
+      lines.add(content.substring(2));
+    } else if (content.startsWith('/*')) {
+      // remove last slash before finding slash
+      lines.addAll(content.substring(2, content.length - 2).split('\n'));
+    }
+    for (var i = 0; i < lines.length; i++) {
+      final value = lines[i];
+      if (_looksLikeUriOrPath(value)) {
+        final line = lineInfo.getLocation(comment.offset).lineNumber + i;
+        allowedLines.add(line);
+      }
+    }
   }
 }
 
-bool _looksLikeUriOrPath(String value) => value.contains('/');
+final uriRegExp = new RegExp(r'/[\S]{5,}');
+bool _looksLikeUriOrPath(String value) => uriRegExp.hasMatch(value);
