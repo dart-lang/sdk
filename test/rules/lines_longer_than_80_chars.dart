@@ -15,17 +15,14 @@ var long =
 var uriIsOk =
     'https://www.dartlang.org/guides/language/effective-dart/style#avoid-lines-longer-than-80-characters'; // OK
 
+var posixPathIsOk =
+    '/home/www.dartlang.org/guides/language/effective-dart/style#avoid-lines-longer-than-80-characters'; // OK
+
+var windowsPathIsOk =
+    r'\home\www.dartlang.org\guides\language\effective-dart\style#avoid-lines-longer-than-80-characters'; // OK
+
 var multilinesOK = '''
 This line is a long, very long, very very long, very very very long, very very very very long
 ''';
 
 var interpolated = 'this $uriIsOk that';
-/// dart
-/// doc
-
-// simple doc
-
-/*
- * multi-
- * line doc
- */

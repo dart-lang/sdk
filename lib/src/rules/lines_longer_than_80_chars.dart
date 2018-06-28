@@ -56,6 +56,21 @@ class _Visitor extends SimpleAstVisitor {
   @override
   void visitCompilationUnit(CompilationUnit node) {
     final lineInfo = node.lineInfo;
+    final lineCount = lineInfo.lineCount;
+    final longLines = <_LineInfo>[];
+    for (int i = 0; i < lineCount; i++) {
+      final start = lineInfo.getOffsetOfLine(i);
+      final end = i == lineCount - 1
+          ? node.end
+          : lineInfo.getOffsetOfLineAfter(start) - 1;
+      final length = end - start;
+      if (length > 80) {
+        final line = new _LineInfo(index: i, offset: start, end: end);
+        longLines.add(line);
+      }
+    }
+
+    if (longLines.isEmpty) return;
 
     final allowedLineVisitor = new _AllowedLongLineVisitor(lineInfo);
     node.accept(allowedLineVisitor);
@@ -66,18 +81,20 @@ class _Visitor extends SimpleAstVisitor {
       ..addAll(allowedLineVisitor.allowedLines)
       ..addAll(allowedCommentVisitor.allowedLines);
 
-    final lineCount = lineInfo.lineCount;
-    for (int i = 0; i < lineCount; i++) {
-      final start = lineInfo.getOffsetOfLine(i);
-      final end = i == lineCount - 1
-          ? node.end
-          : lineInfo.getOffsetOfLineAfter(start) - 1;
-      final length = end - start;
-      if (length > 80 && !allowedLines.contains(i + 1)) {
-        rule.reporter.reportErrorForOffset(rule.lintCode, start, length);
-      }
+    for (final line in longLines) {
+      if (allowedLines.contains(line.index + 1)) continue;
+      rule.reporter
+          .reportErrorForOffset(rule.lintCode, line.offset, line.length);
     }
   }
+}
+
+class _LineInfo {
+  _LineInfo({this.index, this.offset, this.end});
+  final int index;
+  final int offset;
+  final int end;
+  int get length => end - offset;
 }
 
 class _AllowedLongLineVisitor extends RecursiveAstVisitor {
@@ -168,5 +185,7 @@ class _AllowedCommentVisitor extends SimpleAstVisitor {
   }
 }
 
-final uriRegExp = new RegExp(r'/[\S]{5,}');
-bool _looksLikeUriOrPath(String value) => uriRegExp.hasMatch(value);
+/// String looks like URI if it contains a slash or backslash followed by 5
+/// non-empty chars.
+final _uriRegExp = new RegExp(r'[/\\]\S{5,}');
+bool _looksLikeUriOrPath(String value) => _uriRegExp.hasMatch(value);
