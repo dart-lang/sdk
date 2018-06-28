@@ -180,7 +180,6 @@ analyzer/test/generated/non_error_resolver_test: Fail
 analyzer/test/generated/resolver_test: Fail
 analyzer/test/generated/utilities_test: Fail
 analyzer/test/src/context/context_test: Fail
-analyzer/tool/summary/check_test: Fail
 analyzer_plugin/test/src/utilities/completion/completion_target_test: Fail
 analyzer_plugin/test/src/utilities/completion/optype_test: Fail
 analyzer_plugin/test/src/utilities/visitors/local_declaration_visitor_test: Fail
