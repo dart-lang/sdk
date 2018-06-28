@@ -125,13 +125,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
-  test_constructorDeclaration_scope_signature() async {
-    return super.test_constructorDeclaration_scope_signature();
-  }
-
-  @override
-  @failingTest
   test_duplicateDefinition_emptyName() {
     // NoSuchMethodError: The setter 'enclosingElement=' was called on null.
     return super.test_duplicateDefinition_emptyName();
@@ -167,15 +160,9 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
-  test_functionDeclaration_scope_signature() async {
-    return super.test_functionDeclaration_scope_signature();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
+  @potentialAnalyzerProblem
   test_functionTypeAlias_scope_signature() async {
+    // Caused by Bad state: Found 1 annotation nodes and 0 element annotations
     return super.test_functionTypeAlias_scope_signature();
   }
 
@@ -213,13 +200,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   test_metadata_enumConstantDeclaration() {
     // Failed to resolve 2 nodes
     return super.test_metadata_enumConstantDeclaration();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
-  test_methodDeclaration_scope_signature() async {
-    return super.test_methodDeclaration_scope_signature();
   }
 
   @override

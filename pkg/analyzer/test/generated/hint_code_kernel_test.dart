@@ -83,12 +83,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
     return super.test_deprecatedAnnotationUse_Deprecated();
   }
 
-  @override
-  @failingTest
-  test_deprecatedAnnotationUse_named() async {
-    return super.test_deprecatedAnnotationUse_named();
-  }
-
   @failingTest
   @override
   test_deprecatedAnnotationUse_positional() async {
@@ -152,31 +146,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   @failingTest
   test_invalidRequiredParam_on_named_parameter_with_default() async {
     return super.test_invalidRequiredParam_on_named_parameter_with_default();
-  }
-
-  @override
-  @failingTest
-  test_invalidRequiredParam_on_positional_parameter() async {
-    return super.test_invalidRequiredParam_on_positional_parameter();
-  }
-
-  @override
-  @failingTest
-  test_invalidRequiredParam_on_positional_parameter_with_default() async {
-    return super
-        .test_invalidRequiredParam_on_positional_parameter_with_default();
-  }
-
-  @override
-  @failingTest
-  test_invalidRequiredParam_on_required_parameter() async {
-    return super.test_invalidRequiredParam_on_required_parameter();
-  }
-
-  @override
-  @failingTest
-  test_invalidRequiredParam_valid() async {
-    return super.test_invalidRequiredParam_valid();
   }
 
   @failingTest
@@ -250,26 +219,8 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @override
   @failingTest
-  test_required_constructor_param_no_reason() async {
-    return super.test_required_constructor_param_no_reason();
-  }
-
-  @override
-  @failingTest
   test_required_constructor_param_null_reason() async {
     return super.test_required_constructor_param_null_reason();
-  }
-
-  @override
-  @failingTest
-  test_required_constructor_param_OK() async {
-    return super.test_required_constructor_param_OK();
-  }
-
-  @override
-  @failingTest
-  test_required_constructor_param_redirecting_cons_call() async {
-    return super.test_required_constructor_param_redirecting_cons_call();
   }
 
   @override

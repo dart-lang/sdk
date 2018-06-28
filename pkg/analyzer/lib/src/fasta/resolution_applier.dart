@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/fasta/resolution_storer.dart';
+import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:front_end/src/base/syntactic_entity.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:kernel/kernel.dart' as kernel;
@@ -254,10 +255,9 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   @override
   void visitFormalParameterList(FormalParameterList parameterList) {
     for (var parameter in parameterList.parameters) {
+      parameter.metadata?.accept(this);
       if (parameter is DefaultFormalParameter) {
-        if (parameter.defaultValue != null) {
-          parameter.defaultValue.accept(this);
-        }
+        parameter.defaultValue?.accept(this);
       }
     }
   }
@@ -842,6 +842,9 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     for (int i = 0; i < length; i++) {
       ParameterElementImpl element = parameterElements[i];
       FormalParameter parameter = parameters[i];
+
+      DeclarationResolver.resolveMetadata(
+          parameter, parameter.metadata, element);
 
       NormalFormalParameter normalParameter;
       if (parameter is NormalFormalParameter) {

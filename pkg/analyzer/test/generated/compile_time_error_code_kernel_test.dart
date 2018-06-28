@@ -52,13 +52,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_async_used_as_identifier_in_annotation() async {
-    // 'package:analyzer/src/dart/constant/utilities.dart': Failed assertion: line 184 pos 14: 'node.parent is PartOfDirective ||
-    await super.test_async_used_as_identifier_in_annotation();
-  }
-
-  @override
-  @failingTest
   test_async_used_as_identifier_in_break_statement() async {
     // Bad state: No type information for true at 21
     await super.test_async_used_as_identifier_in_break_statement();

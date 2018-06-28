@@ -8402,6 +8402,10 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   List<ElementAnnotation> get metadata {
+    if (_kernel != null) {
+      _metadata ??=
+          enclosingUnit._kernelContext.buildAnnotations(_kernel.annotations);
+    }
     if (unlinkedParam != null) {
       return _metadata ??=
           _buildAnnotations(enclosingUnit, unlinkedParam.annotations);
