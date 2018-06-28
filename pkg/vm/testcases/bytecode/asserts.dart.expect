@@ -13,21 +13,20 @@ Bytecode {
   IfEqStrictTOS
   Jump                 L1
   PushConstant         CP#1
+  PushConstant         CP#1
   PushConstant         CP#2
-  PushConstant         CP#3
-  PushConstant         CP#5
-  IndirectStaticCall   3, CP#4
+  PushConstant         CP#4
+  IndirectStaticCall   3, CP#3
 L1:
-  PushConstant         CP#3
+  PushConstant         CP#2
   ReturnTOS
 }
 ConstantPool {
   [0] = Bool true
-  [1] = Int 255
-  [2] = Int 264
-  [3] = Null
-  [4] = ArgDesc num-args 3, num-type-args 0, names []
-  [5] = StaticICData target 'dart.core::_AssertionError::_throwNew', arg-desc CP#4
+  [1] = Int 0
+  [2] = Null
+  [3] = ArgDesc num-args 3, num-type-args 0, names []
+  [4] = StaticICData target 'dart.core::_AssertionError::_throwNew', arg-desc CP#3
 }
 ]static method test1(core::bool condition) → void {
   assert(condition);
@@ -44,25 +43,24 @@ Bytecode {
   IfEqStrictTOS
   Jump                 L1
   PushConstant         CP#3
-  PushConstant         CP#4
+  PushConstant         CP#3
   Push                 FP[-5]
-  InstanceCall1        1, CP#5
-  PushConstant         CP#7
-  IndirectStaticCall   3, CP#6
+  InstanceCall1        1, CP#4
+  PushConstant         CP#6
+  IndirectStaticCall   3, CP#5
 L1:
-  PushConstant         CP#8
+  PushConstant         CP#7
   ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 1, num-type-args 0, names []
   [1] = ICData target-name 'call', arg-desc CP#0
   [2] = Bool true
-  [3] = Int 328
-  [4] = Int 339
-  [5] = ICData target-name 'call', arg-desc CP#0
-  [6] = ArgDesc num-args 3, num-type-args 0, names []
-  [7] = StaticICData target 'dart.core::_AssertionError::_throwNew', arg-desc CP#6
-  [8] = Null
+  [3] = Int 0
+  [4] = ICData target-name 'call', arg-desc CP#0
+  [5] = ArgDesc num-args 3, num-type-args 0, names []
+  [6] = StaticICData target 'dart.core::_AssertionError::_throwNew', arg-desc CP#5
+  [7] = Null
 }
 ]static method test2(() → core::bool condition, () → core::String message) → void {
   assert(condition.call(), message.call());

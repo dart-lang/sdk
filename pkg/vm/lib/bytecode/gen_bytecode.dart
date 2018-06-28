@@ -31,7 +31,9 @@ const bool isKernelBytecodeEnabled = false;
 const bool isKernelBytecodeEnabledForPlatform = isKernelBytecodeEnabled;
 
 void generateBytecode(Component component,
-    {bool strongMode: true, bool dropAST: false}) {
+    {bool strongMode: true,
+    bool dropAST: false,
+    bool omitSourcePositions: false}) {
   final coreTypes = new CoreTypes(component);
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   final hierarchy = new ClassHierarchy(component,
@@ -40,7 +42,7 @@ void generateBytecode(Component component,
       new TypeEnvironment(coreTypes, hierarchy, strongMode: strongMode);
   final constantsBackend = new VmConstantsBackend(null, coreTypes);
   new BytecodeGenerator(component, coreTypes, hierarchy, typeEnvironment,
-          constantsBackend, strongMode)
+          constantsBackend, strongMode, omitSourcePositions)
       .visitComponent(component);
   if (dropAST) {
     new DropAST().visitComponent(component);
@@ -54,6 +56,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   final TypeEnvironment typeEnvironment;
   final ConstantsBackend constantsBackend;
   final bool strongMode;
+  final bool omitSourcePositions;
   final BytecodeMetadataRepository metadata = new BytecodeMetadataRepository();
 
   Class enclosingClass;
@@ -75,8 +78,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   BytecodeAssembler asm;
   List<BytecodeAssembler> savedAssemblers;
 
-  BytecodeGenerator(this.component, this.coreTypes, this.hierarchy,
-      this.typeEnvironment, this.constantsBackend, this.strongMode) {
+  BytecodeGenerator(
+      this.component,
+      this.coreTypes,
+      this.hierarchy,
+      this.typeEnvironment,
+      this.constantsBackend,
+      this.strongMode,
+      this.omitSourcePositions) {
     component.addMetadataRepository(metadata);
   }
 
@@ -1611,8 +1620,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final bool negated = _genCondition(node.condition);
     _genJumpIfTrue(negated, done);
 
-    _genPushInt(node.conditionStartOffset);
-    _genPushInt(node.conditionEndOffset);
+    _genPushInt(omitSourcePositions ? 0 : node.conditionStartOffset);
+    _genPushInt(omitSourcePositions ? 0 : node.conditionEndOffset);
 
     if (node.message != null) {
       node.message.accept(this);
