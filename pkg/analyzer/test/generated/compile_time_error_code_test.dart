@@ -34,15 +34,10 @@ class A<T> {
   const A();
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(
-          source, [StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
-    } else {
-      assertErrors(source, [
-        CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
-        StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
-      ]);
-    }
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
+      StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
+    ]);
     verify([source]);
   }
 
@@ -53,15 +48,10 @@ class A<T> {
   const A();
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertErrors(
-          source, [StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
-    } else {
-      assertErrors(source, [
-        CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
-        StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
-      ]);
-    }
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
+      StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
+    ]);
     verify([source]);
   }
 
@@ -73,12 +63,8 @@ class A<E> {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(
-          source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST]);
-    }
+    assertErrors(
+        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST]);
     verify([source]);
   }
 
@@ -90,12 +76,8 @@ class A<E> {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(
-          source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP]);
-    }
+    assertErrors(
+        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP]);
     verify([source]);
   }
 
@@ -5643,17 +5625,22 @@ var b = const B();''');
 
   test_nonConstValueInInitializer_instanceCreation_inDifferentFile() async {
     resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
-    Source source = addNamedSource('/a.dart', r'''
+    Source sourceA = addNamedSource('/a.dart', r'''
 import 'b.dart';
 const v = const MyClass();
 ''');
-    addNamedSource('/b.dart', r'''
+    Source sourceB = addNamedSource('/b.dart', r'''
 class MyClass {
   const MyClass([p = foo]);
 }
 ''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+    await computeAnalysisResult(sourceA);
+    assertNoErrors(sourceA);
+    await computeAnalysisResult(sourceB);
+    assertErrors(sourceB, [
+      CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE,
+      StaticWarningCode.UNDEFINED_IDENTIFIER
+    ]);
   }
 
   test_nonConstValueInInitializer_redirecting() async {

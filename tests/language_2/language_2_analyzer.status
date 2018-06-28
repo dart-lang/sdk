@@ -1130,11 +1130,6 @@ additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
 cascaded_forwarding_stubs_test: CompileTimeError
 config_import_corelib_test: CompileTimeError
 conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Crashes or times out
-const_types_test/07: MissingCompileTimeError # Incorrectly allows using type parameter in const expression.
-const_types_test/08: MissingCompileTimeError # Incorrectly allows using type parameter in const expression.
-const_types_test/14: MissingCompileTimeError # Incorrectly allows using type parameter in const expression.
-const_types_test/15: MissingCompileTimeError # Incorrectly allows using type parameter in const expression.
-constant_type_literal_test/01: MissingCompileTimeError # Issue 28823
 default_implementation2_test: CompileTimeError # Issue 30855
 error_stacktrace_test/00: Pass
 field3_test/02: MissingCompileTimeError # Issue 33022
