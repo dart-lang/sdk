@@ -14,6 +14,9 @@ native_no_such_method_exception5_frog_test: SkipByDesign # mirrors not supported
 [ $browser ]
 *: Skip
 
+[ $compiler == dart2js && $checked ]
+error_safeToString_test: RuntimeError # Fix for Issue 33627 disabled native class sharing
+
 [ $compiler == dart2js && $fasta ]
 native_library_same_name_used_frog_test: CompileTimeError
 subclassing_constructor_1_test: RuntimeError

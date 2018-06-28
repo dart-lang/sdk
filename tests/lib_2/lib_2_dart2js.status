@@ -172,6 +172,7 @@ html/element_types_progress_test: RuntimeError
 html/element_types_shadow_test: RuntimeError
 html/element_types_template_test: RuntimeError
 html/element_types_track_test: RuntimeError
+html/event_callback_test: Skip # Browser test
 html/event_customevent_test: RuntimeError
 html/event_test: RuntimeError
 html/events_test: RuntimeError

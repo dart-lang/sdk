@@ -38,6 +38,8 @@ main(List<String> args) {
         'map_literal_checked.dart',
         // TODO(johnniwinther): Optimize local function type signature need.
         'subtype_named_args.dart',
+        // TODO(33690):
+        'native.dart',
       ],
     );
   });

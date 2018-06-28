@@ -236,6 +236,12 @@ Future<CompiledData> computeData(
     commonElements.asyncLibrary,
   ];
 
+  LibraryEntity htmlLibrary =
+      elementEnvironment.lookupLibrary(Uri.parse('dart:html'), required: false);
+  if (htmlLibrary != null) {
+    globalLibraries.add(htmlLibrary);
+  }
+
   ClassEntity getGlobalClass(String className) {
     ClassEntity cls;
     for (LibraryEntity library in globalLibraries) {
