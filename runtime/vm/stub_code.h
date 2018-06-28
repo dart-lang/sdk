@@ -79,7 +79,9 @@ class SnapshotWriter;
   V(FrameAwaitingMaterialization)                                              \
   V(AsynchronousGapMarker)                                                     \
   V(NullErrorSharedWithFPURegs)                                                \
-  V(NullErrorSharedWithoutFPURegs)
+  V(NullErrorSharedWithoutFPURegs)                                             \
+  V(StackOverflowSharedWithFPURegs)                                            \
+  V(StackOverflowSharedWithoutFPURegs)
 
 #else
 #define VM_STUB_CODE_LIST(V)                                                   \
@@ -202,8 +204,11 @@ class StubCode : public AllStatic {
   static RawCode* Generate(const char* name,
                            void (*GenerateStub)(Assembler* assembler));
 
-  static void GenerateNullErrorShared(Assembler* assembler,
-                                      bool save_fpu_registers);
+  static void GenerateSharedStub(Assembler* assembler,
+                                 bool save_fpu_registers,
+                                 const RuntimeEntry* target,
+                                 intptr_t self_code_stub_offset_from_thread,
+                                 bool allow_return);
 
   static void GenerateMegamorphicMissStub(Assembler* assembler);
   static void GenerateAllocationStubForClass(Assembler* assembler,

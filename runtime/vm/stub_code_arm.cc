@@ -122,6 +122,18 @@ void StubCode::GenerateNullErrorSharedWithFPURegsStub(Assembler* assembler) {
   __ Breakpoint();
 }
 
+void StubCode::GenerateStackOverflowSharedWithoutFPURegsStub(
+    Assembler* assembler) {
+  // TODO(sjindel): implement.
+  __ Breakpoint();
+}
+
+void StubCode::GenerateStackOverflowSharedWithFPURegsStub(
+    Assembler* assembler) {
+  // TODO(sjindel): implement.
+  __ Breakpoint();
+}
+
 // Input parameters:
 //   R0 : stop message (const char*).
 // Must preserve all registers.

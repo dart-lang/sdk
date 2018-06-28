@@ -98,6 +98,10 @@ class Zone;
     StubCode::NullErrorSharedWithoutFPURegs_entry()->code(), NULL)             \
   V(RawCode*, null_error_shared_with_fpu_regs_stub_,                           \
     StubCode::NullErrorSharedWithFPURegs_entry()->code(), NULL)                \
+  V(RawCode*, stack_overflow_shared_without_fpu_regs_stub_,                    \
+    StubCode::StackOverflowSharedWithoutFPURegs_entry()->code(), NULL)         \
+  V(RawCode*, stack_overflow_shared_with_fpu_regs_stub_,                       \
+    StubCode::StackOverflowSharedWithFPURegs_entry()->code(), NULL)            \
   V(RawCode*, monomorphic_miss_stub_,                                          \
     StubCode::MonomorphicMiss_entry()->code(), NULL)                           \
   V(RawCode*, ic_lookup_through_code_stub_,                                    \
@@ -142,6 +146,10 @@ class Zone;
     StubCode::NullErrorSharedWithoutFPURegs_entry()->EntryPoint(), 0)          \
   V(uword, null_error_shared_with_fpu_regs_entry_point_,                       \
     StubCode::NullErrorSharedWithFPURegs_entry()->EntryPoint(), 0)             \
+  V(uword, stack_overflow_shared_without_fpu_regs_entry_point_,                \
+    StubCode::StackOverflowSharedWithoutFPURegs_entry()->EntryPoint(), 0)      \
+  V(uword, stack_overflow_shared_with_fpu_regs_entry_point_,                   \
+    StubCode::StackOverflowSharedWithFPURegs_entry()->EntryPoint(), 0)         \
   V(uword, megamorphic_call_checked_entry_,                                    \
     StubCode::MegamorphicCall_entry()->EntryPoint(), 0)                        \
   V(uword, monomorphic_miss_entry_,                                            \

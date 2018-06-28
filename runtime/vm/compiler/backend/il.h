@@ -1010,6 +1010,15 @@ class Instruction : public ZoneAllocated {
 
   void Unsupported(FlowGraphCompiler* compiler);
 
+  static bool SlowPathSharingSupported(bool is_optimizing) {
+#if defined(TARGET_ARCH_X64)
+    return FLAG_enable_slow_path_sharing && FLAG_precompiled_mode &&
+           is_optimizing;
+#else
+    return false;
+#endif
+  }
+
   virtual bool UseSharedSlowPathStub(bool is_optimizing) const { return false; }
 
  protected:
@@ -6470,6 +6479,10 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
+  virtual bool UseSharedSlowPathStub(bool is_optimizing) const {
+    return SlowPathSharingSupported(is_optimizing);
+  }
+
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
@@ -6993,12 +7006,7 @@ class CheckNullInstr : public TemplateInstruction<1, Throws, NoCSE> {
   const String& function_name() const { return function_name_; }
 
   bool UseSharedSlowPathStub(bool is_optimizing) const {
-#if defined(TARGET_ARCH_X64)
-    return FLAG_enable_slow_path_sharing && FLAG_precompiled_mode &&
-           is_optimizing;
-#else
-    return false;
-#endif
+    return SlowPathSharingSupported(is_optimizing);
   }
 
   DECLARE_INSTRUCTION(CheckNull)
