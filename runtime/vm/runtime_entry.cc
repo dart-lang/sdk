@@ -181,7 +181,7 @@ DEFINE_RUNTIME_ENTRY(NullError, 0) {
   const uword pc_offset = caller_frame->pc() - code.PayloadStart();
 
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->heap()->CollectAllGarbage();
+    Isolate::Current()->heap()->CollectAllGarbage();
   }
 
   const CodeSourceMap& map =
@@ -1975,10 +1975,6 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   // particular stack overflow runtime call and are not meant to
   // persist.
   uword stack_overflow_flags = thread->GetAndClearStackOverflowFlags();
-
-  if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->heap()->CollectAllGarbage();
-  }
 
   bool interpreter_stack_overflow = false;
 #if defined(DART_USE_INTERPRETER)

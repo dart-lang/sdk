@@ -139,18 +139,6 @@ void StubCode::GenerateNullErrorSharedWithFPURegsStub(Assembler* assembler) {
   __ Breakpoint();
 }
 
-void StubCode::GenerateStackOverflowSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  // TODO(sjindel): implement.
-  __ Breakpoint();
-}
-
-void StubCode::GenerateStackOverflowSharedWithFPURegsStub(
-    Assembler* assembler) {
-  // TODO(sjindel): implement.
-  __ Breakpoint();
-}
-
 void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
   __ Stop("GeneratePrintStopMessageStub");
 }

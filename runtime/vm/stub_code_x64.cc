@@ -108,11 +108,8 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ ret();
 }
 
-void StubCode::GenerateSharedStub(Assembler* assembler,
-                                  bool save_fpu_registers,
-                                  const RuntimeEntry* target,
-                                  intptr_t self_code_stub_offset_from_thread,
-                                  bool allow_return) {
+void StubCode::GenerateNullErrorShared(Assembler* assembler,
+                                       bool save_fpu_registers) {
   // We want the saved registers to appear like part of the caller's frame, so
   // we push them before calling EnterStubFrame.
   __ PushRegisters(kDartAvailableCpuRegs,
@@ -131,59 +128,27 @@ void StubCode::GenerateSharedStub(Assembler* assembler,
   // Copy down the return address so the stack layout is correct.
   __ pushq(Address(RSP, kAllSavedRegistersSlots * kWordSize));
 
-  __ movq(CODE_REG, Address(THR, self_code_stub_offset_from_thread));
+  const intptr_t stub_offset =
+      save_fpu_registers
+          ? Thread::null_error_shared_with_fpu_regs_stub_offset()
+          : Thread::null_error_shared_without_fpu_regs_stub_offset();
+  __ movq(CODE_REG, Address(THR, stub_offset));
 
   __ EnterStubFrame();
 
   __ movq(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
-  __ movq(RBX, Address(THR, Thread::OffsetFromThread(target)));
+  __ movq(RBX, Address(THR, Thread::OffsetFromThread(&kNullErrorRuntimeEntry)));
   __ movq(R10, Immediate(/*argument_count=*/0));
   __ call(Address(THR, Thread::call_to_runtime_entry_point_offset()));
-
-  if (!allow_return) {
-    __ Breakpoint();
-    return;
-  }
-  __ LeaveStubFrame();
-
-  // Drop "official" return address -- we can just use the one stored above the
-  // saved registers.
-  __ Drop(1);
-
-  __ PopRegisters(kDartAvailableCpuRegs,
-                  save_fpu_registers ? kAllFpuRegistersList : 0);
-
-  __ ret();
+  __ Breakpoint();
 }
 
 void StubCode::GenerateNullErrorSharedWithoutFPURegsStub(Assembler* assembler) {
-  GenerateSharedStub(assembler, /*save_fpu_registers=*/false,
-                     &kNullErrorRuntimeEntry,
-                     Thread::null_error_shared_without_fpu_regs_stub_offset(),
-                     /*allow_return=*/false);
+  GenerateNullErrorShared(assembler, false);
 }
 
 void StubCode::GenerateNullErrorSharedWithFPURegsStub(Assembler* assembler) {
-  GenerateSharedStub(assembler, /*save_fpu_registers=*/true,
-                     &kNullErrorRuntimeEntry,
-                     Thread::null_error_shared_with_fpu_regs_stub_offset(),
-                     /*allow_return=*/false);
-}
-
-void StubCode::GenerateStackOverflowSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/false, &kStackOverflowRuntimeEntry,
-      Thread::stack_overflow_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/true);
-}
-
-void StubCode::GenerateStackOverflowSharedWithFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(assembler, /*save_fpu_registers=*/true,
-                     &kStackOverflowRuntimeEntry,
-                     Thread::stack_overflow_shared_with_fpu_regs_stub_offset(),
-                     /*allow_return=*/true);
+  GenerateNullErrorShared(assembler, true);
 }
 
 // Input parameters:
