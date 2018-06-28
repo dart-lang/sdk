@@ -778,7 +778,7 @@ class LibraryAnalyzer {
             }
           } else if (member is FieldDeclaration) {
             List<VariableDeclaration> fields = member.fields.variables;
-            var context = fields[0].element as ElementImpl;
+            var context = fields[0].element.initializer as ElementImpl;
             var resolution = resolutions.next();
             var applier = _createResolutionApplier(
                 context, resolution, unit.localDeclarations);
@@ -816,7 +816,7 @@ class LibraryAnalyzer {
         // No bodies to resolve.
       } else if (declaration is TopLevelVariableDeclaration) {
         List<VariableDeclaration> variables = declaration.variables.variables;
-        var context = variables[0].element as ElementImpl;
+        var context = variables[0].element.initializer as ElementImpl;
         var resolution = resolutions.next();
         var applier = _createResolutionApplier(
             context, resolution, unit.localDeclarations);

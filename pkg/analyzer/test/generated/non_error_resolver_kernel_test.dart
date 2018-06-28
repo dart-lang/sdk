@@ -125,13 +125,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_duplicateDefinition_emptyName() {
-    // NoSuchMethodError: The setter 'enclosingElement=' was called on null.
-    return super.test_duplicateDefinition_emptyName();
-  }
-
-  @override
-  @failingTest
   test_fieldFormalParameter_genericFunctionTyped() {
     // Expected 0 errors of type ParserErrorCode.EXPECTED_TOKEN, found 1 (88)
     return super.test_fieldFormalParameter_genericFunctionTyped();
@@ -178,13 +171,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
   test_invocationOfNonFunction_Object() async {
     return super.test_invocationOfNonFunction_Object();
-  }
-
-  @override
-  @failingTest
-  test_issue_32394() {
-    // Failed assertion: line 1133 pos 12: 'element != null': is not true.
-    return super.test_issue_32394();
   }
 
   @override

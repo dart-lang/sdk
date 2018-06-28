@@ -267,14 +267,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
     return super.test_strongMode_downCastCompositeWarn();
   }
 
-  @failingTest
-  @override
-  test_strongMode_topLevelInstanceGetter_implicitlyTyped_field_call() {
-    // NoSuchMethodError: The setter 'enclosingElement=' was called on null.
-    return super
-        .test_strongMode_topLevelInstanceGetter_implicitlyTyped_field_call();
-  }
-
   @override
   @failingTest
   test_strongMode_topLevelInstanceGetter_implicitlyTyped_invoke() {
@@ -287,14 +279,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   test_strongMode_topLevelInstanceGetter_implicitlyTyped_invoke_explicit_type_params() {
     return super
         .test_strongMode_topLevelInstanceGetter_implicitlyTyped_invoke_explicit_type_params();
-  }
-
-  @failingTest
-  @override
-  test_strongMode_topLevelInstanceGetter_implicitlyTyped_invoke_not_generic() {
-    // NoSuchMethodError: The setter 'enclosingElement=' was called on null.
-    return super
-        .test_strongMode_topLevelInstanceGetter_implicitlyTyped_invoke_not_generic();
   }
 
   @failingTest

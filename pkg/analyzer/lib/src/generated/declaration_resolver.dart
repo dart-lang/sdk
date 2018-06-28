@@ -600,17 +600,16 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     VariableElement element = _match(node.name, _walker.getVariable());
     if (_applyKernelTypes) {
       node.name.staticType = element.type;
-    } else {
-      Expression initializer = node.initializer;
-      if (initializer != null) {
-        _walk(
-            new ElementWalker.forExecutable(
-                element.initializer, _enclosingUnit), () {
-          super.visitVariableDeclaration(node);
-        });
-      } else {
+    }
+    Expression initializer = node.initializer;
+    if (initializer != null) {
+      _walk(
+          new ElementWalker.forExecutable(element.initializer, _enclosingUnit),
+          () {
         super.visitVariableDeclaration(node);
-      }
+      });
+    } else {
+      super.visitVariableDeclaration(node);
     }
     return null;
   }

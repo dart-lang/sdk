@@ -1443,6 +1443,44 @@ main() {
     }
   }
 
+  test_closure_inField() async {
+    addTestFile(r'''
+class C {
+  var v = (() => 42)();
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+
+    ClassDeclaration c = unit.declarations[0];
+    FieldDeclaration declaration = c.members[0];
+    VariableDeclaration field = declaration.fields.variables[0];
+    FunctionElement fieldInitializer = field.element.initializer;
+
+    FunctionExpressionInvocation invocation = field.initializer;
+    FunctionExpression closure = invocation.function.unParenthesized;
+    FunctionElementImpl closureElement = closure.element;
+    expect(closureElement.enclosingElement, same(fieldInitializer));
+  }
+
+  test_closure_inTopLevelVariable() async {
+    addTestFile(r'''
+var v = (() => 42)();
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+
+    TopLevelVariableDeclaration declaration = unit.declarations[0];
+    VariableDeclaration variable = declaration.variables.variables[0];
+    TopLevelVariableElement variableElement = variable.element;
+    FunctionElement variableInitializer = variableElement.initializer;
+
+    FunctionExpressionInvocation invocation = variable.initializer;
+    FunctionExpression closure = invocation.function.unParenthesized;
+    FunctionElementImpl closureElement = closure.element;
+    expect(closureElement.enclosingElement, same(variableInitializer));
+  }
+
   test_conditionalExpression() async {
     String content = r'''
 void main() {
