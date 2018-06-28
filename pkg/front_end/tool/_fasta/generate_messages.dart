@@ -137,6 +137,12 @@ String compileTemplate(String name, String template, String tip,
         arguments.add("'token': token");
         break;
 
+      case "lexeme2":
+        parameters.add("Token token2");
+        conversions.add("String lexeme2 = token2.lexeme;");
+        arguments.add("'token2': token2");
+        break;
+
       case "string":
         parameters.add("String string");
         arguments.add("'string': string");

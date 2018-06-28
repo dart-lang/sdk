@@ -779,7 +779,7 @@ abstract class UnresolvedNameGenerator implements ErroneousExpressionGenerator {
   DartType buildErroneousTypeNotAPrefix(Identifier suffix) {
     helper.addProblem(
         templateUnresolvedPrefixInTypeAnnotation.withArguments(
-            name.name, suffix.name),
+            token, suffix.token),
         offsetForToken(token),
         lengthOfSpan(token, suffix.token));
     return const InvalidType();

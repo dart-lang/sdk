@@ -213,8 +213,7 @@ class IncompleteErrorGenerator extends IncompleteSendGenerator
   @override
   DartType buildErroneousTypeNotAPrefix(Identifier suffix) {
     helper.addProblem(
-        templateNotAPrefixInTypeAnnotation.withArguments(
-            token.lexeme, suffix.name),
+        templateNotAPrefixInTypeAnnotation.withArguments(token, suffix.token),
         offsetForToken(token),
         lengthOfSpan(token, suffix.token));
     return const InvalidType();

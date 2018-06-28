@@ -1207,13 +1207,13 @@ NotAType:
   dart2jsCode: "*ignored*"
 
 NotAPrefixInTypeAnnotation:
-  template: "'#name.#name2' can't be used as a type because '#name' doesn't refer to an import prefix."
+  template: "'#lexeme.#lexeme2' can't be used as a type because '#lexeme' doesn't refer to an import prefix."
   severity: ERROR_LEGACY_WARNING
   analyzerCode: NOT_A_TYPE
   dart2jsCode: "*ignored*"
 
 UnresolvedPrefixInTypeAnnotation:
-  template: "'#name.#name2' can't be used as a type because '#name' isn't defined."
+  template: "'#lexeme.#lexeme2' can't be used as a type because '#lexeme' isn't defined."
   severity: ERROR_LEGACY_WARNING
   analyzerCode: NOT_A_TYPE
   dart2jsCode: "*ignored*"
