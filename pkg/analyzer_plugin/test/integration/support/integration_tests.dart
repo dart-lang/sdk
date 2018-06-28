@@ -40,7 +40,7 @@ Matcher isOneOf(List<Matcher> choiceMatchers) => new _OneOf(choiceMatchers);
 /**
  * Assert that [actual] matches [matcher].
  */
-void outOfTestExpect(actual, matcher,
+void outOfTestExpect(actual, Matcher matcher,
     {String reason, skip, bool verbose: false}) {
   var matchState = {};
   try {
@@ -374,7 +374,7 @@ class MatchesJsonObject extends _RecursiveMatcher {
     }
     if (requiredFields != null) {
       requiredFields.forEach((String key, Matcher valueMatcher) {
-        if (!item.containsKey(key)) {
+        if (!(item as Map).containsKey(key)) {
           mismatches.add((Description mismatchDescription) =>
               mismatchDescription
                   .add('is missing field ')

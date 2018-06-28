@@ -423,7 +423,8 @@ class GitRepository {
    */
   BlobDiff getBlobDiff(String srcBlob, String dstBlob) {
     ProcessResult result = _run(['diff', '-U0', srcBlob, dstBlob]);
-    List<String> diffResults = LineSplitter.split(result.stdout).toList();
+    List<String> diffResults =
+        LineSplitter.split(result.stdout as String).toList();
     return new BlobDiff._(diffResults);
   }
 
@@ -444,7 +445,7 @@ class GitRepository {
       srcCommit,
       dstCommit
     ]);
-    return new CommitDelta._(this, result.stdout);
+    return new CommitDelta._(this, result.stdout as String);
   }
 
   /**
@@ -453,7 +454,8 @@ class GitRepository {
    */
   LinearCommitHistory getCommitHistory() {
     ProcessResult result = _run(['rev-list', '--first-parent', 'HEAD']);
-    List<String> commitIds = LineSplitter.split(result.stdout).toList();
+    List<String> commitIds =
+        LineSplitter.split(result.stdout as String).toList();
     return new LinearCommitHistory(this, commitIds);
   }
 

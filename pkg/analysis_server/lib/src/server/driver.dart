@@ -151,7 +151,7 @@ class CommandLineParser {
     }
   }
 
-  _getNextFlagIndex(args, i) {
+  int _getNextFlagIndex(List<String> args, int i) {
     for (; i < args.length; ++i) {
       if (args[i].startsWith('--')) {
         return i;

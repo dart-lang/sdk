@@ -829,8 +829,12 @@ class AnalysisServer {
   /**
    * Sends a `server.error` notification.
    */
-  void sendServerErrorNotification(String message, exception, stackTrace,
-      {bool fatal: false}) {
+  void sendServerErrorNotification(
+    String message,
+    dynamic exception,
+    /*StackTrace*/ stackTrace, {
+    bool fatal: false,
+  }) {
     StringBuffer buffer = new StringBuffer();
     buffer.write(exception ?? 'null exception');
     if (stackTrace != null) {
@@ -852,7 +856,8 @@ class AnalysisServer {
       // Catch and ignore any exceptions when reporting exceptions (network
       // errors or other).
       options.crashReportSender
-          .sendReport(exception, stackTrace: stackTrace)
+          .sendReport(exception,
+              stackTrace: stackTrace is StackTrace ? stackTrace : null)
           .catchError((_) {});
     }
 
@@ -860,7 +865,12 @@ class AnalysisServer {
     if (exception is CaughtException) {
       stackTrace ??= exception.stackTrace;
     }
-    exceptions.add(new ServerException(message, exception, stackTrace, fatal));
+    exceptions.add(new ServerException(
+      message,
+      exception,
+      stackTrace is StackTrace ? stackTrace : null,
+      fatal,
+    ));
   }
 
   /**

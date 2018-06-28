@@ -4,8 +4,9 @@ analyzer:
     - 'test/data'
 linter:
   rules:
+    #- annotate_overrides
     - empty_constructor_bodies
     - empty_statements
+    #- unawaited_futures
     - unnecessary_brace_in_string_interps
     - valid_regexps
-
