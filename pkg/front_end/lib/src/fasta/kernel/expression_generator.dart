@@ -68,6 +68,7 @@ import 'kernel_ast_api.dart'
         Member,
         Name,
         Procedure,
+        SyntheticExpressionJudgment,
         TypeParameterType,
         VariableDeclaration;
 
@@ -181,8 +182,8 @@ abstract class Generator implements ExpressionGenerator {
   Initializer buildFieldInitializer(Map<String, int> initializedFields) {
     int offset = offsetForToken(token);
     return helper.buildInvalidInitializer(
-        helper.buildCompileTimeError(
-            messageInvalidInitializer, offset, lengthForToken(token)),
+        new SyntheticExpressionJudgment(helper.buildCompileTimeError(
+            messageInvalidInitializer, offset, lengthForToken(token))),
         offset);
   }
 
@@ -226,11 +227,11 @@ abstract class Generator implements ExpressionGenerator {
       assert(forest.argumentsTypeArguments(arguments).isEmpty);
       forest.argumentsSetTypeArguments(arguments, typeArguments);
     }
-    return helper.throwNoSuchMethodError(
+    return new SyntheticExpressionJudgment(helper.throwNoSuchMethodError(
         forest.literalNull(token),
         name == "" ? plainNameForRead : "${plainNameForRead}.$name",
         arguments,
-        nameToken.charOffset);
+        nameToken.charOffset));
   }
 
   bool get isThisPropertyAccess => false;
@@ -640,10 +641,10 @@ abstract class LargeIntAccessGenerator implements Generator {
   String get debugName => "LargeIntAccessGenerator";
 
   Expression buildError() {
-    return helper.buildCompileTimeError(
+    return new SyntheticExpressionJudgment(helper.buildCompileTimeError(
         templateIntegerLiteralIsOutOfRange.withArguments(token),
         offsetForToken(token),
-        lengthForToken(token));
+        lengthForToken(token)));
   }
 
   @override
@@ -781,13 +782,13 @@ abstract class UnresolvedNameGenerator implements ErroneousExpressionGenerator {
   Expression buildError(Arguments arguments,
       {bool isGetter: false, bool isSetter: false, int offset}) {
     offset ??= offsetForToken(this.token);
-    return helper.throwNoSuchMethodError(
+    return new SyntheticExpressionJudgment(helper.throwNoSuchMethodError(
         forest.literalNull(null)..fileOffset = offset,
         plainNameForRead,
         arguments,
         offset,
         isGetter: isGetter,
-        isSetter: isSetter);
+        isSetter: isSetter));
   }
 
   @override
@@ -1075,8 +1076,10 @@ abstract class PrefixUseGenerator implements Generator {
 
   @override
   Expression makeInvalidRead() {
-    return helper.buildCompileTimeError(messageCantUsePrefixAsExpression,
-        offsetForToken(token), lengthForToken(token));
+    return new SyntheticExpressionJudgment(helper.buildCompileTimeError(
+        messageCantUsePrefixAsExpression,
+        offsetForToken(token),
+        lengthForToken(token)));
   }
 
   @override
@@ -1115,11 +1118,11 @@ abstract class UnexpectedQualifiedUseGenerator implements Generator {
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
-    return helper.throwNoSuchMethodError(
+    return new SyntheticExpressionJudgment(helper.throwNoSuchMethodError(
         forest.literalNull(null)..fileOffset = offset,
         plainNameForRead,
         arguments,
-        offsetForToken(token));
+        offsetForToken(token)));
   }
 
   @override

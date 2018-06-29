@@ -331,7 +331,7 @@ SdkSpecificationNotFound/analyzerCode: Fail
 SdkSpecificationNotFound/example: Fail
 SdkSummaryNotFound/analyzerCode: Fail
 SdkSummaryNotFound/example: Fail
-SetterNotFound/analyzerCode: Fail
+SetterNotFound/dart2jsCode: Fail
 SetterNotFound/example: Fail
 SetterNotSync/example: Fail
 SetterWithWrongNumberOfFormals/example: Fail

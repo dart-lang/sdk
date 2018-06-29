@@ -76,12 +76,13 @@ import '../kernel/kernel_expression_generator.dart' show buildIsNull;
 import '../kernel/kernel_shadow_ast.dart'
     show
         ArgumentsJudgment,
+        ConstructorInvocationJudgment,
         ExpressionJudgment,
         NullJudgment,
         ShadowClass,
-        ConstructorInvocationJudgment,
         ShadowField,
         ShadowMember,
+        SyntheticExpressionJudgment,
         VariableDeclarationJudgment,
         getExplicitTypeArguments;
 
@@ -657,10 +658,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           new Let(
               new VariableDeclaration.forValue(receiver)
                 ..fileOffset = receiver.fileOffset,
-              helper.buildCompileTimeError(
+              new SyntheticExpressionJudgment(helper.buildCompileTimeError(
                   errorTemplate.withArguments(name.name, receiverType),
                   fileOffset,
-                  noLength))
+                  noLength)))
             ..fileOffset = fileOffset);
     }
     return interfaceMember;

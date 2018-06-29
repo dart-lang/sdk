@@ -1637,7 +1637,9 @@ class IfJudgment extends IfStatement implements StatementJudgment {
 /// Concrete shadow object representing an assignment to a target for which
 /// assignment is not allowed.
 class IllegalAssignmentJudgment extends ComplexAssignmentJudgment {
-  IllegalAssignmentJudgment(ExpressionJudgment rhs) : super(rhs);
+  IllegalAssignmentJudgment(ExpressionJudgment rhs) : super(rhs) {
+    rhs.parent = this;
+  }
 
   @override
   DartType _getWriteType(ShadowTypeInferrer inferrer) {
@@ -1652,6 +1654,7 @@ class IllegalAssignmentJudgment extends ComplexAssignmentJudgment {
     if (write != null) {
       inferrer.inferExpression(factory, write, const UnknownType(), false);
     }
+    inferrer.inferExpression(factory, rhs, const UnknownType(), false);
     _replaceWithDesugared();
     inferredType = const DynamicType();
     return null;
@@ -2903,6 +2906,26 @@ class SymbolLiteralJudgment extends SymbolLiteral
     inferrer.listener
         .symbolLiteral(this, fileOffset, null, null, null, inferredType);
     return null;
+  }
+}
+
+/// Synthetic judgment class representing an attempt to write to a read-only
+/// local variable.
+class InvalidVariableWriteJudgment extends SyntheticExpressionJudgment {
+  /// Note: private to avoid colliding with Let.variable.
+  final VariableDeclaration _variable;
+
+  InvalidVariableWriteJudgment(kernel.Expression desugared, this._variable)
+      : super(desugared);
+
+  @override
+  Expression infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory,
+      DartType typeContext) {
+    inferrer.listener.variableAssign(this, fileOffset, _variable.type,
+        _variable.fileOffset, null, _variable.type);
+    return super.infer(inferrer, factory, typeContext);
   }
 }
 

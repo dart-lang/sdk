@@ -297,8 +297,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     } else if (node is Expression) {
       return node;
     } else if (node is SuperInitializer) {
-      return buildCompileTimeError(
-          fasta.messageSuperAsExpression, node.fileOffset, noLength);
+      return new SyntheticExpressionJudgment(buildCompileTimeError(
+          fasta.messageSuperAsExpression, node.fileOffset, noLength));
     } else if (node is ProblemBuilder) {
       return buildProblemExpression(node, -1, noLength);
     } else {
@@ -376,9 +376,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     int offset = variable.fileOffset;
     Message message = template.withArguments(name);
     if (variable.initializer == null) {
-      variable.initializer =
-          buildCompileTimeError(message, offset, name.length, context: context)
-            ..parent = variable;
+      variable.initializer = new SyntheticExpressionJudgment(
+          buildCompileTimeError(message, offset, name.length, context: context))
+        ..parent = variable;
     } else {
       variable.initializer = wrapInLocatedCompileTimeError(
           variable.initializer, message.withLocation(uri, offset, name.length),
@@ -1094,8 +1094,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       pop();
       token = token.next;
       Message message = fasta.templateExpectedIdentifier.withArguments(token);
-      push(buildCompileTimeError(
-          message, offsetForToken(token), lengthForToken(token)));
+      push(new SyntheticExpressionJudgment(buildCompileTimeError(
+          message, offsetForToken(token), lengthForToken(token))));
     }
   }
 
@@ -1108,8 +1108,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       pop();
       token = token.next;
       Message message = fasta.templateExpectedIdentifier.withArguments(token);
-      push(buildCompileTimeError(
-          message, offsetForToken(token), lengthForToken(token)));
+      push(new SyntheticExpressionJudgment(buildCompileTimeError(
+          message, offsetForToken(token), lengthForToken(token))));
     }
   }
 
@@ -1183,7 +1183,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           isSetter: isSetter,
           isStatic: isStatic,
           isTopLevel: !isStatic && !isSuper);
-      return new SyntheticExpressionJudgment(new Throw(error));
+      return new Throw(error);
     }
   }
 
@@ -1803,8 +1803,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Expression value = popForValue();
     Object generator = pop();
     if (generator is! Generator) {
-      push(buildCompileTimeError(fasta.messageNotAnLvalue,
-          offsetForToken(token), lengthForToken(token)));
+      push(new SyntheticExpressionJudgment(buildCompileTimeError(
+          fasta.messageNotAnLvalue,
+          offsetForToken(token),
+          lengthForToken(token))));
     } else {
       push(new DelayedAssignment(
           this, token, generator, value, token.stringValue));
@@ -2610,13 +2612,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     LocatedMessage argMessage = checkArgumentsForFunction(
         target.function, arguments, charOffset, typeParameters);
     if (argMessage != null) {
-      return throwNoSuchMethodError(
+      return new SyntheticExpressionJudgment(throwNoSuchMethodError(
           forest.literalNull(null)..fileOffset = charOffset,
           target.name.name,
           arguments,
           charOffset,
           candidate: target,
-          argMessage: argMessage);
+          argMessage: argMessage));
     }
     if (target is Constructor) {
       isConst =
@@ -2788,8 +2790,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       push(type.invokeConstructor(
           typeArguments, name, arguments, nameToken, constness));
     } else {
-      push(throwNoSuchMethodError(forest.literalNull(null)..fileOffset = offset,
-          debugName(getNodeName(type), name), arguments, nameToken.charOffset));
+      push(new SyntheticExpressionJudgment(throwNoSuchMethodError(
+          forest.literalNull(null)..fileOffset = offset,
+          debugName(getNodeName(type), name),
+          arguments,
+          nameToken.charOffset)));
     }
     constantContext = savedConstantContext;
   }
@@ -2894,11 +2899,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       nameToken = nameToken.next.next;
     }
 
-    return throwNoSuchMethodError(
+    return new SyntheticExpressionJudgment(throwNoSuchMethodError(
         forest.literalNull(null)..fileOffset = charOffset,
         errorName,
         arguments,
-        nameToken.charOffset);
+        nameToken.charOffset));
   }
 
   @override
@@ -3206,8 +3211,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           ? fasta.messageForInLoopExactlyOneVariable
           : fasta.messageForInLoopNotAssignable;
       Token token = forToken.next.next;
-      variable = new VariableDeclaration.forValue(buildCompileTimeError(
-          message, offsetForToken(token), lengthForToken(token)));
+      variable = new VariableDeclaration.forValue(
+          new SyntheticExpressionJudgment(buildCompileTimeError(
+              message, offsetForToken(token), lengthForToken(token))));
     }
     Statement result = new ForInJudgment(
         awaitToken,
@@ -3752,8 +3758,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Expression deprecated_buildCompileTimeError(String error,
       [int charOffset = -1]) {
-    return buildCompileTimeError(
-        fasta.templateUnspecified.withArguments(error), charOffset, noLength);
+    return new SyntheticExpressionJudgment(buildCompileTimeError(
+        fasta.templateUnspecified.withArguments(error), charOffset, noLength));
   }
 
   @override
@@ -3761,9 +3767,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       {List<LocatedMessage> context}) {
     library.addCompileTimeError(message, charOffset, length, uri,
         wasHandled: true, context: context);
-    return new SyntheticExpressionJudgment(library.loader
-        .throwCompileConstantError(library.loader
-            .buildCompileTimeError(message, charOffset, length, uri)));
+    return library.loader.throwCompileConstantError(
+        library.loader.buildCompileTimeError(message, charOffset, length, uri));
   }
 
   Expression wrapInCompileTimeError(Expression expression, Message message,
@@ -3780,9 +3785,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     // TODO(askesc): Produce explicit error expression wrapping the original.
     // See [issue 29717](https://github.com/dart-lang/sdk/issues/29717)
     return new SyntheticExpressionJudgment(new Let(
-        new VariableDeclaration.forValue(buildCompileTimeError(
-            message.messageObject, message.charOffset, message.length,
-            context: context))
+        new VariableDeclaration.forValue(new SyntheticExpressionJudgment(
+            buildCompileTimeError(
+                message.messageObject, message.charOffset, message.length,
+                context: context)))
           ..fileOffset = forest.readOffset(expression),
         new Let(
             new VariableDeclaration.forValue(expression)
@@ -3835,7 +3841,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   Statement buildCompileTimeErrorStatement(Message message, int charOffset,
       {List<LocatedMessage> context}) {
     return new ExpressionStatementJudgment(
-        buildCompileTimeError(message, charOffset, noLength, context: context),
+        new SyntheticExpressionJudgment(buildCompileTimeError(
+            message, charOffset, noLength,
+            context: context)),
         null);
   }
 
@@ -3978,7 +3986,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Expression buildProblemExpression(
       ProblemBuilder builder, int charOffset, int length) {
-    return buildCompileTimeError(builder.message, charOffset, length);
+    return new SyntheticExpressionJudgment(
+        buildCompileTimeError(builder.message, charOffset, length));
   }
 
   @override

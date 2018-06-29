@@ -2333,34 +2333,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_prefix_assignment_compound_in_method() async {
-    // Bad state: No reference information for p at 46
-    await super.test_prefix_assignment_compound_in_method();
-  }
-
-  @override
-  @failingTest
-  test_prefix_assignment_compound_not_in_method() async {
-    // Bad state: No reference information for p at 32
-    await super.test_prefix_assignment_compound_not_in_method();
-  }
-
-  @override
-  @failingTest
-  test_prefix_assignment_in_method() async {
-    // Bad state: No reference information for p at 46
-    await super.test_prefix_assignment_in_method();
-  }
-
-  @override
-  @failingTest
-  test_prefix_assignment_not_in_method() async {
-    // Bad state: No reference information for p at 32
-    await super.test_prefix_assignment_not_in_method();
-  }
-
-  @override
-  @failingTest
   test_prefix_conditionalPropertyAccess_call() async {
     // Bad state: Expected element reference for analyzer offset 32; got one for kernel offset 35
     await super.test_prefix_conditionalPropertyAccess_call();
@@ -2441,13 +2413,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30857')
   test_prefixCollidesWithTopLevelMembers_type() async {
     return super.test_prefixCollidesWithTopLevelMembers_type();
-  }
-
-  @override
-  @failingTest
-  test_prefixNotFollowedByDot_compoundAssignment() async {
-    // Bad state: No reference information for p at 32
-    await super.test_prefixNotFollowedByDot_compoundAssignment();
   }
 
   @override

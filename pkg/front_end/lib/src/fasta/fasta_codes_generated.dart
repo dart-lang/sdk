@@ -5612,6 +5612,7 @@ const Template<Message Function(String name)> templateSetterNotFound =
 const Code<Message Function(String name)> codeSetterNotFound =
     const Code<Message Function(String name)>(
         "SetterNotFound", templateSetterNotFound,
+        analyzerCode: "UNDEFINED_SETTER",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

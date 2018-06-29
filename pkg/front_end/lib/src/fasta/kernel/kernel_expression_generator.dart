@@ -107,6 +107,8 @@ import 'kernel_builder.dart'
         PrefixBuilder,
         TypeDeclarationBuilder;
 
+import 'kernel_shadow_ast.dart' show InvalidVariableWriteJudgment;
+
 part 'kernel_expression_generator_impl.dart';
 
 abstract class KernelExpressionGenerator implements ExpressionGenerator {
@@ -214,22 +216,26 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
 
   @override
   Expression makeInvalidRead() {
-    return helper.throwNoSuchMethodError(
+    return new SyntheticExpressionJudgment(helper.throwNoSuchMethodError(
         forest.literalNull(token),
         plainNameForRead,
         forest.argumentsEmpty(noLocation),
         offsetForToken(token),
-        isGetter: true);
+        isGetter: true));
   }
 
   @override
   Expression makeInvalidWrite(Expression value) {
-    return helper.throwNoSuchMethodError(
+    return buildInvalidWriteJudgment(helper.throwNoSuchMethodError(
         forest.literalNull(token),
         plainNameForRead,
         forest.arguments(<Expression>[value], noLocation),
         offsetForToken(token),
-        isSetter: true);
+        isSetter: true));
+  }
+
+  Expression buildInvalidWriteJudgment(Expression desugared) {
+    return new SyntheticExpressionJudgment(desugared);
   }
 
   Expression _makeSimpleRead() => _makeRead(null);
@@ -1231,13 +1237,13 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
 
   @override
   Expression makeInvalidWrite(Expression value) {
-    return helper.throwNoSuchMethodError(
+    return new SyntheticExpressionJudgment(helper.throwNoSuchMethodError(
         forest.literalNull(token),
         plainNameForRead,
         forest.arguments(<Expression>[value], null)
           ..fileOffset = value.fileOffset,
         offsetForToken(token),
-        isSetter: true);
+        isSetter: true));
   }
 
   @override
@@ -1322,6 +1328,18 @@ class KernelReadOnlyAccessGenerator extends KernelGenerator
   Expression _finish(
           Expression body, ComplexAssignmentJudgment complexAssignment) =>
       super._finish(makeLet(value, body), complexAssignment);
+
+  @override
+  Expression buildInvalidWriteJudgment(Expression desugared) {
+    var expression = this.expression;
+    if (expression is VariableGet) {
+      return new InvalidVariableWriteJudgment(desugared, expression.variable)
+        ..fileOffset = token.charOffset;
+    } else {
+      // TODO(paulberry): handle other cases
+      return super.buildInvalidWriteJudgment(desugared);
+    }
+  }
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {

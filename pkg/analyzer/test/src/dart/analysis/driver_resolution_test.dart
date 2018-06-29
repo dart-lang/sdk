@@ -637,6 +637,27 @@ void main() {
     }
   }
 
+  test_assignment_to_final_variable_local() async {
+    var content = '''
+main() {
+  final x = 1;
+  x += 2;
+}
+''';
+    addTestFile(content);
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isNotEmpty);
+
+    var xDeclaration = new NodeLocator(content.indexOf('x ='))
+        .searchWithin(result.unit) as SimpleIdentifier;
+    var xElement = xDeclaration.staticElement;
+    expect(xElement, isNotNull);
+    var xReference = new NodeLocator(content.indexOf('x +='))
+        .searchWithin(result.unit) as SimpleIdentifier;
+    expect(xReference.staticElement, same(xElement));
+    expect(xReference.staticType.toString(), 'int');
+  }
+
   test_assignmentExpression_compound_indexExpression() async {
     String content = r'''
 main() {

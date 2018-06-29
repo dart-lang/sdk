@@ -1136,6 +1136,7 @@ GetterNotFound:
 
 SetterNotFound:
   template: "Setter not found: '#name'."
+  analyzerCode: UNDEFINED_SETTER
   severity: ERROR_LEGACY_WARNING
 
 MethodNotFound:

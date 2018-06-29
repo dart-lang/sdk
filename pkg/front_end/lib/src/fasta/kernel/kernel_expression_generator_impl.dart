@@ -36,8 +36,10 @@ class ThisAccessGenerator extends KernelGenerator {
     if (!isSuper) {
       return forest.thisExpression(token);
     } else {
-      return helper.buildCompileTimeError(messageSuperAsExpression,
-          offsetForToken(token), lengthForToken(token));
+      return new SyntheticExpressionJudgment(helper.buildCompileTimeError(
+          messageSuperAsExpression,
+          offsetForToken(token),
+          lengthForToken(token)));
     }
   }
 
@@ -91,8 +93,8 @@ class ThisAccessGenerator extends KernelGenerator {
     if (isInitializer) {
       return buildConstructorInitializer(offset, new Name(""), arguments);
     } else if (isSuper) {
-      return helper.buildCompileTimeError(
-          messageSuperAsExpression, offset, noLength);
+      return new SyntheticExpressionJudgment(helper.buildCompileTimeError(
+          messageSuperAsExpression, offset, noLength));
     } else {
       return helper.buildMethodInvocation(
           forest.thisExpression(null), callName, arguments, offset,
@@ -109,13 +111,14 @@ class ThisAccessGenerator extends KernelGenerator {
           constructor.function, arguments, offset, <TypeParameter>[]);
     }
     if (constructor == null || argMessage != null) {
-      return helper.buildInvalidInitializer(helper.throwNoSuchMethodError(
-          forest.literalNull(null)..fileOffset = offset,
-          name.name,
-          arguments,
-          offset,
-          isSuper: isSuper,
-          argMessage: argMessage));
+      return helper.buildInvalidInitializer(new SyntheticExpressionJudgment(
+          helper.throwNoSuchMethodError(
+              forest.literalNull(null)..fileOffset = offset,
+              name.name,
+              arguments,
+              offset,
+              isSuper: isSuper,
+              argMessage: argMessage)));
     } else if (isSuper) {
       return helper.buildSuperInitializer(
           false, constructor, arguments, offset);
@@ -208,7 +211,8 @@ class IncompleteErrorGenerator extends IncompleteSendGenerator
       offset = offsetForToken(token);
       length = lengthForToken(token);
     }
-    return helper.buildCompileTimeError(message, offset, length);
+    return new SyntheticExpressionJudgment(
+        helper.buildCompileTimeError(message, offset, length));
   }
 
   @override
