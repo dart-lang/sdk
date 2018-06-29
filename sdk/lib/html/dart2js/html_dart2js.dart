@@ -9931,7 +9931,7 @@ class DocumentFragment extends Node
    * last child of this document fragment.
    */
   void appendHtml(String text,
-      {NodeValidator validator, NodeTreeSanitizer, treeSanitizer}) {
+      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
     this.append(new DocumentFragment.html(text,
         validator: validator, treeSanitizer: treeSanitizer));
   }
