@@ -256,13 +256,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_undefinedGetter_static_conditionalAccess() {
-    // Bad state: No data for A at 36
-    return super.test_undefinedGetter_static_conditionalAccess();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/33677')
   test_undefinedIdentifier_synthetic_whenExpression() {
     // Expected 0 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 1 (29)
@@ -274,19 +267,5 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_undefinedIdentifier_synthetic_whenMethodName() async {
     return super.test_undefinedIdentifier_synthetic_whenMethodName();
-  }
-
-  @override
-  @failingTest
-  test_undefinedMethod_static_conditionalAccess() {
-    // Bad state: No data for A at 39
-    return super.test_undefinedMethod_static_conditionalAccess();
-  }
-
-  @override
-  @failingTest
-  test_undefinedSetter_static_conditionalAccess() {
-    // Bad state: No data for A at 34
-    return super.test_undefinedSetter_static_conditionalAccess();
   }
 }

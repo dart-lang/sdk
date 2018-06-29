@@ -514,6 +514,63 @@ Message _withArgumentsCantInferTypeDueToInconsistentOverrides(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        Token
+            token)> templateCantUseDeferredPrefixAsConstant = const Template<
+        Message Function(Token token)>(
+    messageTemplate:
+        r"""'#lexeme' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
+    tipTemplate:
+        r"""Try moving the constant from the deferred library, or removing 'deferred' from the import.
+""",
+    withArguments: _withArgumentsCantUseDeferredPrefixAsConstant);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeCantUseDeferredPrefixAsConstant =
+    const Code<Message Function(Token token)>("CantUseDeferredPrefixAsConstant",
+        templateCantUseDeferredPrefixAsConstant,
+        analyzerCode: "CONST_DEFERRED_CLASS",
+        dart2jsCode: "*fatal*",
+        severity: Severity.error);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCantUseDeferredPrefixAsConstant(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeCantUseDeferredPrefixAsConstant,
+      message:
+          """'${lexeme}' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
+      tip: """Try moving the constant from the deferred library, or removing 'deferred' from the import.
+""",
+      arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeCantUsePrefixAsExpression =
+    messageCantUsePrefixAsExpression;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageCantUsePrefixAsExpression = const MessageCode(
+    "CantUsePrefixAsExpression",
+    analyzerCode: "PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message: r"""A prefix can't be used as an expression.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeCantUsePrefixWithNullAware =
+    messageCantUsePrefixWithNullAware;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageCantUsePrefixWithNullAware = const MessageCode(
+    "CantUsePrefixWithNullAware",
+    analyzerCode: "PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message: r"""A prefix can't be used with null-aware operators.""",
+    tip: r"""It should be safe to remove the '?' as a prefix is never null.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(DartType _type)>
     templateCantUseSuperBoundedTypeForInstanceCreation =
     const Template<Message Function(DartType _type)>(

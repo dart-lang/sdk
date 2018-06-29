@@ -212,15 +212,6 @@ class IncompleteErrorGenerator extends IncompleteSendGenerator
   }
 
   @override
-  DartType buildErroneousTypeNotAPrefix(Identifier suffix) {
-    helper.addProblem(
-        templateNotAPrefixInTypeAnnotation.withArguments(token, suffix.token),
-        offsetForToken(token),
-        lengthOfSpan(token, suffix.token));
-    return const InvalidType();
-  }
-
-  @override
   doInvocation(int offset, Arguments arguments) => this;
 
   @override
@@ -256,18 +247,6 @@ class SendAccessGenerator extends IncompleteSendGenerator {
   withReceiver(Object receiver, int operatorOffset, {bool isNullAware: false}) {
     if (receiver is Generator) {
       return receiver.buildPropertyAccess(this, operatorOffset, isNullAware);
-    }
-    if (receiver is PrefixBuilder) {
-      PrefixBuilder prefix = receiver;
-      if (isNullAware) {
-        helper.deprecated_addCompileTimeError(
-            offsetForToken(token),
-            "Library prefix '${prefix.name}' can't be used with null-aware "
-            "operator.\nTry removing '?'.");
-      }
-      receiver = helper.scopeLookup(prefix.exportScope, name.name, token,
-          isQualified: true, prefix: prefix);
-      return helper.finishSend(receiver, arguments, offsetForToken(token));
     }
     return helper.buildMethodInvocation(
         helper.toValue(receiver), name, arguments, offsetForToken(token),
@@ -339,18 +318,6 @@ class IncompletePropertyAccessGenerator extends IncompleteSendGenerator {
     if (receiver is Generator) {
       return receiver.buildPropertyAccess(this, operatorOffset, isNullAware);
     }
-    if (receiver is PrefixBuilder) {
-      PrefixBuilder prefix = receiver;
-      if (isNullAware) {
-        helper.deprecated_addCompileTimeError(
-            offsetForToken(token),
-            "Library prefix '${prefix.name}' can't be used with null-aware "
-            "operator.\nTry removing '?'.");
-      }
-      return helper.scopeLookup(prefix.exportScope, name.name, token,
-          isQualified: true, prefix: prefix);
-    }
-
     return PropertyAccessGenerator.make(
         helper, token, helper.toValue(receiver), name, null, null, isNullAware);
   }

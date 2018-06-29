@@ -22,6 +22,7 @@ import 'package:kernel/ast.dart'
         FunctionType,
         Instantiation,
         InterfaceType,
+        InvalidType,
         InvocationExpression,
         Let,
         ListLiteral,
@@ -43,6 +44,7 @@ import 'package:kernel/ast.dart'
         ThisExpression,
         TypeParameter,
         TypeParameterType,
+        Typedef,
         VariableDeclaration,
         VariableGet,
         VoidType;
@@ -63,22 +65,9 @@ import '../../base/instrumentation.dart'
 
 import '../../scanner/token.dart' show Token;
 
-import '../builder/class_builder.dart' show ClassBuilder;
-
-import '../builder/function_type_alias_builder.dart'
-    show FunctionTypeAliasBuilder;
-
-import '../builder/invalid_type_builder.dart' show InvalidTypeBuilder;
-
-import '../builder/prefix_builder.dart' show PrefixBuilder;
-
-import '../builder/type_builder.dart' show TypeBuilder;
-
-import '../builder/type_variable_builder.dart' show TypeVariableBuilder;
+import '../builder/builder.dart' show PrefixBuilder;
 
 import '../fasta_codes.dart';
-
-import '../kernel/expression_generator.dart' show TypeUseGenerator;
 
 import '../kernel/factory.dart' show Factory;
 
@@ -389,7 +378,7 @@ abstract class TypeInferrer {
 
   void storePrefix(Token token, PrefixBuilder prefix);
 
-  void storeTypeUse(TypeUseGenerator generator);
+  void storeTypeUse(int offset, Node node);
 }
 
 /// Implementation of [TypeInferrer] which doesn't do any type inference.
@@ -451,7 +440,7 @@ class TypeInferrerDisabled extends TypeInferrer {
   void storePrefix(Token token, PrefixBuilder prefix) {}
 
   @override
-  void storeTypeUse(TypeUseGenerator generator) {}
+  void storeTypeUse(int offset, Node node) {}
 }
 
 /// Derived class containing generic implementations of [TypeInferrer].
@@ -844,8 +833,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         if (receiverType is InterfaceType) {
           var castedType =
               classHierarchy.getTypeAsInstanceOf(receiverType, memberClass);
-          calleeType = Substitution
-              .fromInterfaceType(castedType)
+          calleeType = Substitution.fromInterfaceType(castedType)
               .substituteType(calleeType);
         }
       }
@@ -905,8 +893,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         if (receiverType is InterfaceType) {
           var castedType =
               classHierarchy.getTypeAsInstanceOf(receiverType, memberClass);
-          setterType = Substitution
-              .fromInterfaceType(castedType)
+          setterType = Substitution.fromInterfaceType(castedType)
               .substituteType(setterType);
         }
       }
@@ -1708,21 +1695,20 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   @override
-  void storeTypeUse(TypeUseGenerator generator) {
-    var declaration = generator.declaration;
-    if (declaration is ClassBuilder<TypeBuilder, InterfaceType>) {
-      Class class_ = declaration.target;
-      listener.storeClassReference(
-          generator.declarationReferenceOffset, class_, class_.rawType);
-    } else if (declaration is TypeVariableBuilder<TypeBuilder, DartType>) {
+  void storeTypeUse(int offset, Node node) {
+    if (node is Class) {
+      listener.storeClassReference(offset, node, node.rawType);
+    } else if (node is TypeParameter) {
       // TODO(paulberry): handle this case.
-    } else if (declaration is FunctionTypeAliasBuilder<TypeBuilder, DartType>) {
+    } else if (node is FunctionType) {
       // TODO(paulberry): handle this case.
-    } else if (declaration is InvalidTypeBuilder<TypeBuilder, DartType>) {
+    } else if (node is Typedef) {
+      // TODO(paulberry): handle this case.
+    } else if (node is InvalidType) {
       // TODO(paulberry): handle this case.
     } else {
-      throw new UnimplementedError(
-          'TODO(paulberry): ${declaration.runtimeType}');
+      // TODO(paulberry): handle this case.
+      return unhandled("${node.runtimeType}", "storeTypeUse", offset, uri);
     }
   }
 
@@ -1910,8 +1896,7 @@ class StrongModeMixinInferrer implements MixinInferrer {
             mixinClass.fileUri);
         return;
       }
-      InterfaceType u0 = Substitution
-          .fromSupertype(baseType)
+      InterfaceType u0 = Substitution.fromSupertype(baseType)
           .substituteSupertype(supertype)
           .asInterfaceType;
       // We want to solve U0 = S0 where S0 is mixinSupertype, but we only have

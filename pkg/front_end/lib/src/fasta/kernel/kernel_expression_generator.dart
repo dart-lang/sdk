@@ -13,18 +13,17 @@ import '../fasta_codes.dart'
     show
         LocatedMessage,
         messageLoadLibraryTakesNoArguments,
-        messageSuperAsExpression,
-        templateNotAPrefixInTypeAnnotation;
+        messageSuperAsExpression;
 
 import '../messages.dart' show Message, noLength;
 
 import '../names.dart' show callName, equalsName, indexGetName, indexSetName;
 
-import '../parser.dart' show lengthForToken, lengthOfSpan, offsetForToken;
+import '../parser.dart' show lengthForToken, offsetForToken;
 
 import '../problems.dart' show unhandled, unsupported;
 
-import 'body_builder.dart' show Identifier, noLocation;
+import 'body_builder.dart' show noLocation;
 
 import 'constness.dart' show Constness;
 
@@ -41,6 +40,7 @@ import 'expression_generator.dart'
         LargeIntAccessGenerator,
         LoadLibraryGenerator,
         NullAwarePropertyAccessGenerator,
+        PrefixUseGenerator,
         PropertyAccessGenerator,
         ReadOnlyAccessGenerator,
         StaticAccessGenerator,
@@ -49,6 +49,7 @@ import 'expression_generator.dart'
         ThisIndexedAccessGenerator,
         ThisPropertyAccessGenerator,
         TypeUseGenerator,
+        UnexpectedQualifiedUseGenerator,
         UnlinkedGenerator,
         UnresolvedNameGenerator,
         VariableUseGenerator;
@@ -68,7 +69,6 @@ import 'kernel_ast_api.dart'
         DartType,
         Field,
         Initializer,
-        InvalidType,
         Let,
         Member,
         Name,
@@ -1167,59 +1167,46 @@ class KernelLoadLibraryGenerator extends KernelGenerator
 class KernelDeferredAccessGenerator extends KernelGenerator
     with DeferredAccessGenerator {
   @override
-  final PrefixBuilder builder;
+  final KernelPrefixUseGenerator prefixGenerator;
 
   @override
-  final KernelGenerator generator;
+  final KernelGenerator suffixGenerator;
 
   KernelDeferredAccessGenerator(ExpressionGeneratorHelper helper, Token token,
-      this.builder, this.generator)
+      this.prefixGenerator, this.suffixGenerator)
       : super(helper, token);
 
   @override
   Expression _makeSimpleRead() {
-    return helper.wrapInDeferredCheck(
-        generator._makeSimpleRead(), builder, token.charOffset);
+    return helper.wrapInDeferredCheck(suffixGenerator._makeSimpleRead(),
+        prefixGenerator.prefix, token.charOffset);
   }
 
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     return helper.wrapInDeferredCheck(
-        generator._makeRead(complexAssignment), builder, token.charOffset);
+        suffixGenerator._makeRead(complexAssignment),
+        prefixGenerator.prefix,
+        token.charOffset);
   }
 
   @override
   Expression _makeWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
     return helper.wrapInDeferredCheck(
-        generator._makeWrite(value, voidContext, complexAssignment),
-        builder,
+        suffixGenerator._makeWrite(value, voidContext, complexAssignment),
+        prefixGenerator.prefix,
         token.charOffset);
   }
 }
 
 class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
     with TypeUseGenerator {
-  /// The import prefix preceding the [declaration] reference, or `null` if
-  /// the reference is not prefixed.
-  @override
-  final PrefixBuilder prefix;
-
-  /// The offset at which the [declaration] is referenced by this generator,
-  /// or `-1` if the reference is implicit.
-  @override
-  final int declarationReferenceOffset;
-
   @override
   final TypeDeclarationBuilder declaration;
 
-  KernelTypeUseGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      this.prefix,
-      this.declarationReferenceOffset,
-      this.declaration,
-      String plainNameForRead)
+  KernelTypeUseGenerator(ExpressionGeneratorHelper helper, Token token,
+      this.declaration, String plainNameForRead)
       : super(helper, token, null, plainNameForRead);
 
   @override
@@ -1256,6 +1243,8 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
   @override
   buildPropertyAccess(
       IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
+    helper.storeTypeUse(offsetForToken(token), declaration.target);
+
     // `SomeType?.toString` is the same as `SomeType.toString`, not
     // `(SomeType).toString`.
     isNullAware = false;
@@ -1470,6 +1459,27 @@ class KernelDelayedPostfixIncrement extends KernelContextAwareGenerator
   KernelDelayedPostfixIncrement(ExpressionGeneratorHelper helper, Token token,
       Generator generator, this.binaryOperator, this.interfaceTarget)
       : super(helper, token, generator);
+}
+
+class KernelPrefixUseGenerator extends KernelGenerator with PrefixUseGenerator {
+  final PrefixBuilder prefix;
+
+  KernelPrefixUseGenerator(
+      ExpressionGeneratorHelper helper, Token token, this.prefix)
+      : super(helper, token);
+}
+
+class KernelUnexpectedQualifiedUseGenerator extends KernelGenerator
+    with UnexpectedQualifiedUseGenerator {
+  @override
+  final KernelGenerator prefixGenerator;
+
+  @override
+  final bool isUnresolved;
+
+  KernelUnexpectedQualifiedUseGenerator(ExpressionGeneratorHelper helper,
+      Token token, this.prefixGenerator, this.isUnresolved)
+      : super(helper, token);
 }
 
 Expression makeLet(VariableDeclaration variable, Expression body) {

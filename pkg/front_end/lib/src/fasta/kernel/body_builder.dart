@@ -70,10 +70,8 @@ import 'constness.dart' show Constness;
 
 import 'expression_generator.dart'
     show
-        DeferredAccessGenerator,
         DelayedAssignment,
         DelayedPostfixIncrement,
-        ErroneousExpressionGenerator,
         Generator,
         IncompleteErrorGenerator,
         IncompletePropertyAccessGenerator,
@@ -82,6 +80,7 @@ import 'expression_generator.dart'
         LargeIntAccessGenerator,
         LoadLibraryGenerator,
         ParenthesizedExpressionGenerator,
+        PrefixUseGenerator,
         ReadOnlyAccessGenerator,
         SendAccessGenerator,
         StaticAccessGenerator,
@@ -297,9 +296,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       return node.buildSimpleRead();
     } else if (node is Expression) {
       return node;
-    } else if (node is PrefixBuilder) {
-      return deprecated_buildCompileTimeError(
-          "A library can't be used as an expression.");
     } else if (node is SuperInitializer) {
       return buildCompileTimeError(
           fasta.messageSuperAsExpression, node.fileOffset, noLength);
@@ -456,9 +452,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       if (name?.isNotEmpty ?? false) {
         Token period = periodBeforeName ?? beginToken.next.next;
         Generator generator = expression;
-        if (generator is TypeUseGenerator) {
-          _typeInferrer.storeTypeUse(generator);
-        }
         expression = generator.buildPropertyAccess(
             new IncompletePropertyAccessGenerator(
                 this, period.next, new Name(name, library.library)),
@@ -1110,9 +1103,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Object send = pop();
     if (send is IncompleteSendGenerator) {
       Object receiver = optional(".", token) ? pop() : popForValue();
-      if (receiver is TypeUseGenerator) {
-        _typeInferrer.storeTypeUse(receiver);
-      }
       push(send.withReceiver(receiver, token.charOffset));
     } else {
       pop();
@@ -1425,11 +1415,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         deprecated_addCompileTimeError(
             charOffset, "Not a constant expression.");
       }
-      TypeUseGenerator generator = new TypeUseGenerator(
-          this, token, prefix, charOffset, declaration, name);
-      return (prefix?.deferred == true)
-          ? new DeferredAccessGenerator(this, token, prefix, generator)
-          : generator;
+      return new TypeUseGenerator(this, token, declaration, name);
     } else if (declaration.isLocal) {
       if (constantContext != ConstantContext.none &&
           !declaration.isConst &&
@@ -1478,23 +1464,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       return new ThisPropertyAccessGenerator(this, token, n, getter, setter);
     } else if (declaration.isRegularMethod) {
       assert(declaration.isStatic || declaration.isTopLevel);
-      StaticAccessGenerator generator =
-          new StaticAccessGenerator(this, token, declaration.target, null);
-      return (prefix?.deferred == true)
-          ? new DeferredAccessGenerator(this, token, prefix, generator)
-          : generator;
+      return new StaticAccessGenerator(this, token, declaration.target, null);
     } else if (declaration is PrefixBuilder) {
-      if (constantContext != ConstantContext.none && declaration.deferred) {
-        deprecated_addCompileTimeError(
-            charOffset,
-            "'$name' can't be used in a constant expression because it's "
-            "marked as 'deferred' which means it isn't available until "
-            "loaded.\n"
-            "You might try moving the constant to the deferred library, "
-            "or removing 'deferred' from the import.");
-      }
+      assert(prefix == null);
       _typeInferrer.storePrefix(token, declaration);
-      return declaration;
+      return new PrefixUseGenerator(this, token, declaration);
     } else if (declaration is LoadLibraryBuilder) {
       return new LoadLibraryGenerator(this, token, declaration);
     } else {
@@ -1519,9 +1493,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
               charOffset, "Not a constant expression.");
         }
       }
-      return (prefix?.deferred == true)
-          ? new DeferredAccessGenerator(this, token, prefix, generator)
-          : generator;
+      return generator;
     }
   }
 
@@ -2084,12 +2056,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
       Object prefix = list[0];
       Identifier suffix = list[1];
-      if (prefix is PrefixBuilder) {
-        name = scopeLookup(prefix.exportScope, suffix.name, beginToken,
-            isQualified: true, prefix: prefix);
-      } else if (prefix is ErroneousExpressionGenerator) {
-        push(prefix.buildErroneousTypeNotAPrefix(suffix));
-        return;
+      if (prefix is Generator) {
+        name = prefix.prefixedLookup(suffix.token);
       } else {
         String displayName = debugName(getNodeName(prefix), suffix.name);
         addProblem(fasta.templateNotAType.withArguments(displayName),
@@ -2102,15 +2070,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       push(name.buildTypeWithBuiltArguments(arguments));
     } else if (name is TypeBuilder) {
       push(name.build(library));
-    } else if (name is PrefixBuilder) {
-      addProblem(fasta.templateNotAType.withArguments(name.name),
-          offsetForToken(beginToken), lengthForToken(beginToken));
-      push(const InvalidType());
     } else {
       unhandled(
           "${name.runtimeType}", "handleType", beginToken.charOffset, uri);
     }
-    // TODO(ahe): Unused code fasta.messageNonInstanceTypeVariableUse.
   }
 
   @override
@@ -2603,19 +2566,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       List<Object> list = type;
       Object prefix = list[0];
       identifier = list[1];
-      if (prefix is PrefixBuilder) {
-        type = scopeLookup(
-            prefix.exportScope, identifier.name, identifier.token,
-            isQualified: true, prefix: prefix);
-        identifier = null;
-      } else if (prefix is TypeUseGenerator) {
+      if (prefix is TypeUseGenerator) {
         type = prefix;
       } else if (prefix is Generator) {
-        String name = suffix == null
-            ? "${prefix.plainNameForRead}.${identifier.name}"
-            : "${prefix.plainNameForRead}.${identifier.name}.$suffix";
-        type = new UnresolvedNameGenerator(
-            this, prefix.token, new Name(name, library.library));
+        type = prefix.prefixedLookup(identifier.token);
+        identifier = null;
       } else {
         unhandled("${prefix.runtimeType}", "pushQualifiedReference",
             start.charOffset, uri);
@@ -2824,33 +2779,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     List<DartType> typeArguments = pop();
 
     Object type = pop();
-    PrefixBuilder deferredPrefix;
-    int checkOffset;
-    if (type is DeferredAccessGenerator) {
-      DeferredAccessGenerator generator = type;
-      type = generator.generator;
-      deferredPrefix = generator.builder;
-      checkOffset = generator.token.charOffset;
-    }
-
-    if (type is TypeUseGenerator) {
-      TypeUseGenerator generator = type;
-      _typeInferrer.storeTypeUse(generator);
-      if (generator.prefix != null) {
-        nameToken = nameToken.next.next;
-      }
-      type = generator.declaration;
-    }
 
     ConstantContext savedConstantContext = pop();
-    if (type is TypeDeclarationBuilder<TypeBuilder, Object>) {
-      Expression expression = buildConstructorInvocation(
-          type, nameToken, arguments, name, typeArguments, offset, constness);
-      push(deferredPrefix != null
-          ? wrapInDeferredCheck(expression, deferredPrefix, checkOffset)
-          : expression);
-    } else if (type is ErroneousExpressionGenerator) {
-      push(type.buildError(arguments));
+    if (type is Generator) {
+      push(type.invokeConstructor(
+          typeArguments, name, arguments, nameToken, constness));
     } else {
       push(throwNoSuchMethodError(forest.literalNull(null)..fileOffset = offset,
           debugName(getNodeName(type), name), arguments, nameToken.charOffset));
@@ -3701,7 +3634,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     KernelTypeVariableBuilder variable;
     Object inScope = scopeLookup(scope, name.name, token);
     if (inScope is TypeUseGenerator) {
-      _typeInferrer.storeTypeUse(inScope);
       variable = inScope.declaration;
     } else {
       // Something went wrong when pre-parsing the type variables.
@@ -3709,6 +3641,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       variable = new KernelTypeVariableBuilder(
           name.name, library, offsetForToken(name.token), null);
     }
+    storeTypeUse(offsetForToken(token), variable.target);
     if (annotations != null) {
       _typeInferrer.inferMetadata(this, factory, annotations);
       for (Expression annotation in annotations) {
@@ -3837,6 +3770,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         context: context);
   }
 
+  @override
   Expression wrapInLocatedCompileTimeError(
       Expression expression, LocatedMessage message,
       {List<LocatedMessage> context}) {
@@ -4105,6 +4039,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     return type;
   }
 
+  @override
   Expression evaluateArgumentsBefore(
       Arguments arguments, Expression expression) {
     if (arguments == null) return expression;
@@ -4260,6 +4195,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           uri,
           wasHandled: true);
     }
+  }
+
+  @override
+  void storeTypeUse(int offset, Node node) {
+    _typeInferrer.storeTypeUse(offset, node);
   }
 }
 

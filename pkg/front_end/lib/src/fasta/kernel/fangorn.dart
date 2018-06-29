@@ -52,6 +52,7 @@ import 'kernel_expression_generator.dart'
         KernelLargeIntAccessGenerator,
         KernelLoadLibraryGenerator,
         KernelNullAwarePropertyAccessGenerator,
+        KernelPrefixUseGenerator,
         KernelPropertyAccessGenerator,
         KernelReadOnlyAccessGenerator,
         KernelStaticAccessGenerator,
@@ -60,6 +61,7 @@ import 'kernel_expression_generator.dart'
         KernelThisIndexedAccessGenerator,
         KernelThisPropertyAccessGenerator,
         KernelTypeUseGenerator,
+        KernelUnexpectedQualifiedUseGenerator,
         KernelUnlinkedGenerator,
         KernelUnresolvedNameGenerator,
         KernelVariableUseGenerator;
@@ -116,6 +118,7 @@ import 'forest.dart'
         Generator,
         LoadLibraryBuilder,
         PrefixBuilder,
+        PrefixUseGenerator,
         TypeDeclarationBuilder,
         UnlinkedDeclaration;
 
@@ -759,21 +762,20 @@ class Fangorn extends Forest {
   KernelDeferredAccessGenerator deferredAccessGenerator(
       ExpressionGeneratorHelper helper,
       Token token,
-      PrefixBuilder builder,
-      Generator generator) {
-    return new KernelDeferredAccessGenerator(helper, token, builder, generator);
+      PrefixUseGenerator prefixGenerator,
+      Generator suffixGenerator) {
+    return new KernelDeferredAccessGenerator(
+        helper, token, prefixGenerator, suffixGenerator);
   }
 
   @override
   KernelTypeUseGenerator typeUseGenerator(
       ExpressionGeneratorHelper helper,
       Token token,
-      PrefixBuilder prefix,
-      int declarationReferenceOffset,
       TypeDeclarationBuilder declaration,
       String plainNameForRead) {
-    return new KernelTypeUseGenerator(helper, token, prefix,
-        declarationReferenceOffset, declaration, plainNameForRead);
+    return new KernelTypeUseGenerator(
+        helper, token, declaration, plainNameForRead);
   }
 
   @override
@@ -824,6 +826,22 @@ class Fangorn extends Forest {
       Procedure interfaceTarget) {
     return new KernelDelayedPostfixIncrement(
         helper, token, generator, binaryOperator, interfaceTarget);
+  }
+
+  @override
+  KernelPrefixUseGenerator prefixUseGenerator(
+      ExpressionGeneratorHelper helper, Token token, PrefixBuilder prefix) {
+    return new KernelPrefixUseGenerator(helper, token, prefix);
+  }
+
+  @override
+  KernelUnexpectedQualifiedUseGenerator unexpectedQualifiedUseGenerator(
+      ExpressionGeneratorHelper helper,
+      Token token,
+      Generator prefixGenerator,
+      bool isUnresolved) {
+    return new KernelUnexpectedQualifiedUseGenerator(
+        helper, token, prefixGenerator, isUnresolved);
   }
 }
 

@@ -276,21 +276,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_constDeferredClass() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONST_DEFERRED_CLASS, found 0;
-    //          0 errors of type HintCode.UNUSED_IMPORT, found 1 (21)
-    await super.test_constDeferredClass();
-  }
-
-  @override
-  @failingTest
-  test_constDeferredClass_namedConstructor() async {
-    // 'package:analyzer/src/fasta/resolution_applier.dart': Failed assertion: line 632 pos 14: 'constructorName.name == null': is not true.
-    await super.test_constDeferredClass_namedConstructor();
-  }
-
-  @override
-  @failingTest
   test_constEval_newInstance_constConstructor() async {
     // Expected 1 errors of type CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, found 0
     await super.test_constEval_newInstance_constConstructor();
@@ -2448,13 +2433,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30857')
   test_prefixCollidesWithTopLevelMembers_type() async {
     return super.test_prefixCollidesWithTopLevelMembers_type();
-  }
-
-  @override
-  @failingTest
-  test_prefixNotFollowedByDot() async {
-    // Bad state: No reference information for p at 39
-    await super.test_prefixNotFollowedByDot();
   }
 
   @override
