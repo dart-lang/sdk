@@ -9,7 +9,7 @@ import 'dart:async';
 
 import 'deferred_class_library.dart' deferred as lib;
 
-isError(e) => e is Error;
+bool isError(e) => e is Error;
 
 main() {
   var x;

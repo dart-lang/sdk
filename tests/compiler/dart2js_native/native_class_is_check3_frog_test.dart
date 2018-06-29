@@ -10,7 +10,7 @@ abstract class J {}
 
 abstract class I extends J {
   I read();
-  write(I x);
+  write(covariant I x);
 }
 
 // Native implementation.

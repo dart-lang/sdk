@@ -24,7 +24,7 @@ main() {
   Expect.equals(null, a.foo());
   Expect.equals(null, a.bar(42));
   Expect.equals(42, a.bar(null, 42));
-  Expect.equals(0, a.foo(1, 2));
-  Expect.equals(0, a.bar());
-  Expect.equals(0, a.bar(1, 2, 3));
+  Expect.equals(0, (a as dynamic).foo(1, 2));
+  Expect.equals(0, (a as dynamic).bar());
+  Expect.equals(0, (a as dynamic).bar(1, 2, 3));
 }

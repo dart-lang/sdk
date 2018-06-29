@@ -93,7 +93,7 @@ void mulTest() {
 void divTest() {
   var m1 = 0.0 - 1.0;
   var m2 = 0 - 2;
-  var x = two();
+  num x = two();
   x /= 2;
   Expect.equals(1.0, x);
   x /= 2;

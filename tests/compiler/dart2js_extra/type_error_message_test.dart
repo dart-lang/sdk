@@ -9,9 +9,9 @@ import 'package:expect/expect.dart';
 
 class C<T, S> {}
 
-bool inCheckedMode() {
+bool inComplianceMode() {
   try {
-    int i = 'hest';
+    int i = ('hest' as dynamic);
   } catch (e) {
     return true;
   }
@@ -19,10 +19,10 @@ bool inCheckedMode() {
 }
 
 main() {
-  if (inCheckedMode()) {
+  if (inComplianceMode()) {
     bool caught = false;
     try {
-      C<String, String> x = new C<C<int, String>, String>();
+      C<String, String> x = (new C<C<int, String>, String>()) as dynamic;
     } catch (e) {
       String nameOfC = (C).toString();
       String nameOfInt = (int).toString();

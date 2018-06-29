@@ -77,16 +77,6 @@ void setup() {
 })()""");
 }
 
-bool get isCheckedMode {
-  int i = 0;
-  try {
-    i = 'a';
-  } catch (e) {
-    return true;
-  }
-  return false;
-}
-
 void match(String s, String pattern1) {
   var pattern2 = pattern1.replaceAll(' ', '');
   Expect.isTrue(s.contains(pattern1) || s.contains(pattern2),
@@ -103,19 +93,11 @@ test1() {
   String method1 = findMethodTextContaining(new B(), '(Method1Tag)');
   Expect.isNotNull(method1, 'No method found containing "(Method1Tag)"');
 
-  if (isCheckedMode) {
-    match(method1, r'foo()');
-    // TODO: inlining in checked mode.
-    nomatch(method1, r'foo(1)');
-    //  t1.foo$3(x, 3, 10, 30)  or  y.EL(z,3,10,30)
-    match(method1, r', 3, 10, 30)');
-  } else {
-    // Direct (inlined) calls don't have $3 or minified names.
-    match(method1, r'.foo()');
-    match(method1, r'.foo(1)');
-    match(method1, r'.foo(2, 10)');
-    match(method1, r'.foo(3, 10, 30)');
-  }
+  // Direct (inlined) calls don't have $3 or minified names.
+  match(method1, r'.foo()');
+  match(method1, r'.foo(1)');
+  match(method1, r'.foo(2, 10)');
+  match(method1, r'.foo(3, 10, 30)');
 
   // Ensure the methods are compiled by calling them.
   var a = makeA();

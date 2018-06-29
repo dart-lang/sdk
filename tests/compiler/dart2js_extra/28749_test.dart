@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// dart2jsOptions=--strong
+
 // Regression test for http://dartbug.com/28749.
 //
 // This would crash at compile time because inner typedefs remain after calling
@@ -47,11 +49,11 @@ void main() {
   );
 
   Expect.equals(
-    'Wrap<(int) => ((dynamic) => void) => (dynamic) => void>',
+    'Wrap<(int) => ((int) => void) => (int) => void>',
     '${foo<int>(0)}',
   );
   Expect.equals(
-    'Wrap<(int) => ((dynamic) => void) => (dynamic) => void>',
+    'Wrap<(int) => ((String) => void) => (String) => void>',
     '${foo<String>(1)}',
   );
 }

@@ -34,18 +34,18 @@ expectThrows(f, check) {
 }
 
 main() {
-  var x = null;
-  var z = new Object();
-  var v = new List(1)[0];
-  var s = "Cannot call method 'foo' of null";
-  var nul = null;
-  var f = new Foo();
+  dynamic x = null;
+  dynamic z = new Object();
+  dynamic v = new List(1)[0];
+  dynamic s = "Cannot call method 'foo' of null";
+  dynamic nul = null;
+  dynamic f = new Foo();
 
   expectThrows(() => x.fisk(), isNullError);
   expectThrows(() => v.fisk(), isNullError);
   expectThrows(() => z.fisk(), isJsNoSuchMethodError);
   expectThrows(() => s.fisk(), isJsNoSuchMethodError);
-  expectThrows(() => null(), isNullError);
+  expectThrows(() => (null as dynamic)(), isNullError);
   expectThrows(() => f.field(), isNullError);
 
   expectThrows(() => confuse(x).fisk(), isNullError);

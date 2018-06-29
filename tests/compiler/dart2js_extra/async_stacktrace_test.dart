@@ -26,7 +26,7 @@ class Tracer {
   }
 }
 
-test1(Tracer tracer) {
+Future test1(Tracer tracer) {
   foo() async*
 
   /// asyncStar: ok
@@ -56,7 +56,7 @@ test1(Tracer tracer) {
       ;
 }
 
-test2(Tracer tracer) {
+Future test2(Tracer tracer) {
   var savedStackTrace;
   foo() async*
 
@@ -83,7 +83,7 @@ test2(Tracer tracer) {
   });
 }
 
-test3(Tracer tracer) {
+Future test3(Tracer tracer) {
   var savedStackTrace;
   foo() async*
 
