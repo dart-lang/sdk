@@ -29,6 +29,62 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   @override
   @failingTest
   @potentialAnalyzerProblem
+  test_unresolved_assignment_left_identifier_compound() async {
+    await super.test_unresolved_assignment_left_identifier_compound();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_assignment_left_identifier_simple() async {
+    await super.test_unresolved_assignment_left_identifier_simple();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_assignment_left_indexed1_simple() async {
+    await super.test_unresolved_assignment_left_indexed1_simple();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_assignment_left_indexed2_simple() async {
+    await super.test_unresolved_assignment_left_indexed2_simple();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_assignment_left_indexed3_simple() async {
+    await super.test_unresolved_assignment_left_indexed3_simple();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_assignment_left_indexed4_simple() async {
+    await super.test_unresolved_assignment_left_indexed4_simple();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_assignment_left_prefixed1_simple() async {
+    await super.test_unresolved_assignment_left_prefixed1_simple();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_assignment_left_property1_simple() async {
+    await super.test_unresolved_assignment_left_property1_simple();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
   test_unresolved_instanceCreation_name_11() async {
     await super.test_unresolved_instanceCreation_name_11();
   }
