@@ -387,6 +387,37 @@ defineTests() {
       });
     });
 
+    group('lines_longer_than_80_chars', () {
+      IOSink currentOut = outSink;
+      CollectingSink collectingOut = new CollectingSink();
+      setUp(() {
+        exitCode = 0;
+        outSink = collectingOut;
+      });
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+        exitCode = 0;
+      });
+
+      test('only throw errors', () async {
+        await dartlint.main([
+          'test/_data/lines_longer_than_80_chars',
+          '--rules=lines_longer_than_80_chars'
+        ]);
+        expect(exitCode, 1);
+        expect(
+            collectingOut.trim(),
+            stringContainsInOrder([
+              'a.dart 3:1 [lint] AVOID lines longer than 80 characters',
+              'a.dart 7:1 [lint] AVOID lines longer than 80 characters',
+              'a.dart 16:1 [lint] AVOID lines longer than 80 characters',
+              'a.dart 21:1 [lint] AVOID lines longer than 80 characters',
+              '1 file analyzed, 4 issues found, in'
+            ]));
+      });
+    });
+
     group('only_throw_errors', () {
       IOSink currentOut = outSink;
       CollectingSink collectingOut = new CollectingSink();
