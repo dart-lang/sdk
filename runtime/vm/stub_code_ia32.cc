@@ -107,6 +107,18 @@ void StubCode::GenerateNullErrorSharedWithFPURegsStub(Assembler* assembler) {
   __ Breakpoint();
 }
 
+void StubCode::GenerateStackOverflowSharedWithoutFPURegsStub(
+    Assembler* assembler) {
+  // TODO(sjindel): implement.
+  __ Breakpoint();
+}
+
+void StubCode::GenerateStackOverflowSharedWithFPURegsStub(
+    Assembler* assembler) {
+  // TODO(sjindel): implement.
+  __ Breakpoint();
+}
+
 // Input parameters:
 //   ESP : points to return address.
 //   EAX : stop message (const char*).

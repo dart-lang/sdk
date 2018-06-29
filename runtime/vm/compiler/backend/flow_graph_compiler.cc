@@ -779,7 +779,8 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
         if ((kReservedCpuRegisters & (1 << i)) != 0) continue;
         const Register reg = static_cast<Register>(i);
         bitmap->Set(bitmap->Length(),
-                    locs->live_registers()->ContainsRegister(reg));
+                    locs->live_registers()->ContainsRegister(reg) &&
+                        locs->live_registers()->IsTagged(reg));
       }
     }
 
@@ -2192,7 +2193,9 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
         compiler->SlowPathEnvironmentFor(instruction(), num_args_);
     compiler->EmitCatchEntryState(env, try_index_);
   }
-  __ Breakpoint();
+  if (!use_shared_stub) {
+    __ Breakpoint();
+  }
 }
 
 #undef __
