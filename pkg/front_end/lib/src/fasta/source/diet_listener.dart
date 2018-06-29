@@ -27,8 +27,10 @@ import '../builder/builder.dart';
 
 import '../constant_context.dart' show ConstantContext;
 
+import '../crash.dart' show Crash;
+
 import '../deprecated_problems.dart'
-    show Crash, deprecated_InputError, deprecated_inputError;
+    show deprecated_InputError, deprecated_inputError;
 
 import '../fasta_codes.dart'
     show Message, messageExpectedBlockToSkip, templateInternalProblemNotFound;

@@ -47,8 +47,9 @@ import '../../api_prototype/file_system.dart' show FileSystem;
 
 import '../compiler_context.dart' show CompilerContext;
 
-import '../deprecated_problems.dart'
-    show deprecated_InputError, reportCrash, resetCrashReporting;
+import '../crash.dart' show reportCrash, resetCrashReporting;
+
+import '../deprecated_problems.dart' show deprecated_InputError;
 
 import '../dill/dill_target.dart' show DillTarget;
 

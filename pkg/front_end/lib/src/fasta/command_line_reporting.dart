@@ -20,8 +20,9 @@ import 'colors.dart' show green, magenta, red;
 
 import 'compiler_context.dart' show CompilerContext;
 
-import 'deprecated_problems.dart'
-    show Crash, deprecated_InputError, safeToString;
+import 'crash.dart' show Crash, safeToString;
+
+import 'deprecated_problems.dart' show deprecated_InputError;
 
 import 'fasta_codes.dart' show LocatedMessage;
 

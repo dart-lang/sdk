@@ -6,18 +6,27 @@
 library front_end.kernel_generator_impl;
 
 import 'dart:async' show Future;
-import 'dart:async';
 
 import 'package:kernel/kernel.dart' show Component, CanonicalName;
 
-import 'base/processed_options.dart';
-import 'fasta/severity.dart' show Severity;
+import 'base/processed_options.dart' show ProcessedOptions;
+
 import 'fasta/compiler_context.dart' show CompilerContext;
-import 'fasta/deprecated_problems.dart' show deprecated_InputError, reportCrash;
+
+import 'fasta/crash.dart' show reportCrash;
+
+import 'fasta/deprecated_problems.dart' show deprecated_InputError;
+
 import 'fasta/dill/dill_target.dart' show DillTarget;
+
 import 'fasta/kernel/kernel_target.dart' show KernelTarget;
-import 'fasta/kernel/utils.dart';
-import 'fasta/kernel/verifier.dart';
+
+import 'fasta/kernel/utils.dart' show printComponentText, serializeComponent;
+
+import 'fasta/kernel/verifier.dart' show verifyComponent;
+
+import 'fasta/severity.dart' show Severity;
+
 import 'fasta/uri_translator.dart' show UriTranslator;
 
 /// Implementation for the

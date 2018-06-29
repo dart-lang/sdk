@@ -10,7 +10,7 @@ import 'dart:collection' show Queue;
 
 import 'builder/builder.dart' show Declaration, LibraryBuilder;
 
-import 'deprecated_problems.dart' show firstSourceUri;
+import 'crash.dart' show firstSourceUri;
 
 import 'messages.dart'
     show
