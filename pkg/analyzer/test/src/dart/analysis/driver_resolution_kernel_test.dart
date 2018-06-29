@@ -71,22 +71,15 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_unresolved_methodInvocation_argument_resolved_named() async {
-    await super.test_unresolved_methodInvocation_argument_resolved_named();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_unresolved_methodInvocation_argument_resolved_required() async {
-    await super.test_unresolved_methodInvocation_argument_resolved_required();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_unresolved_methodInvocation_noTarget() async {
     await super.test_unresolved_methodInvocation_noTarget();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_methodInvocation_target_resolved() async {
+    await super.test_unresolved_methodInvocation_target_resolved();
   }
 
   @override
