@@ -235,7 +235,7 @@ class KernelResynthesizer implements ElementResynthesizer {
 
     if (kernelType is kernel.TypeParameterType) {
       kernel.TypeParameter kTypeParameter = kernelType.parameter;
-      return _getTypeParameter(context, kTypeParameter).type;
+      return getTypeParameter(context, kTypeParameter).type;
     }
 
     if (kernelType is kernel.FunctionType) {
@@ -244,6 +244,22 @@ class KernelResynthesizer implements ElementResynthesizer {
 
     // TODO(scheglov) Support other kernel types.
     throw new UnimplementedError('For ${kernelType.runtimeType}');
+  }
+
+  /// Return the [TypeParameterElement] for the given [kernelTypeParameter].
+  TypeParameterElement getTypeParameter(
+      ElementImpl context, kernel.TypeParameter kernelTypeParameter) {
+    String name = kernelTypeParameter.name;
+    for (var ctx = context; ctx != null; ctx = ctx.enclosingElement) {
+      if (ctx is TypeParameterizedElementMixin) {
+        for (var typeParameter in ctx.typeParameters) {
+          if (typeParameter.name == name) {
+            return typeParameter;
+          }
+        }
+      }
+    }
+    throw new StateError('Not found $kernelTypeParameter in $context');
   }
 
   void _buildTypeProvider() {
@@ -360,22 +376,6 @@ class KernelResynthesizer implements ElementResynthesizer {
             : _typeProvider.nullType)
         .toList();
     return typedefElement.instantiate(typeArguments);
-  }
-
-  /// Return the [TypeParameterElement] for the given [kernelTypeParameter].
-  TypeParameterElement _getTypeParameter(
-      ElementImpl context, kernel.TypeParameter kernelTypeParameter) {
-    String name = kernelTypeParameter.name;
-    for (var ctx = context; ctx != null; ctx = ctx.enclosingElement) {
-      if (ctx is TypeParameterizedElementMixin) {
-        for (var typeParameter in ctx.typeParameters) {
-          if (typeParameter.name == name) {
-            return typeParameter;
-          }
-        }
-      }
-    }
-    throw new StateError('Not found $kernelTypeParameter in $context');
   }
 
   LibraryElementImpl _newSyntheticLibrary(String uriStr) {

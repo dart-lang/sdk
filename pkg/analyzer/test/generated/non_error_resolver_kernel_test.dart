@@ -249,13 +249,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_returnOfInvalidType_typeParameter_18468() async {
-    return super.test_returnOfInvalidType_typeParameter_18468();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/33677')
   test_undefinedIdentifier_synthetic_whenExpression() {
     // Expected 0 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 1 (29)

@@ -6041,6 +6041,19 @@ typedef void F(int p);
     }
   }
 
+  test_typeParameter() async {
+    addTestFile(r'''
+class C<T> {
+  get t => T;
+}
+''');
+    await resolveTestFile();
+
+    var identifier = findNode.simple('T;');
+    assertElement(identifier, findElement.typeParameter('T'));
+    assertType(identifier, 'Type');
+  }
+
   test_unresolved_assignment_left_identifier_compound() async {
     addTestFile(r'''
 int b;
@@ -7119,8 +7132,8 @@ class FindElement {
   CompilationUnitElement get unitElement => result.unit.element;
 
   FieldElement field(String name) {
-    for (var class_ in unitElement.types) {
-      for (var field in class_.fields) {
+    for (var type in unitElement.types) {
+      for (var field in type.fields) {
         if (field.name == name) {
           return field;
         }
@@ -7130,8 +7143,8 @@ class FindElement {
   }
 
   MethodElement method(String name) {
-    for (var class_ in unitElement.types) {
-      for (var method in class_.methods) {
+    for (var type in unitElement.types) {
+      for (var method in type.methods) {
         if (method.name == name) {
           return method;
         }
@@ -7151,6 +7164,17 @@ class FindElement {
       }
     }
     fail('Not found top-level variable: $name');
+  }
+
+  TypeParameterElement typeParameter(String name) {
+    for (var type in unitElement.types) {
+      for (var parameter in type.typeParameters) {
+        if (parameter.name == name) {
+          return parameter;
+        }
+      }
+    }
+    fail('Not found type parameter: $name');
   }
 }
 
