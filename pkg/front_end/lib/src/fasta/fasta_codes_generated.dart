@@ -3583,52 +3583,24 @@ Message _withArgumentsInternalProblemUriMissingScheme(Uri uri_) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)>
-    templateInternalVerificationError =
+    templateInternalProblemVerificationError =
     const Template<Message Function(String string)>(
         messageTemplate: r"""Verification of the generated program failed:
-#string""", withArguments: _withArgumentsInternalVerificationError);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeInternalVerificationError =
-    const Code<Message Function(String string)>(
-  "InternalVerificationError",
-  templateInternalVerificationError,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalVerificationError(String string) {
-  return new Message(codeInternalVerificationError,
-      message: """Verification of the generated program failed:
-${string}""", arguments: {'string': string});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String
-            string)> templateInternalVisitorUnsupportedDefault = const Template<
-        Message Function(String string)>(
-    messageTemplate:
-        r"""Trying to invoke a default visiting method of a visitor on a node #string.""",
-    tipTemplate:
-        r"""Try invoking one of the specialized 'visit' methods instead.""",
-    withArguments: _withArgumentsInternalVisitorUnsupportedDefault);
+#string""", withArguments: _withArgumentsInternalProblemVerificationError);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String string)>
-    codeInternalVisitorUnsupportedDefault =
+    codeInternalProblemVerificationError =
     const Code<Message Function(String string)>(
-        "InternalVisitorUnsupportedDefault",
-        templateInternalVisitorUnsupportedDefault,
+        "InternalProblemVerificationError",
+        templateInternalProblemVerificationError,
         severity: Severity.internalProblem);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalVisitorUnsupportedDefault(String string) {
-  return new Message(codeInternalVisitorUnsupportedDefault,
-      message:
-          """Trying to invoke a default visiting method of a visitor on a node ${string}.""",
-      tip: """Try invoking one of the specialized 'visit' methods instead.""",
-      arguments: {'string': string});
+Message _withArgumentsInternalProblemVerificationError(String string) {
+  return new Message(codeInternalProblemVerificationError,
+      message: """Verification of the generated program failed:
+${string}""", arguments: {'string': string});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

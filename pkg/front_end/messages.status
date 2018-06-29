@@ -212,8 +212,6 @@ InheritedMembersConflict/analyzerCode: Fail
 InputFileNotFound/analyzerCode: Fail
 InputFileNotFound/example: Fail
 IntegerLiteralIsOutOfRange/example: Fail
-InternalVerificationError/analyzerCode: Fail
-InternalVerificationError/example: Fail
 InterpolationInUri/example: Fail
 InvalidCastFunctionExpr/example: Fail
 InvalidCastLiteralList/example: Fail
