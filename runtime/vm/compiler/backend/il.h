@@ -4904,6 +4904,67 @@ class LoadClassIdInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(LoadClassIdInstr);
 };
 
+#define NATIVE_FIELDS_LIST(V)                                                  \
+  V(Array, length, Smi, IMMUTABLE)                                             \
+  V(GrowableObjectArray, length, Smi, MUTABLE)                                 \
+  V(TypedData, length, Smi, IMMUTABLE)                                         \
+  V(String, length, Smi, IMMUTABLE)                                            \
+  V(LinkedHashMap, index, TypedDataUint32Array, MUTABLE)                       \
+  V(LinkedHashMap, data, Array, MUTABLE)                                       \
+  V(LinkedHashMap, hash_mask, Smi, MUTABLE)                                    \
+  V(LinkedHashMap, used_data, Smi, MUTABLE)                                    \
+  V(LinkedHashMap, deleted_keys, Smi, MUTABLE)                                 \
+  V(ArgumentsDescriptor, type_args_len, Smi, IMMUTABLE)
+
+class NativeFieldDesc {
+ public:
+  enum Kind {
+#define DECLARE_KIND(ClassName, FieldName, cid, mutability)                    \
+  k##ClassName##_##FieldName,
+    NATIVE_FIELDS_LIST(DECLARE_KIND)
+#undef DECLARE_KIND
+  };
+
+#define DEFINE_GETTER(ClassName, FieldName, cid, mutability)                   \
+  static const NativeFieldDesc* ClassName##_##FieldName() {                    \
+    return Get(k##ClassName##_##FieldName);                                    \
+  }
+
+  NATIVE_FIELDS_LIST(DEFINE_GETTER)
+#undef DEFINE_GETTER
+
+  static const NativeFieldDesc* Get(Kind kind);
+  static const NativeFieldDesc* GetLengthFieldForArrayCid(intptr_t array_cid);
+
+  const char* name() const;
+
+  Kind kind() const { return kind_; }
+
+  intptr_t offset_in_bytes() const { return offset_in_bytes_; }
+
+  bool is_immutable() const { return immutable_; }
+
+  intptr_t cid() const { return cid_; }
+
+  RawAbstractType* type() const;
+
+ private:
+  NativeFieldDesc(Kind kind,
+                  intptr_t offset_in_bytes,
+                  intptr_t cid,
+                  bool immutable)
+      : kind_(kind),
+        offset_in_bytes_(offset_in_bytes),
+        immutable_(immutable),
+        cid_(cid) {}
+
+  const Kind kind_;
+  const intptr_t offset_in_bytes_;
+  const bool immutable_;
+
+  const intptr_t cid_;
+};
+
 class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
  public:
   LoadFieldInstr(Value* instance,
@@ -4914,12 +4975,28 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
         type_(type),
         result_cid_(kDynamicCid),
         immutable_(false),
-        recognized_kind_(MethodRecognizer::kUnknown),
-        field_(NULL),
+        native_field_(nullptr),
+        field_(nullptr),
         token_pos_(token_pos) {
     ASSERT(offset_in_bytes >= 0);
     // May be null if field is not an instance.
-    ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
+    ASSERT(type_.IsZoneHandle() || type_.IsReadOnlyHandle());
+    SetInputAt(0, instance);
+  }
+
+  LoadFieldInstr(Value* instance,
+                 const NativeFieldDesc* native_field,
+                 TokenPosition token_pos)
+      : offset_in_bytes_(native_field->offset_in_bytes()),
+        type_(AbstractType::ZoneHandle(native_field->type())),
+        result_cid_(native_field->cid()),
+        immutable_(native_field->is_immutable()),
+        native_field_(native_field),
+        field_(nullptr),
+        token_pos_(token_pos) {
+    ASSERT(offset_in_bytes_ >= 0);
+    // May be null if field is not an instance.
+    ASSERT(type_.IsZoneHandle() || type_.IsReadOnlyHandle());
     SetInputAt(0, instance);
   }
 
@@ -4932,7 +5009,7 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
         type_(type),
         result_cid_(kDynamicCid),
         immutable_(false),
-        recognized_kind_(MethodRecognizer::kUnknown),
+        native_field_(nullptr),
         field_(field),
         token_pos_(token_pos) {
     ASSERT(field->IsZoneHandle());
@@ -4940,7 +5017,7 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
     SetInputAt(0, instance);
 
-    if (parsed_function != NULL && field->guarded_cid() != kIllegalCid) {
+    if (parsed_function != nullptr && field->guarded_cid() != kIllegalCid) {
       if (!field->is_nullable() || (field->guarded_cid() == kNullCid)) {
         set_result_cid(field->guarded_cid());
       }
@@ -4965,11 +5042,7 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
 
   bool IsPotentialUnboxedLoad() const;
 
-  void set_recognized_kind(MethodRecognizer::Kind kind) {
-    recognized_kind_ = kind;
-  }
-
-  MethodRecognizer::Kind recognized_kind() const { return recognized_kind_; }
+  const NativeFieldDesc* native_field() const { return native_field_; }
 
   DECLARE_INSTRUCTION(LoadField)
   virtual CompileType ComputeType() const;
@@ -4989,8 +5062,6 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  static MethodRecognizer::Kind RecognizedKindFromArrayCid(intptr_t cid);
-
   static bool IsFixedLengthArrayCid(intptr_t cid);
 
   virtual bool AllowsCSE() const { return immutable_; }
@@ -5006,7 +5077,7 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
   intptr_t result_cid_;
   bool immutable_;
 
-  MethodRecognizer::Kind recognized_kind_;
+  const NativeFieldDesc* native_field_;
   const Field* field_;
   const TokenPosition token_pos_;
 

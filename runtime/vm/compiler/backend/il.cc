@@ -562,6 +562,73 @@ intptr_t CheckClassInstr::ComputeCidMask() const {
   return mask;
 }
 
+const NativeFieldDesc* NativeFieldDesc::Get(Kind kind) {
+  static const NativeFieldDesc fields[] = {
+#define IMMUTABLE true
+#define MUTABLE false
+#define DEFINE_NATIVE_FIELD(ClassName, FieldName, cid, mutability)             \
+  NativeFieldDesc(k##ClassName##_##FieldName, ClassName::FieldName##_offset(), \
+                  k##cid##Cid, mutability),
+
+      NATIVE_FIELDS_LIST(DEFINE_NATIVE_FIELD)
+
+#undef DEFINE_FIELD
+#undef MUTABLE
+#undef IMMUTABLE
+  };
+
+  return &fields[kind];
+}
+
+const NativeFieldDesc* NativeFieldDesc::GetLengthFieldForArrayCid(
+    intptr_t array_cid) {
+  if (RawObject::IsExternalTypedDataClassId(array_cid) ||
+      RawObject::IsTypedDataClassId(array_cid)) {
+    return Get(kTypedData_length);
+  }
+
+  switch (array_cid) {
+    case kGrowableObjectArrayCid:
+      return Get(kGrowableObjectArray_length);
+
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
+    case kExternalOneByteStringCid:
+    case kExternalTwoByteStringCid:
+      return Get(kString_length);
+
+    case kArrayCid:
+    case kImmutableArrayCid:
+      return Get(kArray_length);
+
+    default:
+      UNREACHABLE();
+      return nullptr;
+  }
+}
+
+RawAbstractType* NativeFieldDesc::type() const {
+  if (cid() == kSmiCid) {
+    return Type::SmiType();
+  }
+
+  return Type::DynamicType();
+}
+
+const char* NativeFieldDesc::name() const {
+  switch (kind()) {
+#define HANDLE_CASE(ClassName, FieldName, cid, mutability)                     \
+  case k##ClassName##_##FieldName:                                             \
+    return #ClassName "." #FieldName;
+
+    NATIVE_FIELDS_LIST(HANDLE_CASE)
+
+#undef HANDLE_CASE
+  }
+  UNREACHABLE();
+  return nullptr;
+}
+
 bool LoadFieldInstr::IsUnboxedLoad() const {
   return FLAG_unbox_numeric_fields && (field() != NULL) &&
          FlowGraphCompiler::IsUnboxedField(*field());
@@ -2240,34 +2307,26 @@ Instruction* CheckStackOverflowInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 bool LoadFieldInstr::IsImmutableLengthLoad() const {
-  switch (recognized_kind()) {
-    case MethodRecognizer::kObjectArrayLength:
-    case MethodRecognizer::kImmutableArrayLength:
-    case MethodRecognizer::kTypedDataLength:
-    case MethodRecognizer::kStringBaseLength:
-      return true;
-    default:
-      return false;
-  }
-}
+  if (native_field() != nullptr) {
+    switch (native_field()->kind()) {
+      case NativeFieldDesc::kArray_length:
+      case NativeFieldDesc::kTypedData_length:
+      case NativeFieldDesc::kString_length:
+        return true;
+      case NativeFieldDesc::kGrowableObjectArray_length:
+        return false;
 
-MethodRecognizer::Kind LoadFieldInstr::RecognizedKindFromArrayCid(
-    intptr_t cid) {
-  if (RawObject::IsTypedDataClassId(cid) ||
-      RawObject::IsExternalTypedDataClassId(cid)) {
-    return MethodRecognizer::kTypedDataLength;
+      // Not length loads.
+      case NativeFieldDesc::kLinkedHashMap_index:
+      case NativeFieldDesc::kLinkedHashMap_data:
+      case NativeFieldDesc::kLinkedHashMap_hash_mask:
+      case NativeFieldDesc::kLinkedHashMap_used_data:
+      case NativeFieldDesc::kLinkedHashMap_deleted_keys:
+      case NativeFieldDesc::kArgumentsDescriptor_type_args_len:
+        return false;
+    }
   }
-  switch (cid) {
-    case kArrayCid:
-      return MethodRecognizer::kObjectArrayLength;
-    case kImmutableArrayCid:
-      return MethodRecognizer::kImmutableArrayLength;
-    case kGrowableObjectArrayCid:
-      return MethodRecognizer::kGrowableArrayLength;
-    default:
-      UNREACHABLE();
-      return MethodRecognizer::kUnknown;
-  }
+  return false;
 }
 
 bool LoadFieldInstr::IsFixedLengthArrayCid(intptr_t cid) {
@@ -2297,7 +2356,22 @@ Definition* MathUnaryInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 bool LoadFieldInstr::Evaluate(const Object& instance, Object* result) {
-  if (field() == NULL || !field()->is_final() || !instance.IsInstance()) {
+  if (native_field() != nullptr) {
+    switch (native_field()->kind()) {
+      case NativeFieldDesc::kArgumentsDescriptor_type_args_len:
+        if (instance.IsArray() && Array::Cast(instance).IsImmutable()) {
+          ArgumentsDescriptor desc(Array::Cast(instance));
+          *result = Smi::New(desc.TypeArgsLen());
+          return true;
+        }
+        return false;
+
+      default:
+        break;
+    }
+  }
+
+  if (field() == nullptr || !field()->is_final() || !instance.IsInstance()) {
     return false;
   }
 
@@ -2321,30 +2395,22 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses()) return NULL;
 
   if (IsImmutableLengthLoad()) {
-    // For fixed length arrays if the array is the result of a known constructor
-    // call we can replace the length load with the length argument passed to
-    // the constructor.
-    StaticCallInstr* call =
-        instance()->definition()->OriginalDefinition()->AsStaticCall();
-    if (call != NULL) {
+    Definition* array = instance()->definition()->OriginalDefinition();
+    if (StaticCallInstr* call = array->AsStaticCall()) {
+      // For fixed length arrays if the array is the result of a known
+      // constructor call we can replace the length load with the length
+      // argument passed to the constructor.
       if (call->is_known_list_constructor() &&
           IsFixedLengthArrayCid(call->Type()->ToCid())) {
         return call->ArgumentAt(1);
       }
-    }
-
-    CreateArrayInstr* create_array =
-        instance()->definition()->OriginalDefinition()->AsCreateArray();
-    if ((create_array != NULL) &&
-        (recognized_kind() == MethodRecognizer::kObjectArrayLength)) {
-      return create_array->num_elements()->definition();
-    }
-
-    // For arrays with guarded lengths, replace the length load
-    // with a constant.
-    LoadFieldInstr* load_array =
-        instance()->definition()->OriginalDefinition()->AsLoadField();
-    if (load_array != NULL) {
+    } else if (CreateArrayInstr* create_array = array->AsCreateArray()) {
+      if (native_field() == NativeFieldDesc::Array_length()) {
+        return create_array->num_elements()->definition();
+      }
+    } else if (LoadFieldInstr* load_array = array->AsLoadField()) {
+      // For arrays with guarded lengths, replace the length load
+      // with a constant.
       const Field* field = load_array->field();
       if ((field != NULL) && (field->guarded_list_length() >= 0)) {
         return flow_graph->GetConstant(

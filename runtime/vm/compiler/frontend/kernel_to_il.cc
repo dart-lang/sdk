@@ -730,7 +730,7 @@ Fragment BaseFlowGraphBuilder::TestTypeArgsLen(Fragment eq_branch,
   TargetEntryInstr* neq_entry;
 
   test += LoadArgDescriptor();
-  test += LoadField(ArgumentsDescriptor::type_args_len_offset());
+  test += LoadNativeField(NativeFieldDesc::ArgumentsDescriptor_type_args_len());
   test += IntConstant(num_type_args);
   test += BranchIfEqual(&eq_entry, &neq_entry);
 
@@ -854,16 +854,10 @@ Fragment BaseFlowGraphBuilder::LoadIndexed(intptr_t index_scale) {
   return Fragment(instr);
 }
 
-Fragment FlowGraphBuilder::LoadNativeField(MethodRecognizer::Kind kind,
-                                           intptr_t offset,
-                                           const Type& type,
-                                           intptr_t class_id,
-                                           bool is_immutable) {
+Fragment BaseFlowGraphBuilder::LoadNativeField(
+    const NativeFieldDesc* native_field) {
   LoadFieldInstr* load =
-      new (Z) LoadFieldInstr(Pop(), offset, type, TokenPosition::kNoSource);
-  load->set_recognized_kind(kind);
-  load->set_result_cid(class_id);
-  load->set_is_immutable(is_immutable);
+      new (Z) LoadFieldInstr(Pop(), native_field, TokenPosition::kNoSource);
   Push(load);
   return Fragment(load);
 }
@@ -1449,10 +1443,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
     case MethodRecognizer::kStringBaseLength:
     case MethodRecognizer::kStringBaseIsEmpty:
       body += LoadLocal(scopes_->this_variable);
-      body += LoadNativeField(MethodRecognizer::kStringBaseLength,
-                              String::length_offset(),
-                              Type::ZoneHandle(Z, Type::SmiType()), kSmiCid,
-                              /* is_immutable = */ true);
+      body += LoadNativeField(NativeFieldDesc::String_length());
       if (kind == MethodRecognizer::kStringBaseIsEmpty) {
         body += IntConstant(0);
         body += StrictCompare(Token::kEQ_STRICT);
@@ -1460,21 +1451,16 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
       break;
     case MethodRecognizer::kGrowableArrayLength:
       body += LoadLocal(scopes_->this_variable);
-      body += LoadNativeField(kind, GrowableObjectArray::length_offset(),
-                              Type::ZoneHandle(Z, Type::SmiType()), kSmiCid);
+      body += LoadNativeField(NativeFieldDesc::GrowableObjectArray_length());
       break;
     case MethodRecognizer::kObjectArrayLength:
     case MethodRecognizer::kImmutableArrayLength:
       body += LoadLocal(scopes_->this_variable);
-      body +=
-          LoadNativeField(kind, Array::length_offset(),
-                          Type::ZoneHandle(Z, Type::SmiType()), kSmiCid, true);
+      body += LoadNativeField(NativeFieldDesc::Array_length());
       break;
     case MethodRecognizer::kTypedDataLength:
       body += LoadLocal(scopes_->this_variable);
-      body +=
-          LoadNativeField(kind, TypedData::length_offset(),
-                          Type::ZoneHandle(Z, Type::SmiType()), kSmiCid, true);
+      body += LoadNativeField(NativeFieldDesc::TypedData_length());
       break;
     case MethodRecognizer::kClassIDgetID:
       body += LoadLocal(LookupVariable(first_positional_offset));
@@ -1483,9 +1469,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
     case MethodRecognizer::kGrowableArrayCapacity:
       body += LoadLocal(scopes_->this_variable);
       body += LoadField(GrowableObjectArray::data_offset(), kArrayCid);
-      body += LoadNativeField(MethodRecognizer::kObjectArrayLength,
-                              Array::length_offset(),
-                              Type::ZoneHandle(Z, Type::SmiType()), kSmiCid);
+      body += LoadNativeField(NativeFieldDesc::Array_length());
       break;
     case MethodRecognizer::kListFactory: {
       // factory List<E>([int length]) {
@@ -1559,8 +1543,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
       break;
     case MethodRecognizer::kLinkedHashMap_getIndex:
       body += LoadLocal(scopes_->this_variable);
-      body += LoadNativeField(kind, LinkedHashMap::index_offset(),
-                              Object::dynamic_type(), kTypedDataUint32ArrayCid);
+      body += LoadNativeField(NativeFieldDesc::LinkedHashMap_index());
       break;
     case MethodRecognizer::kLinkedHashMap_setIndex:
       body += LoadLocal(scopes_->this_variable);
@@ -1571,8 +1554,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
       break;
     case MethodRecognizer::kLinkedHashMap_getData:
       body += LoadLocal(scopes_->this_variable);
-      body += LoadNativeField(kind, LinkedHashMap::data_offset(),
-                              Object::dynamic_type(), kArrayCid);
+      body += LoadNativeField(NativeFieldDesc::LinkedHashMap_data());
       break;
     case MethodRecognizer::kLinkedHashMap_setData:
       body += LoadLocal(scopes_->this_variable);
@@ -1583,8 +1565,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
       break;
     case MethodRecognizer::kLinkedHashMap_getHashMask:
       body += LoadLocal(scopes_->this_variable);
-      body += LoadNativeField(kind, LinkedHashMap::hash_mask_offset(),
-                              Type::ZoneHandle(Z, Type::SmiType()), kSmiCid);
+      body += LoadNativeField(NativeFieldDesc::LinkedHashMap_hash_mask());
       break;
     case MethodRecognizer::kLinkedHashMap_setHashMask:
       body += LoadLocal(scopes_->this_variable);
@@ -1596,8 +1577,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
       break;
     case MethodRecognizer::kLinkedHashMap_getUsedData:
       body += LoadLocal(scopes_->this_variable);
-      body += LoadNativeField(kind, LinkedHashMap::used_data_offset(),
-                              Type::ZoneHandle(Z, Type::SmiType()), kSmiCid);
+      body += LoadNativeField(NativeFieldDesc::LinkedHashMap_used_data());
       break;
     case MethodRecognizer::kLinkedHashMap_setUsedData:
       body += LoadLocal(scopes_->this_variable);
@@ -1609,8 +1589,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
       break;
     case MethodRecognizer::kLinkedHashMap_getDeletedKeys:
       body += LoadLocal(scopes_->this_variable);
-      body += LoadNativeField(kind, LinkedHashMap::deleted_keys_offset(),
-                              Type::ZoneHandle(Z, Type::SmiType()), kSmiCid);
+      body += LoadNativeField(NativeFieldDesc::LinkedHashMap_deleted_keys());
       break;
     case MethodRecognizer::kLinkedHashMap_setDeletedKeys:
       body += LoadLocal(scopes_->this_variable);

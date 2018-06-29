@@ -2279,13 +2279,8 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
                                        bool can_speculate) {
   // Insert array length load and bounds check.
   LoadFieldInstr* length = new (Z) LoadFieldInstr(
-      new (Z) Value(*array), CheckArrayBoundInstr::LengthOffsetFor(array_cid),
-      Type::ZoneHandle(Z, Type::SmiType()), call->token_pos());
-  length->set_is_immutable(
-      CheckArrayBoundInstr::IsFixedLengthArrayType(array_cid));
-  length->set_result_cid(kSmiCid);
-  length->set_recognized_kind(
-      LoadFieldInstr::RecognizedKindFromArrayCid(array_cid));
+      new (Z) Value(*array),
+      NativeFieldDesc::GetLengthFieldForArrayCid(array_cid), call->token_pos());
   *cursor = flow_graph->AppendTo(*cursor, length, NULL, FlowGraph::kValue);
 
   Instruction* bounds_check = NULL;
@@ -2614,12 +2609,8 @@ static void PrepareInlineTypedArrayBoundsCheck(FlowGraph* flow_graph,
   ASSERT(array_cid != kDynamicCid);
 
   LoadFieldInstr* length = new (Z) LoadFieldInstr(
-      new (Z) Value(array), CheckArrayBoundInstr::LengthOffsetFor(array_cid),
-      Type::ZoneHandle(Z, Type::SmiType()), call->token_pos());
-  length->set_is_immutable(true);
-  length->set_result_cid(kSmiCid);
-  length->set_recognized_kind(
-      LoadFieldInstr::RecognizedKindFromArrayCid(array_cid));
+      new (Z) Value(array),
+      NativeFieldDesc::GetLengthFieldForArrayCid(array_cid), call->token_pos());
   *cursor = flow_graph->AppendTo(*cursor, length, NULL, FlowGraph::kValue);
 
   intptr_t element_size = Instance::ElementSizeFor(array_cid);
@@ -2982,14 +2973,11 @@ static Definition* PrepareInlineStringIndexOp(FlowGraph* flow_graph,
                                               Definition* str,
                                               Definition* index,
                                               Instruction* cursor) {
-  LoadFieldInstr* length = new (Z)
-      LoadFieldInstr(new (Z) Value(str), String::length_offset(),
-                     Type::ZoneHandle(Z, Type::SmiType()), str->token_pos());
-  length->set_result_cid(kSmiCid);
-  length->set_is_immutable(true);
-  length->set_recognized_kind(MethodRecognizer::kStringBaseLength);
-
+  LoadFieldInstr* length = new (Z) LoadFieldInstr(
+      new (Z) Value(str), NativeFieldDesc::GetLengthFieldForArrayCid(cid),
+      str->token_pos());
   cursor = flow_graph->AppendTo(cursor, length, NULL, FlowGraph::kValue);
+
   // Bounds check.
   cursor = flow_graph->AppendTo(
       cursor,

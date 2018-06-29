@@ -649,7 +649,7 @@ void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   instance()->PrintTo(f);
   f->Print(", %" Pd, offset_in_bytes());
 
-  if (field() != NULL) {
+  if (field() != nullptr) {
     f->Print(" {%s}", String::Handle(field()->name()).ToCString());
     const char* expected = "?";
     if (field()->guarded_cid() != kIllegalCid) {
@@ -662,7 +662,13 @@ void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
              expected);
   }
 
-  f->Print(", immutable=%d", immutable_);
+  if (native_field() != nullptr) {
+    f->Print(" {%s}", native_field()->name());
+  }
+
+  if (immutable_) {
+    f->Print(", immutable");
+  }
 }
 
 void InstantiateTypeInstr::PrintOperandsTo(BufferFormatter* f) const {

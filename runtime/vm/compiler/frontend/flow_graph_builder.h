@@ -302,10 +302,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
                              TokenPosition token_pos);
   LoadLocalInstr* BuildLoadThisVar(LocalScope* scope, TokenPosition token_pos);
   LoadFieldInstr* BuildNativeGetter(NativeBodyNode* node,
-                                    MethodRecognizer::Kind kind,
-                                    intptr_t offset,
-                                    const Type& type,
-                                    intptr_t class_id);
+                                    const NativeFieldDesc* native_field);
   // Assumes setter parameter is named 'value'. Returns null constant.
   ConstantInstr* DoNativeSetterStoreValue(NativeBodyNode* node,
                                           intptr_t offset,

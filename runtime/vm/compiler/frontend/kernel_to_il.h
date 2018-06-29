@@ -396,6 +396,7 @@ class BaseFlowGraphBuilder {
         pending_argument_count_(0) {}
 
   Fragment LoadField(intptr_t offset, intptr_t class_id = kDynamicCid);
+  Fragment LoadNativeField(const NativeFieldDesc* native_field);
   Fragment LoadIndexed(intptr_t index_scale);
 
   void SetTempIndex(Definition* definition);
@@ -604,11 +605,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment LoadClassId();
   Fragment LoadField(intptr_t offset, intptr_t class_id = kDynamicCid);
   Fragment LoadField(const Field& field);
-  Fragment LoadNativeField(MethodRecognizer::Kind kind,
-                           intptr_t offset,
-                           const Type& type,
-                           intptr_t class_id,
-                           bool is_immutable = false);
   Fragment LoadLocal(LocalVariable* variable);
   Fragment InitStaticField(const Field& field);
   Fragment LoadStaticField();

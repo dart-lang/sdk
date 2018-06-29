@@ -87,7 +87,8 @@ Fragment PrologueBuilder::BuildTypeArgumentsLengthCheck(bool strong,
   // If expect_type_args, a non-zero length must match the declaration length.
   TargetEntryInstr *then, *fail;
   check_type_args += LoadArgDescriptor();
-  check_type_args += LoadField(ArgumentsDescriptor::type_args_len_offset());
+  check_type_args += LoadNativeField(NativeFieldDesc::Get(
+      NativeFieldDesc::kArgumentsDescriptor_type_args_len));
   if (expect_type_args) {
     JoinEntryInstr* join2 = BuildJoinEntry();
 
