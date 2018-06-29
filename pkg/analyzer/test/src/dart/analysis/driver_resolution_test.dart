@@ -40,9 +40,13 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
   FindNode findNode;
   FindElement findElement;
 
-  DartType get doubleType => typeProvider.doubleType;
+  InterfaceType get doubleType => typeProvider.doubleType;
 
-  DartType get intType => typeProvider.intType;
+  InterfaceType get intType => typeProvider.intType;
+
+  ClassElement get mapElement => typeProvider.mapType.element;
+
+  InterfaceType get mapType => typeProvider.mapType;
 
   TypeProvider get typeProvider => result.unit.element.context.typeProvider;
 
@@ -56,9 +60,25 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
     expect(actual, isNull);
   }
 
+  void assertMember(
+      Expression node, String expectedDefiningType, Element expectedBase) {
+    Member actual = getNodeElement(node);
+    expect(actual.definingType.toString(), expectedDefiningType);
+    expect(actual.baseElement, same(expectedBase));
+  }
+
   void assertType(Expression expression, String expected) {
     DartType actual = expression.staticType;
     expect(actual?.toString(), expected);
+  }
+
+  /// Test that [argumentList] has exactly two type items `int` and `double`.
+  void assertTypeArguments(
+      TypeArgumentList argumentList, List<DartType> expectedTypes) {
+    expect(argumentList.arguments, hasLength(expectedTypes.length));
+    for (int i = 0; i < expectedTypes.length; i++) {
+      _assertTypeNameSimple(argumentList.arguments[i], expectedTypes[i]);
+    }
   }
 
   void assertTypeDynamic(Expression expression) {
@@ -2220,6 +2240,30 @@ main() {
     expect(actualElement.baseElement, same(expectedElement.baseElement));
     expect(actualElement.returnType, intType);
     expect(actualElement.parameters[0].type, intType);
+  }
+
+  test_indexExpression_cascade_assign() async {
+    addTestFile(r'''
+main() {
+  <int, int>{}..[1] = 10;
+}
+''');
+    await resolveTestFile();
+
+    var cascade = findNode.cascade('<int, int>');
+    assertType(cascade, 'Map<int, int>');
+
+    MapLiteral map = cascade.target;
+    assertType(map, 'Map<int, int>');
+    assertTypeArguments(map.typeArguments, [intType, intType]);
+
+    AssignmentExpression assignment = cascade.cascadeSections[0];
+    assertElementNull(assignment);
+    assertType(assignment, 'int');
+
+    IndexExpression indexed = assignment.leftHandSide;
+    assertMember(indexed, 'Map<int, int>', mapElement.getMethod('[]='));
+    assertType(indexed, 'int');
   }
 
   test_instanceCreation_factory() async {
@@ -6454,8 +6498,7 @@ main() {
       expect(typeIdentifier.staticType, isDynamicType);
     }
 
-    _assertInvocationTypeArguments(
-        typeName.typeArguments, [intType, doubleType]);
+    assertTypeArguments(typeName.typeArguments, [intType, doubleType]);
     _assertInvocationArguments(creation.argumentList,
         [checkTopVarRef('arg1'), checkTopVarUndefinedNamedRef('arg2')]);
   }
@@ -6504,8 +6547,7 @@ main() {
       expect(typePrefix.staticType, isDynamicType);
     }
 
-    _assertInvocationTypeArguments(
-        typeName.typeArguments, [intType, doubleType]);
+    assertTypeArguments(typeName.typeArguments, [intType, doubleType]);
     _assertInvocationArguments(creation.argumentList,
         [checkTopVarRef('arg1'), checkTopVarUndefinedNamedRef('arg2')]);
   }
@@ -6556,8 +6598,7 @@ main() {
       expect(typePrefix.staticType, isDynamicType);
     }
 
-    _assertInvocationTypeArguments(
-        typeName.typeArguments, [intType, doubleType]);
+    assertTypeArguments(typeName.typeArguments, [intType, doubleType]);
     _assertInvocationArguments(creation.argumentList,
         [checkTopVarRef('arg1'), checkTopVarUndefinedNamedRef('arg2')]);
   }
@@ -6610,8 +6651,7 @@ main() {
       expect(constructorName.name.staticType, isDynamicType);
     }
 
-    _assertInvocationTypeArguments(
-        typeName.typeArguments, [intType, doubleType]);
+    assertTypeArguments(typeName.typeArguments, [intType, doubleType]);
     _assertInvocationArguments(creation.argumentList,
         [checkTopVarRef('arg1'), checkTopVarUndefinedNamedRef('arg2')]);
   }
@@ -6665,8 +6705,7 @@ main() {
     expect(constructorName.name.staticElement, isNull);
     expect(constructorName.name.staticType, isNull);
 
-    _assertInvocationTypeArguments(
-        typeName.typeArguments, [intType, doubleType]);
+    assertTypeArguments(typeName.typeArguments, [intType, doubleType]);
     _assertInvocationArguments(creation.argumentList,
         [checkTopVarRef('arg1'), checkTopVarUndefinedNamedRef('arg2')]);
   }
@@ -6717,8 +6756,7 @@ main() {
     expect(constructorName.name.staticElement, isNull);
     expect(constructorName.name.staticType, isNull);
 
-    _assertInvocationTypeArguments(
-        typeName.typeArguments, [intType, doubleType]);
+    assertTypeArguments(typeName.typeArguments, [intType, doubleType]);
     _assertInvocationArguments(creation.argumentList,
         [checkTopVarRef('arg1'), checkTopVarUndefinedNamedRef('arg2')]);
   }
@@ -6745,8 +6783,7 @@ main() {
     expect(name.staticElement, isNull);
     expect(name.staticType, isDynamicType);
 
-    _assertInvocationTypeArguments(
-        invocation.typeArguments, [intType, doubleType]);
+    assertTypeArguments(invocation.typeArguments, [intType, doubleType]);
     _assertInvocationArguments(invocation.argumentList,
         [checkTopVarRef('arg1'), checkTopVarUndefinedNamedRef('arg2')]);
   }
@@ -6789,8 +6826,7 @@ main() {
       expect(name.staticType, isDynamicType);
     }
 
-    _assertInvocationTypeArguments(
-        invocation.typeArguments, [intType, doubleType]);
+    assertTypeArguments(invocation.typeArguments, [intType, doubleType]);
     _assertInvocationArguments(invocation.argumentList,
         [checkTopVarRef('arg1'), checkTopVarUndefinedNamedRef('arg2')]);
   }
@@ -6820,8 +6856,7 @@ main() {
     expect(name.staticElement, isNull);
     expect(name.staticType, isDynamicType);
 
-    _assertInvocationTypeArguments(
-        invocation.typeArguments, [intType, doubleType]);
+    assertTypeArguments(invocation.typeArguments, [intType, doubleType]);
     _assertInvocationArguments(invocation.argumentList,
         [checkTopVarRef('arg1'), checkTopVarUndefinedNamedRef('arg2')]);
   }
@@ -7070,15 +7105,6 @@ main() {
     }
   }
 
-  /// Test that [argumentList] has exactly two type items `int` and `double`.
-  void _assertInvocationTypeArguments(
-      TypeArgumentList argumentList, List<DartType> expectedTypes) {
-    expect(argumentList.arguments, hasLength(expectedTypes.length));
-    for (int i = 0; i < expectedTypes.length; i++) {
-      _assertTypeNameSimple(argumentList.arguments[i], expectedTypes[i]);
-    }
-  }
-
   void _assertParameterElement(ParameterElement element,
       {String name, int offset, ParameterKind kind, DartType type}) {
     expect(element, isNotNull);
@@ -7206,6 +7232,10 @@ class FindNode {
 
   AssignmentExpression assignment(String search) {
     return _node(search).getAncestor((n) => n is AssignmentExpression);
+  }
+
+  CascadeExpression cascade(String search) {
+    return _node(search).getAncestor((n) => n is CascadeExpression);
   }
 
   SimpleIdentifier simple(String search) {

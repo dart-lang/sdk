@@ -350,9 +350,9 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    node.target.accept(this);
+    node.target?.accept(this);
 
-    DartType targetType = node.target.staticType;
+    DartType targetType = node.realTarget.staticType;
     var data = _get(node.leftBracket);
     MethodElement element = data.reference;
 
