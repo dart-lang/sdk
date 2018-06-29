@@ -1342,6 +1342,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("handleIdentifier");
     String name = token.lexeme;
     if (name.startsWith("deprecated") &&
+        // Note that the previous check is redundant, but faster in the common
+        // case (when [name] isn't deprecated).
         (name == "deprecated" || name.startsWith("deprecated_"))) {
       addProblem(fasta.templateUseOfDeprecatedIdentifier.withArguments(name),
           offsetForToken(token), lengthForToken(token));
