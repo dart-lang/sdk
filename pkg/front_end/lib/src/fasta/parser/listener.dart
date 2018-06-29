@@ -6,8 +6,7 @@ library fasta.parser.listener;
 
 import '../../scanner/token.dart' show Token, TokenType;
 
-import '../fasta_codes.dart'
-    show Message, messageNativeClauseShouldBeAnnotation;
+import '../fasta_codes.dart' show Message;
 
 import '../quote.dart' show UnescapeErrorListener;
 
@@ -33,8 +32,6 @@ import 'parser_error.dart' show ParserError;
 /// Events starting with `handle` are used when isn't possible to have a begin
 /// event.
 class Listener implements UnescapeErrorListener {
-  final List<ParserError> recoverableErrors = <ParserError>[];
-
   Uri get uri => null;
 
   void logEvent(String name) {}
@@ -1234,14 +1231,7 @@ class Listener implements UnescapeErrorListener {
   /// beginning of the [startToken] and the end of the [endToken] should be
   /// highlighted. The [startToken] and [endToken] can be the same token.
   void handleRecoverableError(
-      Message message, Token startToken, Token endToken) {
-    /// TODO(danrubel): Ignore this error until we deprecate `native` support.
-    if (message == messageNativeClauseShouldBeAnnotation) {
-      return;
-    }
-    recoverableErrors
-        .add(new ParserError.fromTokens(startToken, endToken, message));
-  }
+      Message message, Token startToken, Token endToken) {}
 
   @override
   void handleUnescapeError(

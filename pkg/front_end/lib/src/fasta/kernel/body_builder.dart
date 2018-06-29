@@ -269,8 +269,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             field.parent is KernelClassBuilder ? field.parent : null,
             typeInferrer);
 
-  bool get hasParserError => recoverableErrors.isNotEmpty;
-
   bool get inConstructor {
     return functionNestingLevel == 0 && member is KernelConstructorBuilder;
   }
@@ -3794,17 +3792,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       typeParameters[i++] = builder.target;
     }
     return typeParameters;
-  }
-
-  @override
-  void handleRecoverableError(
-      Message message, Token startToken, Token endToken) {
-    if (message == fasta.messageNativeClauseShouldBeAnnotation) {
-      // TODO(danrubel): Ignore this error until we deprecate `native` support.
-      return;
-    }
-    addCompileTimeError(message, offsetForToken(startToken),
-        lengthOfSpan(startToken, endToken));
   }
 
   @override

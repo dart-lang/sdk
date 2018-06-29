@@ -1340,9 +1340,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  List<ParserError> get recoverableErrors => listener?.recoverableErrors;
-
-  @override
   set suppressParseErrors(bool value) {
     listener?.suppressParseErrors = value;
   }
