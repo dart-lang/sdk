@@ -3,12 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:linter/src/analyzer.dart';
 
 const alwaysFalse = 'Always false because length is always greater or equal 0.';
@@ -132,7 +130,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     BinaryExpression binaryExpression = search;
 
     Token operator = binaryExpression.operator;
-    DeclaredVariables declaredVariables = context.declaredVariables;
 
     // Comparing constants with length.
     int value = _getIntValue(binaryExpression.rightOperand);
@@ -176,6 +173,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     value = _getIntValue(binaryExpression.leftOperand);
 
+    // ignore: invariant_booleans
     if (value != null) {
       // Constant is on left side of comparison operator.
       if (value == 0) {
@@ -225,6 +223,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         return -operand.value;
       }
     }
+    // ignore: avoid_returning_null
     return null;
   }
 }
