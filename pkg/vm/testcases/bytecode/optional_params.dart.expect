@@ -223,6 +223,49 @@ ConstantPool {
 }
 [@vm.bytecode=
 Bytecode {
+  EntryOptional        2, 0, 2
+  LoadConstant         r2, CP#0
+  LoadConstant         r2, CP#1
+  LoadConstant         r3, CP#2
+  LoadConstant         r3, CP#3
+  Frame                1
+  CheckStack
+  CheckFunctionTypeArgs 2, 4
+  PushConstant         CP#3
+  Push                 r4
+  InstantiateType      CP#4
+  PushConstant         CP#6
+  IndirectStaticCall   1, CP#5
+  Drop1
+  Push                 r1
+  PushConstant         CP#7
+  IndirectStaticCall   1, CP#5
+  Drop1
+  Push                 r3
+  PushConstant         CP#8
+  IndirectStaticCall   1, CP#5
+  Drop1
+  PushConstant         CP#3
+  ReturnTOS
+}
+ConstantPool {
+  [0] = String 'a'
+  [1] = Bool false
+  [2] = String 'b'
+  [3] = Null
+  [4] = Type #lib::foo3::P
+  [5] = ArgDesc num-args 1, num-type-args 0, names []
+  [6] = StaticICData target 'dart.core::print', arg-desc CP#5
+  [7] = StaticICData target 'dart.core::print', arg-desc CP#5
+  [8] = StaticICData target 'dart.core::print', arg-desc CP#5
+}
+]static method foo3<P extends core::Object = dynamic, Q extends core::Object = dynamic>(dynamic z, dynamic y, {core::bool a = false, core::Map<self::foo3::P, self::foo3::Q> b = null}) → void {
+  core::print(self::foo3::P);
+  core::print(y);
+  core::print(b);
+}
+[@vm.bytecode=
+Bytecode {
   Entry                0
   CheckStack
   PushConstant         CP#0

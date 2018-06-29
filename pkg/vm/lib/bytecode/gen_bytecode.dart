@@ -698,22 +698,30 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       asm.emitPopLocal(locals.contextVarIndexInFrame);
     }
 
-    if (locals.hasFunctionTypeArgsVar && isClosure) {
+    if (locals.hasFunctionTypeArgsVar) {
       if (function.typeParameters.isNotEmpty) {
-        final int numParentTypeArgs = locals.numParentTypeArguments;
-        asm.emitPush(locals.functionTypeArgsVarIndexInFrame);
-        asm.emitPush(locals.closureVarIndexInFrame);
-        asm.emitLoadFieldTOS(
-            cp.add(new ConstantFieldOffset(closureFunctionTypeArguments)));
-        _genPushInt(numParentTypeArgs);
-        _genPushInt(numParentTypeArgs + function.typeParameters.length);
-        _genStaticCall(prependTypeArguments, new ConstantArgDesc(4), 4);
-        asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
-      } else {
-        asm.emitPush(locals.closureVarIndexInFrame);
-        asm.emitLoadFieldTOS(
-            cp.add(new ConstantFieldOffset(closureFunctionTypeArguments)));
-        asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
+        assert(!(node is Procedure && node.isFactory));
+        asm.emitCheckFunctionTypeArgs(function.typeParameters.length,
+            locals.functionTypeArgsVarIndexInFrame);
+      }
+
+      if (isClosure) {
+        if (function.typeParameters.isNotEmpty) {
+          final int numParentTypeArgs = locals.numParentTypeArguments;
+          asm.emitPush(locals.functionTypeArgsVarIndexInFrame);
+          asm.emitPush(locals.closureVarIndexInFrame);
+          asm.emitLoadFieldTOS(
+              cp.add(new ConstantFieldOffset(closureFunctionTypeArguments)));
+          _genPushInt(numParentTypeArgs);
+          _genPushInt(numParentTypeArgs + function.typeParameters.length);
+          _genStaticCall(prependTypeArguments, new ConstantArgDesc(4), 4);
+          asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
+        } else {
+          asm.emitPush(locals.closureVarIndexInFrame);
+          asm.emitLoadFieldTOS(
+              cp.add(new ConstantFieldOffset(closureFunctionTypeArguments)));
+          asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
+        }
       }
     }
   }

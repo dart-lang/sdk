@@ -751,7 +751,6 @@ class _Allocator extends RecursiveVisitor<Null> {
   }
 
   void _allocateParameters(TreeNode node, FunctionNode function) {
-    final bool hasTypeArgs = function.typeParameters.isNotEmpty;
     final bool isFactory = node is Procedure && node.isFactory;
     final bool hasReceiver =
         node is Constructor || (node is Procedure && !node.isStatic);
@@ -760,7 +759,7 @@ class _Allocator extends RecursiveVisitor<Null> {
 
     _currentFrame.numParameters = function.positionalParameters.length +
         function.namedParameters.length +
-        (hasTypeArgs || isFactory ? 1 : 0) +
+        (isFactory ? 1 : 0) +
         (hasReceiver ? 1 : 0) +
         (hasClosureArg ? 1 : 0);
 
@@ -776,9 +775,6 @@ class _Allocator extends RecursiveVisitor<Null> {
     int count = 0;
     if (isFactory) {
       _allocateParameter(_currentFrame.factoryTypeArgsVar, count++);
-    } else if (hasTypeArgs) {
-      assert(!locals.isCaptured(_currentFrame.functionTypeArgsVar));
-      _allocateParameter(_currentFrame.functionTypeArgsVar, count++);
     }
     if (hasReceiver) {
       _allocateParameter(_currentFrame.receiverVar, count++);
