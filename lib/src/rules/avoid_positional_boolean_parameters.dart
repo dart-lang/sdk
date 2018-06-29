@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
@@ -35,9 +37,6 @@ new Button(ButtonState.enabled);
 
 ''';
 
-bool _hasInheritedMethod(MethodDeclaration node) =>
-    DartTypeUtilities.lookUpInheritedMethod(node) != null;
-
 class AvoidPositionalBooleanParameters extends LintRule
     implements NodeLintRule {
   AvoidPositionalBooleanParameters()
@@ -51,6 +50,7 @@ class AvoidPositionalBooleanParameters extends LintRule
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
     final visitor = new _Visitor(this);
+    registry.addCompilationUnit(this, visitor);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);
@@ -60,7 +60,16 @@ class AvoidPositionalBooleanParameters extends LintRule
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
+  InheritanceManager manager;
+
   _Visitor(this.rule);
+
+  @override
+  void visitCompilationUnit(CompilationUnit node) {
+    LibraryElement library =
+        resolutionMap.elementDeclaredByCompilationUnit(node)?.library;
+    manager = library == null ? null : new InheritanceManager(library);
+  }
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
@@ -89,7 +98,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!node.isSetter &&
         !node.element.isPrivate &&
         !node.isOperator &&
-        !_hasInheritedMethod(node)) {
+        !DartTypeUtilities.hasInheritedMethod(node) &&
+        !_isOverridingMember(node.element)) {
       final parametersToLint =
           node.parameters?.parameters?.where(_isFormalParameterToLint);
       if (parametersToLint?.isNotEmpty == true) {
@@ -102,4 +112,17 @@ class _Visitor extends SimpleAstVisitor<void> {
       DartTypeUtilities.implementsInterface(
           node.identifier.bestType, 'bool', 'dart.core') &&
       !node.isNamed;
+
+  bool _isOverridingMember(Element member) {
+    if (member == null || manager == null) {
+      return false;
+    }
+
+    ClassElement classElement =
+        member.getAncestor((element) => element is ClassElement);
+    if (classElement == null) {
+      return false;
+    }
+    return manager.lookupInheritance(classElement, member.name) != null;
+  }
 }

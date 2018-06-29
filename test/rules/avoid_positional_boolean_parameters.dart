@@ -16,7 +16,6 @@ class Library {
   void _checkBook(String name, bool isPremium) {} // OK because it is private.
 }
 
-
 void good({bool a}) { // OK
   _good(a);
 }
@@ -79,6 +78,11 @@ class G {
 }
 
 class H extends E {
+  @override
+  void bad([bool value]) {} // OK because it has inherited method.
+}
+
+class I implements E {
   @override
   void bad([bool value]) {} // OK because it has inherited method.
 }
