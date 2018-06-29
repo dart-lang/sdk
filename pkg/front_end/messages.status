@@ -205,7 +205,6 @@ IllegalMixinDueToConstructors/analyzerCode: Fail
 IllegalMixinDueToConstructors/example: Fail
 ImplementsBeforeExtends/script: Fail
 ImplementsBeforeWith/script: Fail
-ImplicitCallOfNonMethod/analyzerCode: Fail
 ImplicitCallOfNonMethod/example: Fail
 ImportAfterPart/script1: Fail
 InheritedMembersConflict/analyzerCode: Fail

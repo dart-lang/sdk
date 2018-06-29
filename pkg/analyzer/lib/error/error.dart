@@ -139,6 +139,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
   CompileTimeErrorCode.IMPLEMENTS_REPEATED,
   CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS,
+  CompileTimeErrorCode.IMPLICIT_CALL_OF_NON_METHOD,
   CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
   CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY,
   CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,

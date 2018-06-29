@@ -44,7 +44,7 @@ Future<String> generateMessagesFile() async {
 part of fasta.codes;
 """);
 
-  List<String> keys = yaml.keys.toList()..sort();
+  List<String> keys = yaml.keys.cast<String>().toList()..sort();
   for (String name in keys) {
     var description = yaml[name];
     while (description is String) {

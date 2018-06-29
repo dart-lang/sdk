@@ -2989,14 +2989,17 @@ const Template<
             _type)> templateImplicitCallOfNonMethod = const Template<
         Message Function(DartType _type)>(
     messageTemplate:
-        r"""Can't invoke the type '#type' because its declaration of `.call` is not a method.""",
-    tipTemplate: r"""Change .call to a method or explicitly invoke .call.""",
+        r"""Cannot invoke an instance of '#type' because it declares 'call' to be something other than a method.""",
+    tipTemplate:
+        r"""Try changing 'call' to a method or explicitly invoke 'call'.""",
     withArguments: _withArgumentsImplicitCallOfNonMethod);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(DartType _type)> codeImplicitCallOfNonMethod =
     const Code<Message Function(DartType _type)>(
         "ImplicitCallOfNonMethod", templateImplicitCallOfNonMethod,
+        analyzerCode: "IMPLICIT_CALL_OF_NON_METHOD",
+        dart2jsCode: "*fatal*",
         severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3008,8 +3011,8 @@ Message _withArgumentsImplicitCallOfNonMethod(DartType _type) {
 
   return new Message(codeImplicitCallOfNonMethod,
       message:
-          """Can't invoke the type '${type}' because its declaration of `.call` is not a method.""",
-      tip: """Change .call to a method or explicitly invoke .call.""",
+          """Cannot invoke an instance of '${type}' because it declares 'call' to be something other than a method.""",
+      tip: """Try changing 'call' to a method or explicitly invoke 'call'.""",
       arguments: {'type': _type});
 }
 
