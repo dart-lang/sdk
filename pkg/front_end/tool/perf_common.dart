@@ -5,14 +5,21 @@
 /// Shared code used by fasta_perf and incremental_perf.
 library front_end.tool.perf_common;
 
-import 'dart:io';
+import 'dart:io' show exitCode, stderr;
 
-import 'package:front_end/src/api_prototype/front_end.dart';
-import 'package:front_end/src/fasta/command_line_reporting.dart';
-import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:kernel/target/flutter.dart' show FlutterTarget;
+
 import 'package:kernel/target/targets.dart' show Target, TargetFlags;
+
 import 'package:kernel/target/vm.dart' show VmTarget;
+
+import 'package:front_end/src/api_prototype/front_end.dart'
+    show CompilationMessage;
+
+import 'package:front_end/src/fasta/fasta_codes.dart' as fastaCodes;
+
+import 'package:front_end/src/fasta/severity.dart'
+    show Severity, severityPrefixes;
 
 /// Error messages that we temporarily allow when compiling benchmarks in strong
 /// mode.
@@ -26,17 +33,17 @@ import 'package:kernel/target/vm.dart' show VmTarget;
 /// from this set.
 final whitelistMessageCode = new Set<String>.from(<String>[
   // Code names in this list should match the key used in messages.yaml
-  codeInvalidAssignment.name,
-  codeOverrideTypeMismatchParameter.name,
-  codeOverriddenMethodCause.name,
+  fastaCodes.codeInvalidAssignment.name,
+  fastaCodes.codeOverrideTypeMismatchParameter.name,
+  fastaCodes.codeOverriddenMethodCause.name,
 
   // The following errors are not covered by unit tests in the SDK repo because
   // they are only seen today in the flutter-gallery benchmark (external to
   // this repo).
-  codeInvalidCastFunctionExpr.name,
-  codeInvalidCastTopLevelFunction.name,
-  codeUndefinedGetter.name,
-  codeUndefinedMethod.name,
+  fastaCodes.codeInvalidCastFunctionExpr.name,
+  fastaCodes.codeInvalidCastTopLevelFunction.name,
+  fastaCodes.codeUndefinedGetter.name,
+  fastaCodes.codeUndefinedMethod.name,
 ]);
 
 onErrorHandler(bool isStrong) {
@@ -48,7 +55,7 @@ onErrorHandler(bool isStrong) {
         var uri = m.span.start.sourceUrl;
         var offset = m.span.start.offset;
         stderr.writeln('$uri:$offset: '
-            '${severityName(m.severity, capitalized: true)}: ${m.message}');
+            '${severityPrefixes[m.severity]}: ${m.message}');
         exitCode = 1;
       } else if (!messageReported) {
         messageReported = true;

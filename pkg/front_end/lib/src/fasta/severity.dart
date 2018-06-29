@@ -30,3 +30,17 @@ const Map<String, Severity> severityEnumValues = const <String, Severity>{
   'INTERNAL_PROBLEM': Severity.internalProblem,
   'WARNING': Severity.warning,
 };
+
+const Map<Severity, String> severityPrefixes = const <Severity, String>{
+  Severity.error: "Error",
+  Severity.internalProblem: "Internal problem",
+  Severity.warning: "Warning",
+  Severity.context: "Context",
+};
+
+const Map<Severity, String> severityTexts = const <Severity, String>{
+  Severity.error: "error",
+  Severity.internalProblem: "internal problem",
+  Severity.warning: "warning",
+  Severity.context: "context",
+};

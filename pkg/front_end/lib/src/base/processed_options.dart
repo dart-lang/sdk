@@ -57,7 +57,7 @@ import '../fasta/messages.dart' show getLocation;
 
 import '../fasta/problems.dart' show unimplemented;
 
-import '../fasta/severity.dart' show Severity;
+import '../fasta/severity.dart' show Severity, severityTexts;
 
 import '../fasta/ticker.dart' show Ticker;
 
@@ -220,11 +220,8 @@ class ProcessedOptions {
       _raw.onProblem(format(message, severity), severity, formattedContext);
       if (command_line_reporting.shouldThrowOn(severity)) {
         if (verbose) print(StackTrace.current);
-        throw new deprecated_InputError(
-            message.uri,
-            message.charOffset,
-            "Compilation aborted due to fatal "
-            "${command_line_reporting.severityName(severity)}.");
+        throw new deprecated_InputError(message.uri, message.charOffset,
+            "Compilation aborted due to fatal ${severityTexts[severity]}.");
       }
       return;
     }
