@@ -144,6 +144,8 @@ class TranslationHelper {
   RawFunction* LookupConstructorByKernelConstructor(
       const Class& owner,
       StringIndex constructor_name);
+  RawFunction* LookupMethodByMember(NameIndex target,
+                                    const String& method_name);
 
   Type& GetCanonicalType(const Class& klass);
 
@@ -747,9 +749,9 @@ class LibraryDependencyHelper {
 // Assumes that metadata is accessed in linear order.
 class MetadataHelper {
  public:
-  explicit MetadataHelper(KernelReaderHelper* helper);
-
-  void SetMetadataMappings(intptr_t mappings_offset, intptr_t mappings_num);
+  MetadataHelper(KernelReaderHelper* helper,
+                 const char* tag,
+                 bool precompiler_only);
 
  protected:
   // Look for metadata mapping with node offset greater or equal than the given.
@@ -764,6 +766,12 @@ class MetadataHelper {
   TranslationHelper& translation_helper_;
 
  private:
+  void SetMetadataMappings(intptr_t mappings_offset, intptr_t mappings_num);
+  void ScanMetadataMappings();
+
+  const char* tag_;
+  bool mappings_scanned_;
+  bool precompiler_only_;
   intptr_t mappings_offset_;
   intptr_t mappings_num_;
   intptr_t last_node_offset_;
@@ -865,10 +873,6 @@ class KernelReaderHelper {
   Tag PeekTag(uint8_t* payload = NULL);
   uint8_t ReadFlags() { return reader_.ReadFlags(); }
 
-  // Scan through metadata mappings section and cache offsets for recognized
-  // metadata kinds.
-  virtual void EnsureMetadataIsScanned() {}
-
   Zone* zone_;
   TranslationHelper& translation_helper_;
   Reader reader_;
@@ -884,19 +888,26 @@ class KernelReaderHelper {
   friend class ClassHelper;
   friend class ConstantHelper;
   friend class ConstructorHelper;
+  friend class DirectCallMetadataHelper;
   friend class FieldHelper;
   friend class FunctionNodeHelper;
+  friend class InferredTypeMetadataHelper;
   friend class KernelLoader;
   friend class LibraryDependencyHelper;
   friend class LibraryHelper;
   friend class MetadataHelper;
+  friend class ProcedureAttributesMetadataHelper;
   friend class ProcedureHelper;
   friend class SimpleExpressionConverter;
   friend class StreamingConstantEvaluator;
-  friend class StreamingDartTypeTranslator;
   friend class StreamingScopeBuilder;
-  friend class VariableDeclarationHelper;
   friend class TypeParameterHelper;
+  friend class TypeTranslator;
+  friend class VariableDeclarationHelper;
+
+#if defined(DART_USE_INTERPRETER)
+  friend class BytecodeMetadataHelper;
+#endif  // defined(DART_USE_INTERPRETER)
 };
 
 }  // namespace kernel

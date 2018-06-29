@@ -676,9 +676,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   bool NeedsDebugStepCheck(Value* value, TokenPosition position);
   Fragment DebugStepCheck(TokenPosition position);
 
-  RawFunction* LookupMethodByMember(NameIndex target,
-                                    const String& method_name);
-
   LocalVariable* LookupVariable(intptr_t kernel_offset);
 
   bool IsInlining() { return exit_collector_ != NULL; }

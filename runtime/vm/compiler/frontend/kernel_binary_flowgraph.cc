@@ -63,9 +63,8 @@ static bool MethodCanSkipTypeChecksForNonCovariantArguments(
   return !FLAG_precompiled_mode || !attrs.has_dynamic_invocations;
 }
 
-DirectCallMetadataHelper::DirectCallMetadataHelper(
-    StreamingFlowGraphBuilder* builder)
-    : MetadataHelper(builder), builder_(builder) {}
+DirectCallMetadataHelper::DirectCallMetadataHelper(KernelReaderHelper* helper)
+    : MetadataHelper(helper, tag(), /* precompiler_only = */ true) {}
 
 bool DirectCallMetadataHelper::ReadMetadata(intptr_t node_offset,
                                             NameIndex* target_name,
@@ -75,11 +74,11 @@ bool DirectCallMetadataHelper::ReadMetadata(intptr_t node_offset,
     return false;
   }
 
-  AlternativeReadingScope alt(&builder_->reader_, &H.metadata_payloads(),
+  AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
                               md_offset);
 
-  *target_name = builder_->ReadCanonicalNameReference();
-  *check_receiver_for_null = builder_->ReadBool();
+  *target_name = helper_->ReadCanonicalNameReference();
+  *check_receiver_for_null = helper_->ReadBool();
   return true;
 }
 
@@ -95,18 +94,16 @@ DirectCallMetadata DirectCallMetadataHelper::GetDirectTargetForPropertyGet(
     // Tear-off. Use method extractor as direct call target.
     const String& method_name = H.DartMethodName(kernel_name);
     const Function& target_method = Function::ZoneHandle(
-        builder_->zone_,
-        builder_->LookupMethodByMember(kernel_name, method_name));
+        helper_->zone_, H.LookupMethodByMember(kernel_name, method_name));
     const String& getter_name = H.DartGetterName(kernel_name);
     return DirectCallMetadata(
-        Function::ZoneHandle(builder_->zone_,
+        Function::ZoneHandle(helper_->zone_,
                              target_method.GetMethodExtractor(getter_name)),
         check_receiver_for_null);
   } else {
     const String& getter_name = H.DartGetterName(kernel_name);
     const Function& target = Function::ZoneHandle(
-        builder_->zone_,
-        builder_->LookupMethodByMember(kernel_name, getter_name));
+        helper_->zone_, H.LookupMethodByMember(kernel_name, getter_name));
     ASSERT(target.IsGetterFunction() || target.IsImplicitGetterFunction());
     return DirectCallMetadata(target, check_receiver_for_null);
   }
@@ -122,8 +119,7 @@ DirectCallMetadata DirectCallMetadataHelper::GetDirectTargetForPropertySet(
 
   const String& method_name = H.DartSetterName(kernel_name);
   const Function& target = Function::ZoneHandle(
-      builder_->zone_,
-      builder_->LookupMethodByMember(kernel_name, method_name));
+      helper_->zone_, H.LookupMethodByMember(kernel_name, method_name));
   ASSERT(target.IsSetterFunction() || target.IsImplicitSetterFunction());
 
   return DirectCallMetadata(target, check_receiver_for_null);
@@ -139,8 +135,7 @@ DirectCallMetadata DirectCallMetadataHelper::GetDirectTargetForMethodInvocation(
 
   const String& method_name = H.DartProcedureName(kernel_name);
   const Function& target = Function::ZoneHandle(
-      builder_->zone_,
-      builder_->LookupMethodByMember(kernel_name, method_name));
+      helper_->zone_, H.LookupMethodByMember(kernel_name, method_name));
 
   return DirectCallMetadata(target, check_receiver_for_null);
 }
@@ -153,14 +148,14 @@ bool ProcedureAttributesMetadataHelper::ReadMetadata(
     return false;
   }
 
-  AlternativeReadingScope alt(&builder_->reader_, &H.metadata_payloads(),
+  AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
                               md_offset);
 
   const int kDynamicUsesBit = 1 << 0;
   const int kNonThisUsesBit = 1 << 1;
   const int kTearOffUsesBit = 1 << 2;
 
-  const uint8_t flags = builder_->ReadByte();
+  const uint8_t flags = helper_->ReadByte();
   metadata->has_dynamic_invocations =
       (flags & kDynamicUsesBit) == kDynamicUsesBit;
   metadata->has_non_this_uses = (flags & kNonThisUsesBit) == kNonThisUsesBit;
@@ -169,8 +164,8 @@ bool ProcedureAttributesMetadataHelper::ReadMetadata(
 }
 
 ProcedureAttributesMetadataHelper::ProcedureAttributesMetadataHelper(
-    StreamingFlowGraphBuilder* builder)
-    : MetadataHelper(builder), builder_(builder) {}
+    KernelReaderHelper* helper)
+    : MetadataHelper(helper, tag(), /* precompiler_only = */ true) {}
 
 ProcedureAttributesMetadata
 ProcedureAttributesMetadataHelper::GetProcedureAttributes(
@@ -181,8 +176,8 @@ ProcedureAttributesMetadataHelper::GetProcedureAttributes(
 }
 
 InferredTypeMetadataHelper::InferredTypeMetadataHelper(
-    StreamingFlowGraphBuilder* builder)
-    : MetadataHelper(builder), builder_(builder) {}
+    KernelReaderHelper* helper)
+    : MetadataHelper(helper, tag(), /* precompiler_only = */ true) {}
 
 InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
     intptr_t node_offset) {
@@ -191,18 +186,18 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
     return InferredTypeMetadata(kDynamicCid, true);
   }
 
-  AlternativeReadingScope alt(&builder_->reader_, &H.metadata_payloads(),
+  AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
                               md_offset);
 
-  const NameIndex kernel_name = builder_->ReadCanonicalNameReference();
-  const bool nullable = builder_->ReadBool();
+  const NameIndex kernel_name = helper_->ReadCanonicalNameReference();
+  const bool nullable = helper_->ReadBool();
 
   if (H.IsRoot(kernel_name)) {
     return InferredTypeMetadata(kDynamicCid, nullable);
   }
 
   const Class& klass =
-      Class::Handle(builder_->zone_, H.LookupClassByKernelClass(kernel_name));
+      Class::Handle(helper_->zone_, H.LookupClassByKernelClass(kernel_name));
   ASSERT(!klass.IsNull());
 
   intptr_t cid = klass.id();
@@ -215,17 +210,15 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
   return InferredTypeMetadata(cid, nullable);
 }
 
-BytecodeMetadataHelper::BytecodeMetadataHelper(
-    StreamingFlowGraphBuilder* builder)
-    : MetadataHelper(builder)
 #if defined(DART_USE_INTERPRETER)
-      ,
-      builder_(builder)
-#endif  // defined(DART_USE_INTERPRETER)
-{
-}
 
-#if defined(DART_USE_INTERPRETER)
+BytecodeMetadataHelper::BytecodeMetadataHelper(KernelReaderHelper* helper,
+                                               TypeTranslator* type_translator,
+                                               ActiveClass* active_class)
+    : MetadataHelper(helper, tag(), /* precompiler_only = */ false),
+      type_translator_(*type_translator),
+      active_class_(active_class) {}
+
 void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
   const intptr_t node_offset = function.kernel_offset();
   const intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
@@ -233,17 +226,17 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
     return;
   }
 
-  AlternativeReadingScope alt(&builder_->reader_, &H.metadata_payloads(),
+  AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
                               md_offset);
 
   // Create object pool and read pool entries.
-  const intptr_t obj_count = builder_->reader_.ReadListLength();
+  const intptr_t obj_count = helper_->reader_.ReadListLength();
   const ObjectPool& pool =
-      ObjectPool::Handle(builder_->zone_, ObjectPool::New(obj_count));
+      ObjectPool::Handle(helper_->zone_, ObjectPool::New(obj_count));
   ReadPoolEntries(function, function, pool, 0);
 
   // Read bytecode and attach to function.
-  const Code& bytecode = Code::Handle(builder_->zone_, ReadBytecode(pool));
+  const Code& bytecode = Code::Handle(helper_->zone_, ReadBytecode(pool));
   function.AttachBytecode(bytecode);
 
   // Read exceptions table.
@@ -254,11 +247,11 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
   }
 
   // Read closures.
-  Function& closure = Function::Handle(builder_->zone_);
-  Code& closure_bytecode = Code::Handle(builder_->zone_);
-  intptr_t num_closures = builder_->ReadListLength();
+  Function& closure = Function::Handle(helper_->zone_);
+  Code& closure_bytecode = Code::Handle(helper_->zone_);
+  intptr_t num_closures = helper_->ReadListLength();
   for (intptr_t i = 0; i < num_closures; i++) {
-    intptr_t closure_index = builder_->ReadUInt();
+    intptr_t closure_index = helper_->ReadUInt();
     ASSERT(closure_index < obj_count);
     closure ^= pool.ObjectAt(closure_index);
 
@@ -315,16 +308,16 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
     setter   // x.foo = ...
   };
 
-  Object& obj = Object::Handle(builder_->zone_);
-  Object& elem = Object::Handle(builder_->zone_);
-  Array& array = Array::Handle(builder_->zone_);
-  Field& field = Field::Handle(builder_->zone_);
-  Class& cls = Class::Handle(builder_->zone_);
-  String& name = String::Handle(builder_->zone_);
-  TypeArguments& type_args = TypeArguments::Handle(builder_->zone_);
+  Object& obj = Object::Handle(helper_->zone_);
+  Object& elem = Object::Handle(helper_->zone_);
+  Array& array = Array::Handle(helper_->zone_);
+  Field& field = Field::Handle(helper_->zone_);
+  Class& cls = Class::Handle(helper_->zone_);
+  String& name = String::Handle(helper_->zone_);
+  TypeArguments& type_args = TypeArguments::Handle(helper_->zone_);
   const intptr_t obj_count = pool.Length();
   for (intptr_t i = from_index; i < obj_count; ++i) {
-    const intptr_t tag = builder_->ReadTag();
+    const intptr_t tag = helper_->ReadTag();
     switch (tag) {
       case ConstantPoolTag::kInvalid:
         UNREACHABLE();
@@ -332,55 +325,55 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         obj = Object::null();
         break;
       case ConstantPoolTag::kString:
-        obj = H.DartString(builder_->ReadStringReference()).raw();
+        obj = H.DartString(helper_->ReadStringReference()).raw();
         ASSERT(obj.IsString());
         obj = H.Canonicalize(String::Cast(obj));
         break;
       case ConstantPoolTag::kInt: {
-        uint32_t low_bits = builder_->ReadUInt32();
-        int64_t value = builder_->ReadUInt32();
+        uint32_t low_bits = helper_->ReadUInt32();
+        int64_t value = helper_->ReadUInt32();
         value = (value << 32) | low_bits;
         obj = Integer::New(value);
       } break;
       case ConstantPoolTag::kDouble: {
-        uint32_t low_bits = builder_->ReadUInt32();
-        uint64_t bits = builder_->ReadUInt32();
+        uint32_t low_bits = helper_->ReadUInt32();
+        uint64_t bits = helper_->ReadUInt32();
         bits = (bits << 32) | low_bits;
         double value = bit_cast<double, uint64_t>(bits);
         obj = Double::New(value);
       } break;
       case ConstantPoolTag::kBool:
-        if (builder_->ReadUInt() == 1) {
+        if (helper_->ReadUInt() == 1) {
           obj = Bool::True().raw();
         } else {
           obj = Bool::False().raw();
         }
         break;
       case ConstantPoolTag::kArgDesc: {
-        intptr_t num_arguments = builder_->ReadUInt();
-        intptr_t num_type_args = builder_->ReadUInt();
-        intptr_t num_arg_names = builder_->ReadListLength();
+        intptr_t num_arguments = helper_->ReadUInt();
+        intptr_t num_type_args = helper_->ReadUInt();
+        intptr_t num_arg_names = helper_->ReadListLength();
         if (num_arg_names == 0) {
           obj = ArgumentsDescriptor::New(num_type_args, num_arguments);
         } else {
           array = Array::New(num_arg_names);
           for (intptr_t j = 0; j < num_arg_names; j++) {
-            array.SetAt(j, H.DartSymbolPlain(builder_->ReadStringReference()));
+            array.SetAt(j, H.DartSymbolPlain(helper_->ReadStringReference()));
           }
           obj = ArgumentsDescriptor::New(num_type_args, num_arguments, array);
         }
       } break;
       case ConstantPoolTag::kICData: {
-        InvocationKind kind = static_cast<InvocationKind>(builder_->ReadByte());
+        InvocationKind kind = static_cast<InvocationKind>(helper_->ReadByte());
         if (kind == InvocationKind::getter) {
-          name = builder_->ReadNameAsGetterName().raw();
+          name = helper_->ReadNameAsGetterName().raw();
         } else if (kind == InvocationKind::setter) {
-          name = builder_->ReadNameAsSetterName().raw();
+          name = helper_->ReadNameAsSetterName().raw();
         } else {
           ASSERT(kind == InvocationKind::method);
-          name = builder_->ReadNameAsMethodName().raw();
+          name = helper_->ReadNameAsMethodName().raw();
         }
-        intptr_t arg_desc_index = builder_->ReadUInt();
+        intptr_t arg_desc_index = helper_->ReadUInt();
         ASSERT(arg_desc_index < i);
         array ^= pool.ObjectAt(arg_desc_index);
         // TODO(regis): Should num_args_tested be explicitly provided?
@@ -393,8 +386,8 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
 #endif
       } break;
       case ConstantPoolTag::kStaticICData: {
-        InvocationKind kind = static_cast<InvocationKind>(builder_->ReadByte());
-        NameIndex target = builder_->ReadCanonicalNameReference();
+        InvocationKind kind = static_cast<InvocationKind>(helper_->ReadByte());
+        NameIndex target = helper_->ReadCanonicalNameReference();
         if (H.IsConstructor(target)) {
           name = H.DartConstructorName(target).raw();
           elem = H.LookupConstructorByKernelConstructor(target);
@@ -418,7 +411,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
           elem = H.LookupStaticMethodByKernelProcedure(target);
         }
         ASSERT(elem.IsFunction());
-        intptr_t arg_desc_index = builder_->ReadUInt();
+        intptr_t arg_desc_index = helper_->ReadUInt();
         ASSERT(arg_desc_index < i);
         array ^= pool.ObjectAt(arg_desc_index);
         obj = ICData::New(function, name,
@@ -431,29 +424,25 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
 #endif
       } break;
       case ConstantPoolTag::kField:
-        obj =
-            H.LookupFieldByKernelField(builder_->ReadCanonicalNameReference());
+        obj = H.LookupFieldByKernelField(helper_->ReadCanonicalNameReference());
         ASSERT(obj.IsField());
         break;
       case ConstantPoolTag::kFieldOffset:
-        obj =
-            H.LookupFieldByKernelField(builder_->ReadCanonicalNameReference());
+        obj = H.LookupFieldByKernelField(helper_->ReadCanonicalNameReference());
         ASSERT(obj.IsField());
         obj = Smi::New(Field::Cast(obj).Offset() / kWordSize);
         break;
       case ConstantPoolTag::kClass:
-        obj =
-            H.LookupClassByKernelClass(builder_->ReadCanonicalNameReference());
+        obj = H.LookupClassByKernelClass(helper_->ReadCanonicalNameReference());
         ASSERT(obj.IsClass());
         break;
       case ConstantPoolTag::kTypeArgumentsFieldOffset:
-        cls =
-            H.LookupClassByKernelClass(builder_->ReadCanonicalNameReference());
+        cls = H.LookupClassByKernelClass(helper_->ReadCanonicalNameReference());
         obj = Smi::New(cls.type_arguments_field_offset() / kWordSize);
         break;
       case ConstantPoolTag::kTearOff:
         obj = H.LookupStaticMethodByKernelProcedure(
-            builder_->ReadCanonicalNameReference());
+            helper_->ReadCanonicalNameReference());
         ASSERT(obj.IsFunction());
         obj = Function::Cast(obj).ImplicitClosureFunction();
         ASSERT(obj.IsFunction());
@@ -462,22 +451,21 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         obj = H.Canonicalize(Instance::Cast(obj));
         break;
       case ConstantPoolTag::kType:
-        obj = builder_->type_translator_.BuildType().raw();
+        obj = type_translator_.BuildType().raw();
         ASSERT(obj.IsAbstractType());
         break;
       case ConstantPoolTag::kTypeArguments:
-        obj = builder_->type_translator_
-                  .BuildTypeArguments(builder_->ReadListLength())
+        obj = type_translator_.BuildTypeArguments(helper_->ReadListLength())
                   .raw();
         ASSERT(obj.IsNull() || obj.IsTypeArguments());
         break;
       case ConstantPoolTag::kList: {
-        obj = builder_->type_translator_.BuildType().raw();
+        obj = type_translator_.BuildType().raw();
         ASSERT(obj.IsAbstractType());
-        const intptr_t length = builder_->ReadListLength();
+        const intptr_t length = helper_->ReadListLength();
         array = Array::New(length, AbstractType::Cast(obj));
         for (intptr_t j = 0; j < length; j++) {
-          intptr_t elem_index = builder_->ReadUInt();
+          intptr_t elem_index = helper_->ReadUInt();
           ASSERT(elem_index < i);
           elem = pool.ObjectAt(elem_index);
           array.SetAt(j, elem);
@@ -486,21 +474,20 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         ASSERT(!obj.IsNull());
       } break;
       case ConstantPoolTag::kInstance: {
-        cls =
-            H.LookupClassByKernelClass(builder_->ReadCanonicalNameReference());
+        cls = H.LookupClassByKernelClass(helper_->ReadCanonicalNameReference());
         obj = Instance::New(cls, Heap::kOld);
-        intptr_t type_args_index = builder_->ReadUInt();
+        intptr_t type_args_index = helper_->ReadUInt();
         ASSERT(type_args_index < i);
         type_args ^= pool.ObjectAt(type_args_index);
         if (!type_args.IsNull()) {
           Instance::Cast(obj).SetTypeArguments(type_args);
         }
-        intptr_t num_fields = builder_->ReadUInt();
+        intptr_t num_fields = helper_->ReadUInt();
         for (intptr_t j = 0; j < num_fields; j++) {
-          NameIndex field_name = builder_->ReadCanonicalNameReference();
+          NameIndex field_name = helper_->ReadCanonicalNameReference();
           ASSERT(H.IsField(field_name));
           field = H.LookupFieldByKernelField(field_name);
-          intptr_t elem_index = builder_->ReadUInt();
+          intptr_t elem_index = helper_->ReadUInt();
           ASSERT(elem_index < i);
           elem = pool.ObjectAt(elem_index);
           Instance::Cast(obj).SetField(field, elem);
@@ -508,20 +495,19 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         obj = H.Canonicalize(Instance::Cast(obj));
       } break;
       case ConstantPoolTag::kSymbol:
-        obj = H.DartSymbolPlain(builder_->ReadStringReference()).raw();
+        obj = H.DartSymbolPlain(helper_->ReadStringReference()).raw();
         ASSERT(String::Cast(obj).IsSymbol());
         break;
       case ConstantPoolTag::kTypeArgumentsForInstanceAllocation: {
-        cls =
-            H.LookupClassByKernelClass(builder_->ReadCanonicalNameReference());
+        cls = H.LookupClassByKernelClass(helper_->ReadCanonicalNameReference());
         obj =
-            builder_->type_translator_
-                .BuildInstantiatedTypeArguments(cls, builder_->ReadListLength())
+            type_translator_
+                .BuildInstantiatedTypeArguments(cls, helper_->ReadListLength())
                 .raw();
         ASSERT(obj.IsNull() || obj.IsTypeArguments());
       } break;
       case ConstantPoolTag::kContextOffset: {
-        intptr_t index = builder_->ReadUInt();
+        intptr_t index = helper_->ReadUInt();
         if (index == 0) {
           obj = Smi::New(Context::parent_offset() / kWordSize);
         } else {
@@ -529,25 +515,24 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         }
       } break;
       case ConstantPoolTag::kClosureFunction: {
-        name = H.DartSymbolPlain(builder_->ReadStringReference()).raw();
+        name = H.DartSymbolPlain(helper_->ReadStringReference()).raw();
         const Function& closure = Function::Handle(
-            builder_->zone_,
+            helper_->zone_,
             Function::NewClosureFunction(name, inner_function,
                                          TokenPosition::kNoSource));
 
-        FunctionNodeHelper function_node_helper(builder_);
+        FunctionNodeHelper function_node_helper(helper_);
         function_node_helper.ReadUntilExcluding(
             FunctionNodeHelper::kTypeParameters);
-        builder_->LoadAndSetupTypeParameters(builder_->active_class(), closure,
-                                             builder_->ReadListLength(),
-                                             closure);
+        type_translator_.LoadAndSetupTypeParameters(
+            active_class_, closure, helper_->ReadListLength(), closure);
         function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
 
         // Scope remains opened until ConstantPoolTag::kEndClosureFunctionScope.
         ActiveTypeParametersScope scope(
-            builder_->active_class(), &closure,
-            TypeArguments::Handle(builder_->zone_, closure.type_parameters()),
-            builder_->zone_);
+            active_class_, &closure,
+            TypeArguments::Handle(helper_->zone_, closure.type_parameters()),
+            helper_->zone_);
 
         function_node_helper.ReadUntilExcluding(
             FunctionNodeHelper::kPositionalParameters);
@@ -557,7 +542,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         intptr_t total_parameter_count =
             function_node_helper.total_parameter_count_;
 
-        intptr_t positional_parameter_count = builder_->ReadListLength();
+        intptr_t positional_parameter_count = helper_->ReadListLength();
 
         intptr_t named_parameter_count =
             total_parameter_count - positional_parameter_count;
@@ -573,25 +558,24 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         }
         intptr_t parameter_count = extra_parameters + total_parameter_count;
         closure.set_parameter_types(Array::Handle(
-            builder_->zone_, Array::New(parameter_count, Heap::kOld)));
+            helper_->zone_, Array::New(parameter_count, Heap::kOld)));
         closure.set_parameter_names(Array::Handle(
-            builder_->zone_, Array::New(parameter_count, Heap::kOld)));
+            helper_->zone_, Array::New(parameter_count, Heap::kOld)));
 
         intptr_t pos = 0;
         closure.SetParameterTypeAt(pos, AbstractType::dynamic_type());
         closure.SetParameterNameAt(pos, Symbols::ClosureParameter());
         pos++;
 
-        const Library& lib = Library::Handle(
-            builder_->zone_, builder_->active_class()->klass->library());
+        const Library& lib =
+            Library::Handle(helper_->zone_, active_class_->klass->library());
         for (intptr_t j = 0; j < positional_parameter_count; ++j, ++pos) {
-          VariableDeclarationHelper helper(builder_);
+          VariableDeclarationHelper helper(helper_);
           helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
-          const AbstractType& type =
-              builder_->type_translator_.BuildVariableType();
-          Tag tag = builder_->ReadTag();  // read (first part of) initializer.
+          const AbstractType& type = type_translator_.BuildVariableType();
+          Tag tag = helper_->ReadTag();  // read (first part of) initializer.
           if (tag == kSomething) {
-            builder_->SkipExpression();  // read (actual) initializer.
+            helper_->SkipExpression();  // read (actual) initializer.
           }
 
           closure.SetParameterTypeAt(pos, type);
@@ -599,16 +583,15 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
                                      H.DartIdentifier(lib, helper.name_index_));
         }
 
-        intptr_t named_parameter_count_check = builder_->ReadListLength();
+        intptr_t named_parameter_count_check = helper_->ReadListLength();
         ASSERT(named_parameter_count_check == named_parameter_count);
         for (intptr_t j = 0; j < named_parameter_count; ++j, ++pos) {
-          VariableDeclarationHelper helper(builder_);
+          VariableDeclarationHelper helper(helper_);
           helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
-          const AbstractType& type =
-              builder_->type_translator_.BuildVariableType();
-          Tag tag = builder_->ReadTag();  // read (first part of) initializer.
+          const AbstractType& type = type_translator_.BuildVariableType();
+          Tag tag = helper_->ReadTag();  // read (first part of) initializer.
           if (tag == kSomething) {
-            builder_->SkipExpression();  // read (actual) initializer.
+            helper_->SkipExpression();  // read (actual) initializer.
           }
 
           closure.SetParameterTypeAt(pos, type);
@@ -618,8 +601,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
 
         function_node_helper.SetJustRead(FunctionNodeHelper::kNamedParameters);
 
-        const AbstractType& return_type =
-            builder_->type_translator_.BuildVariableType();
+        const AbstractType& return_type = type_translator_.BuildVariableType();
         closure.set_result_type(return_type);
         function_node_helper.SetJustRead(FunctionNodeHelper::kReturnType);
         // The closure has no body.
@@ -645,7 +627,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         return i;  // The caller will close the scope.
       } break;
       case ConstantPoolTag::kNativeEntry: {
-        name = H.DartString(builder_->ReadStringReference()).raw();
+        name = H.DartString(helper_->ReadStringReference()).raw();
         obj = NativeEntry(function, name);
       } break;
       case ConstantPoolTag::kSubtypeTestCache: {
@@ -662,10 +644,10 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
 }
 
 RawCode* BytecodeMetadataHelper::ReadBytecode(const ObjectPool& pool) {
-  intptr_t size = builder_->reader_.ReadUInt();
-  intptr_t offset = builder_->reader_.offset();
-  const uint8_t* data = builder_->reader_.BufferAt(offset);
-  builder_->reader_.set_offset(offset + size);
+  intptr_t size = helper_->reader_.ReadUInt();
+  intptr_t offset = helper_->reader_.offset();
+  const uint8_t* data = helper_->reader_.BufferAt(offset);
+  helper_->reader_.set_offset(offset + size);
 
   // Create and return code object.
   return Code::FinalizeBytecode(reinterpret_cast<const void*>(data), size,
@@ -673,35 +655,35 @@ RawCode* BytecodeMetadataHelper::ReadBytecode(const ObjectPool& pool) {
 }
 
 void BytecodeMetadataHelper::ReadExceptionsTable(const Code& bytecode) {
-  const intptr_t try_block_count = builder_->reader_.ReadListLength();
+  const intptr_t try_block_count = helper_->reader_.ReadListLength();
   if (try_block_count > 0) {
     const ObjectPool& pool =
-        ObjectPool::Handle(builder_->zone_, bytecode.object_pool());
-    AbstractType& handler_type = AbstractType::Handle(builder_->zone_);
-    Array& handler_types = Array::ZoneHandle(builder_->zone_);
+        ObjectPool::Handle(helper_->zone_, bytecode.object_pool());
+    AbstractType& handler_type = AbstractType::Handle(helper_->zone_);
+    Array& handler_types = Array::ZoneHandle(helper_->zone_);
     DescriptorList* pc_descriptors_list =
-        new (builder_->zone_) DescriptorList(64);
+        new (helper_->zone_) DescriptorList(64);
     ExceptionHandlerList* exception_handlers_list =
-        new (builder_->zone_) ExceptionHandlerList();
+        new (helper_->zone_) ExceptionHandlerList();
 
     // Encoding of ExceptionsTable is described in
     // pkg/vm/lib/bytecode/exceptions.dart.
     for (intptr_t try_index = 0; try_index < try_block_count; try_index++) {
-      intptr_t outer_try_index_plus1 = builder_->reader_.ReadUInt();
+      intptr_t outer_try_index_plus1 = helper_->reader_.ReadUInt();
       intptr_t outer_try_index = outer_try_index_plus1 - 1;
-      intptr_t start_pc = builder_->reader_.ReadUInt();
-      intptr_t end_pc = builder_->reader_.ReadUInt();
-      intptr_t handler_pc = builder_->reader_.ReadUInt();
-      uint8_t flags = builder_->reader_.ReadByte();
+      intptr_t start_pc = helper_->reader_.ReadUInt();
+      intptr_t end_pc = helper_->reader_.ReadUInt();
+      intptr_t handler_pc = helper_->reader_.ReadUInt();
+      uint8_t flags = helper_->reader_.ReadByte();
       const uint8_t kFlagNeedsStackTrace = 1 << 0;
       const uint8_t kFlagIsSynthetic = 1 << 1;
       const bool needs_stacktrace = (flags & kFlagNeedsStackTrace) != 0;
       const bool is_generated = (flags & kFlagIsSynthetic) != 0;
-      intptr_t type_count = builder_->reader_.ReadListLength();
+      intptr_t type_count = helper_->reader_.ReadListLength();
       ASSERT(type_count > 0);
       handler_types = Array::New(type_count, Heap::kOld);
       for (intptr_t i = 0; i < type_count; i++) {
-        intptr_t type_index = builder_->reader_.ReadUInt();
+        intptr_t type_index = helper_->reader_.ReadUInt();
         ASSERT(type_index < pool.Length());
         handler_type ^= pool.ObjectAt(type_index);
         handler_types.SetAt(i, handler_type);
@@ -718,12 +700,12 @@ void BytecodeMetadataHelper::ReadExceptionsTable(const Code& bytecode) {
           is_generated, handler_types, needs_stacktrace);
     }
     const PcDescriptors& descriptors = PcDescriptors::Handle(
-        builder_->zone_,
+        helper_->zone_,
         pc_descriptors_list->FinalizePcDescriptors(bytecode.PayloadStart()));
     bytecode.set_pc_descriptors(descriptors);
     const ExceptionHandlers& handlers = ExceptionHandlers::Handle(
-        builder_->zone_, exception_handlers_list->FinalizeExceptionHandlers(
-                             bytecode.PayloadStart()));
+        helper_->zone_, exception_handlers_list->FinalizeExceptionHandlers(
+                            bytecode.PayloadStart()));
     bytecode.set_exception_handlers(handlers);
   } else {
     bytecode.set_pc_descriptors(Object::empty_descriptors());
@@ -733,7 +715,7 @@ void BytecodeMetadataHelper::ReadExceptionsTable(const Code& bytecode) {
 
 RawTypedData* BytecodeMetadataHelper::NativeEntry(const Function& function,
                                                   const String& external_name) {
-  Zone* zone = builder_->zone_;
+  Zone* zone = helper_->zone_;
   MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
   // This list of recognized methods must be kept in sync with the list of
   // methods handled specially by the NativeCall bytecode in the interpreter.
@@ -831,7 +813,7 @@ StreamingScopeBuilder::StreamingScopeBuilder(ParsedFunction* parsed_function)
                                     parsed_function->function().KernelData()),
           parsed_function->function().KernelDataProgramOffset(),
           &active_class_)),
-      type_translator_(builder_, /*finalize=*/true) {
+      type_translator_(builder_, &active_class_, /*finalize=*/true) {
   H.InitFromScript(builder_->script());
   ASSERT(type_translator_.active_class_ == &active_class_);
   ASSERT(builder_->type_translator_.active_class_ == &active_class_);
@@ -2127,8 +2109,7 @@ void StreamingScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {
   // this function are now in scope, although they are not defined and will be
   // filled in with dynamic. This is OK, since their definitions are not needed
   // for scope building of the enclosing function.
-  StreamingDartTypeTranslator::TypeParameterScope scope(&type_translator_,
-                                                        num_type_params);
+  TypeTranslator::TypeParameterScope scope(&type_translator_, num_type_params);
 
   // read positional_parameters and named_parameters.
   function_node_helper.ReadUntilExcluding(
@@ -2447,18 +2428,18 @@ void StreamingScopeBuilder::LookupCapturedVariableByName(
   }
 }
 
-StreamingDartTypeTranslator::StreamingDartTypeTranslator(
-    StreamingFlowGraphBuilder* builder,
-    bool finalize)
-    : builder_(builder),
-      translation_helper_(builder->translation_helper_),
-      active_class_(builder->active_class()),
+TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
+                               ActiveClass* active_class,
+                               bool finalize)
+    : helper_(helper),
+      translation_helper_(helper->translation_helper_),
+      active_class_(active_class),
       type_parameter_scope_(NULL),
       zone_(translation_helper_.zone()),
       result_(AbstractType::Handle(translation_helper_.zone())),
       finalize_(finalize) {}
 
-AbstractType& StreamingDartTypeTranslator::BuildType() {
+AbstractType& TypeTranslator::BuildType() {
   BuildTypeInternal();
 
   // We return a new `ZoneHandle` here on purpose: The intermediate language
@@ -2466,7 +2447,7 @@ AbstractType& StreamingDartTypeTranslator::BuildType() {
   return AbstractType::ZoneHandle(Z, result_.raw());
 }
 
-AbstractType& StreamingDartTypeTranslator::BuildTypeWithoutFinalization() {
+AbstractType& TypeTranslator::BuildTypeWithoutFinalization() {
   bool saved_finalize = finalize_;
   finalize_ = false;
   BuildTypeInternal();
@@ -2477,7 +2458,7 @@ AbstractType& StreamingDartTypeTranslator::BuildTypeWithoutFinalization() {
   return AbstractType::ZoneHandle(Z, result_.raw());
 }
 
-AbstractType& StreamingDartTypeTranslator::BuildVariableType() {
+AbstractType& TypeTranslator::BuildVariableType() {
   AbstractType& abstract_type = BuildType();
 
   // We return a new `ZoneHandle` here on purpose: The intermediate language
@@ -2493,8 +2474,8 @@ AbstractType& StreamingDartTypeTranslator::BuildVariableType() {
   return type;
 }
 
-void StreamingDartTypeTranslator::BuildTypeInternal(bool invalid_as_dynamic) {
-  Tag tag = builder_->ReadTag();
+void TypeTranslator::BuildTypeInternal(bool invalid_as_dynamic) {
+  Tag tag = helper_->ReadTag();
   switch (tag) {
     case kInvalidType:
       if (invalid_as_dynamic) {
@@ -2532,24 +2513,24 @@ void StreamingDartTypeTranslator::BuildTypeInternal(bool invalid_as_dynamic) {
       BuildTypeParameterType();
       break;
     default:
-      builder_->ReportUnexpectedTag("type", tag);
+      helper_->ReportUnexpectedTag("type", tag);
       UNREACHABLE();
   }
 }
 
-void StreamingDartTypeTranslator::BuildInterfaceType(bool simple) {
+void TypeTranslator::BuildInterfaceType(bool simple) {
   // NOTE: That an interface type like `T<A, B>` is considered to be
   // malformed iff `T` is malformed.
   //   => We therefore ignore errors in `A` or `B`.
 
   NameIndex klass_name =
-      builder_->ReadCanonicalNameReference();  // read klass_name.
+      helper_->ReadCanonicalNameReference();  // read klass_name.
 
   intptr_t length;
   if (simple) {
     length = 0;
   } else {
-    length = builder_->ReadListLength();  // read type_arguments list length.
+    length = helper_->ReadListLength();  // read type_arguments list length.
   }
   const TypeArguments& type_arguments =
       BuildTypeArguments(length);  // read type arguments.
@@ -2562,7 +2543,7 @@ void StreamingDartTypeTranslator::BuildInterfaceType(bool simple) {
   }
 }
 
-void StreamingDartTypeTranslator::BuildFunctionType(bool simple) {
+void TypeTranslator::BuildFunctionType(bool simple) {
   Function& signature_function = Function::ZoneHandle(
       Z, Function::NewSignatureFunction(*active_class_->klass,
                                         active_class_->enclosing != NULL
@@ -2579,9 +2560,8 @@ void StreamingDartTypeTranslator::BuildFunctionType(bool simple) {
   finalize_ = false;
 
   if (!simple) {
-    builder_->LoadAndSetupTypeParameters(active_class_, signature_function,
-                                         builder_->ReadListLength(),
-                                         signature_function);
+    LoadAndSetupTypeParameters(active_class_, signature_function,
+                               helper_->ReadListLength(), signature_function);
   }
 
   ActiveTypeParametersScope scope(
@@ -2592,13 +2572,13 @@ void StreamingDartTypeTranslator::BuildFunctionType(bool simple) {
   intptr_t all_count;
   intptr_t positional_count;
   if (!simple) {
-    required_count = builder_->ReadUInt();  // read required parameter count.
-    all_count = builder_->ReadUInt();       // read total parameter count.
+    required_count = helper_->ReadUInt();  // read required parameter count.
+    all_count = helper_->ReadUInt();       // read total parameter count.
     positional_count =
-        builder_->ReadListLength();  // read positional_parameters list length.
+        helper_->ReadListLength();  // read positional_parameters list length.
   } else {
     positional_count =
-        builder_->ReadListLength();  // read positional_parameters list length.
+        helper_->ReadListLength();  // read positional_parameters list length.
     required_count = positional_count;
     all_count = positional_count;
   }
@@ -2630,10 +2610,10 @@ void StreamingDartTypeTranslator::BuildFunctionType(bool simple) {
 
   if (!simple) {
     const intptr_t named_count =
-        builder_->ReadListLength();  // read named_parameters list length.
+        helper_->ReadListLength();  // read named_parameters list length.
     for (intptr_t i = 0; i < named_count; ++i, ++pos) {
       // read string reference (i.e. named_parameters[i].name).
-      String& name = H.DartSymbolObfuscate(builder_->ReadStringReference());
+      String& name = H.DartSymbolObfuscate(helper_->ReadStringReference());
       BuildTypeInternal();  // read named_parameters[i].type.
       if (result_.IsMalformed()) {
         result_ = AbstractType::dynamic_type().raw();
@@ -2643,10 +2623,10 @@ void StreamingDartTypeTranslator::BuildFunctionType(bool simple) {
     }
   }
 
-  builder_->SkipListOfStrings();  // read positional parameter names.
+  helper_->SkipListOfStrings();  // read positional parameter names.
 
   if (!simple) {
-    builder_->SkipCanonicalNameReference();  // read typedef reference.
+    helper_->SkipCanonicalNameReference();  // read typedef reference.
   }
 
   BuildTypeInternal();  // read return type.
@@ -2671,9 +2651,9 @@ void StreamingDartTypeTranslator::BuildFunctionType(bool simple) {
   result_ = signature_type.raw();
 }
 
-void StreamingDartTypeTranslator::BuildTypeParameterType() {
-  intptr_t parameter_index = builder_->ReadUInt();  // read parameter index.
-  builder_->SkipOptionalDartType();                 // read bound.
+void TypeTranslator::BuildTypeParameterType() {
+  intptr_t parameter_index = helper_->ReadUInt();  // read parameter index.
+  helper_->SkipOptionalDartType();                 // read bound.
 
   const TypeArguments& class_types =
       TypeArguments::Handle(Z, active_class_->klass->type_parameters());
@@ -2751,19 +2731,18 @@ void StreamingDartTypeTranslator::BuildTypeParameterType() {
   }
 
   H.ReportError(
-      builder_->script(), TokenPosition::kNoSource,
+      helper_->script(), TokenPosition::kNoSource,
       "Unbound type parameter found in %s.  Please report this at dartbug.com.",
       active_class_->ToCString());
 }
 
-const TypeArguments& StreamingDartTypeTranslator::BuildTypeArguments(
-    intptr_t length) {
+const TypeArguments& TypeTranslator::BuildTypeArguments(intptr_t length) {
   bool only_dynamic = true;
-  intptr_t offset = builder_->ReaderOffset();
+  intptr_t offset = helper_->ReaderOffset();
   for (intptr_t i = 0; i < length; ++i) {
-    if (builder_->ReadTag() != kDynamicType) {  // Read the ith types tag.
+    if (helper_->ReadTag() != kDynamicType) {  // Read the ith types tag.
       only_dynamic = false;
-      builder_->SetOffset(offset);
+      helper_->SetOffset(offset);
       break;
     }
   }
@@ -2782,8 +2761,7 @@ const TypeArguments& StreamingDartTypeTranslator::BuildTypeArguments(
   return type_arguments;
 }
 
-const TypeArguments&
-StreamingDartTypeTranslator::BuildInstantiatedTypeArguments(
+const TypeArguments& TypeTranslator::BuildInstantiatedTypeArguments(
     const Class& receiver_class,
     intptr_t length) {
   const TypeArguments& type_arguments = BuildTypeArguments(length);
@@ -2810,7 +2788,79 @@ StreamingDartTypeTranslator::BuildInstantiatedTypeArguments(
   return instantiated_type_arguments;
 }
 
-const Type& StreamingDartTypeTranslator::ReceiverType(const Class& klass) {
+void TypeTranslator::LoadAndSetupTypeParameters(
+    ActiveClass* active_class,
+    const Object& set_on,
+    intptr_t type_parameter_count,
+    const Function& parameterized_function) {
+  ASSERT(type_parameter_count >= 0);
+  if (type_parameter_count == 0) {
+    return;
+  }
+  ASSERT(set_on.IsClass() || set_on.IsFunction());
+  bool set_on_class = set_on.IsClass();
+  ASSERT(set_on_class == parameterized_function.IsNull());
+
+  // First setup the type parameters, so if any of the following code uses it
+  // (in a recursive way) we're fine.
+  TypeArguments& type_parameters = TypeArguments::Handle(Z);
+  TypeParameter& parameter = TypeParameter::Handle(Z);
+  const Type& null_bound = Type::Handle(Z);
+
+  // Step a) Create array of [TypeParameter] objects (without bound).
+  type_parameters = TypeArguments::New(type_parameter_count);
+  const Library& lib = Library::Handle(Z, active_class->klass->library());
+  {
+    AlternativeReadingScope alt(&helper_->reader_);
+    for (intptr_t i = 0; i < type_parameter_count; i++) {
+      TypeParameterHelper helper(helper_);
+      helper.Finish();
+      parameter = TypeParameter::New(
+          set_on_class ? *active_class->klass : Class::Handle(Z),
+          parameterized_function, i,
+          H.DartIdentifier(lib, helper.name_index_),  // read ith name index.
+          null_bound, TokenPosition::kNoSource);
+      type_parameters.SetTypeAt(i, parameter);
+    }
+  }
+
+  if (set_on.IsClass()) {
+    Class::Cast(set_on).set_type_parameters(type_parameters);
+  } else {
+    Function::Cast(set_on).set_type_parameters(type_parameters);
+  }
+
+  const Function* enclosing = NULL;
+  if (!parameterized_function.IsNull()) {
+    enclosing = &parameterized_function;
+  }
+  ActiveTypeParametersScope scope(active_class, enclosing, type_parameters, Z);
+
+  // Step b) Fill in the bounds of all [TypeParameter]s.
+  for (intptr_t i = 0; i < type_parameter_count; i++) {
+    TypeParameterHelper helper(helper_);
+    helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kBound);
+
+    // TODO(github.com/dart-lang/kernel/issues/42): This should be handled
+    // by the frontend.
+    parameter ^= type_parameters.TypeAt(i);
+    const Tag tag = helper_->PeekTag();  // peek ith bound type.
+    if (tag == kDynamicType) {
+      helper_->SkipDartType();  // read ith bound.
+      parameter.set_bound(Type::Handle(Z, I->object_store()->object_type()));
+    } else {
+      AbstractType& bound = BuildTypeWithoutFinalization();  // read ith bound.
+      if (bound.IsMalformedOrMalbounded()) {
+        bound = I->object_store()->object_type();
+      }
+      parameter.set_bound(bound);
+    }
+
+    helper.Finish();
+  }
+}
+
+const Type& TypeTranslator::ReceiverType(const Class& klass) {
   ASSERT(!klass.IsNull());
   ASSERT(!klass.IsTypedefClass());
   // Note that if klass is _Closure, the returned type will be _Closure,
@@ -3201,8 +3251,7 @@ void StreamingConstantEvaluator::EvaluateDirectMethodInvocation() {
       builder_->ReadCanonicalNameReference();  // read target_reference.
 
   const Function& function = Function::ZoneHandle(
-      Z, builder_->LookupMethodByMember(kernel_name,
-                                        H.DartProcedureName(kernel_name)));
+      Z, H.LookupMethodByMember(kernel_name, H.DartProcedureName(kernel_name)));
 
   // Read arguments, run the method and canonicalize the result.
   const Object& result = RunMethodCall(function, &receiver);
@@ -5499,7 +5548,7 @@ Fragment StreamingFlowGraphBuilder::BuildArgumentTypeChecks(
                              ? H.DartSetterName(target_name)
                              : H.DartProcedureName(target_name);
     forwarding_target =
-        &Function::ZoneHandle(Z, LookupMethodByMember(target_name, name));
+        &Function::ZoneHandle(Z, H.LookupMethodByMember(target_name, name));
     ASSERT(!forwarding_target->IsNull());
   }
 
@@ -6572,12 +6621,6 @@ LocalVariable* StreamingFlowGraphBuilder::MakeTemporary() {
   return flow_graph_builder_->MakeTemporary();
 }
 
-RawFunction* StreamingFlowGraphBuilder::LookupMethodByMember(
-    NameIndex target,
-    const String& method_name) {
-  return flow_graph_builder_->LookupMethodByMember(target, method_name);
-}
-
 Function& StreamingFlowGraphBuilder::FindMatchingFunctionAnyArgs(
     const Class& klass,
     const String& name) {
@@ -7115,7 +7158,8 @@ Fragment StreamingFlowGraphBuilder::BuildPropertyGet(TokenPosition* p) {
   if (I->strong() && !H.IsRoot(itarget_name) &&
       (H.IsGetter(itarget_name) || H.IsField(itarget_name))) {
     interface_target = &Function::ZoneHandle(
-        Z, LookupMethodByMember(itarget_name, H.DartGetterName(itarget_name)));
+        Z,
+        H.LookupMethodByMember(itarget_name, H.DartGetterName(itarget_name)));
     ASSERT(getter_name.raw() == interface_target->name());
   }
 
@@ -7177,7 +7221,8 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
       ReadCanonicalNameReference();  // read interface_target_reference.
   if (I->strong() && !H.IsRoot(itarget_name)) {
     interface_target = &Function::ZoneHandle(
-        Z, LookupMethodByMember(itarget_name, H.DartSetterName(itarget_name)));
+        Z,
+        H.LookupMethodByMember(itarget_name, H.DartSetterName(itarget_name)));
     ASSERT(setter_name.raw() == interface_target->name());
   }
 
@@ -7443,12 +7488,14 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertyGet(TokenPosition* p) {
   Function& target = Function::ZoneHandle(Z);
   if (H.IsProcedure(kernel_name)) {
     if (H.IsGetter(kernel_name)) {
-      target = LookupMethodByMember(kernel_name, H.DartGetterName(kernel_name));
+      target =
+          H.LookupMethodByMember(kernel_name, H.DartGetterName(kernel_name));
     } else if (receiver_tag == kThisExpression) {
       // Undo stack change for the BuildExpression.
       Pop();
 
-      target = LookupMethodByMember(kernel_name, H.DartMethodName(kernel_name));
+      target =
+          H.LookupMethodByMember(kernel_name, H.DartMethodName(kernel_name));
       target = target.ImplicitClosureFunction();
       ASSERT(!target.IsNull());
 
@@ -7459,14 +7506,15 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertyGet(TokenPosition* p) {
       // Need to create implicit closure (tear-off), receiver != this.
       // Ensure method extractor exists and call it directly.
       const Function& target_method = Function::ZoneHandle(
-          Z, LookupMethodByMember(kernel_name, H.DartMethodName(kernel_name)));
+          Z,
+          H.LookupMethodByMember(kernel_name, H.DartMethodName(kernel_name)));
       const String& getter_name = H.DartGetterName(kernel_name);
       target = target_method.GetMethodExtractor(getter_name);
     }
   } else {
     ASSERT(H.IsField(kernel_name));
     const String& getter_name = H.DartGetterName(kernel_name);
-    target = LookupMethodByMember(kernel_name, getter_name);
+    target = H.LookupMethodByMember(kernel_name, getter_name);
     ASSERT(target.IsGetterFunction() || target.IsImplicitGetterFunction());
   }
 
@@ -7494,7 +7542,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertySet(TokenPosition* p) {
       ReadCanonicalNameReference();  // read target_reference.
   const String& method_name = H.DartSetterName(target_reference);
   const Function& target = Function::ZoneHandle(
-      Z, LookupMethodByMember(target_reference, method_name));
+      Z, H.LookupMethodByMember(target_reference, method_name));
   ASSERT(target.IsSetterFunction() || target.IsImplicitSetterFunction());
 
   instructions += BuildExpression();  // read value.
@@ -7741,8 +7789,8 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
       ReadCanonicalNameReference();  // read interface_target_reference.
   if (I->strong() && !H.IsRoot(itarget_name) && !H.IsField(itarget_name)) {
     interface_target = &Function::ZoneHandle(
-        Z,
-        LookupMethodByMember(itarget_name, H.DartProcedureName(itarget_name)));
+        Z, H.LookupMethodByMember(itarget_name,
+                                  H.DartProcedureName(itarget_name)));
     ASSERT((name.raw() == interface_target->name()) ||
            (interface_target->IsGetterFunction() &&
             Field::GetterSymbol(name) == interface_target->name()));
@@ -7851,7 +7899,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
   instructions += PushArgument();  // push receiver as argument.
 
   const Function& target =
-      Function::ZoneHandle(Z, LookupMethodByMember(kernel_name, method_name));
+      Function::ZoneHandle(Z, H.LookupMethodByMember(kernel_name, method_name));
 
   Array& argument_names = Array::ZoneHandle(Z);
   intptr_t argument_count, positional_argument_count;
@@ -9937,79 +9985,6 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
   return instructions;
 }
 
-void StreamingFlowGraphBuilder::LoadAndSetupTypeParameters(
-    ActiveClass* active_class,
-    const Object& set_on,
-    intptr_t type_parameter_count,
-    const Function& parameterized_function) {
-  ASSERT(type_parameter_count >= 0);
-  if (type_parameter_count == 0) {
-    return;
-  }
-  ASSERT(set_on.IsClass() || set_on.IsFunction());
-  bool set_on_class = set_on.IsClass();
-  ASSERT(set_on_class == parameterized_function.IsNull());
-
-  // First setup the type parameters, so if any of the following code uses it
-  // (in a recursive way) we're fine.
-  TypeArguments& type_parameters = TypeArguments::Handle(Z);
-  TypeParameter& parameter = TypeParameter::Handle(Z);
-  const Type& null_bound = Type::Handle(Z);
-
-  // Step a) Create array of [TypeParameter] objects (without bound).
-  type_parameters = TypeArguments::New(type_parameter_count);
-  const Library& lib = Library::Handle(Z, active_class->klass->library());
-  {
-    AlternativeReadingScope alt(&reader_);
-    for (intptr_t i = 0; i < type_parameter_count; i++) {
-      TypeParameterHelper helper(this);
-      helper.Finish();
-      parameter = TypeParameter::New(
-          set_on_class ? *active_class->klass : Class::Handle(Z),
-          parameterized_function, i,
-          H.DartIdentifier(lib, helper.name_index_),  // read ith name index.
-          null_bound, TokenPosition::kNoSource);
-      type_parameters.SetTypeAt(i, parameter);
-    }
-  }
-
-  if (set_on.IsClass()) {
-    Class::Cast(set_on).set_type_parameters(type_parameters);
-  } else {
-    Function::Cast(set_on).set_type_parameters(type_parameters);
-  }
-
-  const Function* enclosing = NULL;
-  if (!parameterized_function.IsNull()) {
-    enclosing = &parameterized_function;
-  }
-  ActiveTypeParametersScope scope(active_class, enclosing, type_parameters, Z);
-
-  // Step b) Fill in the bounds of all [TypeParameter]s.
-  for (intptr_t i = 0; i < type_parameter_count; i++) {
-    TypeParameterHelper helper(this);
-    helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kBound);
-
-    // TODO(github.com/dart-lang/kernel/issues/42): This should be handled
-    // by the frontend.
-    parameter ^= type_parameters.TypeAt(i);
-    const Tag tag = PeekTag();  // peek ith bound type.
-    if (tag == kDynamicType) {
-      SkipDartType();  // read ith bound.
-      parameter.set_bound(Type::Handle(Z, I->object_store()->object_type()));
-    } else {
-      AbstractType& bound =
-          T.BuildTypeWithoutFinalization();  // read ith bound.
-      if (bound.IsMalformedOrMalbounded()) {
-        bound = I->object_store()->object_type();
-      }
-      parameter.set_bound(bound);
-    }
-
-    helper.Finish();
-  }
-}
-
 void StreamingFlowGraphBuilder::SetupFunctionParameters(
     ActiveClass* active_class,
     const Class& klass,
@@ -10022,8 +9997,8 @@ void StreamingFlowGraphBuilder::SetupFunctionParameters(
   intptr_t extra_parameters = (is_method || is_closure || is_factory) ? 1 : 0;
 
   if (!is_factory) {
-    LoadAndSetupTypeParameters(active_class, function, ReadListLength(),
-                               function);
+    T.LoadAndSetupTypeParameters(active_class, function, ReadListLength(),
+                                 function);
     function_node_helper->SetJustRead(FunctionNodeHelper::kTypeParameters);
   }
 
@@ -10332,72 +10307,6 @@ RawTypedData* StreamingFlowGraphBuilder::GetLineStartsFor(intptr_t index) {
     }
   }
   return line_starts_data.raw();
-}
-
-void StreamingFlowGraphBuilder::EnsureMetadataIsScanned() {
-  // Scan metadata mappings only once.
-  if (metadata_scanned_) {
-    return;
-  }
-  metadata_scanned_ = true;
-
-  const intptr_t kUInt32Size = 4;
-  Reader reader(H.metadata_mappings());
-  if (reader.size() == 0) {
-    return;
-  }
-
-  // Scan through metadata mappings in reverse direction.
-
-  // Read metadataMappings length.
-  intptr_t offset = reader.size() - kUInt32Size;
-  uint32_t metadata_num = reader.ReadUInt32At(offset);
-
-  if (metadata_num == 0) {
-    ASSERT(H.metadata_mappings().LengthInBytes() == kUInt32Size);
-    return;
-  }
-
-  // Read metadataMappings elements.
-  for (uint32_t i = 0; i < metadata_num; ++i) {
-    // Read nodeOffsetToMetadataOffset length.
-    offset -= kUInt32Size;
-    uint32_t mappings_num = reader.ReadUInt32At(offset);
-
-    // Skip nodeOffsetToMetadataOffset and read tag.
-    offset -= mappings_num * 2 * kUInt32Size + kUInt32Size;
-    StringIndex tag = StringIndex(reader.ReadUInt32At(offset));
-
-    if (mappings_num == 0) {
-      continue;
-    }
-
-    // Check recognized metadata
-    if (H.StringEquals(tag, DirectCallMetadataHelper::tag())) {
-      if (!FLAG_precompiled_mode) {
-        FATAL("DirectCallMetadata is allowed in precompiled mode only");
-      }
-      direct_call_metadata_helper_.SetMetadataMappings(offset + kUInt32Size,
-                                                       mappings_num);
-    } else if (H.StringEquals(tag, InferredTypeMetadataHelper::tag())) {
-      if (!FLAG_precompiled_mode) {
-        FATAL("InferredTypeMetadata is allowed in precompiled mode only");
-      }
-      inferred_type_metadata_helper_.SetMetadataMappings(offset + kUInt32Size,
-                                                         mappings_num);
-    } else if (H.StringEquals(tag, ProcedureAttributesMetadataHelper::tag())) {
-      if (!FLAG_precompiled_mode) {
-        FATAL(
-            "ProcedureAttributesMetadata is allowed in precompiled mode "
-            "only");
-      }
-      procedure_attributes_metadata_helper_.SetMetadataMappings(
-          offset + kUInt32Size, mappings_num);
-    } else if (H.StringEquals(tag, BytecodeMetadataHelper::tag())) {
-      bytecode_metadata_helper_.SetMetadataMappings(offset + kUInt32Size,
-                                                    mappings_num);
-    }
-  }
 }
 
 const Array& ConstantHelper::ReadConstantTable() {

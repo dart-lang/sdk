@@ -6,6 +6,7 @@
 
 #include "vm/class_finalizer.h"
 #include "vm/compiler/aot/precompiler.h"
+#include "vm/log.h"
 #include "vm/symbols.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -561,6 +562,23 @@ RawFunction* TranslationHelper::LookupConstructorByKernelConstructor(
   String& new_name =
       String::ZoneHandle(Z, Symbols::FromConcatAll(thread_, pieces));
   RawFunction* function = owner.LookupConstructorAllowPrivate(new_name);
+  ASSERT(function != Object::null());
+  return function;
+}
+
+RawFunction* TranslationHelper::LookupMethodByMember(
+    NameIndex target,
+    const String& method_name) {
+  NameIndex kernel_class = EnclosingName(target);
+  Class& klass = Class::Handle(Z, LookupClassByKernelClass(kernel_class));
+
+  RawFunction* function = klass.LookupFunctionAllowPrivate(method_name);
+#ifdef DEBUG
+  if (function == Object::null()) {
+    THR_Print("Unable to find \'%s\' in %s\n", method_name.ToCString(),
+              klass.ToCString());
+  }
+#endif
   ASSERT(function != Object::null());
   return function;
 }
@@ -1311,9 +1329,14 @@ void LibraryDependencyHelper::ReadUntilExcluding(Field field) {
   }
 }
 
-MetadataHelper::MetadataHelper(KernelReaderHelper* helper)
+MetadataHelper::MetadataHelper(KernelReaderHelper* helper,
+                               const char* tag,
+                               bool precompiler_only)
     : helper_(helper),
       translation_helper_(helper->translation_helper_),
+      tag_(tag),
+      mappings_scanned_(false),
+      precompiler_only_(precompiler_only),
       mappings_offset_(0),
       mappings_num_(0),
       last_node_offset_(0),
@@ -1346,6 +1369,48 @@ void MetadataHelper::SetMetadataMappings(intptr_t mappings_offset,
 
   last_node_offset_ = kIntptrMax;
   last_mapping_index_ = 0;
+}
+
+void MetadataHelper::ScanMetadataMappings() {
+  const intptr_t kUInt32Size = 4;
+  Reader reader(H.metadata_mappings());
+  if (reader.size() == 0) {
+    return;
+  }
+
+  // Scan through metadata mappings in reverse direction.
+
+  // Read metadataMappings length.
+  intptr_t offset = reader.size() - kUInt32Size;
+  uint32_t metadata_num = reader.ReadUInt32At(offset);
+
+  if (metadata_num == 0) {
+    ASSERT(H.metadata_mappings().LengthInBytes() == kUInt32Size);
+    return;
+  }
+
+  // Read metadataMappings elements.
+  for (uint32_t i = 0; i < metadata_num; ++i) {
+    // Read nodeOffsetToMetadataOffset length.
+    offset -= kUInt32Size;
+    uint32_t mappings_num = reader.ReadUInt32At(offset);
+
+    // Skip nodeOffsetToMetadataOffset and read tag.
+    offset -= mappings_num * 2 * kUInt32Size + kUInt32Size;
+    StringIndex tag = StringIndex(reader.ReadUInt32At(offset));
+
+    if (mappings_num == 0) {
+      continue;
+    }
+
+    if (H.StringEquals(tag, tag_)) {
+      if ((!FLAG_precompiled_mode) && precompiler_only_) {
+        FATAL1("%s metadata is allowed in precompiled mode only", tag_);
+      }
+      SetMetadataMappings(offset + kUInt32Size, mappings_num);
+      return;
+    }
+  }
 }
 
 intptr_t MetadataHelper::FindMetadataMapping(intptr_t node_offset) {
@@ -1389,7 +1454,10 @@ intptr_t MetadataHelper::FindMetadataMapping(intptr_t node_offset) {
 }
 
 intptr_t MetadataHelper::GetNextMetadataPayloadOffset(intptr_t node_offset) {
-  helper_->EnsureMetadataIsScanned();
+  if (!mappings_scanned_) {
+    ScanMetadataMappings();
+    mappings_scanned_ = true;
+  }
 
   if (mappings_num_ == 0) {
     return -1;  // No metadata.

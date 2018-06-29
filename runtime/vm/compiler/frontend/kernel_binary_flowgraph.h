@@ -16,7 +16,7 @@
 namespace dart {
 namespace kernel {
 
-class KernelReaderHelper;
+class TypeTranslator;
 
 struct DirectCallMetadata {
   DirectCallMetadata(const Function& target, bool check_receiver_for_null)
@@ -31,7 +31,7 @@ class DirectCallMetadataHelper : public MetadataHelper {
  public:
   static const char* tag() { return "vm.direct-call.metadata"; }
 
-  explicit DirectCallMetadataHelper(StreamingFlowGraphBuilder* builder);
+  explicit DirectCallMetadataHelper(KernelReaderHelper* helper);
 
   DirectCallMetadata GetDirectTargetForPropertyGet(intptr_t node_offset);
   DirectCallMetadata GetDirectTargetForPropertySet(intptr_t node_offset);
@@ -41,8 +41,6 @@ class DirectCallMetadataHelper : public MetadataHelper {
   bool ReadMetadata(intptr_t node_offset,
                     NameIndex* target_name,
                     bool* check_receiver_for_null);
-
-  StreamingFlowGraphBuilder* builder_;
 };
 
 struct InferredTypeMetadata {
@@ -60,12 +58,9 @@ class InferredTypeMetadataHelper : public MetadataHelper {
  public:
   static const char* tag() { return "vm.inferred-type.metadata"; }
 
-  explicit InferredTypeMetadataHelper(StreamingFlowGraphBuilder* builder);
+  explicit InferredTypeMetadataHelper(KernelReaderHelper* helper);
 
   InferredTypeMetadata GetInferredType(intptr_t node_offset);
-
- private:
-  StreamingFlowGraphBuilder* builder_;
 };
 
 struct ProcedureAttributesMetadata {
@@ -85,26 +80,26 @@ class ProcedureAttributesMetadataHelper : public MetadataHelper {
  public:
   static const char* tag() { return "vm.procedure-attributes.metadata"; }
 
-  explicit ProcedureAttributesMetadataHelper(
-      StreamingFlowGraphBuilder* builder);
+  explicit ProcedureAttributesMetadataHelper(KernelReaderHelper* helper);
 
   ProcedureAttributesMetadata GetProcedureAttributes(intptr_t node_offset);
 
  private:
   bool ReadMetadata(intptr_t node_offset,
                     ProcedureAttributesMetadata* metadata);
-
-  StreamingFlowGraphBuilder* builder_;
 };
+
+#if defined(DART_USE_INTERPRETER)
 
 // Helper class which provides access to bytecode metadata.
 class BytecodeMetadataHelper : public MetadataHelper {
  public:
   static const char* tag() { return "vm.bytecode"; }
 
-  explicit BytecodeMetadataHelper(StreamingFlowGraphBuilder* builder);
+  explicit BytecodeMetadataHelper(KernelReaderHelper* helper,
+                                  TypeTranslator* type_translator,
+                                  ActiveClass* active_class);
 
-#if defined(DART_USE_INTERPRETER)
   void ReadMetadata(const Function& function);
 
  private:
@@ -118,14 +113,17 @@ class BytecodeMetadataHelper : public MetadataHelper {
   RawTypedData* NativeEntry(const Function& function,
                             const String& external_name);
 
-  StreamingFlowGraphBuilder* builder_;
-#endif
+  TypeTranslator& type_translator_;
+  ActiveClass* const active_class_;
 };
 
-class StreamingDartTypeTranslator {
+#endif  // defined(DART_USE_INTERPRETER)
+
+class TypeTranslator {
  public:
-  StreamingDartTypeTranslator(StreamingFlowGraphBuilder* builder,
-                              bool finalize = false);
+  TypeTranslator(KernelReaderHelper* helper,
+                 ActiveClass* active_class,
+                 bool finalize = false);
 
   // Can return a malformed type.
   AbstractType& BuildType();
@@ -144,6 +142,11 @@ class StreamingDartTypeTranslator {
       const Class& receiver_class,
       intptr_t length);
 
+  void LoadAndSetupTypeParameters(ActiveClass* active_class,
+                                  const Object& set_on,
+                                  intptr_t type_parameter_count,
+                                  const Function& parameterized_function);
+
   const Type& ReceiverType(const Class& klass);
 
  private:
@@ -155,8 +158,7 @@ class StreamingDartTypeTranslator {
 
   class TypeParameterScope {
    public:
-    TypeParameterScope(StreamingDartTypeTranslator* translator,
-                       intptr_t parameter_count)
+    TypeParameterScope(TypeTranslator* translator, intptr_t parameter_count)
         : parameter_count_(parameter_count),
           outer_(translator->type_parameter_scope_),
           translator_(translator) {
@@ -177,10 +179,10 @@ class StreamingDartTypeTranslator {
     intptr_t parameter_count_;
     intptr_t outer_parameter_count_;
     TypeParameterScope* outer_;
-    StreamingDartTypeTranslator* translator_;
+    TypeTranslator* translator_;
   };
 
-  StreamingFlowGraphBuilder* builder_;
+  KernelReaderHelper* helper_;
   TranslationHelper& translation_helper_;
   ActiveClass* const active_class_;
   TypeParameterScope* type_parameter_scope_;
@@ -328,7 +330,7 @@ class StreamingScopeBuilder {
   TokenPosition first_body_token_position_;
 
   StreamingFlowGraphBuilder* builder_;
-  StreamingDartTypeTranslator type_translator_;
+  TypeTranslator type_translator_;
 };
 
 // There are several cases when we are compiling constant expressions:
@@ -434,7 +436,7 @@ class StreamingConstantEvaluator {
   Isolate* isolate_;
   Zone* zone_;
   TranslationHelper& translation_helper_;
-  StreamingDartTypeTranslator& type_translator_;
+  TypeTranslator& type_translator_;
 
   const Script& script_;
   Instance& result_;
@@ -507,16 +509,18 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
         flow_graph_builder_(flow_graph_builder),
         active_class_(&flow_graph_builder->active_class_),
         constant_evaluator_(this),
-        type_translator_(this, /* finalize= */ true),
+        type_translator_(this, active_class_, /* finalize= */ true),
         current_script_id_(-1),
         record_for_script_id_(-1),
         record_token_positions_into_(NULL),
         record_yield_positions_into_(NULL),
+#if defined(DART_USE_INTERPRETER)
+        bytecode_metadata_helper_(this, &type_translator_, active_class_),
+#endif  // defined(DART_USE_INTERPRETER)
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this),
-        procedure_attributes_metadata_helper_(this),
-        bytecode_metadata_helper_(this),
-        metadata_scanned_(false) {}
+        procedure_attributes_metadata_helper_(this) {
+  }
 
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
                             Zone* zone,
@@ -532,16 +536,18 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
         flow_graph_builder_(NULL),
         active_class_(active_class),
         constant_evaluator_(this),
-        type_translator_(this, /* finalize= */ true),
+        type_translator_(this, active_class_, /* finalize= */ true),
         current_script_id_(-1),
         record_for_script_id_(-1),
         record_token_positions_into_(NULL),
         record_yield_positions_into_(NULL),
+#if defined(DART_USE_INTERPRETER)
+        bytecode_metadata_helper_(this, &type_translator_, active_class_),
+#endif  // defined(DART_USE_INTERPRETER)
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this),
-        procedure_attributes_metadata_helper_(this),
-        bytecode_metadata_helper_(this),
-        metadata_scanned_(false) {}
+        procedure_attributes_metadata_helper_(this) {
+  }
 
   StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
                             const Script& script,
@@ -557,16 +563,18 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
         flow_graph_builder_(NULL),
         active_class_(active_class),
         constant_evaluator_(this),
-        type_translator_(this, /* finalize= */ true),
+        type_translator_(this, active_class_, /* finalize= */ true),
         current_script_id_(-1),
         record_for_script_id_(-1),
         record_token_positions_into_(NULL),
         record_yield_positions_into_(NULL),
+#if defined(DART_USE_INTERPRETER)
+        bytecode_metadata_helper_(this, &type_translator_, active_class_),
+#endif  // defined(DART_USE_INTERPRETER)
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this),
-        procedure_attributes_metadata_helper_(this),
-        bytecode_metadata_helper_(this),
-        metadata_scanned_(false) {}
+        procedure_attributes_metadata_helper_(this) {
+  }
 
   virtual ~StreamingFlowGraphBuilder() {}
 
@@ -596,11 +604,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   void ReadUntilFunctionNode(ParsedFunction* set_forwarding_stub = NULL);
 
  private:
-  void LoadAndSetupTypeParameters(ActiveClass* active_class,
-                                  const Object& set_on,
-                                  intptr_t type_parameter_count,
-                                  const Function& parameterized_function);
-
   void DiscoverEnclosingElements(Zone* zone,
                                  const Function& function,
                                  Function* outermost_function);
@@ -663,8 +666,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   LocalVariable* MakeTemporary();
 
   LocalVariable* LookupVariable(intptr_t kernel_offset);
-  RawFunction* LookupMethodByMember(NameIndex target,
-                                    const String& method_name);
   Function& FindMatchingFunctionAnyArgs(const Class& klass, const String& name);
   Function& FindMatchingFunction(const Class& klass,
                                  const String& name,
@@ -895,45 +896,27 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   void RecordTokenPosition(TokenPosition position) override;
   void RecordYieldPosition(TokenPosition position) override;
 
-  // Scan through metadata mappings section and cache offsets for recognized
-  // metadata kinds.
-  void EnsureMetadataIsScanned() override;
-
   FlowGraphBuilder* flow_graph_builder_;
   ActiveClass* const active_class_;
   StreamingConstantEvaluator constant_evaluator_;
-  StreamingDartTypeTranslator type_translator_;
+  TypeTranslator type_translator_;
   intptr_t current_script_id_;
   intptr_t record_for_script_id_;
   GrowableArray<intptr_t>* record_token_positions_into_;
   GrowableArray<intptr_t>* record_yield_positions_into_;
+#if defined(DART_USE_INTERPRETER)
+  BytecodeMetadataHelper bytecode_metadata_helper_;
+#endif  // defined(DART_USE_INTERPRETER)
   DirectCallMetadataHelper direct_call_metadata_helper_;
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
   ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper_;
-  BytecodeMetadataHelper bytecode_metadata_helper_;
-  bool metadata_scanned_;
 
   friend class ClassHelper;
   friend class ConstantHelper;
-  friend class ConstructorHelper;
-  friend class DirectCallMetadataHelper;
-  friend class ProcedureAttributesMetadataHelper;
-  friend class BytecodeMetadataHelper;
-  friend class FieldHelper;
-  friend class FunctionNodeHelper;
-  friend class InferredTypeMetadataHelper;
   friend class KernelLoader;
-  friend class KernelReaderHelper;
-  friend class LibraryDependencyHelper;
-  friend class LibraryHelper;
-  friend class MetadataHelper;
-  friend class ProcedureHelper;
   friend class SimpleExpressionConverter;
   friend class StreamingConstantEvaluator;
-  friend class StreamingDartTypeTranslator;
   friend class StreamingScopeBuilder;
-  friend class VariableDeclarationHelper;
-  friend class TypeParameterHelper;
 };
 
 class AlternativeScriptScope {
@@ -959,7 +942,7 @@ class ConstantHelper {
  public:
   ConstantHelper(ActiveClass* active_class,
                  StreamingFlowGraphBuilder* builder,
-                 StreamingDartTypeTranslator* type_translator,
+                 TypeTranslator* type_translator,
                  TranslationHelper* translation_helper,
                  Zone* zone,
                  NameIndex skip_vmservice_library)
@@ -1001,7 +984,7 @@ class ConstantHelper {
   NameIndex skip_vmservice_library_;
   ActiveClass* const active_class_;
   StreamingFlowGraphBuilder& builder_;
-  StreamingDartTypeTranslator& type_translator_;
+  TypeTranslator& type_translator_;
   StreamingConstantEvaluator const_evaluator_;
   TranslationHelper translation_helper_;
   Zone* zone_;

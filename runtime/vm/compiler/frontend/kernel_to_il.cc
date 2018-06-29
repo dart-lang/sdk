@@ -1283,22 +1283,6 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError() {
   return instructions;
 }
 
-RawFunction* FlowGraphBuilder::LookupMethodByMember(NameIndex target,
-                                                    const String& method_name) {
-  NameIndex kernel_class = H.EnclosingName(target);
-  Class& klass = Class::Handle(Z, H.LookupClassByKernelClass(kernel_class));
-
-  RawFunction* function = klass.LookupFunctionAllowPrivate(method_name);
-#ifdef DEBUG
-  if (function == Object::null()) {
-    THR_Print("Unable to find \'%s\' in %s\n", method_name.ToCString(),
-              klass.ToCString());
-  }
-#endif
-  ASSERT(function != Object::null());
-  return function;
-}
-
 LocalVariable* BaseFlowGraphBuilder::MakeTemporary() {
   char name[64];
   intptr_t index = stack_->definition()->temp_index();

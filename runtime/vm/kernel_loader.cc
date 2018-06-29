@@ -364,7 +364,8 @@ const Array& KernelLoader::ReadConstantTable() {
   ActiveClassScope active_class_scope(&active_class_, &toplevel_class);
 
   builder_.SetOffset(program_->constant_table_offset());
-  StreamingDartTypeTranslator type_translator_(&builder_, true /* finalize */);
+  TypeTranslator type_translator_(&builder_, &active_class_,
+                                  true /* finalize */);
   ASSERT(type_translator_.active_class_ == &active_class_);
 
   ConstantHelper helper(&active_class_, &builder_, &type_translator_,
@@ -948,7 +949,7 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
   // kImplementedClasses, [...].
 
   // Set type parameters.
-  builder_.LoadAndSetupTypeParameters(
+  builder_.type_translator_.LoadAndSetupTypeParameters(
       &active_class_, *klass, type_parameter_count, Function::Handle(Z));
 
   // Set super type.  Some classes (e.g., Object) do not have one.
