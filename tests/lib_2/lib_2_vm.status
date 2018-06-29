@@ -93,6 +93,9 @@ mirrors/library_uri_package_test: RuntimeError
 [ $runtime == vm && !$checked && !$strong ]
 mirrors/regress_16321_test/01: MissingCompileTimeError
 
+[ $runtime == vm && $no_preview_dart_2 ]
+async/async_no_await_zones_test: RuntimeError # not supported in Dart 1 mode.
+
 [ $runtime == vm && ($arch == simarm || $arch == simarmv5te || $arch == simarmv6) ]
 convert/utf85_test: Skip # Pass, Slow Issue 12644.
 
