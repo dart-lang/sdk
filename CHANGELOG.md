@@ -4,6 +4,11 @@
 
 ### Language
 
+* New member conflict rules have been implemented. Most cases of conflicting
+  members with the same name are now static errors. Issue [33235][issue 33235].
+
+[issue 33235]: https://github.com/dart-lang/sdk/issues/33235
+
 #### Strong Mode
 
 ### Dart VM
