@@ -4079,21 +4079,17 @@ class Parser {
   /// This is a suffix parser because it is assumed that type arguments have
   /// been parsed, or `listener.handleNoTypeArguments(..)` has been executed.
   Token parseLiteralFunctionSuffix(Token token) {
-    Token next = token.next;
-    assert(optional('(', next));
-    Token closeBrace = next.endGroup;
-    if (closeBrace != null) {
-      Token nextToken = closeBrace.next;
-      int kind = nextToken.kind;
-      if (identical(kind, FUNCTION_TOKEN) ||
-          identical(kind, OPEN_CURLY_BRACKET_TOKEN) ||
-          (identical(kind, KEYWORD_TOKEN) &&
-              (optional('async', nextToken) || optional('sync', nextToken)))) {
-        return parseFunctionExpression(token);
-      }
-      // Fall through.
+    assert(optional('(', token.next));
+    // Scanner ensures `(` has matching `)`.
+    Token next = token.next.endGroup.next;
+    int kind = next.kind;
+    if (!identical(kind, FUNCTION_TOKEN) &&
+        !identical(kind, OPEN_CURLY_BRACKET_TOKEN) &&
+        (!identical(kind, KEYWORD_TOKEN) ||
+            !optional('async', next) && !optional('sync', next))) {
+      reportRecoverableErrorWithToken(next, fasta.templateUnexpectedToken);
     }
-    return reportUnexpectedToken(next);
+    return parseFunctionExpression(token);
   }
 
   /// genericListLiteral | genericMapLiteral | genericFunctionLiteral.
@@ -4105,25 +4101,31 @@ class Parser {
   ///   genericFunctionLiteral ::=
   ///       typeParameters formalParameterList functionBody
   /// Provide token for [constKeyword] if preceded by 'const', null if not.
-  Token parseLiteralListOrMapOrFunction(Token token, Token constKeyword) {
+  Token parseLiteralListOrMapOrFunction(final Token start, Token constKeyword) {
+    assert(optional('<', start.next));
+    TypeParamOrArgInfo typeParamOrArg = computeTypeParamOrArg(start, true);
+    Token token = typeParamOrArg.skip(start);
     Token next = token.next;
-    assert(optional('<', next));
-    Token closeBrace = next.endGroup;
-    if (constKeyword == null &&
-        closeBrace != null &&
-        identical(closeBrace.next.kind, OPEN_PAREN_TOKEN)) {
-      token = computeTypeParamOrArg(token).parseVariables(token, this);
-      return parseLiteralFunctionSuffix(token);
-    } else {
-      token = computeTypeParamOrArg(token).parseArguments(token, this);
-      Token next = token.next;
-      if (optional('{', next)) {
-        return parseLiteralMapSuffix(token, constKeyword);
-      } else if ((optional('[', next)) || (optional('[]', next))) {
-        return parseLiteralListSuffix(token, constKeyword);
+    if (optional('(', next)) {
+      if (constKeyword != null) {
+        reportRecoverableErrorWithToken(
+            constKeyword, fasta.templateUnexpectedToken);
       }
-      return reportUnexpectedToken(token.next);
+      token = typeParamOrArg.parseVariables(start, this);
+      return parseLiteralFunctionSuffix(token);
     }
+    token = typeParamOrArg.parseArguments(start, this);
+    if (optional('{', next)) {
+      return parseLiteralMapSuffix(token, constKeyword);
+    }
+    if (!optional('[', next) && !optional('[]', next)) {
+      // TODO(danrubel): Improve this error message.
+      reportRecoverableError(
+          next, fasta.templateExpectedButGot.withArguments('['));
+      rewriter.insertTokenAfter(
+          token, new SyntheticToken(TokenType.INDEX, next.charOffset));
+    }
+    return parseLiteralListSuffix(token, constKeyword);
   }
 
   /// ```

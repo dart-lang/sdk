@@ -124,7 +124,6 @@ mixin_illegal_superclass_test/27: MissingCompileTimeError
 mixin_illegal_superclass_test/28: MissingCompileTimeError
 mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
-mock_writable_final_private_field_test: RuntimeError
 named_parameters_default_eq_test/none: RuntimeError
 nested_generic_closure_test: RuntimeError
 no_main_test/01: Crash
@@ -169,6 +168,7 @@ web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 [ $compiler == dartkp ]
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
+constant_string_interpolation2_test: DartkCrash # Issue 33628
 covariant_subtyping_test: RuntimeError
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
@@ -226,8 +226,6 @@ async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError # Iss
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError # Issue 33068
 async_return_types_test/nestedFuture: MissingCompileTimeError # Issue 33068
 async_return_types_test/wrongReturnType: MissingCompileTimeError # Issue 33068
-bad_override_test/01: MissingCompileTimeError # Issue 32984
-bad_override_test/02: MissingCompileTimeError # Issue 32984
 call_non_method_field_test/01: MissingCompileTimeError # Issue 32975
 call_non_method_field_test/02: MissingCompileTimeError # Issue 32975
 check_member_static_test/01: MissingCompileTimeError # Issue 32613
@@ -264,7 +262,6 @@ field_override_test/01: MissingCompileTimeError # Issue 32613
 generic_methods_bounds_test/01: MissingCompileTimeError # Issue 33018
 generic_methods_overriding_test/01: MissingCompileTimeError # Issue 32613
 generic_methods_recursive_bound_test/02: MissingCompileTimeError # Issue 33018
-getter_override_test/03: MissingCompileTimeError # Issue 32984
 issue31596_override_test/07: MissingCompileTimeError
 issue31596_override_test/08: MissingCompileTimeError
 issue31596_super_test/02: MissingCompileTimeError
@@ -285,7 +282,6 @@ malbounded_type_test2_test/00: MissingCompileTimeError # Issue 33018
 malbounded_type_test_test/00: MissingCompileTimeError # Issue 33018
 malbounded_type_test_test/01: MissingCompileTimeError # Issue 33018
 malbounded_type_test_test/02: MissingCompileTimeError # Issue 33018
-method_override7_test/03: MissingCompileTimeError # Issue 32984
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError # KernelVM bug: Issue 15101
@@ -338,8 +334,6 @@ regress_27617_test/1: MissingCompileTimeError # Fasta bug: Bad constructor redir
 regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
 setter4_test: MissingCompileTimeError # Issue 14736
-setter_override_test/01: MissingCompileTimeError
-setter_override_test/02: MissingCompileTimeError
 switch_bad_case_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 switch_bad_case_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 switch_case_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
@@ -797,12 +791,11 @@ method_override6_test/03: MissingCompileTimeError
 method_override_test: CompileTimeError # Issue 31616
 mixin_illegal_super_use_test: Skip # Issues 24478 and 23773
 mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
-mock_writable_final_private_field_test: RuntimeError # Issue 30849
 named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
 named_parameters_default_eq_test/none: RuntimeError
 nested_generic_closure_test: RuntimeError
-no_main_test/01: DartkCrash
 no_main_test/01: Skip
+no_main_test/01: DartkCrash
 no_such_method_mock_test: RuntimeError # Issue 31426
 null_no_such_method_test: CompileTimeError # Issue 31533
 override_inheritance_field_test/04: CompileTimeError # Issue 31616
@@ -839,6 +832,7 @@ type_promotion_functions_test/14: CompileTimeError # Issue 31537
 type_promotion_functions_test/none: CompileTimeError # Issue 31537
 type_promotion_logical_and_test/01: MissingCompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError # Issue 31533
+vm/bool_check_stack_traces_test/02: RuntimeError # Issue 33584
 vm/closure_memory_retention_test: Skip # KernelVM bug: Hits OOM
 vm/regress_29145_test: Skip # Issue 29145
 vm/type_cast_vm_test: RuntimeError
@@ -907,6 +901,8 @@ vm/type_vm_test/36: MissingRuntimeError
 type_alias_equality_test/02: RuntimeError # Issue 31359
 type_alias_equality_test/03: RuntimeError # Issue 31359
 type_alias_equality_test/04: RuntimeError # Issue 31359
+vm/bool_check_stack_traces_test/01: RuntimeError # Issue 33584
+vm/bool_check_stack_traces_test/02: RuntimeError # Issue 33584
 
 [ $compiler == dartkp && $runtime == dart_precompiled && $checked && $strong ]
 assert_initializer_test/31: MissingCompileTimeError # KernelVM bug: Constant evaluation.
@@ -1008,13 +1004,11 @@ assertion_initializer_const_error_test/01: Pass
 async_star_cancel_while_paused_test: RuntimeError
 async_star_pause_test: Fail, OK
 async_star_test/02: RuntimeError, CompileTimeError # Issue 31402 (Invocation arguments)
-bad_override_test/03: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 built_in_identifier_prefix_test: CompileTimeError
 call_method_implicit_tear_off_implements_function_test/05: RuntimeError
 call_method_implicit_tear_off_implements_function_test/06: RuntimeError
 call_method_must_not_be_field_test/03: RuntimeError # Issue 32265
 call_method_must_not_be_getter_test/03: RuntimeError # Issue 32265
-check_member_static_test/02: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 checked_setter3_test/01: MissingCompileTimeError
 checked_setter3_test/02: MissingCompileTimeError
 checked_setter3_test/03: MissingCompileTimeError
@@ -1053,14 +1047,8 @@ external_test/10: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/13: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/20: MissingRuntimeError # KernelVM bug: Unbound external.
 factory3_test/01: Pass
-fauxverride_test/03: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-fauxverride_test/05: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 field_increment_bailout_test: SkipByDesign
 field_initialization_order_test: Fail, OK
-field_override3_test/00: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-field_override3_test/01: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-field_override3_test/02: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-field_override3_test/03: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 flatten_test/05: MissingRuntimeError
 flatten_test/08: MissingRuntimeError
 flatten_test/09: MissingRuntimeError
@@ -1077,9 +1065,6 @@ generic_methods_reuse_type_variables_test: Pass
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Issue 31533
 generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
 generic_tearoff_test: CompileTimeError
-getter_override_test/00: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-getter_override_test/01: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-getter_override_test/02: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 hello_dart_test: Skip # Incompatible flag: --compile_all
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
 implicit_downcast_during_assignment_test: Pass # Correctly passes.
@@ -1132,13 +1117,9 @@ method_override5_test/03: MissingCompileTimeError
 method_override6_test/01: MissingCompileTimeError
 method_override6_test/02: MissingCompileTimeError
 method_override6_test/03: MissingCompileTimeError
-method_override7_test/00: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-method_override7_test/01: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-method_override7_test/02: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 method_override_test: CompileTimeError # Issue 31616
 mixin_illegal_super_use_test: Skip # Issues 24478 and 23773
 mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
-mock_writable_final_private_field_test: RuntimeError # Issue 30849
 named_parameters_default_eq_test/none: RuntimeError
 nested_generic_closure_test: RuntimeError
 no_main_test/01: Skip
@@ -1148,7 +1129,6 @@ null_no_such_method_test: CompileTimeError # Issue 31533
 null_test/mirrors: Skip # Uses mirrors.
 null_test/none: SkipByDesign
 overridden_no_such_method_test: SkipByDesign
-override_field_test/01: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 override_inheritance_field_test/04: CompileTimeError # Issue 31616
 override_inheritance_field_test/06: CompileTimeError # Issue 31616
 override_inheritance_field_test/26: CompileTimeError # Issue 31616
@@ -1171,8 +1151,6 @@ regress_29025_test: CompileTimeError # Issue 31402 (Variable declaration)
 regress_29405_test: CompileTimeError # Issue 31402 (Invocation arguments)
 regress_30339_test: CompileTimeError # Issue 31402 (Variable declaration)
 setter_no_getter_test/01: Pass, CompileTimeError # Issue 31533 (started passing after switching to batch-mode)
-setter_override_test/00: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
-setter_override_test/03: MissingCompileTimeError # Issue 32613: override check is missing in CFE.
 stacktrace_demangle_ctors_test: RuntimeError
 string_interpolation_and_buffer_test: RuntimeError # Issue 31402 (Return and yield statements)
 string_split_test: CompileTimeError # Issue 31616
@@ -1260,8 +1238,6 @@ map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 
 [ $compiler == fasta && $strong ]
-bad_override_test/03: MissingCompileTimeError
-check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 compile_time_constant_static4_test/02: MissingCompileTimeError
@@ -1284,28 +1260,16 @@ emit_const_fields_test: CompileTimeError
 export_ambiguous_main_test: MissingCompileTimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
-fauxverride_test/03: MissingCompileTimeError
-fauxverride_test/05: MissingCompileTimeError
 field_initialization_order_test/01: MissingCompileTimeError
-field_override3_test/00: MissingCompileTimeError
-field_override3_test/01: MissingCompileTimeError
-field_override3_test/02: MissingCompileTimeError
-field_override3_test/03: MissingCompileTimeError
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
-getter_override_test/00: MissingCompileTimeError
-getter_override_test/01: MissingCompileTimeError
-getter_override_test/02: MissingCompileTimeError
 instantiate_tearoff_of_call_test: CompileTimeError
 issue31596_super_test/01: CompileTimeError
 issue31596_super_test/03: CompileTimeError
-method_override7_test/00: MissingCompileTimeError
-method_override7_test/01: MissingCompileTimeError
-method_override7_test/02: MissingCompileTimeError
 method_override_test: CompileTimeError
 mixin_illegal_super_use_test/01: MissingCompileTimeError
 mixin_illegal_super_use_test/04: MissingCompileTimeError
@@ -1349,7 +1313,6 @@ multiline_newline_test/05r: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 null_no_such_method_test: CompileTimeError
-override_field_test/01: MissingCompileTimeError
 override_inheritance_field_test/04: CompileTimeError
 override_inheritance_field_test/06: CompileTimeError
 override_inheritance_field_test/26: CompileTimeError
@@ -1363,8 +1326,6 @@ regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError
 regress_30339_test: CompileTimeError
 setter_no_getter_test/01: CompileTimeError
-setter_override_test/00: MissingCompileTimeError
-setter_override_test/03: MissingCompileTimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
@@ -1494,6 +1455,8 @@ bad_named_parameters_test/02: MissingCompileTimeError
 bad_named_parameters_test/03: MissingCompileTimeError
 bad_named_parameters_test/04: MissingCompileTimeError
 bad_named_parameters_test/05: MissingCompileTimeError
+bad_override_test/01: MissingCompileTimeError
+bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/06: MissingCompileTimeError
 built_in_identifier_type_annotation_test/dynamic-gen: MissingCompileTimeError
@@ -1736,6 +1699,7 @@ getter_no_setter_test/03: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
+getter_override_test/03: MissingCompileTimeError
 getters_setters2_test/02: MissingCompileTimeError
 if_null_assignment_behavior_test/03: MissingCompileTimeError
 if_null_assignment_behavior_test/13: MissingCompileTimeError
@@ -1892,6 +1856,7 @@ method_override3_test/02: MissingCompileTimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
+method_override7_test/03: MissingCompileTimeError
 mixin_illegal_constructor_test/13: MissingCompileTimeError
 mixin_illegal_constructor_test/14: MissingCompileTimeError
 mixin_illegal_constructor_test/15: MissingCompileTimeError
@@ -2078,7 +2043,10 @@ regress_28217_test/none: MissingCompileTimeError
 return_type_test: MissingCompileTimeError
 rewrite_implicit_this_test/01: MissingCompileTimeError
 setter_no_getter_call_test/01: MissingCompileTimeError
+setter_override2_test/02: MissingCompileTimeError
 setter_override_test/00: MissingCompileTimeError
+setter_override_test/01: MissingCompileTimeError
+setter_override_test/02: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
 static_call_wrong_argument_count_negative_test: Fail
 static_field1_test/01: MissingCompileTimeError

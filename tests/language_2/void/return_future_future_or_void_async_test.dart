@@ -8,8 +8,6 @@ void voidValue = null;
 
 void main() {
   test1();
-  test2();
-  test3();
   test4();
   test5();
   test6();
@@ -19,16 +17,6 @@ void main() {
 
 // Testing that a block bodied async function may have no return
 Future<FutureOr<void>> test1() async {}
-
-// Testing that a block bodied async function may return Future<void>
-Future<FutureOr<void>> test2([bool b]) async {
-  return null as Future<void>;
-}
-
-// Testing that a block bodied async function may return FutureOr<void>
-Future<FutureOr<void>> test3([bool b]) async {
-  return null as FutureOr<void>;
-}
 
 // Testing that a block bodied async function may return Future<FutureOr<void>>
 Future<FutureOr<void>> test4([bool b]) async {
@@ -54,5 +42,5 @@ Future<FutureOr<void>> test7() async {
 // Testing that a block bodied async function may return non-void
 // Future values
 Future<FutureOr<void>> test8() async {
-  return new Future.value(42);
+  return new Future<int>.value(42);
 }

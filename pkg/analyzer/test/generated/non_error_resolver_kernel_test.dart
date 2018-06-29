@@ -26,6 +26,11 @@ class FastaProblem {
   const FastaProblem(String issueUri);
 }
 
+/// Tests marked with this annotation fail because of an Analyzer problem.
+class AnalyzerProblem {
+  const AnalyzerProblem(String issueUri);
+}
+
 @reflectiveTest
 class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
@@ -36,23 +41,9 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31625')
+  @AnalyzerProblem('https://github.com/dart-lang/sdk/issues/33636')
   test_ambiguousImport_showCombinator() async {
     return super.test_ambiguousImport_showCombinator();
-  }
-
-  @override
-  @failingTest
-  test_argumentTypeNotAssignable_invocation_typedef_generic() {
-    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
-    return super.test_argumentTypeNotAssignable_invocation_typedef_generic();
-  }
-
-  @override
-  @failingTest
-  test_argumentTypeNotAssignable_optionalNew() {
-    // Bad state: No data for (builder: () {return Widget();}) at 164
-    return super.test_argumentTypeNotAssignable_optionalNew();
   }
 
   @override
@@ -127,23 +118,9 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_const_dynamic() {
-    // UnimplementedError: TODO(paulberry): DynamicType
-    return super.test_const_dynamic();
-  }
-
-  @override
-  @failingTest
   @potentialAnalyzerProblem
   test_constConstructorWithNonConstSuper_unresolved() async {
     return super.test_constConstructorWithNonConstSuper_unresolved();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_constConstructorWithNonFinalField_mixin() async {
-    return super.test_constConstructorWithNonFinalField_mixin();
   }
 
   @override
@@ -165,13 +142,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   test_duplicateDefinition_emptyName() {
     // NoSuchMethodError: The setter 'enclosingElement=' was called on null.
     return super.test_duplicateDefinition_emptyName();
-  }
-
-  @override
-  @failingTest
-  test_dynamicIdentifier() {
-    // UnimplementedError: TODO(paulberry): DynamicType
-    return super.test_dynamicIdentifier();
   }
 
   @override
@@ -216,84 +186,12 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
     return super.test_functionTypeAlias_scope_signature();
   }
 
-  @override
-  @failingTest
-  test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters() {
-    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
-    return super.test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters();
-  }
-
-  @override
-  @failingTest
-  test_genericTypeAlias_castsAndTypeChecks_noTypeParameters() {
-    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
-    return super.test_genericTypeAlias_castsAndTypeChecks_noTypeParameters();
-  }
-
-  @override
-  @failingTest
-  test_genericTypeAlias_fieldAndReturnType_noTypeParameters() {
-    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
-    return super.test_genericTypeAlias_fieldAndReturnType_noTypeParameters();
-  }
-
-  @override
-  @failingTest
-  test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments() {
-    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
-    return super
-        .test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments();
-  }
-
-  @override
-  @failingTest
-  test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments() {
-    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
-    return super
-        .test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericTypeAlias_invalidGenericFunctionType() async {
-    return super.test_genericTypeAlias_invalidGenericFunctionType();
-  }
-
-  @override
-  @failingTest
-  test_genericTypeAlias_noTypeParameters() {
-    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
-    return super.test_genericTypeAlias_noTypeParameters();
-  }
-
-  @override
-  @failingTest
-  test_genericTypeAlias_typeParameters() {
-    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
-    return super.test_genericTypeAlias_typeParameters();
-  }
-
   @override // passes with kernel
   test_infer_mixin() => super.test_infer_mixin();
 
   @override // Passes with kernel
   test_infer_mixin_multiplyConstrained() =>
       super.test_infer_mixin_multiplyConstrained();
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
-  test_instance_creation_inside_annotation() async {
-    return super.test_instance_creation_inside_annotation();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_integerLiteralOutOfRange_negative_valid() async {
-    return super.test_integerLiteralOutOfRange_negative_valid();
-  }
 
   @override
   @failingTest
@@ -309,45 +207,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
     // of 'topEntity'
     return super
         .test_invalidAnnotation_constantVariable_field_importWithPrefix();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
-  test_invalidAnnotation_constantVariable_topLevel() async {
-    return super.test_invalidAnnotation_constantVariable_topLevel();
-  }
-
-  @override
-  @failingTest
-  test_invalidAnnotation_constantVariable_topLevel_importWithPrefix() {
-    // type 'PrefixedIdentifierImpl' is not a subtype of type 'SimpleIdentifier'
-    // of 'topEntity'
-    return super
-        .test_invalidAnnotation_constantVariable_topLevel_importWithPrefix();
-  }
-
-  @override
-  @failingTest
-  test_invalidAnnotation_constConstructor_importWithPrefix() {
-    // type 'PrefixedIdentifierImpl' is not a subtype of type 'SimpleIdentifier'
-    // of 'topEntity'
-    return super.test_invalidAnnotation_constConstructor_importWithPrefix();
-  }
-
-  @override
-  @failingTest
-  test_invalidAnnotation_constConstructor_named_importWithPrefix() {
-    // Bad state: No data for named at 29
-    return super
-        .test_invalidAnnotation_constConstructor_named_importWithPrefix();
-  }
-
-  @override
-  @failingTest
-  test_invocationOfNonFunction_functionTypeTypeParameter() {
-    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
-    return super.test_invocationOfNonFunction_functionTypeTypeParameter();
   }
 
   @override
@@ -433,13 +292,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_returnOfInvalidType_typeParameter_18468() async {
     return super.test_returnOfInvalidType_typeParameter_18468();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_staticAccessToInstanceMember_annotation() async {
-    return super.test_staticAccessToInstanceMember_annotation();
   }
 
   @override

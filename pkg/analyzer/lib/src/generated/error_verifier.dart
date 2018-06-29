@@ -3242,11 +3242,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return;
     }
     // check for mixins
-    if (_enclosingClass.mixins.length != 0) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN,
-          constructor.returnType);
-      return;
+    for (var mixin in _enclosingClass.mixins) {
+      if (mixin.element.fields.isNotEmpty) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
+            constructor.returnType);
+        return;
+      }
     }
     // try to find and check super constructor invocation
     for (ConstructorInitializer initializer in constructor.initializers) {
@@ -5726,35 +5728,63 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
       var toType = expectedType;
       var fromType = expressionType;
-
-      if (isArrowFunction) {
-        if (_inAsync && toType.flattenFutures(_typeSystem).isVoid) {
-          return;
-        } else if (toType.isVoid) {
-          return;
-        }
+      if (_inAsync) {
+        toType = toType.flattenFutures(_typeSystem);
+        fromType = fromType.flattenFutures(_typeSystem);
       }
 
+      // Anything can be returned to `void` in an arrow bodied function
+      // or to `Future<void>` in an async arrow bodied function.
+      if (isArrowFunction && toType.isVoid) {
+        return;
+      }
+
+      // Anything can be returned to `dynamic`, or to `Future<dynamic>` in
+      // an async function.
       if (toType.isDynamic) {
         return;
       }
 
+      // Anything can be return to `Future<Null>` in an async function
+      if (_inAsync && toType.isDartCoreNull) {
+        return;
+      }
+
+      // If we're not in one of the `void` related special cases
+      // just check assignability.
+      if (!expectedType.isVoid && !fromType.isVoid) {
+        var checkWithType = (!_inAsync)
+            ? fromType
+            : _typeProvider.futureType.instantiate(<DartType>[fromType]);
+        if (_expressionIsAssignableAtType(
+            returnExpression, checkWithType, expectedType)) {
+          return;
+        }
+      }
+
+      // Void related special cases.  If the expression type flattens
+      // to `void`, and the expected type doesn't, then it's an error.
+      // Otherwise:
       if (toType.isVoid) {
-        if (fromType.isVoid) {
-          return;
-        }
-        if (!_inAsync && fromType.isDynamic ||
-            fromType.isDartCoreNull ||
-            fromType.isBottom) {
-          return;
-        }
-      } else if (!fromType.isVoid) {
-        if (_inAsync) {
-          fromType = _typeProvider.futureType
-              .instantiate(<DartType>[fromType.flattenFutures(_typeSystem)]);
-        }
-        if (_expressionIsAssignableAtType(returnExpression, fromType, toType)) {
-          return;
+        // In the case that the expected type is `void`
+        if (expectedType.isVoid) {
+          // Valid if the expression type is void, dynamic or Null
+          if (expressionType.isVoid ||
+              expressionType.isDynamic ||
+              expressionType.isDartCoreNull ||
+              expressionType.isBottom) {
+            return;
+          }
+        } else {
+          // The expected type is Future<void> or FutureOr<void>,
+          // and the return is valid if the expression type flattens
+          // to void, dynamic, or Null.
+          if (fromType.isVoid ||
+              fromType.isDynamic ||
+              fromType.isDartCoreNull ||
+              fromType.isBottom) {
+            return;
+          }
         }
       }
       reportTypeError();

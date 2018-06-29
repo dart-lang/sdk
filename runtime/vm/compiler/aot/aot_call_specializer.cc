@@ -253,8 +253,7 @@ bool AotCallSpecializer::TryInlineFieldAccess(InstanceCallInstr* call) {
 
 bool AotCallSpecializer::TryInlineFieldAccess(StaticCallInstr* call) {
   if (call->function().IsImplicitGetterFunction()) {
-    Field& field =
-        Field::ZoneHandle(call->function().LookupImplicitGetterSetterField());
+    Field& field = Field::ZoneHandle(call->function().accessor_field());
     if (should_clone_fields_) {
       field = field.CloneFromOriginal();
     }

@@ -151,6 +151,9 @@ kernel/test/*: SkipByDesign # Uses dart:io and bigints.
 [ $no_preview_dart_2 ]
 dev_compiler/*: SkipByDesign # uses Dart 2.
 
+[ !$preview_dart_2 ]
+smith/test/*: Skip # Uses optional new.
+
 [ $arch == x64 && $runtime == vm && $system == windows && $checked ]
 analyzer/test/src/task/strong/inferred_type_test: Pass, Slow
 
@@ -167,8 +170,9 @@ analysis_server/test/services/completion/statement/statement_completion_test: Fa
 analysis_server/test/services/correction/fix_test: Fail
 analysis_server/test/services/refactoring/extract_local_test: Fail
 analyzer/test/generated/compile_time_error_code_driver_test: Fail
+analyzer/test/generated/compile_time_error_code_kernel_test: Fail
+analyzer/test/generated/compile_time_error_code_kernel_test.dart: Fail
 analyzer/test/generated/compile_time_error_code_test: Fail
-analyzer/test/generated/hint_code_driver_test: Fail
 analyzer/test/generated/invalid_code_driver_test: Fail
 analyzer/test/generated/non_error_resolver_driver_test: Fail
 analyzer/test/generated/non_error_resolver_test: Fail

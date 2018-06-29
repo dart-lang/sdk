@@ -271,7 +271,7 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
 
     _elementEnvironment.forEachSupertype(cls, (InterfaceType type) {
       List<ClassEntity> subtypes =
-          emitter.subtypes.putIfAbsent(type.element, () => <ClassEntity>[]);
+          emitter.subtypes[type.element] ??= <ClassEntity>[];
       subtypes.add(cls);
     });
 
@@ -286,7 +286,7 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
     }
 
     List<ClassEntity> directSubtypes =
-        emitter.directSubtypes.putIfAbsent(superclass, () => <ClassEntity>[]);
+        emitter.directSubtypes[superclass] ??= <ClassEntity>[];
     directSubtypes.add(cls);
   }
 

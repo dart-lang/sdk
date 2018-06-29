@@ -832,8 +832,38 @@ class InterfaceResolver {
     setters.length = candidates.length;
     int getterIndex = 0;
     int setterIndex = 0;
+    // To detect conflicts between instance members (possibly inherited ones)
+    // and static members, use a map from names to lists of members.  There can
+    // be more than one static member with a given name, e.g., if there is a
+    // getter and a setter.  We will report both conflicts.
+    Map<Name, List<Member>> staticMembers = {};
+    for (var procedure in class_.procedures) {
+      if (procedure.isStatic) {
+        staticMembers.putIfAbsent(procedure.name, () => []).add(procedure);
+      }
+    }
+    for (var field in class_.fields) {
+      if (field.isStatic) {
+        staticMembers.putIfAbsent(field.name, () => []).add(field);
+      }
+    }
     forEachApiMember(candidates, (int start, int end, Name name) {
       Procedure member = candidates[start];
+      // We should not have a method, getter, or setter in our interface that
+      // conflicts with a static method, getter, or setter declared in the
+      // class.
+      List<Member> conflicts = staticMembers[name];
+      if (conflicts != null) {
+        for (var conflict in conflicts) {
+          library.addProblem(messageDeclaredMemberConflictsWithInheritedMember,
+              conflict.fileOffset, noLength, conflict.fileUri,
+              context: [
+                messageDeclaredMemberConflictsWithInheritedMemberCause
+                    .withLocation(member.fileUri, member.fileOffset, noLength)
+              ]);
+        }
+        return;
+      }
       ProcedureKind kind = _kindOf(member);
       if (kind != ProcedureKind.Getter && kind != ProcedureKind.Setter) {
         for (int i = start + 1; i < end; ++i) {

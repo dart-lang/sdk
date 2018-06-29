@@ -17,19 +17,6 @@ void main() {
     for (var entry in new Directory.fromUri(repoRoot.resolve(directory))
         .listSync(recursive: true)) {
       if (!entry.path.endsWith(".status")) continue;
-
-      // Inside the co19 repository, there is a status file that doesn't appear
-      // to be valid and looks more like some kind of template or help document.
-      // Ignore it.
-      var co19StatusFile = repoRoot.resolve('tests/co19/src/co19.status');
-      var co19_2StatusFile = repoRoot.resolve('tests/co19_2/src/co19.status');
-      if (FileSystemEntity.identicalSync(
-              entry.path, new File.fromUri(co19StatusFile).path) ||
-          FileSystemEntity.identicalSync(
-              entry.path, new File.fromUri(co19_2StatusFile).path)) {
-        continue;
-      }
-
       try {
         new StatusFile.read(entry.path);
       } catch (err) {

@@ -43,11 +43,13 @@ intptr_t OS::ProcessId() {
 static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
                                                  int32_t* local_offset,
                                                  int32_t* dst_offset) {
-  fuchsia::timezone::TimezoneSyncPtr time_svc;
-  fuchsia::sys::ConnectToEnvironmentService(time_svc.NewRequest());
-  if (!time_svc->GetTimezoneOffsetMinutes(seconds_since_epoch * 1000,
-                                          local_offset, dst_offset))
-    return ZX_ERR_UNAVAILABLE;
+  fuchsia::timezone::TimezoneSync2Ptr tz;
+  fuchsia::sys::ConnectToEnvironmentService(tz.NewRequest());
+  zx_status_t status = tz->GetTimezoneOffsetMinutes(seconds_since_epoch * 1000,
+                                                    local_offset,
+                                                    dst_offset).statvs;
+  if (status != ZX_OK)
+    return status;
   *local_offset *= 60;
   *dst_offset *= 60;
   return ZX_OK;
@@ -56,10 +58,10 @@ static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   // TODO(abarth): Handle time zone changes.
   static const auto* tz_name = new std::string([] {
-    fuchsia::timezone::TimezoneSyncPtr time_svc;
-    fuchsia::sys::ConnectToEnvironmentService(time_svc.NewRequest());
+    fuchsia::timezone::TimezoneSyncPtr tz;
+    fuchsia::sys::ConnectToEnvironmentService(tz.NewRequest());
     fidl::StringPtr result;
-    time_svc->GetTimezoneId(&result);
+    tz->GetTimezoneId(&result);
     return *result;
   }());
   return tz_name->c_str();

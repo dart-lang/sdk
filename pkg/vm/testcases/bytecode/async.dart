@@ -56,4 +56,9 @@ closure(Future<int> a) {
   return nested;
 }
 
+Future<int> testAssert(Future<int> a) async {
+  assert((await a) == 42);
+  return 7;
+}
+
 main() {}

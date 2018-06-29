@@ -5912,25 +5912,20 @@ void Function::set_saved_args_desc(const Array& value) const {
   set_data(value);
 }
 
-RawField* Function::LookupImplicitGetterSetterField() const {
-  // TODO(27590) Store Field object inside RawFunction::data_ if possible.
-  Zone* Z = Thread::Current()->zone();
-  String& field_name = String::Handle(Z, name());
-  switch (kind()) {
-    case RawFunction::kImplicitGetter:
-    case RawFunction::kImplicitStaticFinalGetter:
-      field_name = Field::NameFromGetter(field_name);
-      break;
-    case RawFunction::kImplicitSetter:
-      field_name = Field::NameFromSetter(field_name);
-      break;
-    default:
-      UNREACHABLE();
-  }
-  ASSERT(field_name.IsSymbol());
-  const Class& owner = Class::Handle(Z, Owner());
-  ASSERT(!owner.IsNull());
-  return owner.LookupField(field_name);
+RawField* Function::accessor_field() const {
+  ASSERT(kind() == RawFunction::kImplicitGetter ||
+         kind() == RawFunction::kImplicitSetter ||
+         kind() == RawFunction::kImplicitStaticFinalGetter);
+  return Field::RawCast(raw_ptr()->data_);
+}
+
+void Function::set_accessor_field(const Field& value) const {
+  ASSERT(kind() == RawFunction::kImplicitGetter ||
+         kind() == RawFunction::kImplicitSetter ||
+         kind() == RawFunction::kImplicitStaticFinalGetter);
+  // Top level classes may be finalized multiple times.
+  ASSERT(raw_ptr()->data_ == Object::null() || raw_ptr()->data_ == value.raw());
+  set_data(value);
 }
 
 RawFunction* Function::parent_function() const {
@@ -5974,7 +5969,8 @@ bool Function::HasGenericParent() const {
 }
 
 RawFunction* Function::implicit_closure_function() const {
-  if (IsClosureFunction() || IsSignatureFunction() || IsFactory()) {
+  if (IsClosureFunction() || IsSignatureFunction() || IsFactory() ||
+      IsDispatcherOrImplicitAccessor() || IsImplicitStaticFieldInitializer()) {
     return Function::null();
   }
   const Object& obj = Object::Handle(raw_ptr()->data_);
@@ -6193,6 +6189,9 @@ void Function::SetRedirectionTarget(const Function& target) const {
 //                            Array[2] = Kernel offset of enclosing library
 //   signature function:      SignatureData
 //   method extractor:        Function extracted closure function
+//   implicit getter:         Field
+//   implicit setter:         Field
+//   impl. static final gttr: Field
 //   noSuchMethod dispatcher: Array arguments descriptor
 //   invoke-field dispatcher: Array arguments descriptor
 //   redirecting constructor: RedirectionData
@@ -7217,6 +7216,7 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   clone.set_owner(clone_owner);
   clone.ClearICDataArray();
   clone.ClearCode();
+  clone.set_data(Object::null_object());
   clone.set_usage_counter(0);
   clone.set_deoptimization_counter(0);
   clone.set_optimized_instruction_count(0);
@@ -18654,7 +18654,7 @@ bool TypeParameter::CheckBound(const AbstractType& bounded_type,
       // meaningless, therefore use the token index of this type parameter.
       *bound_error = LanguageError::NewFormatted(
           *bound_error, script, token_pos(), Report::AtLocation,
-          Report::kMalboundedType, Heap::kNew,
+          Report::kMalboundedType, Heap::kOld,
           "type parameter '%s' of class '%s' must extend bound '%s', "
           "but type argument '%s' is not a subtype of '%s'",
           type_param_name.ToCString(), class_name.ToCString(),

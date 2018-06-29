@@ -18,6 +18,10 @@ library vm.bytecode.dbc;
 // 3. NativeCall instruction is modified to have 'D' format and take 1 argument:
 //    D = index of NativeEntry constant pool entry
 //
+// 4. JumpIfNoAsserts instruction is added. This instruction jumps to the given
+//    target if assertions are not enabled. It has the same format as Jump
+//    instruction.
+//
 
 enum Opcode {
   kTrap,
@@ -29,6 +33,7 @@ enum Opcode {
   kDropR,
   kDrop,
   kJump,
+  kJumpIfNoAsserts,
   kReturn,
   kReturnTOS,
   kMove,
@@ -265,6 +270,8 @@ const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kDrop: const Format(
       Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
   Opcode.kJump: const Format(
+      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
+  Opcode.kJumpIfNoAsserts: const Format(
       Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
   Opcode.kReturn: const Format(
       Encoding.kA, const [Operand.reg, Operand.none, Operand.none]),
@@ -651,3 +658,5 @@ enum SpecialIndex {
   exception,
   stackTrace,
 }
+
+bool isJump(Opcode opcode) => BytecodeFormats[opcode].encoding == Encoding.kT;

@@ -64,13 +64,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_bug21912() {
-    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
-    return super.test_bug21912();
-  }
-
-  @override
-  @failingTest
   test_expectedOneListTypeArgument() async {
     // Bad state: Found 1 argument types for 2 type arguments
     await super.test_expectedOneListTypeArgument();
@@ -261,16 +254,23 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_invalidAssignment_dynamic() async {
-    // Bad state: No reference information for dynamic at 11
-    await super.test_invalidAssignment_dynamic();
+  test_invalidAssignment_defaultValue_named() async {
+    // UnimplementedError: kernel: (Let) let final dynamic #t1 = 0 in let ...
+    await super.test_invalidAssignment_defaultValue_named();
   }
 
   @override
   @failingTest
-  test_invocationOfNonFunction_class() async {
-    // Expected 1 errors of type StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION, found 0
-    await super.test_invocationOfNonFunction_class();
+  test_invalidAssignment_defaultValue_optional() async {
+    // UnimplementedError: kernel: (Let) let final dynamic #t2 = 0 in let ...
+    await super.test_invalidAssignment_defaultValue_optional();
+  }
+
+  @override
+  @failingTest
+  test_invalidAssignment_dynamic() async {
+    // Bad state: No reference information for dynamic at 11
+    await super.test_invalidAssignment_dynamic();
   }
 
   @override
@@ -705,13 +705,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
-  test_undefinedGetter_proxy_annotation_fakeProxy() async {
-    await super.test_undefinedGetter_proxy_annotation_fakeProxy();
-  }
-
-  @override
-  @failingTest
   test_undefinedGetter_static() async {
     // Bad state: No reference information for A at 19
     await super.test_undefinedGetter_static();
@@ -799,13 +792,6 @@ class StaticTypeWarningCodeTest_Kernel
   test_undefinedMethod_typeLiteral_conditionalAccess() async {
     // Bad state: No reference information for A at 18
     await super.test_undefinedMethod_typeLiteral_conditionalAccess();
-  }
-
-  @override
-  @failingTest
-  test_undefinedMethodWithConstructor() async {
-    // Bad state: No reference information for C at 35
-    await super.test_undefinedMethodWithConstructor();
   }
 
   @override

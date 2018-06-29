@@ -2283,8 +2283,6 @@ class Function : public Object {
   RawContextScope* context_scope() const;
   void set_context_scope(const ContextScope& value) const;
 
-  RawField* LookupImplicitGetterSetterField() const;
-
   // Enclosing function of this local function.
   RawFunction* parent_function() const;
 
@@ -2293,6 +2291,9 @@ class Function : public Object {
 
   void set_saved_args_desc(const Array& array) const;
   RawArray* saved_args_desc() const;
+
+  void set_accessor_field(const Field& value) const;
+  RawField* accessor_field() const;
 
   bool IsMethodExtractor() const {
     return kind() == RawFunction::kMethodExtractor;
@@ -2347,6 +2348,9 @@ class Function : public Object {
 
   RawFunction::Kind kind() const {
     return KindBits::decode(raw_ptr()->kind_tag_);
+  }
+  static RawFunction::Kind kind(RawFunction* function) {
+    return KindBits::decode(function->ptr()->kind_tag_);
   }
 
   RawFunction::AsyncModifier modifier() const {
@@ -2644,6 +2648,12 @@ class Function : public Object {
   // Returns true if this function represents an implicit setter function.
   bool IsImplicitSetterFunction() const {
     return kind() == RawFunction::kImplicitSetter;
+  }
+
+  // Returns true if this function represents an implicit static field
+  // initializer function.
+  bool IsImplicitStaticFieldInitializer() const {
+    return kind() == RawFunction::kImplicitStaticFinalGetter;
   }
 
   // Returns true if this function represents a (possibly implicit) closure

@@ -277,6 +277,8 @@ class CompilerOptions implements DiagnosticOptions {
   /// Create an options object by parsing flags from [options].
   static CompilerOptions parse(List<String> options,
       {Uri libraryRoot, Uri platformBinaries}) {
+    bool isStrong = _hasOption(options, Flags.strongMode) ||
+        !_hasOption(options, Flags.noPreviewDart2);
     return new CompilerOptions()
       ..libraryRoot = libraryRoot
       ..allowMockCompilation = _hasOption(options, Flags.allowMockCompilation)
@@ -307,8 +309,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..enableMinification = _hasOption(options, Flags.minify)
       ..enableNativeLiveTypeAnalysis =
           !_hasOption(options, Flags.disableNativeLiveTypeAnalysis)
-      ..enableTypeAssertions = _hasOption(options, Flags.enableCheckedMode) &&
-          !_hasOption(options, Flags.strongMode)
+      ..enableTypeAssertions =
+          _hasOption(options, Flags.enableCheckedMode) && !isStrong
       ..enableUserAssertions = _hasOption(options, Flags.enableCheckedMode) ||
           _hasOption(options, Flags.enableAsserts)
       ..experimentalTrackAllocations =
@@ -325,8 +327,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..platformBinaries =
           platformBinaries ?? _extractUriOption(options, '--platform-binaries=')
       ..sourceMapUri = _extractUriOption(options, '--source-map=')
-      ..strongMode = _hasOption(options, Flags.strongMode) ||
-          !_hasOption(options, Flags.noPreviewDart2)
+      ..strongMode = isStrong
       ..omitImplicitChecks = _hasOption(options, Flags.omitImplicitChecks)
       ..laxRuntimeTypeToString =
           _hasOption(options, Flags.laxRuntimeTypeToString)

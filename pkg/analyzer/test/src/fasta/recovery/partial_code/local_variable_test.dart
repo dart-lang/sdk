@@ -12,23 +12,6 @@ main() {
 
 class LocalVariableTest extends PartialCodeTest {
   buildAll() {
-    List<String> allExceptEof = <String>[
-      'assert',
-      'block',
-      'break',
-      'continue',
-      'do',
-      'if',
-      'for',
-      'labeled',
-      'localFunctionNonVoid',
-      'localFunctionVoid',
-      'localVariable',
-      'switch',
-      'try',
-      'return',
-      'while'
-    ];
     buildTests(
         'local_variable',
         [

@@ -1495,9 +1495,15 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
       DartCompilationPipeline pipeline;
       CompileParsedFunctionHelper helper(parsed_function, false, kNoOSRDeoptId);
       const Code& code = Code::Handle(helper.Compile(&pipeline));
+      const Function& initializer = parsed_function->function();
       if (!code.IsNull()) {
-        const Function& initializer = parsed_function->function();
         code.set_var_descriptors(Object::empty_var_descriptors());
+#if defined(DART_USE_INTERPRETER)
+      }
+      // In case the initializer has bytecode, the compilation step above only
+      // loaded the bytecode without generating code.
+      if (!code.IsNull() || initializer.HasBytecode()) {
+#endif
         // Invoke the function to evaluate the expression.
         return DartEntry::InvokeFunction(initializer, Object::empty_array());
       }

@@ -1207,8 +1207,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       // Put the other operators in buckets by size, later to be added in
       // size order.
       int size = computeSize(element);
-      Set<MemberEntity> set =
-          methodSizes.putIfAbsent(size, () => new Setlet<MemberEntity>());
+      Set<MemberEntity> set = methodSizes[size] ??= new Setlet<MemberEntity>();
       set.add(element);
     });
     return methodSizes;

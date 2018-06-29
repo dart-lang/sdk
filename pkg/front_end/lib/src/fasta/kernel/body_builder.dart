@@ -2495,7 +2495,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         if (receiver is LargeIntAccessGenerator) {
           int value = int.tryParse("-" + receiver.token.lexeme);
           if (value != null) {
-            receiverValue = forest.literalInt(value, token);
+            receiverValue = forest.literalInt(value, receiver.token);
             if (errorOnUnexactWebIntLiterals) {
               checkWebIntLiteralsErrorIfUnexact(value, token);
             }

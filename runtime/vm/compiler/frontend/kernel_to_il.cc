@@ -2422,12 +2422,12 @@ Fragment FlowGraphBuilder::EvaluateAssertion() {
                     ICData::kStatic);
 }
 
-Fragment FlowGraphBuilder::CheckBoolean() {
+Fragment FlowGraphBuilder::CheckBoolean(TokenPosition position) {
   Fragment instructions;
   if (I->strong() || I->type_checks() || I->asserts()) {
     LocalVariable* top_of_stack = MakeTemporary();
     instructions += LoadLocal(top_of_stack);
-    instructions += AssertBool();
+    instructions += AssertBool(position);
     instructions += Drop();
   }
   return instructions;
@@ -2451,10 +2451,10 @@ Fragment FlowGraphBuilder::CheckAssignable(const AbstractType& dst_type,
   return instructions;
 }
 
-Fragment FlowGraphBuilder::AssertBool() {
+Fragment FlowGraphBuilder::AssertBool(TokenPosition position) {
   Value* value = Pop();
-  AssertBooleanInstr* instr = new (Z)
-      AssertBooleanInstr(TokenPosition::kNoSource, value, GetNextDeoptId());
+  AssertBooleanInstr* instr =
+      new (Z) AssertBooleanInstr(position, value, GetNextDeoptId());
   Push(instr);
   return Fragment(instr);
 }

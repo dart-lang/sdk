@@ -71,20 +71,6 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
         .test_deprecatedAnnotationUse_namedParameter_inNestedLocalFunction();
   }
 
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
-  test_deprecatedMemberUse_inDeprecatedClass() async {
-    await super.test_deprecatedMemberUse_inDeprecatedClass();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
-  test_deprecatedMemberUse_inDeprecatedFunction() async {
-    await super.test_deprecatedMemberUse_inDeprecatedFunction();
-  }
-
   @failingTest
   @override
   @potentialAnalyzerProblem
@@ -92,27 +78,6 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
     // LibraryAnalyzer is not applying resolution data to annotations on
     // directives.
     await super.test_deprecatedMemberUse_inDeprecatedLibrary();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
-  test_deprecatedMemberUse_inDeprecatedMethod() async {
-    await super.test_deprecatedMemberUse_inDeprecatedMethod();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
-  test_deprecatedMemberUse_inDeprecatedMethod_inDeprecatedClass() async {
-    await super.test_deprecatedMemberUse_inDeprecatedMethod_inDeprecatedClass();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
-  test_missingReturn_alwaysThrows() async {
-    await super.test_missingReturn_alwaysThrows();
   }
 
   @override
@@ -129,76 +94,6 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
     // Expected 1 errors of type
     // StrongModeCode.STRONG_MODE_INVALID_METHOD_OVERRIDE, found 0
     return super.test_overrideOnNonOverridingField_inSuperclass();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
-  test_overrideOnNonOverridingGetter_inInterface() async {
-    await super.test_overrideOnNonOverridingGetter_inInterface();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
-  test_overrideOnNonOverridingGetter_inSuperclass() async {
-    await super.test_overrideOnNonOverridingGetter_inSuperclass();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
-  test_overrideOnNonOverridingMethod_inInterface() async {
-    await super.test_overrideOnNonOverridingMethod_inInterface();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
-  test_overrideOnNonOverridingMethod_inSuperclass() async {
-    await super.test_overrideOnNonOverridingMethod_inSuperclass();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
-  test_overrideOnNonOverridingMethod_inSuperclass_abstract() async {
-    await super.test_overrideOnNonOverridingMethod_inSuperclass_abstract();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
-  test_overrideOnNonOverridingSetter_inInterface() async {
-    await super.test_overrideOnNonOverridingSetter_inInterface();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
-  test_overrideOnNonOverridingSetter_inSuperclass() async {
-    await super.test_overrideOnNonOverridingSetter_inSuperclass();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
-  test_proxy_annotation_prefixed() async {
-    await super.test_proxy_annotation_prefixed();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
-  test_proxy_annotation_prefixed2() async {
-    await super.test_proxy_annotation_prefixed2();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
-  test_proxy_annotation_prefixed3() async {
-    await super.test_proxy_annotation_prefixed3();
   }
 
   @override

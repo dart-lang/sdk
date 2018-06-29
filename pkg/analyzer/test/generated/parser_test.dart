@@ -4451,16 +4451,11 @@ class Wrong<T> {
     // It doesn't try to advance past the invalid token `!` to find the
     // valid `>`. If it did we'd get less cascading errors, at least for this
     // particular example.
-    createParser('void m<E, hello!>() {}', expectedEndOffset: 6);
+    createParser('void m<E, hello!>() {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors(usingFastaParser
-        ? [
-            // TODO(danrubel): Improve recovery
-            expectedError(
-                ParserErrorCode.MISSING_METHOD_PARAMETERS, 5, 1) /*<*/,
-            expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 6, 1) /*E*/
-          ]
+        ? [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 15, 1)]
         : [
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0) /*>*/,
             expectedError(ParserErrorCode.MISSING_IDENTIFIER, 0, 0),
@@ -4470,10 +4465,8 @@ class Wrong<T> {
           ]);
     expect(member, new isInstanceOf<MethodDeclaration>());
     MethodDeclaration method = member;
-    if (!usingFastaParser) {
-      expect(method.typeParameters.toString(), '<E, hello>',
-          reason: 'parser recovers what it can');
-    }
+    expect(method.typeParameters.toString(), '<E, hello>',
+        reason: 'parser recovers what it can');
   }
 
   void test_missingAssignableSelector_identifiersAssigned() {
@@ -6758,6 +6751,17 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal.typeArguments, isNotNull);
   }
 
+  void test_parseConstExpression_mapLiteral_typed_missingGt() {
+    Expression expression = parseExpression('const <A, B {}',
+        errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 1)]);
+    expect(expression, isNotNull);
+    var literal = expression as MapLiteral;
+    expect(literal.leftBracket, isNotNull);
+    expect(literal.entries, hasLength(0));
+    expect(literal.rightBracket, isNotNull);
+    expect(literal.typeArguments, isNotNull);
+  }
+
   void test_parseConstExpression_mapLiteral_typed_genericComment() {
     enableGenericMethodComments = true;
     Expression expression = parseConstExpression('const /*<A, B>*/ {}');
@@ -6834,6 +6838,17 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(binaryExpression.operator, isNotNull);
     expect(binaryExpression.operator.type, TokenType.EQ_EQ);
     expect(binaryExpression.rightOperand, isNotNull);
+  }
+
+  void test_parseExpression_constAndTypeParameters() {
+    Expression expression = parseExpression('const <E>',
+        codes: usingFastaParser
+            ? [
+                // TODO(danrubel): Improve this error message.
+                ParserErrorCode.EXPECTED_TOKEN
+              ]
+            : [ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL]);
+    expect(expression, isNotNull);
   }
 
   void test_parseExpression_function_async() {
@@ -7020,6 +7035,46 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(expression.typeParameters, isNull);
     expect(expression.parameters, isNotNull);
     expect((expression.body as ExpressionFunctionBody).semicolon, isNull);
+  }
+
+  void test_parseFunctionExpression_functionInPlaceOfTypeName() {
+    Expression expression = parseExpression('<test(' ', (){});>[0, 1, 2]',
+        codes: usingFastaParser
+            ? [
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_FUNCTION_BODY,
+              ]
+            : [
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL,
+              ]);
+    expect(expression, isNotNull);
+  }
+
+  void test_parseFunctionExpression_constAndTypeParameters2() {
+    FunctionExpression expression =
+        parseFunctionExpression('const <E>(E i) => i++');
+    expect(expression, isNotNull);
+    assertErrorsWithCodes(usingFastaParser
+        ? [ParserErrorCode.UNEXPECTED_TOKEN]
+        : [
+            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.MISSING_IDENTIFIER,
+            ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR,
+            ParserErrorCode.MISSING_CLOSING_PARENTHESIS,
+          ]);
+    expect(expression.body, isNotNull);
+    if (usingFastaParser) {
+      expect(expression.typeParameters, isNotNull);
+      expect(expression.parameters, isNotNull);
+      expect((expression.body as ExpressionFunctionBody).semicolon, isNull);
+    }
   }
 
   void test_parseFunctionExpression_typeParameterComments() {

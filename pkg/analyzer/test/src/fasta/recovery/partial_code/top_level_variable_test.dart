@@ -13,17 +13,6 @@ main() {
 
 class TopLevelVariableTest extends PartialCodeTest {
   buildAll() {
-    List<String> allExceptEof = <String>[
-      'class',
-      'typedef',
-      'functionVoid',
-      'functionNonVoid',
-      'var',
-      'const',
-      'final',
-      'getter',
-      'setter'
-    ];
     buildTests(
         'top_level_variable',
         [

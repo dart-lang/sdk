@@ -9,13 +9,12 @@ import '../../common_elements.dart' show CommonElements;
 import '../../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../../elements/entities.dart';
 import '../../types/abstract_value_domain.dart';
-import '../../universe/class_hierarchy.dart';
 import '../../universe/selector.dart' show Selector;
 import '../../universe/use.dart' show DynamicUse;
 import '../../universe/world_builder.dart'
     show UniverseSelectorConstraints, SelectorConstraintsStrategy;
 import '../../util/util.dart';
-import '../../world.dart' show JClosedWorld;
+import '../../world.dart' show ClassQuery, JClosedWorld;
 import '../type_graph_inferrer.dart' show TypeGraphInferrer;
 import 'constants.dart';
 

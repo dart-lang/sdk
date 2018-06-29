@@ -356,7 +356,6 @@ int Options::ParseArguments(int argc,
       if ((strncmp(argv[i], kChecked, strlen(kChecked)) == 0) ||
           (strncmp(argv[i], kCheckedFull, strlen(kCheckedFull)) == 0)) {
         checked_set = true;
-        vm_options->AddArgument(kCheckedFull);
         i++;
         continue;  // '-c' is not a VM flag so don't add to vm options.
       } else if (!OptionProcessor::IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
@@ -449,9 +448,11 @@ int Options::ParseArguments(int argc,
         " run using a snapshot is invalid.\n");
     return -1;
   }
-  if (checked_set && Options::preview_dart_2()) {
-    Log::PrintErr("Flags --checked and --preview-dart-2 are not compatible.\n");
-    return -1;
+  if (checked_set) {
+    vm_options->AddArgument("--enable-asserts");
+    if (Options::no_preview_dart_2()) {
+      vm_options->AddArgument("--enable-type-checks");
+    }
   }
 
   // If --snapshot is given without --snapshot-kind, default to script snapshot.

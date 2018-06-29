@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
-void main() {
-  test();
+void test1(bool condition) {
+  assert(condition);
 }
 
-// Testing that a block bodied async function may not return Future<void>
-void test() async {
-  return /*@compile-error=unspecified*/ null as Future<void>;
+void test2(bool condition(), String message()) {
+  assert(condition(), message());
 }
+
+main() {}

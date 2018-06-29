@@ -254,8 +254,8 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
       if (member.name == Identifiers.call) return;
       // All methods on [Object] are shadowed by [Interceptor].
       if (cls == _commonElements.objectClass) return;
-      Set<MemberEntity> set = _interceptedElements.putIfAbsent(
-          member.name, () => new Set<MemberEntity>());
+      Set<MemberEntity> set =
+          _interceptedElements[member.name] ??= new Set<MemberEntity>();
       set.add(member);
     });
 
@@ -271,8 +271,8 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
           (ClassEntity cls, MemberEntity member) {
         // All methods on [Object] are shadowed by [Interceptor].
         if (cls == _commonElements.objectClass) return;
-        Set<MemberEntity> set = _interceptedElements.putIfAbsent(
-            member.name, () => new Set<MemberEntity>());
+        Set<MemberEntity> set =
+            _interceptedElements[member.name] ??= new Set<MemberEntity>();
         set.add(member);
       });
     }

@@ -34,20 +34,17 @@ Future<void> test3([bool b]) async {
   return null as FutureOr<void>;
 }
 
-// Testing that a block bodied async function may return non-void
-// values
-Future<void> test4() async {
-  return 42;
+// Testing that a block bodied async function may return null
+Future<void> test4([bool b]) async {
+  return null;
 }
 
-// Testing that a block bodied async function may return non-void
-// Future values
-Future<void> test5() async {
-  return new Future.value(42);
+// Testing that a block bodied async function may return dynamic
+Future<void> test5([bool b]) async {
+  return null as dynamic;
 }
 
-// Testing that a block bodied async function return nested void
-// Future values
+// Testing that a block bodied async function return void
 Future<void> test6() async {
-  return null as Future<Future<void>>;
+  return voidValue;
 }

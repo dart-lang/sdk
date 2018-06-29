@@ -9,9 +9,8 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/universe/class_hierarchy.dart';
 import 'package:compiler/src/universe/class_set.dart';
-import 'package:compiler/src/world.dart' show JClosedWorld;
+import 'package:compiler/src/world.dart' show ClassQuery, JClosedWorld;
 import '../type_test_helper.dart';
 
 void main() {
@@ -551,106 +550,65 @@ testCommonSubclasses() async {
   ClassEntity A = env.getElement("A");
   ClassEntity B = env.getElement("B");
   ClassEntity C = env.getElement("C");
+  ClassEntity D = env.getElement("D");
   ClassEntity F = env.getElement("F");
   ClassEntity G = env.getElement("G");
+  ClassEntity H = env.getElement("H");
   ClassEntity I = env.getElement("I");
   ClassEntity J = env.getElement("J");
 
   void check(ClassEntity cls1, ClassQuery query1, ClassEntity cls2,
-      ClassQuery query2, SubclassResult expectedResult) {
-    SubclassResult result1 =
-        closedWorld.classHierarchy.commonSubclasses(cls1, query1, cls2, query2);
-    SubclassResult result2 =
-        closedWorld.classHierarchy.commonSubclasses(cls2, query2, cls1, query1);
-    Expect.equals(
-        result1.query,
-        result2.query,
+      ClassQuery query2, List<ClassEntity> expectedResult) {
+    Iterable<ClassEntity> result1 =
+        closedWorld.commonSubclasses(cls1, query1, cls2, query2);
+    Iterable<ClassEntity> result2 =
+        closedWorld.commonSubclasses(cls2, query2, cls1, query1);
+    Expect.setEquals(
+        result1,
+        result2,
         "Asymmetric results for ($cls1,$query1) vs ($cls2,$query2):"
         "\n a vs b: $result1\n b vs a: $result2");
     Expect.setEquals(
-        result1.classes,
-        result2.classes,
-        "Asymmetric results for ($cls1,$query1) vs ($cls2,$query2):"
-        "\n a vs b: $result1\n b vs a: $result2");
-    Expect.equals(
-        expectedResult.query,
-        result1.query,
-        "Unexpected results for ($cls1,$query1) vs ($cls2,$query2):"
-        "\n expected: $expectedResult\n actual: $result1");
-    Expect.setEquals(
-        expectedResult.classes,
-        result1.classes,
+        expectedResult,
+        result1,
         "Unexpected results for ($cls1,$query1) vs ($cls2,$query2):"
         "\n expected: $expectedResult\n actual: $result1");
   }
 
-  check(A, ClassQuery.EXACT, A, ClassQuery.EXACT,
-      new SubclassResult.internal(ClassQuery.EXACT, [A]));
-  check(A, ClassQuery.EXACT, A, ClassQuery.SUBCLASS,
-      new SubclassResult.internal(ClassQuery.EXACT, [A]));
-  check(A, ClassQuery.EXACT, A, ClassQuery.SUBTYPE,
-      new SubclassResult.internal(ClassQuery.EXACT, [A]));
-  check(A, ClassQuery.SUBCLASS, A, ClassQuery.SUBCLASS,
-      new SubclassResult.internal(ClassQuery.SUBCLASS, [A]));
-  check(A, ClassQuery.SUBCLASS, A, ClassQuery.SUBTYPE,
-      new SubclassResult.internal(ClassQuery.SUBCLASS, [A]));
-  check(A, ClassQuery.SUBTYPE, A, ClassQuery.SUBTYPE,
-      new SubclassResult.internal(ClassQuery.SUBTYPE, [A]));
+  check(A, ClassQuery.EXACT, A, ClassQuery.EXACT, []);
+  check(A, ClassQuery.EXACT, A, ClassQuery.SUBCLASS, []);
+  check(A, ClassQuery.EXACT, A, ClassQuery.SUBTYPE, []);
+  check(A, ClassQuery.SUBCLASS, A, ClassQuery.SUBCLASS, [C]);
+  check(A, ClassQuery.SUBCLASS, A, ClassQuery.SUBTYPE, [C]);
+  check(A, ClassQuery.SUBTYPE, A, ClassQuery.SUBTYPE, [C, D]);
 
-  check(A, ClassQuery.EXACT, B, ClassQuery.EXACT,
-      new SubclassResult.internal(ClassQuery.EXACT, []));
-  check(A, ClassQuery.EXACT, B, ClassQuery.SUBCLASS,
-      new SubclassResult.internal(ClassQuery.EXACT, []));
-  check(A, ClassQuery.SUBCLASS, B, ClassQuery.EXACT,
-      new SubclassResult.internal(ClassQuery.EXACT, []));
-  check(A, ClassQuery.EXACT, B, ClassQuery.SUBTYPE,
-      new SubclassResult.internal(ClassQuery.EXACT, []));
-  check(A, ClassQuery.SUBTYPE, B, ClassQuery.EXACT,
-      new SubclassResult.internal(ClassQuery.EXACT, []));
-  check(A, ClassQuery.SUBCLASS, B, ClassQuery.SUBCLASS,
-      new SubclassResult.internal(ClassQuery.EXACT, []));
-  check(A, ClassQuery.SUBCLASS, B, ClassQuery.SUBTYPE,
-      new SubclassResult.internal(ClassQuery.SUBCLASS, [G]));
-  check(A, ClassQuery.SUBTYPE, B, ClassQuery.SUBCLASS,
-      new SubclassResult.internal(ClassQuery.SUBCLASS, [J]));
-  check(A, ClassQuery.SUBTYPE, B, ClassQuery.SUBTYPE,
-      new SubclassResult.internal(ClassQuery.SUBCLASS, [F, G, I, J]));
+  check(A, ClassQuery.EXACT, B, ClassQuery.EXACT, []);
+  check(A, ClassQuery.EXACT, B, ClassQuery.SUBCLASS, []);
+  check(A, ClassQuery.SUBCLASS, B, ClassQuery.EXACT, []);
+  check(A, ClassQuery.EXACT, B, ClassQuery.SUBTYPE, []);
+  check(A, ClassQuery.SUBTYPE, B, ClassQuery.EXACT, []);
+  check(A, ClassQuery.SUBCLASS, B, ClassQuery.SUBCLASS, []);
+  check(A, ClassQuery.SUBCLASS, B, ClassQuery.SUBTYPE, [G]);
+  check(A, ClassQuery.SUBTYPE, B, ClassQuery.SUBCLASS, [J]);
+  check(A, ClassQuery.SUBTYPE, B, ClassQuery.SUBTYPE, [F, G, I, J]);
 
-  check(A, ClassQuery.EXACT, C, ClassQuery.EXACT,
-      new SubclassResult.internal(ClassQuery.EXACT, []));
-  check(A, ClassQuery.EXACT, C, ClassQuery.SUBCLASS,
-      new SubclassResult.internal(ClassQuery.EXACT, []));
-  check(A, ClassQuery.SUBCLASS, C, ClassQuery.EXACT,
-      new SubclassResult.internal(ClassQuery.EXACT, [C]));
-  check(A, ClassQuery.EXACT, C, ClassQuery.SUBTYPE,
-      new SubclassResult.internal(ClassQuery.EXACT, []));
-  check(A, ClassQuery.SUBTYPE, C, ClassQuery.EXACT,
-      new SubclassResult.internal(ClassQuery.EXACT, [C]));
-  check(A, ClassQuery.SUBCLASS, C, ClassQuery.SUBCLASS,
-      new SubclassResult.internal(ClassQuery.SUBCLASS, [C]));
-  check(A, ClassQuery.SUBCLASS, C, ClassQuery.SUBTYPE,
-      new SubclassResult.internal(ClassQuery.SUBCLASS, [C]));
-  check(A, ClassQuery.SUBTYPE, C, ClassQuery.SUBCLASS,
-      new SubclassResult.internal(ClassQuery.SUBCLASS, [C]));
-  check(A, ClassQuery.SUBTYPE, C, ClassQuery.SUBTYPE,
-      new SubclassResult.internal(ClassQuery.SUBTYPE, [C]));
+  check(A, ClassQuery.EXACT, C, ClassQuery.EXACT, []);
+  check(A, ClassQuery.EXACT, C, ClassQuery.SUBCLASS, []);
+  check(A, ClassQuery.SUBCLASS, C, ClassQuery.EXACT, []);
+  check(A, ClassQuery.EXACT, C, ClassQuery.SUBTYPE, []);
+  check(A, ClassQuery.SUBTYPE, C, ClassQuery.EXACT, []);
+  check(A, ClassQuery.SUBCLASS, C, ClassQuery.SUBCLASS, [G]);
+  check(A, ClassQuery.SUBCLASS, C, ClassQuery.SUBTYPE, [G]);
+  check(A, ClassQuery.SUBTYPE, C, ClassQuery.SUBCLASS, [G]);
+  check(A, ClassQuery.SUBTYPE, C, ClassQuery.SUBTYPE, [F, G, H]);
 
-  check(B, ClassQuery.EXACT, C, ClassQuery.EXACT,
-      new SubclassResult.internal(ClassQuery.EXACT, []));
-  check(B, ClassQuery.EXACT, C, ClassQuery.SUBCLASS,
-      new SubclassResult.internal(ClassQuery.EXACT, []));
-  check(B, ClassQuery.SUBCLASS, C, ClassQuery.EXACT,
-      new SubclassResult.internal(ClassQuery.EXACT, []));
-  check(B, ClassQuery.EXACT, C, ClassQuery.SUBTYPE,
-      new SubclassResult.internal(ClassQuery.EXACT, []));
-  check(B, ClassQuery.SUBTYPE, C, ClassQuery.EXACT,
-      new SubclassResult.internal(ClassQuery.EXACT, []));
-  check(B, ClassQuery.SUBCLASS, C, ClassQuery.SUBCLASS,
-      new SubclassResult.internal(ClassQuery.EXACT, []));
-  check(B, ClassQuery.SUBCLASS, C, ClassQuery.SUBTYPE,
-      new SubclassResult.internal(ClassQuery.SUBCLASS, []));
-  check(B, ClassQuery.SUBTYPE, C, ClassQuery.SUBCLASS,
-      new SubclassResult.internal(ClassQuery.SUBCLASS, [G]));
-  check(B, ClassQuery.SUBTYPE, C, ClassQuery.SUBTYPE,
-      new SubclassResult.internal(ClassQuery.SUBCLASS, [F, G]));
+  check(B, ClassQuery.EXACT, C, ClassQuery.EXACT, []);
+  check(B, ClassQuery.EXACT, C, ClassQuery.SUBCLASS, []);
+  check(B, ClassQuery.SUBCLASS, C, ClassQuery.EXACT, []);
+  check(B, ClassQuery.EXACT, C, ClassQuery.SUBTYPE, []);
+  check(B, ClassQuery.SUBTYPE, C, ClassQuery.EXACT, []);
+  check(B, ClassQuery.SUBCLASS, C, ClassQuery.SUBCLASS, []);
+  check(B, ClassQuery.SUBCLASS, C, ClassQuery.SUBTYPE, []);
+  check(B, ClassQuery.SUBTYPE, C, ClassQuery.SUBCLASS, [G]);
+  check(B, ClassQuery.SUBTYPE, C, ClassQuery.SUBTYPE, [F, G]);
 }

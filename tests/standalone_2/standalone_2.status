@@ -6,6 +6,9 @@
 # listed in tests/lib/analyzer/analyze_tests.status without the "standalone"
 # prefix.
 io/http_close_test: Pass, RuntimeError # Issue 28380
+io/non_utf8_directory_test: Skip # Issue 33519. Temp files causing bots to go purple.
+io/non_utf8_file_test: Skip # Issue 33519. Temp files causing bots to go purple.
+io/non_utf8_link_test: Skip # Issue 33519. Temp files causing bots to go purple.
 io/raw_socket_test: Pass, RuntimeError # Issue 28288
 issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue 14516 comment #4.
 package/invalid_uri_test: Fail, OK # CompileTimeErrors intentionally

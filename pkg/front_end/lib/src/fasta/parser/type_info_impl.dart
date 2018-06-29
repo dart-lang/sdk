@@ -603,9 +603,12 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
       assert(optional('>', endGroup) || optional('>>', endGroup));
       // If `>>`, then the end or last consumed token is the token before `>>`.
       end = optional('>>', next) ? token : next;
-    } else if (inDeclaration && start.endGroup == null) {
-      // Recovery: Unbalanced `<`
-      end = token;
+    } else if (inDeclaration) {
+      end = start.endGroup;
+      if (end == null) {
+        // Recovery: Unbalanced `<`
+        end = token;
+      }
     } else {
       return noTypeParamOrArg;
     }
@@ -614,6 +617,7 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
 
   @override
   Token parseArguments(Token token, Parser parser) {
+    assert(identical(token.next, start));
     Token next = start;
     Token innerEndGroup = processBeginGroup(start, parser);
     parser.listener.beginTypeArguments(start);
@@ -654,6 +658,7 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
 
   @override
   Token parseVariables(Token token, Parser parser) {
+    assert(identical(token.next, start));
     Token next = start;
     Listener listener = parser.listener;
     listener.beginTypeVariables(start);

@@ -82,7 +82,7 @@ main(List<String> args) {
     ], expectedOutput: OUTPUT1, printJs: args.contains('-v'));
     await runWithD8(
         memorySourceFiles: {'main.dart': SOURCE2},
-        options: [Flags.enableCheckedMode],
+        options: [Flags.noPreviewDart2, Flags.enableCheckedMode],
         expectedOutput: OUTPUT2,
         printJs: args.contains('-v'));
   });

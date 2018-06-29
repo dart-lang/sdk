@@ -167,8 +167,7 @@ class InferredDataBuilderImpl implements InferredDataBuilder {
 
   @override
   SideEffectsBuilder getSideEffectsBuilder(MemberEntity member) {
-    return _sideEffectsBuilders.putIfAbsent(
-        member, () => new SideEffectsBuilder(member));
+    return _sideEffectsBuilders[member] ??= new SideEffectsBuilder(member);
   }
 
   @override

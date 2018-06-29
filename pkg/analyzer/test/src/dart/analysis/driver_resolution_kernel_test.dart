@@ -23,43 +23,6 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
-  test_annotation() async {
-    await super.test_annotation();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
-  test_annotation_constructor_withNestedConstructorInvocation() async {
-    await super.test_annotation_constructor_withNestedConstructorInvocation();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33567')
-  test_annotation_kind_reference() async {
-    await super.test_annotation_kind_reference();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_annotation_prefixed_classConstructor() {
-    // TODO(paulberry): broken because prefixes are not working properly
-    return super.test_annotation_prefixed_classConstructor();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_annotation_prefixed_classConstructorNamed() {
-    // TODO(paulberry): broken because prefixes are not working properly
-    return super.test_annotation_prefixed_classConstructorNamed();
-  }
-
-  @override
-  @failingTest
   @potentialAnalyzerProblem
   test_annotation_prefixed_classField() {
     // TODO(paulberry): broken because prefixes are not working properly
@@ -68,25 +31,9 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_annotation_prefixed_topLevelVariable() {
-    // TODO(paulberry): broken because prefixes are not working properly
-    return super.test_annotation_prefixed_topLevelVariable();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31605')
   test_constructor_redirected_generic() async {
     await super.test_constructor_redirected_generic();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_functionExpressionInvocation() {
-    // TODO(paulberry): broken because of in-progress FunctionTypeImpl rework
-    return super.test_functionExpressionInvocation();
   }
 
   @override
@@ -113,14 +60,6 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
     // generic parameters not being properly associated with the generic
     // parameters from the kernel representation.
     return super.test_local_function_generic();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_type_functionTypeAlias() {
-    // TODO(paulberry): broken because of in-progress FunctionTypeImpl rework
-    return super.test_type_functionTypeAlias();
   }
 }
 

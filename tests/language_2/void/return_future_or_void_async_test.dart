@@ -11,8 +11,7 @@ void main() {
   test1();
   test2();
   test3();
-  test4();
-  test5();
+  test6();
 }
 
 // Testing that a block bodied function may have an empty return
@@ -33,14 +32,7 @@ FutureOr<void> test3() async {
   return null as FutureOr<void>;
 }
 
-// Testing that a block bodied async function may return non-void
-// values
-FutureOr<void> test4() async {
-  return 42;
-}
-
-// Testing that a block bodied async function may return non-void
-// Future values
-FutureOr<void> test5() async {
-  return new Future.value(42);
+// Testing that a block bodied function may return void
+FutureOr<void> test6() async {
+  return voidValue;
 }

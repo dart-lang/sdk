@@ -43,7 +43,7 @@ import '../options.dart';
 import '../ordered_typeset.dart';
 import '../ssa/kernel_impact.dart';
 import '../ssa/type_builder.dart';
-import '../universe/class_hierarchy.dart';
+import '../universe/class_hierarchy_builder.dart';
 import '../universe/class_set.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
@@ -930,215 +930,222 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
   }
 
   LibraryEntity _getLibrary(ir.Library node, [LibraryEnv libraryEnv]) {
-    return _libraryMap.putIfAbsent(node, () {
-      assert(
-          !_envIsClosed,
-          "Environment of $this is closed. Trying to create "
-          "library for $node.");
-      Uri canonicalUri = node.importUri;
-      String name = node.name;
-      if (name == null) {
-        // Use the file name as script name.
-        String path = canonicalUri.path;
-        name = path.substring(path.lastIndexOf('/') + 1);
-      }
-      IndexedLibrary library = createLibrary(name, canonicalUri);
-      return _libraries.register(library, new LibraryData(node),
-          libraryEnv ?? _env.lookupLibrary(canonicalUri));
-    });
+    return _libraryMap[node] ??= _getLibraryCreate(node, libraryEnv);
+  }
+
+  LibraryEntity _getLibraryCreate(ir.Library node, LibraryEnv libraryEnv) {
+    assert(
+        !_envIsClosed,
+        "Environment of $this is closed. Trying to create "
+        "library for $node.");
+    Uri canonicalUri = node.importUri;
+    String name = node.name;
+    if (name == null) {
+      // Use the file name as script name.
+      String path = canonicalUri.path;
+      name = path.substring(path.lastIndexOf('/') + 1);
+    }
+    IndexedLibrary library = createLibrary(name, canonicalUri);
+    return _libraries.register(library, new LibraryData(node),
+        libraryEnv ?? _env.lookupLibrary(canonicalUri));
   }
 
   ClassEntity _getClass(ir.Class node, [ClassEnv classEnv]) {
-    return _classMap.putIfAbsent(node, () {
-      assert(
-          !_envIsClosed,
-          "Environment of $this is closed. Trying to create "
-          "class for $node.");
-      KLibrary library = _getLibrary(node.enclosingLibrary);
-      if (classEnv == null) {
-        classEnv = _libraries.getEnv(library).lookupClass(node.name);
-      }
-      IndexedClass cls =
-          createClass(library, node.name, isAbstract: node.isAbstract);
-      return _classes.register(cls,
-          new ClassData(node, new RegularClassDefinition(cls, node)), classEnv);
-    });
+    return _classMap[node] ??= _getClassCreate(node, classEnv);
+  }
+
+  ClassEntity _getClassCreate(ir.Class node, ClassEnv classEnv) {
+    assert(
+        !_envIsClosed,
+        "Environment of $this is closed. Trying to create "
+        "class for $node.");
+    KLibrary library = _getLibrary(node.enclosingLibrary);
+    if (classEnv == null) {
+      classEnv = _libraries.getEnv(library).lookupClass(node.name);
+    }
+    IndexedClass cls =
+        createClass(library, node.name, isAbstract: node.isAbstract);
+    return _classes.register(cls,
+        new ClassData(node, new RegularClassDefinition(cls, node)), classEnv);
   }
 
   TypedefEntity _getTypedef(ir.Typedef node) {
-    return _typedefMap.putIfAbsent(node, () {
-      assert(
-          !_envIsClosed,
-          "Environment of $this is closed. Trying to create "
-          "typedef for $node.");
-      IndexedLibrary library = _getLibrary(node.enclosingLibrary);
-      IndexedTypedef typedef = createTypedef(library, node.name);
-      TypedefType typedefType = new TypedefType(
-          typedef,
-          new List<DartType>.filled(
-              node.typeParameters.length, const DynamicType()));
-      return _typedefs.register(
-          typedef, new TypedefData(node, typedef, typedefType));
-    });
+    return _typedefMap[node] ??= _getTypedefCreate(node);
+  }
+
+  TypedefEntity _getTypedefCreate(ir.Typedef node) {
+    assert(
+        !_envIsClosed,
+        "Environment of $this is closed. Trying to create "
+        "typedef for $node.");
+    IndexedLibrary library = _getLibrary(node.enclosingLibrary);
+    IndexedTypedef typedef = createTypedef(library, node.name);
+    TypedefType typedefType = new TypedefType(
+        typedef,
+        new List<DartType>.filled(
+            node.typeParameters.length, const DynamicType()));
+    return _typedefs.register(
+        typedef, new TypedefData(node, typedef, typedefType));
   }
 
   TypeVariableEntity _getTypeVariable(ir.TypeParameter node) {
-    return _typeVariableMap.putIfAbsent(node, () {
-      assert(
-          !_envIsClosed,
-          "Environment of $this is closed. Trying to create "
-          "type variable for $node.");
-      if (node.parent is ir.Class) {
-        ir.Class cls = node.parent;
-        int index = cls.typeParameters.indexOf(node);
-        return _typeVariables.register(
-            createTypeVariable(_getClass(cls), node.name, index),
-            new TypeVariableData(node));
-      }
-      if (node.parent is ir.FunctionNode) {
-        ir.FunctionNode func = node.parent;
-        int index = func.typeParameters.indexOf(node);
-        if (func.parent is ir.Constructor) {
-          ir.Constructor constructor = func.parent;
-          ir.Class cls = constructor.enclosingClass;
+    return _typeVariableMap[node] ??= _getTypeVariableCreate(node);
+  }
+
+  TypeVariableEntity _getTypeVariableCreate(ir.TypeParameter node) {
+    assert(
+        !_envIsClosed,
+        "Environment of $this is closed. Trying to create "
+        "type variable for $node.");
+    if (node.parent is ir.Class) {
+      ir.Class cls = node.parent;
+      int index = cls.typeParameters.indexOf(node);
+      return _typeVariables.register(
+          createTypeVariable(_getClass(cls), node.name, index),
+          new TypeVariableData(node));
+    }
+    if (node.parent is ir.FunctionNode) {
+      ir.FunctionNode func = node.parent;
+      int index = func.typeParameters.indexOf(node);
+      if (func.parent is ir.Constructor) {
+        ir.Constructor constructor = func.parent;
+        ir.Class cls = constructor.enclosingClass;
+        return _getTypeVariable(cls.typeParameters[index]);
+      } else if (func.parent is ir.Procedure) {
+        ir.Procedure procedure = func.parent;
+        if (procedure.kind == ir.ProcedureKind.Factory) {
+          ir.Class cls = procedure.enclosingClass;
           return _getTypeVariable(cls.typeParameters[index]);
-        } else if (func.parent is ir.Procedure) {
-          ir.Procedure procedure = func.parent;
-          if (procedure.kind == ir.ProcedureKind.Factory) {
-            ir.Class cls = procedure.enclosingClass;
-            return _getTypeVariable(cls.typeParameters[index]);
-          } else {
-            return _typeVariables.register(
-                createTypeVariable(_getMethod(procedure), node.name, index),
-                new TypeVariableData(node));
-          }
         } else {
-          throw new UnsupportedError(
-              'Unsupported function type parameter parent '
-              'node ${func.parent}.');
+          return _typeVariables.register(
+              createTypeVariable(_getMethod(procedure), node.name, index),
+              new TypeVariableData(node));
         }
+      } else {
+        throw new UnsupportedError('Unsupported function type parameter parent '
+            'node ${func.parent}.');
       }
-      throw new UnsupportedError('Unsupported type parameter type node $node.');
-    });
+    }
+    throw new UnsupportedError('Unsupported type parameter type node $node.');
   }
 
   ConstructorEntity _getConstructor(ir.Member node) {
-    return _constructorMap.putIfAbsent(node, () {
-      assert(
-          !_envIsClosed,
-          "Environment of $this is closed. Trying to create "
-          "constructor for $node.");
-      MemberDefinition definition;
-      ir.FunctionNode functionNode;
-      ClassEntity enclosingClass = _getClass(node.enclosingClass);
-      Name name = getName(node.name);
-      bool isExternal = node.isExternal;
+    return _constructorMap[node] ??= _getConstructorCreate(node);
+  }
 
-      IndexedConstructor constructor;
-      if (node is ir.Constructor) {
-        functionNode = node.function;
-        constructor = createGenerativeConstructor(enclosingClass, name,
-            _getParameterStructure(functionNode, includeTypeParameters: false),
-            isExternal: isExternal, isConst: node.isConst);
-        definition = new SpecialMemberDefinition(
-            constructor, node, MemberKind.constructor);
-      } else if (node is ir.Procedure) {
-        functionNode = node.function;
-        bool isFromEnvironment = isExternal &&
-            name.text == 'fromEnvironment' &&
-            const ['int', 'bool', 'String'].contains(enclosingClass.name);
-        constructor = createFactoryConstructor(enclosingClass, name,
-            _getParameterStructure(functionNode, includeTypeParameters: false),
-            isExternal: isExternal,
-            isConst: node.isConst,
-            isFromEnvironmentConstructor: isFromEnvironment);
-        definition = new RegularMemberDefinition(constructor, node);
-      } else {
-        // TODO(johnniwinther): Convert `node.location` to a [SourceSpan].
-        throw failedAt(
-            NO_LOCATION_SPANNABLE, "Unexpected constructor node: ${node}.");
-      }
-      return _members.register<IndexedConstructor, ConstructorData>(
-          constructor, new ConstructorDataImpl(node, functionNode, definition));
-    });
+  ConstructorEntity _getConstructorCreate(ir.Member node) {
+    assert(
+        !_envIsClosed,
+        "Environment of $this is closed. Trying to create "
+        "constructor for $node.");
+    MemberDefinition definition;
+    ir.FunctionNode functionNode;
+    ClassEntity enclosingClass = _getClass(node.enclosingClass);
+    Name name = getName(node.name);
+    bool isExternal = node.isExternal;
+
+    IndexedConstructor constructor;
+    if (node is ir.Constructor) {
+      functionNode = node.function;
+      constructor = createGenerativeConstructor(enclosingClass, name,
+          _getParameterStructure(functionNode, includeTypeParameters: false),
+          isExternal: isExternal, isConst: node.isConst);
+      definition = new SpecialMemberDefinition(
+          constructor, node, MemberKind.constructor);
+    } else if (node is ir.Procedure) {
+      functionNode = node.function;
+      bool isFromEnvironment = isExternal &&
+          name.text == 'fromEnvironment' &&
+          const ['int', 'bool', 'String'].contains(enclosingClass.name);
+      constructor = createFactoryConstructor(enclosingClass, name,
+          _getParameterStructure(functionNode, includeTypeParameters: false),
+          isExternal: isExternal,
+          isConst: node.isConst,
+          isFromEnvironmentConstructor: isFromEnvironment);
+      definition = new RegularMemberDefinition(constructor, node);
+    } else {
+      // TODO(johnniwinther): Convert `node.location` to a [SourceSpan].
+      throw failedAt(
+          NO_LOCATION_SPANNABLE, "Unexpected constructor node: ${node}.");
+    }
+    return _members.register<IndexedConstructor, ConstructorData>(
+        constructor, new ConstructorDataImpl(node, functionNode, definition));
   }
 
   FunctionEntity _getMethod(ir.Procedure node) {
-    return _methodMap.putIfAbsent(node, () {
-      assert(
-          !_envIsClosed,
-          "Environment of $this is closed. Trying to create "
-          "function for $node.");
-      LibraryEntity library;
-      ClassEntity enclosingClass;
-      if (node.enclosingClass != null) {
-        enclosingClass = _getClass(node.enclosingClass);
-        library = enclosingClass.library;
-      } else {
-        library = _getLibrary(node.enclosingLibrary);
-      }
-      Name name = getName(node.name);
-      bool isStatic = node.isStatic;
-      bool isExternal = node.isExternal;
-      // TODO(johnniwinther): Remove `&& !node.isExternal` when #31233 is fixed.
-      bool isAbstract = node.isAbstract && !node.isExternal;
-      AsyncMarker asyncMarker = getAsyncMarker(node.function);
-      IndexedFunction function;
-      switch (node.kind) {
-        case ir.ProcedureKind.Factory:
-          throw new UnsupportedError("Cannot create method from factory.");
-        case ir.ProcedureKind.Getter:
-          function = createGetter(library, enclosingClass, name, asyncMarker,
-              isStatic: isStatic,
-              isExternal: isExternal,
-              isAbstract: isAbstract);
-          break;
-        case ir.ProcedureKind.Method:
-        case ir.ProcedureKind.Operator:
-          function = createMethod(library, enclosingClass, name,
-              _getParameterStructure(node.function), asyncMarker,
-              isStatic: isStatic,
-              isExternal: isExternal,
-              isAbstract: isAbstract);
-          break;
-        case ir.ProcedureKind.Setter:
-          assert(asyncMarker == AsyncMarker.SYNC);
-          function = createSetter(library, enclosingClass, name.setter,
-              isStatic: isStatic,
-              isExternal: isExternal,
-              isAbstract: isAbstract);
-          break;
-      }
-      return _members.register<IndexedFunction, FunctionData>(
-          function,
-          new FunctionDataImpl(node, node.function,
-              new RegularMemberDefinition(function, node)));
-    });
+    return _methodMap[node] ??= _getMethodCreate(node);
+  }
+
+  FunctionEntity _getMethodCreate(ir.Procedure node) {
+    assert(
+        !_envIsClosed,
+        "Environment of $this is closed. Trying to create "
+        "function for $node.");
+    LibraryEntity library;
+    ClassEntity enclosingClass;
+    if (node.enclosingClass != null) {
+      enclosingClass = _getClass(node.enclosingClass);
+      library = enclosingClass.library;
+    } else {
+      library = _getLibrary(node.enclosingLibrary);
+    }
+    Name name = getName(node.name);
+    bool isStatic = node.isStatic;
+    bool isExternal = node.isExternal;
+    // TODO(johnniwinther): Remove `&& !node.isExternal` when #31233 is fixed.
+    bool isAbstract = node.isAbstract && !node.isExternal;
+    AsyncMarker asyncMarker = getAsyncMarker(node.function);
+    IndexedFunction function;
+    switch (node.kind) {
+      case ir.ProcedureKind.Factory:
+        throw new UnsupportedError("Cannot create method from factory.");
+      case ir.ProcedureKind.Getter:
+        function = createGetter(library, enclosingClass, name, asyncMarker,
+            isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
+        break;
+      case ir.ProcedureKind.Method:
+      case ir.ProcedureKind.Operator:
+        function = createMethod(library, enclosingClass, name,
+            _getParameterStructure(node.function), asyncMarker,
+            isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
+        break;
+      case ir.ProcedureKind.Setter:
+        assert(asyncMarker == AsyncMarker.SYNC);
+        function = createSetter(library, enclosingClass, name.setter,
+            isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
+        break;
+    }
+    return _members.register<IndexedFunction, FunctionData>(
+        function,
+        new FunctionDataImpl(
+            node, node.function, new RegularMemberDefinition(function, node)));
   }
 
   FieldEntity _getField(ir.Field node) {
-    return _fieldMap.putIfAbsent(node, () {
-      assert(
-          !_envIsClosed,
-          "Environment of $this is closed. Trying to create "
-          "field for $node.");
-      LibraryEntity library;
-      ClassEntity enclosingClass;
-      if (node.enclosingClass != null) {
-        enclosingClass = _getClass(node.enclosingClass);
-        library = enclosingClass.library;
-      } else {
-        library = _getLibrary(node.enclosingLibrary);
-      }
-      Name name = getName(node.name);
-      bool isStatic = node.isStatic;
-      IndexedField field = createField(library, enclosingClass, name,
-          isStatic: isStatic,
-          isAssignable: node.isMutable,
-          isConst: node.isConst);
-      return _members.register<IndexedField, FieldData>(field,
-          new FieldDataImpl(node, new RegularMemberDefinition(field, node)));
-    });
+    return _fieldMap[node] ??= _getFieldCreate(node);
+  }
+
+  FieldEntity _getFieldCreate(ir.Field node) {
+    assert(
+        !_envIsClosed,
+        "Environment of $this is closed. Trying to create "
+        "field for $node.");
+    LibraryEntity library;
+    ClassEntity enclosingClass;
+    if (node.enclosingClass != null) {
+      enclosingClass = _getClass(node.enclosingClass);
+      library = enclosingClass.library;
+    } else {
+      library = _getLibrary(node.enclosingLibrary);
+    }
+    Name name = getName(node.name);
+    bool isStatic = node.isStatic;
+    IndexedField field = createField(library, enclosingClass, name,
+        isStatic: isStatic,
+        isAssignable: node.isMutable,
+        isConst: node.isConst);
+    return _members.register<IndexedField, FieldData>(field,
+        new FieldDataImpl(node, new RegularMemberDefinition(field, node)));
   }
 
   ParameterStructure _getParameterStructure(ir.FunctionNode node,
@@ -2073,6 +2080,9 @@ class KClosedWorldImpl extends ClosedWorldRtiNeedMixin implements KClosedWorld {
 
   final Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses;
 
+  final Map<ClassEntity, ClassHierarchyNode> _classHierarchyNodes;
+  final Map<ClassEntity, ClassSet> _classSets;
+
   // TODO(johnniwinther): Can this be derived from [ClassSet]s?
   final Set<ClassEntity> _implementedClasses;
 
@@ -2085,8 +2095,6 @@ class KClosedWorldImpl extends ClosedWorldRtiNeedMixin implements KClosedWorld {
   final Iterable<ClassEntity> liveNativeClasses;
 
   final Iterable<MemberEntity> processedMembers;
-
-  final ClassHierarchy classHierarchy;
 
   KClosedWorldImpl(this.elementMap,
       {CompilerOptions options,
@@ -2110,14 +2118,160 @@ class KClosedWorldImpl extends ClosedWorldRtiNeedMixin implements KClosedWorld {
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassEntity, ClassSet> classSets})
       : _implementedClasses = implementedClasses,
-        classHierarchy = new ClassHierarchyImpl(
-            commonElements, classHierarchyNodes, classSets) {
+        _classHierarchyNodes = classHierarchyNodes,
+        _classSets = classSets {
     computeRtiNeed(resolutionWorldBuilder, rtiNeedBuilder, options);
   }
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassEntity cls) {
     return _implementedClasses.contains(cls);
+  }
+
+  /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
+  /// of known classes.
+  ///
+  /// This method is only provided for testing. For queries on classes, use the
+  /// methods defined in [JClosedWorld].
+  ClassHierarchyNode getClassHierarchyNode(ClassEntity cls) {
+    return _classHierarchyNodes[cls];
+  }
+
+  /// Returns [ClassSet] for [cls] used to model the extends and implements
+  /// relations of known classes.
+  ///
+  /// This method is only provided for testing. For queries on classes, use the
+  /// methods defined in [JClosedWorld].
+  ClassSet getClassSet(ClassEntity cls) {
+    return _classSets[cls];
+  }
+
+  // TODO(johnniwinther): Share the methods based on [ClassSet] and
+  // [ClassHierarchyNode] between KClosedWorld and JClosedWorld.
+  /// Returns `true` if [x] is a subtype of [y], that is, if [x] implements an
+  /// instance of [y].
+  bool isSubtypeOf(ClassEntity x, ClassEntity y) {
+    ClassSet classSet = _classSets[y];
+    assert(classSet != null,
+        failedAt(y, "No ClassSet for $y (${y.runtimeType}): ${_classSets}"));
+    ClassHierarchyNode classHierarchyNode = _classHierarchyNodes[x];
+    assert(classHierarchyNode != null,
+        failedAt(x, "No ClassHierarchyNode for $x"));
+    return classSet.hasSubtype(classHierarchyNode);
+  }
+
+  /// Returns an iterable over the directly instantiated that implement [cls]
+  /// possibly including [cls] itself, if it is live.
+  Iterable<ClassEntity> subtypesOf(ClassEntity cls) {
+    ClassSet classSet = _classSets[cls];
+    if (classSet == null) {
+      return const <ClassEntity>[];
+    } else {
+      return classSet
+          .subtypesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED);
+    }
+  }
+
+  /// Returns an iterable over the directly instantiated classes that extend
+  /// [cls] possibly including [cls] itself, if it is live.
+  Iterable<ClassEntity> subclassesOf(ClassEntity cls) {
+    ClassHierarchyNode hierarchy = _classHierarchyNodes[cls];
+    if (hierarchy == null) return const <ClassEntity>[];
+    return hierarchy
+        .subclassesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED);
+  }
+
+  /// Returns an iterable over the directly instantiated that implement [cls]
+  /// _not_ including [cls].
+  Iterable<ClassEntity> strictSubtypesOf(ClassEntity cls) {
+    ClassSet classSet = _classSets[cls];
+    if (classSet == null) {
+      return const <ClassEntity>[];
+    } else {
+      return classSet.subtypesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
+          strict: true);
+    }
+  }
+
+  Iterable<ClassEntity> getInterfaces(ClassEntity cls) {
+    return elementMap._getInterfaces(cls).map((t) => t.element);
+  }
+
+  ClassEntity getSuperClass(ClassEntity cls) {
+    return elementMap._getSuperType(cls)?.element;
+  }
+
+  /// Returns an iterable over the directly instantiated classes that extend
+  /// [cls] _not_ including [cls] itself.
+  Iterable<ClassEntity> strictSubclassesOf(ClassEntity cls) {
+    ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
+    if (subclasses == null) return const <ClassEntity>[];
+    return subclasses.subclassesByMask(
+        ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
+        strict: true);
+  }
+
+  Set<ClassEntity> _commonContainedClasses(ClassEntity cls1, ClassQuery query1,
+      ClassEntity cls2, ClassQuery query2) {
+    Iterable<ClassEntity> xSubset = _containedSubset(cls1, query1);
+    if (xSubset == null) return null;
+    Iterable<ClassEntity> ySubset = _containedSubset(cls2, query2);
+    if (ySubset == null) return null;
+    return xSubset.toSet().intersection(ySubset.toSet());
+  }
+
+  Iterable<ClassEntity> _containedSubset(ClassEntity cls, ClassQuery query) {
+    switch (query) {
+      case ClassQuery.EXACT:
+        return null;
+      case ClassQuery.SUBCLASS:
+        return strictSubclassesOf(cls);
+      case ClassQuery.SUBTYPE:
+        return strictSubtypesOf(cls);
+    }
+    throw new ArgumentError('Unexpected query: $query.');
+  }
+
+  Iterable<ClassEntity> commonSubclasses(ClassEntity cls1, ClassQuery query1,
+      ClassEntity cls2, ClassQuery query2) {
+    // TODO(johnniwinther): Use [ClassSet] to compute this.
+    // Compute the set of classes that are contained in both class subsets.
+    Set<ClassEntity> common =
+        _commonContainedClasses(cls1, query1, cls2, query2);
+    if (common == null || common.isEmpty) return const <ClassEntity>[];
+    // Narrow down the candidates by only looking at common classes
+    // that do not have a superclass or supertype that will be a
+    // better candidate.
+    return common.where((ClassEntity each) {
+      bool containsSuperclass = common.contains(getSuperClass(each));
+      // If the superclass is also a candidate, then we don't want to
+      // deal with this class. If we're only looking for a subclass we
+      // know we don't have to look at the list of interfaces because
+      // they can never be in the common set.
+      if (containsSuperclass ||
+          query1 == ClassQuery.SUBCLASS ||
+          query2 == ClassQuery.SUBCLASS) {
+        return !containsSuperclass;
+      }
+      // Run through the direct supertypes of the class. If the common
+      // set contains the direct supertype of the class, we ignore the
+      // the class because the supertype is a better candidate.
+
+      for (ClassEntity interface in getInterfaces(each)) {
+        if (common.contains(interface)) return false;
+      }
+      return true;
+    });
+  }
+
+  /// Applies [f] to each live class that implements [cls] _not_ including [cls]
+  /// itself.
+  void forEachStrictSubtypeOf(
+      ClassEntity cls, IterationStep f(ClassEntity cls)) {
+    ClassSet classSet = _classSets[cls];
+    if (classSet == null) return;
+    classSet.forEachSubtype(f, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
+        strict: true);
   }
 }
 

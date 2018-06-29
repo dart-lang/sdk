@@ -1782,6 +1782,7 @@ DEFINE_RUNTIME_ENTRY(InterpretCall, 4) {
     }
     Exceptions::PropagateError(Error::Cast(result));
   }
+  arguments.SetReturn(result);
 #else
   UNREACHABLE();
 #endif  // defined(DART_USE_INTERPRETER)
