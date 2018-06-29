@@ -4,7 +4,7 @@
 
 // test w/ `pub run test -N prefer_is_empty`
 
-const int ZERO = 0;
+const int zero = 0;
 Iterable<int> list = [];
 Map map = {};
 
@@ -20,8 +20,8 @@ bool le = list.length > 0; //LINT
 bool le2 = [].length > 0; //LINT
 bool le3 = ([].length as int) > 0; //LINT
 bool le4 = 0 < list.length; //LINT
-bool le5 = [].length < ZERO; //LINT
-bool le6 = ZERO < [].length; //LINT
+bool le5 = [].length < zero;
+bool le6 = zero < [].length;
 bool me = (map.length) == 0; //LINT
 bool ie = iterable.length != 0; //LINT
 bool ce = a()().length == 0; //LINT
