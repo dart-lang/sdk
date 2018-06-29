@@ -1341,7 +1341,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void handleIdentifier(Token token, IdentifierContext context) {
     debugEvent("handleIdentifier");
     String name = token.lexeme;
-    if (name.startsWith("deprecated_")) {
+    if (name.startsWith("deprecated") &&
+        (name == "deprecated" || name.startsWith("deprecated_"))) {
       addProblem(fasta.templateUseOfDeprecatedIdentifier.withArguments(name),
           offsetForToken(token), lengthForToken(token));
     }

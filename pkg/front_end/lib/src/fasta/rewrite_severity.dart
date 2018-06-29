@@ -10,9 +10,13 @@ Severity rewriteSeverity(
     Severity severity, msg.Code<Object> code, Uri fileUri) {
   if (severity != Severity.ignored) return severity;
   String path = fileUri.path;
-  const String fastaPath = "/pkg/front_end/lib/src/fasta/";
+  String fastaPath = "/pkg/front_end/lib/src/fasta/";
   int index = path.indexOf(fastaPath);
-  if (index == -1) return severity;
+  if (index == -1) {
+    fastaPath = "/pkg/front_end/tool/_fasta/";
+    index = path.indexOf(fastaPath);
+    if (index == -1) return severity;
+  }
   if (code == msg.codeUseOfDeprecatedIdentifier) {
     // TODO(ahe): Remove the exceptions below.
     // We plan to remove all uses of deprecated identifiers from Fasta. The
@@ -21,8 +25,10 @@ Severity rewriteSeverity(
     // below and compile Fasta with itself to get a list of remaining call
     // sites.
     switch (path.substring(fastaPath.length + index)) {
+      case "command_line.dart":
       case "command_line_reporting.dart":
       case "deprecated_problems.dart":
+      case "entry_points.dart":
       case "kernel/body_builder.dart":
       case "kernel/expression_generator.dart":
       case "kernel/kernel_expression_generator.dart":
@@ -71,6 +77,7 @@ Severity rewriteSeverity(
       case "dill/dill_loader.dart":
       case "dill/dill_target.dart":
       case "dill/dill_typedef_builder.dart":
+      case "entry_points.dart":
       case "export.dart":
       case "fasta_codes.dart":
       case "import.dart":
