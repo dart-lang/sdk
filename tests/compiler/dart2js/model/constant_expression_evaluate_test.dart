@@ -374,6 +374,9 @@ class B extends A {
  class Class6 extends Class5 {
     const Class6(a) : super(a - 1);
  }
+ class Class7 {
+    const Class7();
+ }
  ''', const [
     const ConstantData(
         r'"$integer $string $boolean"', 'StringConstant("5 baz false")'),
@@ -522,6 +525,12 @@ class B extends A {
     const ConstantData('const Class6(1)', 'NonConstant',
         expectedErrors: MessageKind.INVALID_ASSERT_VALUE_MESSAGE),
     const ConstantData('const Class6(2)', 'ConstructedConstant(Class6())'),
+    const ConstantData('const Class7()', 'ConstructedConstant(Class7())'),
+    const ConstantData('const Class7() == const Class7()', 'NonConstant',
+        expectedErrors: const [
+          MessageKind.INVALID_CONSTANT_BINARY_PRIMITIVE_TYPE,
+          MessageKind.INVALID_CONSTANT_BINARY_PRIMITIVE_TYPE
+        ]),
   ]),
   const TestData('assert', '''
     class A {

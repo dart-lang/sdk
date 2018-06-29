@@ -251,7 +251,6 @@ const_types_test/34: MissingCompileTimeError
 const_types_test/35: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
 const_types_test/40: MissingCompileTimeError
-constants_test/05: MissingCompileTimeError
 constructor_duplicate_final_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/02: MissingCompileTimeError
 constructor_named_arguments_test/01: MissingCompileTimeError
@@ -405,13 +404,9 @@ mixin_supertype_subclass4_test/04: CompileTimeError
 mixin_supertype_subclass4_test/05: CompileTimeError
 mixin_supertype_subclass4_test/none: CompileTimeError
 mixin_type_parameters_super_test: RuntimeError
+mock_writable_final_field_test: RuntimeError # Issue 30847
+mock_writable_final_private_field_test: RuntimeError # Issue 17526, 30847
 modulo_test: RuntimeError # non JS number semantics
-multiline_newline_test/04: MissingCompileTimeError
-multiline_newline_test/04r: MissingCompileTimeError
-multiline_newline_test/05: MissingCompileTimeError
-multiline_newline_test/05r: MissingCompileTimeError
-multiline_newline_test/06: MissingCompileTimeError
-multiline_newline_test/06r: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 nan_identical_test: RuntimeError # Issue 11551
 nested_generic_closure_test: Crash # Unsupported operation: Unsupported type parameter type node F.
@@ -463,7 +458,6 @@ syntax_test/32: MissingCompileTimeError # Issue 29763
 syntax_test/33: MissingCompileTimeError # Issue 29763
 tearoff_dynamic_test: RuntimeError
 truncdiv_test: RuntimeError # non JS number semantics - Issue 15246
-try_catch_test/01: MissingCompileTimeError
 type_check_const_function_typedef2_test: MissingCompileTimeError
 type_literal_test: RuntimeError
 type_parameter_test/06: Crash # Internal Error: Unexpected type variable in static context.
@@ -524,7 +518,6 @@ const_switch_test/02: RuntimeError, OK # constant identity based on JS constants
 const_switch_test/04: RuntimeError, OK # constant identity based on JS constants
 const_types_test/34: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
-constants_test/05: MissingCompileTimeError
 constructor12_test: RuntimeError
 constructor_named_arguments_test/none: RuntimeError
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
@@ -674,13 +667,9 @@ mixin_supertype_subclass_test/01: CompileTimeError
 mixin_supertype_subclass_test/03: CompileTimeError
 mixin_supertype_subclass_test/04: CompileTimeError
 mixin_supertype_subclass_test/none: CompileTimeError
+mock_writable_final_field_test: RuntimeError # Issue 30847
+mock_writable_final_private_field_test: RuntimeError # Issue 17526, 30847
 modulo_test: RuntimeError # non JS number semantics
-multiline_newline_test/04: MissingCompileTimeError
-multiline_newline_test/04r: MissingCompileTimeError
-multiline_newline_test/05: MissingCompileTimeError
-multiline_newline_test/05r: MissingCompileTimeError
-multiline_newline_test/06: MissingCompileTimeError
-multiline_newline_test/06r: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 named_parameters_default_eq_test/none: RuntimeError
 nan_identical_test: RuntimeError # Issue 11551
@@ -735,7 +724,6 @@ syntax_test/32: MissingCompileTimeError # Issue 29763
 syntax_test/33: MissingCompileTimeError # Issue 29763
 tearoff_dynamic_test: RuntimeError
 truncdiv_test: RuntimeError # non JS number semantics - Issue 15246
-try_catch_test/01: MissingCompileTimeError
 type_error_test: RuntimeError
 type_literal_test: RuntimeError
 type_promotion_functions_test/02: CompileTimeError
@@ -864,7 +852,6 @@ const_switch_test/02: RuntimeError, OK # constant identity based on JS constants
 const_switch_test/04: RuntimeError, OK # constant identity based on JS constants
 const_types_test/34: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
-constants_test/05: MissingCompileTimeError
 constructor12_test: RuntimeError
 constructor_named_arguments_test/none: RuntimeError
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
@@ -1085,13 +1072,9 @@ mixin_supertype_subclass_test/04: CompileTimeError
 mixin_supertype_subclass_test/none: CompileTimeError
 mixin_type_parameters_errors_test/03: MissingCompileTimeError
 mixin_type_parameters_errors_test/04: MissingCompileTimeError
+mock_writable_final_field_test: RuntimeError # Issue 30847
+mock_writable_final_private_field_test: RuntimeError # Issue 17526, 30847
 modulo_test: RuntimeError # non JS number semantics
-multiline_newline_test/04: MissingCompileTimeError
-multiline_newline_test/04r: MissingCompileTimeError
-multiline_newline_test/05: MissingCompileTimeError
-multiline_newline_test/05r: MissingCompileTimeError
-multiline_newline_test/06: MissingCompileTimeError
-multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 named_parameters_default_eq_test/none: RuntimeError
@@ -1167,7 +1150,6 @@ syntax_test/32: MissingCompileTimeError # Issue 29763
 syntax_test/33: MissingCompileTimeError # Issue 29763
 tearoff_dynamic_test: RuntimeError
 truncdiv_test: RuntimeError # non JS number semantics - Issue 15246
-try_catch_test/01: MissingCompileTimeError
 type_error_test: RuntimeError
 type_literal_prefix_call_test/00: MissingCompileTimeError
 type_literal_test: RuntimeError
@@ -1320,7 +1302,6 @@ const_switch_test/02: RuntimeError, OK # constant identity based on JS constants
 const_switch_test/04: RuntimeError, OK # constant identity based on JS constants
 const_types_test/34: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
-constants_test/05: MissingCompileTimeError
 constructor12_test: RuntimeError
 constructor_named_arguments_test/none: RuntimeError
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
@@ -1544,12 +1525,6 @@ mixin_type_parameters_errors_test/04: MissingCompileTimeError
 mock_writable_final_field_test: RuntimeError # Issue 30847
 mock_writable_final_private_field_test: RuntimeError # Issue 17526, 30847
 modulo_test: RuntimeError # non JS number semantics
-multiline_newline_test/04: MissingCompileTimeError
-multiline_newline_test/04r: MissingCompileTimeError
-multiline_newline_test/05: MissingCompileTimeError
-multiline_newline_test/05r: MissingCompileTimeError
-multiline_newline_test/06: MissingCompileTimeError
-multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 named_parameters_default_eq_test/none: RuntimeError
@@ -1624,7 +1599,6 @@ syntax_test/32: MissingCompileTimeError # Issue 29763
 syntax_test/33: MissingCompileTimeError # Issue 29763
 tearoff_dynamic_test: RuntimeError
 truncdiv_test: RuntimeError # non JS number semantics - Issue 15246
-try_catch_test/01: MissingCompileTimeError
 type_error_test: RuntimeError
 type_literal_prefix_call_test/00: MissingCompileTimeError
 type_literal_test: RuntimeError
