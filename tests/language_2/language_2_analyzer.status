@@ -100,7 +100,6 @@ deferred_constraints_type_annotation_test/type_annotation_top_level: MissingComp
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
 dynamic_field_test/01: MissingCompileTimeError
 dynamic_field_test/02: MissingCompileTimeError
-dynamic_prefix_core_test/01: MissingCompileTimeError
 emit_const_fields_test: Pass
 empty_block_case_test: MissingCompileTimeError
 enum_private_test/02: MissingCompileTimeError
@@ -499,7 +498,6 @@ deferred_constraints_type_annotation_test/type_annotation_top_level: MissingComp
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
 dynamic_field_test/01: MissingCompileTimeError
 dynamic_field_test/02: MissingCompileTimeError
-dynamic_prefix_core_test/01: MissingCompileTimeError
 emit_const_fields_test: Pass
 empty_block_case_test: MissingCompileTimeError
 enum_private_test/02: MissingCompileTimeError
@@ -848,6 +846,7 @@ deep_nesting1_negative_test: CompileTimeError # Issue 25558
 deep_nesting2_negative_test: CompileTimeError # Issue 25558
 duplicate_export_negative_test: CompileTimeError
 duplicate_interface_negative_test: CompileTimeError
+dynamic_prefix_core_test/01: MissingCompileTimeError
 emit_const_fields_test: CompileTimeError
 enum_syntax_test/05: Fail # Issue 21649
 enum_syntax_test/06: Fail # Issue 21649
@@ -869,7 +868,6 @@ implicit_creation/implicit_const_context_constructor_generic_named_test: Compile
 implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError
 implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: CompileTimeError
 implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError
-import_core_prefix_test: StaticWarning
 index_assign_operator_infer_return_type_test: StaticWarning
 initializing_formal_final_test: MissingCompileTimeError
 inst_field_initializer1_negative_test: CompileTimeError
@@ -1138,7 +1136,6 @@ forwarding_stub_tearoff_test: CompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30207
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
-import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.
 interceptor6_test: CompileTimeError
 issue13673_test: StaticWarning # Issue 31925
 issue15606_test/none: CompileTimeError # invalid use of void for dart 2

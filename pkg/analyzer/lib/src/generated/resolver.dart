@@ -8284,16 +8284,6 @@ class TypeNameResolver {
       // neither of which are in the name scope and hence will not be found by
       // normal means.
       //
-      if (typeName.name == dynamicType.name) {
-        _setElement(typeName, dynamicType.element);
-//        if (argumentList != null) {
-//          // TODO(brianwilkerson) Report this error
-//          reporter.reportError(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, node, dynamicType.getName(), 0, argumentList.getArguments().size());
-//        }
-        typeName.staticType = dynamicType;
-        node.type = dynamicType;
-        return;
-      }
       VoidTypeImpl voidType = VoidTypeImpl.instance;
       if (typeName.name == voidType.name) {
         // There is no element for 'void'.
@@ -8464,6 +8454,17 @@ class TypeNameResolver {
         return;
       }
       _setElement(typeName, element);
+    } else if (element is TypeDefiningElement &&
+        element.kind == ElementKind.DYNAMIC) {
+//      if (argumentList != null) {
+//        // Type parameters cannot have type arguments.
+//        // TODO(mfairhurst) Report this error.
+//        resolver.reportError(ResolverErrorCode.?, keyType);
+//      }
+      _setElement(typeName, element);
+      typeName.staticType = element.type;
+      node.type = element.type;
+      return;
     } else if (element is FunctionTypeAliasElement) {
       _setElement(typeName, element);
       type = element.type;
@@ -10521,6 +10522,10 @@ class TypeResolverVisitor extends ScopedVisitor {
     // If the type is not an InterfaceType, then visitTypeName() sets the type
     // to be a DynamicTypeImpl
     Identifier name = typeName.name;
+    // TODO(mfairhurst) differentiate between dynamic via clean path, and error
+    // types, and then check `type.isDynamic`. However, if we do that now, then
+    // [nonTypeError] will never be reported because non types are resolved to
+    // dynamic.
     if (name.name == Keyword.DYNAMIC.lexeme) {
       errorReporter.reportErrorForNode(dynamicTypeError, name, [name.name]);
     } else if (!nameScope.shouldIgnoreUndefined(name)) {

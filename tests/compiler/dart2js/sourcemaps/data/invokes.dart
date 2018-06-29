@@ -124,7 +124,7 @@ class C<T> extends B {
   invalidInvokes() {
     // ignore: not_enough_required_arguments
     C();
-    // ignore: undefined_method
+    // ignore: invocation_of_non_function
     dynamic();
     // ignore: invocation_of_non_function
     F();
