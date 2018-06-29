@@ -185,7 +185,6 @@ class _AllowedCommentVisitor extends SimpleAstVisitor {
   }
 }
 
-/// String looks like URI if it contains a slash or backslash followed by 5
-/// non-empty chars.
-final _uriRegExp = new RegExp(r'[/\\]\S{5,}');
+/// String looks like URI if it contains a slash or backslash.
+final _uriRegExp = new RegExp(r'[/\\]');
 bool _looksLikeUriOrPath(String value) => _uriRegExp.hasMatch(value);

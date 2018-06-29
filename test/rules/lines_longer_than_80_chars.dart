@@ -19,7 +19,7 @@ var posixPathIsOk =
     '/home/www.dartlang.org/guides/language/effective-dart/style#avoid-lines-longer-than-80-characters'; // OK
 
 var windowsPathIsOk =
-    r'\home\www.dartlang.org\guides\language\effective-dart\style#avoid-lines-longer-than-80-characters'; // OK
+    r'C:\home\www.dartlang.org\guides\language\effective-dart\style\avoid-lines-longer-than-80-characters'; // OK
 
 var multilinesOK = '''
 This line is a long, very long, very very long, very very very long, very very very very long
