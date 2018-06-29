@@ -1,3 +1,10 @@
+# 0.1.56
+
+* fix to `avoid_positional_boolean_parameters` to ignore overridden methods
+* fix to `prefer_is_empty` to not evaluate constants beyond int literals
+* new lint: `null_closures`
+* new lint: `lines_longer_than_80_chars`
+
 # 0.1.55
 
 * fixed an issue in `const` error handling
