@@ -4,6 +4,8 @@
 
 library fasta.errors;
 
+import 'dart:async' show Future;
+
 import 'command_line_reporting.dart' show shouldThrowOn;
 
 import 'crash.dart' show safeToString;
@@ -12,6 +14,8 @@ import 'messages.dart'
     show LocatedMessage, noLength, isVerbose, templateUnspecified;
 
 import 'severity.dart' show Severity;
+
+import 'crash.dart' show Crash, reportCrash, resetCrashReporting;
 
 /// Used to report an error in input.
 ///
@@ -50,5 +54,26 @@ class deprecated_InputError {
     return templateUnspecified
         .withArguments(safeToString(error.error))
         .withLocation(error.uri, error.charOffset, noLength);
+  }
+}
+
+// TODO(ahe): Move this method to crash.dart when it's no longer using
+// [deprecated_InputError].
+Future<T> withCrashReporting<T>(
+    Future<T> Function() action, Uri Function() currentUri,
+    {T Function(LocatedMessage) onInputError}) async {
+  resetCrashReporting();
+  try {
+    return await action();
+  } on Crash {
+    rethrow;
+  } on deprecated_InputError catch (e, s) {
+    if (onInputError != null) {
+      return onInputError(deprecated_InputError.toMessage(e));
+    } else {
+      return reportCrash(e, s, currentUri());
+    }
+  } catch (e, s) {
+    return reportCrash(e, s, currentUri());
   }
 }

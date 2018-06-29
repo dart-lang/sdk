@@ -11,6 +11,8 @@ import 'dart:convert' show jsonEncode;
 import 'dart:io'
     show ContentType, HttpClient, HttpClientRequest, SocketException, stderr;
 
+export 'deprecated_problems.dart' show withCrashReporting;
+
 const String defaultServerAddress = "http://127.0.0.1:59410/";
 
 /// Tracks if there has been a crash reported through [reportCrash]. Should be
