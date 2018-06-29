@@ -1621,17 +1621,17 @@
           "arguments": ["create_sdk"]
         },
         {
-          "name": "Analyze pkg/analysis_server/",
+          "name": "Analyze pkg/analysis_server",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": ["--no-hints","pkg/analysis_server"]
         },
         {
-          "name": "Analyze pkg/analyzer/",
+          "name": "Analyze pkg/analyzer",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": ["--no-hints","pkg/analyzer"]
         },
         {
-          "name": "Analyze pkg/analyzer_plugin/",
+          "name": "Analyze pkg/analyzer_plugin",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": ["--no-hints","pkg/analyzer_plugin"]
         }
@@ -1649,7 +1649,7 @@
           "arguments": ["create_sdk"]
         },
         {
-          "name": "analyze pkg/analysis_server/",
+          "name": "analyze pkg/analysis_server",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
             "--no-hints",
@@ -1658,7 +1658,7 @@
           ]
         },
         {
-          "name": "analyze pkg/analyzer/",
+          "name": "analyze pkg/analyzer",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
             "--no-hints",
@@ -1667,7 +1667,7 @@
           ]
         },
         {
-          "name": "analyze pkg/analyzer_cli/lib/",
+          "name": "analyze pkg/analyzer_cli/lib",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
             "--no-hints",
@@ -1682,7 +1682,7 @@
             "--compiler=none",
             "--use-sdk",
             "--vm-options=-DuseFastaParser=true",
-            "pkg/analyzer/"
+            "pkg/analyzer"
           ]
         },
         {
@@ -1692,7 +1692,7 @@
             "--compiler=none",
             "--use-sdk",
             "--vm-options=-DuseFastaParser=true",
-            "pkg/analyzer_plugin/"
+            "pkg/analyzer_plugin"
           ]
         },
         {
@@ -1702,7 +1702,7 @@
             "--compiler=none",
             "--use-sdk",
             "--vm-options=-DuseFastaParser=true",
-            "pkg/analysis_server/"
+            "pkg/analysis_server"
           ]
         }
       ]
