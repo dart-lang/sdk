@@ -817,6 +817,20 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  test_duplicatePart_sameSource() async {
+    // Expected 1 errors of type CompileTimeErrorCode.DUPLICATE_PART, found 2
+    await super.test_duplicatePart_sameSource();
+  }
+
+  @override
+  @failingTest
+  test_duplicatePart_sameUri() async {
+    // Expected 1 errors of type CompileTimeErrorCode.DUPLICATE_PART, found 2
+    await super.test_duplicatePart_sameUri();
+  }
+
+  @override
+  @failingTest
   test_exportInternalLibrary() async {
     // Expected 1 errors of type CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY, found 0
     await super.test_exportInternalLibrary();
@@ -1023,6 +1037,69 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
     // Expected 1 errors of type CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, found 0;
     //          1 errors of type StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0
     await super.test_fromEnvironment_bool_badDefault_whenDefined();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeArgument_class() async {
+    await super.test_genericFunctionTypeArgument_class();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeArgument_function() async {
+    await super.test_genericFunctionTypeArgument_function();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeArgument_functionType() async {
+    await super.test_genericFunctionTypeArgument_functionType();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeArgument_method() async {
+    await super.test_genericFunctionTypeArgument_method();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeAsBound_class() async {
+    await super.test_genericFunctionTypeAsBound_class();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeAsBound_genericFunction() async {
+    await super.test_genericFunctionTypeAsBound_genericFunction();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeAsBound_genericFunctionTypedef() async {
+    await super.test_genericFunctionTypeAsBound_genericFunctionTypedef();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeAsBound_parameterOfFunction() async {
+    await super.test_genericFunctionTypeAsBound_parameterOfFunction();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeAsBound_typedef() async {
+    await super.test_genericFunctionTypeAsBound_typedef();
   }
 
   @override
@@ -2249,6 +2326,20 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  test_partOfNonPart() async {
+    // Expected 1 errors of type CompileTimeErrorCode.PART_OF_NON_PART, found 2
+    await super.test_partOfNonPart();
+  }
+
+  @override
+  @failingTest
+  test_partOfNonPart_self() async {
+    // Expected 1 errors of type CompileTimeErrorCode.PART_OF_NON_PART, found 2
+    await super.test_partOfNonPart_self();
+  }
+
+  @override
+  @failingTest
   test_prefix_assignment_compound_in_method() async {
     // Bad state: No reference information for p at 46
     await super.test_prefix_assignment_compound_in_method();
@@ -2468,24 +2559,10 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_recursiveCompileTimeConstant_cycle() async {
-    // UnimplementedError: kernel: (ShadowMethodInvocation) #lib4::y.+(1)
-    await super.test_recursiveCompileTimeConstant_cycle();
-  }
-
-  @override
-  @failingTest
   test_recursiveCompileTimeConstant_initializer_after_toplevel_var() async {
     // Expected 1 errors of type CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, found 0
     await super
         .test_recursiveCompileTimeConstant_initializer_after_toplevel_var();
-  }
-
-  @override
-  @failingTest
-  test_recursiveCompileTimeConstant_singleVariable() async {
-    // Expected 1 errors of type CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, found 0
-    await super.test_recursiveCompileTimeConstant_singleVariable();
   }
 
   @override
@@ -2682,6 +2759,13 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  test_referencedBeforeDeclaration_hideInBlock_function() async {
+    // Expected 1 errors of type CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, found 2
+    await super.test_referencedBeforeDeclaration_hideInBlock_function();
+  }
+
+  @override
+  @failingTest
   test_referencedBeforeDeclaration_hideInBlock_local() async {
     // Bad state: No type information for v at 38
     await super.test_referencedBeforeDeclaration_hideInBlock_local();
@@ -2706,6 +2790,13 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_referencedBeforeDeclaration_inInitializer_directly() async {
     // Bad state: No type information for v at 15
     await super.test_referencedBeforeDeclaration_inInitializer_directly();
+  }
+
+  @override
+  @failingTest
+  test_referencedBeforeDeclaration_type_localFunction() async {
+    // Expected 1 errors of type CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, found 2
+    await super.test_referencedBeforeDeclaration_type_localFunction();
   }
 
   @override
@@ -3083,69 +3174,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_yieldInNonGenerator_async() async {
     // Test passes, even though if fails in the superclass
     await super.test_yieldInNonGenerator_async();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericFunctionTypeAsBound_class() async {
-    await super.test_genericFunctionTypeAsBound_class();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericFunctionTypeAsBound_genericFunction() async {
-    await super.test_genericFunctionTypeAsBound_genericFunction();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericFunctionTypeAsBound_genericFunctionTypedef() async {
-    await super.test_genericFunctionTypeAsBound_genericFunctionTypedef();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericFunctionTypeAsBound_parameterOfFunction() async {
-    await super.test_genericFunctionTypeAsBound_parameterOfFunction();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericFunctionTypeAsBound_typedef() async {
-    await super.test_genericFunctionTypeAsBound_typedef();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericFunctionTypeArgument_class() async {
-    await super.test_genericFunctionTypeArgument_class();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericFunctionTypeArgument_functionType() async {
-    await super.test_genericFunctionTypeArgument_functionType();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericFunctionTypeArgument_function() async {
-    await super.test_genericFunctionTypeArgument_function();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericFunctionTypeArgument_method() async {
-    await super.test_genericFunctionTypeArgument_method();
   }
 }
 

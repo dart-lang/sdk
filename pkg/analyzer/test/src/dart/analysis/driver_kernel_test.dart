@@ -31,8 +31,40 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @override
   bool get useCFE => true;
 
-//  @failingTest
-//  @potentialAnalyzerProblem
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  @AnalyzerProblem('https://github.com/dart-lang/sdk/issues/33674')
+  test_analyze_resolveDirectives_error_missingLibraryDirective() async {
+    await super.test_analyze_resolveDirectives_error_missingLibraryDirective();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  @AnalyzerProblem('https://github.com/dart-lang/sdk/issues/33674')
+  test_analyze_resolveDirectives_error_partOfDifferentLibrary_byName() async {
+    await super
+        .test_analyze_resolveDirectives_error_partOfDifferentLibrary_byName();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  @AnalyzerProblem('https://github.com/dart-lang/sdk/issues/33674')
+  test_analyze_resolveDirectives_error_partOfDifferentLibrary_byUri() async {
+    await super
+        .test_analyze_resolveDirectives_error_partOfDifferentLibrary_byUri();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  @AnalyzerProblem('https://github.com/dart-lang/sdk/issues/33674')
+  test_analyze_resolveDirectives_error_partOfNonPart() async {
+    await super.test_analyze_resolveDirectives_error_partOfNonPart();
+  }
+
   @override
   test_asyncChangesDuringAnalysis_getErrors() async {
     // TODO(brianwilkerson) Re-enable this test. It was disabled because it
@@ -249,6 +281,11 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   test_results_order() async {
     await super.test_results_order();
   }
+}
+
+/// Tests marked with this annotation fail because of an Analyzer problem.
+class AnalyzerProblem {
+  const AnalyzerProblem(String issueUri);
 }
 
 /// Tests marked with this annotation fail because of a Fasta problem.

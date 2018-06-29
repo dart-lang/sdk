@@ -740,6 +740,14 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33679')
+  test_undefinedMethod() async {
+    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_METHOD, found 2
+    await super.test_undefinedMethod();
+  }
+
+  @override
+  @failingTest
   test_undefinedMethod_generic_function_call() async {
     // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_METHOD, found 0
     await super.test_undefinedMethod_generic_function_call();
@@ -771,6 +779,14 @@ class StaticTypeWarningCodeTest_Kernel
   test_undefinedMethod_ofNull() async {
     // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_METHOD, found 0
     await super.test_undefinedMethod_ofNull();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33679')
+  test_undefinedMethod_private() async {
+    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_METHOD, found 2
+    await super.test_undefinedMethod_private();
   }
 
   @override
@@ -841,13 +857,6 @@ class StaticTypeWarningCodeTest_Kernel
   test_undefinedSetter_static() async {
     // Bad state: No reference information for A at 17
     await super.test_undefinedSetter_static();
-  }
-
-  @override
-  @failingTest
-  test_undefinedSuperGetter() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_SUPER_GETTER, found 0
-    await super.test_undefinedSuperGetter();
   }
 
   @override

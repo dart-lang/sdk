@@ -14,6 +14,11 @@ main() {
 
 const potentialAnalyzerProblem = const Object();
 
+/// Tests marked with this annotation fail because of an Analyzer problem.
+class AnalyzerProblem {
+  const AnalyzerProblem(String issueUri);
+}
+
 /// Tests marked with this annotation fail because of a Fasta problem.
 class FastaProblem {
   const FastaProblem(String issueUri);
@@ -216,14 +221,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   test_argumentTypeNotAssignable_invocation_functionParameter_generic() async {
     return super
         .test_argumentTypeNotAssignable_invocation_functionParameter_generic();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_invocation_functionTypes_optional() async {
-    return super
-        .test_argumentTypeNotAssignable_invocation_functionTypes_optional();
   }
 
   @override
@@ -1560,6 +1557,13 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @potentialAnalyzerProblem
   test_notEnoughRequiredArguments_getterReturningFunction() async {
     return super.test_notEnoughRequiredArguments_getterReturningFunction();
+  }
+
+  @override
+  @failingTest
+  @AnalyzerProblem('https://github.com/dart-lang/sdk/issues/33674')
+  test_partOfDifferentLibrary() async {
+    return super.test_partOfDifferentLibrary();
   }
 
   @override

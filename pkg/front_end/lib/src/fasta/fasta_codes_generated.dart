@@ -211,6 +211,7 @@ const Code<Null> codeAwaitNotAsync = messageAwaitNotAsync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAwaitNotAsync = const MessageCode("AwaitNotAsync",
+    analyzerCode: "AWAIT_IN_WRONG_CONTEXT",
     dart2jsCode: "*ignored*",
     message: r"""'await' can only be used in 'async' or 'async*' methods.""");
 
@@ -474,6 +475,7 @@ const Template<
 const Code<Message Function(String string)> codeCantInferTypeDueToCircularity =
     const Code<Message Function(String string)>(
         "CantInferTypeDueToCircularity", templateCantInferTypeDueToCircularity,
+        analyzerCode: "RECURSIVE_COMPILE_TIME_CONSTANT",
         severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1844,6 +1846,7 @@ const Code<Message Function(String name)>
     const Code<Message Function(String name)>(
         "DuplicatedNamePreviouslyUsedCause",
         templateDuplicatedNamePreviouslyUsedCause,
+        analyzerCode: "REFERENCED_BEFORE_DECLARATION",
         severity: Severity.context);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2803,6 +2806,7 @@ const Template<Message Function(String name)> templateGetterNotFound =
 const Code<Message Function(String name)> codeGetterNotFound =
     const Code<Message Function(String name)>(
         "GetterNotFound", templateGetterNotFound,
+        analyzerCode: "UNDEFINED_GETTER",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4182,6 +4186,7 @@ const Template<Message Function(String name)> templateMethodNotFound =
 const Code<Message Function(String name)> codeMethodNotFound =
     const Code<Message Function(String name)>(
         "MethodNotFound", templateMethodNotFound,
+        analyzerCode: "UNDEFINED_METHOD",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4398,9 +4403,8 @@ const Template<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(Uri uri_)> codeMissingPartOf =
     const Code<Message Function(Uri uri_)>(
-  "MissingPartOf",
-  templateMissingPartOf,
-);
+        "MissingPartOf", templateMissingPartOf,
+        analyzerCode: "PART_OF_NON_PART");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMissingPartOf(Uri uri_) {
@@ -5167,6 +5171,7 @@ const Code<Message Function(Uri uri_, String name, String name2)>
     codePartOfLibraryNameMismatch =
     const Code<Message Function(Uri uri_, String name, String name2)>(
         "PartOfLibraryNameMismatch", templatePartOfLibraryNameMismatch,
+        analyzerCode: "PART_OF_DIFFERENT_LIBRARY",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5234,6 +5239,7 @@ const Code<Message Function(Uri uri_, Uri uri2_, Uri uri3_)>
     codePartOfUriMismatch =
     const Code<Message Function(Uri uri_, Uri uri2_, Uri uri3_)>(
         "PartOfUriMismatch", templatePartOfUriMismatch,
+        analyzerCode: "PART_OF_DIFFERENT_LIBRARY",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5266,6 +5272,7 @@ const Code<Message Function(Uri uri_, Uri uri2_, String name)>
     codePartOfUseUri =
     const Code<Message Function(Uri uri_, Uri uri2_, String name)>(
         "PartOfUseUri", templatePartOfUseUri,
+        analyzerCode: "PART_OF_UNNAMED_LIBRARY",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5287,10 +5294,8 @@ const Template<Message Function(Uri uri_)> templatePartTwice =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(Uri uri_)> codePartTwice =
-    const Code<Message Function(Uri uri_)>(
-  "PartTwice",
-  templatePartTwice,
-);
+    const Code<Message Function(Uri uri_)>("PartTwice", templatePartTwice,
+        analyzerCode: "DUPLICATE_PART");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsPartTwice(Uri uri_) {
@@ -5824,6 +5829,7 @@ const Template<Message Function(String name)> templateSuperclassHasNoGetter =
 const Code<Message Function(String name)> codeSuperclassHasNoGetter =
     const Code<Message Function(String name)>(
         "SuperclassHasNoGetter", templateSuperclassHasNoGetter,
+        analyzerCode: "UNDEFINED_SUPER_GETTER",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5864,6 +5870,7 @@ const Template<Message Function(String name)> templateSuperclassHasNoSetter =
 const Code<Message Function(String name)> codeSuperclassHasNoSetter =
     const Code<Message Function(String name)>(
         "SuperclassHasNoSetter", templateSuperclassHasNoSetter,
+        analyzerCode: "ABSTRACT_SUPER_MEMBER_REFERENCE",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

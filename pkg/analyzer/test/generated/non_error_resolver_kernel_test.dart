@@ -119,6 +119,23 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
+  test_conflictingStaticSetterAndInstanceMember_thisClass_method() async {
+    // Bad state: Unable to convert (null, @39, Conflicts with member 'x'.)
+    return super
+        .test_conflictingStaticSetterAndInstanceMember_thisClass_method();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33676')
+  test_constConstructorWithMixinWithField() {
+    // Bad state: Unable to convert (Unspecified, null, @52, Can't extend a mixin application and be 'const'.)
+    return super.test_constConstructorWithMixinWithField();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
   test_constConstructorWithNonConstSuper_unresolved() async {
     return super.test_constConstructorWithNonConstSuper_unresolved();
   }
@@ -242,6 +259,14 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   test_undefinedGetter_static_conditionalAccess() {
     // Bad state: No data for A at 36
     return super.test_undefinedGetter_static_conditionalAccess();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33677')
+  test_undefinedIdentifier_synthetic_whenExpression() {
+    // Expected 0 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 1 (29)
+    return super.test_undefinedIdentifier_synthetic_whenExpression();
   }
 
   @override

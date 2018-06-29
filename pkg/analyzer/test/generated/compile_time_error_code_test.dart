@@ -555,7 +555,7 @@ f(x) sync* {
   yield await x;
 }''');
     await computeAnalysisResult(source);
-    if (usingFastaParser) {
+    if (usingFastaParser || useCFE) {
       assertErrors(source, [CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT]);
     }
     verify([source]);

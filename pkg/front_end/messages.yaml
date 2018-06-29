@@ -923,6 +923,7 @@ AwaitAsIdentifier:
 
 AwaitNotAsync:
   template: "'await' can only be used in 'async' or 'async*' methods."
+  analyzerCode: AWAIT_IN_WRONG_CONTEXT
   dart2jsCode: "*ignored*"
 
 BuiltInIdentifierAsType:
@@ -1130,6 +1131,7 @@ NonInstanceTypeVariableUse:
 
 GetterNotFound:
   template: "Getter not found: '#name'."
+  analyzerCode: UNDEFINED_GETTER
   severity: ERROR_LEGACY_WARNING
 
 SetterNotFound:
@@ -1138,6 +1140,7 @@ SetterNotFound:
 
 MethodNotFound:
   template: "Method not found: '#name'."
+  analyzerCode: UNDEFINED_METHOD
   severity: ERROR_LEGACY_WARNING
 
 CandidateFound:
@@ -1763,6 +1766,7 @@ PartOfTwice:
 
 PartTwice:
   template: "Can't use '#uri' as a part more than once."
+  analyzerCode: DUPLICATE_PART
   script:
     part.dart: "part of 'main.dart';"
     main.dart: "part 'part.dart'; part 'part.dart';"
@@ -1832,6 +1836,7 @@ MissingTypedefParameters:
 
 MissingPartOf:
   template: "Can't use '#uri' as a part, because it has no 'part of' declaration."
+  analyzerCode: PART_OF_NON_PART
   script:
     part.dart: ""
     main.dart: "part 'part.dart';"
@@ -1876,6 +1881,7 @@ DuplicatedNamePreviouslyUsed:
 
 DuplicatedNamePreviouslyUsedCause:
   template: "Previous use of '#name'."
+  analyzerCode: REFERENCED_BEFORE_DECLARATION
   severity: CONTEXT
 
 DuplicatedParameterName:
@@ -1929,15 +1935,18 @@ SupertypeIsTypeVariable:
 
 PartOfLibraryNameMismatch:
   template: "Using '#uri' as part of '#name' but its 'part of' declaration says '#name2'."
+  analyzerCode: PART_OF_DIFFERENT_LIBRARY
   severity: ERROR_LEGACY_WARNING
 
 PartOfUseUri:
   template: "Using '#uri' as part of '#uri2' but its 'part of' declaration says '#name'."
   tip: "Try changing the 'part of' declaration to use a relative file name."
+  analyzerCode: PART_OF_UNNAMED_LIBRARY
   severity: ERROR_LEGACY_WARNING
 
 PartOfUriMismatch:
   template: "Using '#uri' as part of '#uri2' but its 'part of' declaration says '#uri3'."
+  analyzerCode: PART_OF_DIFFERENT_LIBRARY
   severity: ERROR_LEGACY_WARNING
 
 MissingMain:
@@ -2012,10 +2021,12 @@ SuperclassMethodArgumentMismatch:
 
 SuperclassHasNoGetter:
   template: "Superclass has no getter named '#name'."
+  analyzerCode: UNDEFINED_SUPER_GETTER
   severity: ERROR_LEGACY_WARNING
 
 SuperclassHasNoSetter:
   template: "Superclass has no setter named '#name'."
+  analyzerCode: ABSTRACT_SUPER_MEMBER_REFERENCE
   severity: ERROR_LEGACY_WARNING
 
 SuperclassHasNoMethod:
@@ -2268,6 +2279,7 @@ CantInferTypeDueToInconsistentOverrides:
 CantInferTypeDueToCircularity:
   template: "Can't infer the type of '#string': circularity found during type inference."
   tip: "Specify the type explicitly."
+  analyzerCode: RECURSIVE_COMPILE_TIME_CONSTANT
   severity: ERROR
 
 AmbiguousSupertypes:

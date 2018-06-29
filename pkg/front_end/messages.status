@@ -21,7 +21,6 @@ AssertExtraneousArgument/analyzerCode: Fail
 AssertExtraneousArgument/example: Fail
 AsyncAsIdentifier/example: Fail
 AwaitAsIdentifier/example: Fail
-AwaitNotAsync/analyzerCode: Fail
 AwaitNotAsync/example: Fail
 BreakOutsideOfLoop/script1: Fail
 BuiltInIdentifierAsType/example: Fail
@@ -35,7 +34,7 @@ CantInferPackagesFromManyInputs/analyzerCode: Fail
 CantInferPackagesFromManyInputs/example: Fail
 CantInferPackagesFromPackageUri/analyzerCode: Fail
 CantInferPackagesFromPackageUri/example: Fail
-CantInferTypeDueToCircularity/analyzerCode: Fail
+CantInferTypeDueToCircularity/dart2jsCode: Fail
 CantInferTypeDueToCircularity/example: Fail
 CantInferTypeDueToInconsistentOverrides/analyzerCode: Fail
 CantInferTypeDueToInconsistentOverrides/example: Fail
@@ -196,7 +195,7 @@ ForInLoopNotAssignable/statement: Fail
 FunctionTypeDefaultValue/example: Fail
 FunctionTypedParameterVar/script1: Fail
 GeneratorReturnsValue/example: Fail
-GetterNotFound/analyzerCode: Fail
+GetterNotFound/dart2jsCode: Fail
 GetterNotFound/example: Fail
 GetterWithFormals/example: Fail
 IllegalAssignmentToNonAssignable/script1: Fail
@@ -243,7 +242,7 @@ MemberWithSameNameAsClass/analyzerCode: Fail
 MemberWithSameNameAsClass/example: Fail
 MetadataTypeArguments/analyzerCode: Fail
 MetadataTypeArguments/example: Fail
-MethodNotFound/analyzerCode: Fail
+MethodNotFound/dart2jsCode: Fail
 MethodNotFound/example: Fail
 MissingAssignableSelector/script1: Fail
 MissingAssignmentInInitializer/script1: Fail
@@ -251,7 +250,7 @@ MissingInput/analyzerCode: Fail
 MissingInput/example: Fail
 MissingMain/analyzerCode: Fail
 MissingMain/example: Fail
-MissingPartOf/analyzerCode: Fail
+MissingPartOf/dart2jsCode: Fail
 MissingPrefixInDeferredImport/example: Fail
 MixinInferenceNoMatchingClass/analyzerCode: Fail
 MixinInferenceNoMatchingClass/example: Fail
@@ -298,15 +297,15 @@ OverrideTypeVariablesMismatch/analyzerCode: Fail
 OverrideTypeVariablesMismatch/example: Fail
 PackageNotFound/analyzerCode: Fail
 PackageNotFound/example: Fail
-PartOfLibraryNameMismatch/analyzerCode: Fail
+PartOfLibraryNameMismatch/dart2jsCode: Fail
 PartOfLibraryNameMismatch/example: Fail
 PartOfSelf/analyzerCode: Fail
 PartOfTwoLibraries/analyzerCode: Fail # Issue 33227
-PartOfUriMismatch/analyzerCode: Fail
+PartOfUriMismatch/dart2jsCode: Fail
 PartOfUriMismatch/example: Fail
-PartOfUseUri/analyzerCode: Fail
+PartOfUseUri/dart2jsCode: Fail
 PartOfUseUri/example: Fail
-PartTwice/analyzerCode: Fail
+PartTwice/dart2jsCode: Fail
 PatchClassTypeVariablesMismatch/analyzerCode: Fail
 PatchClassTypeVariablesMismatch/example: Fail
 PatchDeclarationMismatch/analyzerCode: Fail
@@ -351,10 +350,10 @@ SuperAsIdentifier/analyzerCode: Fail
 SuperAsIdentifier/example: Fail
 SuperNullAware/example: Fail
 SuperclassHasNoDefaultConstructor/example: Fail
-SuperclassHasNoGetter/analyzerCode: Fail
+SuperclassHasNoGetter/dart2jsCode: Fail
 SuperclassHasNoGetter/example: Fail
 SuperclassHasNoMethod/example: Fail
-SuperclassHasNoSetter/analyzerCode: Fail
+SuperclassHasNoSetter/dart2jsCode: Fail
 SuperclassHasNoSetter/example: Fail
 SuperclassMethodArgumentMismatch/analyzerCode: Fail
 SuperclassMethodArgumentMismatch/example: Fail

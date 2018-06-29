@@ -119,4 +119,12 @@ void g(bool c) {
   test_unusedImport_metadata() async {
     await super.test_unusedImport_metadata();
   }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33678')
+  test_withSuperMixin() async {
+    // Expected 0 errors of type StaticTypeWarningCode.UNDEFINED_SUPER_GETTER, found 1 (82)
+    await super.test_withSuperMixin();
+  }
 }

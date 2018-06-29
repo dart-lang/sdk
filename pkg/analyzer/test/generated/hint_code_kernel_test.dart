@@ -41,6 +41,13 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
     return super.test_abstractSuperMemberReference_method_reference();
   }
 
+  @override
+  @failingTest
+  test_abstractSuperMemberReference_setter() async {
+    // Bad state: Unable to convert (ABSTRACT_SUPER_MEMBER_REFERENCE, @99, Superclass has no setter named 'test'.)
+    return super.test_abstractSuperMemberReference_setter();
+  }
+
   @failingTest
   @override
   test_abstractSuperMemberReference_superHasNoSuchMethod() async {

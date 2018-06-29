@@ -5,6 +5,7 @@
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token;
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/generated/resolver.dart' show ResolverErrorCode;
 import 'package:front_end/src/api_prototype/compilation_message.dart';
 import 'package:front_end/src/fasta/messages.dart' show Code, Message;
 
@@ -641,6 +642,11 @@ class FastaErrorReporter {
   }
 
   void reportCompilationMessage(CompilationMessage message) {
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/33680
+    if (message.code == 'MissingImplementationCause') {
+      return;
+    }
+
     String errorCodeStr = message.analyzerCode;
     ErrorCode errorCode = _getErrorCode(errorCodeStr);
     if (errorCode != null) {
@@ -652,7 +658,8 @@ class FastaErrorReporter {
           message.message,
           message.tip));
     } else {
-      // TODO(mfairhurst) throw here, and fail all tests that trip this.
+      throw new StateError('Unable to convert (${message.code}, $errorCodeStr, '
+          '@${message.span.start.offset}, $message)');
     }
   }
 
@@ -687,13 +694,15 @@ class FastaErrorReporter {
   /// Return the [ErrorCode] for the given [shortName], or `null` if not found.
   static ErrorCode _getErrorCode(String shortName) {
     const prefixes = const {
-      CompileTimeErrorCode: 'CompileTimeErrorCode',
-      ParserErrorCode: 'ParserErrorCode',
-      StaticTypeWarningCode: 'StaticTypeWarningCode',
-      StaticWarningCode: 'StaticWarningCode'
+      CompileTimeErrorCode: 'CompileTimeErrorCode.',
+      StrongModeCode: 'StrongModeCode.STRONG_MODE_',
+      ResolverErrorCode: 'ResolverErrorCode.',
+      ParserErrorCode: 'ParserErrorCode.',
+      StaticTypeWarningCode: 'StaticTypeWarningCode.',
+      StaticWarningCode: 'StaticWarningCode.'
     };
     for (var prefix in prefixes.values) {
-      var uniqueName = '$prefix.$shortName';
+      var uniqueName = '$prefix$shortName';
       var errorCode = errorCodeByUniqueName(uniqueName);
       if (errorCode != null) {
         return errorCode;
