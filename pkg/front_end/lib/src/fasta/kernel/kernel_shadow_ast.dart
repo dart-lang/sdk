@@ -2606,8 +2606,13 @@ class StaticAssignmentJudgment extends ComplexAssignmentJudgment {
       }
     }
     var inferredResult = _inferRhs(inferrer, factory, readType, writeContext);
-    inferrer.listener.staticAssign(this, write?.fileOffset, writeMember,
-        writeContext, inferredResult.combiner, inferredType);
+    inferrer.listener.staticAssign(
+        this,
+        write?.fileOffset,
+        writeMember,
+        writeContext is UnknownType ? const DynamicType() : writeContext,
+        inferredResult.combiner,
+        inferredType);
     _replaceWithDesugared();
     return null;
   }

@@ -1097,8 +1097,8 @@ class KernelStaticAccessGenerator extends KernelGenerator
       write = makeInvalidWrite(value);
     } else {
       write = new StaticSet(writeTarget, value);
-      complexAssignment?.write = write;
     }
+    complexAssignment?.write = write;
     write.fileOffset = offsetForToken(token);
     return write;
   }

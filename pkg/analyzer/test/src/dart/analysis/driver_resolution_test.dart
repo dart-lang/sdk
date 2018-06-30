@@ -657,25 +657,151 @@ void main() {
     }
   }
 
+  test_assignment_to_final_parameter() async {
+    addTestFile('''
+f(final int x) {
+  x += 2;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var xElement = findNode.simple('x)').staticElement;
+    expect(xElement, isNotNull);
+    var xReference = findNode.simple('x +=');
+    expect(xReference.staticElement, same(xElement));
+    expect(xReference.staticType.toString(), 'int');
+  }
+
   test_assignment_to_final_variable_local() async {
-    var content = '''
+    addTestFile('''
 main() {
   final x = 1;
   x += 2;
 }
-''';
-    addTestFile(content);
-    AnalysisResult result = await driver.getResult(testFile);
+''');
+    await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    var xDeclaration = new NodeLocator(content.indexOf('x ='))
-        .searchWithin(result.unit) as SimpleIdentifier;
-    var xElement = xDeclaration.staticElement;
+    var xElement = findNode.simple('x =').staticElement;
     expect(xElement, isNotNull);
-    var xReference = new NodeLocator(content.indexOf('x +='))
-        .searchWithin(result.unit) as SimpleIdentifier;
+    var xReference = findNode.simple('x +=');
     expect(xReference.staticElement, same(xElement));
     expect(xReference.staticType.toString(), 'int');
+  }
+
+  test_assignment_to_getter_instance_direct() async {
+    addTestFile('''
+class C {
+  int get x => 0;
+}
+f(C c) {
+  c.x += 2;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var xElement = findElement.getter('x');
+    expect(xElement, isNotNull);
+    var xReference = findNode.simple('x +=');
+    expect(xReference.staticElement, useCFE ? isNull : same(xElement));
+    expect(xReference.staticType.toString(), useCFE ? 'dynamic' : 'int');
+  }
+
+  test_assignment_to_getter_instance_via_implicit_this() async {
+    addTestFile('''
+class C {
+  int get x => 0;
+  f() {
+    x += 2;
+  }
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var xElement = findElement.getter('x');
+    expect(xElement, isNotNull);
+    var xReference = findNode.simple('x +=');
+    expect(xReference.staticElement, useCFE ? isNull : same(xElement));
+    expect(xReference.staticType.toString(), useCFE ? 'dynamic' : 'int');
+  }
+
+  test_assignment_to_getter_static_direct() async {
+    addTestFile('''
+class C {
+  static int get x => 0;
+}
+main() {
+  C.x += 2;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var xElement = findElement.getter('x');
+    expect(xElement, isNotNull);
+    var xReference = findNode.simple('x +=');
+    expect(xReference.staticElement, useCFE ? isNull : same(xElement));
+    expect(xReference.staticType.toString(), useCFE ? 'dynamic' : 'int');
+  }
+
+  test_assignment_to_getter_static_via_scope() async {
+    addTestFile('''
+class C {
+  static int get x => 0;
+  f() {
+    x += 2;
+  }
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var xElement = findElement.getter('x');
+    expect(xElement, isNotNull);
+    var xReference = findNode.simple('x +=');
+    expect(xReference.staticElement, useCFE ? isNull : same(xElement));
+    expect(xReference.staticType.toString(), useCFE ? 'dynamic' : 'int');
+  }
+
+  test_assignment_to_getter_top_level() async {
+    addTestFile('''
+int get x => 0;
+main() {
+  x += 2;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var xElement = findElement.topGet('x');
+    expect(xElement, isNotNull);
+    var xReference = findNode.simple('x +=');
+    expect(xReference.staticElement, useCFE ? isNull : same(xElement));
+    expect(xReference.staticType.toString(), useCFE ? 'dynamic' : 'int');
+  }
+
+  test_assignment_to_prefix() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, '''
+var x = 0;
+''');
+    addTestFile('''
+import 'a.dart' as p;
+main() {
+  p += 2;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var pElement = findElement.prefix('p');
+    expect(pElement, isNotNull);
+    var pReference = findNode.simple('p +=');
+    expect(pReference.staticElement, same(pElement));
+    expect(pReference.staticType, isNull);
   }
 
   test_assignmentExpression_compound_indexExpression() async {
@@ -7189,6 +7315,17 @@ class FindElement {
     fail('Not found class field: $name');
   }
 
+  PropertyAccessorElement getter(String name) {
+    for (var class_ in unitElement.types) {
+      for (var accessor in class_.accessors) {
+        if (accessor.isGetter && accessor.name == name) {
+          return accessor;
+        }
+      }
+    }
+    fail('Not found class accessor: $name');
+  }
+
   MethodElement method(String name) {
     for (var type in unitElement.types) {
       for (var method in type.methods) {
@@ -7198,6 +7335,16 @@ class FindElement {
       }
     }
     fail('Not found class method: $name');
+  }
+
+  PrefixElement prefix(String name) {
+    for (var import_ in unitElement.library.imports) {
+      var prefix = import_.prefix;
+      if (prefix != null && prefix.name == name) {
+        return prefix;
+      }
+    }
+    fail('Prefix not found: $name');
   }
 
   PropertyAccessorElement topGet(String name) {
