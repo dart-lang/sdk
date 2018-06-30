@@ -130,7 +130,7 @@ class Configuration {
   }
 
   String _boolToArg(String name, bool value) {
-    return value ? "--$name" : null;
+    return value == true ? "--$name" : null;
   }
 
   String _listToArg(String name, List<String> strings) {
