@@ -200,7 +200,11 @@ class _JSElementUpgrader implements ElementUpgrader {
   Element upgrade(Element element) {
     // Only exact type matches are supported- cannot be a subclass.
     if (element.runtimeType != _nativeType) {
-      throw new ArgumentError('element is not subclass of $_nativeType');
+      // Some browsers may represent non-upgraded elements <x-foo> as
+      // UnknownElement and not a plain HtmlElement.
+      if (_nativeType != HtmlElement || element.runtimeType != UnknownElement) {
+        throw new ArgumentError('element is not subclass of $_nativeType');
+      }
     }
 
     setNativeSubclassDispatchRecord(element, _interceptor);

@@ -323,6 +323,9 @@ mirrors/native_class_test: Pass, Slow
 async/catch_errors11_test: Pass, Timeout # Issue 22696
 async/timer_isActive_test: Fail, Pass, Timeout # Issue 22696
 
+[ $runtime == ff && $system == windows ]
+convert/utf85_test: Pass, Slow, Timeout
+
 [ $runtime != none && !$strong ]
 async/stream_first_where_test: RuntimeError
 async/stream_last_where_test: RuntimeError
