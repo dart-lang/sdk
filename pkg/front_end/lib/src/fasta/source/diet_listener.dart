@@ -540,7 +540,7 @@ class DietListener extends StackListener {
   StackListener createListener(
       ModifierBuilder builder, Scope memberScope, bool isInstanceMember,
       [Scope formalParameterScope,
-      TypeInferenceListener<int, int, Node, int> listener]) {
+      TypeInferenceListener<int, Node, int> listener]) {
     listener ??= new KernelTypeInferenceListener();
     // Note: we set thisType regardless of whether we are building a static
     // member, since that provides better error recovery.

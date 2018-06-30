@@ -234,7 +234,7 @@ class KernelFactory
       DartType loopVariableType,
       int writeOffset,
       DartType writeVariableType,
-      int writeVariableDeclarationOffset,
+      covariant Object writeVariableBinder,
       Node writeTarget) {
     return judgment;
   }
@@ -639,7 +639,7 @@ class KernelFactory
       ExpressionJudgment judgment,
       int fileOffset,
       DartType writeContext,
-      int writeVariableDeclarationOffset,
+      covariant VariableDeclaration writeVariableBinder,
       Node combiner,
       DartType inferredType) {
     return judgment;

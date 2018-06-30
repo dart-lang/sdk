@@ -475,7 +475,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   final TypeSchemaEnvironment typeSchemaEnvironment;
 
-  final TypeInferenceListener<int, int, Node, int> listener;
+  final TypeInferenceListener<int, Node, int> listener;
 
   final InterfaceType thisType;
 

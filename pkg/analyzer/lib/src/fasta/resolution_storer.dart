@@ -41,9 +41,9 @@ class ResolutionData<Type, Declaration, Reference, PrefixInfo> {
 
 /// Type inference listener that records inferred types for later use by
 /// [ResolutionApplier].
-class ResolutionStorer extends _ResolutionStorer<int, int, Node, int>
+class ResolutionStorer extends _ResolutionStorer<int, Node, int>
     implements
-        TypeInferenceListener<int, int, Node, int>,
+        TypeInferenceListener<int, Node, int>,
         Factory<void, void, void, void> {
   ResolutionStorer(Map<int, ResolutionData<DartType, int, Node, int>> data)
       : super(data);
@@ -60,16 +60,16 @@ class ResolutionStorer extends _ResolutionStorer<int, int, Node, int>
 /// accidentally peeking into kernel internals.
 ///
 /// TODO(paulberry): when the time is right, fuse this with [ResolutionStorer].
-class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
-  final Map<Location,
-      ResolutionData<DartType, Declaration, Reference, PrefixInfo>> _data;
+class _ResolutionStorer<Location, Reference, PrefixInfo> {
+  final Map<Location, ResolutionData<DartType, int, Reference, PrefixInfo>>
+      _data;
 
   _ResolutionStorer(this._data);
 
   void _store(Location location,
       {List<DartType> argumentTypes,
       Reference combiner,
-      Declaration declaration,
+      int declaration,
       DartType inferredType,
       DartType invokeType,
       bool isExplicitCall = false,
@@ -282,15 +282,16 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
       DartType loopVariableType,
       Location writeLocation,
       DartType writeType,
-      Declaration writeVariable,
+      covariant VariableDeclarationBinder writeVariableBinder,
       Reference writeTarget) {
     if (loopVariableBinder != null) {
       _store(loopVariableBinder.fileOffset as Location,
           inferredType: loopVariableType);
     } else {
-      if (writeVariable != null) {
+      if (writeVariableBinder != null) {
         _store(writeLocation,
-            declaration: writeVariable, inferredType: writeType);
+            declaration: writeVariableBinder.fileOffset,
+            inferredType: writeType);
       } else {
         _store(writeLocation,
             reference: writeTarget,
@@ -639,11 +640,11 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
       ExpressionJudgment judgment,
       Location location,
       DartType writeContext,
-      Declaration writeVariable,
+      covariant VariableDeclarationBinder writeVariableBinder,
       Reference combiner,
       DartType inferredType) {
     _store(location,
-        declaration: writeVariable,
+        declaration: writeVariableBinder?.fileOffset,
         isWriteReference: true,
         writeContext: writeContext,
         combiner: combiner,
@@ -671,8 +672,7 @@ class _ResolutionStorer<Location, Declaration, Reference, PrefixInfo> {
       return;
     }
     _store(location,
-        declaration: variableBinder.fileOffset as Declaration,
-        inferredType: inferredType);
+        declaration: variableBinder.fileOffset, inferredType: inferredType);
   }
 
   void whileStatement(

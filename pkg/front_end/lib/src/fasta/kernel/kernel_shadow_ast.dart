@@ -1300,7 +1300,8 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
           variable?.type,
           syntheticWrite.fileOffset,
           syntheticWrite.variable.type,
-          syntheticWrite.variable.fileOffset,
+          (syntheticWrite.variable as VariableDeclarationJudgment)
+              .createBinder(inferrer),
           null);
     } else if (syntheticWrite is PropertySet) {
       inferrer.listener.forInStatement(
@@ -2913,7 +2914,7 @@ class SymbolLiteralJudgment extends SymbolLiteral
 /// local variable.
 class InvalidVariableWriteJudgment extends SyntheticExpressionJudgment {
   /// Note: private to avoid colliding with Let.variable.
-  final VariableDeclaration _variable;
+  final VariableDeclarationJudgment _variable;
 
   InvalidVariableWriteJudgment(kernel.Expression desugared, this._variable)
       : super(desugared);
@@ -2924,7 +2925,7 @@ class InvalidVariableWriteJudgment extends SyntheticExpressionJudgment {
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     inferrer.listener.variableAssign(this, fileOffset, _variable.type,
-        _variable.fileOffset, null, _variable.type);
+        _variable.createBinder(inferrer), null, _variable.type);
     return super.infer(inferrer, factory, typeContext);
   }
 }
@@ -3153,7 +3154,7 @@ class ShadowTypeInferenceEngine extends TypeInferenceEngine {
   @override
   ShadowTypeInferrer createLocalTypeInferrer(
       Uri uri,
-      TypeInferenceListener<int, int, Node, int> listener,
+      TypeInferenceListener<int, Node, int> listener,
       InterfaceType thisType,
       SourceLibraryBuilder library) {
     return new ShadowTypeInferrer._(
@@ -3162,7 +3163,7 @@ class ShadowTypeInferenceEngine extends TypeInferenceEngine {
 
   @override
   ShadowTypeInferrer createTopLevelTypeInferrer(
-      TypeInferenceListener<int, int, Node, int> listener,
+      TypeInferenceListener<int, Node, int> listener,
       InterfaceType thisType,
       ShadowField field) {
     return field._typeInferrer = new ShadowTypeInferrer._(
@@ -3184,7 +3185,7 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   ShadowTypeInferrer._(
       ShadowTypeInferenceEngine engine,
       Uri uri,
-      TypeInferenceListener<int, int, Node, int> listener,
+      TypeInferenceListener<int, Node, int> listener,
       bool topLevel,
       InterfaceType thisType,
       SourceLibraryBuilder library)
@@ -3405,7 +3406,10 @@ class VariableAssignmentJudgment extends ComplexAssignmentJudgment {
         this,
         write.fileOffset,
         writeContext,
-        write is VariableSet ? write.variable.fileOffset : null,
+        write is VariableSet
+            ? (write.variable as VariableDeclarationJudgment)
+                .createBinder(inferrer)
+            : null,
         inferredResult.combiner,
         inferredType);
     _replaceWithDesugared();

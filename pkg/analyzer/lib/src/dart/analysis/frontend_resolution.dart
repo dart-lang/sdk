@@ -378,7 +378,7 @@ class _AnalyzerDietListener extends DietListener {
   StackListener createListener(
       ModifierBuilder builder, Scope memberScope, bool isInstanceMember,
       [Scope formalParameterScope,
-      TypeInferenceListener<int, int, Node, int> listener]) {
+      TypeInferenceListener<int, Node, int> listener]) {
     ResolutionStorer storer;
     var fileResolutions = _resolutions[builder.fileUri];
     if (fileResolutions == null) {
