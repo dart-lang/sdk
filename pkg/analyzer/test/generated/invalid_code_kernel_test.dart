@@ -25,12 +25,6 @@ class InvalidCodeTest_Kernel extends InvalidCodeTest {
 
   @failingTest
   @override
-  test_constructorAndMethodNameCollision() async {
-    return super.test_constructorAndMethodNameCollision();
-  }
-
-  @failingTest
-  @override
   test_genericFunction_asTypeArgument_ofUnresolvedClass() async {
     return super.test_genericFunction_asTypeArgument_ofUnresolvedClass();
   }

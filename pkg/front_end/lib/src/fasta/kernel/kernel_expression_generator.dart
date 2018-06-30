@@ -94,6 +94,7 @@ import 'kernel_ast_api.dart'
         Throw,
         TreeNode,
         TypeParameter,
+        UnresolvedVariableGetJudgment,
         VariableDeclaration,
         VariableGet,
         VariableSet;
@@ -1366,23 +1367,23 @@ class KernelLargeIntAccessGenerator extends KernelGenerator
       : super(helper, token);
 
   @override
-  Expression _makeSimpleRead() => buildError();
+  Expression _makeSimpleRead() => new SyntheticExpressionJudgment(buildError());
 
   @override
   Expression _makeSimpleWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
-    return buildError();
+    return new SyntheticExpressionJudgment(buildError());
   }
 
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    return buildError();
+    return new SyntheticExpressionJudgment(buildError());
   }
 
   @override
   Expression _makeWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
-    return buildError();
+    return new SyntheticExpressionJudgment(buildError());
   }
 }
 
@@ -1394,6 +1395,13 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
   KernelUnresolvedNameGenerator(
       ExpressionGeneratorHelper helper, Token token, this.name)
       : super(helper, token);
+
+  @override
+  Expression buildSimpleRead() {
+    Expression error = buildError(forest.argumentsEmpty(token), isGetter: true);
+    return new UnresolvedVariableGetJudgment(error)
+      ..fileOffset = token.charOffset;
+  }
 
   @override
   void printOn(StringSink sink) {

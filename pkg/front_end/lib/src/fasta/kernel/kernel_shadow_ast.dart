@@ -3549,6 +3549,22 @@ class VariableDeclarationJudgment extends VariableDeclaration
       variable._isLocalFunction;
 }
 
+/// Synthetic judgment class representing an attempt to read an unresolved
+/// variable.
+class UnresolvedVariableGetJudgment extends SyntheticExpressionJudgment {
+  UnresolvedVariableGetJudgment(kernel.Expression desugared) : super(desugared);
+
+  @override
+  Expression infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory,
+      DartType typeContext) {
+    inferrer.listener
+        .variableGet(this, fileOffset, false, null, const DynamicType());
+    return super.infer(inferrer, factory, typeContext);
+  }
+}
+
 /// Concrete shadow object representing a read from a variable in kernel form.
 class VariableGetJudgment extends VariableGet implements ExpressionJudgment {
   DartType inferredType;

@@ -211,8 +211,7 @@ class IncompleteErrorGenerator extends IncompleteSendGenerator
       offset = offsetForToken(token);
       length = lengthForToken(token);
     }
-    return new SyntheticExpressionJudgment(
-        helper.buildCompileTimeError(message, offset, length));
+    return helper.buildCompileTimeError(message, offset, length);
   }
 
   @override

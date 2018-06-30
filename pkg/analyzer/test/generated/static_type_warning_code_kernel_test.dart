@@ -705,20 +705,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_undefinedGetter_static() async {
-    // Bad state: No reference information for A at 19
-    await super.test_undefinedGetter_static();
-  }
-
-  @override
-  @failingTest
-  test_undefinedGetter_typeLiteral_conditionalAccess() async {
-    // Bad state: No reference information for A at 18
-    await super.test_undefinedGetter_typeLiteral_conditionalAccess();
-  }
-
-  @override
-  @failingTest
   test_undefinedGetter_wrongNumberOfTypeArguments_tooLittle() async {
     // AnalysisException: Element mismatch in /test.dart at main(A<dynamic, dynamic> a) → dynamic
     await super.test_undefinedGetter_wrongNumberOfTypeArguments_tooLittle();

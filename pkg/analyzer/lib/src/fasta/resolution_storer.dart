@@ -672,7 +672,7 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
       return;
     }
     _store(location,
-        declaration: variableBinder.fileOffset, inferredType: inferredType);
+        declaration: variableBinder?.fileOffset, inferredType: inferredType);
   }
 
   void whileStatement(
