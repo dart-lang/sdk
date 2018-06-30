@@ -169,7 +169,7 @@ class EnumTester<EngineEnum, ApiEnum> {
       String enumName = MirrorSystem.getName(symbol);
       EngineEnum engineValue =
           engineClass.getField(symbol).reflectee as EngineEnum;
-      expect(engineValue, new isInstanceOf<EngineEnum>());
+      expect(engineValue, new TypeMatcher<EngineEnum>());
       if (exceptions.containsKey(engineValue)) {
         ApiEnum expectedResult = exceptions[engineValue];
         if (expectedResult == null) {

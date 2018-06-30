@@ -1918,7 +1918,7 @@ linter:
     // Verify defaults restored.
     expect(analysisOptions.enableSuperMixins, isFalse);
     expect(lints, hasLength(1));
-    expect(lints.first, new isInstanceOf<AvoidAs>());
+    expect(lints.first, const TypeMatcher<AvoidAs>());
     expect(errorProcessors, hasLength(1));
     expect(getProcessor(missing_return).severity, isNull);
   }

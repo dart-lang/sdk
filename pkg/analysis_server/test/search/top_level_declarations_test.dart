@@ -59,7 +59,7 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
 
   test_invalidRegex() async {
     var result = await findTopLevelDeclarations('[A');
-    expect(result, new isInstanceOf<RequestError>());
+    expect(result, const TypeMatcher<RequestError>());
   }
 
   test_startEndPattern() async {

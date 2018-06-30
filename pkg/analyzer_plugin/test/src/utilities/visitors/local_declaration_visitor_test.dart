@@ -44,7 +44,7 @@ f(List<MyClass> list) {
     expect(f, isNotNull);
     BlockFunctionBody body = f.functionExpression.body;
     Statement statement = body.block.statements[0];
-    expect(statement, new isInstanceOf<ForEachStatement>());
+    expect(statement, const TypeMatcher<ForEachStatement>());
     statement.accept(new TestVisitor(statement.offset));
   }
 }

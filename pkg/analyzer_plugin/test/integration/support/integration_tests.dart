@@ -15,9 +15,9 @@ import 'package:test/test.dart';
 import 'integration_test_methods.dart';
 import 'protocol_matchers.dart';
 
-const Matcher isBool = const isInstanceOf<bool>();
+const Matcher isBool = const TypeMatcher<bool>();
 
-const Matcher isInt = const isInstanceOf<int>();
+const Matcher isInt = const TypeMatcher<int>();
 
 const Matcher isNotification = const MatchesJsonObject(
     'notification', const {'event': isString},
@@ -25,7 +25,7 @@ const Matcher isNotification = const MatchesJsonObject(
 
 const Matcher isObject = isMap;
 
-const Matcher isString = const isInstanceOf<String>();
+const Matcher isString = const TypeMatcher<String>();
 
 final Matcher isResponse = new MatchesJsonObject('response', {'id': isString},
     optionalFields: {'result': anything, 'error': isRequestError});

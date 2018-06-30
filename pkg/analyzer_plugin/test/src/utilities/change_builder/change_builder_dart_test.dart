@@ -64,7 +64,7 @@ class DartChangeBuilderImplTest extends AbstractContextTest {
     DartChangeBuilderImpl builder = new DartChangeBuilder(session);
     DartFileEditBuilderImpl fileEditBuilder =
         await builder.createFileEditBuilder(path);
-    expect(fileEditBuilder, new isInstanceOf<DartFileEditBuilder>());
+    expect(fileEditBuilder, const TypeMatcher<DartFileEditBuilder>());
     SourceFileEdit fileEdit = fileEditBuilder.fileEdit;
     expect(fileEdit.file, path);
   }
@@ -2246,7 +2246,7 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
       int length = 5;
       DartEditBuilderImpl editBuilder = (builder as DartFileEditBuilderImpl)
           .createEditBuilder(offset, length);
-      expect(editBuilder, new isInstanceOf<DartEditBuilder>());
+      expect(editBuilder, const TypeMatcher<DartEditBuilder>());
       SourceEdit sourceEdit = editBuilder.sourceEdit;
       expect(sourceEdit.length, length);
       expect(sourceEdit.offset, offset);

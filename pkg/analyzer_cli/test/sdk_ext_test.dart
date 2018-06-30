@@ -48,7 +48,7 @@ main() {
       ]);
 
       DartSdk sdk = driver.sdk;
-      expect(sdk, new isInstanceOf<FolderBasedDartSdk>());
+      expect(sdk, const TypeMatcher<FolderBasedDartSdk>());
       expect((sdk as FolderBasedDartSdk).useSummary, isFalse);
 
       expect(exitCode, 0);
