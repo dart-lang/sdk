@@ -296,7 +296,7 @@ PackageNotFound/analyzerCode: Fail
 PackageNotFound/example: Fail
 PartOfLibraryNameMismatch/dart2jsCode: Fail
 PartOfLibraryNameMismatch/example: Fail
-PartOfSelf/analyzerCode: Fail
+PartOfSelf/dart2jsCode: Fail
 PartOfTwoLibraries/analyzerCode: Fail # Issue 33227
 PartOfUriMismatch/dart2jsCode: Fail
 PartOfUriMismatch/example: Fail

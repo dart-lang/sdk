@@ -1637,6 +1637,7 @@ OverrideTypeMismatchReturnType:
 
 PartOfSelf:
   template: "A file can't be a part of itself."
+  analyzerCode: PART_OF_NON_PART
   script:
     main.dart: "part 'main.dart';"
 

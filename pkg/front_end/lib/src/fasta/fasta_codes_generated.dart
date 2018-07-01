@@ -5221,6 +5221,7 @@ const Code<Null> codePartOfSelf = messagePartOfSelf;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePartOfSelf = const MessageCode("PartOfSelf",
+    analyzerCode: "PART_OF_NON_PART",
     message: r"""A file can't be a part of itself.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

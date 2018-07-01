@@ -32,40 +32,6 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   bool get useCFE => true;
 
   @override
-  @failingTest
-  @potentialAnalyzerProblem
-  @AnalyzerProblem('https://github.com/dart-lang/sdk/issues/33674')
-  test_analyze_resolveDirectives_error_missingLibraryDirective() async {
-    await super.test_analyze_resolveDirectives_error_missingLibraryDirective();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  @AnalyzerProblem('https://github.com/dart-lang/sdk/issues/33674')
-  test_analyze_resolveDirectives_error_partOfDifferentLibrary_byName() async {
-    await super
-        .test_analyze_resolveDirectives_error_partOfDifferentLibrary_byName();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  @AnalyzerProblem('https://github.com/dart-lang/sdk/issues/33674')
-  test_analyze_resolveDirectives_error_partOfDifferentLibrary_byUri() async {
-    await super
-        .test_analyze_resolveDirectives_error_partOfDifferentLibrary_byUri();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  @AnalyzerProblem('https://github.com/dart-lang/sdk/issues/33674')
-  test_analyze_resolveDirectives_error_partOfNonPart() async {
-    await super.test_analyze_resolveDirectives_error_partOfNonPart();
-  }
-
-  @override
   test_asyncChangesDuringAnalysis_getErrors() async {
     // TODO(brianwilkerson) Re-enable this test. It was disabled because it
     // appears to be flaky (possibly OS specific).

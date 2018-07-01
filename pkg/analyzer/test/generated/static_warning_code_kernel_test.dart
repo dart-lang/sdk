@@ -1561,13 +1561,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
-  @AnalyzerProblem('https://github.com/dart-lang/sdk/issues/33674')
-  test_partOfDifferentLibrary() async {
-    return super.test_partOfDifferentLibrary();
-  }
-
-  @override
-  @failingTest
   @potentialAnalyzerProblem
   test_redirectToInvalidFunctionType() async {
     return super.test_redirectToInvalidFunctionType();

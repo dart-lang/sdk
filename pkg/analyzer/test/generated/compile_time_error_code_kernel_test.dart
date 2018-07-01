@@ -810,20 +810,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_duplicatePart_sameSource() async {
-    // Expected 1 errors of type CompileTimeErrorCode.DUPLICATE_PART, found 2
-    await super.test_duplicatePart_sameSource();
-  }
-
-  @override
-  @failingTest
-  test_duplicatePart_sameUri() async {
-    // Expected 1 errors of type CompileTimeErrorCode.DUPLICATE_PART, found 2
-    await super.test_duplicatePart_sameUri();
-  }
-
-  @override
-  @failingTest
   test_exportInternalLibrary() async {
     // Expected 1 errors of type CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY, found 0
     await super.test_exportInternalLibrary();
@@ -831,7 +817,7 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30960')
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30959')
   test_exportOfNonLibrary() async {
     return super.test_exportOfNonLibrary();
   }
@@ -2315,20 +2301,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_optionalParameterInOperator_positional() async {
     // Expected 1 errors of type CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR, found 0
     await super.test_optionalParameterInOperator_positional();
-  }
-
-  @override
-  @failingTest
-  test_partOfNonPart() async {
-    // Expected 1 errors of type CompileTimeErrorCode.PART_OF_NON_PART, found 2
-    await super.test_partOfNonPart();
-  }
-
-  @override
-  @failingTest
-  test_partOfNonPart_self() async {
-    // Expected 1 errors of type CompileTimeErrorCode.PART_OF_NON_PART, found 2
-    await super.test_partOfNonPart_self();
   }
 
   @override

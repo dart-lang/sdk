@@ -549,6 +549,14 @@ class LibraryAnalyzer {
     }
 
     ErrorReporter libraryErrorReporter = _getErrorReporter(_library);
+
+    void reportErrorReportedByFrontEnd(
+        ErrorCode errorCode, AstNode node, List<Object> arguments) {
+      if (!_enableKernelDriver) {
+        libraryErrorReporter.reportErrorForNode(errorCode, node, arguments);
+      }
+    }
+
     LibraryIdentifier libraryNameNode = null;
     var seenPartSources = new Set<Source>();
     var directivesToResolve = <Directive>[];
@@ -604,7 +612,7 @@ class LibraryAnalyzer {
         // Validate that the part source is unique in the library.
         //
         if (!seenPartSources.add(partSource)) {
-          libraryErrorReporter.reportErrorForNode(
+          reportErrorReportedByFrontEnd(
               CompileTimeErrorCode.DUPLICATE_PART, partUri, [partSource.uri]);
         }
 
@@ -616,18 +624,16 @@ class LibraryAnalyzer {
           _NameOrSource nameOrSource = _getPartLibraryNameOrUri(
               partSource, partUnit, directivesToResolve);
           if (nameOrSource == null) {
-            libraryErrorReporter.reportErrorForNode(
-                CompileTimeErrorCode.PART_OF_NON_PART,
-                partUri,
-                [partUri.toSource()]);
+            reportErrorReportedByFrontEnd(CompileTimeErrorCode.PART_OF_NON_PART,
+                partUri, [partUri.toSource()]);
           } else {
             String name = nameOrSource.name;
             if (name != null) {
               if (libraryNameNode == null) {
-                libraryErrorReporter.reportErrorForNode(
+                reportErrorReportedByFrontEnd(
                     ResolverErrorCode.PART_OF_UNNAMED_LIBRARY, partUri, [name]);
               } else if (libraryNameNode.name != name) {
-                libraryErrorReporter.reportErrorForNode(
+                reportErrorReportedByFrontEnd(
                     StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
                     partUri,
                     [libraryNameNode.name, name]);
@@ -635,7 +641,7 @@ class LibraryAnalyzer {
             } else {
               Source source = nameOrSource.source;
               if (source != _library.source) {
-                libraryErrorReporter.reportErrorForNode(
+                reportErrorReportedByFrontEnd(
                     StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
                     partUri,
                     [_library.uriStr, source.uri]);
@@ -1112,6 +1118,23 @@ class _ResolutionApplierContext implements TypeContext {
     context = contextStack.removeLast();
   }
 
+  @override
+  DartType translateType(kernel.DartType kernelType) {
+    if (kernelType == null) {
+      return null;
+    } else if (kernelType is kernel.TypeArgumentsDartType) {
+      // TODO(paulberry): get rid of this case
+      List<kernel.DartType> kernelTypes = kernelType.types;
+      var types = new List<DartType>(kernelTypes.length);
+      for (var i = 0; i < kernelTypes.length; i++) {
+        types[i] = translateType(kernelTypes[i]);
+      }
+      return new TypeArgumentsDartType(types);
+    } else {
+      return resynthesizer.getType(context, kernelType);
+    }
+  }
+
   Element _translateDeclaration(int declarationOffset) {
     if (declarationOffset == null) return null;
     var declaration = localDeclarations[declarationOffset];
@@ -1165,23 +1188,6 @@ class _ResolutionApplierContext implements TypeContext {
       return isWriteReference ? element.setter : element.getter;
     } else {
       return element;
-    }
-  }
-
-  @override
-  DartType translateType(kernel.DartType kernelType) {
-    if (kernelType == null) {
-      return null;
-    } else if (kernelType is kernel.TypeArgumentsDartType) {
-      // TODO(paulberry): get rid of this case
-      List<kernel.DartType> kernelTypes = kernelType.types;
-      var types = new List<DartType>(kernelTypes.length);
-      for (var i = 0; i < kernelTypes.length; i++) {
-        types[i] = translateType(kernelTypes[i]);
-      }
-      return new TypeArgumentsDartType(types);
-    } else {
-      return resynthesizer.getType(context, kernelType);
     }
   }
 }
