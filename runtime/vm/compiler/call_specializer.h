@@ -88,7 +88,8 @@ class CallSpecializer : public FlowGraphVisitor {
 
   // Add a class check for the call's first argument (receiver).
   void AddReceiverCheck(InstanceCallInstr* call) {
-    AddChecksForArgNr(call, call->ArgumentAt(0), /* argument_number = */ 0);
+    AddChecksForArgNr(call, call->Receiver()->definition(),
+                      /* argument_number = */ 0);
   }
 
   // Insert a null check if needed.
