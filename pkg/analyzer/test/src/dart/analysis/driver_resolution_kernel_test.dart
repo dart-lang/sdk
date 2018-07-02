@@ -134,6 +134,32 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   test_unresolved_methodInvocation_target_unresolved() async {
     await super.test_unresolved_methodInvocation_target_unresolved();
   }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_postfix_operand() async {
+    // Bad state: No data for a at 11
+    await super.test_unresolved_postfix_operand();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_postfix_operator() async {
+//    Actual: 'dynamic'
+//    Which: is different.
+//    Expected: A
+    await super.test_unresolved_postfix_operator();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_prefix_operand() async {
+    // Bad state: No data for a at 13
+    await super.test_unresolved_prefix_operand();
+  }
 }
 
 /// Tests marked with this annotation fail because of a Fasta problem.

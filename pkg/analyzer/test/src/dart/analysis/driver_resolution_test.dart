@@ -125,6 +125,10 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
       return node.staticElement;
     } else if (node is IndexExpression) {
       return node.staticElement;
+    } else if (node is PostfixExpression) {
+      return node.staticElement;
+    } else if (node is PrefixExpression) {
+      return node.staticElement;
     } else {
       fail('Unsupported node: (${node.runtimeType}) $node');
     }
@@ -7030,6 +7034,82 @@ main() {
         [checkTopVarRef('arg1'), checkTopVarUndefinedNamedRef('arg2')]);
   }
 
+  test_unresolved_postfix_operand() async {
+    addTestFile(r'''
+main() {
+  a++;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var postfix = findNode.postfix('a++');
+    assertElementNull(postfix);
+    assertTypeDynamic(postfix);
+
+    SimpleIdentifier aRef = postfix.operand;
+    assertElementNull(aRef);
+    assertTypeDynamic(aRef);
+  }
+
+  test_unresolved_postfix_operator() async {
+    addTestFile(r'''
+A a;
+main() {
+  a++;
+}
+class A {}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var postfix = findNode.postfix('a++');
+    assertElementNull(postfix);
+    assertType(postfix, 'A');
+
+    SimpleIdentifier aRef = postfix.operand;
+    assertElement(aRef, findElement.topSet('a'));
+    assertType(aRef, 'A');
+  }
+
+  test_unresolved_prefix_operand() async {
+    addTestFile(r'''
+main() {
+  ++a;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var prefix = findNode.prefix('++a');
+    assertElementNull(prefix);
+    assertTypeDynamic(prefix);
+
+    SimpleIdentifier aRef = prefix.operand;
+    assertElementNull(aRef);
+    assertTypeDynamic(aRef);
+  }
+
+  test_unresolved_prefix_operator() async {
+    addTestFile(r'''
+A a;
+main() {
+  ++a;
+}
+class A {}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var prefix = findNode.prefix('++a');
+    assertElementNull(prefix);
+    assertTypeDynamic(prefix);
+
+    SimpleIdentifier aRef = prefix.operand;
+    assertElement(aRef, findElement.topSet('a'));
+    assertType(aRef, 'A');
+  }
+
   test_unresolved_prefixedIdentifier_identifier() async {
     addTestFile(r'''
 Object foo;
@@ -7403,6 +7483,10 @@ class FindElement {
     return topVar(name).getter;
   }
 
+  PropertyAccessorElement topSet(String name) {
+    return topVar(name).setter;
+  }
+
   TopLevelVariableElement topVar(String name) {
     for (var variable in unitElement.topLevelVariables) {
       if (variable.name == name) {
@@ -7447,6 +7531,14 @@ class FindNode {
 
   MethodInvocation methodInvocation(String search) {
     return _node(search).getAncestor((n) => n is MethodInvocation);
+  }
+
+  PostfixExpression postfix(String search) {
+    return _node(search).getAncestor((n) => n is PostfixExpression);
+  }
+
+  PrefixExpression prefix(String search) {
+    return _node(search).getAncestor((n) => n is PrefixExpression);
   }
 
   SimpleIdentifier simple(String search) {
