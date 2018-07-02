@@ -1268,7 +1268,8 @@ bool PageSpaceController::NeedsIdleGarbageCollection(SpaceUsage current) const {
   if (heap_growth_ratio_ == 100) {
     return false;
   }
-  return current.capacity_in_words > idle_gc_threshold_in_words_;
+  return (current.capacity_in_words > idle_gc_threshold_in_words_) ||
+         NeedsExternalCollection(current);
 }
 
 void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
