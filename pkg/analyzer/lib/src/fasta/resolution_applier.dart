@@ -313,7 +313,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     parameterList.accept(this);
 
     node.body.accept(this);
-    _storeFunctionType(_get(node).inferredType, element);
+    _storeFunctionType(_get(node.parameters).inferredType, element);
 
     // Associate the elements with the nodes.
     if (element != null) {

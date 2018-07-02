@@ -285,7 +285,7 @@ abstract class Iterable<E> {
 }
 
 class List<E> implements Iterable<E> {
-  List();
+  List([int length]);
   factory List.from(Iterable elements, {bool growable: true}) => null;
   void add(E value) {}
   void addAll(Iterable<E> iterable) {}

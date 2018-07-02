@@ -29,6 +29,24 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   @override
   @failingTest
   @potentialAnalyzerProblem
+  test_closure_generic() async {
+    // Bad state: Not found T in main() → dynamic
+    // https://github.com/dart-lang/sdk/issues/33722
+    await super.test_closure_generic();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_local_function_generic() async {
+    // Bad state: Not found T in main() → void
+    // https://github.com/dart-lang/sdk/issues/33722
+    await super.test_local_function_generic();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
   test_unresolved_assignment_left_identifier_compound() async {
     await super.test_unresolved_assignment_left_identifier_compound();
   }

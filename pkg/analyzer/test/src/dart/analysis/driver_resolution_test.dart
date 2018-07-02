@@ -1750,6 +1750,38 @@ main() {
     }
   }
 
+  test_closure_generic() async {
+    addTestFile(r'''
+main() {
+  foo(<T>() => new List<T>(4));
+}
+
+void foo(List<T> Function<T>() createList) {}
+''');
+    await resolveTestFile();
+
+    var closure = findNode.functionExpression('<T>() =>');
+    assertType(closure, '<T>() → List<T>');
+
+    FunctionElementImpl closureElement = closure.element;
+    expect(closureElement.enclosingElement, findElement.function('main'));
+    expect(closureElement.returnType.toString(), 'List<T>');
+    expect(closureElement.parameters, isEmpty);
+
+    var typeParameters = closureElement.typeParameters;
+    expect(typeParameters, hasLength(1));
+
+    TypeParameterElement tElement = typeParameters[0];
+    expect(tElement.name, 'T');
+    expect(tElement.nameOffset, 16);
+
+    var creation = findNode.instanceCreation('new List');
+    assertType(creation, 'List<T>');
+
+    var tRef = findNode.simple('T>(4)');
+    assertElement(tRef, tElement);
+  }
+
   test_closure_inField() async {
     addTestFile(r'''
 class C {
@@ -3074,7 +3106,10 @@ void main() {
   test_local_function_generic() async {
     addTestFile(r'''
 void main() {
-  T f<T, U>(T a, U b) {}
+  T f<T, U>(T a, U b) {
+    a;
+    b;
+  }
   var v = f(1, '2');
 }
 ''');
@@ -3118,23 +3153,31 @@ void main() {
     expect(fExpression.element, same(fElement));
 
     {
-      List<ParameterElement> elements = fElement.parameters;
-      expect(elements, hasLength(2));
+      List<ParameterElement> parameters = fElement.parameters;
+      expect(parameters, hasLength(2));
 
       List<FormalParameter> nodes = fExpression.parameters.parameters;
       expect(nodes, hasLength(2));
 
-      _assertSimpleParameter(nodes[0], elements[0],
+      _assertSimpleParameter(nodes[0], parameters[0],
           name: 'a',
           offset: 28,
           kind: ParameterKind.REQUIRED,
           type: tElement.type);
 
-      _assertSimpleParameter(nodes[1], elements[1],
+      _assertSimpleParameter(nodes[1], parameters[1],
           name: 'b',
           offset: 33,
           kind: ParameterKind.REQUIRED,
           type: uElement.type);
+
+      var aRef = findNode.simple('a;');
+      assertElement(aRef, parameters[0]);
+      assertType(aRef, 'T');
+
+      var bRef = findNode.simple('b;');
+      assertElement(bRef, parameters[1]);
+      assertType(bRef, 'U');
     }
 
     VariableDeclarationStatement vStatement = mainStatements[1];
@@ -7315,6 +7358,15 @@ class FindElement {
     fail('Not found class field: $name');
   }
 
+  FunctionElement function(String name) {
+    for (var function in unitElement.functions) {
+      if (function.name == name) {
+        return function;
+      }
+    }
+    fail('Not found top-level function: $name');
+  }
+
   PropertyAccessorElement getter(String name) {
     for (var class_ in unitElement.types) {
       for (var accessor in class_.accessors) {
@@ -7385,6 +7437,18 @@ class FindNode {
     return _node(search).getAncestor((n) => n is CascadeExpression);
   }
 
+  FunctionExpression functionExpression(String search) {
+    return _node(search).getAncestor((n) => n is FunctionExpression);
+  }
+
+  InstanceCreationExpression instanceCreation(String search) {
+    return _node(search).getAncestor((n) => n is InstanceCreationExpression);
+  }
+
+  MethodInvocation methodInvocation(String search) {
+    return _node(search).getAncestor((n) => n is MethodInvocation);
+  }
+
   SimpleIdentifier simple(String search) {
     return _node(search);
   }
@@ -7396,6 +7460,6 @@ class FindNode {
       fail('The pattern |$search| is not unique in:\n$content');
     }
     expect(index, greaterThanOrEqualTo(0));
-    return new NodeLocator(index).searchWithin(result.unit);
+    return new NodeLocator2(index).searchWithin(result.unit);
   }
 }
