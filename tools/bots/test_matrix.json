@@ -1,6 +1,7 @@
 {
   "global": {
-    "chrome": "65"
+    "chrome": "65",
+    "ff": "61"
   },
   "filesets": {
     "analyzer": [
