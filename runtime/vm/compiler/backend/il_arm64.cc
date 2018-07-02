@@ -1019,6 +1019,9 @@ CompileType LoadIndexedInstr::ComputeType() const {
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
       return CompileType::FromCid(kSmiCid);
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
+      return CompileType::Int();
 
     default:
       UNIMPLEMENTED();
