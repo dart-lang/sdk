@@ -337,12 +337,9 @@ Fragment FlowGraphBuilder::LoadInstantiatorTypeArguments() {
   } else if (scopes_->this_variable != NULL &&
              active_class_.ClassNumTypeArguments() > 0) {
     ASSERT(!parsed_function_->function().IsFactory());
-    intptr_t type_arguments_field_offset =
-        active_class_.klass->type_arguments_field_offset();
-    ASSERT(type_arguments_field_offset != Class::kNoTypeArguments);
-
     instructions += LoadLocal(scopes_->this_variable);
-    instructions += LoadField(type_arguments_field_offset);
+    instructions += LoadNativeField(
+        NativeFieldDesc::GetTypeArgumentsFieldFor(Z, *active_class_.klass));
   } else {
     instructions += NullConstant();
   }

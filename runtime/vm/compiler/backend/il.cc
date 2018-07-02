@@ -607,6 +607,17 @@ const NativeFieldDesc* NativeFieldDesc::GetLengthFieldForArrayCid(
   }
 }
 
+const NativeFieldDesc* NativeFieldDesc::GetTypeArgumentsFieldFor(
+    Zone* zone,
+    const Class& cls) {
+  // TODO(vegorov) consider caching type arguments fields for specific classes
+  // in some sort of a flow-graph specific cache.
+  const intptr_t offset = cls.type_arguments_field_offset();
+  ASSERT(offset != Class::kNoTypeArguments);
+  return new (zone) NativeFieldDesc(kTypeArguments, offset, kDynamicCid,
+                                    /*immutable=*/true);
+}
+
 RawAbstractType* NativeFieldDesc::type() const {
   if (cid() == kSmiCid) {
     return Type::SmiType();
@@ -624,6 +635,8 @@ const char* NativeFieldDesc::name() const {
     NATIVE_FIELDS_LIST(HANDLE_CASE)
 
 #undef HANDLE_CASE
+    case kTypeArguments:
+      return ":type_arguments";
   }
   UNREACHABLE();
   return nullptr;
@@ -2323,6 +2336,7 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
       case NativeFieldDesc::kLinkedHashMap_used_data:
       case NativeFieldDesc::kLinkedHashMap_deleted_keys:
       case NativeFieldDesc::kArgumentsDescriptor_type_args_len:
+      case NativeFieldDesc::kTypeArguments:
         return false;
     }
   }
@@ -2392,7 +2406,7 @@ bool LoadFieldInstr::Evaluate(const Object& instance, Object* result) {
 }
 
 Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (!HasUses()) return NULL;
+  if (!HasUses()) return nullptr;
 
   if (IsImmutableLengthLoad()) {
     Definition* array = instance()->definition()->OriginalDefinition();
@@ -2412,10 +2426,20 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       // For arrays with guarded lengths, replace the length load
       // with a constant.
       const Field* field = load_array->field();
-      if ((field != NULL) && (field->guarded_list_length() >= 0)) {
+      if ((field != nullptr) && (field->guarded_list_length() >= 0)) {
         return flow_graph->GetConstant(
             Smi::Handle(Smi::New(field->guarded_list_length())));
       }
+    }
+  } else if (native_field() != nullptr &&
+             native_field()->kind() == NativeFieldDesc::kTypeArguments) {
+    Definition* array = instance()->definition()->OriginalDefinition();
+    if (StaticCallInstr* call = array->AsStaticCall()) {
+      if (call->is_known_list_constructor()) {
+        return call->ArgumentAt(0);
+      }
+    } else if (CreateArrayInstr* create_array = array->AsCreateArray()) {
+      return create_array->element_type()->definition();
     }
   }
 

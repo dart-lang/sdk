@@ -2702,6 +2702,7 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 
       case NativeFieldDesc::kLinkedHashMap_index:
       case NativeFieldDesc::kLinkedHashMap_data:
+      case NativeFieldDesc::kTypeArguments:
         // Not an integer valued field.
         UNREACHABLE();
         break;

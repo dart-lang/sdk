@@ -4917,14 +4917,17 @@ class LoadClassIdInstr : public TemplateDefinition<1, NoThrow, Pure> {
   V(LinkedHashMap, deleted_keys, Smi, MUTABLE)                                 \
   V(ArgumentsDescriptor, type_args_len, Smi, IMMUTABLE)
 
-class NativeFieldDesc {
+class NativeFieldDesc : public ZoneAllocated {
  public:
+  // clang-format off
   enum Kind {
 #define DECLARE_KIND(ClassName, FieldName, cid, mutability)                    \
   k##ClassName##_##FieldName,
     NATIVE_FIELDS_LIST(DECLARE_KIND)
 #undef DECLARE_KIND
+    kTypeArguments,
   };
+  // clang-format on
 
 #define DEFINE_GETTER(ClassName, FieldName, cid, mutability)                   \
   static const NativeFieldDesc* ClassName##_##FieldName() {                    \
@@ -4936,6 +4939,8 @@ class NativeFieldDesc {
 
   static const NativeFieldDesc* Get(Kind kind);
   static const NativeFieldDesc* GetLengthFieldForArrayCid(intptr_t array_cid);
+  static const NativeFieldDesc* GetTypeArgumentsFieldFor(Zone* zone,
+                                                         const Class& cls);
 
   const char* name() const;
 
@@ -4958,6 +4963,12 @@ class NativeFieldDesc {
         offset_in_bytes_(offset_in_bytes),
         immutable_(immutable),
         cid_(cid) {}
+
+  NativeFieldDesc(const NativeFieldDesc& other)
+      : NativeFieldDesc(other.kind_,
+                        other.offset_in_bytes_,
+                        other.immutable_,
+                        other.cid_) {}
 
   const Kind kind_;
   const intptr_t offset_in_bytes_;
