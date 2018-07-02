@@ -432,6 +432,11 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
   }
 
   @override
+  test_notInstantiatedBound_class_error_recursion_less_direct() async {
+    return super.test_notInstantiatedBound_class_error_recursion_less_direct();
+  }
+
+  @override
   @failingTest
   test_notInstantiatedBound_class_error_recursion_typedef() {
     // Expected 2 errors of type

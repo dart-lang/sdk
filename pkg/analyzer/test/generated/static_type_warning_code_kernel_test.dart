@@ -918,20 +918,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_wrongNumberOfTypeArguments_tooFew() async {
-    // AnalysisException: Element mismatch in /test.dart at /test.dart
-    await super.test_wrongNumberOfTypeArguments_tooFew();
-  }
-
-  @override
-  @failingTest
-  test_wrongNumberOfTypeArguments_tooMany() async {
-    // AnalysisException: Element mismatch in /test.dart at /test.dart
-    await super.test_wrongNumberOfTypeArguments_tooMany();
-  }
-
-  @override
-  @failingTest
   test_wrongNumberOfTypeArguments_typeTest_tooFew() async {
     // Bad state: Found 2 argument types for 1 type arguments
     await super.test_wrongNumberOfTypeArguments_typeTest_tooFew();

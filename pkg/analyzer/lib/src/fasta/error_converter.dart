@@ -698,6 +698,7 @@ class FastaErrorReporter {
       StrongModeCode: 'StrongModeCode.STRONG_MODE_',
       ResolverErrorCode: 'ResolverErrorCode.',
       ParserErrorCode: 'ParserErrorCode.',
+      ScannerErrorCode: 'ScannerErrorCode.',
       StaticTypeWarningCode: 'StaticTypeWarningCode.',
       StaticWarningCode: 'StaticWarningCode.'
     };

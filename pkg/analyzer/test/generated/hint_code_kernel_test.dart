@@ -71,13 +71,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @failingTest
   @override
-  test_deadCode_deadFinalStatementInCase() async {
-    // Expected 1 errors of type StaticWarningCode.CASE_BLOCK_NOT_TERMINATED, found 0
-    return super.test_deadCode_deadFinalStatementInCase();
-  }
-
-  @failingTest
-  @override
   test_deprecatedAnnotationUse_call() async {
     // Expected 1 errors of type HintCode.DEPRECATED_MEMBER_USE, found 0
     return super.test_deprecatedAnnotationUse_call();

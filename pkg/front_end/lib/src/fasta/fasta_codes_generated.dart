@@ -47,6 +47,7 @@ const Code<Null> codeAbstractNotSync = messageAbstractNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAbstractNotSync = const MessageCode("AbstractNotSync",
+    analyzerCode: "NON_SYNC_ABSTRACT_METHOD",
     dart2jsCode: "*ignored*",
     message: r"""Abstract methods can't use 'async', 'async*', or 'sync*'.""");
 
@@ -235,7 +236,7 @@ const Code<Message Function(String name, String name2)>
     const Code<Message Function(String name, String name2)>(
         "BoundIssueViaCycleNonSimplicity",
         templateBoundIssueViaCycleNonSimplicity,
-        analyzerCode: "STRONG_MODE_NOT_INSTANTIATED_BOUND",
+        analyzerCode: "NOT_INSTANTIATED_BOUND",
         dart2jsCode: "*fatal*",
         severity: Severity.error);
 
@@ -264,7 +265,7 @@ const Template<
 const Code<Message Function(String name)> codeBoundIssueViaLoopNonSimplicity =
     const Code<Message Function(String name)>("BoundIssueViaLoopNonSimplicity",
         templateBoundIssueViaLoopNonSimplicity,
-        analyzerCode: "STRONG_MODE_NOT_INSTANTIATED_BOUND",
+        analyzerCode: "NOT_INSTANTIATED_BOUND",
         dart2jsCode: "*fatal*",
         severity: Severity.error);
 
@@ -292,7 +293,7 @@ const Code<Message Function(String name)>
     const Code<Message Function(String name)>(
         "BoundIssueViaRawTypeWithNonSimpleBounds",
         templateBoundIssueViaRawTypeWithNonSimpleBounds,
-        analyzerCode: "STRONG_MODE_NOT_INSTANTIATED_BOUND",
+        analyzerCode: "SNOT_INSTANTIATED_BOUND",
         dart2jsCode: "*fatal*",
         severity: Severity.error);
 
@@ -500,9 +501,11 @@ const Template<Message Function(String string)>
 const Code<Message Function(String string)>
     codeCantInferTypeDueToInconsistentOverrides =
     const Code<Message Function(String string)>(
-  "CantInferTypeDueToInconsistentOverrides",
-  templateCantInferTypeDueToInconsistentOverrides,
-);
+        "CantInferTypeDueToInconsistentOverrides",
+        templateCantInferTypeDueToInconsistentOverrides,
+        analyzerCode: "INVALID_METHOD_OVERRIDE",
+        dart2jsCode: "*fatal*",
+        severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCantInferTypeDueToInconsistentOverrides(String string) {
@@ -845,6 +848,8 @@ const Code<Null> codeConstConstructorNonFinalField =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstConstructorNonFinalField = const MessageCode(
     "ConstConstructorNonFinalField",
+    analyzerCode: "CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD",
+    dart2jsCode: "*fatal*",
     message: r"""Constructor is marked 'const' so all fields must be final.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1300,6 +1305,8 @@ const Code<Null> codeConstructorWithTypeParameters =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstructorWithTypeParameters = const MessageCode(
     "ConstructorWithTypeParameters",
+    analyzerCode: "TYPE_PARAMETER_ON_CONSTRUCTOR",
+    dart2jsCode: "*fatal*",
     severity: Severity.error,
     message: r"""Constructors can't have type parameters.""");
 
@@ -1461,9 +1468,9 @@ const Template<Message Function(String name)> templateCyclicTypedef =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeCyclicTypedef =
     const Code<Message Function(String name)>(
-  "CyclicTypedef",
-  templateCyclicTypedef,
-);
+        "CyclicTypedef", templateCyclicTypedef,
+        analyzerCode: "TYPE_ALIAS_CANNOT_REFERENCE_ITSELF",
+        dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCyclicTypedef(String name) {
@@ -1518,9 +1525,8 @@ const Template<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeDeferredPrefixDuplicated =
     const Code<Message Function(String name)>(
-  "DeferredPrefixDuplicated",
-  templateDeferredPrefixDuplicated,
-);
+        "DeferredPrefixDuplicated", templateDeferredPrefixDuplicated,
+        analyzerCode: "SHARED_DEFERRED_PREFIX", dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDeferredPrefixDuplicated(String name) {
@@ -1792,6 +1798,8 @@ const Code<Message Function(String name, Uri uri_, Uri uri2_)>
     codeDuplicatedImportInType =
     const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
         "DuplicatedImportInType", templateDuplicatedImportInType,
+        analyzerCode: "AMBIGUOUS_IMPORT",
+        dart2jsCode: "*fatal*",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1836,6 +1844,8 @@ const Template<Message Function(String name)> templateDuplicatedName =
 const Code<Message Function(String name)> codeDuplicatedName =
     const Code<Message Function(String name)>(
         "DuplicatedName", templateDuplicatedName,
+        analyzerCode: "DUPLICATE_DEFINITION",
+        dart2jsCode: "*fatal*",
         severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1921,9 +1931,8 @@ const Template<Message Function(String name)> templateDuplicatedParameterName =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeDuplicatedParameterName =
     const Code<Message Function(String name)>(
-  "DuplicatedParameterName",
-  templateDuplicatedParameterName,
-);
+        "DuplicatedParameterName", templateDuplicatedParameterName,
+        analyzerCode: "DUPLICATE_DEFINITION", dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedParameterName(String name) {
@@ -2591,6 +2600,7 @@ const Code<Null> codeFactoryNotSync = messageFactoryNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFactoryNotSync = const MessageCode("FactoryNotSync",
+    analyzerCode: "NON_SYNC_FACTORY_METHOD",
     dart2jsCode: "*ignored*",
     message: r"""Factories can't use 'async', 'async*', or 'sync*'.""");
 
@@ -4629,6 +4639,8 @@ const Template<Message Function(String name)> templateNoSuchNamedParameter =
 const Code<Message Function(String name)> codeNoSuchNamedParameter =
     const Code<Message Function(String name)>(
         "NoSuchNamedParameter", templateNoSuchNamedParameter,
+        analyzerCode: "UNDEFINED_NAMED_PARAMETER",
+        dart2jsCode: "*fatal*",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4851,10 +4863,10 @@ const Template<
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeOperatorMinusParameterMismatch =
-    const Code<Message Function(String name)>(
-  "OperatorMinusParameterMismatch",
-  templateOperatorMinusParameterMismatch,
-);
+    const Code<Message Function(String name)>("OperatorMinusParameterMismatch",
+        templateOperatorMinusParameterMismatch,
+        analyzerCode: "WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS",
+        dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOperatorMinusParameterMismatch(String name) {
@@ -4897,9 +4909,9 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeOperatorParameterMismatch1 =
     const Code<Message Function(String name)>(
-  "OperatorParameterMismatch1",
-  templateOperatorParameterMismatch1,
-);
+        "OperatorParameterMismatch1", templateOperatorParameterMismatch1,
+        analyzerCode: "WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR",
+        dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOperatorParameterMismatch1(String name) {
@@ -4919,9 +4931,9 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeOperatorParameterMismatch2 =
     const Code<Message Function(String name)>(
-  "OperatorParameterMismatch2",
-  templateOperatorParameterMismatch2,
-);
+        "OperatorParameterMismatch2", templateOperatorParameterMismatch2,
+        analyzerCode: "WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR",
+        dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOperatorParameterMismatch2(String name) {
@@ -5001,6 +5013,8 @@ const Code<Message Function(String name, String name2)>
     const Code<Message Function(String name, String name2)>(
         "OverrideFewerPositionalArguments",
         templateOverrideFewerPositionalArguments,
+        analyzerCode: "INVALID_OVERRIDE_POSITIONAL",
+        dart2jsCode: "*fatal*",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5057,6 +5071,8 @@ const Code<Message Function(String name, String name2)>
     codeOverrideMoreRequiredArguments =
     const Code<Message Function(String name, String name2)>(
         "OverrideMoreRequiredArguments", templateOverrideMoreRequiredArguments,
+        analyzerCode: "INVALID_OVERRIDE_REQUIRED",
+        dart2jsCode: "*fatal*",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6015,6 +6031,8 @@ const Code<Null> codeSwitchCaseFallThrough = messageSwitchCaseFallThrough;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSwitchCaseFallThrough = const MessageCode(
     "SwitchCaseFallThrough",
+    analyzerCode: "CASE_BLOCK_NOT_TERMINATED",
+    dart2jsCode: "*fatal*",
     severity: Severity.errorLegacyWarning,
     message: r"""Switch case may fall through to the next case.""");
 
@@ -6089,6 +6107,8 @@ const Template<
 const Code<Message Function(int count, int count2)> codeTooFewArguments =
     const Code<Message Function(int count, int count2)>(
         "TooFewArguments", templateTooFewArguments,
+        analyzerCode: "NOT_ENOUGH_REQUIRED_ARGUMENTS",
+        dart2jsCode: "*fatal*",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6114,6 +6134,8 @@ const Template<
 const Code<Message Function(int count, int count2)> codeTooManyArguments =
     const Code<Message Function(int count, int count2)>(
         "TooManyArguments", templateTooManyArguments,
+        analyzerCode: "EXTRA_POSITIONAL_ARGUMENTS",
+        dart2jsCode: "*fatal*",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6157,6 +6179,8 @@ const Template<Message Function(String name, int count)>
 const Code<Message Function(String name, int count)> codeTypeArgumentMismatch =
     const Code<Message Function(String name, int count)>(
         "TypeArgumentMismatch", templateTypeArgumentMismatch,
+        analyzerCode: "WRONG_NUMBER_OF_TYPE_ARGUMENTS",
+        dart2jsCode: "*fatal*",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

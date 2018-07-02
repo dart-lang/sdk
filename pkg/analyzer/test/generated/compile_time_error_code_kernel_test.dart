@@ -2284,13 +2284,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_notEnoughRequiredArguments_const_super() async {
-    // UnimplementedError: For ShadowInvalidInitializer
-    await super.test_notEnoughRequiredArguments_const_super();
-  }
-
-  @override
-  @failingTest
   test_optionalParameterInOperator_named() async {
     // Expected 1 errors of type CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR, found 0
     await super.test_optionalParameterInOperator_named();
@@ -2865,14 +2858,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_typeAliasCannotReferenceItself_functionTypedParameter_returnType() async {
-    // Expected 1 errors of type CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, found 0
-    await super
-        .test_typeAliasCannotReferenceItself_functionTypedParameter_returnType();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
   test_typeAliasCannotReferenceItself_generic() async {
     return super.test_typeAliasCannotReferenceItself_generic();
@@ -2880,52 +2865,9 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
-  test_typeAliasCannotReferenceItself_parameterType_named() async {
-    return super.test_typeAliasCannotReferenceItself_parameterType_named();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
-  test_typeAliasCannotReferenceItself_parameterType_positional() async {
-    return super.test_typeAliasCannotReferenceItself_parameterType_positional();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
-  test_typeAliasCannotReferenceItself_parameterType_required() async {
-    return super.test_typeAliasCannotReferenceItself_parameterType_required();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
-  test_typeAliasCannotReferenceItself_parameterType_typeArgument() async {
-    return super
-        .test_typeAliasCannotReferenceItself_parameterType_typeArgument();
-  }
-
-  @override
-  @failingTest
-  test_typeAliasCannotReferenceItself_returnType() async {
-    // Expected 1 errors of type CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, found 0
-    await super.test_typeAliasCannotReferenceItself_returnType();
-  }
-
-  @override
-  @failingTest
   test_typeAliasCannotReferenceItself_returnType_indirect() async {
     // Expected 2 errors of type CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, found 0
     await super.test_typeAliasCannotReferenceItself_returnType_indirect();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
-  test_typeAliasCannotReferenceItself_typeVariableBounds() async {
-    return super.test_typeAliasCannotReferenceItself_typeVariableBounds();
   }
 
   @override
@@ -3042,20 +2984,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30984')
   test_uriWithInterpolation_nonConstant() async {
     return super.test_uriWithInterpolation_nonConstant();
-  }
-
-  @override
-  @failingTest
-  test_wrongNumberOfParametersForOperator1() async {
-    // Expected 1 errors of type CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR, found 0
-    await super.test_wrongNumberOfParametersForOperator1();
-  }
-
-  @override
-  @failingTest
-  test_wrongNumberOfParametersForOperator_minus() async {
-    // Expected 1 errors of type CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS, found 0
-    await super.test_wrongNumberOfParametersForOperator_minus();
   }
 
   @override

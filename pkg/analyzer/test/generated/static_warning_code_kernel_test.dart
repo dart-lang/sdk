@@ -464,13 +464,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_caseBlockNotTerminated() async {
-    return super.test_caseBlockNotTerminated();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_castToNonType() async {
     return super.test_castToNonType();
   }

@@ -909,6 +909,7 @@ Unspecified:
 
 AbstractNotSync:
   template: "Abstract methods can't use 'async', 'async*', or 'sync*'."
+  analyzerCode: NON_SYNC_ABSTRACT_METHOD
   dart2jsCode: "*ignored*"
 
 AsyncAsIdentifier:
@@ -949,6 +950,7 @@ AwaitForNotAsync:
 
 FactoryNotSync:
   template: "Factories can't use 'async', 'async*', or 'sync*'."
+  analyzerCode: NON_SYNC_FACTORY_METHOD
   dart2jsCode: "*ignored*"
 
 GeneratorReturnsValue:
@@ -1077,6 +1079,8 @@ ConstructorWithReturnType:
 ConstructorWithTypeParameters:
   template: "Constructors can't have type parameters."
   severity: ERROR
+  analyzerCode: TYPE_PARAMETER_ON_CONSTRUCTOR
+  dart2jsCode: "*fatal*"
   script:
     - "class C { C<T>() {} }"
     - "class C { C.foo<T>() {} }"
@@ -1120,6 +1124,8 @@ RedirectionTargetNotFound:
 
 CyclicTypedef:
   template: "The typedef '#name' has a reference to itself."
+  analyzerCode: TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
+  dart2jsCode: "*fatal*"
 
 TypeNotFound:
   template: "Type '#name' not found."
@@ -1155,14 +1161,20 @@ CandidateFoundIsDefaultConstructor:
 TooFewArguments:
   template: "Too few positional arguments: #count required, #count2 given."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: NOT_ENOUGH_REQUIRED_ARGUMENTS
+  dart2jsCode: "*fatal*"
 
 TooManyArguments:
   template: "Too many positional arguments: #count allowed, #count2 given."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: EXTRA_POSITIONAL_ARGUMENTS
+  dart2jsCode: "*fatal*"
 
 NoSuchNamedParameter:
   template: "No named parameter with the name '#name'."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: UNDEFINED_NAMED_PARAMETER
+  dart2jsCode: "*fatal*"
 
 AbstractClassInstantiation:
   template: "The class '#name' is abstract and can't be instantiated."
@@ -1212,6 +1224,8 @@ LoadLibraryHidesMember:
 TypeArgumentMismatch:
   template: "'#name' expects #count type arguments."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: WRONG_NUMBER_OF_TYPE_ARGUMENTS
+  dart2jsCode: "*fatal*"
 
 NotAType:
   template: "'#name' isn't a type."
@@ -1468,6 +1482,8 @@ DuplicatedImport:
 DuplicatedImportInType:
   template: "'#name' is imported from both '#uri' and '#uri2'."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: AMBIGUOUS_IMPORT
+  dart2jsCode: "*fatal*"
   script:
     lib1.dart: "class A {}"
     lib2.dart: "class A {}"
@@ -1622,10 +1638,14 @@ OverrideFewerNamedArguments:
 OverrideFewerPositionalArguments:
   template: "The method '#name' has fewer positional arguments than those of overridden method '#name2'."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: INVALID_OVERRIDE_POSITIONAL
+  dart2jsCode: "*fatal*"
 
 OverrideMoreRequiredArguments:
   template: "The method '#name' has more required arguments than those of overridden method '#name2'."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: INVALID_OVERRIDE_REQUIRED
+  dart2jsCode: "*fatal*"
 
 OverrideTypeMismatchParameter:
   template: "The parameter '#name' of the method '#name2' has type #type, which does not match the corresponding type in the overridden method (#type2)."
@@ -1848,6 +1868,8 @@ SupertypeIsFunction:
 
 DeferredPrefixDuplicated:
   template: "Can't use the name '#name' for a deferred library, as the name is used elsewhere."
+  analyzerCode: SHARED_DEFERRED_PREFIX
+  dart2jsCode: "*fatal*"
 
 DeferredPrefixDuplicatedCause:
   template: "'#name' is used here."
@@ -1868,6 +1890,8 @@ DuplicatedDefinition:
 DuplicatedName:
   template: "'#name' is already declared in this scope."
   severity: ERROR
+  analyzerCode: DUPLICATE_DEFINITION
+  dart2jsCode: "*fatal*"
 
 DuplicatedNameCause:
   template: "Previous declaration of '#name'."
@@ -1888,6 +1912,8 @@ DuplicatedNamePreviouslyUsedCause:
 
 DuplicatedParameterName:
   template: "Duplicated parameter name '#name'."
+  analyzerCode: DUPLICATE_DEFINITION
+  dart2jsCode: "*fatal*"
 
 DuplicatedParameterNameCause:
   template: "Other parameter named '#name'."
@@ -1919,15 +1945,21 @@ OperatorParameterMismatch0:
 
 OperatorParameterMismatch1:
   template: "Operator '#name' should have exactly one parameter."
+  analyzerCode: WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
+  dart2jsCode: "*fatal*"
 
 OperatorParameterMismatch2:
   template: "Operator '#name' should have exactly two parameters."
+  analyzerCode: WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
+  dart2jsCode: "*fatal*"
 
 OperatorMinusParameterMismatch:
   template: "Operator '#name' should have zero or one parameter."
   tip: >-
     With zero parameters, it has the syntactic form '-a', formally known as 'unary-'.
     With one parameter, it has the syntactic form 'a - b', formally known as '-'.
+  analyzerCode: WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS
+  dart2jsCode: "*fatal*"
 
 SupertypeIsIllegal:
   template: "The type '#name' can't be used as supertype."
@@ -2004,6 +2036,8 @@ SwitchHasMultipleDefaults:
 SwitchCaseFallThrough:
   template: "Switch case may fall through to the next case."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: CASE_BLOCK_NOT_TERMINATED
+  dart2jsCode: "*fatal*"
 
 FinalInstanceVariableAlreadyInitialized:
   template: "'#name' is a final instance variable that has already been initialized."
@@ -2044,6 +2078,8 @@ SuperclassHasNoDefaultConstructor:
 
 ConstConstructorNonFinalField:
   template: "Constructor is marked 'const' so all fields must be final."
+  analyzerCode: CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD
+  dart2jsCode: "*fatal*"
 
 ConstConstructorNonFinalFieldCause:
   template: "Field isn't final, but constructor is 'const'."
@@ -2277,6 +2313,9 @@ DillOutlineSummary:
 CantInferTypeDueToInconsistentOverrides:
   template: "Can't infer the type of '#string': overridden members must all have the same type."
   tip: "Specify the type explicitly."
+  severity: ERROR
+  analyzerCode: INVALID_METHOD_OVERRIDE
+  dart2jsCode: "*fatal*"
 
 CantInferTypeDueToCircularity:
   template: "Can't infer the type of '#string': circularity found during type inference."
@@ -2366,7 +2405,7 @@ BoundIssueViaRawTypeWithNonSimpleBounds:
   template: "Generic type '#name' can't be used without type arguments in a type variable bound."
   tip: "Try providing type arguments to '#name' here."
   severity: ERROR
-  analyzerCode: STRONG_MODE_NOT_INSTANTIATED_BOUND
+  analyzerCode: SNOT_INSTANTIATED_BOUND
   dart2jsCode: "*fatal*"
   script: >
     class Hest<X extends Hest<X>> {}
@@ -2380,7 +2419,7 @@ BoundIssueViaLoopNonSimplicity:
   template: "Generic type '#name' can't be used without type arguments in the bounds of its own type variables."
   tip: "Try providing type arguments to '#name' here."
   severity: ERROR
-  analyzerCode: STRONG_MODE_NOT_INSTANTIATED_BOUND
+  analyzerCode: NOT_INSTANTIATED_BOUND
   dart2jsCode: "*fatal*"
   script: >
     class Hest<X extends Hest> {}
@@ -2389,7 +2428,7 @@ BoundIssueViaCycleNonSimplicity:
   template: "Generic type '#name' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through '#name2'."
   tip: "Try providing type arguments to '#name2' here or to some other raw types in the bounds along the reference chain."
   severity: ERROR
-  analyzerCode: STRONG_MODE_NOT_INSTANTIATED_BOUND
+  analyzerCode: NOT_INSTANTIATED_BOUND
   dart2jsCode: "*fatal*"
   script: >
     class Hest<X extends Fisk> {}

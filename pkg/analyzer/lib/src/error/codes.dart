@@ -2034,6 +2034,12 @@ class CompileTimeErrorCode extends ErrorCode {
           "initializers.",
           correction: "Try changing the import to not be deferred.");
 
+  static const CompileTimeErrorCode NON_SYNC_ABSTRACT_METHOD =
+      const CompileTimeErrorCode.fromFasta('NON_SYNC_ABSTRACT_METHOD');
+
+  static const CompileTimeErrorCode NON_SYNC_FACTORY_METHOD =
+      const CompileTimeErrorCode.fromFasta('NON_SYNC_FACTORY_METHOD');
+
   /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i>
    * or if <i>m > n</i>.
@@ -2438,6 +2444,9 @@ class CompileTimeErrorCode extends ErrorCode {
           'TYPE_ALIAS_CANNOT_REFERENCE_ITSELF',
           "Typedefs can't reference themselves directly or recursively via "
           "another typedef.");
+
+  static const CompileTimeErrorCode TYPE_PARAMETER_ON_CONSTRUCTOR =
+      const CompileTimeErrorCode.fromFasta('TYPE_PARAMETER_ON_CONSTRUCTOR');
 
   /**
    * 15 Metadata: Metadata consists of a series of annotations, each of which
