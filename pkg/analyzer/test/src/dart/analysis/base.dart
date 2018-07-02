@@ -82,7 +82,14 @@ class BaseAnalysisDriverTest {
     }
   }
 
-  AnalysisDriver createAnalysisDriver({SummaryDataStore externalSummaries}) {
+  AnalysisDriver createAnalysisDriver(
+      {Map<String, List<Folder>> packageMap,
+      SummaryDataStore externalSummaries}) {
+    packageMap ??= <String, List<Folder>>{
+      'test': [provider.getFolder(testProject)],
+      'aaa': [provider.getFolder(_p('/aaa/lib'))],
+      'bbb': [provider.getFolder(_p('/bbb/lib'))],
+    };
     return new AnalysisDriver(
         scheduler,
         logger,
@@ -93,11 +100,7 @@ class BaseAnalysisDriverTest {
         new SourceFactory([
           new DartUriResolver(sdk),
           generatedUriResolver,
-          new PackageMapUriResolver(provider, <String, List<Folder>>{
-            'test': [provider.getFolder(testProject)],
-            'aaa': [provider.getFolder(_p('/aaa/lib'))],
-            'bbb': [provider.getFolder(_p('/bbb/lib'))],
-          }),
+          new PackageMapUriResolver(provider, packageMap),
           new ResourceUriResolver(provider)
         ], null, provider),
         createAnalysisOptions(),

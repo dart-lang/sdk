@@ -448,6 +448,55 @@ typedef tf2<T> = int Function<S>(T tp, S sp);
     assertHasResult(b, 'b', not: true);
   }
 
+  test_references_discover_onlyOwned_samePath() async {
+    var p = _p('/test/lib/t.dart');
+    provider.newFile(p, 'int t;');
+
+    var driver1 = createAnalysisDriver(packageMap: {
+      'test': [provider.newFolder(_p('/test/lib'))]
+    });
+    var driver2 = createAnalysisDriver(packageMap: {});
+
+    var searchedFiles = new SearchedFiles();
+    searchedFiles.ownAdded(driver1.search);
+    searchedFiles.ownAdded(driver2.search); // does not own any file, but...
+
+    // driver1 owns both path and URI.
+    expect(searchedFiles.add(p, driver1.search), isTrue);
+
+    // The path is already owned by driver1, so cannot be handled in driver2.
+    expect(searchedFiles.add(p, driver2.search), isFalse);
+  }
+
+  test_references_discover_onlyOwned_sameUri() async {
+    var a = _p('/aaa/lib/t.dart');
+    var b = _p('/bbb/lib/t.dart');
+
+    provider.newFile(a, 'int t;');
+    provider.newFile(b, 'double t;');
+
+    var driver1 = createAnalysisDriver(packageMap: {
+      'ttt': [provider.newFolder(_p('/aaa/lib'))]
+    });
+    var driver2 = createAnalysisDriver(packageMap: {
+      'ttt': [provider.newFolder(_p('/bbb/lib'))]
+    });
+
+    // driver1 owns `/aaa/lib/t.dart` with `package:ttt/t.dart`.
+    driver1.addFile(a);
+
+    var searchedFiles = new SearchedFiles();
+
+    searchedFiles.ownAdded(driver1.search);
+    searchedFiles.ownAdded(driver2.search); // does not own any file, but...
+
+    // driver1 owns both path and URI.
+    expect(searchedFiles.add(a, driver1.search), isTrue);
+
+    // The URI is already owned by driver1, so cannot be handled in driver2.
+    expect(searchedFiles.add(b, driver2.search), isFalse);
+  }
+
   test_searchMemberReferences_qualified_resolved() async {
     await _resolveTestUnit('''
 class C {
@@ -1646,23 +1695,6 @@ class F {}
     }
   }
 
-  test_subtypes_partWithoutLibrary() async {
-    await _resolveTestUnit('''
-part of lib;
-
-class A {}
-class B extends A {}
-''');
-    ClassElement a = _findElement('A');
-
-    List<SubtypeResult> subtypes = await driver.search.subtypes(type: a);
-    expect(subtypes, hasLength(1));
-
-    SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
-    expect(b.libraryUri, testUri);
-    expect(b.id, '$testUri;$testUri;B');
-  }
-
   test_subtypes_discover() async {
     var pathT = _p('/test/lib/t.dart');
     var pathA = _p('/aaa/lib/a.dart');
@@ -1788,6 +1820,23 @@ class A {}
 
     expect(b.id, endsWith('b.dart;B'));
     expect(c.id, endsWith('c.dart;C'));
+  }
+
+  test_subtypes_partWithoutLibrary() async {
+    await _resolveTestUnit('''
+part of lib;
+
+class A {}
+class B extends A {}
+''');
+    ClassElement a = _findElement('A');
+
+    List<SubtypeResult> subtypes = await driver.search.subtypes(type: a);
+    expect(subtypes, hasLength(1));
+
+    SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
+    expect(b.libraryUri, testUri);
+    expect(b.id, '$testUri;$testUri;B');
   }
 
   test_topLevelElements() async {
