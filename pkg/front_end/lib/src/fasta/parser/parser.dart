@@ -10,8 +10,6 @@ import '../fasta_codes.dart' as fasta;
 
 import '../scanner.dart' show ErrorToken, Token;
 
-import '../scanner/recover.dart' show skipToEof;
-
 import '../../scanner/token.dart'
     show
         ASSIGNMENT_PRECEDENCE,
@@ -1848,7 +1846,7 @@ class Parser {
       bool errorReported = false;
       while (next is ErrorToken) {
         errorReported = true;
-        reportErrorToken(next, true);
+        reportErrorToken(next);
         token = next;
         next = token.next;
       }
@@ -3824,7 +3822,8 @@ class Parser {
         // Report the error in the error token, skip the error token, and try
         // again.
         previous = token;
-        token = reportErrorTokenAndAdvance(token);
+        reportErrorToken(token);
+        token = token.next;
       } while (token is ErrorToken);
       return parsePrimary(previous, context);
     } else {
@@ -5675,7 +5674,7 @@ class Parser {
 
   void reportRecoverableError(Token token, Message message) {
     if (token is ErrorToken) {
-      reportErrorToken(token, true);
+      reportErrorToken(token);
     } else {
       // Find a non-synthetic token on which to report the error.
       token = findNonSyntheticToken(token);
@@ -5686,7 +5685,7 @@ class Parser {
   void reportRecoverableErrorWithToken(
       Token token, Template<_MessageWithArgument<Token>> template) {
     if (token is ErrorToken) {
-      reportErrorToken(token, true);
+      reportErrorToken(token);
     } else {
       // Find a non-synthetic token on which to report the error.
       token = findNonSyntheticToken(token);
@@ -5695,29 +5694,8 @@ class Parser {
     }
   }
 
-  Token reportErrorToken(ErrorToken token, bool isRecoverable) {
-    Message message = token.assertionMessage;
-    // TODO(brianwilkerson): Error recovery belongs in the parser, not the
-    // listeners. As a result, the following code needs to be re-worked. While
-    // listeners still need to handle errors, there should not be a distinction
-    // between recoverable and non-recoverable errors.
-    if (isRecoverable) {
-      listener.handleRecoverableError(message, token, token);
-      return null;
-    } else {
-      Token next = listener.handleUnrecoverableError(token, message);
-      return next ?? skipToEof(token);
-    }
-  }
-
-  /// Report the given error [token] as an unrecoverable error and return the
-  /// next token to be processed.
-  Token reportErrorTokenAndAdvance(ErrorToken token) {
-    Token nextToken = reportErrorToken(token, false);
-    if (nextToken == token) {
-      return token.next;
-    }
-    return nextToken;
+  void reportErrorToken(ErrorToken token) {
+    listener.handleRecoverableError(token.assertionMessage, token, token);
   }
 
   Token parseInvalidTopLevelDeclaration(Token token) {
