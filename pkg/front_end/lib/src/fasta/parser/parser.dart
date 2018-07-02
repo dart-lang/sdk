@@ -1843,18 +1843,27 @@ class Parser {
   }
 
   Token parseStringPart(Token token) {
-    token = token.next;
-    while (token.kind != STRING_TOKEN) {
-      if (token is ErrorToken) {
-        reportErrorToken(token, true);
-      } else {
-        token = reportUnrecoverableErrorWithToken(
-            token, fasta.templateExpectedString);
+    Token next = token.next;
+    if (next.kind != STRING_TOKEN) {
+      bool errorReported = false;
+      while (next is ErrorToken) {
+        errorReported = true;
+        reportErrorToken(next, true);
+        token = next;
+        next = token.next;
       }
-      token = token.next;
+      if (next.kind != STRING_TOKEN) {
+        if (!errorReported) {
+          reportRecoverableErrorWithToken(next, fasta.templateExpectedString);
+        }
+        next = rewriter
+            .insertTokenAfter(token,
+                new SyntheticStringToken(TokenType.STRING, '', next.charOffset))
+            .next;
+      }
     }
-    listener.handleStringPart(token);
-    return token;
+    listener.handleStringPart(next);
+    return next;
   }
 
   /// Insert a synthetic identifier after the given [token] and create an error
