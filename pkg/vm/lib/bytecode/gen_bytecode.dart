@@ -1033,6 +1033,16 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     continuation();
   }
 
+  // For certain expressions wrapped into ExpressionStatement we can
+  // omit pushing result on the stack.
+  bool isExpressionWithoutResult(Expression expr) =>
+      expr.parent is ExpressionStatement &&
+      (expr is VariableSet ||
+          expr is PropertySet ||
+          expr is StaticSet ||
+          expr is SuperPropertySet ||
+          expr is DirectPropertySet);
+
   @override
   defaultTreeNode(Node node) => throw new UnsupportedOperationError(
       'Unsupported node ${node.runtimeType}');
@@ -1154,14 +1164,27 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitDirectPropertySet(DirectPropertySet node) {
+    final int temp = locals.tempIndexInFrame(node);
+    final bool hasResult = !isExpressionWithoutResult(node);
+
     node.receiver.accept(this);
     node.value.accept(this);
+
+    if (hasResult) {
+      asm.emitStoreLocal(temp);
+    }
+
     final target = node.target;
     if (target is Field || (target is Procedure && target.isSetter)) {
       _genStaticCall(target, new ConstantArgDesc(2), 2, isSet: true);
+      asm.emitDrop1();
     } else {
       throw new UnsupportedOperationError(
           'Unsupported DirectPropertySet with target ${target.runtimeType} $target');
+    }
+
+    if (hasResult) {
+      asm.emitPush(temp);
     }
   }
 
@@ -1353,15 +1376,24 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   @override
   visitPropertySet(PropertySet node) {
     final int temp = locals.tempIndexInFrame(node);
+    final bool hasResult = !isExpressionWithoutResult(node);
+
     node.receiver.accept(this);
     node.value.accept(this);
-    asm.emitStoreLocal(temp);
+
+    if (hasResult) {
+      asm.emitStoreLocal(temp);
+    }
+
     final argDescIndex = cp.add(new ConstantArgDesc(2));
     final icdataIndex = cp.add(
         new ConstantICData(InvocationKind.setter, node.name, argDescIndex));
     asm.emitInstanceCall1(2, icdataIndex);
     asm.emitDrop1();
-    asm.emitPush(temp);
+
+    if (hasResult) {
+      asm.emitPush(temp);
+    }
   }
 
   @override
@@ -1401,8 +1433,16 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitSuperPropertySet(SuperPropertySet node) {
+    final int temp = locals.tempIndexInFrame(node);
+    final bool hasResult = !isExpressionWithoutResult(node);
+
     _genPushReceiver();
     node.value.accept(this);
+
+    if (hasResult) {
+      asm.emitStoreLocal(temp);
+    }
+
     final Member target = hierarchy
         .getDispatchTarget(enclosingClass.superclass, node.name, setter: true);
     if (target == null) {
@@ -1411,9 +1451,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
     if (target is Field || (target is Procedure && target.isSetter)) {
       _genStaticCall(target, new ConstantArgDesc(2), 2, isSet: true);
+      asm.emitDrop1();
     } else {
       throw new UnsupportedOperationError(
           'Unsupported SuperPropertySet with target ${target.runtimeType} $target');
+    }
+
+    if (hasResult) {
+      asm.emitPush(temp);
     }
   }
 
@@ -1503,8 +1548,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitStaticSet(StaticSet node) {
+    final bool hasResult = !isExpressionWithoutResult(node);
+
     node.value.accept(this);
-    _genDupTOS(locals.tempIndexInFrame(node));
+
+    if (hasResult) {
+      _genDupTOS(locals.tempIndexInFrame(node));
+    }
+
     final target = node.target;
     if (target is Field) {
       int cpIndex = cp.add(new ConstantField(target));
@@ -1587,21 +1638,32 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   @override
   visitVariableSet(VariableSet node) {
     final v = node.variable;
+    final bool hasResult = !isExpressionWithoutResult(node);
+
     if (locals.isCaptured(v)) {
       _genPushContextForVariable(v);
 
       node.value.accept(this);
 
-      // Preserve value.
       final int temp = locals.tempIndexInFrame(node);
-      asm.emitStoreLocal(temp);
+      if (hasResult) {
+        asm.emitStoreLocal(temp);
+      }
 
       _genStoreVar(v);
 
-      asm.emitPush(temp);
+      if (hasResult) {
+        asm.emitPush(temp);
+      }
     } else {
       node.value.accept(this);
-      asm.emitStoreLocal(locals.getVarIndexInFrame(v));
+
+      final int localIndex = locals.getVarIndexInFrame(v);
+      if (hasResult) {
+        asm.emitStoreLocal(localIndex);
+      } else {
+        asm.emitPopLocal(localIndex);
+      }
     }
   }
 
@@ -1706,8 +1768,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitExpressionStatement(ExpressionStatement node) {
-    node.expression.accept(this);
-    asm.emitDrop1();
+    final expr = node.expression;
+    expr.accept(this);
+    if (!isExpressionWithoutResult(expr)) {
+      asm.emitDrop1();
+    }
   }
 
   @override

@@ -442,10 +442,7 @@ Try #0 handler:
   Drop1
   Push                 r0
   PushConstant         CP#11
-  StoreLocal           r5
   StoreFieldTOS        CP#2
-  Push                 r5
-  Drop1
   Jump                 L1
 L1:
   PushConstant         CP#12
@@ -1027,8 +1024,7 @@ Try #0 start:
   Push                 r5
   Push                 r0
   StoreFieldTOS        CP#5
-  StoreLocal           r2
-  Drop1
+  PopLocal             r2
   Jump                 L1
 Try #0 end:
 Try #0 handler:
@@ -1065,7 +1061,7 @@ L1:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 15, end 32, handler 32, needs-stack-trace, types [CP#11]
+  try-index 0, outer -1, start 15, end 31, handler 31, needs-stack-trace, types [CP#11]
 }
 ConstantPool {
   [0] = ContextOffset parent

@@ -142,10 +142,7 @@ L2:
   PushConstant         CP#13
   PushConstant         CP#14
   AssertAssignable     0, CP#15
-  StoreLocal           r0
   InstanceCall1        2, CP#17
-  Drop1
-  Push                 r0
   Drop1
   PushConstant         CP#1
   ReturnTOS
@@ -441,10 +438,7 @@ Bytecode {
   PushConstant         CP#1
   PushConstant         CP#2
   AssertAssignable     0, CP#3
-  StoreLocal           r0
-  Push                 r0
   StoreStaticTOS       CP#4
-  Drop1
   PushConstant         CP#0
   ReturnTOS
 }

@@ -966,6 +966,16 @@ class _Allocator extends RecursiveVisitor<Null> {
   }
 
   @override
+  visitDirectPropertySet(DirectPropertySet node) {
+    _visit(node, temps: 1);
+  }
+
+  @override
+  visitSuperPropertySet(SuperPropertySet node) {
+    _visit(node, temps: 1);
+  }
+
+  @override
   visitSwitchStatement(SwitchStatement node) {
     _visit(node, temps: 1);
   }

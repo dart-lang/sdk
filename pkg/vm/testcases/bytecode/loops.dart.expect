@@ -25,8 +25,7 @@ L2:
   Push                 r1
   InstanceCall1        2, CP#6
   InstanceCall1        2, CP#7
-  StoreLocal           r0
-  Drop1
+  PopLocal             r0
   Push                 r1
   PushConstant         CP#8
   InstanceCall1        2, CP#9
@@ -91,8 +90,7 @@ L2:
   Push                 r1
   InstanceCall1        2, CP#7
   InstanceCall1        2, CP#8
-  StoreLocal           r0
-  Drop1
+  PopLocal             r0
   Push                 r1
   PushConstant         CP#9
   InstanceCall1        2, CP#10
@@ -163,8 +161,7 @@ L2:
   Push                 r1
   InstanceCall1        2, CP#9
   InstanceCall1        2, CP#10
-  StoreLocal           r0
-  Drop1
+  PopLocal             r0
 L3:
   Push                 r1
   PushConstant         CP#11
@@ -236,8 +233,7 @@ L2:
   Push                 r2
   InstanceCall1        2, CP#8
   InstanceCall1        2, CP#9
-  StoreLocal           r0
-  Drop1
+  PopLocal             r0
   Jump                 L2
 L1:
   Push                 r0
@@ -281,13 +277,11 @@ L1:
   Push                 r1
   InstanceCall1        2, CP#2
   InstanceCall1        2, CP#3
-  StoreLocal           r0
-  Drop1
+  PopLocal             r0
   Push                 r1
   PushConstant         CP#4
   InstanceCall1        2, CP#5
-  StoreLocal           r1
-  Drop1
+  PopLocal             r1
   Push                 r1
   Push                 FP[-5]
   InstanceCall1        1, CP#7
@@ -346,8 +340,7 @@ L2:
   Push                 r0
   Push                 r2
   InstanceCall1        2, CP#7
-  StoreLocal           r0
-  Drop1
+  PopLocal             r0
   Jump                 L2
 L1:
   Push                 r0
@@ -395,13 +388,11 @@ L2:
   InstanceCall1        1, CP#6
   PopLocal             r3
   Push                 r3
-  StoreLocal           r1
-  Drop1
+  PopLocal             r1
   Push                 r0
   Push                 r1
   InstanceCall1        2, CP#8
-  StoreLocal           r0
-  Drop1
+  PopLocal             r0
   Jump                 L2
 L1:
   Push                 r0

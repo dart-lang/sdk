@@ -654,10 +654,7 @@ Closure CP#17 {
   LoadFieldTOS         CP#0
   PushConstant         CP#3
   InstanceCall1        2, CP#18
-  StoreLocal           r2
   StoreFieldTOS        CP#0
-  Push                 r2
-  Drop1
   Push                 r0
   Push                 r0
   LoadFieldTOS         CP#1
@@ -670,10 +667,7 @@ Closure CP#17 {
   LoadFieldTOS         CP#1
   LoadFieldTOS         CP#0
   InstanceCall1        2, CP#21
-  StoreLocal           r2
   StoreFieldTOS        CP#0
-  Push                 r2
-  Drop1
   PushConstant         CP#7
   ReturnTOS
 
@@ -714,10 +708,7 @@ Closure CP#5 {
   LoadFieldTOS         CP#0
   PushConstant         CP#2
   InstanceCall1        2, CP#12
-  StoreLocal           r2
   StoreFieldTOS        CP#0
-  Push                 r2
-  Drop1
   Push                 r0
   LoadFieldTOS         CP#1
   LoadFieldTOS         CP#1
@@ -780,10 +771,7 @@ Closure CP#38 {
   LoadFieldTOS         CP#0
   Push                 r0
   LoadFieldTOS         CP#0
-  StoreLocal           r2
   InstanceCall1        2, CP#39
-  Drop1
-  Push                 r2
   Drop1
   PushConstant         CP#7
   ReturnTOS
@@ -1019,10 +1007,7 @@ Closure CP#21 {
   LoadFieldTOS         CP#0
   LoadFieldTOS         CP#2
   InstanceCall1        2, CP#25
-  StoreLocal           r2
   StoreFieldTOS        CP#2
-  Push                 r2
-  Drop1
   PushConstant         CP#14
   ReturnTOS
 
@@ -1136,10 +1121,7 @@ Closure CP#11 {
   LoadFieldTOS         CP#10
   PushConstant         CP#13
   InstanceCall1        2, CP#15
-  StoreLocal           r2
   StoreFieldTOS        CP#10
-  Push                 r2
-  Drop1
   PushConstant         CP#0
   ReturnTOS
 
@@ -1321,10 +1303,7 @@ Closure CP#3 {
   LoadFieldTOS         CP#2
   Push                 FP[-5]
   InstanceCall1        2, CP#10
-  StoreLocal           r2
   StoreFieldTOS        CP#2
-  Push                 r2
-  Drop1
   PushConstant         CP#5
   ReturnTOS
 
