@@ -25477,6 +25477,23 @@ class RtcPeerConnection extends EventTarget {
     return completer.future;
   }
 
+  /**
+  * Temporarily exposes _getStats and old getStats as getLegacyStats until Chrome fully supports
+  * new getStats API.
+  */
+  @JSName('getStats')
+  Future<RtcStatsResponse> getLegacyStats([MediaStreamTrack selector]) {
+    var completer = new Completer<RtcStatsResponse>();
+    _getStats((value) {
+      completer.complete(value);
+    }, selector);
+    return completer.future;
+  }
+
+  @JSName('getStats')
+  Future _getStats(
+      [RtcStatsCallback successCallback, MediaStreamTrack selector]) native;
+
   static Future generateCertificate(/*AlgorithmIdentifier*/ keygenAlgorithm) =>
       JS('dynamic', 'generateCertificate(#)', keygenAlgorithm);
 
