@@ -288,6 +288,7 @@ class KernelTarget extends TargetImplementation {
           ticker.logMs("Building component");
           await loader.buildBodies();
           loader.finishDeferredLoadTearoffs();
+          loader.finishNoSuchMethodForwarders();
           List<SourceClassBuilder> myClasses = collectMyClasses();
           finishAllConstructors(myClasses);
           loader.finishNativeMethods();

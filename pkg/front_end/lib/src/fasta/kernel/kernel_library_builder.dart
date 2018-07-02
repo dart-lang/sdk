@@ -25,7 +25,10 @@ import 'package:kernel/ast.dart'
         StringLiteral,
         TreeNode,
         Typedef,
+        VariableDeclaration,
         VoidType;
+
+import 'package:kernel/clone.dart' show CloneVisitor;
 
 import '../../scanner/token.dart' show Token;
 
@@ -59,7 +62,7 @@ import '../loader.dart' show Loader;
 import '../modifier.dart'
     show abstractMask, namedMixinApplicationMask, staticMask;
 
-import '../problems.dart' show unhandled;
+import '../problems.dart' show unexpected, unhandled;
 
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
@@ -125,6 +128,12 @@ class KernelLibraryBuilder
 
   final List<KernelTypeVariableBuilder> boundlessTypeVariables =
       <KernelTypeVariableBuilder>[];
+
+  // A list of alternating noSuchMethod forwarders and the abstract procedures
+  // they were generated for.  Note that it may not include a forwarder-origin
+  // pair in cases when the former does not need to be updated after the body of
+  // the latter was built.
+  final List<Procedure> noSuchMethodForwardersOrigins = <Procedure>[];
 
   /// Exports that can't be serialized.
   ///
@@ -1001,6 +1010,55 @@ class KernelLibraryBuilder
       }
     }
     return total;
+  }
+
+  int finishNoSuchMethodForwarders() {
+    int count = 0;
+    CloneVisitor cloner = new CloneVisitor();
+    for (int i = 0; i < noSuchMethodForwardersOrigins.length; i += 2) {
+      Procedure forwarder = noSuchMethodForwardersOrigins[i];
+      Procedure origin = noSuchMethodForwardersOrigins[i + 1];
+
+      int positionalCount = origin.function.positionalParameters.length;
+      if (forwarder.function.positionalParameters.length != positionalCount) {
+        return unexpected(
+            "$positionalCount",
+            "${forwarder.function.positionalParameters.length}",
+            origin.fileOffset,
+            origin.fileUri);
+      }
+      for (int j = 0; j < positionalCount; ++j) {
+        VariableDeclaration forwarderParameter =
+            forwarder.function.positionalParameters[j];
+        VariableDeclaration originParameter =
+            origin.function.positionalParameters[j];
+        if (originParameter.initializer != null) {
+          forwarderParameter.initializer =
+              cloner.clone(originParameter.initializer);
+          forwarderParameter.initializer.parent = forwarderParameter;
+        }
+      }
+
+      Map<String, VariableDeclaration> originNamedMap =
+          <String, VariableDeclaration>{};
+      for (VariableDeclaration originNamed in origin.function.namedParameters) {
+        originNamedMap[originNamed.name] = originNamed;
+      }
+      for (VariableDeclaration forwarderNamed
+          in forwarder.function.namedParameters) {
+        VariableDeclaration originNamed = originNamedMap[forwarderNamed.name];
+        if (originNamed == null) {
+          return unhandled(
+              "null", forwarder.name.name, origin.fileOffset, origin.fileUri);
+        }
+        forwarderNamed.initializer = cloner.clone(originNamed.initializer);
+        forwarderNamed.initializer.parent = forwarderNamed;
+      }
+
+      ++count;
+    }
+    noSuchMethodForwardersOrigins.clear();
+    return count;
   }
 
   void addNativeMethod(KernelFunctionBuilder method) {
