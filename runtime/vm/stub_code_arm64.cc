@@ -1966,10 +1966,6 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
   __ SetPrologueOffset();
   __ EnterStubFrame();
 
-  // Save exit frame information to enable stack walking as we are about
-  // to transition to Dart VM C++ code.
-  __ StoreToOffset(FP, THR, Thread::top_exit_frame_info_offset());
-
 #if defined(DEBUG)
   {
     Label ok;
@@ -1981,9 +1977,6 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
     __ Bind(&ok);
   }
 #endif
-
-  // Mark that the thread is executing VM code.
-  __ StoreToOffset(R5, THR, Thread::vm_tag_offset());
 
   // Setup space on stack for result of the interpreted function call.
   __ Push(ZR);
@@ -2004,7 +1997,7 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
 
   // Push 4th Dart argument of the interpreted function call.
   // R2: Smi-tagged arguments array length.
-  PushArrayOfArguments(assembler);
+  PushArrayOfArguments(assembler);  // May call into the runtime.
   const intptr_t kNumArgs = 4;
 
   // Reserve space for arguments and align frame before entering C++ world.
@@ -2033,13 +2026,20 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
   __ StoreToOffset(R3, SP, retval_offset);
   __ mov(R0, SP);  // Pass the pointer to the NativeArguments.
 
+  // Save exit frame information to enable stack walking as we are about
+  // to transition to Dart VM C++ code.
+  __ StoreToOffset(FP, THR, Thread::top_exit_frame_info_offset());
+
+  // Mark that the thread is executing VM code.
+  __ LoadImmediate(R5, kInterpretCallRuntimeEntry.GetEntryPoint());
+  __ StoreToOffset(R5, THR, Thread::vm_tag_offset());
+
   // We are entering runtime code, so the C stack pointer must be restored from
   // the stack limit to the top of the stack. We cache the stack limit address
   // in a callee-saved register.
   __ mov(R25, CSP);
   __ mov(CSP, SP);
 
-  __ LoadImmediate(R5, kInterpretCallRuntimeEntry.GetEntryPoint());
   __ blr(R5);
 
   // Restore SP and CSP.

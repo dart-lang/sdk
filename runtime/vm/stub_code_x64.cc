@@ -1906,10 +1906,6 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
 
   __ EnterStubFrame();
 
-  // Save exit frame information to enable stack walking as we are about
-  // to transition to Dart VM C++ code.
-  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), RBP);
-
 #if defined(DEBUG)
   {
     Label ok;
@@ -1921,10 +1917,6 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
     __ Bind(&ok);
   }
 #endif
-
-  // Mark that the thread is executing VM code.
-  __ movq(RCX, Immediate(kInterpretCallRuntimeEntry.GetEntryPoint()));
-  __ movq(Assembler::VMTagAddress(), RCX);
 
   // Push result and first 3 arguments of the interpreted function call.
   __ pushq(Immediate(0));  // Setup space on stack for result.
@@ -1944,7 +1936,7 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
 
   // Push 4th Dart argument of the interpreted function call.
   // R10: Smi-tagged arguments array length.
-  PushArrayOfArguments(assembler);
+  PushArrayOfArguments(assembler);  // May call into the runtime.
   const intptr_t kNumArgs = 4;
 
   // Set callee-saved RBX to point to first one of the 4 Dart arguments.
@@ -1967,7 +1959,14 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
   ASSERT(sizeof(NativeArguments) > CallingConventions::kRegisterTransferLimit);
   __ movq(CallingConventions::kArg1Reg, RSP);
 #endif
+  // Save exit frame information to enable stack walking as we are about
+  // to transition to Dart VM C++ code.
+  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), RBP);
+
+  // Mark that the thread is executing VM code.
   __ movq(RCX, Immediate(kInterpretCallRuntimeEntry.GetEntryPoint()));
+  __ movq(Assembler::VMTagAddress(), RCX);
+
   __ CallCFunction(RCX);
 
   // Mark that the thread is executing Dart code.
