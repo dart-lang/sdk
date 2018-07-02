@@ -706,8 +706,10 @@ void ConstantPropagator::VisitBooleanNegate(BooleanNegateInstr* instr) {
 void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
   Definition* def = instr->value()->definition();
   const Object& value = def->constant_value();
-  if (IsNonConstant(value)) {
-    const AbstractType& checked_type = instr->type();
+  const AbstractType& checked_type = instr->type();
+  if (checked_type.IsTopType()) {
+    SetValue(instr, Bool::True());
+  } else if (IsNonConstant(value)) {
     intptr_t value_cid = instr->value()->definition()->Type()->ToCid();
     Representation rep = def->representation();
     if ((checked_type.IsFloat32x4Type() && (rep == kUnboxedFloat32x4)) ||
@@ -728,7 +730,6 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
   } else if (IsConstant(value)) {
     if (value.IsInstance()) {
       const Instance& instance = Instance::Cast(value);
-      const AbstractType& checked_type = instr->type();
       if (instr->instantiator_type_arguments()->BindsToConstantNull() &&
           instr->function_type_arguments()->BindsToConstantNull()) {
         Error& bound_error = Error::Handle();

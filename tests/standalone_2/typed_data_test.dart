@@ -205,6 +205,53 @@ void testIndexOutOfRange() {
   testIndexOutOfRangeHelper(new Uint64List(3), 0);
 }
 
+void testNoNullValueLoopSetter(list, value) {
+  for (int i = 0; i < list.length; i++) {
+    list[i] = value;
+  }
+}
+
+void testNoNullValueDirectSetter(list, value) {
+  list[0] = value;
+  list[1] = value;
+  list[2] = value;
+}
+
+void testNoNullValueHelper(list, value) {
+  testNoNullValueLoopSetter(list, value + 1);
+  for (int i = 0; i < list.length; i++) {
+    Expect.equals(value + 1, list[i]);
+  }
+  testNoNullValueDirectSetter(list, value + 2);
+  for (int i = 0; i < list.length; i++) {
+    Expect.equals(value + 2, list[i]);
+  }
+
+  Expect.throws(() {
+    testNoNullValueLoopSetter(list, null);
+  });
+
+  Expect.throws(() {
+    testNoNullValueDirectSetter(list, null);
+  });
+}
+
+void testNoNullValue() {
+  testNoNullValueHelper(new Int8List(3), 1);
+  testNoNullValueHelper(new Uint8List(3), 1);
+  testNoNullValueHelper(new Uint8ClampedList(3), 1);
+  testNoNullValueHelper(new Int16List(3), 1);
+  testNoNullValueHelper(new Uint16List(3), 1);
+  testNoNullValueHelper(new Int32List(3), 1);
+  testNoNullValueHelper(new Uint32List(3), 1);
+  testNoNullValueHelper(new Int64List(3), 1);
+  testNoNullValueHelper(new Uint64List(3), 1);
+  testNoNullValueHelper(new Float32List(3), 1.0);
+  testNoNullValueHelper(new Float64List(3), 1.0);
+  testNoNullValueHelper(new Int64List(3), 1);
+  testNoNullValueHelper(new Uint64List(3), 1);
+}
+
 void testIndexOfHelper(list) {
   for (int i = 0; i < list.length; i++) {
     list[i] = i + 10;
@@ -483,6 +530,7 @@ main() {
     testClampedUnsignedTypedDataRange(false);
     testSetRange();
     testIndexOutOfRange();
+    testNoNullValue();
     testIndexOf();
 
     var int8list = new Int8List(128);

@@ -116,6 +116,11 @@ DECLARE_FLAG(bool, verify_compiler);
     }                                                                          \
   } while (false)
 
+// Is compilation and isolate in strong mode?
+static bool CanUseStrongModeTypes(FlowGraph* flow_graph) {
+  return FLAG_use_strong_mode_types && flow_graph->isolate()->strong();
+}
+
 // Test if a call is recursive by looking in the deoptimization environment.
 static bool IsCallRecursive(const Function& function, Definition* call) {
   Environment* env = call->env();
@@ -2253,11 +2258,8 @@ static bool CanUnboxDouble() {
 }
 
 static bool ShouldInlineInt64ArrayOps() {
-#if defined(TARGET_ARCH_X64)
-  return true;
-#else
-  return false;
-#endif
+  // TODO(ajcbik): look into doing this even for 32-bit targets.
+  return (kBitsPerWord == 64) && FlowGraphCompiler::SupportsUnboxedInt64();
 }
 
 static bool CanUnboxInt32() {
@@ -2414,6 +2416,7 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
       case kTypedDataInt32ArrayCid:
       case kTypedDataUint32ArrayCid:
       case kTypedDataInt64ArrayCid:
+      case kTypedDataUint64ArrayCid:
         ASSERT(value_type.IsIntType());
       // Fall through.
       case kTypedDataFloat32ArrayCid:
@@ -2735,7 +2738,7 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
   // For Dart2, both issues are resolved in the inlined code.
   if (array_cid == kDynamicCid) {
     ASSERT(call->IsStaticCall());
-    if (!FLAG_strong) {
+    if (!CanUseStrongModeTypes(flow_graph)) {
       return false;
     }
   }
@@ -2751,7 +2754,7 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
   // All getters that go through InlineByteArrayBaseLoad() have explicit
   // bounds checks in all their clients in the library, so we can omit yet
   // another inlined bounds check when compiling for Dart2 (resolves (A)).
-  const bool needs_bounds_check = !FLAG_strong;
+  const bool needs_bounds_check = !CanUseStrongModeTypes(flow_graph);
   if (needs_bounds_check) {
     PrepareInlineTypedArrayBoundsCheck(flow_graph, call, array_cid, view_cid,
                                        array, index, &cursor);
@@ -2832,7 +2835,7 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
   // For Dart2, both issues are resolved in the inlined code.
   if (array_cid == kDynamicCid) {
     ASSERT(call->IsStaticCall());
-    if (!FLAG_strong) {
+    if (!CanUseStrongModeTypes(flow_graph)) {
       return false;
     }
   }
@@ -2848,13 +2851,15 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
   // All setters that go through InlineByteArrayBaseLoad() have explicit
   // bounds checks in all their clients in the library, so we can omit yet
   // another inlined bounds check when compiling for Dart2 (resolves (A)).
-  const bool needs_bounds_check = !FLAG_strong;
+  const bool needs_bounds_check = !CanUseStrongModeTypes(flow_graph);
   if (needs_bounds_check) {
     PrepareInlineTypedArrayBoundsCheck(flow_graph, call, array_cid, view_cid,
                                        array, index, &cursor);
   }
 
+  // Prepare additional checks.
   Cids* value_check = nullptr;
+  bool needs_null_check = false;
   switch (view_cid) {
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
@@ -2876,8 +2881,13 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
       break;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid: {
-      // Check that value is always double.
-      value_check = Cids::CreateMonomorphic(Z, kDoubleCid);
+      // Check that value is always double. In AOT Dart2, we use
+      // an explicit null check and non-speculative unboxing.
+      if (FLAG_precompiled_mode && CanUseStrongModeTypes(flow_graph)) {
+        needs_null_check = true;
+      } else {
+        value_check = Cids::CreateMonomorphic(Z, kDoubleCid);
+      }
       break;
     }
     case kTypedDataInt32x4ArrayCid: {
@@ -2891,8 +2901,12 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
       break;
     }
     case kTypedDataInt64ArrayCid:
-      // StoreIndexedInstr takes unboxed int64, so value
-      // is checked when unboxing.
+    case kTypedDataUint64ArrayCid:
+      // StoreIndexedInstr takes unboxed int64, so value is
+      // checked when unboxing. In AOT Dart2, we use an
+      // explicit null check and non-speculative unboxing.
+      needs_null_check =
+          FLAG_precompiled_mode && CanUseStrongModeTypes(flow_graph);
       break;
     default:
       // Array cids are already checked in the caller.
@@ -2900,6 +2914,8 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
   }
 
   Definition* stored_value = call->ArgumentAt(2);
+
+  // Handle value check.
   if (value_check != nullptr) {
     Instruction* check = flow_graph->CreateCheckClass(
         stored_value, *value_check, call->deopt_id(), call->token_pos());
@@ -2907,6 +2923,36 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
         flow_graph->AppendTo(cursor, check, call->env(), FlowGraph::kEffect);
   }
 
+  // Handle null check.
+  if (needs_null_check) {
+    String& name = String::ZoneHandle(Z, target.name());
+    Instruction* check = new (Z) CheckNullInstr(
+        new (Z) Value(stored_value), name, call->deopt_id(), call->token_pos());
+    cursor =
+        flow_graph->AppendTo(cursor, check, call->env(), FlowGraph::kEffect);
+    // With an explicit null check, a non-speculative unbox suffices.
+    ASSERT(FLAG_strong);
+    switch (view_cid) {
+      case kTypedDataFloat32ArrayCid:
+      case kTypedDataFloat64ArrayCid:
+        stored_value =
+            UnboxInstr::Create(kUnboxedDouble, new (Z) Value(stored_value),
+                               call->deopt_id(), Instruction::kNotSpeculative);
+        cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
+                                      FlowGraph::kValue);
+        break;
+      case kTypedDataInt64ArrayCid:
+      case kTypedDataUint64ArrayCid:
+        stored_value = new (Z)
+            UnboxInt64Instr(new (Z) Value(stored_value), call->deopt_id(),
+                            Instruction::kNotSpeculative);
+        cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
+                                      FlowGraph::kValue);
+        break;
+    }
+  }
+
+  // Handle conversions and special unboxing.
   if (view_cid == kTypedDataFloat32ArrayCid) {
     stored_value = new (Z)
         DoubleToFloatInstr(new (Z) Value(stored_value), call->deopt_id());
@@ -3318,6 +3364,7 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
   const bool can_speculate = policy->IsAllowedForInlining(call->deopt_id());
 
   const MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(target);
+
   switch (kind) {
     // Recognized [] operators.
     case MethodRecognizer::kImmutableArrayGetIndexed:
@@ -3354,13 +3401,12 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       return InlineGetIndexed(flow_graph, kind, call, receiver, entry, last,
                               can_speculate);
     case MethodRecognizer::kInt64ArrayGetIndexed:
+    case MethodRecognizer::kUint64ArrayGetIndexed:
       if (!ShouldInlineInt64ArrayOps()) {
         return false;
       }
       return InlineGetIndexed(flow_graph, kind, call, receiver, entry, last,
                               can_speculate);
-    case MethodRecognizer::kUint64ArrayGetIndexed:
-      break;  // TODO(ajcbik): do this too?
     default:
       break;
   }
@@ -3402,13 +3448,12 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
                               token_pos, /* value_check = */ NULL, entry, last);
     }
     case MethodRecognizer::kInt64ArraySetIndexed:
+    case MethodRecognizer::kUint64ArraySetIndexed:
       if (!ShouldInlineInt64ArrayOps()) {
         return false;
       }
       return InlineSetIndexed(flow_graph, kind, target, call, receiver,
                               token_pos, /* value_check = */ NULL, entry, last);
-    case MethodRecognizer::kUint64ArraySetIndexed:
-      return false;  // TODO(ajcbik): do this too?
     case MethodRecognizer::kFloat32ArraySetIndexed:
     case MethodRecognizer::kFloat64ArraySetIndexed: {
       if (!CanUnboxDouble()) {
@@ -3458,6 +3503,18 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       }
       return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
                                      kTypedDataUint32ArrayCid, entry, last);
+    case MethodRecognizer::kByteArrayBaseGetInt64:
+      if (!ShouldInlineInt64ArrayOps()) {
+        return false;
+      }
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataInt64ArrayCid, entry, last);
+    case MethodRecognizer::kByteArrayBaseGetUint64:
+      if (!ShouldInlineInt64ArrayOps()) {
+        return false;
+      }
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataUint64ArrayCid, entry, last);
     case MethodRecognizer::kByteArrayBaseGetFloat32:
       if (!CanUnboxDouble()) {
         return false;
@@ -3512,6 +3569,13 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       }
       return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
                                       receiver_cid, kTypedDataInt64ArrayCid,
+                                      entry, last);
+    case MethodRecognizer::kByteArrayBaseSetUint64:
+      if (!ShouldInlineInt64ArrayOps()) {
+        return false;
+      }
+      return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
+                                      receiver_cid, kTypedDataUint64ArrayCid,
                                       entry, last);
     case MethodRecognizer::kByteArrayBaseSetFloat32:
       if (!CanUnboxDouble()) {
