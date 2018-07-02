@@ -305,7 +305,7 @@ generate_core_libraries("core_libraries") {
 
 compile_platform("vm_legacy_platform") {
   single_root_scheme = "org-dartlang-sdk"
-  single_root_base = "../../"
+  single_root_base = rebase_path("../../")
   libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
 
   outputs = [
@@ -320,7 +320,7 @@ compile_platform("vm_platform") {
   add_implicit_vm_platform_dependency = false
 
   single_root_scheme = "org-dartlang-sdk"
-  single_root_base = "../../"
+  single_root_base = rebase_path("../../")
   libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
 
   outputs = [
