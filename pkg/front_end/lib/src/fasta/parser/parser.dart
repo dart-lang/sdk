@@ -3582,7 +3582,9 @@ class Parser {
             replacement.endToken = replacement.next;
             token = parseArgumentOrIndexStar(token, null);
           } else {
-            token = reportUnexpectedToken(token.next);
+            // Recovery
+            reportRecoverableErrorWithToken(
+                token.next, fasta.templateUnexpectedToken);
           }
         } else if (identical(type, TokenType.IS)) {
           token = parseIsOperatorRest(token);
@@ -5681,18 +5683,6 @@ class Parser {
     }
   }
 
-  Token reportUnrecoverableErrorWithToken(
-      Token token, Template<_MessageWithArgument<Token>> template) {
-    Token next;
-    if (token is ErrorToken) {
-      next = reportErrorToken(token, false);
-    } else {
-      next = listener.handleUnrecoverableError(
-          token, template.withArguments(token));
-    }
-    return next ?? skipToEof(token);
-  }
-
   void reportRecoverableErrorWithToken(
       Token token, Template<_MessageWithArgument<Token>> template) {
     if (token is ErrorToken) {
@@ -5742,11 +5732,6 @@ class Parser {
     }
     listener.handleInvalidTopLevelDeclaration(next);
     return next;
-  }
-
-  Token reportUnexpectedToken(Token token) {
-    return reportUnrecoverableErrorWithToken(
-        token, fasta.templateUnexpectedToken);
   }
 
   Token reportAndSkipClassInClass(Token token) {
