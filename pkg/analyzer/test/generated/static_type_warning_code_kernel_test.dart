@@ -777,13 +777,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_undefinedMethod_typeLiteral_conditionalAccess() async {
-    // Bad state: No reference information for A at 18
-    await super.test_undefinedMethod_typeLiteral_conditionalAccess();
-  }
-
-  @override
-  @failingTest
   test_undefinedOperator_indexBoth() async {
     // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_OPERATOR, found 0
     await super.test_undefinedOperator_indexBoth();

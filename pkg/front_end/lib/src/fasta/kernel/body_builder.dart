@@ -2899,11 +2899,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       nameToken = nameToken.next.next;
     }
 
-    return new SyntheticExpressionJudgment(throwNoSuchMethodError(
+    return new UnresolvedTargetInvocation(throwNoSuchMethodError(
         forest.literalNull(null)..fileOffset = charOffset,
         errorName,
         arguments,
-        nameToken.charOffset));
+        nameToken.charOffset))
+      ..fileOffset = arguments.fileOffset;
   }
 
   @override

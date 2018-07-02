@@ -3549,6 +3549,23 @@ class VariableDeclarationJudgment extends VariableDeclaration
       variable._isLocalFunction;
 }
 
+/// Synthetic judgment class representing an attempt to invoke an unresolved
+/// target.
+class UnresolvedTargetInvocation extends SyntheticExpressionJudgment {
+  UnresolvedTargetInvocation(kernel.Expression desugared) : super(desugared);
+
+  @override
+  Expression infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory,
+      DartType typeContext) {
+    var result = super.infer(inferrer, factory, typeContext);
+    inferrer.listener.staticInvocation(
+        this, fileOffset, null, null, null, null, inferredType);
+    return result;
+  }
+}
+
 /// Synthetic judgment class representing an attempt to assign to an unresolved
 /// variable.
 class UnresolvedVariableAssignmentJudgment extends SyntheticExpressionJudgment {

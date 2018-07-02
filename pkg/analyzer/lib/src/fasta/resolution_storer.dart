@@ -561,7 +561,7 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
         ? calleeType
         : substitution.substituteType(calleeType.withoutTypeParameters);
     _store(location,
-        invokeType: invokeType,
+        invokeType: invokeType ?? const DynamicType(),
         argumentTypes: expressionArgumentsTypes,
         reference: expressionTarget,
         inferredType: inferredType);

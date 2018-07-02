@@ -7351,6 +7351,40 @@ main() {
     expect(identifier.staticType, isDynamicType);
   }
 
+  test_unresolved_static_call() async {
+    addTestFile('''
+class C {
+  static f() => C.g();
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var g = findNode.simple('g()');
+    assertElementNull(g);
+    assertTypeDynamic(g);
+    var invocation = g.parent as MethodInvocation;
+    assertTypeDynamic(invocation);
+    expect(invocation.staticInvokeType, isDynamicType);
+  }
+
+  test_unresolved_static_call_same_name_as_type_param() async {
+    addTestFile('''
+class C<T> {
+  static f() => C.T();
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var t = findNode.simple('T()');
+    assertElementNull(t);
+    assertTypeDynamic(t);
+    var invocation = t.parent as MethodInvocation;
+    assertTypeDynamic(invocation);
+    expect(invocation.staticInvokeType, isDynamicType);
+  }
+
   /// Assert that the [argument] is associated with the [expectedParameter],
   /// if [useCFE] is `null`. If the [argument] is a [NamedExpression],
   /// the name must be resolved to the parameter in both cases.
