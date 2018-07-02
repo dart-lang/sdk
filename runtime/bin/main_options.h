@@ -43,7 +43,8 @@ namespace bin {
   V(short_socket_read, short_socket_read)                                      \
   V(short_socket_write, short_socket_write)                                    \
   V(disable_exit, exit_disabled)                                               \
-  V(no_preview_dart_2, no_preview_dart_2)
+  V(no_preview_dart_2, no_preview_dart_2)                                      \
+  V(preview_dart_2, nop_option)
 
 // Boolean flags that have a short form.
 #define SHORT_BOOL_OPTIONS_LIST(V)                                             \

@@ -1,3 +1,10 @@
+## 2.0.0-dev.64.2
+
+### Dart VM
+
+Restore various flags for the VM that are needed by internal users:
+https://dart.googlesource.com/sdk/+/544358304d9c49f739c9853256be5135811cdd9d
+
 ## 2.0.0-dev.64.1
 
 ### Language
