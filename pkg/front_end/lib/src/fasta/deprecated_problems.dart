@@ -32,53 +32,31 @@ import 'crash.dart' show Crash, reportCrash, resetCrashReporting;
 /// handled correctly, the user will never see a stack trace that says "user
 /// error".
 dynamic deprecated_inputError(Uri uri, int charOffset, Object error) {
+  return deprecated_inputErrorFromMessage(templateUnspecified
+      .withArguments(safeToString(error))
+      .withLocation(uri, charOffset, noLength));
+}
+
+dynamic deprecated_inputErrorFromMessage(LocatedMessage message) {
   if (shouldThrowOn(Severity.error) && isVerbose) {
     print(StackTrace.current);
   }
-  throw new deprecated_InputError(uri, charOffset, error);
+  throw new deprecated_InputError(message);
 }
 
 class deprecated_InputError {
-  final Uri uri;
+  final LocatedMessage message;
 
-  final int charOffset;
+  deprecated_InputError(this.message);
 
-  final Object error;
-
-  deprecated_InputError(this.uri, int charOffset, this.error)
-      : this.charOffset = charOffset ?? -1;
-
-  toString() => "deprecated_InputError: $error";
-
-  /// Converts [error] to a [LocatedMessage] using [templateUnspecified]. Using
-  /// [templateUnspecified] is deprecated behavior.
-  ///
-  /// Static method to discourage use and requiring call-sites to include the
-  /// text `deprecated_`.
-  static LocatedMessage deprecated_toMessage(deprecated_InputError error) {
-    if (error is DebugAbort) {
-      return error.toMessage();
-    } else {
-      return templateUnspecified
-          .withArguments(safeToString(error.error))
-          .withLocation(error.uri, error.charOffset, noLength);
-    }
-  }
+  toString() => "deprecated_InputError: ${message.message}";
 }
 
 class DebugAbort extends deprecated_InputError {
-  final StackTrace trace;
-
-  final Severity severity;
-
-  DebugAbort(Uri uri, int charOffset, this.severity, this.trace)
-      : super(uri, charOffset, "");
-
-  LocatedMessage toMessage() {
-    return templateInternalProblemDebugAbort
-        .withArguments(severityTexts[severity], "$trace")
-        .withLocation(uri, charOffset, noLength);
-  }
+  DebugAbort(Uri uri, int charOffset, Severity severity, StackTrace trace)
+      : super(templateInternalProblemDebugAbort
+            .withArguments(severityTexts[severity], "$trace")
+            .withLocation(uri, charOffset, noLength));
 }
 
 // TODO(ahe): Move this method to crash.dart when it's no longer using
@@ -95,7 +73,7 @@ Future<T> withCrashReporting<T>(
     rethrow;
   } on deprecated_InputError catch (e, s) {
     if (onInputError != null) {
-      return onInputError(deprecated_InputError.deprecated_toMessage(e));
+      return onInputError(e.message);
     } else {
       return reportCrash(e, s, currentUri());
     }

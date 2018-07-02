@@ -473,16 +473,15 @@ Future<T> runProtectedFromAbort<T>(Future<T> Function() action,
   try {
     return await action();
   } on DebugAbort catch (e) {
-    print(e.toMessage().message);
+    print(e.message.message);
 
     // DebugAbort should never happen in production code, so we want test.py to
     // treat this as a crash which is signalled by exiting with 255.
     exit(255);
   } on deprecated_InputError catch (e) {
     exitCode = 1;
-    await CompilerContext.runWithDefaultOptions((c) => new Future<void>.sync(
-        () => c.report(
-            deprecated_InputError.deprecated_toMessage(e), Severity.error)));
+    await CompilerContext.runWithDefaultOptions((c) =>
+        new Future<void>.sync(() => c.report(e.message, Severity.error)));
   }
   return failingValue;
 }

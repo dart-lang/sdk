@@ -6,7 +6,7 @@ library fasta.stack_listener;
 
 import 'package:kernel/ast.dart' show AsyncMarker, Expression, FunctionNode;
 
-import '../deprecated_problems.dart' show deprecated_inputError;
+import '../deprecated_problems.dart' show deprecated_inputErrorFromMessage;
 
 import '../fasta_codes.dart'
     show
@@ -15,7 +15,13 @@ import '../fasta_codes.dart'
         templateInternalProblemStackNotEmpty;
 
 import '../parser.dart'
-    show Listener, MemberKind, Parser, lengthOfSpan, offsetForToken;
+    show
+        Listener,
+        MemberKind,
+        Parser,
+        lengthForToken,
+        lengthOfSpan,
+        offsetForToken;
 
 import '../parser/identifier_context.dart' show IdentifierContext;
 
@@ -349,7 +355,8 @@ abstract class StackListener extends Listener {
 
   @override
   Token handleUnrecoverableError(Token token, Message message) {
-    throw deprecated_inputError(uri, token.charOffset, message.message);
+    return deprecated_inputErrorFromMessage(message.withLocation(
+        uri, offsetForToken(token), lengthForToken(token)));
   }
 
   @override
