@@ -7070,22 +7070,11 @@ LibTest/math/pow_A10_t01: CompileTimeError # Larger than 64 bit int
 WebPlatformTest/html/semantics/embedded-content/the-audio-element/audio_constructor_t01: RuntimeError
 
 [ $compiler == dart2js && $fasta && $host_checked ]
-Language/Classes/Constructors/Factories/redirecting_constructor_t03: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t04: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t05: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t06: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t07: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t12: Crash
-Language/Classes/Constructors/Generative_Constructors/initializers_t12: Crash # Issue 33157
-Language/Classes/Instance_Methods/Operators/allowed_names_t20: Crash
-Language/Classes/member_definition_t04: Crash
-Language/Classes/member_definition_t06: Crash
-Language/Classes/member_definition_t07: Crash
-Language/Classes/member_definition_t08: Crash
-Language/Classes/member_definition_t09: Crash
-Language/Classes/member_definition_t10: Crash
-Language/Classes/member_definition_t11: Crash
-Language/Classes/member_definition_t12: Crash
 Language/Expressions/Constants/depending_on_itself_t03: Crash
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: Crash
 Language/Expressions/Method_Invocation/Super_Invocation/accessible_instance_member_t02: Crash

@@ -1874,15 +1874,8 @@ class Parser {
     Token next = token.next;
     reportRecoverableError(messageOnToken ?? next,
         message ?? context.recoveryTemplate.withArguments(next));
-    Token identifier = new SyntheticStringToken(
-        TokenType.IDENTIFIER,
-        context == IdentifierContext.methodDeclaration ||
-                context == IdentifierContext.topLevelVariableDeclaration ||
-                context == IdentifierContext.fieldDeclaration
-            ? '#synthetic_identifier_${next.offset}'
-            : '',
-        next.charOffset,
-        0);
+    Token identifier =
+        new SyntheticStringToken(TokenType.IDENTIFIER, '', next.charOffset, 0);
     rewriter.insertTokenAfter(token, identifier);
     return token.next;
   }
