@@ -2624,6 +2624,25 @@ int foo() {}
     }
   }
 
+  test_const_invalid_typeMismatch() async {
+    var library = await checkLibrary(r'''
+const int a = 0;
+const bool b = a + 5;
+''', allowErrors: true);
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+const int a = 0;
+const bool b = #invalidConst;
+''');
+    } else {
+      checkElementText(library, r'''
+const int a = 0;
+const bool b =
+        a/*location: test.dart;a?*/ + 5;
+''');
+    }
+  }
+
   test_const_invokeConstructor_generic_named() async {
     var library = await checkLibrary(r'''
 class C<K, V> {
@@ -7503,24 +7522,6 @@ C<dynamic, dynamic> c;
     }
   }
 
-  test_instantiateToBounds_functionTypeAlias_simple() async {
-    var library = await checkLibrary('''
-typedef F<T extends num>(T p);
-F f;
-''');
-    if (isStrongMode) {
-      checkElementText(library, r'''
-typedef F<T extends num> = dynamic Function(T p);
-(num) → dynamic f;
-''');
-    } else {
-      checkElementText(library, r'''
-typedef F<T extends num> = dynamic Function(T p);
-(dynamic) → dynamic f;
-''');
-    }
-  }
-
   test_instantiateToBounds_functionTypeAlias_reexported() async {
     addLibrarySource('/a.dart', r'''
 class O {}
@@ -7548,6 +7549,24 @@ import 'b.dart';
 class C {
   (dynamic) → dynamic f() {}
 }
+''');
+    }
+  }
+
+  test_instantiateToBounds_functionTypeAlias_simple() async {
+    var library = await checkLibrary('''
+typedef F<T extends num>(T p);
+F f;
+''');
+    if (isStrongMode) {
+      checkElementText(library, r'''
+typedef F<T extends num> = dynamic Function(T p);
+(num) → dynamic f;
+''');
+    } else {
+      checkElementText(library, r'''
+typedef F<T extends num> = dynamic Function(T p);
+(dynamic) → dynamic f;
 ''');
     }
   }

@@ -2909,6 +2909,68 @@ var b = new C<num, String>.named(4, 'five');
     }
   }
 
+  test_invalid_assignment_types_local() async {
+    addTestFile(r'''
+int a;
+bool b;
+main() {
+  a = b;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var assignment = findNode.assignment('a = b');
+    assertElementNull(assignment);
+    assertType(assignment, 'bool');
+
+    SimpleIdentifier aRef = assignment.leftHandSide;
+    assertElement(aRef, findElement.topVar('a').setter);
+    assertType(aRef, 'int');
+
+    SimpleIdentifier bRef = assignment.rightHandSide;
+    assertElement(bRef, findElement.topVar('b').getter);
+    assertType(bRef, 'bool');
+  }
+
+  test_invalid_assignment_types_top() async {
+    addTestFile(r'''
+int a = 0;
+bool b = a;
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var bDeclaration = findNode.variableDeclaration('b =');
+    TopLevelVariableElement bElement = bDeclaration.element;
+    assertElement(bDeclaration.name, bElement);
+    assertType(bDeclaration.name, 'bool');
+    expect(bElement.type.toString(), 'bool');
+
+    SimpleIdentifier aRef = bDeclaration.initializer;
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_invalid_assignment_types_top_const() async {
+    addTestFile(r'''
+const int a = 0;
+const bool b = a;
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var bDeclaration = findNode.variableDeclaration('b =');
+    TopLevelVariableElement bElement = bDeclaration.element;
+    assertElement(bDeclaration.name, bElement);
+    assertType(bDeclaration.name, 'bool');
+    expect(bElement.type.toString(), 'bool');
+
+    SimpleIdentifier aRef = bDeclaration.initializer;
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
   test_invalid_methodInvocation_simpleIdentifier() async {
     addTestFile(r'''
 int foo = 0;
@@ -7543,6 +7605,10 @@ class FindNode {
 
   SimpleIdentifier simple(String search) {
     return _node(search);
+  }
+
+  VariableDeclaration variableDeclaration(String search) {
+    return _node(search).getAncestor((n) => n is VariableDeclaration);
   }
 
   AstNode _node(String search) {

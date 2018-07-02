@@ -254,20 +254,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_invalidAssignment_defaultValue_named() async {
-    // UnimplementedError: kernel: (Let) let final dynamic #t1 = 0 in let ...
-    await super.test_invalidAssignment_defaultValue_named();
-  }
-
-  @override
-  @failingTest
-  test_invalidAssignment_defaultValue_optional() async {
-    // UnimplementedError: kernel: (Let) let final dynamic #t2 = 0 in let ...
-    await super.test_invalidAssignment_defaultValue_optional();
-  }
-
-  @override
-  @failingTest
   test_invalidAssignment_dynamic() async {
     // Bad state: No reference information for dynamic at 11
     await super.test_invalidAssignment_dynamic();

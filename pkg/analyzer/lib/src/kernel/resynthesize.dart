@@ -556,12 +556,14 @@ class _ExprBuilder {
       return AstTestFactory.mapLiteral(keyword, typeArguments, entries);
     }
 
-    // Invalid annotations are represented as Let.
+    // Invalid initializers and  annotations are represented as Let.
     if (expr is kernel.Let) {
-      kernel.Let let = expr;
-      if (_isStaticError(let.variable.initializer) ||
-          _isStaticError(let.body)) {
-        throw const _CompilationErrorFound();
+      var body = expr.body;
+      if (body is kernel.Let) {
+        var initializer = body.variable.initializer;
+        if (initializer is kernel.Let && _isStaticError(initializer.body)) {
+          throw const _CompilationErrorFound();
+        }
       }
     }
 

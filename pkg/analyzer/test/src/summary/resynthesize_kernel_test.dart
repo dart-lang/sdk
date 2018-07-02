@@ -185,18 +185,6 @@ class C {
     await super.test_import_invalidUri_metadata();
   }
 
-  @override
-  @failingTest
-  test_invalid_annotation_prefixed_constructor() {
-    return super.test_invalid_annotation_prefixed_constructor();
-  }
-
-  @override
-  @failingTest
-  test_invalid_annotation_unprefixed_constructor() {
-    return super.test_invalid_annotation_unprefixed_constructor();
-  }
-
   @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30267')
   test_invalid_nameConflict_imported() async {
@@ -256,24 +244,6 @@ class C {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30267')
   test_unresolved_annotation_instanceCreation_argument_super() async {
     await super.test_unresolved_annotation_instanceCreation_argument_super();
-  }
-
-  @override
-  @failingTest
-  test_unresolved_annotation_prefixedIdentifier_badPrefix() {
-    return super.test_unresolved_annotation_prefixedIdentifier_badPrefix();
-  }
-
-  @override
-  @failingTest
-  test_unresolved_annotation_prefixedIdentifier_noDeclaration() {
-    return super.test_unresolved_annotation_prefixedIdentifier_noDeclaration();
-  }
-
-  @override
-  @failingTest
-  test_unresolved_annotation_simpleIdentifier() {
-    return super.test_unresolved_annotation_simpleIdentifier();
   }
 
   Future<KernelResynthesizer> _createResynthesizer(Uri testUri) async {
