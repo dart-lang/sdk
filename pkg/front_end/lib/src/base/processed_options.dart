@@ -33,8 +33,6 @@ import '../base/performance_logger.dart' show PerformanceLog;
 
 import '../fasta/command_line_reporting.dart' as command_line_reporting;
 
-import '../fasta/deprecated_problems.dart' show deprecated_InputError;
-
 import '../fasta/fasta_codes.dart'
     show
         FormattedMessage,
@@ -55,9 +53,9 @@ import '../fasta/fasta_codes.dart'
 
 import '../fasta/messages.dart' show getLocation;
 
-import '../fasta/problems.dart' show unimplemented;
+import '../fasta/problems.dart' show DebugAbort, unimplemented;
 
-import '../fasta/severity.dart' show Severity, severityTexts;
+import '../fasta/severity.dart' show Severity;
 
 import '../fasta/ticker.dart' show Ticker;
 
@@ -219,9 +217,8 @@ class ProcessedOptions {
       }
       _raw.onProblem(format(message, severity), severity, formattedContext);
       if (command_line_reporting.shouldThrowOn(severity)) {
-        if (verbose) print(StackTrace.current);
-        throw new deprecated_InputError(message.uri, message.charOffset,
-            "Compilation aborted due to fatal ${severityTexts[severity]}.");
+        throw new DebugAbort(
+            message.uri, message.charOffset, severity, StackTrace.current);
       }
       return;
     }

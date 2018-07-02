@@ -1394,6 +1394,10 @@ InternalProblemVerificationError:
     #string
   severity: INTERNAL_PROBLEM
 
+InternalProblemDebugAbort:
+  template: "Compilation aborted due to fatal '#name' at:\n#string"
+  severity: INTERNAL_PROBLEM
+
 LocalDefinitionHidesExport:
   template: "Local definition of '#name' hides export from '#uri'."
   severity: IGNORED

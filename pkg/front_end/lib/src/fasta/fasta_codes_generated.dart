@@ -3316,6 +3316,27 @@ Message _withArgumentsInternalProblemContextSeverity(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String string)>
+    templateInternalProblemDebugAbort =
+    const Template<Message Function(String name, String string)>(
+        messageTemplate: r"""Compilation aborted due to fatal '#name' at:
+#string""", withArguments: _withArgumentsInternalProblemDebugAbort);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String string)>
+    codeInternalProblemDebugAbort =
+    const Code<Message Function(String name, String string)>(
+        "InternalProblemDebugAbort", templateInternalProblemDebugAbort,
+        severity: Severity.internalProblem);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInternalProblemDebugAbort(String name, String string) {
+  return new Message(codeInternalProblemDebugAbort,
+      message: """Compilation aborted due to fatal '${name}' at:
+${string}""", arguments: {'name': name, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInternalProblemExtendingUnmodifiableScope =
     messageInternalProblemExtendingUnmodifiableScope;
 

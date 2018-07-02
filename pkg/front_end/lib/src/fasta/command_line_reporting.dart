@@ -22,15 +22,13 @@ import 'compiler_context.dart' show CompilerContext;
 
 import 'crash.dart' show Crash, safeToString;
 
-import 'deprecated_problems.dart' show deprecated_InputError;
-
 import 'fasta_codes.dart' show LocatedMessage;
 
-import 'messages.dart' show getLocation, getSourceLine, isVerbose;
+import 'messages.dart' show getLocation, getSourceLine;
 
-import 'problems.dart' show unhandled;
+import 'problems.dart' show DebugAbort, unhandled;
 
-import 'severity.dart' show Severity, severityPrefixes, severityTexts;
+import 'severity.dart' show Severity, severityPrefixes;
 
 import 'scanner/characters.dart' show $CARET, $SPACE, $TAB;
 
@@ -179,11 +177,7 @@ void _printAndThrowIfDebugging(
   }
   print(text);
   if (shouldThrowOn(severity)) {
-    if (isVerbose) print(StackTrace.current);
-    // TODO(sigmund,ahe): ensure there is no circularity when InputError is
-    // handled.
-    throw new deprecated_InputError(uri, charOffset,
-        "Compilation aborted due to fatal ${severityTexts[severity]}.");
+    throw new DebugAbort(uri, charOffset, severity, StackTrace.current);
   }
 }
 

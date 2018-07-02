@@ -11,9 +11,14 @@ import 'command_line_reporting.dart' show shouldThrowOn;
 import 'crash.dart' show safeToString;
 
 import 'messages.dart'
-    show LocatedMessage, noLength, isVerbose, templateUnspecified;
+    show
+        LocatedMessage,
+        isVerbose,
+        noLength,
+        templateInternalProblemDebugAbort,
+        templateUnspecified;
 
-import 'severity.dart' show Severity;
+import 'severity.dart' show Severity, severityTexts;
 
 import 'crash.dart' show Crash, reportCrash, resetCrashReporting;
 
@@ -50,10 +55,29 @@ class deprecated_InputError {
   ///
   /// Static method to discourage use and requiring call-sites to include the
   /// text `deprecated_`.
-  static LocatedMessage toMessage(deprecated_InputError error) {
-    return templateUnspecified
-        .withArguments(safeToString(error.error))
-        .withLocation(error.uri, error.charOffset, noLength);
+  static LocatedMessage deprecated_toMessage(deprecated_InputError error) {
+    if (error is DebugAbort) {
+      return error.toMessage();
+    } else {
+      return templateUnspecified
+          .withArguments(safeToString(error.error))
+          .withLocation(error.uri, error.charOffset, noLength);
+    }
+  }
+}
+
+class DebugAbort extends deprecated_InputError {
+  final StackTrace trace;
+
+  final Severity severity;
+
+  DebugAbort(Uri uri, int charOffset, this.severity, this.trace)
+      : super(uri, charOffset, "");
+
+  LocatedMessage toMessage() {
+    return templateInternalProblemDebugAbort
+        .withArguments(severityTexts[severity], "$trace")
+        .withLocation(uri, charOffset, noLength);
   }
 }
 
@@ -67,9 +91,11 @@ Future<T> withCrashReporting<T>(
     return await action();
   } on Crash {
     rethrow;
+  } on DebugAbort {
+    rethrow;
   } on deprecated_InputError catch (e, s) {
     if (onInputError != null) {
-      return onInputError(deprecated_InputError.toMessage(e));
+      return onInputError(deprecated_InputError.deprecated_toMessage(e));
     } else {
       return reportCrash(e, s, currentUri());
     }

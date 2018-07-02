@@ -27,7 +27,7 @@ import 'package:front_end/src/base/processed_options.dart'
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/deprecated_problems.dart'
-    show deprecated_InputError, deprecated_inputError;
+    show deprecated_inputError;
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
@@ -42,8 +42,6 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
 import 'package:front_end/src/fasta/kernel/utils.dart'
     show printComponentText, writeComponentToFile;
 
-import 'package:front_end/src/fasta/severity.dart' show Severity;
-
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
@@ -55,7 +53,7 @@ import 'package:front_end/src/kernel_generator_impl.dart'
 
 import 'additional_targets.dart' show installAdditionalTargets;
 
-import 'command_line.dart' show withGlobalOptions;
+import 'command_line.dart' show runProtectedFromAbort, withGlobalOptions;
 
 const bool summary = const bool.fromEnvironment("summary", defaultValue: false);
 
@@ -101,14 +99,7 @@ compilePlatformEntryPoint(List<String> arguments) async {
     if (i > 0) {
       print("\n");
     }
-    try {
-      await compilePlatform(arguments);
-    } on deprecated_InputError catch (e) {
-      exitCode = 1;
-      await CompilerContext.runWithDefaultOptions((c) => new Future<void>.sync(
-          () => c.report(deprecated_InputError.toMessage(e), Severity.error)));
-      return null;
-    }
+    await runProtectedFromAbort<void>(() => compilePlatform(arguments));
   }
 }
 
@@ -149,14 +140,10 @@ class BatchCompiler {
   }
 
   Future<bool> batchCompileArguments(List<String> arguments) async {
-    try {
-      return await withGlobalOptions("compile", arguments, true,
-          (CompilerContext c, _) => batchCompileImpl(c));
-    } on deprecated_InputError catch (e) {
-      await CompilerContext.runWithDefaultOptions((c) => new Future<void>.sync(
-          () => c.report(deprecated_InputError.toMessage(e), Severity.error)));
-      return false;
-    }
+    return runProtectedFromAbort<bool>(
+        () => withGlobalOptions("compile", arguments, true,
+            (CompilerContext c, _) => batchCompileImpl(c)),
+        false);
   }
 
   Future<bool> batchCompile(CompilerOptions options, Uri input, Uri output) {
@@ -203,7 +190,7 @@ incrementalEntryPoint(List<String> arguments) async {
 }
 
 Future<KernelTarget> outline(List<String> arguments) async {
-  try {
+  return await runProtectedFromAbort<KernelTarget>(() async {
     return await withGlobalOptions("outline", arguments, true,
         (CompilerContext c, _) async {
       if (c.options.verbose) {
@@ -213,16 +200,11 @@ Future<KernelTarget> outline(List<String> arguments) async {
           new CompileTask(c, new Ticker(isVerbose: c.options.verbose));
       return await task.buildOutline(c.options.output);
     });
-  } on deprecated_InputError catch (e) {
-    exitCode = 1;
-    await CompilerContext.runWithDefaultOptions((c) => new Future<void>.sync(
-        () => c.report(deprecated_InputError.toMessage(e), Severity.error)));
-    return null;
-  }
+  });
 }
 
 Future<Uri> compile(List<String> arguments) async {
-  try {
+  return await runProtectedFromAbort<Uri>(() async {
     return await withGlobalOptions("compile", arguments, true,
         (CompilerContext c, _) async {
       if (c.options.verbose) {
@@ -232,12 +214,7 @@ Future<Uri> compile(List<String> arguments) async {
           new CompileTask(c, new Ticker(isVerbose: c.options.verbose));
       return await task.compile();
     });
-  } on deprecated_InputError catch (e) {
-    exitCode = 1;
-    await CompilerContext.runWithDefaultOptions((c) => new Future<void>.sync(
-        () => c.report(deprecated_InputError.toMessage(e), Severity.error)));
-    return null;
-  }
+  });
 }
 
 class CompileTask {

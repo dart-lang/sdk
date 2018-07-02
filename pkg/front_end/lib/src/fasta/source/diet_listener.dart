@@ -39,7 +39,7 @@ import '../kernel/kernel_body_builder.dart' show KernelBodyBuilder;
 
 import '../parser.dart' show Assert, MemberKind, Parser, optional;
 
-import '../problems.dart' show internalProblem, unexpected;
+import '../problems.dart' show DebugAbort, internalProblem, unexpected;
 
 import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
 
@@ -752,6 +752,8 @@ class DietListener extends StackListener {
       listener.checkEmpty(token.charOffset);
       listenerFinishFunction(listener, startToken, metadata, kind,
           metadataConstants, formals, asyncModifier, body);
+    } on DebugAbort {
+      rethrow;
     } on deprecated_InputError {
       rethrow;
     } catch (e, s) {
