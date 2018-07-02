@@ -1111,48 +1111,12 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   locs->CheckWritableInputs();
   ClobberDeadTempRegisters(locs);
 #endif
-
   // TODO(vegorov): consider saving only caller save (volatile) registers.
-  const intptr_t fpu_regs_count = locs->live_registers()->FpuRegisterCount();
-  if (fpu_regs_count > 0) {
-    // Store fpu registers with the lowest register number at the lowest
-    // address.
-    for (intptr_t i = kNumberOfVRegisters - 1; i >= 0; --i) {
-      VRegister fpu_reg = static_cast<VRegister>(i);
-      if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
-        __ PushQuad(fpu_reg);
-      }
-    }
-  }
-
-  // The order in which the registers are pushed must match the order
-  // in which the registers are encoded in the safe point's stack map.
-  for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
-    Register reg = static_cast<Register>(i);
-    if (locs->live_registers()->ContainsRegister(reg)) {
-      __ Push(reg);
-    }
-  }
+  __ PushRegisters(*locs->live_registers());
 }
 
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
-  for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
-    Register reg = static_cast<Register>(i);
-    if (locs->live_registers()->ContainsRegister(reg)) {
-      __ Pop(reg);
-    }
-  }
-
-  const intptr_t fpu_regs_count = locs->live_registers()->FpuRegisterCount();
-  if (fpu_regs_count > 0) {
-    // Fpu registers have the lowest register number at the lowest address.
-    for (intptr_t i = 0; i < kNumberOfVRegisters; ++i) {
-      VRegister fpu_reg = static_cast<VRegister>(i);
-      if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
-        __ PopQuad(fpu_reg);
-      }
-    }
-  }
+  __ PopRegisters(*locs->live_registers());
 }
 
 #if defined(DEBUG)

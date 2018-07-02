@@ -6,6 +6,7 @@
 #if defined(TARGET_ARCH_ARM) && !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/locations.h"
 #include "vm/cpu.h"
 #include "vm/longjump.h"
 #include "vm/runtime_entry.h"
@@ -2225,6 +2226,70 @@ void Assembler::PopList(RegList regs, Condition cond) {
   ldm(IA_W, SP, regs, cond);
 }
 
+void Assembler::PushRegisters(const RegisterSet& regs) {
+  const intptr_t fpu_regs_count = regs.FpuRegisterCount();
+  if (fpu_regs_count > 0) {
+    AddImmediate(SP, -(fpu_regs_count * kFpuRegisterSize));
+    // Store fpu registers with the lowest register number at the lowest
+    // address.
+    intptr_t offset = 0;
+    mov(TMP, Operand(SP));
+    for (intptr_t i = 0; i < kNumberOfFpuRegisters; ++i) {
+      QRegister fpu_reg = static_cast<QRegister>(i);
+      if (regs.ContainsFpuRegister(fpu_reg)) {
+        DRegister d = EvenDRegisterOf(fpu_reg);
+        ASSERT(d + 1 == OddDRegisterOf(fpu_reg));
+        vstmd(IA_W, IP, d, 2);
+        offset += kFpuRegisterSize;
+      }
+    }
+    ASSERT(offset == (fpu_regs_count * kFpuRegisterSize));
+  }
+
+  // The order in which the registers are pushed must match the order
+  // in which the registers are encoded in the safe point's stack map.
+  // NOTE: This matches the order of ARM's multi-register push.
+  RegList reg_list = 0;
+  for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
+    Register reg = static_cast<Register>(i);
+    if (regs.ContainsRegister(reg)) {
+      reg_list |= (1 << reg);
+    }
+  }
+  if (reg_list != 0) {
+    PushList(reg_list);
+  }
+}
+
+void Assembler::PopRegisters(const RegisterSet& regs) {
+  RegList reg_list = 0;
+  for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
+    Register reg = static_cast<Register>(i);
+    if (regs.ContainsRegister(reg)) {
+      reg_list |= (1 << reg);
+    }
+  }
+  if (reg_list != 0) {
+    PopList(reg_list);
+  }
+
+  const intptr_t fpu_regs_count = regs.FpuRegisterCount();
+  if (fpu_regs_count > 0) {
+    // Fpu registers have the lowest register number at the lowest address.
+    intptr_t offset = 0;
+    for (intptr_t i = 0; i < kNumberOfFpuRegisters; ++i) {
+      QRegister fpu_reg = static_cast<QRegister>(i);
+      if (regs.ContainsFpuRegister(fpu_reg)) {
+        DRegister d = EvenDRegisterOf(fpu_reg);
+        ASSERT(d + 1 == OddDRegisterOf(fpu_reg));
+        vldmd(IA_W, SP, d, 2);
+        offset += kFpuRegisterSize;
+      }
+    }
+    ASSERT(offset == (fpu_regs_count * kFpuRegisterSize));
+  }
+}
+
 void Assembler::MoveRegister(Register rd, Register rm, Condition cond) {
   if (rd != rm) {
     mov(rd, Operand(rm), cond);
@@ -2404,6 +2469,15 @@ void Assembler::BranchLinkToRuntime() {
   ldr(IP, Address(THR, Thread::call_to_runtime_entry_point_offset()));
   ldr(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
   blx(IP);
+}
+
+void Assembler::CallNullErrorShared(bool save_fpu_registers) {
+  uword entry_point_offset =
+      save_fpu_registers
+          ? Thread::null_error_shared_with_fpu_regs_entry_point_offset()
+          : Thread::null_error_shared_without_fpu_regs_entry_point_offset();
+  ldr(LR, Address(THR, entry_point_offset));
+  blx(LR);
 }
 
 void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,

@@ -6,6 +6,7 @@
 #if defined(TARGET_ARCH_ARM64) && !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/locations.h"
 #include "vm/cpu.h"
 #include "vm/longjump.h"
 #include "vm/runtime_entry.h"
@@ -653,6 +654,15 @@ void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
   LoadWordFromPoolOffset(CODE_REG, offset);
   ldr(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
   blr(TMP);
+}
+
+void Assembler::CallNullErrorShared(bool save_fpu_registers) {
+  uword entry_point_offset =
+      save_fpu_registers
+          ? Thread::null_error_shared_with_fpu_regs_entry_point_offset()
+          : Thread::null_error_shared_without_fpu_regs_entry_point_offset();
+  ldr(LR, Address(THR, entry_point_offset));
+  blr(LR);
 }
 
 void Assembler::AddImmediate(Register dest, Register rn, int64_t imm) {
@@ -1578,6 +1588,49 @@ void Assembler::StoreUnaligned(Register src,
     return;
   }
   UNIMPLEMENTED();
+}
+
+void Assembler::PushRegisters(const RegisterSet& regs) {
+  const intptr_t fpu_regs_count = regs.FpuRegisterCount();
+  if (fpu_regs_count > 0) {
+    // Store fpu registers with the lowest register number at the lowest
+    // address.
+    for (intptr_t i = kNumberOfVRegisters - 1; i >= 0; --i) {
+      VRegister fpu_reg = static_cast<VRegister>(i);
+      if (regs.ContainsFpuRegister(fpu_reg)) {
+        PushQuad(fpu_reg);
+      }
+    }
+  }
+
+  // The order in which the registers are pushed must match the order
+  // in which the registers are encoded in the safe point's stack map.
+  for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
+    Register reg = static_cast<Register>(i);
+    if (regs.ContainsRegister(reg)) {
+      Push(reg);
+    }
+  }
+}
+
+void Assembler::PopRegisters(const RegisterSet& regs) {
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+    Register reg = static_cast<Register>(i);
+    if (regs.ContainsRegister(reg)) {
+      Pop(reg);
+    }
+  }
+
+  const intptr_t fpu_regs_count = regs.FpuRegisterCount();
+  if (fpu_regs_count > 0) {
+    // Fpu registers have the lowest register number at the lowest address.
+    for (intptr_t i = 0; i < kNumberOfVRegisters; ++i) {
+      VRegister fpu_reg = static_cast<VRegister>(i);
+      if (regs.ContainsFpuRegister(fpu_reg)) {
+        PopQuad(fpu_reg);
+      }
+    }
+  }
 }
 
 }  // namespace dart

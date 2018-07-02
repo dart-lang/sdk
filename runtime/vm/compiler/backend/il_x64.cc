@@ -2636,8 +2636,6 @@ class CheckStackOverflowSlowPath
     __ Bind(entry_label());
     const bool using_shared_stub =
         instruction()->locs()->call_on_shared_slow_path();
-    const bool live_fpu_regs =
-        instruction()->locs()->live_registers()->FpuRegisterCount() > 0;
     if (!using_shared_stub) {
       compiler->SaveLiveRegisters(instruction()->locs());
     }
@@ -2650,7 +2648,7 @@ class CheckStackOverflowSlowPath
 
     if (using_shared_stub) {
       uword entry_point_offset =
-          live_fpu_regs
+          instruction()->locs()->live_registers()->FpuRegisterCount() > 0
               ? Thread::stack_overflow_shared_with_fpu_regs_entry_point_offset()
               : Thread::
                     stack_overflow_shared_without_fpu_regs_entry_point_offset();

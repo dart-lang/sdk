@@ -2949,16 +2949,39 @@ class CheckStackOverflowSlowPath
     }
     __ Comment("CheckStackOverflowSlowPath");
     __ Bind(entry_label());
-    compiler->SaveLiveRegisters(instruction()->locs());
+    const bool using_shared_stub =
+        instruction()->locs()->call_on_shared_slow_path();
+    if (!using_shared_stub) {
+      compiler->SaveLiveRegisters(instruction()->locs());
+    }
     // pending_deoptimization_env_ is needed to generate a runtime call that
     // may throw an exception.
     ASSERT(compiler->pending_deoptimization_env_ == NULL);
     Environment* env =
         compiler->SlowPathEnvironmentFor(instruction(), kNumSlowPathArgs);
     compiler->pending_deoptimization_env_ = env;
-    compiler->GenerateRuntimeCall(
-        instruction()->token_pos(), instruction()->deopt_id(),
-        kStackOverflowRuntimeEntry, kNumSlowPathArgs, instruction()->locs());
+
+    if (using_shared_stub) {
+      uword entry_point_offset =
+          instruction()->locs()->live_registers()->FpuRegisterCount() > 0
+              ? Thread::stack_overflow_shared_with_fpu_regs_entry_point_offset()
+              : Thread::
+                    stack_overflow_shared_without_fpu_regs_entry_point_offset();
+      ASSERT(instruction()->locs()->temp(1).IsRegister() &&
+             instruction()->locs()->temp(1).reg() == LR);
+      __ ldr(LR, Address(THR, entry_point_offset));
+      __ blx(LR);
+      compiler->RecordSafepoint(instruction()->locs(), kNumSlowPathArgs);
+      compiler->EmitCatchEntryState();
+      compiler->AddDescriptor(
+          RawPcDescriptors::kOther, compiler->assembler()->CodeSize(),
+          instruction()->deopt_id(), instruction()->token_pos(),
+          compiler->CurrentTryIndex());
+    } else {
+      compiler->GenerateRuntimeCall(
+          instruction()->token_pos(), instruction()->deopt_id(),
+          kStackOverflowRuntimeEntry, kNumSlowPathArgs, instruction()->locs());
+    }
 
     if (compiler->isolate()->use_osr() && !compiler->is_optimizing() &&
         instruction()->in_loop()) {
@@ -2968,7 +2991,9 @@ class CheckStackOverflowSlowPath
                                      TokenPosition::kNoSource);
     }
     compiler->pending_deoptimization_env_ = NULL;
-    compiler->RestoreLiveRegisters(instruction()->locs());
+    if (!using_shared_stub) {
+      compiler->RestoreLiveRegisters(instruction()->locs());
+    }
     __ b(exit_label());
   }
 
