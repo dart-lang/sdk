@@ -39,10 +39,6 @@ void applyToAnalysisOptions(AnalysisOptionsImpl options, YamlMap optionMap) {
 /// `analyzer` analysis options constants.
 class AnalyzerOptions {
   static const String analyzer = 'analyzer';
-  static const String enableAsync = 'enableAsync';
-  static const String enableGenericMethods = 'enableGenericMethods';
-  static const String enableInitializingFormalAccess =
-      'enableInitializingFormalAccess';
   static const String enableSuperMixins = 'enableSuperMixins';
   static const String enablePreviewDart2 = 'enablePreviewDart2';
 
@@ -53,7 +49,7 @@ class AnalyzerOptions {
   static const String plugins = 'plugins';
   static const String strong_mode = 'strong-mode';
 
-  // Strong mode options, see AnalysisOptionsImpl for documentation.
+  // Strong mode options (see AnalysisOptionsImpl for documentation).
   static const String declarationCasts = 'declaration-casts';
   static const String implicitCasts = 'implicit-casts';
   static const String implicitDynamic = 'implicit-dynamic';
@@ -80,12 +76,17 @@ class AnalyzerOptions {
     strong_mode
   ];
 
-  /// Supported `analyzer` language configuration options.
+  /// Supported `analyzer` strong-mode options.
+  static const List<String> strongModeOptions = const [
+    declarationCasts, // deprecated
+    implicitCasts,
+    implicitDynamic
+  ];
+
+  /// Supported `analyzer` language options.
   static const List<String> languageOptions = const [
-    enableAsync,
-    enableGenericMethods,
     enableSuperMixins,
-    enablePreviewDart2
+    enablePreviewDart2,
   ];
 }
 
@@ -391,6 +392,16 @@ class LanguageOptionValidator extends OptionsValidator {
             }
           }
         });
+      } else if (language is YamlScalar && language.value != null) {
+        reporter.reportErrorForSpan(
+            AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+            language.span,
+            [AnalyzerOptions.language]);
+      } else if (language is YamlList) {
+        reporter.reportErrorForSpan(
+            AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+            language.span,
+            [AnalyzerOptions.language]);
       }
     }
   }
@@ -433,6 +444,7 @@ class OptionsFileValidator {
 
 /// Validates `analyzer` strong-mode value configuration options.
 class StrongModeOptionValueValidator extends OptionsValidator {
+  ErrorBuilder builder = new ErrorBuilder(AnalyzerOptions.strongModeOptions);
   ErrorBuilder trueOrFalseBuilder = new TrueOrFalseValueErrorBuilder();
 
   @override
@@ -447,8 +459,36 @@ class StrongModeOptionValueValidator extends OptionsValidator {
               reporter, AnalyzerOptions.strong_mode, v);
         } else if (value == 'false') {
           reporter.reportErrorForSpan(
-              AnalysisOptionsHintCode.SPEC_MODE_DEPRECATED, v.span);
+              AnalysisOptionsWarningCode.SPEC_MODE_REMOVED, v.span);
+        } else if (value == 'true') {
+          reporter.reportErrorForSpan(
+              AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED, v.span);
         }
+      } else if (v is YamlMap) {
+        v.nodes.forEach((k, v) {
+          String key, value;
+          bool validKey = false;
+          if (k is YamlScalar) {
+            key = k.value?.toString();
+            if (!AnalyzerOptions.strongModeOptions.contains(key)) {
+              builder.reportError(reporter, AnalyzerOptions.strong_mode, k);
+            } else if (key == AnalyzerOptions.declarationCasts) {
+              reporter.reportErrorForSpan(
+                  AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED,
+                  k.span,
+                  [key]);
+            } else {
+              // If we have a valid key, go on and check the value.
+              validKey = true;
+            }
+          }
+          if (validKey && v is YamlScalar) {
+            value = toLowerCase(v.value);
+            if (!AnalyzerOptions.trueOrFalse.contains(value)) {
+              trueOrFalseBuilder.reportError(reporter, key, v);
+            }
+          }
+        });
       }
     }
   }
@@ -631,11 +671,6 @@ class _OptionsProcessor {
           _applyStrongModeOption(options, k.value?.toString(), v.value);
         }
       });
-    } else {
-      bool value = toBool(config);
-      if (value != null) {
-        options.strongMode = value;
-      }
     }
   }
 

@@ -58,6 +58,13 @@ class AnalysisOptionsErrorCode extends ErrorCode {
  */
 class AnalysisOptionsWarningCode extends ErrorCode {
   /**
+   * An error code indicating that the given option is deprecated.
+   */
+  static const AnalysisOptionsWarningCode ANALYSIS_OPTION_DEPRECATED =
+      const AnalysisOptionsWarningCode('ANALYSIS_OPTION_DEPRECATED',
+          "The option '{0}' is no longer supported.");
+
+  /**
    * An error code indicating a specified include file could not be found.
    *
    * Parameters:
@@ -136,6 +143,26 @@ class AnalysisOptionsWarningCode extends ErrorCode {
           correction: "Try using one of the supported options: {2}.");
 
   /**
+   * An error code indicating an invalid format for an options file section.
+   *
+   * Parameters:
+   * 0: the section name
+   */
+  static const AnalysisOptionsWarningCode INVALID_SECTION_FORMAT =
+      const AnalysisOptionsWarningCode(
+          'INVALID_SECTION_FORMAT', "Invalid format for the '{0}' section.");
+
+  /**
+   * An error code indicating that strong-mode: false is has been removed.
+   */
+  static const AnalysisOptionsWarningCode SPEC_MODE_REMOVED =
+      const AnalysisOptionsWarningCode('SPEC_MODE_REMOVED',
+          "The option 'strong-mode: false' is no longer supported.",
+          correction:
+              "It's recommended to remove the 'strong-mode:' setting (and make "
+              "your code Dart 2 compliant).");
+
+  /**
    * Initialize a newly created warning code to have the given [name].
    */
   const AnalysisOptionsWarningCode(String name, String message,
@@ -157,21 +184,20 @@ class AnalysisOptionsHintCode extends ErrorCode {
    * Parameters:
    * 0: the uri of the file which should be renamed
    */
-  static const ErrorCode DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME =
+  static const AnalysisOptionsHintCode DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME =
       const AnalysisOptionsHintCode(
           'DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME',
           "The name of the analysis options file {0} is deprecated;"
           " consider renaming it to analysis_options.yaml.");
 
   /**
-   * An error code indicating that strong-mode: false is being deprecated.
+   * An error code indicating that strong-mode: true is deprecated.
    */
-  static const AnalysisOptionsHintCode SPEC_MODE_DEPRECATED =
-      const AnalysisOptionsHintCode('SPEC_MODE_DEPRECATED',
-          "The option 'strong-mode: false' is being deprecated.",
+  static const AnalysisOptionsHintCode STRONG_MODE_SETTING_DEPRECATED =
+      const AnalysisOptionsHintCode('STRONG_MODE_SETTING_DEPRECATED',
+          "The 'strong-mode: true' setting is deprecated.",
           correction:
-              "It's recommended to use 'strong-mode: true' and make your code "
-              "strong mode clean.");
+              "It is no longer necessary to explicitly enable strong mode.");
 
   /**
    * Initialize a newly created hint code to have the given [name].
