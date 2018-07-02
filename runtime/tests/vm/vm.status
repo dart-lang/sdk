@@ -20,10 +20,6 @@ cc/Profiler_InliningIntervalBoundry: Skip # Differences in ia32, debug, release
 cc/SNPrint_BadArgs: Crash, Fail # These tests are expected to crash on all platforms.
 dart/data_uri_import_test/none: SkipByDesign
 
-[ $arch == arm64 ]
-dart/slow_path_shared_stub_test: Pass, Slow
-dart/stack_overflow_shared_test: Pass, Slow
-
 [ $builder_tag == asan ]
 cc/CodeImmutability: Fail, OK # Address Sanitizer turns a crash into a failure.
 

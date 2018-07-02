@@ -124,10 +124,6 @@ symbol_test/03: MissingCompileTimeError
 cast_test: SkipByDesign # Uses generic method parameters.
 regress_33166_test: SkipByDesign # Not a Dart 1 test
 
-[ $arch == arm64 && $runtime == vm ]
-bigint_parse_radix_test: Pass, Slow
-bigint_test: Pass, Slow
-
 [ $arch == simarmv5te && ($runtime == dart_precompiled || $runtime == vm) ]
 int_parse_radix_test/*: Pass, Slow
 integer_parsed_mul_div_vm_test: Pass, Slow
