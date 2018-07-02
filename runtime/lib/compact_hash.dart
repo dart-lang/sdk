@@ -169,7 +169,7 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
 
   void clear() {
     if (!isEmpty) {
-      _init(_data.length, _hashMask, null, 0);
+      _init(_HashBase._INITIAL_INDEX_SIZE, _hashMask, null, 0);
     }
   }
 
@@ -493,7 +493,7 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
 
   void clear() {
     if (!isEmpty) {
-      _init(_index.length, _hashMask, null, 0);
+      _init(_HashBase._INITIAL_INDEX_SIZE, _hashMask, null, 0);
     }
   }
 
