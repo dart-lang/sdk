@@ -3549,6 +3549,29 @@ class VariableDeclarationJudgment extends VariableDeclaration
       variable._isLocalFunction;
 }
 
+/// Synthetic judgment class representing an attempt to assign to an unresolved
+/// variable.
+class UnresolvedVariableAssignmentJudgment extends SyntheticExpressionJudgment {
+  final bool isCompound;
+  final ExpressionJudgment rhs;
+
+  UnresolvedVariableAssignmentJudgment(
+      kernel.Expression desugared, this.isCompound, this.rhs)
+      : super(desugared);
+
+  @override
+  Expression infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory,
+      DartType typeContext) {
+    inferrer.inferExpression(factory, rhs, const UnknownType(), true);
+    inferredType = isCompound ? const DynamicType() : rhs.inferredType;
+    inferrer.listener.variableAssign(
+        this, fileOffset, const DynamicType(), null, null, inferredType);
+    return super.infer(inferrer, factory, typeContext);
+  }
+}
+
 /// Synthetic judgment class representing an attempt to read an unresolved
 /// variable.
 class UnresolvedVariableGetJudgment extends SyntheticExpressionJudgment {

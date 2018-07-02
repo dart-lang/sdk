@@ -1876,13 +1876,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
     return super.test_undefinedStaticMethodOrGetter_method_inSuperclass();
   }
 
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_undefinedStaticMethodOrGetter_setter_inSuperclass() async {
-    return super.test_undefinedStaticMethodOrGetter_setter_inSuperclass();
-  }
-
   @failingTest
   @override
   test_useOfVoidResult_assignmentExpression_function() async {

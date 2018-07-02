@@ -47,20 +47,6 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_unresolved_assignment_left_identifier_compound() async {
-    await super.test_unresolved_assignment_left_identifier_compound();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_unresolved_assignment_left_identifier_simple() async {
-    await super.test_unresolved_assignment_left_identifier_simple();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_unresolved_assignment_left_indexed1_simple() async {
     await super.test_unresolved_assignment_left_indexed1_simple();
   }

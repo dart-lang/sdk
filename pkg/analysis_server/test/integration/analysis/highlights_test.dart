@@ -150,8 +150,4 @@ int topLevelVariable;
 class AnalysisHighlightsTest_UseCFE extends AnalysisHighlightsTest {
   @override
   bool get useCFE => true;
-
-  @override
-  @failingTest
-  test_highlights() => super.test_highlights();
 }

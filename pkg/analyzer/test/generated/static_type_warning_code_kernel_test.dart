@@ -840,13 +840,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_undefinedSetter_static() async {
-    // Bad state: No reference information for A at 17
-    await super.test_undefinedSetter_static();
-  }
-
-  @override
-  @failingTest
   test_undefinedSuperMethod() async {
     // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_SUPER_METHOD, found 0
     await super.test_undefinedSuperMethod();

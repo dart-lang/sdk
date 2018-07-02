@@ -77,6 +77,7 @@ import 'kernel_ast_api.dart'
         ComplexAssignmentJudgment,
         IllegalAssignmentJudgment,
         IndexAssignmentJudgment,
+        InvalidVariableWriteJudgment,
         MethodInvocationJudgment,
         NullAwarePropertyGetJudgment,
         PropertyAssignmentJudgment,
@@ -95,6 +96,7 @@ import 'kernel_ast_api.dart'
         TreeNode,
         TypeParameter,
         UnresolvedVariableGetJudgment,
+        UnresolvedVariableAssignmentJudgment,
         VariableDeclaration,
         VariableGet,
         VariableSet;
@@ -107,8 +109,6 @@ import 'kernel_builder.dart'
         LoadLibraryBuilder,
         PrefixBuilder,
         TypeDeclarationBuilder;
-
-import 'kernel_shadow_ast.dart' show InvalidVariableWriteJudgment;
 
 part 'kernel_expression_generator_impl.dart';
 
@@ -1397,6 +1397,20 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
       : super(helper, token);
 
   @override
+  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+    return _buildUnresolvedVariableAssignment(false, value);
+  }
+
+  @override
+  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget,
+      bool isPreIncDec: false}) {
+    return _buildUnresolvedVariableAssignment(true, value);
+  }
+
+  @override
   Expression buildSimpleRead() {
     Expression error = buildError(forest.argumentsEmpty(token), isGetter: true);
     return new UnresolvedVariableGetJudgment(error)
@@ -1407,6 +1421,15 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
   void printOn(StringSink sink) {
     sink.write(", name: ");
     sink.write(name.name);
+  }
+
+  UnresolvedVariableAssignmentJudgment _buildUnresolvedVariableAssignment(
+      bool isCompound, Expression value) {
+    return new UnresolvedVariableAssignmentJudgment(
+      buildError(forest.arguments(<Expression>[value], token), isSetter: true),
+      isCompound,
+      value,
+    )..fileOffset = token.charOffset;
   }
 }
 
