@@ -503,13 +503,11 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       node.methodName.staticType = invokeType;
     }
 
-    if (invokeType is FunctionType) {
-      if (node.typeArguments != null && typeArguments != null) {
-        _applyTypeArgumentsToList(
-            _enclosingLibraryElement,
-            new TypeArgumentsDartType(typeArguments),
-            node.typeArguments.arguments);
-      }
+    if (node.typeArguments != null && typeArguments != null) {
+      _applyTypeArgumentsToList(
+          _enclosingLibraryElement,
+          new TypeArgumentsDartType(typeArguments),
+          node.typeArguments.arguments);
     }
 
     _applyResolutionToArguments(argumentList);

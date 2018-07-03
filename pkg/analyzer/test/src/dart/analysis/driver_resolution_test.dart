@@ -7368,6 +7368,21 @@ class C {
     expect(invocation.staticInvokeType, isDynamicType);
   }
 
+  test_unresolved_static_call_arguments() async {
+    addTestFile('''
+int x;
+class C {
+  static f() => C.g(x);
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var x = findNode.simple('x)');
+    assertElement(x, findElement.topGet('x'));
+    assertType(x, 'int');
+  }
+
   test_unresolved_static_call_same_name_as_type_param() async {
     addTestFile('''
 class C<T> {
@@ -7383,6 +7398,20 @@ class C<T> {
     var invocation = t.parent as MethodInvocation;
     assertTypeDynamic(invocation);
     expect(invocation.staticInvokeType, isDynamicType);
+  }
+
+  test_unresolved_static_call_type_arguments() async {
+    addTestFile('''
+class C {
+  static f() => C.g<int>();
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var intRef = findNode.simple('int>');
+    assertElement(intRef, intType.element);
+    assertType(intRef, 'int');
   }
 
   /// Assert that the [argument] is associated with the [expectedParameter],

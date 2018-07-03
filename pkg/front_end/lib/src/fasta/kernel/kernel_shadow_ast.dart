@@ -3552,7 +3552,10 @@ class VariableDeclarationJudgment extends VariableDeclaration
 /// Synthetic judgment class representing an attempt to invoke an unresolved
 /// target.
 class UnresolvedTargetInvocationJudgment extends SyntheticExpressionJudgment {
-  UnresolvedTargetInvocationJudgment(kernel.Expression desugared)
+  final ArgumentsJudgment argumentsJudgment;
+
+  UnresolvedTargetInvocationJudgment(
+      kernel.Expression desugared, this.argumentsJudgment)
       : super(desugared);
 
   @override
@@ -3561,8 +3564,15 @@ class UnresolvedTargetInvocationJudgment extends SyntheticExpressionJudgment {
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     var result = super.infer(inferrer, factory, typeContext);
-    inferrer.listener.staticInvocation(
-        this, fileOffset, null, null, null, null, inferredType);
+    inferrer.inferInvocation(
+        factory,
+        typeContext,
+        fileOffset,
+        TypeInferrerImpl.unknownFunction,
+        const DynamicType(),
+        argumentsJudgment);
+    inferrer.listener.staticInvocation(this, fileOffset, null,
+        argumentsJudgment.types, null, null, inferredType);
     return result;
   }
 }
