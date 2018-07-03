@@ -23,7 +23,6 @@ analyzer/test/generated/strong_mode_kernel_test: Slow, Pass
 analyzer/test/src/dart/analysis/driver_kernel_test: Slow, Pass
 analyzer/test/src/summary/resynthesize_kernel_test: Slow, Pass
 analyzer/test/src/task/strong/checker_test: Slow, Pass
-analyzer2dart/test/*: Skip # Analyzer2dart is not maintained anymore.
 analyzer_plugin/test/plugin/folding_mixin_test: Slow, Pass
 analyzer_plugin/tool/spec/check_all_test: Skip # Issue 29133
 dart_messages/test/dart_messages_test: Skip # Requires a package root.
@@ -133,7 +132,6 @@ analysis_server/tool/spec/check_all_test: SkipByDesign # Uses dart:io.
 analyzer/test/*: SkipByDesign # Uses dart:io.
 analyzer/tool/summary/check_test: SkipByDesign # Uses dart:io.
 analyzer/tool/task_dependency_graph/check_test: SkipByDesign # Uses dart:io.
-analyzer2dart/*: SkipByDesign # Uses dart:io.
 analyzer_cli/*: SkipByDesign # Uses dart:io.
 compiler/tool/*: SkipByDesign # Only meant to run on vm
 dart_messages/test/dart_messages_test: Skip # Uses dart:io.
