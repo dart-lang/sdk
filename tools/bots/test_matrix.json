@@ -863,7 +863,7 @@
     },
     {
       "builders": [
-        "dart2js-hostchecked-linux-ia32-d8"
+        "dart2js-strong-hostasserts-linux-ia32-d8"
       ],
       "meta": {
         "description": "dart2js-d8 tests with assertions during compilation"
@@ -879,20 +879,18 @@
           "arguments": [
             "--compiler=dart2js",
             "--dart2js-batch",
-            "--host-checked",
-            "--no-preview-dart-2",
-            "--reset-browser-configuration"
+            "--host-checked"
           ],
-          "exclude_tests": ["observatory_ui", "co19"]
+          "exclude_tests": ["observatory_ui", "co19"],
+          "shards": 6,
+          "fileset": "dart2js"
         },
         {
           "name": "dart2js package tests",
           "arguments": [
             "--compiler=dart2js",
             "--dart2js-batch",
-            "--host-checked",
-            "--no-preview-dart-2",
-            "--reset-browser-configuration"
+            "--host-checked"
           ],
           "tests": ["pkg"]
         },
@@ -901,9 +899,7 @@
           "arguments": [
             "--compiler=dart2js",
             "--dart2js-batch",
-            "--host-checked",
-            "--no-preview-dart-2",
-            "--reset-browser-configuration"
+            "--host-checked"
           ],
           "tests": ["observatory_ui"]
         },
@@ -912,82 +908,9 @@
           "arguments": [
             "--compiler=dart2js",
             "--dart2js-batch",
-            "--host-checked",
-            "--no-preview-dart-2",
-            "--reset-browser-configuration"
+            "--host-checked"
           ],
           "tests": ["dart2js_extra","dart2js_native"]
-        },
-        {
-          "name": "dart2js co19 tests",
-          "arguments": [
-            "--compiler=dart2js",
-            "--dart2js-batch",
-            "--host-checked",
-            "--no-preview-dart-2",
-            "--reset-browser-configuration"
-          ],
-          "tests": ["co19"]
-        },
-        {
-          "name": "dart2js checked tests",
-          "arguments": [
-            "--checked",
-            "--compiler=dart2js",
-            "--dart2js-batch",
-            "--host-checked",
-            "--no-preview-dart-2",
-            "--reset-browser-configuration"
-          ],
-          "exclude_tests": ["observatory_ui", "co19"]
-        },
-        {
-          "name": "dart2js checked package tests",
-          "arguments": [
-            "--checked",
-            "--compiler=dart2js",
-            "--dart2js-batch",
-            "--host-checked",
-            "--no-preview-dart-2",
-            "--reset-browser-configuration"
-          ],
-          "tests": ["pkg"]
-        },
-        {
-          "name": "dart2js checked observatory-ui tests",
-          "arguments": [
-            "--checked",
-            "--compiler=dart2js",
-            "--dart2js-batch",
-            "--host-checked",
-            "--no-preview-dart-2",
-            "--reset-browser-configuration"
-          ],
-          "tests": ["observatory_ui"]
-        },
-        {
-          "name": "dart2js checked extra tests",
-          "arguments": [
-            "--checked",
-            "--compiler=dart2js",
-            "--dart2js-batch",
-            "--host-checked",
-            "--no-preview-dart-2",
-            "--reset-browser-configuration"
-          ],
-          "tests": ["dart2js_extra","dart2js_native"]
-        },
-        {
-          "name": "dart2js checked co19 tests",
-          "arguments": [
-            "--checked",
-            "--compiler=dart2js",
-            "--dart2js-batch",
-            "--host-checked",
-            "--no-preview-dart-2",
-            "--reset-browser-configuration"
-          ],
-          "tests": ["co19"]
         }
       ]
     },
@@ -1187,7 +1110,7 @@
             "--use-sdk"
           ],
           "exclude_tests": ["observatory_ui", "co19"],
-          "shards": 4,
+          "shards": 6,
           "fileset": "dart2js"
         },
         {
@@ -1252,7 +1175,7 @@
             "--use-sdk"
           ],
           "exclude_tests": ["observatory_ui", "co19"],
-          "shards": 4,
+          "shards": 6,
           "fileset": "dart2js"
         },
         {
@@ -1456,7 +1379,7 @@
             "--use-sdk"
           ],
           "exclude_tests": ["observatory_ui", "co19"],
-          "shards": 4,
+          "shards": 6,
           "fileset": "dart2js"
         },
         {
@@ -1469,7 +1392,7 @@
             "--use-sdk"
           ],
           "exclude_tests": ["observatory_ui", "co19"],
-          "shards": 4,
+          "shards": 6,
           "fileset": "dart2js"
         },
         {
