@@ -1239,9 +1239,6 @@ PageSpaceController::PageSpaceController(Heap* heap,
   intptr_t grow_heap = heap_growth_max / 2;
   gc_threshold_in_words_ =
       last_usage_.capacity_in_words + (kPageSizeInWords * grow_heap);
-  intptr_t grow_external = heap_growth_max / 2;
-  gc_external_threshold_in_words_ =
-      last_usage_.external_in_words + (kPageSizeInWords * grow_external);
 }
 
 PageSpaceController::~PageSpaceController() {}
@@ -1253,12 +1250,7 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
   if (heap_growth_ratio_ == 100) {
     return false;
   }
-  return (after.capacity_in_words > gc_threshold_in_words_) ||
-         NeedsExternalCollection(after);
-}
-
-bool PageSpaceController::NeedsExternalCollection(SpaceUsage after) const {
-  return after.external_in_words > gc_external_threshold_in_words_;
+  return after.CombinedCapacityInWords() > gc_threshold_in_words_;
 }
 
 bool PageSpaceController::NeedsIdleGarbageCollection(SpaceUsage current) const {
@@ -1268,8 +1260,7 @@ bool PageSpaceController::NeedsIdleGarbageCollection(SpaceUsage current) const {
   if (heap_growth_ratio_ == 100) {
     return false;
   }
-  return (current.capacity_in_words > idle_gc_threshold_in_words_) ||
-         NeedsExternalCollection(current);
+  return current.CombinedCapacityInWords() > idle_gc_threshold_in_words_;
 }
 
 void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
@@ -1281,34 +1272,14 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
   const int gc_time_fraction = history_.GarbageCollectionTimeFraction();
   heap_->RecordData(PageSpace::kGCTimeFraction, gc_time_fraction);
 
-  // Decide how much external allocations can grow before triggering a GC.
-  {
-    const intptr_t external_after_in_pages =
-        Utils::RoundUp(after.external_in_words, kPageSizeInWords) /
-        kPageSizeInWords;
-    const intptr_t external_growth_in_pages =
-        Utils::RoundUp(before.external_in_words - last_usage_.external_in_words,
-                       kPageSizeInWords) /
-        kPageSizeInWords;
-    // Trigger GC when external allocations grow:
-    // - 25% of the external allocations after this GC, or
-    // - half of the growth since the last collection
-    // whichever is bigger. The second case prevents shrinking the limit too
-    // much. See similar handling of the Dart heap below.
-    intptr_t grow_external = Utils::Maximum<intptr_t>(
-        external_after_in_pages >> 2, external_growth_in_pages >> 1);
-
-    gc_external_threshold_in_words_ =
-        after.external_in_words + (kPageSizeInWords * grow_external);
-  }
-
   // Assume garbage increases linearly with allocation:
   // G = kA, and estimate k from the previous cycle.
   const intptr_t allocated_since_previous_gc =
-      before.used_in_words - last_usage_.used_in_words;
+      before.CombinedUsedInWords() - last_usage_.CombinedUsedInWords();
   intptr_t grow_heap;
   if (allocated_since_previous_gc > 0) {
-    const intptr_t garbage = before.used_in_words - after.used_in_words;
+    const intptr_t garbage =
+        before.CombinedUsedInWords() - after.CombinedUsedInWords();
     ASSERT(garbage >= 0);
     // It makes no sense to expect that each kb allocated will cause more than
     // one kb of garbage, so we clamp k at 1.0.
@@ -1328,8 +1299,9 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
     // Number of pages we can allocate and still be within the desired growth
     // ratio.
     const intptr_t grow_pages =
-        (static_cast<intptr_t>(after.capacity_in_words / desired_utilization_) -
-         after.capacity_in_words) /
+        (static_cast<intptr_t>(after.CombinedCapacityInWords() /
+                               desired_utilization_) -
+         (after.CombinedCapacityInWords())) /
         kPageSizeInWords;
     if (garbage_ratio == 0) {
       // No garbage in the previous cycle so it would be hard to compute a
@@ -1345,9 +1317,10 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
       intptr_t local_grow_heap = 0;
       while (min < max) {
         local_grow_heap = (max + min) / 2;
-        const intptr_t limit =
-            after.capacity_in_words + (local_grow_heap * kPageSizeInWords);
-        const intptr_t allocated_before_next_gc = limit - after.used_in_words;
+        const intptr_t limit = after.CombinedCapacityInWords() +
+                               (local_grow_heap * kPageSizeInWords);
+        const intptr_t allocated_before_next_gc =
+            limit - (after.CombinedUsedInWords());
         const double estimated_garbage = k * allocated_before_next_gc;
         if (t <= estimated_garbage / limit) {
           max = local_grow_heap - 1;
@@ -1372,26 +1345,25 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
 
   // Limit shrinkage: allow growth by at least half the pages freed by GC.
   const intptr_t freed_pages =
-      (before.capacity_in_words - after.capacity_in_words) / kPageSizeInWords;
+      (before.CombinedCapacityInWords() - after.CombinedCapacityInWords()) /
+      kPageSizeInWords;
   grow_heap = Utils::Maximum(grow_heap, freed_pages / 2);
   heap_->RecordData(PageSpace::kAllowedGrowth, grow_heap);
   last_usage_ = after;
 
   // Save final threshold compared before growing.
   gc_threshold_in_words_ =
-      after.capacity_in_words + (kPageSizeInWords * grow_heap);
+      after.CombinedCapacityInWords() + (kPageSizeInWords * grow_heap);
 
   // Set the idle threshold halfway between the current capacity and the
   // capacity at which we'd block for a GC.
   idle_gc_threshold_in_words_ =
-      (after.capacity_in_words + gc_threshold_in_words_) / 2;
+      (after.CombinedCapacityInWords() + gc_threshold_in_words_) / 2;
 
   if (FLAG_log_growth) {
-    THR_Print("%s: threshold=%" Pd "kB, idle_threshold=%" Pd
-              "kB, external_threshold=%" Pd "kB\n",
+    THR_Print("%s: threshold=%" Pd "kB, idle_threshold=%" Pd "kB\n",
               heap_->isolate()->name(), gc_threshold_in_words_ / KBInWords,
-              idle_gc_threshold_in_words_ / KBInWords,
-              gc_external_threshold_in_words_ / KBInWords);
+              idle_gc_threshold_in_words_ / KBInWords);
   }
 }
 
