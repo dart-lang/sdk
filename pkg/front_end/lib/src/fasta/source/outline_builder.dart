@@ -562,7 +562,8 @@ class OutlineBuilder extends StackListener {
   @override
   void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
     if (!enableNative) {
-      super.handleUnrecoverableError(nativeToken, messageExpectedBlockToSkip);
+      super.handleRecoverableError(
+          messageExpectedBlockToSkip, nativeToken, nativeToken);
     }
     push(MethodBody.Regular);
   }

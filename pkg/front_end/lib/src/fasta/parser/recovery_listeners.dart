@@ -4,43 +4,12 @@
 
 import '../../scanner/token.dart' show Token;
 
-import '../messages.dart' show Message;
-
 import 'forwarding_listener.dart' show ForwardingListener;
 
-import 'listener.dart' show Listener;
-
-/// The abstract superclass of recovery listeners.
-///
-/// During the first phase of recovery, some portion of the code is reparsed
-/// to record information (e.g. tokens) that were not recorded during
-/// the primary parse phase. During this phase, the [listener] is null
-/// so that reparsing will not effect the primary listener state,
-/// but the [_primaryListener] is non-null for those few events
-/// where the parser requires the listener to interpret the token stream.
-class RecoveryListener extends ForwardingListener {
-  // TODO(danrubel): remove the need for this field and this class
-  // by removing listener events that interpret the token stream for the parser.
-  final Listener _primaryListener;
-
-  RecoveryListener(this._primaryListener);
-
-  @override
-  Token handleUnrecoverableError(Token token, Message message) =>
-      _primaryListener.handleUnrecoverableError(token, message);
-
-  @override
-  Token newSyntheticToken(Token next) =>
-      _primaryListener.newSyntheticToken(next);
-}
-
-class ClassHeaderRecoveryListener extends RecoveryListener {
+class ClassHeaderRecoveryListener extends ForwardingListener {
   Token extendsKeyword;
   Token implementsKeyword;
   Token withKeyword;
-
-  ClassHeaderRecoveryListener(Listener primaryListener)
-      : super(primaryListener);
 
   void clear() {
     extendsKeyword = null;
@@ -67,13 +36,11 @@ class ClassHeaderRecoveryListener extends RecoveryListener {
   }
 }
 
-class ImportRecoveryListener extends RecoveryListener {
+class ImportRecoveryListener extends ForwardingListener {
   Token asKeyword;
   Token deferredKeyword;
   Token ifKeyword;
   bool hasCombinator = false;
-
-  ImportRecoveryListener(Listener primaryListener) : super(primaryListener);
 
   void clear() {
     asKeyword = null;

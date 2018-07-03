@@ -111,7 +111,8 @@ class DirectiveListener extends Listener {
   /// By default, native clauses are not handled and an error is thrown.
   @override
   void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
-    super.handleUnrecoverableError(nativeToken, messageExpectedBlockToSkip);
+    super.handleRecoverableError(
+        messageExpectedBlockToSkip, nativeToken, nativeToken);
   }
 }
 

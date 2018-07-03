@@ -3738,19 +3738,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  Token handleUnrecoverableError(Token token, Message message) {
-    if (message.code == fasta.codeExpectedButGot) {
-      String expected = message.arguments["string"];
-      const List<String> trailing = const <String>[")", "}", ";", ","];
-      if (trailing.contains(token.stringValue) && trailing.contains(expected)) {
-        handleRecoverableError(message, token, token);
-        return newSyntheticToken(token);
-      }
-    }
-    return super.handleUnrecoverableError(token, message);
-  }
-
-  @override
   void handleInvalidStatement(Token token, Message message) {
     Statement statement = pop();
     push(wrapInCompileTimeErrorStatement(statement, message));

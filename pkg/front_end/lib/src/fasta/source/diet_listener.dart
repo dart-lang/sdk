@@ -508,7 +508,8 @@ class DietListener extends StackListener {
   void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
     debugEvent("NativeFunctionBodySkipped");
     if (!enableNative) {
-      super.handleUnrecoverableError(nativeToken, messageExpectedBlockToSkip);
+      super.handleRecoverableError(
+          messageExpectedBlockToSkip, nativeToken, nativeToken);
     }
   }
 
