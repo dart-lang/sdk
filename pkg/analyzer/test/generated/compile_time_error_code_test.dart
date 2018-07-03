@@ -586,16 +586,6 @@ class B {
     verify([source]);
   }
 
-  test_builtInIdentifierAsType_dynamicMissingPrefix() async {
-    Source source = addSource(r"""
-import 'dart:core' as core;
-
-dynamic x;
-""");
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
-  }
-
   test_builtInIdentifierAsMixinName_classTypeAlias() async {
     Source source = addSource(r'''
 class A {}

@@ -585,14 +585,6 @@ class LibraryScope extends EnclosedScope {
   LibraryScope(LibraryElement definingLibrary)
       : super(new LibraryImportScope(definingLibrary)) {
     _defineTopLevelNames(definingLibrary);
-
-    // For `dart:core` to be able to pass analysis, it has to have `dynamic`
-    // added to its library scope. Note that this is not true of, for instance,
-    // `Object`, because `Object` has a source definition which is not possible
-    // for `dynamic`.
-    if (definingLibrary.isDartCore) {
-      define(DynamicElementImpl.instance);
-    }
   }
 
   @override
@@ -757,16 +749,6 @@ class NamespaceBuilder {
     for (CompilationUnitElement compilationUnit in library.parts) {
       _addPublicNames(definedNames, compilationUnit);
     }
-
-    // For libraries that import `dart:core` with a prefix, we have to add
-    // `dynamic` to the `dart:core` [Namespace] specially. Note that this is not
-    // true of, for instance, `Object`, because `Object` has a source definition
-    // which is not possible for `dynamic`.
-    if (library.isDartCore) {
-      DynamicElementImpl.instance.library = library;
-      definedNames['dynamic'] = DynamicElementImpl.instance;
-    }
-
     return new Namespace(definedNames);
   }
 

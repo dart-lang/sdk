@@ -76,14 +76,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_builtInIdentifierAsType_dynamicMissingPrefix() async {
-    // Kernel and analyzer report different errors. Which is the correct one?
-    await super.test_builtInIdentifierAsType_dynamicMissingPrefix();
-  }
-
-  @override
-  @failingTest
   test_builtInIdentifierAsType_formalParameter_field() async {
     // Expected 1 errors of type CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, found 0;
     //          0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (23)

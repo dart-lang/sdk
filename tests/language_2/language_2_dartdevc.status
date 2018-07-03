@@ -43,7 +43,6 @@ covariant_override/tear_off_type_test: RuntimeError # Issue 28395
 default_implementation2_test: CompileTimeError # Issue 30855
 deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in ddc
-dynamic_prefix_core_test/01: MissingCompileTimeError
 emit_const_fields_test: CompileTimeError
 enum_syntax_test/05: MissingCompileTimeError
 enum_syntax_test/06: MissingCompileTimeError
@@ -73,6 +72,7 @@ implicit_creation/implicit_const_context_prefix_constructor_generic_test: Compil
 implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_indexed_compound_assignment_test: RuntimeError
 implicit_downcast_during_indexed_if_null_assignment_test: RuntimeError
+import_core_prefix_test: CompileTimeError
 import_private_test/01: MissingCompileTimeError # Issue 29920
 initializing_formal_final_test: MissingCompileTimeError
 instantiate_tearoff_after_contravariance_check_test: RuntimeError

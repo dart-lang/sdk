@@ -6409,17 +6409,6 @@ class B extends A {
     verify([source]);
   }
 
-  Future test_useDynamicWithPrefix() async {
-    final Source source = addSource('''
-import 'dart:core' as core;
-
-core.dynamic dynamicVariable;
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   Future<Null> _check_wrongNumberOfParametersForOperator(
       String name, String parameters) async {
     Source source = addSource("""
