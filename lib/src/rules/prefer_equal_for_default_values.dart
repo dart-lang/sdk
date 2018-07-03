@@ -7,11 +7,13 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const _desc = r'Prefer equal for default values.';
+const _desc = r'Use `=` to separate a named parameter from its default value.';
 
 const _details = r'''
 
-**DO** Use `=` to define default values.
+From the [style guide](https://www.dartlang.org/guides/language/effective-dart/usage):
+
+**DO** Use `=` to separate a named parameter from its default value.
 
 **BAD:**
 ```
