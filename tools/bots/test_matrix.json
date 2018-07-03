@@ -1746,7 +1746,7 @@
         "analyzer-win-release"
       ],
       "meta": {
-        "description": "This configuration is used by the analyzer builders not running strong mode."
+        "description": "This configuration is used by the analyzer builders."
       },
       "steps": [
         {
@@ -1758,7 +1758,6 @@
           "name": "analyze tests",
           "arguments": [
             "--compiler=dart2analyzer",
-            "--no-preview-dart-2",
             "--use-sdk"
           ]
         },
@@ -1766,26 +1765,23 @@
           "name": "analyze pkg tests",
           "arguments": [
             "--compiler=dart2analyzer",
-            "--no-preview-dart-2",
             "--use-sdk",
             "pkg"
           ]
         },
         {
-          "name": "analyze tests checked",
+          "name": "analyze tests enable-asserts",
           "arguments": [
-            "--checked",
             "--compiler=dart2analyzer",
-            "--no-preview-dart-2",
+            "--enable-asserts",
             "--use-sdk"
           ]
         },
         {
-          "name": "analyze pkg tests checked",
+          "name": "analyze pkg tests enable-asserts",
           "arguments": [
-            "--checked",
             "--compiler=dart2analyzer",
-            "--no-preview-dart-2",
+            "--enable-asserts",
             "--use-sdk",
             "pkg"
           ]
@@ -1793,9 +1789,8 @@
         {
           "name": "analyzer unit tests",
           "arguments": [
-            "--checked",
             "--compiler=none",
-            "--no-preview-dart-2",
+            "--enable-asserts",
             "--use-sdk",
             "pkg/analyzer"
           ]
@@ -1803,9 +1798,8 @@
         {
           "name": "analysis_server unit tests",
           "arguments": [
-            "--checked",
             "--compiler=none",
-            "--no-preview-dart-2",
+            "--enable-asserts",
             "--use-sdk",
             "pkg/analysis_server"
           ]
@@ -1813,9 +1807,8 @@
         {
           "name": "analyzer_cli unit tests",
           "arguments": [
-            "--checked",
             "--compiler=none",
-            "--no-preview-dart-2",
+            "--enable-asserts",
             "--use-sdk",
             "pkg/analyzer_cli"
           ]
@@ -1823,9 +1816,8 @@
         {
           "name": "analyzer_plugin unit tests",
           "arguments": [
-            "--checked",
             "--compiler=none",
-            "--no-preview-dart-2",
+            "--enable-asserts",
             "--use-sdk",
             "pkg/analyzer_plugin"
           ]

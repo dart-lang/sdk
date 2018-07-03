@@ -104,8 +104,15 @@ analysis_server/test/integration/completion: Pass, Slow
 analysis_server/test/integration/edit/format_test: Pass, Slow
 analysis_server/test/integration/edit/import_elements_test: Pass, Slow
 analysis_server/test/integration/edit/organize_directives_test: Pass, Slow
+analysis_server/test/integration/edit/sort_members_test: Pass, Slow
 analysis_server/test/integration/search/find_top_level_declarations_test: Pass, RuntimeError # 31571
+analysis_server/test/services/correction/fix_test: Pass, Slow
+analysis_server/test/socket_server_test: Skip # Pass, Slow
+analysis_server/test/src/plugin/plugin_manager_test: Pass, Slow
 analyzer/test/file_system/physical_resource_provider_test: Pass, Fail # Issue 25472
+analyzer/test/generated/non_error_resolver_kernel_test: Pass, Slow
+analyzer/test/src/summary/resynthesize_ast_test: Pass, Slow
+analyzer/test/src/task/strong/front_end_inference_test: Pass, Slow
 analyzer/test/src/task/strong/inferred_type_test: Pass, Slow
 analyzer_cli/test/driver_test: Pass, Slow, Timeout
 mutation_observer: Skip # Skip tests on the VM if the package depends on dart:html
