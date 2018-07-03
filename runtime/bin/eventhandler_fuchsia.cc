@@ -385,7 +385,9 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
     // message.
     const intptr_t old_mask = di->Mask();
     Dart_Port port = msg->dart_port;
-    di->RemovePort(port);
+    if (port != ILLEGAL_PORT) {
+      di->RemovePort(port);
+    }
     const intptr_t new_mask = di->Mask();
     UpdatePort(old_mask, di);
 

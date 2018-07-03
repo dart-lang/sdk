@@ -20,6 +20,12 @@ class RawSocket {
       {sourceAddress, Duration timeout}) {
     return _RawSocket.connect(host, port, sourceAddress, timeout);
   }
+
+  @patch
+  static Future<ConnectionTask<RawSocket>> startConnect(host, int port,
+      {sourceAddress}) {
+    return _RawSocket.startConnect(host, port, sourceAddress);
+  }
 }
 
 @patch
@@ -350,8 +356,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
 
   static Future<List<InternetAddress>> lookup(String host,
       {InternetAddressType type: InternetAddressType.any}) {
-    return _IOService._dispatch(
-        _IOService.socketLookup, [host, type._value]).then((response) {
+    return _IOService._dispatch(_IOService.socketLookup, [host, type._value])
+        .then((response) {
       if (isErrorResponse(response)) {
         throw createError(response, "Failed host lookup: '$host'");
       } else {
@@ -378,8 +384,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       {bool includeLoopback: false,
       bool includeLinkLocal: false,
       InternetAddressType type: InternetAddressType.any}) {
-    return _IOService._dispatch(
-        _IOService.socketListInterfaces, [type._value]).then((response) {
+    return _IOService._dispatch(_IOService.socketListInterfaces, [type._value])
+        .then((response) {
       if (isErrorResponse(response)) {
         throw createError(response, "Failed listing interfaces");
       } else {
@@ -400,8 +406,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     });
   }
 
-  static Future<_NativeSocket> connect(
-      host, int port, sourceAddress, Duration timeout) {
+  static Future<ConnectionTask<_NativeSocket>> startConnect(
+      host, int port, sourceAddress) {
     _throwOnBadPort(port);
     if (sourceAddress != null && sourceAddress is! _InternetAddress) {
       if (sourceAddress is String) {
@@ -421,29 +427,11 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       var it = (addresses as List<InternetAddress>).iterator;
       var error = null;
       var connecting = new HashMap();
-      Timer timeoutTimer = null;
-      void timeoutHandler() {
-        connecting.forEach((s, t) {
-          t.cancel();
-          s.close();
-          s.setHandlers();
-          s.setListening(read: false, write: false);
-          error = createError(
-              null, "Connection timed out, host: ${host}, port: ${port}");
-          completer.completeError(error);
-        });
-      }
 
       void connectNext() {
-        if ((timeout != null) && (timeoutTimer == null)) {
-          timeoutTimer = new Timer(timeout, timeoutHandler);
-        }
         if (!it.moveNext()) {
           if (connecting.isEmpty) {
             assert(error != null);
-            if (timeoutTimer != null) {
-              timeoutTimer.cancel();
-            }
             completer.completeError(error);
           }
           return;
@@ -471,11 +459,13 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           }
           connectNext();
         } else {
-          // Query the local port, for error messages.
+          // Query the local port for error messages.
           try {
             socket.port;
           } catch (e) {
-            error = createError(e, "Connection failed", address, port);
+            if (error == null) {
+              error = createError(e, "Connection failed", address, port);
+            }
             connectNext();
           }
           // Set up timer for when we should retry the next address
@@ -490,9 +480,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           // indicate that the socket is fully connected.
           socket.setHandlers(write: () {
             timer.cancel();
-            if (timeoutTimer != null) {
-              timeoutTimer.cancel();
-            }
             socket.setListening(read: false, write: false);
             completer.complete(socket);
             connecting.remove(socket);
@@ -502,6 +489,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
               s.setHandlers();
               s.setListening(read: false, write: false);
             });
+            connecting.clear();
           }, error: (e) {
             timer.cancel();
             socket.close();
@@ -514,8 +502,42 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         }
       }
 
+      void onCancel() {
+        connecting.forEach((s, t) {
+          t.cancel();
+          s.close();
+          s.setHandlers();
+          s.setListening(read: false, write: false);
+          if (error == null) {
+            error = createError(null,
+                "Connection attempt cancelled, host: ${host}, port: ${port}");
+          }
+        });
+        connecting.clear();
+        if (!completer.isCompleted) {
+          completer.completeError(error);
+        }
+      }
+
       connectNext();
-      return completer.future;
+      return new ConnectionTask<_NativeSocket>._(
+          socket: completer.future, onCancel: onCancel);
+    });
+  }
+
+  static Future<_NativeSocket> connect(
+      host, int port, sourceAddress, Duration timeout) {
+    return startConnect(host, port, sourceAddress)
+        .then((ConnectionTask<_NativeSocket> task) {
+      Future<_NativeSocket> socketFuture = task.socket;
+      if (timeout != null) {
+        socketFuture = socketFuture.timeout(timeout, onTimeout: () {
+          task.cancel();
+          throw createError(
+              null, "Connection timed out, host: ${host}, port: ${port}");
+        });
+      }
+      return socketFuture;
     });
   }
 
@@ -1134,8 +1156,7 @@ class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {
       address, int port, int backlog, bool v6Only, bool shared) {
     _throwOnBadPort(port);
     if (backlog < 0) throw new ArgumentError("Invalid backlog $backlog");
-    return _NativeSocket
-        .bind(address, port, backlog, v6Only, shared)
+    return _NativeSocket.bind(address, port, backlog, v6Only, shared)
         .then((socket) => new _RawServerSocket(socket, v6Only));
   }
 
@@ -1228,9 +1249,19 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
 
   static Future<RawSocket> connect(
       host, int port, sourceAddress, Duration timeout) {
-    return _NativeSocket
-        .connect(host, port, sourceAddress, timeout)
+    return _NativeSocket.connect(host, port, sourceAddress, timeout)
         .then((socket) => new _RawSocket(socket));
+  }
+
+  static Future<ConnectionTask<_RawSocket>> startConnect(
+      host, int port, sourceAddress) {
+    return _NativeSocket.startConnect(host, port, sourceAddress)
+        .then((ConnectionTask<_NativeSocket> nativeTask) {
+      final Future<_RawSocket> raw = nativeTask.socket
+          .then((_NativeSocket nativeSocket) => new _RawSocket(nativeSocket));
+      return new ConnectionTask<_RawSocket>._(
+          socket: raw, onCancel: nativeTask._onCancel);
+    });
   }
 
   _RawSocket(this._socket) {
@@ -1381,8 +1412,7 @@ class _ServerSocket extends Stream<Socket> implements ServerSocket {
 
   static Future<_ServerSocket> bind(
       address, int port, int backlog, bool v6Only, bool shared) {
-    return _RawServerSocket
-        .bind(address, port, backlog, v6Only, shared)
+    return _RawServerSocket.bind(address, port, backlog, v6Only, shared)
         .then((socket) => new _ServerSocket(socket));
   }
 
@@ -1414,9 +1444,21 @@ class Socket {
   @patch
   static Future<Socket> _connect(host, int port,
       {sourceAddress, Duration timeout}) {
-    return RawSocket
-        .connect(host, port, sourceAddress: sourceAddress, timeout: timeout)
+    return RawSocket.connect(host, port,
+            sourceAddress: sourceAddress, timeout: timeout)
         .then((socket) => new _Socket(socket));
+  }
+
+  @patch
+  static Future<ConnectionTask<Socket>> _startConnect(host, int port,
+      {sourceAddress}) {
+    return RawSocket.startConnect(host, port, sourceAddress: sourceAddress)
+        .then((rawTask) {
+      Future<Socket> socket =
+          rawTask.socket.then((rawSocket) => new _Socket(rawSocket));
+      return new ConnectionTask<Socket>._(
+          socket: socket, onCancel: rawTask._onCancel);
+    });
   }
 }
 
@@ -1774,8 +1816,7 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
 
   static Future<RawDatagramSocket> bind(host, int port, bool reuseAddress) {
     _throwOnBadPort(port);
-    return _NativeSocket
-        .bindDatagram(host, port, reuseAddress)
+    return _NativeSocket.bindDatagram(host, port, reuseAddress)
         .then((socket) => new _RawDatagramSocket(socket));
   }
 

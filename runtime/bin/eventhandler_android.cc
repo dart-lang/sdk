@@ -214,7 +214,9 @@ void EventHandlerImplementation::HandleInterruptFd() {
         // message.
         intptr_t old_mask = di->Mask();
         Dart_Port port = msg[i].dart_port;
-        di->RemovePort(port);
+        if (port != ILLEGAL_PORT) {
+          di->RemovePort(port);
+        }
         intptr_t new_mask = di->Mask();
         UpdateEpollInstance(old_mask, di);
 

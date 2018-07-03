@@ -160,7 +160,8 @@ void test5(int totalConnections) {
             return request.close();
           })
           .then((response) {})
-          .catchError((e) {}, test: (e) => e is HttpException);
+          .catchError((e) {},
+              test: (e) => e is HttpException || e is SocketException);
     }
     bool clientClosed = false;
     new Timer.periodic(new Duration(milliseconds: 100), (timer) {
