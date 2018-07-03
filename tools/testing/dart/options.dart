@@ -152,6 +152,13 @@ simdbc, simdbc64''',
         values: System.names,
         defaultsTo: Platform.operatingSystem,
         hide: true),
+    new _Option(
+        'named_configuration',
+        '''The named test configuration that supplies the values for all
+test options, specifying how tests should be run. Unimplemented
+currently.''',
+        abbr: 'n',
+        hide: true),
     new _Option.bool('checked', 'Run tests in checked mode.'),
     new _Option.bool('strong', 'Deprecated, no-op.', hide: true),
     new _Option.bool('host_checked', 'Run compiler in checked mode.',
@@ -240,7 +247,7 @@ compact, color, line, verbose, silent, status, buildbot, diff''',
         'The name of the output directory for storing log files.',
         defaultsTo: "logs", hide: true),
     new _Option.bool('noBatch', 'Do not run tests in batch mode.',
-        abbr: 'n', hide: true),
+        hide: true),
     new _Option.bool('dart2js_batch', 'Run dart2js tests in batch mode.',
         hide: true),
     new _Option.bool(
