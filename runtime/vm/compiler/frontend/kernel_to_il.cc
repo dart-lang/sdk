@@ -76,7 +76,6 @@ Fragment operator<<(const Fragment& fragment, Instruction* next) {
 }
 
 FlowGraphBuilder::FlowGraphBuilder(
-    intptr_t kernel_offset,
     ParsedFunction* parsed_function,
     const ZoneGrowableArray<const ICData*>& ic_data_array,
     ZoneGrowableArray<intptr_t>* context_level_array,
@@ -90,7 +89,6 @@ FlowGraphBuilder::FlowGraphBuilder(
       translation_helper_(Thread::Current()),
       thread_(translation_helper_.thread()),
       zone_(translation_helper_.zone()),
-      kernel_offset_(kernel_offset),
       parsed_function_(parsed_function),
       optimizing_(optimizing),
       osr_id_(osr_id),

@@ -56,33 +56,6 @@ class KernelConstMapKeyEqualsTraits {
 };
 typedef UnorderedHashMap<KernelConstMapKeyEqualsTraits> KernelConstantsMap;
 
-template <typename K, typename V>
-class Map : public DirectChainedHashMap<RawPointerKeyValueTrait<K, V> > {
- public:
-  typedef typename RawPointerKeyValueTrait<K, V>::Key Key;
-  typedef typename RawPointerKeyValueTrait<K, V>::Value Value;
-  typedef typename RawPointerKeyValueTrait<K, V>::Pair Pair;
-
-  inline void Insert(const Key& key, const Value& value) {
-    Pair pair(key, value);
-    DirectChainedHashMap<RawPointerKeyValueTrait<K, V> >::Insert(pair);
-  }
-
-  inline V Lookup(const Key& key) {
-    Pair* pair =
-        DirectChainedHashMap<RawPointerKeyValueTrait<K, V> >::Lookup(key);
-    if (pair == NULL) {
-      return V();
-    } else {
-      return pair->value;
-    }
-  }
-
-  inline Pair* LookupPair(const Key& key) {
-    return DirectChainedHashMap<RawPointerKeyValueTrait<K, V> >::Lookup(key);
-  }
-};
-
 template <typename V>
 class IntKeyRawPointerValueTrait {
  public:
@@ -127,35 +100,6 @@ class IntMap : public DirectChainedHashMap<IntKeyRawPointerValueTrait<V> > {
 
   inline Pair* LookupPair(const Key& key) {
     return DirectChainedHashMap<IntKeyRawPointerValueTrait<V> >::Lookup(key);
-  }
-};
-
-template <typename K, typename V>
-class MallocMap
-    : public MallocDirectChainedHashMap<RawPointerKeyValueTrait<K, V> > {
- public:
-  typedef typename RawPointerKeyValueTrait<K, V>::Key Key;
-  typedef typename RawPointerKeyValueTrait<K, V>::Value Value;
-  typedef typename RawPointerKeyValueTrait<K, V>::Pair Pair;
-
-  inline void Insert(const Key& key, const Value& value) {
-    Pair pair(key, value);
-    MallocDirectChainedHashMap<RawPointerKeyValueTrait<K, V> >::Insert(pair);
-  }
-
-  inline V Lookup(const Key& key) {
-    Pair* pair =
-        MallocDirectChainedHashMap<RawPointerKeyValueTrait<K, V> >::Lookup(key);
-    if (pair == NULL) {
-      return V();
-    } else {
-      return pair->value;
-    }
-  }
-
-  inline Pair* LookupPair(const Key& key) {
-    return MallocDirectChainedHashMap<RawPointerKeyValueTrait<K, V> >::Lookup(
-        key);
   }
 };
 
@@ -422,8 +366,7 @@ class BaseFlowGraphBuilder {
 
 class FlowGraphBuilder : public BaseFlowGraphBuilder {
  public:
-  FlowGraphBuilder(intptr_t kernel_offset,
-                   ParsedFunction* parsed_function,
+  FlowGraphBuilder(ParsedFunction* parsed_function,
                    const ZoneGrowableArray<const ICData*>& ic_data_array,
                    ZoneGrowableArray<intptr_t>* context_level_array,
                    InlineExitCollector* exit_collector,
@@ -580,8 +523,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Thread* thread_;
   Zone* zone_;
 
-  intptr_t kernel_offset_;
-
   ParsedFunction* parsed_function_;
   const bool optimizing_;
   intptr_t osr_id_;
@@ -642,7 +583,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   friend class CatchBlock;
   friend class KernelReaderHelper;
   friend class StreamingFlowGraphBuilder;
-  friend class ScopeBuilder;
   friend class SwitchBlock;
   friend class TryCatchBlock;
   friend class TryFinallyBlock;

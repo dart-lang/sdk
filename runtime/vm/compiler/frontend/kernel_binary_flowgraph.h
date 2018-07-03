@@ -21,7 +21,7 @@ class StreamingScopeBuilder {
  public:
   explicit StreamingScopeBuilder(ParsedFunction* parsed_function);
 
-  virtual ~StreamingScopeBuilder();
+  virtual ~StreamingScopeBuilder() = default;
 
   ScopeBuildingResult* BuildScopes();
 
@@ -111,6 +111,9 @@ class StreamingScopeBuilder {
   // captured variable.
   void LookupVariable(intptr_t declaration_binary_offset);
 
+  StringIndex GetNameFromVariableDeclaration(intptr_t kernel_offset,
+                                             const Function& function);
+
   const String& GenerateName(const char* prefix, intptr_t suffix);
 
   void HandleSpecialLoad(LocalVariable** variable, const String& symbol);
@@ -152,7 +155,9 @@ class StreamingScopeBuilder {
   bool needs_expr_temp_;
   TokenPosition first_body_token_position_;
 
-  StreamingFlowGraphBuilder* builder_;
+  KernelReaderHelper helper_;
+  InferredTypeMetadataHelper inferred_type_metadata_helper_;
+  ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper_;
   TypeTranslator type_translator_;
 };
 
@@ -421,19 +426,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   String& GetSourceFor(intptr_t index);
   RawTypedData* GetLineStartsFor(intptr_t index);
 
-  // If a 'ParsedFunction' is provided for 'set_forwarding_stub', this method
-  // will attach the forwarding stub target reference to the parsed function if
-  // it crosses a procedure node for a concrete forwarding stub.
-  void ReadUntilFunctionNode(ParsedFunction* set_forwarding_stub = NULL);
-
  private:
-  void DiscoverEnclosingElements(Zone* zone,
-                                 const Function& function,
-                                 Function* outermost_function);
-
-  StringIndex GetNameFromVariableDeclaration(intptr_t kernel_offset,
-                                             const Function& function);
-
   bool optimizing();
 
   FlowGraph* BuildGraphOfFieldInitializer();

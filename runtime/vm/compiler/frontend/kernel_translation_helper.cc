@@ -8,6 +8,7 @@
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/log.h"
 #include "vm/object_store.h"
+#include "vm/parser.h"  // for ParsedFunction
 #include "vm/symbols.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -1773,6 +1774,29 @@ void KernelReaderHelper::ReportUnexpectedTag(const char* variant, Tag tag) {
   H.ReportError(script_, TokenPosition::kNoSource,
                 "Unexpected tag %d (%s) in ?, expected %s", tag,
                 Reader::TagName(tag), variant);
+}
+
+void KernelReaderHelper::ReadUntilFunctionNode() {
+  const Tag tag = PeekTag();
+  if (tag == kProcedure) {
+    ProcedureHelper procedure_helper(this);
+    procedure_helper.ReadUntilExcluding(ProcedureHelper::kFunction);
+    if (ReadTag() == kNothing) {  // read function node tag.
+      // Running a procedure without a function node doesn't make sense.
+      UNREACHABLE();
+    }
+    // Now at start of FunctionNode.
+  } else if (tag == kConstructor) {
+    ConstructorHelper constructor_helper(this);
+    constructor_helper.ReadUntilExcluding(ConstructorHelper::kFunction);
+    // Now at start of FunctionNode.
+    // Notice that we also have a list of initializers after that!
+  } else if (tag == kFunctionNode) {
+    // Already at start of FunctionNode.
+  } else {
+    ReportUnexpectedTag("a procedure, a constructor or a function node", tag);
+    UNREACHABLE();
+  }
 }
 
 void KernelReaderHelper::SkipDartType() {

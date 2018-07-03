@@ -2287,6 +2287,9 @@ class Function : public Object {
   // Enclosing function of this local function.
   RawFunction* parent_function() const;
 
+  // Enclosing outermost function of this local function.
+  RawFunction* GetOutermostFunction() const;
+
   void set_extracted_method_closure(const Function& function) const;
   RawFunction* extracted_method_closure() const;
 

@@ -5952,6 +5952,20 @@ void Function::set_parent_function(const Function& value) const {
   }
 }
 
+// Enclosing outermost function of this local function.
+RawFunction* Function::GetOutermostFunction() const {
+  RawFunction* parent = parent_function();
+  if (parent == Object::null()) {
+    return raw();
+  }
+  Function& function = Function::Handle();
+  do {
+    function = parent;
+    parent = function.parent_function();
+  } while (parent != Object::null());
+  return function.raw();
+}
+
 bool Function::HasGenericParent() const {
   if (IsImplicitClosureFunction()) {
     // The parent function of an implicit closure function is not the enclosing

@@ -155,11 +155,10 @@ FlowGraph* DartCompilationPipeline::BuildFlowGraph(
     intptr_t osr_id,
     bool optimized) {
   if (UseKernelFrontEndFor(parsed_function)) {
-    kernel::FlowGraphBuilder builder(
-        parsed_function->function().kernel_offset(), parsed_function,
-        ic_data_array,
-        /* not building var desc */ NULL,
-        /* not inlining */ NULL, optimized, osr_id);
+    kernel::FlowGraphBuilder builder(parsed_function, ic_data_array,
+                                     /* not building var desc */ NULL,
+                                     /* not inlining */ NULL, optimized,
+                                     osr_id);
     FlowGraph* graph = builder.BuildGraph();
 #if defined(DART_USE_INTERPRETER)
     ASSERT((graph != NULL) || parsed_function->function().HasBytecode());
@@ -1365,8 +1364,7 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
     } else {
       parsed_function->EnsureKernelScopes();
       kernel::FlowGraphBuilder builder(
-          parsed_function->function().kernel_offset(), parsed_function,
-          *ic_data_array, context_level_array,
+          parsed_function, *ic_data_array, context_level_array,
           /* not inlining */ NULL, false, Compiler::kNoOSRDeoptId);
       builder.BuildGraph();
     }

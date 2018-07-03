@@ -880,6 +880,8 @@ class KernelReaderHelper {
   intptr_t ReadListLength();
   virtual void ReportUnexpectedTag(const char* variant, Tag tag);
 
+  void ReadUntilFunctionNode();
+
  protected:
   const Script& script() const { return script_; }
 
