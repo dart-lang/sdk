@@ -1159,6 +1159,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _checkForAmbiguousImport(node);
     _checkForReferenceBeforeDeclaration(node);
     _checkForImplicitThisReferenceInInitializer(node);
+    _checkForTypeParameterIdentifierReferencedByStatic(node);
     if (!_isUnqualifiedReferenceToNonLocalStaticMemberAllowed(node)) {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(node);
     }
@@ -6001,6 +6002,21 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
                 errorCode, argumentNode, [argType, boundType]);
           }
         }
+      }
+    }
+  }
+
+  void _checkForTypeParameterIdentifierReferencedByStatic(
+      SimpleIdentifier identifier) {
+    var element = identifier.staticElement;
+    if (element is TypeParameterElement &&
+        element.enclosingElement is ClassElement) {
+      if (_isInStaticMethod || _isInStaticVariableDeclaration) {
+        // The class's type parameters are not in scope for static methods.
+        // However all other type parameters are legal (e.g. the static method's
+        // type parameters, or a local function's type parameters).
+        _errorReporter.reportErrorForNode(
+            StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, identifier);
       }
     }
   }

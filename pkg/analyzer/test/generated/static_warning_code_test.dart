@@ -4104,6 +4104,20 @@ class A<K> {
     verify([source]);
   }
 
+  test_typeParameterReferencedByStatic_simpleIdentifier() async {
+    Source source = addSource('''
+class A<T> {
+  static foo() {
+    T;
+  }
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
+    verify([source]);
+  }
+
   test_typePromotion_functionType_arg_InterToDyn() async {
     Source source = addSource(r'''
 typedef FuncDyn(x);

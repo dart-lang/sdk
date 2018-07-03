@@ -153,7 +153,6 @@ regress_29784_test/02: Crash # assert initializers not implemented
 regress_29784_test/02: MissingCompileTimeError
 regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError # As expected. Should we make this a multi test?
-reify_typevar_static_test/00: MissingCompileTimeError # Issue 29920
 setter_override2_test/02: MissingCompileTimeError # Issue 14736
 stacktrace_test: RuntimeError # Issue 29920
 static_setter_conflicts_test/02: MissingCompileTimeError
