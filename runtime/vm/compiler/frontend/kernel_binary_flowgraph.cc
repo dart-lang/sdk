@@ -8892,6 +8892,7 @@ RawObject* StreamingFlowGraphBuilder::BuildParameterDescriptor(
     }
 
     // Read ith variable declaration.
+    intptr_t param_kernel_offset = reader_.offset();
     VariableDeclarationHelper helper(this);
     helper.ReadUntilExcluding(VariableDeclarationHelper::kInitializer);
     param_descriptor.SetAt(entry_start + Parser::kParameterIsFinalOffset,
@@ -8910,11 +8911,35 @@ RawObject* StreamingFlowGraphBuilder::BuildParameterDescriptor(
                              Object::null_instance());
     }
 
-    param_descriptor.SetAt(entry_start + Parser::kParameterMetadataOffset,
-                           /* Issue(28434): Missing parameter metadata. */
-                           Object::null_instance());
+    if (FLAG_enable_mirrors && (helper.annotation_count_ > 0)) {
+      AlternativeReadingScope alt(&reader_, param_kernel_offset);
+      VariableDeclarationHelper helper(this);
+      helper.ReadUntilExcluding(VariableDeclarationHelper::kAnnotations);
+      Object& metadata = Object::ZoneHandle(Z, BuildAnnotations());
+      param_descriptor.SetAt(entry_start + Parser::kParameterMetadataOffset,
+                             metadata);
+    } else {
+      param_descriptor.SetAt(entry_start + Parser::kParameterMetadataOffset,
+                             Object::null_instance());
+    }
   }
   return param_descriptor.raw();
+}
+
+RawObject* StreamingFlowGraphBuilder::BuildAnnotations() {
+  ASSERT(active_class() != NULL);
+  intptr_t list_length = ReadListLength();  // read list length.
+  const Array& metadata_values =
+      Array::Handle(Z, Array::New(list_length, H.allocation_space()));
+  Instance& value = Instance::Handle(Z);
+  for (intptr_t i = 0; i < list_length; ++i) {
+    // this will (potentially) read the expression, but reset the position.
+    value = constant_evaluator_.EvaluateExpression(ReaderOffset());
+    SkipExpression();  // read (actual) initializer.
+    metadata_values.SetAt(i, value);
+  }
+
+  return metadata_values.raw();
 }
 
 RawObject* StreamingFlowGraphBuilder::EvaluateMetadata(intptr_t kernel_offset) {
@@ -8939,18 +8964,7 @@ RawObject* StreamingFlowGraphBuilder::EvaluateMetadata(intptr_t kernel_offset) {
     FATAL("No support for metadata on this type of kernel node\n");
   }
 
-  intptr_t list_length = ReadListLength();  // read list length.
-  const Array& metadata_values =
-      Array::Handle(Z, Array::New(list_length, H.allocation_space()));
-  Instance& value = Instance::Handle(Z);
-  for (intptr_t i = 0; i < list_length; ++i) {
-    // this will (potentially) read the expression, but reset the position.
-    value = constant_evaluator_.EvaluateExpression(ReaderOffset());
-    SkipExpression();  // read (actual) initializer.
-    metadata_values.SetAt(i, value);
-  }
-
-  return metadata_values.raw();
+  return BuildAnnotations();
 }
 
 void StreamingFlowGraphBuilder::CollectTokenPositionsFor(

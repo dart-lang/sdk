@@ -325,7 +325,7 @@ class VariableDeclarationHelper {
   };
 
   explicit VariableDeclarationHelper(KernelReaderHelper* helper)
-      : helper_(helper), next_read_(kPosition) {}
+      : annotation_count_(0), helper_(helper), next_read_(kPosition) {}
 
   void ReadUntilIncluding(Field field) {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
@@ -348,6 +348,7 @@ class VariableDeclarationHelper {
   TokenPosition equals_position_;
   uint8_t flags_;
   StringIndex name_index_;
+  intptr_t annotation_count_;
 
  private:
   KernelReaderHelper* helper_;

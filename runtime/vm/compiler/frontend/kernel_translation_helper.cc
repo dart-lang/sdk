@@ -801,7 +801,10 @@ void VariableDeclarationHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
       /* Falls through */
     case kAnnotations:
-      helper_->SkipListOfExpressions();  // read annotations.
+      annotation_count_ = helper_->ReadListLength();  // read list length.
+      for (intptr_t i = 0; i < annotation_count_; ++i) {
+        helper_->SkipExpression();  // read ith expression.
+      }
       if (++next_read_ == field) return;
       /* Falls through */
     case kFlags:

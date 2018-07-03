@@ -414,6 +414,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
 
   Fragment BuildStatementAt(intptr_t kernel_offset);
   RawObject* BuildParameterDescriptor(intptr_t kernel_offset);
+  RawObject* BuildAnnotations();
   RawObject* EvaluateMetadata(intptr_t kernel_offset);
   void CollectTokenPositionsFor(
       intptr_t script_index,

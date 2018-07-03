@@ -161,8 +161,6 @@ mirrors/mixin_members_test: CompileTimeError # Issue 31402 (Invocation arguments
 mirrors/native_class_test: SkipByDesign # Imports dart:html
 mirrors/operator_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/other_declarations_location_test: RuntimeError # Issue 33325 (no source positions for type parameters).
-mirrors/parameter_annotation_mirror_test: RuntimeError
-mirrors/parameter_metadata_test: RuntimeError
 mirrors/parameter_of_mixin_app_constructor_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/private_symbol_test: RuntimeError # Issue 33326 - CFE/kernel invalid typedef substitution
 mirrors/private_types_test: RuntimeError # Issue 33326 - CFE/kernel invalid typedef substitution

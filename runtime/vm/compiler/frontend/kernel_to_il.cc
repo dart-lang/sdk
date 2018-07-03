@@ -2096,10 +2096,14 @@ RawObject* BuildParameterDescriptor(const Function& function) {
     Script& script = Script::Handle(Z, function.script());
     helper.InitFromScript(script);
 
+    const Class& owner_class = Class::Handle(Z, function.Owner());
+    ActiveClass active_class;
+    ActiveClassScope active_class_scope(&active_class, &owner_class);
+
     StreamingFlowGraphBuilder streaming_flow_graph_builder(
         &helper, Script::Handle(Z, function.script()), Z,
         ExternalTypedData::Handle(Z, function.KernelData()),
-        function.KernelDataProgramOffset(), /* active_class = */ NULL);
+        function.KernelDataProgramOffset(), &active_class);
     return streaming_flow_graph_builder.BuildParameterDescriptor(
         function.kernel_offset());
   } else {
