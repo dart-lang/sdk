@@ -398,13 +398,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
 
   @override
   @failingTest
-  test_genericMethod_override_invalidReturnType() async {
-    // Expected 1 errors of type StrongModeCode.STRONG_MODE_INVALID_METHOD_OVERRIDE, found 0
-    await super.test_genericMethod_override_invalidReturnType();
-  }
-
-  @override
-  @failingTest
   test_genericMethod_override_invalidTypeParamCount() async {
     // Expected 1 errors of type StrongModeCode.STRONG_MODE_INVALID_METHOD_OVERRIDE, found 0
     await super.test_genericMethod_override_invalidTypeParamCount();

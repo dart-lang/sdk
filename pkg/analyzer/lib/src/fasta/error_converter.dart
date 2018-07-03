@@ -657,7 +657,11 @@ class FastaErrorReporter {
           errorCode,
           message.message,
           message.tip));
-    } else {
+    } else if (message.severity != Severity.context) {
+      // Messages with [Severity.context] are supposed to give extra information
+      // to messages of other kinds, and it should be possible to ignore them
+      // without affecting the discoverability of compile-time errors.  See also
+      // https://github.com/dart-lang/sdk/issues/33730.
       throw new StateError('Unable to convert (${message.code}, $errorCodeStr, '
           '@${message.span.start.offset}, $message)');
     }

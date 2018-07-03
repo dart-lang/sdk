@@ -277,13 +277,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_constConstructorWithNonFinalField_this() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, found 0
-    await super.test_constConstructorWithNonFinalField_this();
-  }
-
-  @override
-  @failingTest
   test_constEval_newInstance_constConstructor() async {
     // Expected 1 errors of type CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, found 0
     await super.test_constEval_newInstance_constConstructor();
@@ -685,65 +678,9 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_duplicateDefinition_locals_inCase() async {
-    // Bad state: No type information for a at 58
-    await super.test_duplicateDefinition_locals_inCase();
-  }
-
-  @override
-  @failingTest
-  test_duplicateDefinition_locals_inFunctionBlock() async {
-    // Bad state: No declaration information for m(a) {} at 24
-    await super.test_duplicateDefinition_locals_inFunctionBlock();
-  }
-
-  @override
-  @failingTest
-  test_duplicateDefinition_locals_inIf() async {
-    // Bad state: No type information for a at 49
-    await super.test_duplicateDefinition_locals_inIf();
-  }
-
-  @override
-  @failingTest
-  test_duplicateDefinition_locals_inMethodBlock() async {
-    // Bad state: No type information for a at 37
-    await super.test_duplicateDefinition_locals_inMethodBlock();
-  }
-
-  @override
-  @failingTest
-  test_duplicateDefinition_parameters_inConstructor() async {
-    // Expected 1 errors of type CompileTimeErrorCode.DUPLICATE_DEFINITION, found 0
-    await super.test_duplicateDefinition_parameters_inConstructor();
-  }
-
-  @override
-  @failingTest
-  test_duplicateDefinition_parameters_inFunctionTypeAlias() async {
-    // Expected 1 errors of type CompileTimeErrorCode.DUPLICATE_DEFINITION, found 0
-    await super.test_duplicateDefinition_parameters_inFunctionTypeAlias();
-  }
-
-  @override
-  @failingTest
   test_duplicateDefinition_parameters_inLocalFunction() async {
     // Expected 1 errors of type CompileTimeErrorCode.DUPLICATE_DEFINITION, found 0
     await super.test_duplicateDefinition_parameters_inLocalFunction();
-  }
-
-  @override
-  @failingTest
-  test_duplicateDefinition_parameters_inMethod() async {
-    // Expected 1 errors of type CompileTimeErrorCode.DUPLICATE_DEFINITION, found 0
-    await super.test_duplicateDefinition_parameters_inMethod();
-  }
-
-  @override
-  @failingTest
-  test_duplicateDefinition_parameters_inTopLevelFunction() async {
-    // Expected 1 errors of type CompileTimeErrorCode.DUPLICATE_DEFINITION, found 0
-    await super.test_duplicateDefinition_parameters_inTopLevelFunction();
   }
 
   @override
@@ -2755,13 +2692,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_returnInGenerator_syncStar() async {
     // AnalysisException: Element mismatch in /test.dart at /test.dart
     await super.test_returnInGenerator_syncStar();
-  }
-
-  @override
-  @failingTest
-  test_sharedDeferredPrefix() async {
-    // Bad state: Expected element reference for analyzer offset 86; got one for kernel offset 90
-    await super.test_sharedDeferredPrefix();
   }
 
   @override

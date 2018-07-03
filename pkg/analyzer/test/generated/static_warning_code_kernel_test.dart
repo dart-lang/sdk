@@ -948,13 +948,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_invalidGetterOverrideReturnType() async {
-    return super.test_invalidGetterOverrideReturnType();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_invalidGetterOverrideReturnType_implicit() async {
     return super.test_invalidGetterOverrideReturnType_implicit();
   }
@@ -977,42 +970,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_invalidMethodOverrideNamedParamType() async {
-    return super.test_invalidMethodOverrideNamedParamType();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidMethodOverrideNormalParamType_interface() async {
-    return super.test_invalidMethodOverrideNormalParamType_interface();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidMethodOverrideNormalParamType_superclass() async {
-    return super.test_invalidMethodOverrideNormalParamType_superclass();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidMethodOverrideNormalParamType_superclass_interface() async {
-    return super
-        .test_invalidMethodOverrideNormalParamType_superclass_interface();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidMethodOverrideNormalParamType_twoInterfaces() async {
-    return super.test_invalidMethodOverrideNormalParamType_twoInterfaces();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_invalidMethodOverrideNormalParamType_twoInterfaces_conflicting() async {
     return super
         .test_invalidMethodOverrideNormalParamType_twoInterfaces_conflicting();
@@ -1021,64 +978,8 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_invalidMethodOverrideOptionalParamType() async {
-    return super.test_invalidMethodOverrideOptionalParamType();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidMethodOverrideOptionalParamType_twoInterfaces() async {
-    return super.test_invalidMethodOverrideOptionalParamType_twoInterfaces();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidMethodOverrideReturnType_interface() async {
-    return super.test_invalidMethodOverrideReturnType_interface();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidMethodOverrideReturnType_interface_grandparent() async {
-    return super.test_invalidMethodOverrideReturnType_interface_grandparent();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidMethodOverrideReturnType_mixin() async {
-    return super.test_invalidMethodOverrideReturnType_mixin();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidMethodOverrideReturnType_superclass() async {
-    return super.test_invalidMethodOverrideReturnType_superclass();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidMethodOverrideReturnType_superclass_grandparent() async {
-    return super.test_invalidMethodOverrideReturnType_superclass_grandparent();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_invalidMethodOverrideReturnType_twoInterfaces() async {
     return super.test_invalidMethodOverrideReturnType_twoInterfaces();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidMethodOverrideReturnType_void() async {
-    return super.test_invalidMethodOverrideReturnType_void();
   }
 
   @override
@@ -1126,23 +1027,9 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_invalidSetterOverrideNormalParamType() async {
-    return super.test_invalidSetterOverrideNormalParamType();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_invalidSetterOverrideNormalParamType_superclass_interface() async {
     return super
         .test_invalidSetterOverrideNormalParamType_superclass_interface();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidSetterOverrideNormalParamType_twoInterfaces() async {
-    return super.test_invalidSetterOverrideNormalParamType_twoInterfaces();
   }
 
   @override
