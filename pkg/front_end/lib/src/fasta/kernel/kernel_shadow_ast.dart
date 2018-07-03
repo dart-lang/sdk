@@ -3551,8 +3551,9 @@ class VariableDeclarationJudgment extends VariableDeclaration
 
 /// Synthetic judgment class representing an attempt to invoke an unresolved
 /// target.
-class UnresolvedTargetInvocation extends SyntheticExpressionJudgment {
-  UnresolvedTargetInvocation(kernel.Expression desugared) : super(desugared);
+class UnresolvedTargetInvocationJudgment extends SyntheticExpressionJudgment {
+  UnresolvedTargetInvocationJudgment(kernel.Expression desugared)
+      : super(desugared);
 
   @override
   Expression infer<Expression, Statement, Initializer, Type>(
