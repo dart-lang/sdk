@@ -778,6 +778,77 @@ class MetadataHelper {
   intptr_t last_mapping_index_;
 };
 
+struct DirectCallMetadata {
+  DirectCallMetadata(const Function& target, bool check_receiver_for_null)
+      : target_(target), check_receiver_for_null_(check_receiver_for_null) {}
+
+  const Function& target_;
+  const bool check_receiver_for_null_;
+};
+
+// Helper class which provides access to direct call metadata.
+class DirectCallMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.direct-call.metadata"; }
+
+  explicit DirectCallMetadataHelper(KernelReaderHelper* helper);
+
+  DirectCallMetadata GetDirectTargetForPropertyGet(intptr_t node_offset);
+  DirectCallMetadata GetDirectTargetForPropertySet(intptr_t node_offset);
+  DirectCallMetadata GetDirectTargetForMethodInvocation(intptr_t node_offset);
+
+ private:
+  bool ReadMetadata(intptr_t node_offset,
+                    NameIndex* target_name,
+                    bool* check_receiver_for_null);
+};
+
+struct InferredTypeMetadata {
+  InferredTypeMetadata(intptr_t cid_, bool nullable_)
+      : cid(cid_), nullable(nullable_) {}
+
+  const intptr_t cid;
+  const bool nullable;
+
+  bool IsTrivial() const { return (cid == kDynamicCid) && nullable; }
+};
+
+// Helper class which provides access to inferred type metadata.
+class InferredTypeMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.inferred-type.metadata"; }
+
+  explicit InferredTypeMetadataHelper(KernelReaderHelper* helper);
+
+  InferredTypeMetadata GetInferredType(intptr_t node_offset);
+};
+
+struct ProcedureAttributesMetadata {
+  ProcedureAttributesMetadata(bool has_dynamic_invocations = true,
+                              bool has_non_this_uses = true,
+                              bool has_tearoff_uses = true)
+      : has_dynamic_invocations(has_dynamic_invocations),
+        has_non_this_uses(has_non_this_uses),
+        has_tearoff_uses(has_tearoff_uses) {}
+  bool has_dynamic_invocations;
+  bool has_non_this_uses;
+  bool has_tearoff_uses;
+};
+
+// Helper class which provides access to direct call metadata.
+class ProcedureAttributesMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.procedure-attributes.metadata"; }
+
+  explicit ProcedureAttributesMetadataHelper(KernelReaderHelper* helper);
+
+  ProcedureAttributesMetadata GetProcedureAttributes(intptr_t node_offset);
+
+ private:
+  bool ReadMetadata(intptr_t node_offset,
+                    ProcedureAttributesMetadata* metadata);
+};
+
 class KernelReaderHelper {
  public:
   KernelReaderHelper(Zone* zone,
@@ -908,6 +979,185 @@ class KernelReaderHelper {
 #if defined(DART_USE_INTERPRETER)
   friend class BytecodeMetadataHelper;
 #endif  // defined(DART_USE_INTERPRETER)
+};
+
+class ActiveClass {
+ public:
+  ActiveClass()
+      : klass(NULL),
+        member(NULL),
+        enclosing(NULL),
+        local_type_parameters(NULL) {}
+
+  bool HasMember() { return member != NULL; }
+
+  bool MemberIsProcedure() {
+    ASSERT(member != NULL);
+    RawFunction::Kind function_kind = member->kind();
+    return function_kind == RawFunction::kRegularFunction ||
+           function_kind == RawFunction::kGetterFunction ||
+           function_kind == RawFunction::kSetterFunction ||
+           function_kind == RawFunction::kMethodExtractor ||
+           function_kind == RawFunction::kDynamicInvocationForwarder ||
+           member->IsFactory();
+  }
+
+  bool MemberIsFactoryProcedure() {
+    ASSERT(member != NULL);
+    return member->IsFactory();
+  }
+
+  intptr_t MemberTypeParameterCount(Zone* zone);
+
+  intptr_t ClassNumTypeArguments() {
+    ASSERT(klass != NULL);
+    return klass->NumTypeArguments();
+  }
+
+  const char* ToCString() {
+    return member != NULL ? member->ToCString() : klass->ToCString();
+  }
+
+  // The current enclosing class (or the library top-level class).
+  const Class* klass;
+
+  const Function* member;
+
+  // The innermost enclosing function. This is used for building types, as a
+  // parent for function types.
+  const Function* enclosing;
+
+  const TypeArguments* local_type_parameters;
+};
+
+class ActiveClassScope {
+ public:
+  ActiveClassScope(ActiveClass* active_class, const Class* klass)
+      : active_class_(active_class), saved_(*active_class) {
+    active_class_->klass = klass;
+  }
+
+  ~ActiveClassScope() { *active_class_ = saved_; }
+
+ private:
+  ActiveClass* active_class_;
+  ActiveClass saved_;
+};
+
+class ActiveMemberScope {
+ public:
+  ActiveMemberScope(ActiveClass* active_class, const Function* member)
+      : active_class_(active_class), saved_(*active_class) {
+    // The class is inherited.
+    active_class_->member = member;
+  }
+
+  ~ActiveMemberScope() { *active_class_ = saved_; }
+
+ private:
+  ActiveClass* active_class_;
+  ActiveClass saved_;
+};
+
+class ActiveTypeParametersScope {
+ public:
+  // Set the local type parameters of the ActiveClass to be exactly all type
+  // parameters defined by 'innermost' and any enclosing *closures* (but not
+  // enclosing methods/top-level functions/classes).
+  //
+  // Also, the enclosing function is set to 'innermost'.
+  ActiveTypeParametersScope(ActiveClass* active_class,
+                            const Function& innermost,
+                            Zone* Z);
+
+  // Append the list of the local type parameters to the list in ActiveClass.
+  //
+  // Also, the enclosing function is set to 'function'.
+  ActiveTypeParametersScope(ActiveClass* active_class,
+                            const Function* function,
+                            const TypeArguments& new_params,
+                            Zone* Z);
+
+  ~ActiveTypeParametersScope() { *active_class_ = saved_; }
+
+ private:
+  ActiveClass* active_class_;
+  ActiveClass saved_;
+};
+
+class TypeTranslator {
+ public:
+  TypeTranslator(KernelReaderHelper* helper,
+                 ActiveClass* active_class,
+                 bool finalize = false);
+
+  // Can return a malformed type.
+  AbstractType& BuildType();
+  // Can return a malformed type.
+  AbstractType& BuildTypeWithoutFinalization();
+  // Is guaranteed to be not malformed.
+  AbstractType& BuildVariableType();
+
+  // Will return `TypeArguments::null()` in case any of the arguments are
+  // malformed.
+  const TypeArguments& BuildTypeArguments(intptr_t length);
+
+  // Will return `TypeArguments::null()` in case any of the arguments are
+  // malformed.
+  const TypeArguments& BuildInstantiatedTypeArguments(
+      const Class& receiver_class,
+      intptr_t length);
+
+  void LoadAndSetupTypeParameters(ActiveClass* active_class,
+                                  const Object& set_on,
+                                  intptr_t type_parameter_count,
+                                  const Function& parameterized_function);
+
+  const Type& ReceiverType(const Class& klass);
+
+ private:
+  // Can build a malformed type.
+  void BuildTypeInternal(bool invalid_as_dynamic = false);
+  void BuildInterfaceType(bool simple);
+  void BuildFunctionType(bool simple);
+  void BuildTypeParameterType();
+
+  class TypeParameterScope {
+   public:
+    TypeParameterScope(TypeTranslator* translator, intptr_t parameter_count)
+        : parameter_count_(parameter_count),
+          outer_(translator->type_parameter_scope_),
+          translator_(translator) {
+      outer_parameter_count_ = 0;
+      if (outer_ != NULL) {
+        outer_parameter_count_ =
+            outer_->outer_parameter_count_ + outer_->parameter_count_;
+      }
+      translator_->type_parameter_scope_ = this;
+    }
+    ~TypeParameterScope() { translator_->type_parameter_scope_ = outer_; }
+
+    TypeParameterScope* outer() const { return outer_; }
+    intptr_t parameter_count() const { return parameter_count_; }
+    intptr_t outer_parameter_count() const { return outer_parameter_count_; }
+
+   private:
+    intptr_t parameter_count_;
+    intptr_t outer_parameter_count_;
+    TypeParameterScope* outer_;
+    TypeTranslator* translator_;
+  };
+
+  KernelReaderHelper* helper_;
+  TranslationHelper& translation_helper_;
+  ActiveClass* const active_class_;
+  TypeParameterScope* type_parameter_scope_;
+  Zone* zone_;
+  AbstractType& result_;
+  bool finalize_;
+
+  friend class StreamingScopeBuilder;
+  friend class KernelLoader;
 };
 
 }  // namespace kernel

@@ -2004,8 +2004,9 @@ class ICData : public Object {
   enum { kCachedICDataArrayCount = 4 };
 
 #if defined(TAG_IC_DATA)
-  void set_tag(intptr_t value) const;
-  intptr_t tag() const { return raw_ptr()->tag_; }
+  using Tag = RawICData::Tag;
+  void set_tag(Tag value) const;
+  Tag tag() const { return raw_ptr()->tag_; }
 #endif
 
   bool is_static_call() const;

@@ -28,67 +28,6 @@ namespace kernel {
 #define T (type_translator_)
 #define I Isolate::Current()
 
-ActiveTypeParametersScope::ActiveTypeParametersScope(ActiveClass* active_class,
-                                                     const Function& innermost,
-                                                     Zone* Z)
-    : active_class_(active_class), saved_(*active_class) {
-  active_class_->enclosing = &innermost;
-
-  intptr_t num_params = 0;
-
-  Function& f = Function::Handle(Z);
-  TypeArguments& f_params = TypeArguments::Handle(Z);
-  for (f = innermost.raw(); f.parent_function() != Object::null();
-       f = f.parent_function()) {
-    f_params = f.type_parameters();
-    num_params += f_params.Length();
-  }
-  if (num_params == 0) return;
-
-  TypeArguments& params =
-      TypeArguments::Handle(Z, TypeArguments::New(num_params));
-
-  intptr_t index = num_params;
-  for (f = innermost.raw(); f.parent_function() != Object::null();
-       f = f.parent_function()) {
-    f_params = f.type_parameters();
-    for (intptr_t j = f_params.Length() - 1; j >= 0; --j) {
-      params.SetTypeAt(--index, AbstractType::Handle(Z, f_params.TypeAt(j)));
-    }
-  }
-
-  active_class_->local_type_parameters = &params;
-}
-
-ActiveTypeParametersScope::ActiveTypeParametersScope(
-    ActiveClass* active_class,
-    const Function* function,
-    const TypeArguments& new_params,
-    Zone* Z)
-    : active_class_(active_class), saved_(*active_class) {
-  active_class_->enclosing = function;
-
-  if (new_params.IsNull()) return;
-
-  const TypeArguments* old_params = active_class->local_type_parameters;
-  const intptr_t old_param_count =
-      old_params == NULL ? 0 : old_params->Length();
-  const TypeArguments& extended_params = TypeArguments::Handle(
-      Z, TypeArguments::New(old_param_count + new_params.Length()));
-
-  intptr_t index = 0;
-  for (intptr_t i = 0; i < old_param_count; ++i) {
-    extended_params.SetTypeAt(
-        index++, AbstractType::ZoneHandle(Z, old_params->TypeAt(i)));
-  }
-  for (intptr_t i = 0; i < new_params.Length(); ++i) {
-    extended_params.SetTypeAt(
-        index++, AbstractType::ZoneHandle(Z, new_params.TypeAt(i)));
-  }
-
-  active_class_->local_type_parameters = &extended_params;
-}
-
 Fragment& Fragment::operator+=(const Fragment& other) {
   if (entry == NULL) {
     entry = other.entry;
@@ -134,25 +73,6 @@ Fragment operator<<(const Fragment& fragment, Instruction* next) {
   Fragment result = fragment;
   result <<= next;
   return result;
-}
-
-intptr_t ActiveClass::MemberTypeParameterCount(Zone* zone) {
-  ASSERT(member != NULL);
-  if (member->IsFactory()) {
-    TypeArguments& class_types =
-        TypeArguments::Handle(zone, klass->type_parameters());
-    return class_types.Length();
-  } else if (member->IsMethodExtractor()) {
-    Function& extracted =
-        Function::Handle(zone, member->extracted_method_closure());
-    TypeArguments& function_types =
-        TypeArguments::Handle(zone, extracted.type_parameters());
-    return function_types.Length();
-  } else {
-    TypeArguments& function_types =
-        TypeArguments::Handle(zone, member->type_parameters());
-    return function_types.Length();
-  }
 }
 
 FlowGraphBuilder::FlowGraphBuilder(

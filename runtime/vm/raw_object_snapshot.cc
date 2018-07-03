@@ -1639,7 +1639,7 @@ RawICData* ICData::ReadFrom(SnapshotReader* reader,
   NOT_IN_PRECOMPILED(result.set_deopt_id(reader->Read<int32_t>()));
   result.set_state_bits(reader->Read<uint32_t>());
 #if defined(TAG_IC_DATA)
-  result.set_tag(reader->Read<int16_t>());
+  result.set_tag(static_cast<ICData::Tag>(reader->Read<int16_t>()));
 #endif
 
   // Set all the object fields.
@@ -1666,7 +1666,7 @@ void RawICData::WriteTo(SnapshotWriter* writer,
   NOT_IN_PRECOMPILED(writer->Write<int32_t>(ptr()->deopt_id_));
   writer->Write<uint32_t>(ptr()->state_bits_);
 #if defined(TAG_IC_DATA)
-  writer->Write<int16_t>(ptr()->tag_);
+  writer->Write<int16_t>(static_cast<int64_t>(ptr()->tag_));
 #endif
 
   // Write out all the object pointer fields.

@@ -75,6 +75,8 @@ compiler_sources = [
   "cha.h",
   "compiler_pass.cc",
   "compiler_pass.h",
+  "frontend/bytecode_reader.cc",
+  "frontend/bytecode_reader.h",
   "frontend/flow_graph_builder.cc",
   "frontend/flow_graph_builder.h",
   "frontend/kernel_binary_flowgraph.cc",

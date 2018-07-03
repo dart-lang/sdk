@@ -13540,7 +13540,7 @@ void ICData::set_ic_data_array(const Array& value) const {
 }
 
 #if defined(TAG_IC_DATA)
-void ICData::set_tag(intptr_t value) const {
+void ICData::set_tag(Tag value) const {
   StoreNonPointer(&raw_ptr()->tag_, value);
 }
 #endif
@@ -14427,7 +14427,7 @@ RawICData* ICData::NewDescriptor(Zone* zone,
   NOT_IN_PRECOMPILED(result.set_deopt_id(deopt_id));
   result.set_state_bits(0);
 #if defined(TAG_IC_DATA)
-  result.set_tag(-1);
+  result.set_tag(ICData::Tag::kUnknown);
 #endif
   result.set_rebind_rule(rebind_rule);
   result.SetNumArgsTested(num_args_tested);
@@ -14451,7 +14451,7 @@ RawICData* ICData::New() {
   result.set_deopt_id(Thread::kNoDeoptId);
   result.set_state_bits(0);
 #if defined(TAG_IC_DATA)
-  result.set_tag(-1);
+  result.set_tag(ICData::Tag::kUnknown);
 #endif
   return result.raw();
 }

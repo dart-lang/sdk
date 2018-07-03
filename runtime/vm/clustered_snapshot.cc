@@ -2444,7 +2444,7 @@ class ICDataSerializationCluster : public SerializationCluster {
       }
       s->Write<uint32_t>(ic->ptr()->state_bits_);
 #if defined(TAG_IC_DATA)
-      s->Write<int32_t>(ic->ptr()->tag_);
+      s->Write<int32_t>(static_cast<int32_t>(ic->ptr()->tag_));
 #endif
     }
   }
@@ -2489,7 +2489,7 @@ class ICDataDeserializationCluster : public DeserializationCluster {
       NOT_IN_PRECOMPILED(ic->ptr()->deopt_id_ = d->Read<int32_t>());
       ic->ptr()->state_bits_ = d->Read<int32_t>();
 #if defined(TAG_IC_DATA)
-      ic->ptr()->tag_ = d->Read<int32_t>();
+      ic->ptr()->tag_ = static_cast<ICData::Tag>(d->Read<int32_t>());
 #endif
     }
   }
