@@ -709,7 +709,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     int entityOffset = entity.offset;
     var data = _data[entityOffset];
     if (failIfAbsent && data == null) {
-      throw new StateError('No data for $entity at $entityOffset');
+      String fileName = _enclosingLibraryElement.source.fullName;
+      throw new StateError('No data for $entity at $entityOffset in $fileName');
     }
     return data;
   }
