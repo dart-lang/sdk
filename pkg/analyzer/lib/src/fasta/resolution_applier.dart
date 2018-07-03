@@ -415,7 +415,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     node.staticType = type;
 
     node.constructorName.staticElement = constructor;
-    node.constructorName.type.type = constructor.returnType;
+    node.constructorName.type.type = type;
 
     typeIdentifier.staticType = type;
     classIdentifier.staticType = type;
