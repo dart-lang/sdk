@@ -96,7 +96,7 @@ def main(args):
     parser.add_option("--input",
         action="store",
         type="string",
-        help="input template file")
+        help="input template file.")
     parser.add_option("--no_git_hash",
         action="store_true",
         default=False,
@@ -111,10 +111,23 @@ def main(args):
         help="disable console output")
 
     (options, args) = parser.parse_args()
+
+    # If there is no input template, then write the bare version string to
+    # options.output. If there is no options.output, then write the version
+    # string to stdout.
+    if not options.input:
+      version_string = MakeVersionString(
+          options.quiet, options.no_git_hash, options.custom_for_pub)
+      if options.output:
+        open(options.output, 'w').write(version_string)
+      else:
+        print version_string
+      return 0
+
     if not options.output:
       sys.stderr.write('--output not specified\n')
       return -1
-    if not len(options.input):
+    if not options.input:
       sys.stderr.write('--input not specified\n')
       return -1
 

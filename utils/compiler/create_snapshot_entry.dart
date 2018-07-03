@@ -11,9 +11,9 @@ import 'dart:async';
 
 Future<String> getVersion(var rootPath) {
   var suffix = Platform.operatingSystem == 'windows' ? '.exe' : '';
-  var printVersionScript = rootPath.resolve("tools/print_version.py");
+  var printVersionScript = rootPath.resolve("tools/make_version.py");
   return Process
-      .run("python$suffix", [printVersionScript.toFilePath()]).then((result) {
+      .run("python$suffix", [printVersionScript.toFilePath(), "--quiet"]).then((result) {
     if (result.exitCode != 0) {
       throw "Could not generate version";
     }
