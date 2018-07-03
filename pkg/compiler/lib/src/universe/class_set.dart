@@ -4,7 +4,7 @@
 
 library dart2js.world.class_set;
 
-import 'dart:collection' show IterableBase;
+import 'dart:collection' show IterableBase, MapBase;
 
 import 'package:front_end/src/fasta/util/link.dart' show Link;
 
@@ -964,3 +964,44 @@ enum IterationStep {
 /// and [ClassSet]. The return value controls the continued iteration. If `null`
 /// is returned, iteration continues to the end.
 typedef IterationStep ForEachFunction(ClassEntity cls);
+
+/// Singleton map implemented as a field on the key.
+class ClassHierarchyNodesMap extends MapBase<ClassEntity, ClassHierarchyNode> {
+  ClassHierarchyNode operator [](Object cls) {
+    // TOOD(sra): Change the key type to `covariant ClassHierarchyNodesMapKey`.
+    if (cls is ClassHierarchyNodesMapKey) {
+      return cls._classHierarchyNode;
+    }
+    throw new UnimplementedError('ClassHierarchyNodesMap for $cls');
+  }
+
+  operator []=(Object cls, ClassHierarchyNode node) {
+    // TOOD(sra): Change the key type to `covariant ClassHierarchyNodesMapKey`.
+    if (cls is ClassHierarchyNodesMapKey) {
+      cls._classHierarchyNode = node;
+      return;
+    }
+    throw new UnimplementedError('ClassHierarchyNodesMap for $cls');
+  }
+
+  ClassHierarchyNode putIfAbsent(
+      ClassEntity cls, ClassHierarchyNode ifAbsent()) {
+    return this[cls] ??= ifAbsent();
+  }
+
+  Iterable<ClassEntity> get keys {
+    throw new UnimplementedError('ClassHierarchyNodesMap.keys');
+  }
+
+  ClassHierarchyNode remove(Object key) {
+    throw new UnimplementedError('ClassHierarchyNodesMap.remove');
+  }
+
+  void clear() {
+    throw new UnimplementedError('ClassHierarchyNodesMap.clear');
+  }
+}
+
+abstract class ClassHierarchyNodesMapKey implements ClassEntity {
+  ClassHierarchyNode _classHierarchyNode;
+}

@@ -9,6 +9,7 @@ import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../kernel/indexed.dart';
+import '../universe/class_set.dart' show ClassHierarchyNodesMapKey;
 
 /// Map from 'frontend' to 'backend' elements.
 ///
@@ -323,7 +324,7 @@ class JLibrary extends IndexedLibrary {
   String toString() => '${jsElementPrefix}library($name)';
 }
 
-class JClass extends IndexedClass {
+class JClass extends IndexedClass with ClassHierarchyNodesMapKey {
   final JLibrary library;
 
   final String name;
