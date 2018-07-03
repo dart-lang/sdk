@@ -2,7 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
-AbstractClassInstantiation/analyzerCode: Fail
 AbstractClassInstantiation/example: Fail
 AbstractClassMember/script5: Fail
 AbstractClassMember/script6: Fail

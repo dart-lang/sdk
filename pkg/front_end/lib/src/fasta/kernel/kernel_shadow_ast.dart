@@ -2915,6 +2915,35 @@ class SymbolLiteralJudgment extends SymbolLiteral
   }
 }
 
+/// Synthetic judgment class representing an attempt to invoke a constructor
+/// that cannot be invoked.
+class InvalidConstructorInvocationJudgment extends SyntheticExpressionJudgment {
+  final Constructor constructor;
+  final Arguments arguments;
+
+  InvalidConstructorInvocationJudgment(
+      kernel.Expression desugared, this.constructor, this.arguments)
+      : super(desugared);
+
+  @override
+  Expression infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory,
+      DartType typeContext) {
+    for (var argument in arguments.positional) {
+      inferrer.inferExpression(factory, argument, const UnknownType(), true);
+    }
+    for (var argument in arguments.named) {
+      inferrer.inferExpression(
+          factory, argument.value, const UnknownType(), true);
+    }
+    inferredType = constructor.enclosingClass.rawType;
+    inferrer.listener.constructorInvocation(
+        this, arguments.fileOffset, constructor, inferredType);
+    return super.infer(inferrer, factory, typeContext);
+  }
+}
+
 /// Synthetic judgment class representing an attempt to write to a read-only
 /// local variable.
 class InvalidVariableWriteJudgment extends SyntheticExpressionJudgment {

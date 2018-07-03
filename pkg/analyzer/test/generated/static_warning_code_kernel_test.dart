@@ -1127,13 +1127,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_newWithAbstractClass() async {
-    return super.test_newWithAbstractClass();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_newWithAbstractClass_generic() async {
     return super.test_newWithAbstractClass_generic();
   }

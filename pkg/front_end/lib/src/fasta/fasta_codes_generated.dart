@@ -21,6 +21,8 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)> codeAbstractClassInstantiation =
     const Code<Message Function(String name)>(
         "AbstractClassInstantiation", templateAbstractClassInstantiation,
+        analyzerCode: "NEW_WITH_ABSTRACT_CLASS",
+        dart2jsCode: "*fatal*",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

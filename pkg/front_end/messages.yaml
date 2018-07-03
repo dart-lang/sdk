@@ -1179,6 +1179,8 @@ NoSuchNamedParameter:
 AbstractClassInstantiation:
   template: "The class '#name' is abstract and can't be instantiated."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: NEW_WITH_ABSTRACT_CLASS
+  dart2jsCode: "*fatal*"
 
 AbstractRedirectedClassInstantiation:
   template: "Factory redirects to class '#name', which is abstract and can't be instantiated."
