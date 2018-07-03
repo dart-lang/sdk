@@ -55,7 +55,7 @@ class CommentReferences extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addComment(this, visitor);
     registry.addCommentReference(this, visitor);
   }

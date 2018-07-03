@@ -46,7 +46,7 @@ class RecursiveGetters extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);
   }
@@ -55,7 +55,7 @@ class RecursiveGetters extends LintRule implements NodeLintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final visitor = new _RecursiveGetterParentVisitor();
+  final visitor = _RecursiveGetterParentVisitor();
 
   _Visitor(this.rule);
 

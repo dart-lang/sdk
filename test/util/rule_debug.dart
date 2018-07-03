@@ -18,6 +18,6 @@ import '../rule_test.dart';
 ///
 main(List<String> args) {
   String ruleName = args[0];
-  Directory dir = new Directory(ruleDir).absolute;
-  testRule(ruleName, new File(p.join(dir.path, '$ruleName.dart')), debug: true);
+  Directory dir = Directory(ruleDir).absolute;
+  testRule(ruleName, File(p.join(dir.path, '$ruleName.dart')), debug: true);
 }

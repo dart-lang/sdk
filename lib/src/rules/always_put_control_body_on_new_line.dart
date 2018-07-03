@@ -55,7 +55,7 @@ class AlwaysPutControlBodyOnNewLine extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addDoStatement(this, visitor);
     registry.addForEachStatement(this, visitor);
     registry.addForStatement(this, visitor);

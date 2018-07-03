@@ -66,7 +66,7 @@ class PreferTypingUninitializedVariables extends LintRule
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addVariableDeclarationList(this, visitor);
   }
 }

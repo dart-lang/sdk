@@ -40,7 +40,7 @@ class NonConstantIdentifierNames extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFormalParameterList(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
@@ -54,7 +54,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
-  checkIdentifier(SimpleIdentifier id, {bool underscoresOk: false}) {
+  checkIdentifier(SimpleIdentifier id, {bool underscoresOk = false}) {
     if (underscoresOk && isJustUnderscores(id.name)) {
       // For example, `___` is OK in a callback.
       return;

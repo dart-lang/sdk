@@ -12,7 +12,7 @@ import 'package:markdown/markdown.dart';
 
 /// Generates lint rule docs for publishing to http://dart-lang.github.io/
 void main([List<String> args]) {
-  var parser = new ArgParser(allowTrailingOptions: true)
+  var parser = ArgParser(allowTrailingOptions: true)
     ..addOption('out', abbr: 'o', help: 'Specifies output directory.');
 
   var options;
@@ -51,7 +51,7 @@ const ruleLeadMatter = 'Rules are organized into familiar rule groups.';
 
 /// Sorted list of contributed lint rules.
 final List<LintRule> rules =
-    new List<LintRule>.from(Registry.ruleRegistry, growable: false)..sort();
+    List<LintRule>.from(Registry.ruleRegistry, growable: false)..sort();
 
 String get enumerateErrorRules => rules
     .where((r) => r.group == Group.errors)
@@ -78,13 +78,13 @@ List<String> get sortedRules => rules.map((r) => r.name).toList()..sort();
 void generateDocs(String dir) {
   String outDir = dir;
   if (outDir != null) {
-    Directory d = new Directory(outDir);
+    Directory d = Directory(outDir);
     if (!d.existsSync()) {
       print("Directory '${d.path}' does not exist");
       return;
     }
-    if (!new File('$outDir/options').existsSync()) {
-      Directory lintsChildDir = new Directory('$outDir/lints');
+    if (!File('$outDir/options').existsSync()) {
+      Directory lintsChildDir = Directory('$outDir/lints');
       if (lintsChildDir.existsSync()) {
         outDir = lintsChildDir.path;
       }
@@ -94,13 +94,13 @@ void generateDocs(String dir) {
   registerLintRules();
 
   // Generate index
-  new Indexer(Registry.ruleRegistry).generate(outDir);
+  Indexer(Registry.ruleRegistry).generate(outDir);
 
   // Generate rule files
-  rules.forEach((l) => new Generator(l).generate(outDir));
+  rules.forEach((l) => Generator(l).generate(outDir));
 
   // Generate options samples.
-  new OptionsSample(rules).generate(outDir);
+  OptionsSample(rules).generate(outDir);
 }
 
 void printUsage(ArgParser parser, [String error]) {
@@ -137,7 +137,7 @@ class Generator {
     if (filePath != null) {
       var outPath = '$filePath/$name.html';
       print('Writing to $outPath');
-      new File(outPath).writeAsStringSync(generated);
+      File(outPath).writeAsStringSync(generated);
     } else {
       print(generated);
     }
@@ -195,7 +195,7 @@ class Indexer {
     if (filePath != null) {
       var outPath = '$filePath/index.html';
       print('Writing to $outPath');
-      new File(outPath).writeAsStringSync(generated);
+      File(outPath).writeAsStringSync(generated);
     } else {
       print(generated);
     }
@@ -289,14 +289,14 @@ class OptionsSample {
     if (filePath != null) {
       var outPath = '$filePath/options/options.html';
       print('Writing to $outPath');
-      new File(outPath).writeAsStringSync(generated);
+      File(outPath).writeAsStringSync(generated);
     } else {
       print(generated);
     }
   }
 
   String generateOptions() {
-    StringBuffer sb = new StringBuffer('''
+    StringBuffer sb = StringBuffer('''
 ```
 linter:
   rules:

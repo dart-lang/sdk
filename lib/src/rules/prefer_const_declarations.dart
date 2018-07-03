@@ -46,7 +46,7 @@ class PreferConstDeclarations extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
     registry.addTopLevelVariableDeclaration(this, visitor);
     registry.addVariableDeclarationStatement(this, visitor);

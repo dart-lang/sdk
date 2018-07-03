@@ -4,21 +4,21 @@
 
 import 'package:linter/src/ast.dart';
 
-final _identifier = new RegExp(r'^([(_|$)a-zA-Z]+([_a-zA-Z0-9])*)$');
+final _identifier = RegExp(r'^([(_|$)a-zA-Z]+([_a-zA-Z0-9])*)$');
 
-final _lowerCamelCase = new RegExp(
+final _lowerCamelCase = RegExp(
     r'^(_)*[?$a-z][a-z0-9?$]*(([A-Z][a-z0-9?$]*)|([_][0-9][a-z0-9?$]*))*$');
 
-final _lowerCaseUnderScore = new RegExp(r'^([a-z]+([_]?[a-z0-9]+)*)+$');
+final _lowerCaseUnderScore = RegExp(r'^([a-z]+([_]?[a-z0-9]+)*)+$');
 
 final _lowerCaseUnderScoreWithDots =
-    new RegExp(r'^[a-z][_a-z0-9]*(\.[a-z][_a-z0-9]*)*$');
+    RegExp(r'^[a-z][_a-z0-9]*(\.[a-z][_a-z0-9]*)*$');
 
-final _pubspec = new RegExp(r'^[_]?pubspec\.yaml$');
+final _pubspec = RegExp(r'^[_]?pubspec\.yaml$');
 
-final _underscores = new RegExp(r'^[_]+$');
+final _underscores = RegExp(r'^[_]+$');
 
-final _validLibraryPrefix = new RegExp(r'^[\$]?[_]*[a-z]+[_a-z0-9]*$');
+final _validLibraryPrefix = RegExp(r'^[\$]?[_]*[a-z]+[_a-z0-9]*$');
 
 /// Check if this [string] is formatted in `CamelCase`.
 bool isCamelCase(String string) => CamelCaseString.isCamelCase(string);
@@ -60,13 +60,13 @@ bool isValidPackageName(String id) =>
     isLowerCaseUnderScore(id) && isValidDartIdentifier(id);
 
 class CamelCaseString {
-  static final _camelCaseMatcher = new RegExp(r'[A-Z][a-z]*');
-  static final _camelCaseTester = new RegExp(r'^([_$]*)([A-Z?$]+[a-z0-9]*)+$');
+  static final _camelCaseMatcher = RegExp(r'[A-Z][a-z]*');
+  static final _camelCaseTester = RegExp(r'^([_$]*)([A-Z?$]+[a-z0-9]*)+$');
 
   final String value;
   CamelCaseString(this.value) {
     if (!isCamelCase(value)) {
-      throw new ArgumentError('$value is not CamelCase');
+      throw ArgumentError('$value is not CamelCase');
     }
   }
 

@@ -32,14 +32,14 @@ void defineLinterEngineTests() {
       _test(String label, String expected, report(PrintingReporter r)) {
         test(label, () {
           String msg;
-          PrintingReporter reporter = new PrintingReporter((m) => msg = m);
+          PrintingReporter reporter = PrintingReporter((m) => msg = m);
           report(reporter);
           expect(msg, expected);
         });
       }
 
       _test('exception', 'EXCEPTION: LinterException: foo',
-          (r) => r.exception(new LinterException('foo')));
+          (r) => r.exception(LinterException('foo')));
       _test('logError', 'ERROR: foo', (r) => r.logError('foo'));
       _test('logInformation', 'INFO: foo', (r) => r.logInformation('foo'));
       _test('warn', 'WARN: foo', (r) => r.warn('foo'));
@@ -58,9 +58,9 @@ void defineLinterEngineTests() {
     group('analysis logger', () {
       var currentErr = errorSink;
       var currentOut = outSink;
-      var errCollector = new CollectingSink();
-      var outCollector = new CollectingSink();
-      var logger = new StdLogger();
+      var errCollector = CollectingSink();
+      var outCollector = CollectingSink();
+      var logger = StdLogger();
       setUp(() {
         errorSink = errCollector;
         outSink = outCollector;
@@ -83,24 +83,24 @@ void defineLinterEngineTests() {
 
     group('camel case', () {
       test('humanize', () {
-        expect(new CamelCaseString('FooBar').humanized, 'Foo Bar');
-        expect(new CamelCaseString('Foo').humanized, 'Foo');
+        expect(CamelCaseString('FooBar').humanized, 'Foo Bar');
+        expect(CamelCaseString('Foo').humanized, 'Foo');
       });
       test('validation', () {
-        expect(() => new CamelCaseString('foo'),
-            throwsA(new TypeMatcher<ArgumentError>()));
+        expect(() => CamelCaseString('foo'),
+            throwsA(TypeMatcher<ArgumentError>()));
       });
       test('toString', () {
-        expect(new CamelCaseString('FooBar').toString(), 'FooBar');
+        expect(CamelCaseString('FooBar').toString(), 'FooBar');
       });
     });
 
     group('groups', () {
       test('factory', () {
-        expect(new Group('style').custom, isFalse);
-        expect(new Group('pub').custom, isFalse);
-        expect(new Group('errors').custom, isFalse);
-        expect(new Group('Kustom').custom, isTrue);
+        expect(Group('style').custom, isFalse);
+        expect(Group('pub').custom, isFalse);
+        expect(Group('errors').custom, isFalse);
+        expect(Group('Kustom').custom, isTrue);
       });
       test('builtins', () {
         expect(Group.builtin.contains(Group.style), isTrue);
@@ -112,23 +112,23 @@ void defineLinterEngineTests() {
     group('lint driver', () {
       test('pubspec', () {
         bool visited;
-        var options = new LinterOptions([new MockLinter((n) => visited = true)])
+        var options = LinterOptions([MockLinter((n) => visited = true)])
           ..previewDart2 = true;
-        new SourceLinter(options).lintPubspecSource(contents: 'name: foo_bar');
+        SourceLinter(options).lintPubspecSource(contents: 'name: foo_bar');
         expect(visited, isTrue);
       });
       test('error collecting', () {
-        var error = new AnalysisError(new StringSource('foo', ''), 0, 0,
-            new LintCode('MockLint', 'This is a test...'));
-        var linter = new SourceLinter(new LinterOptions([]))..onError(error);
+        var error = AnalysisError(StringSource('foo', ''), 0, 0,
+            LintCode('MockLint', 'This is a test...'));
+        var linter = SourceLinter(LinterOptions([]))..onError(error);
         expect(linter.errors.contains(error), isTrue);
       });
       test('pubspec visitor error handling', () {
-        var visitor = new MockPubVisitor();
-        var rule = new MockRule()..pubspecVisitor = visitor;
+        var visitor = MockPubVisitor();
+        var rule = MockRule()..pubspecVisitor = visitor;
 
-        var reporter = new MockReporter();
-        new SourceLinter(new LinterOptions([rule]), reporter: reporter)
+        var reporter = MockReporter();
+        SourceLinter(LinterOptions([rule]), reporter: reporter)
           ..lintPubspecSource(contents: 'author: foo');
         expect(reporter.exceptions, hasLength(1));
       });
@@ -137,7 +137,7 @@ void defineLinterEngineTests() {
     group('main', () {
       setUp(() {
         exitCode = 0;
-        errorSink = new MockIOSink();
+        errorSink = MockIOSink();
       });
       tearDown(() {
         exitCode = 0;
@@ -145,7 +145,7 @@ void defineLinterEngineTests() {
       });
       test('smoke', () async {
         FileSystemEntity firstRuleTest =
-            new Directory(ruleDir).listSync().firstWhere(isDartFile);
+            Directory(ruleDir).listSync().firstWhere(isDartFile);
         await dartlint.main([firstRuleTest.path]);
         expect(dartlint.isLinterErrorCode(exitCode), isFalse);
       });
@@ -165,7 +165,7 @@ void defineLinterEngineTests() {
       test('custom sdk path', () async {
         // Smoke test to ensure a custom sdk path doesn't sink the ship
         FileSystemEntity firstRuleTest =
-            new Directory(ruleDir).listSync().firstWhere(isDartFile);
+            Directory(ruleDir).listSync().firstWhere(isDartFile);
         var sdk = getSdkPath();
         await dartlint.main(['--dart-sdk', sdk, firstRuleTest.path]);
         expect(dartlint.isLinterErrorCode(exitCode), isFalse);
@@ -173,8 +173,8 @@ void defineLinterEngineTests() {
       test('custom package root', () async {
         // Smoke test to ensure a custom package root doesn't sink the ship
         FileSystemEntity firstRuleTest =
-            new Directory(ruleDir).listSync().firstWhere(isDartFile);
-        var packageDir = new Directory('.').path;
+            Directory(ruleDir).listSync().firstWhere(isDartFile);
+        var packageDir = Directory('.').path;
         await dartlint.main(['--package-root', packageDir, firstRuleTest.path]);
         expect(dartlint.isLinterErrorCode(exitCode), isFalse);
       });
@@ -183,12 +183,11 @@ void defineLinterEngineTests() {
     group('dtos', () {
       group('hyperlink', () {
         test('html', () {
-          Hyperlink link = new Hyperlink('dart', 'http://dartlang.org');
+          Hyperlink link = Hyperlink('dart', 'http://dartlang.org');
           expect(link.html, '<a href="http://dartlang.org">dart</a>');
         });
         test('html - strong', () {
-          Hyperlink link =
-              new Hyperlink('dart', 'http://dartlang.org', bold: true);
+          Hyperlink link = Hyperlink('dart', 'http://dartlang.org', bold: true);
           expect(link.html,
               '<a href="http://dartlang.org"><strong>dart</strong></a>');
         });
@@ -196,19 +195,19 @@ void defineLinterEngineTests() {
 
       group('rule', () {
         test('comparing', () {
-          LintRule r1 = new MockLintRule('Bar', new Group('acme'));
-          LintRule r2 = new MockLintRule('Foo', new Group('acme'));
+          LintRule r1 = MockLintRule('Bar', Group('acme'));
+          LintRule r2 = MockLintRule('Foo', Group('acme'));
           expect(r1.compareTo(r2), -1);
-          LintRule r3 = new MockLintRule('Bar', new Group('acme'));
-          LintRule r4 = new MockLintRule('Bar', new Group('woody'));
+          LintRule r3 = MockLintRule('Bar', Group('acme'));
+          LintRule r4 = MockLintRule('Bar', Group('woody'));
           expect(r3.compareTo(r4), -1);
         });
       });
       group('maturity', () {
         test('comparing', () {
           // Custom
-          Maturity m1 = new Maturity('foo', ordinal: 0);
-          Maturity m2 = new Maturity('bar', ordinal: 1);
+          Maturity m1 = Maturity('foo', ordinal: 0);
+          Maturity m2 = Maturity('bar', ordinal: 1);
           expect(m1.compareTo(m2), -1);
           // Builtin
           expect(Maturity.stable.compareTo(Maturity.experimental), -1);
@@ -231,7 +230,7 @@ class MockLinter extends LintRule {
             group: Group.style,
             description: 'Desc',
             details: 'And so on...') {
-    visitorCallback = () => new MockVisitor(v);
+    visitorCallback = () => MockVisitor(v);
   }
 
   @override
@@ -245,7 +244,7 @@ class MockLintRule extends LintRule {
   MockLintRule(String name, Group group) : super(name: name, group: group);
 
   @override
-  AstVisitor getVisitor() => new MockVisitor(null);
+  AstVisitor getVisitor() => MockVisitor(null);
 }
 
 class MockVisitor extends GeneralizingAstVisitor with PubspecVisitor {

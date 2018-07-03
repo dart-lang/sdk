@@ -127,7 +127,7 @@ class ConditionScope {
 /// Clients may extend this class.
 abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   ConditionScope outerScope;
-  final breakScope = new BreakScope();
+  final breakScope = BreakScope();
 
   Iterable<Expression> getFalseExpressions(Iterable<Element> elements) =>
       _getExpressions(elements, value: false);
@@ -137,14 +137,14 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
 
   @override
   visitAssignmentExpression(AssignmentExpression node) {
-    _addElementToEnvironment(new _UndefinedExpression(_getLeftElement(node)));
+    _addElementToEnvironment(_UndefinedExpression(_getLeftElement(node)));
     node.visitChildren(this);
   }
 
   @override
   visitBlockFunctionBody(BlockFunctionBody node) {
     _addScope();
-    _addElementToEnvironment(new _UndefinedAllExpression());
+    _addElementToEnvironment(_UndefinedAllExpression());
     node.visitChildren(this);
     _removeLastScope();
   }
@@ -174,7 +174,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   @override
   visitExpressionFunctionBody(ExpressionFunctionBody node) {
     _addScope();
-    _addElementToEnvironment(new _UndefinedAllExpression());
+    _addElementToEnvironment(_UndefinedAllExpression());
     node.visitChildren(this);
     _removeLastScope();
   }
@@ -218,7 +218,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
     // If addTrueCondition and addFalseCondition are true at the same time,
     // then the rest of the block is dead code.
     if (addTrueCondition && addFalseCondition) {
-      _addElementToEnvironment(new _UndefinedAllExpression());
+      _addElementToEnvironment(_UndefinedAllExpression());
       return;
     }
     if (addFalseCondition) {
@@ -233,7 +233,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   visitPostfixExpression(PostfixExpression node) {
     final operand = node.operand;
     if (operand is SimpleIdentifier) {
-      _addElementToEnvironment(new _UndefinedExpression(operand.bestElement));
+      _addElementToEnvironment(_UndefinedExpression(operand.bestElement));
     }
     node.visitChildren(this);
   }
@@ -242,7 +242,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   visitPrefixExpression(PrefixExpression node) {
     final operand = node.operand;
     if (operand is SimpleIdentifier) {
-      _addElementToEnvironment(new _UndefinedExpression(operand.bestElement));
+      _addElementToEnvironment(_UndefinedExpression(operand.bestElement));
     }
     node.visitChildren(this);
   }
@@ -250,24 +250,24 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   @override
   visitRethrowExpression(RethrowExpression node) {
     node.visitChildren(this);
-    _addElementToEnvironment(new _UndefinedAllExpression());
+    _addElementToEnvironment(_UndefinedAllExpression());
   }
 
   @override
   visitReturnStatement(ReturnStatement node) {
     node.visitChildren(this);
-    _addElementToEnvironment(new _UndefinedAllExpression());
+    _addElementToEnvironment(_UndefinedAllExpression());
   }
 
   @override
   visitThrowExpression(ThrowExpression node) {
     node.visitChildren(this);
-    _addElementToEnvironment(new _UndefinedAllExpression());
+    _addElementToEnvironment(_UndefinedAllExpression());
   }
 
   @override
   visitVariableDeclaration(VariableDeclaration node) {
-    _addElementToEnvironment(new _UndefinedExpression(node.element));
+    _addElementToEnvironment(_UndefinedExpression(node.element));
     node.visitChildren(this);
   }
 
@@ -292,22 +292,21 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   }
 
   void _addFalseCondition(Expression expression) {
-    _addElementToEnvironment(
-        new _ConditionExpression(expression, value: false));
+    _addElementToEnvironment(_ConditionExpression(expression, value: false));
   }
 
   void _addScope() {
-    outerScope = new ConditionScope(outerScope);
+    outerScope = ConditionScope(outerScope);
   }
 
   void _addTrueCondition(Expression expression) {
     _splitConjunctions(expression).forEach((e) {
-      _addElementToEnvironment(new _ConditionExpression(e));
+      _addElementToEnvironment(_ConditionExpression(e));
     });
   }
 
   Iterable<Expression> _getExpressions(Iterable<Element> elements,
-          {bool value: true}) =>
+          {bool value = true}) =>
       outerScope.getExpressions(elements, value: value);
 
   bool _isLastStatementAnExitStatement(Statement statement) {
@@ -372,7 +371,7 @@ class _ConditionExpression extends _ExpressionBox {
   Expression expression;
   bool value;
 
-  _ConditionExpression(this.expression, {this.value: true});
+  _ConditionExpression(this.expression, {this.value = true});
 
   @override
   bool haveToStop(Iterable<Element> elements) => false;
@@ -399,7 +398,7 @@ class _UndefinedExpression extends _ExpressionBox {
   factory _UndefinedExpression(Element element) {
     final canonicalElement = DartTypeUtilities.getCanonicalElement(element);
     if (canonicalElement == null) return null;
-    return new _UndefinedExpression._internal(canonicalElement);
+    return _UndefinedExpression._internal(canonicalElement);
   }
 
   _UndefinedExpression._internal(this.element);

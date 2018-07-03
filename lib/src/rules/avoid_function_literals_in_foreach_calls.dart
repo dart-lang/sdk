@@ -41,7 +41,7 @@ class AvoidFunctionLiteralInForeachMethod extends LintRule
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addMethodInvocation(this, visitor);
   }
 }

@@ -40,7 +40,7 @@ class PreferInterpolationToComposeStrings extends LintRule
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addBinaryExpression(this, visitor);
   }
 }
@@ -48,7 +48,7 @@ class PreferInterpolationToComposeStrings extends LintRule
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final skippedNodes = new Set<AstNode>();
+  final skippedNodes = Set<AstNode>();
 
   _Visitor(this.rule);
 

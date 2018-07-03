@@ -43,7 +43,7 @@ class LinesLongerThan80Chars extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
 }
@@ -65,16 +65,16 @@ class _Visitor extends SimpleAstVisitor {
           : lineInfo.getOffsetOfLineAfter(start) - 1;
       final length = end - start;
       if (length > 80) {
-        final line = new _LineInfo(index: i, offset: start, end: end);
+        final line = _LineInfo(index: i, offset: start, end: end);
         longLines.add(line);
       }
     }
 
     if (longLines.isEmpty) return;
 
-    final allowedLineVisitor = new _AllowedLongLineVisitor(lineInfo);
+    final allowedLineVisitor = _AllowedLongLineVisitor(lineInfo);
     node.accept(allowedLineVisitor);
-    final allowedCommentVisitor = new _AllowedCommentVisitor(lineInfo);
+    final allowedCommentVisitor = _AllowedCommentVisitor(lineInfo);
     node.accept(allowedCommentVisitor);
 
     final allowedLines = []
@@ -186,5 +186,5 @@ class _AllowedCommentVisitor extends SimpleAstVisitor {
 }
 
 /// String looks like URI if it contains a slash or backslash.
-final _uriRegExp = new RegExp(r'[/\\]');
+final _uriRegExp = RegExp(r'[/\\]');
 bool _looksLikeUriOrPath(String value) => _uriRegExp.hasMatch(value);

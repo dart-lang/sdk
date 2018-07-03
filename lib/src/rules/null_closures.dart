@@ -92,70 +92,66 @@ class NonNullableFunction {
   InterfaceTypeDefinition _typeDefinition;
 
   NonNullableFunction(this.library, this.type, this.name,
-      {this.positional: const <int>[], this.named: const <String>[]});
+      {this.positional = const <int>[], this.named = const <String>[]});
 
   InterfaceTypeDefinition get typeDefinition =>
-      _typeDefinition ??= new InterfaceTypeDefinition(type, library);
+      _typeDefinition ??= InterfaceTypeDefinition(type, library);
 }
 
 List<NonNullableFunction> _constructorsWithNonNullableArguments =
     <NonNullableFunction>[
-  new NonNullableFunction('dart.async', 'Future', null, positional: [0]),
-  new NonNullableFunction('dart.async', 'Future', 'microtask', positional: [0]),
-  new NonNullableFunction('dart.async', 'Future', 'sync', positional: [0]),
-  new NonNullableFunction('dart.async', 'Timer', null, positional: [1]),
-  new NonNullableFunction('dart.async', 'Timer', 'periodic', positional: [1]),
-  new NonNullableFunction('dart.core', 'List', 'generate', positional: [1]),
+  NonNullableFunction('dart.async', 'Future', null, positional: [0]),
+  NonNullableFunction('dart.async', 'Future', 'microtask', positional: [0]),
+  NonNullableFunction('dart.async', 'Future', 'sync', positional: [0]),
+  NonNullableFunction('dart.async', 'Timer', null, positional: [1]),
+  NonNullableFunction('dart.async', 'Timer', 'periodic', positional: [1]),
+  NonNullableFunction('dart.core', 'List', 'generate', positional: [1]),
 ];
 
 List<NonNullableFunction> _staticFunctionsWithNonNullableArguments =
     <NonNullableFunction>[
-  new NonNullableFunction('dart.async', null, 'scheduleMicrotask',
-      positional: [0]),
-  new NonNullableFunction('dart.async', 'Future', 'doWhile', positional: [0]),
-  new NonNullableFunction('dart.async', 'Future', 'forEach', positional: [1]),
-  new NonNullableFunction('dart.async', 'Future', 'wait', named: ['cleanUp']),
-  new NonNullableFunction('dart.async', 'Timer', 'run', positional: [0]),
+  NonNullableFunction('dart.async', null, 'scheduleMicrotask', positional: [0]),
+  NonNullableFunction('dart.async', 'Future', 'doWhile', positional: [0]),
+  NonNullableFunction('dart.async', 'Future', 'forEach', positional: [1]),
+  NonNullableFunction('dart.async', 'Future', 'wait', named: ['cleanUp']),
+  NonNullableFunction('dart.async', 'Timer', 'run', positional: [0]),
 ];
 
 List<NonNullableFunction> _instanceMethodsWithNonNullableArguments =
     <NonNullableFunction>[
-  new NonNullableFunction('dart.async', 'Future', 'then',
+  NonNullableFunction('dart.async', 'Future', 'then',
       positional: [0], named: ['onError']),
-  new NonNullableFunction('dart.async', 'Future', 'complete', positional: [0]),
-  new NonNullableFunction('dart.collection', 'Queue', 'removeWhere',
+  NonNullableFunction('dart.async', 'Future', 'complete', positional: [0]),
+  NonNullableFunction('dart.collection', 'Queue', 'removeWhere',
       positional: [0]),
-  new NonNullableFunction('dart.collection', 'Queue', 'retainWhere',
+  NonNullableFunction('dart.collection', 'Queue', 'retainWhere',
       positional: [0]),
-  new NonNullableFunction('dart.core', 'Iterable', 'any', positional: [0]),
-  new NonNullableFunction('dart.core', 'Iterable', 'every', positional: [0]),
-  new NonNullableFunction('dart.core', 'Iterable', 'expand', positional: [0]),
-  new NonNullableFunction('dart.core', 'Iterable', 'firstWhere',
+  NonNullableFunction('dart.core', 'Iterable', 'any', positional: [0]),
+  NonNullableFunction('dart.core', 'Iterable', 'every', positional: [0]),
+  NonNullableFunction('dart.core', 'Iterable', 'expand', positional: [0]),
+  NonNullableFunction('dart.core', 'Iterable', 'firstWhere',
       positional: [0], named: ['orElse']),
-  new NonNullableFunction('dart.core', 'Iterable', 'forEach', positional: [0]),
-  new NonNullableFunction('dart.core', 'Iterable', 'fold', positional: [1]),
-  new NonNullableFunction('dart.core', 'Iterable', 'lastWhere',
+  NonNullableFunction('dart.core', 'Iterable', 'forEach', positional: [0]),
+  NonNullableFunction('dart.core', 'Iterable', 'fold', positional: [1]),
+  NonNullableFunction('dart.core', 'Iterable', 'lastWhere',
       positional: [0], named: ['orElse']),
-  new NonNullableFunction('dart.core', 'Iterable', 'map', positional: [0]),
-  new NonNullableFunction('dart.core', 'Iterable', 'reduce', positional: [0]),
-  new NonNullableFunction('dart.core', 'Iterable', 'singleWhere',
-      positional: [0]),
-  new NonNullableFunction('dart.core', 'Iterable', 'skipWhile',
-      positional: [0]),
-  new NonNullableFunction('dart.core', 'Iterable', 'takeWhile',
-      positional: [0]),
-  new NonNullableFunction('dart.core', 'Iterable', 'where', positional: [0]),
-  new NonNullableFunction('dart.core', 'List', 'removeWhere', positional: [0]),
-  new NonNullableFunction('dart.core', 'List', 'retainWhere', positional: [0]),
-  new NonNullableFunction('dart.core', 'Map', 'forEach', positional: [0]),
-  new NonNullableFunction('dart.core', 'Map', 'putIfAbsent', positional: [1]),
-  new NonNullableFunction('dart.core', 'Set', 'removeWhere', positional: [0]),
-  new NonNullableFunction('dart.core', 'Set', 'retainWhere', positional: [0]),
-  new NonNullableFunction('dart.core', 'String', 'replaceAllMapped',
+  NonNullableFunction('dart.core', 'Iterable', 'map', positional: [0]),
+  NonNullableFunction('dart.core', 'Iterable', 'reduce', positional: [0]),
+  NonNullableFunction('dart.core', 'Iterable', 'singleWhere', positional: [0]),
+  NonNullableFunction('dart.core', 'Iterable', 'skipWhile', positional: [0]),
+  NonNullableFunction('dart.core', 'Iterable', 'takeWhile', positional: [0]),
+  NonNullableFunction('dart.core', 'Iterable', 'where', positional: [0]),
+  NonNullableFunction('dart.core', 'List', 'removeWhere', positional: [0]),
+  NonNullableFunction('dart.core', 'List', 'retainWhere', positional: [0]),
+  NonNullableFunction('dart.core', 'Map', 'forEach', positional: [0]),
+  NonNullableFunction('dart.core', 'Map', 'putIfAbsent', positional: [1]),
+  NonNullableFunction('dart.core', 'Set', 'removeWhere', positional: [0]),
+  NonNullableFunction('dart.core', 'Set', 'retainWhere', positional: [0]),
+  NonNullableFunction('dart.core', 'String', 'replaceAllMapped',
       positional: [1]),
-  new NonNullableFunction('dart.core', 'String', 'replaceFirstMapped',
+  NonNullableFunction('dart.core', 'String', 'replaceFirstMapped',
       positional: [1]),
-  new NonNullableFunction('dart.core', 'String', 'splitMapJoin',
+  NonNullableFunction('dart.core', 'String', 'splitMapJoin',
       named: ['onMatch', 'onNonMatch']),
 ];
 
@@ -169,7 +165,7 @@ class NullClosures extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
     registry.addMethodInvocation(this, visitor);
   }

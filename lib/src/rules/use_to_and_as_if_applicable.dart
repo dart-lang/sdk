@@ -48,7 +48,7 @@ class Bar {
 ''';
 
 bool _beginsWithAsOrTo(String name) {
-  final regExp = new RegExp(r'(to|as|_to|_as)[A-Z]', caseSensitive: true);
+  final regExp = RegExp(r'(to|as|_to|_as)[A-Z]', caseSensitive: true);
   return regExp.matchAsPrefix(name) != null;
 }
 
@@ -65,7 +65,7 @@ class UseToAndAsIfApplicable extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }
 }

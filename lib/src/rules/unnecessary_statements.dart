@@ -55,7 +55,7 @@ class UnnecessaryStatements extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(new _ReportNoClearEffectVisitor(this));
+    final visitor = _Visitor(_ReportNoClearEffectVisitor(this));
     registry.addExpressionStatement(this, visitor);
     registry.addForStatement(this, visitor);
     registry.addCascadeExpression(this, visitor);

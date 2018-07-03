@@ -181,7 +181,7 @@ class DirectivesOrdering extends LintRule
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
 
@@ -195,7 +195,7 @@ class DirectivesOrdering extends LintRule
   }
 
   void _reportLintWithDescription(AstNode node, String description) {
-    reporter.reportErrorForNode(new LintCode(name, description), node, []);
+    reporter.reportErrorForNode(LintCode(name, description), node, []);
   }
 
   void _reportLintWithDirectiveSectionOrderedAlphabeticallyMessage(
@@ -240,7 +240,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    Set<AstNode> lintedNodes = new Set<AstNode>();
+    Set<AstNode> lintedNodes = Set<AstNode>();
     _checkDartDirectiveGoFirst(lintedNodes, node);
     _checkPackageDirectiveBeforeRelative(lintedNodes, node);
     _checkThirdPartyDirectiveBeforeOwn(lintedNodes, node);
@@ -291,7 +291,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     _checkSectionInOrder(lintedNodes, relativeExports);
 
     if (project != null) {
-      _PackageBox packageBox = new _PackageBox(project.name);
+      _PackageBox packageBox = _PackageBox(project.name);
 
       final thirdPartyPackageImports =
           importDirectives.where(packageBox._isNotOwnPackageDirective);
@@ -396,7 +396,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     Iterable<NamespaceDirective> getNodesToLint(
         Iterable<NamespaceDirective> directives) {
-      _PackageBox box = new _PackageBox(project.name);
+      _PackageBox box = _PackageBox(project.name);
       return directives
           .where(_isPackageDirective)
           .skipWhile(box._isNotOwnPackageDirective)

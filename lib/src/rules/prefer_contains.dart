@@ -51,13 +51,13 @@ class PreferContainsOverIndexOf extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addSimpleIdentifier(this, visitor);
   }
 
   void reportLintWithDescription(AstNode node, String description) {
     if (node != null) {
-      reporter.reportErrorForNode(new _LintCode(name, description), node, []);
+      reporter.reportErrorForNode(_LintCode(name, description), node, []);
     }
   }
 }
@@ -66,8 +66,8 @@ class PreferContainsOverIndexOf extends LintRule implements NodeLintRule {
 class _LintCode extends LintCode {
   static final registry = <String, LintCode>{};
 
-  factory _LintCode(String name, String message) => registry.putIfAbsent(
-      name + message, () => new _LintCode._(name, message));
+  factory _LintCode(String name, String message) =>
+      registry.putIfAbsent(name + message, () => _LintCode._(name, message));
 
   _LintCode._(String name, String message) : super(name, message);
 }
@@ -101,8 +101,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (!DartTypeUtilities.implementsAnyInterface(
         type, <InterfaceTypeDefinition>[
-      new InterfaceTypeDefinition('Iterable', 'dart.core'),
-      new InterfaceTypeDefinition('String', 'dart.core'),
+      InterfaceTypeDefinition('Iterable', 'dart.core'),
+      InterfaceTypeDefinition('String', 'dart.core'),
     ])) {
       return;
     }
@@ -131,10 +131,10 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // Comparing constants with result of indexOf.
 
-    final ConstantVisitor visitor = new ConstantVisitor(
-        new ConstantEvaluationEngine(typeProvider, declaredVariables,
+    final ConstantVisitor visitor = ConstantVisitor(
+        ConstantEvaluationEngine(typeProvider, declaredVariables,
             typeSystem: typeSystem),
-        new ErrorReporter(
+        ErrorReporter(
             AnalysisErrorListener.NULL_LISTENER, rule.reporter.source));
 
     final DartObjectImpl rightValue =

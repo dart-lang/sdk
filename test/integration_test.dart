@@ -22,7 +22,7 @@ defineTests() {
   group('integration', () {
     group('p2', () {
       IOSink currentOut = outSink;
-      CollectingSink collectingOut = new CollectingSink();
+      CollectingSink collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -59,7 +59,7 @@ defineTests() {
     });
     group('p3', () {
       IOSink currentOut = outSink;
-      CollectingSink collectingOut = new CollectingSink();
+      CollectingSink collectingOut = CollectingSink();
       setUp(() => outSink = collectingOut);
       tearDown(() {
         collectingOut.buffer.clear();
@@ -73,18 +73,17 @@ defineTests() {
     });
     group('p4', () {
       IOSink currentOut = outSink;
-      CollectingSink collectingOut = new CollectingSink();
+      CollectingSink collectingOut = CollectingSink();
       setUp(() => outSink = collectingOut);
       tearDown(() {
         collectingOut.buffer.clear();
         outSink = currentOut;
       });
       test('no warnings due to bad canonicalization', () async {
-        var packagesFilePath =
-            new File('test/_data/p4/_packages').absolute.path;
+        var packagesFilePath = File('test/_data/p4/_packages').absolute.path;
         await dartlint.runLinter(
             ['--packages', packagesFilePath, 'test/_data/p4'],
-            new LinterOptions([])..previewDart2 = true);
+            LinterOptions([])..previewDart2 = true);
         expect(collectingOut.trim(),
             startsWith('3 files analyzed, 0 issues found, in'));
       });
@@ -92,7 +91,7 @@ defineTests() {
 
     group('p5', () {
       IOSink currentOut = outSink;
-      CollectingSink collectingOut = new CollectingSink();
+      CollectingSink collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -115,7 +114,7 @@ defineTests() {
 
     group('overridden_fields', () {
       IOSink currentOut = outSink;
-      CollectingSink collectingOut = new CollectingSink();
+      CollectingSink collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -140,7 +139,7 @@ defineTests() {
 
     group('close_sinks', () {
       IOSink currentOut = outSink;
-      CollectingSink collectingOut = new CollectingSink();
+      CollectingSink collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -152,7 +151,7 @@ defineTests() {
       });
 
       test('close sinks', () async {
-        var packagesFilePath = new File('.packages').absolute.path;
+        var packagesFilePath = File('.packages').absolute.path;
         await dartlint.main([
           '--packages',
           packagesFilePath,
@@ -172,7 +171,7 @@ defineTests() {
 
     group('cancel_subscriptions', () {
       IOSink currentOut = outSink;
-      CollectingSink collectingOut = new CollectingSink();
+      CollectingSink collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -201,7 +200,7 @@ defineTests() {
 
     group('directives_ordering', () {
       IOSink currentOut = outSink;
-      CollectingSink collectingOut = new CollectingSink();
+      CollectingSink collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -213,7 +212,7 @@ defineTests() {
       });
 
       test('dart_directives_go_first', () async {
-        var packagesFilePath = new File('.packages').absolute.path;
+        var packagesFilePath = File('.packages').absolute.path;
         await dartlint.main([
           '--packages',
           packagesFilePath,
@@ -237,7 +236,7 @@ defineTests() {
       });
 
       test('package_directives_before_relative', () async {
-        var packagesFilePath = new File('.packages').absolute.path;
+        var packagesFilePath = File('.packages').absolute.path;
         await dartlint.main([
           '--packages',
           packagesFilePath,
@@ -261,7 +260,7 @@ defineTests() {
       });
 
       test('third_party_package_directives_before_own', () async {
-        var packagesFilePath = new File('.packages').absolute.path;
+        var packagesFilePath = File('.packages').absolute.path;
         await dartlint.main([
           '--packages',
           packagesFilePath,
@@ -285,7 +284,7 @@ defineTests() {
       });
 
       test('export_directives_after_import_directives', () async {
-        var packagesFilePath = new File('.packages').absolute.path;
+        var packagesFilePath = File('.packages').absolute.path;
         await dartlint.main([
           '--packages',
           packagesFilePath,
@@ -305,7 +304,7 @@ defineTests() {
       });
 
       test('sort_directive_sections_alphabetically', () async {
-        var packagesFilePath = new File('.packages').absolute.path;
+        var packagesFilePath = File('.packages').absolute.path;
         await dartlint.main([
           '--packages',
           packagesFilePath,
@@ -345,7 +344,7 @@ defineTests() {
       });
 
       test('lint_one_node_no_more_than_once', () async {
-        var packagesFilePath = new File('.packages').absolute.path;
+        var packagesFilePath = File('.packages').absolute.path;
         await dartlint.main([
           '--packages',
           packagesFilePath,
@@ -365,7 +364,7 @@ defineTests() {
 
     group('file_names', () {
       IOSink currentOut = outSink;
-      CollectingSink collectingOut = new CollectingSink();
+      CollectingSink collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -389,7 +388,7 @@ defineTests() {
 
     group('lines_longer_than_80_chars', () {
       IOSink currentOut = outSink;
-      CollectingSink collectingOut = new CollectingSink();
+      CollectingSink collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -420,7 +419,7 @@ defineTests() {
 
     group('only_throw_errors', () {
       IOSink currentOut = outSink;
-      CollectingSink collectingOut = new CollectingSink();
+      CollectingSink collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -450,7 +449,7 @@ defineTests() {
 
     group('always_require_non_null_named_parameters', () {
       IOSink currentOut = outSink;
-      CollectingSink collectingOut = new CollectingSink();
+      CollectingSink collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -465,7 +464,7 @@ defineTests() {
         await dartlint.runLinter([
           'test/_data/always_require_non_null_named_parameters',
           '--rules=always_require_non_null_named_parameters'
-        ], new LinterOptions()..previewDart2 = true);
+        ], LinterOptions()..previewDart2 = true);
         expect(exitCode, 1);
         expect(
             collectingOut.trim(),
@@ -476,7 +475,7 @@ defineTests() {
 
     group('prefer_asserts_in_initializer_lists', () {
       IOSink currentOut = outSink;
-      CollectingSink collectingOut = new CollectingSink();
+      CollectingSink collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -491,7 +490,7 @@ defineTests() {
         await dartlint.runLinter([
           'test/_data/prefer_asserts_in_initializer_lists',
           '--rules=prefer_asserts_in_initializer_lists'
-        ], new LinterOptions()..previewDart2 = true);
+        ], LinterOptions()..previewDart2 = true);
         expect(exitCode, 1);
         expect(
             collectingOut.trim(),
@@ -502,7 +501,7 @@ defineTests() {
 
     group('prefer_const_constructors_in_immutables', () {
       IOSink currentOut = outSink;
-      CollectingSink collectingOut = new CollectingSink();
+      CollectingSink collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -517,7 +516,7 @@ defineTests() {
         await dartlint.runLinter([
           'test/_data/prefer_const_constructors_in_immutables',
           '--rules=prefer_const_constructors_in_immutables'
-        ], new LinterOptions()..previewDart2 = true);
+        ], LinterOptions()..previewDart2 = true);
         expect(exitCode, 1);
         expect(
             collectingOut.trim(),
@@ -528,7 +527,7 @@ defineTests() {
 
     group('avoid_relative_lib_imports', () {
       IOSink currentOut = outSink;
-      CollectingSink collectingOut = new CollectingSink();
+      CollectingSink collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -545,7 +544,7 @@ defineTests() {
           '--rules=avoid_relative_lib_imports',
           '--packages',
           'test/_data/avoid_relative_lib_imports/_packages'
-        ], new LinterOptions()..previewDart2 = true);
+        ], LinterOptions()..previewDart2 = true);
         expect(exitCode, 1);
         expect(
             collectingOut.trim(),
@@ -556,7 +555,7 @@ defineTests() {
 
     group('public_member_api_docs', () {
       IOSink currentOut = outSink;
-      CollectingSink collectingOut = new CollectingSink();
+      CollectingSink collectingOut = CollectingSink();
 
       setUp(() {
         exitCode = 0;
@@ -570,7 +569,7 @@ defineTests() {
       });
 
       test('lint lib/ sources and non-lib/ sources', () async {
-        var packagesFilePath = new File('.packages').absolute.path;
+        var packagesFilePath = File('.packages').absolute.path;
         await dartlint.main([
           '--packages',
           packagesFilePath,
@@ -604,7 +603,7 @@ defineTests() {
 
     group('avoid_renaming_method_parameters', () {
       IOSink currentOut = outSink;
-      CollectingSink collectingOut = new CollectingSink();
+      CollectingSink collectingOut = CollectingSink();
 
       setUp(() {
         exitCode = 0;
@@ -641,7 +640,7 @@ defineTests() {
 
     group('avoid_private_typedef_functions', () {
       IOSink currentOut = outSink;
-      CollectingSink collectingOut = new CollectingSink();
+      CollectingSink collectingOut = CollectingSink();
 
       setUp(() {
         exitCode = 0;
@@ -674,7 +673,7 @@ defineTests() {
     // TODO(a14n) move to unit test once previewDart2 disappears
     group('unnecessary_const', () {
       IOSink currentOut = outSink;
-      CollectingSink collectingOut = new CollectingSink();
+      CollectingSink collectingOut = CollectingSink();
 
       setUp(() {
         exitCode = 0;
@@ -690,7 +689,7 @@ defineTests() {
       test('avoid keyword to create instances', () async {
         await dartlint.runLinter(
             ['test/_data/unnecessary_const', '--rules=unnecessary_const'],
-            new LinterOptions()..previewDart2 = true);
+            LinterOptions()..previewDart2 = true);
         expect(exitCode, 1);
         expect(
             collectingOut.trim(),
@@ -707,7 +706,7 @@ defineTests() {
     // TODO(a14n) move to unit test once previewDart2 disappears
     group('unnecessary_new', () {
       IOSink currentOut = outSink;
-      CollectingSink collectingOut = new CollectingSink();
+      CollectingSink collectingOut = CollectingSink();
 
       setUp(() {
         exitCode = 0;
@@ -723,7 +722,7 @@ defineTests() {
       test('avoid keyword to create instances', () async {
         await dartlint.runLinter(
             ['test/_data/unnecessary_new', '--rules=unnecessary_new'],
-            new LinterOptions()..previewDart2 = true);
+            LinterOptions()..previewDart2 = true);
         expect(exitCode, 1);
         expect(
             collectingOut.trim(),
@@ -773,7 +772,7 @@ Map<String, YamlNode> _getOptionsFromString(String optionsSource) {
     return options;
   }
   if ((doc != null) && (doc is! YamlMap)) {
-    throw new Exception(
+    throw Exception(
         'Bad options file format (expected map, got ${doc.runtimeType})');
   }
   if (doc is YamlMap) {
@@ -783,12 +782,11 @@ Map<String, YamlNode> _getOptionsFromString(String optionsSource) {
         key = k.value;
       }
       if (key is! String) {
-        throw new Exception(
-            'Bad options file format (expected String scope key, '
+        throw Exception('Bad options file format (expected String scope key, '
             'got ${k.runtimeType})');
       }
       if (v != null && v is! YamlNode) {
-        throw new Exception('Bad options file format (expected Node value, '
+        throw Exception('Bad options file format (expected Node value, '
             'got ${v.runtimeType}: `${v.toString()}`)');
       }
       options[key] = v;

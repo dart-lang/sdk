@@ -114,7 +114,7 @@ class InvariantBooleans extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    var visitor = new _InvariantBooleansVisitor(this);
+    var visitor = _InvariantBooleansVisitor(this);
     registry.addCompilationUnit(this, visitor);
   }
 }
@@ -146,7 +146,7 @@ class _InvariantBooleansVisitor extends ConditionScopeVisitor {
 
     TestedExpressions testedNodes = _findPreviousTestedExpressions(node);
     testedNodes.evaluateInvariant().forEach((ContradictoryComparisons e) {
-      final reportRule = new _ContradictionReportRule(e);
+      final reportRule = _ContradictionReportRule(e);
       reportRule
         ..reporter = rule.reporter
         ..reportLint(e.second);
@@ -170,6 +170,6 @@ class _InvariantBooleansVisitor extends ConditionScopeVisitor {
     final elements = _getElementsInExpression(node);
     Iterable<Expression> conjunctions = getTrueExpressions(elements).toSet();
     Iterable<Expression> negations = getFalseExpressions(elements).toSet();
-    return new TestedExpressions(node, conjunctions, negations);
+    return TestedExpressions(node, conjunctions, negations);
   }
 }

@@ -61,7 +61,7 @@ class PreferConstConstructors extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
   }
 }
@@ -87,7 +87,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       // put a fake const keyword and check if there's const error
       final oldKeyword = node.keyword;
-      node.keyword = new KeywordToken(Keyword.CONST, node.offset);
+      node.keyword = KeywordToken(Keyword.CONST, node.offset);
       try {
         hasConstError = hasErrorWithConstantVerifier(node);
       } finally {

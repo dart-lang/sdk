@@ -15,7 +15,7 @@ import 'package:analyzer/src/lint/project.dart';
 import 'package:analyzer/src/lint/pub.dart';
 
 class CollectingSink extends MockIOSink {
-  final StringBuffer buffer = new StringBuffer();
+  final StringBuffer buffer = StringBuffer();
 
   @override
   String toString() => buffer.toString();
@@ -91,57 +91,57 @@ class MockIOSink implements IOSink {
 class MockPubVisitor implements PubspecVisitor {
   @override
   visitPackageAuthor(PSEntry author) {
-    throw new Exception();
+    throw Exception();
   }
 
   @override
   visitPackageAuthors(PSNodeList authors) {
-    throw new Exception();
+    throw Exception();
   }
 
   @override
   visitPackageDependencies(PSDependencyList dependencies) {
-    throw new Exception();
+    throw Exception();
   }
 
   @override
   visitPackageDependency(PSDependency dependency) {
-    throw new Exception();
+    throw Exception();
   }
 
   @override
   visitPackageDescription(PSEntry description) {
-    throw new Exception();
+    throw Exception();
   }
 
   @override
   visitPackageDevDependencies(PSDependencyList dependencies) {
-    throw new Exception();
+    throw Exception();
   }
 
   @override
   visitPackageDevDependency(PSDependency dependency) {
-    throw new Exception();
+    throw Exception();
   }
 
   @override
   visitPackageDocumentation(PSEntry documentation) {
-    throw new Exception();
+    throw Exception();
   }
 
   @override
   visitPackageHomepage(PSEntry homepage) {
-    throw new Exception();
+    throw Exception();
   }
 
   @override
   visitPackageName(PSEntry name) {
-    throw new Exception();
+    throw Exception();
   }
 
   @override
   visitPackageVersion(PSEntry version) {
-    throw new Exception();
+    throw Exception();
   }
 }
 
@@ -206,10 +206,10 @@ class MockRule implements LintRule {
   noSuchMethod(Invocation invocation) => null;
 
   @override
-  void reportLint(AstNode node, {bool ignoreSyntheticNodes: true}) {}
+  void reportLint(AstNode node, {bool ignoreSyntheticNodes = true}) {}
 
   @override
-  void reportLintForToken(Token token, {bool ignoreSyntheticTokens: true}) {}
+  void reportLintForToken(Token token, {bool ignoreSyntheticTokens = true}) {}
 
   @override
   void reportPubLint(PSNode node) {}

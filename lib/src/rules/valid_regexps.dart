@@ -40,7 +40,7 @@ class ValidRegExps extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
   }
 }
@@ -66,7 +66,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         String source = sourceExpression.stringValue;
         if (source != null) {
           try {
-            new RegExp(source);
+            RegExp(source);
           } on FormatException {
             rule.reportLint(sourceExpression);
           }

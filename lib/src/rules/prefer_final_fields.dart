@@ -77,7 +77,7 @@ class PreferFinalFields extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
     registry.addFieldDeclaration(this, visitor);
   }
@@ -118,13 +118,13 @@ class _MutatedFieldsCollector extends RecursiveAstVisitor<void> {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final Set<FieldElement> _mutatedFields = new HashSet<FieldElement>();
+  final Set<FieldElement> _mutatedFields = HashSet<FieldElement>();
 
   _Visitor(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    node.accept(new _MutatedFieldsCollector(_mutatedFields));
+    node.accept(_MutatedFieldsCollector(_mutatedFields));
   }
 
   @override

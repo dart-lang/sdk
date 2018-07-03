@@ -129,13 +129,13 @@ class ListRemoveUnrelatedType extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addMethodInvocation(this, visitor);
   }
 }
 
 class _Visitor extends UnrelatedTypesProcessors {
-  static final _DEFINITION = new InterfaceTypeDefinition('List', 'dart.core');
+  static final _DEFINITION = InterfaceTypeDefinition('List', 'dart.core');
 
   _Visitor(LintRule rule) : super(rule);
 

@@ -45,7 +45,7 @@ class AvoidAnnotatingWithDynamic extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addSimpleFormalParameter(this, visitor);
   }
 }

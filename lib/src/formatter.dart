@@ -17,7 +17,7 @@ const benchmarkRuns = 10;
 
 String getLineContents(int lineNumber, AnalysisError error) {
   String path = error.source.fullName;
-  File file = new File(path);
+  File file = File(path);
   String failureDetails;
   if (!file.existsSync()) {
     failureDetails = 'file at $path does not exist';
@@ -30,7 +30,7 @@ String getLineContents(int lineNumber, AnalysisError error) {
     failureDetails =
         'line index ($lineIndex), outside of file line range (${lines.length})';
   }
-  throw new StateError('Unable to get contents for line: $failureDetails');
+  throw StateError('Unable to get contents for line: $failureDetails');
 }
 
 String pluralize(String word, int count) =>
@@ -43,7 +43,7 @@ String shorten(String fileRoot, String fullName) {
 }
 
 String _escapePipe(String input) {
-  var result = new StringBuffer();
+  var result = StringBuffer();
   for (var c in input.codeUnits) {
     if (c == _slashCodeUnit || c == _pipeCodeUnit) {
       result.write('\\');
@@ -59,9 +59,9 @@ class DetailedReporter extends SimpleFormatter {
       {int fileCount,
       int elapsedMs,
       String fileRoot,
-      bool showStatistics: false,
-      bool machineOutput: false,
-      quiet: false})
+      bool showStatistics = false,
+      bool machineOutput = false,
+      quiet = false})
       : super(errors, filter, out,
             fileCount: fileCount,
             fileRoot: fileRoot,
@@ -93,10 +93,10 @@ abstract class ReportFormatter {
           {int fileCount,
           int elapsedMs,
           String fileRoot,
-          bool showStatistics: false,
-          bool machineOutput: false,
-          bool quiet: false}) =>
-      new DetailedReporter(errors, filter, out,
+          bool showStatistics = false,
+          bool machineOutput = false,
+          bool quiet = false}) =>
+      DetailedReporter(errors, filter, out,
           fileCount: fileCount,
           fileRoot: fileRoot,
           elapsedMs: elapsedMs,
@@ -132,9 +132,9 @@ class SimpleFormatter implements ReportFormatter {
       {this.fileCount,
       this.fileRoot,
       this.elapsedMs,
-      this.showStatistics: false,
-      this.quiet: false,
-      this.machineOutput: false});
+      this.showStatistics = false,
+      this.quiet = false,
+      this.machineOutput = false});
 
   /// Override to influence error sorting
   int compare(AnalysisError error1, AnalysisError error2) {
@@ -244,7 +244,7 @@ class SimpleFormatter implements ReportFormatter {
   void writeTimings() {
     Map<String, Stopwatch> timers = lintRegistry.timers;
     List<_Stat> timings = timers.keys
-        .map((t) => new _Stat(t, timers[t].elapsedMilliseconds))
+        .map((t) => _Stat(t, timers[t].elapsedMilliseconds))
         .toList();
     _writeTimings(out, timings, _summaryLength);
   }
@@ -269,7 +269,7 @@ Future writeBenchmarks(
     IOSink out, List<File> filesToLint, LinterOptions lintOptions) async {
   Map<String, int> timings = <String, int>{};
   for (int i = 0; i < benchmarkRuns; ++i) {
-    await lintFiles(new DartLinter(lintOptions), filesToLint);
+    await lintFiles(DartLinter(lintOptions), filesToLint);
     lintRegistry.timers.forEach((n, t) {
       int timing = t.elapsedMilliseconds;
       int previous = timings[n];
@@ -281,8 +281,7 @@ Future writeBenchmarks(
     });
   }
 
-  List<_Stat> stats =
-      timings.keys.map((t) => new _Stat(t, timings[t])).toList();
+  List<_Stat> stats = timings.keys.map((t) => _Stat(t, timings[t])).toList();
   _writeTimings(out, stats, 0);
 }
 
