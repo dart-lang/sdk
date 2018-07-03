@@ -81,12 +81,18 @@ unless the return type of the function is `void` or `dynamic`.
 * Mixed return statements of the form `return;` and `return exp;` are now
 allowed when `exp` has type `void`.
 
+* A compile time error is emitted for any literal which cannot be exactly
+  represented on the target platform. As a result, dart2js and DDC will
+  report errors if an integer literal cannot be represented exactly in
+  JavaScript. Issue [33282][issue 33282].
+
 [issue 31887]: https://github.com/dart-lang/sdk/issues/31887
 [issue 30638]: https://github.com/dart-lang/sdk/issues/30638
 [issue 32233]: https://github.com/dart-lang/sdk/issues/32233
 [issue 32881]: https://github.com/dart-lang/sdk/issues/32881
 [issue 33218]: https://github.com/dart-lang/sdk/issues/33218
 [issue 31278]: https://github.com/dart-lang/sdk/issues/31278
+[issue 33282]: https://github.com/dart-lang/sdk/issues/33282
 
 ### Dart VM
 
