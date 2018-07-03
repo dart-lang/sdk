@@ -63,6 +63,8 @@
 % - Remove appendix on naming conventions.
 % - Make it explicit that "dynamic" is exported from dart:core.
 % - Remove "boolean conversion". It's just an error to not be a bool.
+% - Adjust cyclic subtype prevention rule for type variables.
+% - Clarify that it is an error to use FutureOr<T> as a superinterface etc.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -2271,8 +2273,11 @@ It is a compile-time error to specify an \EXTENDS{} clause for class \code{Objec
 The scope of the \EXTENDS{} and \WITH{} clauses of a class $C$ is the type-parameter scope of $C$.
 
 \LMHash{}
-It is a compile-time error if the \EXTENDS{} clause of a class $C$ specifies a type variable (\ref{generics}), a type alias (\ref{typedef}), an enumerated type (\ref{enums}), a malformed type, or a deferred type (\ref{staticTypes}) as a superclass.
-It is a compile-time error if the \EXTENDS{} clause of a class $C$ specifies type \DYNAMIC{} as a superinterface.
+It is a compile-time error if the type in the \EXTENDS{} clause of a class $C$ is
+a type variable (\ref{generics}), a type alias (\ref{typedef}),
+an enumerated type (\ref{enums}), a malformed type (\ref{staticTypes}),
+a deferred type (\ref{staticTypes}), type \DYNAMIC{} (\ref{typeDynamic}),
+or type \code{FutureOr<$T$>} for any $T$ (\ref{typeFutureOr}).
 
 \commentary{
 The type parameters of a generic class are available in the lexical scope of the superclass clause, potentially shadowing classes in the surrounding scope.
@@ -2427,11 +2432,15 @@ This set includes the interface of its superclass and the interfaces specified i
 The scope of the \IMPLEMENTS{} clause of a class $C$ is the type-parameter scope of $C$.
 
 \LMHash{}
-It is a compile-time error if the \IMPLEMENTS{} clause of a class $C$ specifies a type variable (\ref{generics}), a type alias (\ref{typedef}), an enumerated type (\ref{enums}), a malformed type, or a deferred type (\ref{staticTypes}) as a superinterface.
-It is a compile-time error if the \IMPLEMENTS{} clause of a class $C$ specifies type \DYNAMIC{} as a superinterface.
-It is a compile-time error if the \IMPLEMENTS{} clause of a class $C$ specifies a type $T$ as a superinterface more than once.
-It is a compile-time error if the superclass of a class $C$ is specified as a superinterface of $C$.
-It is a compile-time error if a class $C$ has two superinterfaces that are different instantiations of the same generic class. \commentary{For example, a class may not have both `List<int>` and `List<num>` as superinterfaces.}
+It is a compile-time error if an element in the type list of the \IMPLEMENTS{} clause of a class $C$ is
+a type variable (\ref{generics}), a type alias (\ref{typedef}),
+an enumerated type (\ref{enums}), a malformed type (\ref{staticTypes}),
+a deferred type (\ref{staticTypes}), type \DYNAMIC{} (\ref{typeDynamic}),
+or type \code{FutureOr<$T$>} for any $T$ (\ref{typeFutureOr}).
+It is a compile-time error if two elements in the type list of the \IMPLEMENTS{} clause of a class $C$ specifies the same type $T$.
+It is a compile-time error if the superclass of a class $C$ is one of the elements of the type list of the \IMPLEMENTS{} clause of $C$.
+It is a compile-time error if a class $C$ has two superinterfaces that are different instantiations of the same generic class.
+\commentary{For example, a class may not have both `List<int>` and `List<num>` as superinterfaces.}
 % If we need to allow multiple instantiations, they'll need to have a most
 % specific one, and then we can add the following clause
 %, unless it implements one that is a subtype of all the other. \commentary{This ensures that each class implements one {\em most specific} version of a generic class' interface.}
@@ -2624,8 +2633,13 @@ The restriction on constructors simplifies the construction of mixin application
 \LMHash{}
 A mixin may be applied to a superclass, yielding a new class.
 Mixin application occurs when one or more mixins are mixed into a class declaration via its \WITH{} clause.
-The mixin application may be used to extend a class per section (\ref{classes}); alternatively, a class may be defined as a mixin application as described in this section.
-It is a compile-time error if the \WITH{} clause of a mixin application $C$ includes a type variable (\ref{generics}), a type alias (\ref{typedef}), an enumerated type (\ref{enums}), a malformed type, or a deferred type (\ref{staticTypes}).
+The mixin application may be used to extend a class per section \ref{classes};
+alternatively, a class may be defined as a mixin application as described in this section.
+It is a compile-time error if an element in the type list of the \WITH{} clause of a mixin application is
+a type variable (\ref{generics}), a type alias (\ref{typedef}),
+an enumerated type (\ref{enums}), a malformed type (\ref{staticTypes}),
+a deferred type (\ref{staticTypes}), type \DYNAMIC{} (\ref{typeDynamic}),
+or type \code{FutureOr<$T$>} for any $T$ (\ref{typeFutureOr}).
 
 \begin{grammar}
 {\bf mixinApplicationClass:}identifier typeParameters? `=' mixinApplication `{\escapegrammar ;}'
@@ -10049,7 +10063,13 @@ Other tools can interpret the type information more aggressively and warn about 
 The built-in type declaration \code{dynamic},
 which is declared in the library \code{dart:core},
 denotes the \DYNAMIC{} type.
-When the name \DYNAMIC{} exported by \code{dart:core} is evaluated as an expression, it evaluates to a \code{Type} object representing the \DYNAMIC{} type, even though \DYNAMIC{} is not a class.
+When the name \DYNAMIC{} exported by \code{dart:core} is evaluated as an expression,
+it evaluates to a \code{Type} object representing the \DYNAMIC{} type,
+even though \DYNAMIC{} is not a class.
+
+
+\subsection{Type FutureOr}
+\LMLabel{typeFutureOr}
 
 \LMHash{}
 The built-in type declaration \code{FutureOr},
@@ -10087,9 +10107,12 @@ to provide a more precise type analysis.
 \LMHash{}
 The type \code{FutureOr<$T$>} has an interface that is identical to that
 of \code{Object}.
-\commentary{The only members that can be invoked on a value with static type
-\code{FutureOr<$T$>} are members that are also on \code{Object}.}
-\rationale{We only want to allow invocations of members that are inherited from
+\commentary{
+The only members that can be invoked on a value with static type
+\code{FutureOr<$T$>} are members that are also on \code{Object}.
+}
+\rationale{
+We only want to allow invocations of members that are inherited from
 a common supertype of both $T$ and \code{Future<$T$>}.
 In most cases the only common supertype is \code{Object}. The exceptions, like
 \code{FutureOr<Future<Object>>} which has \code{Future<Object>} as common
