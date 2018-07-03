@@ -613,6 +613,13 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
+  test_constWithAbstractClass_generic() async {
+    return super.test_constWithAbstractClass_generic();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
   test_equalKeysInMap() async {
     return super.test_equalKeysInMap();
   }
@@ -1122,6 +1129,13 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @potentialAnalyzerProblem
   test_newWithAbstractClass() async {
     return super.test_newWithAbstractClass();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_newWithAbstractClass_generic() async {
+    return super.test_newWithAbstractClass_generic();
   }
 
   @override

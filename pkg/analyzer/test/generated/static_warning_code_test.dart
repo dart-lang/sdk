@@ -4,6 +4,7 @@
 
 library analyzer.test.generated.static_warning_code_test;
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -1222,6 +1223,27 @@ void f() {
     await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.CONST_WITH_ABSTRACT_CLASS]);
     verify([source]);
+  }
+
+  test_constWithAbstractClass_generic() async {
+    Source source = addSource(r'''
+abstract class A<E> {
+  const A();
+}
+void f() {
+  var a = const A<int>();
+}''');
+    TestAnalysisResult result = await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.CONST_WITH_ABSTRACT_CLASS]);
+    verify([source]);
+
+    ClassDeclaration classA = result.unit.declarations[0];
+    FunctionDeclaration f = result.unit.declarations[1];
+    BlockFunctionBody body = f.functionExpression.body;
+    VariableDeclarationStatement a = body.block.statements[0];
+    InstanceCreationExpression init = a.variables.variables[0].initializer;
+    expect(init.staticType,
+        classA.element.type.instantiate([typeProvider.intType]));
   }
 
   test_equalKeysInMap() async {
@@ -2978,6 +3000,25 @@ void f() {
     await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.NEW_WITH_ABSTRACT_CLASS]);
     verify([source]);
+  }
+
+  test_newWithAbstractClass_generic() async {
+    Source source = addSource(r'''
+abstract class A<E> {}
+void f() {
+  var a = new A<int>();
+}''');
+    TestAnalysisResult result = await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.NEW_WITH_ABSTRACT_CLASS]);
+    verify([source]);
+
+    ClassDeclaration classA = result.unit.declarations[0];
+    FunctionDeclaration f = result.unit.declarations[1];
+    BlockFunctionBody body = f.functionExpression.body;
+    VariableDeclarationStatement a = body.block.statements[0];
+    InstanceCreationExpression init = a.variables.variables[0].initializer;
+    expect(init.staticType,
+        classA.element.type.instantiate([typeProvider.intType]));
   }
 
   test_newWithInvalidTypeParameters() async {
