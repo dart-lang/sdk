@@ -2926,8 +2926,15 @@ where each formal type parameter has been replaced by the corresponding actual t
 \LMHash{}
 A type parameter $T$ may be suffixed with an \EXTENDS{} clause that specifies the {\em upper bound} for $T$.
 If no \EXTENDS{} clause is present, the upper bound is \code{Object}.
-It is a static type warning if a type parameter is a supertype of its upper bound.
-The bounds of type variables are a form of type annotation and have no effect on execution in production mode.
+It is a static type warning if a type parameter is a supertype of its upper bound
+when that upper bound is itself a type variable.
+
+\commentary{
+This prevents circular declarations like
+\code{X \EXTENDS{} X}
+and
+\code{X \EXTENDS{} Y, Y \EXTENDS{} X}.
+}
 
 \LMHash{}
 Type parameters are declared in the type parameter scope of a class or function.
@@ -4053,7 +4060,7 @@ or to a \code{Symbol} instance that is \code{==} to that instance.
 
 \LMHash{}
 A symbol literal \code{\#\_$id$}, evaluates to an instance of \code{Symbol}
-representing the private identifier \code{_$id} of the containing library.
+representing the private identifier \code{\_\id} of the containing library.
 All occurences of \code{\#\_$id$} {\em in the same library} evaluate to the same instance,
 and no other symbol literals evaluate to that \code{Symbol} instance
 or to a \code{Symbol} instance that is \code{==} to that instance.
