@@ -426,6 +426,32 @@ class RawSocketEvent {
   }
 }
 
+/// Returned by the `startConnect` methods on client-side socket types `S`,
+/// `ConnectionTask<S>` allows cancelling an attempt to connect to a host.
+class ConnectionTask<S> {
+  /// A `Future` that completes with value that `S.connect()` would return
+  /// unless [cancel] is called on this [ConnectionTask].
+  ///
+  /// If [cancel] is called, the `Future` completes with a [SocketException]
+  /// error whose message indicates that the connection attempt was cancelled.
+  final Future<S> socket;
+  final void Function() _onCancel;
+
+  ConnectionTask._({Future<S> socket, void Function() onCancel})
+      : assert(socket != null),
+        assert(onCancel != null),
+        this.socket = socket,
+        this._onCancel = onCancel;
+
+  /// Cancels the connection attempt.
+  ///
+  /// This also causes the [socket] `Future` to complete with a
+  /// [SocketException] error.
+  void cancel() {
+    _onCancel();
+  }
+}
+
 /**
  * The [RawSocket] is a low-level interface to a socket, exposing the raw
  * events signaled by the system. It's a [Stream] of [RawSocketEvent]s.
@@ -469,6 +495,12 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    */
   external static Future<RawSocket> connect(host, int port,
       {sourceAddress, Duration timeout});
+
+  /// Like [connect], but returns a [Future] that completes with a
+  /// [ConnectionTask] that can be cancelled if the [RawSocket] is no
+  /// longer needed.
+  external static Future<ConnectionTask<RawSocket>> startConnect(host, int port,
+      {sourceAddress});
 
   /**
    * Returns the number of received and non-read bytes in the socket that
@@ -583,8 +615,24 @@ abstract class Socket implements Stream<List<int>>, IOSink {
         sourceAddress: sourceAddress, timeout: timeout);
   }
 
+  /// Like [connect], but returns a [Future] that completes with a
+  /// [ConnectionTask] that can be cancelled if the [Socket] is no
+  /// longer needed.
+  static Future<ConnectionTask<Socket>> startConnect(host, int port,
+      {sourceAddress}) {
+    final IOOverrides overrides = IOOverrides.current;
+    if (overrides == null) {
+      return Socket._startConnect(host, port, sourceAddress: sourceAddress);
+    }
+    return overrides.socketStartConnect(host, port,
+        sourceAddress: sourceAddress);
+  }
+
   external static Future<Socket> _connect(host, int port,
       {sourceAddress, Duration timeout});
+
+  external static Future<ConnectionTask<Socket>> _startConnect(host, int port,
+      {sourceAddress});
 
   /**
    * Destroy the socket in both directions. Calling [destroy] will make the

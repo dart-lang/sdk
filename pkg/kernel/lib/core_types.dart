@@ -83,6 +83,7 @@ class CoreTypes {
   Class _asyncAwaitCompleterClass;
   Class _futureOrClass;
   Constructor _asyncAwaitCompleterConstructor;
+  Procedure _completeOnAsyncReturnProcedure;
   Procedure _completerSyncConstructor;
   Procedure _completerComplete;
   Procedure _completerCompleteError;
@@ -182,6 +183,11 @@ class CoreTypes {
   Constructor get asyncAwaitCompleterConstructor {
     return _asyncAwaitCompleterConstructor ??=
         index.getMember('dart:async', '_AsyncAwaitCompleter', '');
+  }
+
+  Member get completeOnAsyncReturn {
+    return _completeOnAsyncReturnProcedure ??=
+        index.getTopLevelMember('dart:async', '_completeOnAsyncReturn');
   }
 
   Procedure get completerComplete {

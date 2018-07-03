@@ -2,6 +2,45 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $strong ]
+allocation_profile/element_test: CompileTimeError # observatory is not strong clean (Issue 32503)
+class_tree/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+context_view/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+cpu_profile/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+cpu_profile_table/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+curly_block/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+error_view/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+flag_list/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+general_error/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+icdata_view/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+inbound_references/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+isolate/counter_chart/element_test: CompileTimeError # observatory is not strong clean (Issue 32503)
+isolate/isolate-shared-summary/element_test: CompileTimeError # observatory is not strong clean (Issue 32503)
+isolate_reconnect/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+megamorphiccache_view/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+nav/class-menu/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+nav/isolate-menu/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+nav/library-menu/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+nav/menu-item/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+nav/notify/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+nav/notify_event/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+nav/notify_exception/connection_exception_test: RuntimeError # observatory is not strong clean (Issue 32503)
+nav/notify_exception/exception_test: RuntimeError # observatory is not strong clean (Issue 32503)
+nav/refresh/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+nav/top_menu/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+nav/vm_menu/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+object_common/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+objectpool_view/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+objectstore_view/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+persistent_handles_page/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+ports/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+retaining_path/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+script_ref/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+source_link/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+view_footer/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+vm_connect/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+vm_connect_target/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
+
 [ $runtime == chrome || $runtime == ff || $runtime == safari ]
 heap_snapshot/element_test: RuntimeError # Issue 27925
 

@@ -36,8 +36,8 @@ main() {
   });
 }
 
-isInstanceOf isGenerateOptionsErrorsTask =
-    new isInstanceOf<GenerateOptionsErrorsTask>();
+final isGenerateOptionsErrorsTask =
+    new TypeMatcher<GenerateOptionsErrorsTask>();
 
 @reflectiveTest
 class ContextConfigurationTest extends AbstractContextTest {
@@ -203,6 +203,8 @@ class ErrorCodeValuesTest {
             .remove(AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND.name);
         declaredNames
             .remove(AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING.name);
+        declaredNames
+            .remove(AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT.name);
       } else if (errorType == StaticWarningCode) {
         declaredNames.remove(
             StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS.name +
@@ -290,8 +292,9 @@ class ErrorProcessorMatcher extends Matcher {
   ErrorProcessorMatcher(this.required);
 
   @override
-  Description describe(Description desc) => desc
-    ..add("an ErrorProcessor setting ${required.code} to ${required.severity}");
+  Description describe(Description desc) =>
+      desc..add("an ErrorProcessor setting ${required.code} to ${required
+            .severity}");
 
   @override
   bool matches(dynamic o, Map<dynamic, dynamic> options) {
@@ -459,7 +462,10 @@ analyzer:
     AnalysisTarget target = newSource(optionsFilePath, code);
     computeResult(target, ANALYSIS_OPTIONS_ERRORS);
     expect(task, isGenerateOptionsErrorsTask);
-    expect(outputs[ANALYSIS_OPTIONS_ERRORS], isEmpty);
+    expect(outputs[ANALYSIS_OPTIONS_ERRORS], hasLength(1));
+    expect(outputs[ANALYSIS_OPTIONS_ERRORS].first.errorCode,
+        AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED);
+
     LineInfo lineInfo = outputs[LINE_INFO];
     expect(lineInfo, isNotNull);
     expect(lineInfo.getLocation(1).lineNumber, 1);
@@ -492,7 +498,10 @@ class GenerateOldOptionsErrorsTaskTest extends AbstractContextTest {
     validate('''
 analyzer:
   strong-mode: true
-    ''', [AnalysisOptionsHintCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME]);
+    ''', [
+      AnalysisOptionsHintCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME,
+      AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED
+    ]);
   }
 
   test_finds_issues_in_old_options_files() {
@@ -572,6 +581,28 @@ analyzer:
 ''', [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
   }
 
+  test_analyzer_language_supports_empty() {
+    validate('''
+analyzer:
+  language:
+''', []);
+  }
+
+  test_analyzer_language_bad_format_scalar() {
+    validate('''
+analyzer:
+  language: true
+''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+  }
+
+  test_analyzer_language_bad_format_list() {
+    validate('''
+analyzer:
+  language:
+    - enableSuperMixins: true
+''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+  }
+
   test_analyzer_lint_codes_recognized() {
     Registry.ruleRegistry.register(new TestRule());
     validate('''
@@ -589,11 +620,11 @@ analyzer:
 ''', []);
   }
 
-  test_analyzer_strong_mode_false_deprecated() {
+  test_analyzer_strong_mode_false_removed() {
     validate('''
 analyzer:
   strong-mode: false
-    ''', [AnalysisOptionsHintCode.SPEC_MODE_DEPRECATED]);
+    ''', [AnalysisOptionsWarningCode.SPEC_MODE_REMOVED]);
   }
 
   test_analyzer_supported_exclude() {
@@ -604,11 +635,27 @@ analyzer:
     ''', []);
   }
 
-  test_analyzer_supported_strong_mode() {
+  test_analyzer_strong_mode_deprecated() {
     validate('''
 analyzer:
   strong-mode: true
-    ''', []);
+    ''', [AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED]);
+  }
+
+  test_analyzer_strong_mode_unsupported_key() {
+    validate('''
+analyzer:
+  strong-mode:
+    unsupported: true
+''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
+  }
+
+  test_analyzer_strong_mode_deprecated_key() {
+    validate('''
+analyzer:
+  strong-mode:
+    declaration-casts: false
+''', [AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED]);
   }
 
   test_analyzer_supported_strong_mode_supported_bad_value() {
@@ -733,5 +780,6 @@ linter:
 
 class TestRule extends LintRule {
   TestRule() : super(name: 'fantastic_test_rule');
+
   TestRule.withName(String name) : super(name: name);
 }

@@ -41,6 +41,13 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
     return super.test_abstractSuperMemberReference_method_reference();
   }
 
+  @override
+  @failingTest
+  test_abstractSuperMemberReference_setter() async {
+    // Bad state: Unable to convert (ABSTRACT_SUPER_MEMBER_REFERENCE, @99, Superclass has no setter named 'test'.)
+    return super.test_abstractSuperMemberReference_setter();
+  }
+
   @failingTest
   @override
   test_abstractSuperMemberReference_superHasNoSuchMethod() async {
@@ -64,13 +71,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @failingTest
   @override
-  test_deadCode_deadFinalStatementInCase() async {
-    // Expected 1 errors of type StaticWarningCode.CASE_BLOCK_NOT_TERMINATED, found 0
-    return super.test_deadCode_deadFinalStatementInCase();
-  }
-
-  @failingTest
-  @override
   test_deprecatedAnnotationUse_call() async {
     // Expected 1 errors of type HintCode.DEPRECATED_MEMBER_USE, found 0
     return super.test_deprecatedAnnotationUse_call();
@@ -81,12 +81,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   test_deprecatedAnnotationUse_Deprecated() async {
     // Expected 1 errors of type HintCode.DEPRECATED_MEMBER_USE, found 0
     return super.test_deprecatedAnnotationUse_Deprecated();
-  }
-
-  @override
-  @failingTest
-  test_deprecatedAnnotationUse_named() async {
-    return super.test_deprecatedAnnotationUse_named();
   }
 
   @failingTest
@@ -154,38 +148,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
     return super.test_invalidRequiredParam_on_named_parameter_with_default();
   }
 
-  @override
-  @failingTest
-  test_invalidRequiredParam_on_positional_parameter() async {
-    return super.test_invalidRequiredParam_on_positional_parameter();
-  }
-
-  @override
-  @failingTest
-  test_invalidRequiredParam_on_positional_parameter_with_default() async {
-    return super
-        .test_invalidRequiredParam_on_positional_parameter_with_default();
-  }
-
-  @override
-  @failingTest
-  test_invalidRequiredParam_on_required_parameter() async {
-    return super.test_invalidRequiredParam_on_required_parameter();
-  }
-
-  @override
-  @failingTest
-  test_invalidRequiredParam_valid() async {
-    return super.test_invalidRequiredParam_valid();
-  }
-
-  @override
-  @failingTest
-  test_isNotDouble() {
-    // Bad state: No data for is at 10
-    return super.test_isNotDouble();
-  }
-
   @failingTest
   @override
   test_js_lib_OK() async {
@@ -249,13 +211,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
     return super.test_mustCallSuper_indirect();
   }
 
-  @failingTest
-  @override
-  test_nullAwareBeforeOperator_ok_is_not() {
-    // Bad state: No data for is at 14
-    return super.test_nullAwareBeforeOperator_ok_is_not();
-  }
-
   @override
   @failingTest
   test_required_constructor_param() async {
@@ -264,26 +219,8 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @override
   @failingTest
-  test_required_constructor_param_no_reason() async {
-    return super.test_required_constructor_param_no_reason();
-  }
-
-  @override
-  @failingTest
   test_required_constructor_param_null_reason() async {
     return super.test_required_constructor_param_null_reason();
-  }
-
-  @override
-  @failingTest
-  test_required_constructor_param_OK() async {
-    return super.test_required_constructor_param_OK();
-  }
-
-  @override
-  @failingTest
-  test_required_constructor_param_redirecting_cons_call() async {
-    return super.test_required_constructor_param_redirecting_cons_call();
   }
 
   @override
@@ -332,67 +269,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @failingTest
   @override
-  test_strongMode_topLevelInstanceGetter_implicitlyTyped_field_call() {
-    // NoSuchMethodError: The setter 'enclosingElement=' was called on null.
-    return super
-        .test_strongMode_topLevelInstanceGetter_implicitlyTyped_field_call();
-  }
-
-  @override
-  @failingTest
-  test_strongMode_topLevelInstanceGetter_implicitlyTyped_invoke() {
-    return super
-        .test_strongMode_topLevelInstanceGetter_implicitlyTyped_invoke();
-  }
-
-  @override
-  @failingTest
-  test_strongMode_topLevelInstanceGetter_implicitlyTyped_invoke_explicit_type_params() {
-    return super
-        .test_strongMode_topLevelInstanceGetter_implicitlyTyped_invoke_explicit_type_params();
-  }
-
-  @failingTest
-  @override
-  test_strongMode_topLevelInstanceGetter_implicitlyTyped_invoke_not_generic() {
-    // NoSuchMethodError: The setter 'enclosingElement=' was called on null.
-    return super
-        .test_strongMode_topLevelInstanceGetter_implicitlyTyped_invoke_not_generic();
-  }
-
-  @failingTest
-  @override
-  test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_explicit_type_params_prefixed() {
-    // NoSuchMethodError: The setter 'enclosingElement=' was called on null.
-    return super
-        .test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_explicit_type_params_prefixed();
-  }
-
-  @failingTest
-  @override
-  test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_not_generic_prefixed() {
-    // NoSuchMethodError: The getter 'element' was called on null.
-    return super
-        .test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_not_generic_prefixed();
-  }
-
-  @failingTest
-  @override
-  test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_prefixed() {
-    // NoSuchMethodError: The getter 'element' was called on null.
-    return super
-        .test_strongMode_topLevelInstanceGetter_implicitlyTyped_new_prefixed();
-  }
-
-  @failingTest
-  @override
-  test_typeCheck_type_not_Null() {
-    // Bad state: No data for is at 20
-    return super.test_typeCheck_type_not_Null();
-  }
-
-  @failingTest
-  @override
   test_undefinedOperator_binaryExpression() async {
     // Expected 1 errors of type HintCode.UNDEFINED_OPERATOR, found 0
     return super.test_undefinedOperator_binaryExpression();
@@ -417,27 +293,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   test_undefinedOperator_indexSetter() async {
     // Expected 1 errors of type HintCode.UNDEFINED_OPERATOR, found 0
     return super.test_undefinedOperator_indexSetter();
-  }
-
-  @failingTest
-  @override
-  test_unnecessaryTypeCheck_null_not_Null() {
-    // Bad state: No data for is at 14
-    return super.test_unnecessaryTypeCheck_null_not_Null();
-  }
-
-  @failingTest
-  @override
-  test_unnecessaryTypeCheck_type_not_dynamic() {
-    // Bad state: No data for is at 20
-    return super.test_unnecessaryTypeCheck_type_not_dynamic();
-  }
-
-  @failingTest
-  @override
-  test_unnecessaryTypeCheck_type_not_object() {
-    // Bad state: No data for is at 20
-    return super.test_unnecessaryTypeCheck_type_not_object();
   }
 
   @failingTest

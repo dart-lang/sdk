@@ -1,5 +1,3 @@
-analyzer:
-  strong-mode: true
 linter:
   rules:
     - empty_constructor_bodies

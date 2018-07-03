@@ -392,8 +392,14 @@ class ClassEnvImpl implements ClassEnv {
           continue;
         }
         if (!includeStatic && member.isStatic) continue;
-        if (!includeNoSuchMethodForwarders && member.isNoSuchMethodForwarder) {
-          continue;
+        if (member.isNoSuchMethodForwarder) {
+          // TODO(sigmund): remove once #33665 is fixed.
+          if (!includeNoSuchMethodForwarders ||
+              member.name.isPrivate &&
+                  member.name.libraryName !=
+                      member.enclosingLibrary.reference) {
+            continue;
+          }
         }
         var name = member.name.name;
         assert(!name.contains('#'));

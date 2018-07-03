@@ -82,7 +82,7 @@ strong-mode: true
 
       var optionsProvider = new AnalysisOptionsProvider();
       expect(() => optionsProvider.getOptionsFromString(src),
-          throwsA(new isInstanceOf<OptionsFormatException>()));
+          throwsA(new TypeMatcher<OptionsFormatException>()));
     });
 
     test('test_bad_yaml (2)', () {

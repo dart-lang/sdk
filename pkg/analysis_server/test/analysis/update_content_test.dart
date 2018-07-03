@@ -212,7 +212,7 @@ f() {}
     Map<String, dynamic> files = params.files;
     expect(files, hasLength(1));
     Object overlay = files[filePath];
-    expect(overlay, new isInstanceOf<plugin.AddContentOverlay>());
+    expect(overlay, const TypeMatcher<plugin.AddContentOverlay>());
     plugin.AddContentOverlay addOverlay = overlay;
     expect(addOverlay.content, fileContent);
     //
@@ -228,7 +228,7 @@ f() {}
     files = params.files;
     expect(files, hasLength(1));
     overlay = files[filePath];
-    expect(overlay, new isInstanceOf<plugin.ChangeContentOverlay>());
+    expect(overlay, const TypeMatcher<plugin.ChangeContentOverlay>());
     plugin.ChangeContentOverlay changeOverlay = overlay;
     expect(changeOverlay.edits, hasLength(2));
     //
@@ -243,7 +243,7 @@ f() {}
     files = params.files;
     expect(files, hasLength(1));
     overlay = files[filePath];
-    expect(overlay, new isInstanceOf<plugin.RemoveContentOverlay>());
+    expect(overlay, const TypeMatcher<plugin.RemoveContentOverlay>());
   }
 
 //  CompilationUnit _getTestUnit() {

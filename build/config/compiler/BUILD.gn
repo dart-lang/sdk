@@ -315,12 +315,6 @@ config("compiler") {
       "-Wl,--exclude-libs=libgcc.a",
       "-Wl,--exclude-libs=libc++_static.a",
     ]
-    if (current_cpu == "arm") {
-      ldflags += [
-        # Enable identical code folding to reduce size.
-        "-Wl,--icf=safe",
-      ]
-    }
 
     if (is_clang) {
       if (current_cpu == "arm") {
@@ -662,7 +656,10 @@ if (is_win) {
       "/Gw",
     ]
   }
-  common_optimize_on_ldflags = [ "/OPT:REF" ]
+  common_optimize_on_ldflags = [
+    "/OPT:REF",
+    "/OPT:ICF",
+  ]
 } else {
   common_optimize_on_cflags = [
     # Don't emit the GCC version ident directives, they just end up in the
@@ -693,6 +690,10 @@ if (is_win) {
       # See http://lwn.net/Articles/192624/ .
       "-Wl,-O1",
       "-Wl,--gc-sections",
+
+      # Identical code folding to reduce size.
+      # Warning: This changes C/C++ semantics of function pointer comparison.
+      "-Wl,--icf=all",
     ]
 
     if (!using_sanitizer) {

@@ -58,7 +58,7 @@ void TestCase::Run() {
 }
 
 void RawTestCase::Run() {
-  bin::Log::Print("Running test: %s\n", name());
+  bin::Log::Print("Running raw test: %s\n", name());
   (*run_)();
   bin::Log::Print("Done: %s\n", name());
 }

@@ -16,7 +16,9 @@ final String pkgVmDir = Platform.script.resolve('../..').toFilePath();
 runTestCase(Uri source) async {
   Component component = await compileTestCaseToKernelProgram(source);
 
-  generateBytecode(component, strongMode: true);
+  // Need to omit source positions from bytecode as they are different on
+  // Linux and Windows (due to differences in newline characters).
+  generateBytecode(component, strongMode: true, omitSourcePositions: true);
 
   final actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);
   compareResultWithExpectationsFile(source, actual);

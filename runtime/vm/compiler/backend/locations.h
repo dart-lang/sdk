@@ -516,14 +516,16 @@ class RegisterSet : public ValueObject {
     ASSERT(kNumberOfFpuRegisters <= (kWordSize * kBitsPerByte));
   }
 
-  void AddAllNonReservedRegisters() {
-    for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
-      Add(Location::FpuRegisterLocation(static_cast<FpuRegister>(i)));
-    }
-
+  void AddAllNonReservedRegisters(bool include_fpu_registers) {
     for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
       if (kReservedCpuRegisters & (1 << i)) continue;
       Add(Location::RegisterLocation(static_cast<Register>(i)));
+    }
+
+    if (include_fpu_registers) {
+      for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
+        Add(Location::FpuRegisterLocation(static_cast<FpuRegister>(i)));
+      }
     }
   }
 

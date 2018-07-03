@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Updates the checked in SDKs
+# Uploads a new version of the checked in SDK CIPD packages
 set -e
 set -x
 
@@ -21,35 +21,64 @@ trap cleanup EXIT HUP INT QUIT TERM PIPE
 pushd "$tmpdir"
 
 gsutil cp "gs://dart-archive/channels/$channel/release/$1/sdk/dartsdk-linux-x64-release.zip" .
+unzip -q dartsdk-linux-x64-release.zip -d sdk
+cipd create \
+  -name dart/dart-sdk/linux-amd64 \
+  -in sdk \
+  -install-mode copy \
+  -tag version:$1 \
+  -ref $channel
+rm -rf sdk
+
 gsutil cp "gs://dart-archive/channels/$channel/release/$1/sdk/dartsdk-linux-arm-release.zip" .
+unzip -q dartsdk-linux-arm-release.zip -d sdk
+cipd create \
+  -name dart/dart-sdk/linux-armv6l \
+  -in sdk \
+  -install-mode copy \
+  -tag version:$1 \
+  -ref $channel
+rm -rf sdk
+
 gsutil cp "gs://dart-archive/channels/$channel/release/$1/sdk/dartsdk-linux-arm64-release.zip" .
+unzip -q dartsdk-linux-arm64-release.zip -d sdk
+cipd create \
+  -name dart/dart-sdk/linux-arm64 \
+  -in sdk \
+  -install-mode copy \
+  -tag version:$1 \
+  -ref $channel
+rm -rf sdk
+
 gsutil cp "gs://dart-archive/channels/$channel/release/$1/sdk/dartsdk-macos-x64-release.zip" .
+unzip -q dartsdk-macos-x64-release.zip -d sdk
+cipd create \
+  -name dart/dart-sdk/mac-amd64 \
+  -in sdk \
+  -install-mode copy \
+  -tag version:$1 \
+  -ref $channel
+rm -rf sdk
+
+# We currently use the ia32 SDK on x64 Windows as well, see also README.
 gsutil cp "gs://dart-archive/channels/$channel/release/$1/sdk/dartsdk-windows-ia32-release.zip" .
+unzip -q dartsdk-windows-ia32-release.zip -d sdk
+cipd create \
+  -name dart/dart-sdk/windows-amd64 \
+  -in sdk \
+  -install-mode copy \
+  -tag version:$1 \
+  -ref $channel
+rm -rf sdk
 
-unzip -q dartsdk-linux-arm-release.zip dart-sdk/bin/dart
-mv dart-sdk/bin/dart dart-sdk/bin/dart-arm
-unzip -q dartsdk-linux-arm64-release.zip dart-sdk/bin/dart
-mv dart-sdk/bin/dart dart-sdk/bin/dart-arm64
-unzip -q dartsdk-linux-x64-release.zip
-tar -czf dart-sdk.tar.gz dart-sdk
-upload_to_google_storage.py -b dart-dependencies dart-sdk.tar.gz
-mv dart-sdk.tar.gz.sha1 dart-sdk.tar.gz.sha1-linux
-rm -rf dart-sdk
-
-unzip -q dartsdk-macos-x64-release.zip
-tar -czf dart-sdk.tar.gz dart-sdk
-upload_to_google_storage.py -b dart-dependencies dart-sdk.tar.gz
-mv dart-sdk.tar.gz.sha1 dart-sdk.tar.gz.sha1-mac
-rm -rf dart-sdk
-
-unzip -q dartsdk-windows-ia32-release.zip
-tar -czf dart-sdk.tar.gz dart-sdk
-upload_to_google_storage.py -b dart-dependencies dart-sdk.tar.gz
-mv dart-sdk.tar.gz.sha1 dart-sdk.tar.gz.sha1-win
-rm -rf dart-sdk
+gsutil cp "gs://dart-archive/channels/$channel/release/$1/sdk/dartsdk-windows-ia32-release.zip" .
+unzip -q dartsdk-windows-ia32-release.zip -d sdk
+cipd create \
+  -name dart/dart-sdk/windows-386 \
+  -in sdk \
+  -install-mode copy \
+  -tag version:$1 \
+  -ref $channel
+rm -rf sdk
 
 popd
-
-mv $tmpdir/dart-sdk.tar.gz.sha1-linux linux/dart-sdk.tar.gz.sha1
-mv $tmpdir/dart-sdk.tar.gz.sha1-mac mac/dart-sdk.tar.gz.sha1
-mv $tmpdir/dart-sdk.tar.gz.sha1-win win/dart-sdk.tar.gz.sha1

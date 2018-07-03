@@ -26,9 +26,9 @@ main() {
   }
 }
 
-var _isFile = new isInstanceOf<File>();
-var _isFileSystemException = new isInstanceOf<FileSystemException>();
-var _isFolder = new isInstanceOf<Folder>();
+final _isFile = new TypeMatcher<File>();
+final _isFileSystemException = new TypeMatcher<FileSystemException>();
+final _isFolder = new TypeMatcher<Folder>();
 
 String join(String part1, [String part2, String part3]) =>
     pathos.join(part1, part2, part3);
@@ -137,7 +137,7 @@ class FileTest extends _BaseTest {
 
   void test_parent() {
     Resource parent = file.parent;
-    expect(parent, new isInstanceOf<Folder>());
+    expect(parent, _isFolder);
     expect(parent.path, equals(tempPath));
   }
 
@@ -457,7 +457,7 @@ class FolderTest extends _BaseTest {
 
   void test_parent() {
     Resource parent = folder.parent;
-    expect(parent, new isInstanceOf<Folder>());
+    expect(parent, _isFolder);
     expect(parent.path, equals(tempPath));
 
     // Since the OS is in control of where tempPath is, we don't know how
@@ -469,7 +469,7 @@ class FolderTest extends _BaseTest {
       if (grandParent == null) {
         break;
       }
-      expect(grandParent, new isInstanceOf<Folder>());
+      expect(grandParent, _isFolder);
       expect(grandParent.path.length, lessThan(parent.path.length));
       parent = grandParent;
     }

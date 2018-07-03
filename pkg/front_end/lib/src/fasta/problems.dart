@@ -17,6 +17,8 @@ import 'messages.dart'
 
 import 'severity.dart' show Severity;
 
+export 'deprecated_problems.dart' show DebugAbort;
+
 /// Used to report an internal error.
 ///
 /// Internal errors should be avoided as best as possible, but are preferred

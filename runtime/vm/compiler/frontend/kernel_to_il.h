@@ -16,6 +16,7 @@
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
+#include "vm/compiler/frontend/kernel_translation_helper.h"
 
 namespace dart {
 namespace kernel {
@@ -304,176 +305,6 @@ class ActiveTypeParametersScope {
   ActiveClass saved_;
 };
 
-class TranslationHelper {
- public:
-  explicit TranslationHelper(Thread* thread);
-
-  virtual ~TranslationHelper() {}
-
-  void Reset();
-
-  void InitFromScript(const Script& script);
-
-  void InitFromKernelProgramInfo(const KernelProgramInfo& info);
-
-  Thread* thread() { return thread_; }
-
-  Zone* zone() { return zone_; }
-
-  Isolate* isolate() { return isolate_; }
-
-  Heap::Space allocation_space() { return allocation_space_; }
-
-  // Access to strings.
-  const TypedData& string_offsets() { return string_offsets_; }
-  void SetStringOffsets(const TypedData& string_offsets);
-
-  const ExternalTypedData& string_data() { return string_data_; }
-  void SetStringData(const ExternalTypedData& string_data);
-
-  const TypedData& canonical_names() { return canonical_names_; }
-  void SetCanonicalNames(const TypedData& canonical_names);
-
-  const ExternalTypedData& metadata_payloads() { return metadata_payloads_; }
-  void SetMetadataPayloads(const ExternalTypedData& metadata_payloads);
-
-  const ExternalTypedData& metadata_mappings() { return metadata_mappings_; }
-  void SetMetadataMappings(const ExternalTypedData& metadata_mappings);
-
-  const Array& constants() { return constants_; }
-  void SetConstants(const Array& constants);
-
-  intptr_t StringOffset(StringIndex index) const;
-  intptr_t StringSize(StringIndex index) const;
-
-  // The address of the backing store of the string with a given index.  If the
-  // backing store is in the VM's heap this address is not safe for GC (call the
-  // function and use the result within a NoSafepointScope).
-  uint8_t* StringBuffer(StringIndex index) const;
-
-  uint8_t CharacterAt(StringIndex string_index, intptr_t index);
-  bool StringEquals(StringIndex string_index, const char* other);
-
-  // Accessors and predicates for canonical names.
-  NameIndex CanonicalNameParent(NameIndex name);
-  StringIndex CanonicalNameString(NameIndex name);
-  bool IsAdministrative(NameIndex name);
-  bool IsPrivate(NameIndex name);
-  bool IsRoot(NameIndex name);
-  bool IsLibrary(NameIndex name);
-  bool IsClass(NameIndex name);
-  bool IsMember(NameIndex name);
-  bool IsField(NameIndex name);
-  bool IsConstructor(NameIndex name);
-  bool IsProcedure(NameIndex name);
-  bool IsMethod(NameIndex name);
-  bool IsGetter(NameIndex name);
-  bool IsSetter(NameIndex name);
-  bool IsFactory(NameIndex name);
-
-  // For a member (field, constructor, or procedure) return the canonical name
-  // of the enclosing class or library.
-  NameIndex EnclosingName(NameIndex name);
-
-  RawInstance* Canonicalize(const Instance& instance);
-
-  const String& DartString(const char* content) {
-    return DartString(content, allocation_space_);
-  }
-  const String& DartString(const char* content, Heap::Space space);
-
-  String& DartString(StringIndex index) {
-    return DartString(index, allocation_space_);
-  }
-  String& DartString(StringIndex string_index, Heap::Space space);
-
-  String& DartString(const uint8_t* utf8_array,
-                     intptr_t len,
-                     Heap::Space space);
-
-  const String& DartSymbolPlain(const char* content) const;
-  String& DartSymbolPlain(StringIndex string_index) const;
-  const String& DartSymbolObfuscate(const char* content) const;
-  String& DartSymbolObfuscate(StringIndex string_index) const;
-
-  String& DartIdentifier(const Library& lib, StringIndex string_index);
-
-  const String& DartClassName(NameIndex kernel_class);
-
-  const String& DartConstructorName(NameIndex constructor);
-
-  const String& DartProcedureName(NameIndex procedure);
-
-  const String& DartSetterName(NameIndex setter);
-  const String& DartSetterName(NameIndex parent, StringIndex setter);
-
-  const String& DartGetterName(NameIndex getter);
-  const String& DartGetterName(NameIndex parent, StringIndex getter);
-
-  const String& DartFieldName(NameIndex field);
-  const String& DartFieldName(NameIndex parent, StringIndex field);
-
-  const String& DartMethodName(NameIndex method);
-  const String& DartMethodName(NameIndex parent, StringIndex method);
-
-  const String& DartFactoryName(NameIndex factory);
-
-  // A subclass overrides these when reading in the Kernel program in order to
-  // support recursive type expressions (e.g. for "implements X" ...
-  // annotations).
-  virtual RawLibrary* LookupLibraryByKernelLibrary(NameIndex library);
-  virtual RawClass* LookupClassByKernelClass(NameIndex klass);
-
-  RawField* LookupFieldByKernelField(NameIndex field);
-  RawFunction* LookupStaticMethodByKernelProcedure(NameIndex procedure);
-  RawFunction* LookupConstructorByKernelConstructor(NameIndex constructor);
-  RawFunction* LookupConstructorByKernelConstructor(const Class& owner,
-                                                    NameIndex constructor);
-  RawFunction* LookupConstructorByKernelConstructor(
-      const Class& owner,
-      StringIndex constructor_name);
-
-  Type& GetCanonicalType(const Class& klass);
-
-  void ReportError(const char* format, ...);
-  void ReportError(const Script& script,
-                   const TokenPosition position,
-                   const char* format,
-                   ...);
-  void ReportError(const Error& prev_error, const char* format, ...);
-  void ReportError(const Error& prev_error,
-                   const Script& script,
-                   const TokenPosition position,
-                   const char* format,
-                   ...);
-
- private:
-  // This will mangle [name_to_modify] if necessary and make the result a symbol
-  // if asked.  The result will be available in [name_to_modify] and it is also
-  // returned.  If the name is private, the canonical name [parent] will be used
-  // to get the import URI of the library where the name is visible.
-  String& ManglePrivateName(NameIndex parent,
-                            String* name_to_modify,
-                            bool symbolize = true,
-                            bool obfuscate = true);
-  String& ManglePrivateName(const Library& library,
-                            String* name_to_modify,
-                            bool symbolize = true,
-                            bool obfuscate = true);
-
-  Thread* thread_;
-  Zone* zone_;
-  Isolate* isolate_;
-  Heap::Space allocation_space_;
-
-  TypedData& string_offsets_;
-  ExternalTypedData& string_data_;
-  TypedData& canonical_names_;
-  ExternalTypedData& metadata_payloads_;
-  ExternalTypedData& metadata_mappings_;
-  Array& constants_;
-};
-
 struct FunctionScope {
   intptr_t kernel_offset;
   LocalScope* scope;
@@ -565,6 +396,7 @@ class BaseFlowGraphBuilder {
         pending_argument_count_(0) {}
 
   Fragment LoadField(intptr_t offset, intptr_t class_id = kDynamicCid);
+  Fragment LoadNativeField(const NativeFieldDesc* native_field);
   Fragment LoadIndexed(intptr_t index_scale);
 
   void SetTempIndex(Definition* definition);
@@ -773,11 +605,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment LoadClassId();
   Fragment LoadField(intptr_t offset, intptr_t class_id = kDynamicCid);
   Fragment LoadField(const Field& field);
-  Fragment LoadNativeField(MethodRecognizer::Kind kind,
-                           intptr_t offset,
-                           const Type& type,
-                           intptr_t class_id,
-                           bool is_immutable = false);
   Fragment LoadLocal(LocalVariable* variable);
   Fragment InitStaticField(const Field& field);
   Fragment LoadStaticField();
@@ -844,9 +671,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   bool NeedsDebugStepCheck(const Function& function, TokenPosition position);
   bool NeedsDebugStepCheck(Value* value, TokenPosition position);
   Fragment DebugStepCheck(TokenPosition position);
-
-  RawFunction* LookupMethodByMember(NameIndex target,
-                                    const String& method_name);
 
   LocalVariable* LookupVariable(intptr_t kernel_offset);
 

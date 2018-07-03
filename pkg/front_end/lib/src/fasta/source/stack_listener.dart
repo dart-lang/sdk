@@ -6,7 +6,7 @@ library fasta.stack_listener;
 
 import 'package:kernel/ast.dart' show AsyncMarker, Expression, FunctionNode;
 
-import '../deprecated_problems.dart' show deprecated_inputError;
+import '../deprecated_problems.dart' show deprecated_inputErrorFromMessage;
 
 import '../fasta_codes.dart'
     show
@@ -14,7 +14,14 @@ import '../fasta_codes.dart'
         messageNativeClauseShouldBeAnnotation,
         templateInternalProblemStackNotEmpty;
 
-import '../parser.dart' show Listener, MemberKind, Parser;
+import '../parser.dart'
+    show
+        Listener,
+        MemberKind,
+        Parser,
+        lengthForToken,
+        lengthOfSpan,
+        offsetForToken;
 
 import '../parser/identifier_context.dart' show IdentifierContext;
 
@@ -173,11 +180,6 @@ abstract class StackListener extends Listener {
               "${runtimeType}", stack.values.join("\n  ")),
           charOffset,
           uri);
-    }
-    if (recoverableErrors.isNotEmpty) {
-      // TODO(ahe): Handle recoverable errors better.
-      deprecated_inputError(
-          uri, recoverableErrors.first.beginOffset, recoverableErrors);
     }
   }
 
@@ -342,18 +344,19 @@ abstract class StackListener extends Listener {
   @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
-    /// TODO(danrubel): Ignore this error until we deprecate `native` support.
     if (message == messageNativeClauseShouldBeAnnotation) {
+      // TODO(danrubel): Ignore this error until we deprecate `native` support.
       return;
     }
     debugEvent("Error: ${message.message}");
-    int offset = startToken.offset;
-    addCompileTimeError(message, offset, endToken.end - offset);
+    addCompileTimeError(message, offsetForToken(startToken),
+        lengthOfSpan(startToken, endToken));
   }
 
   @override
   Token handleUnrecoverableError(Token token, Message message) {
-    throw deprecated_inputError(uri, token.charOffset, message.message);
+    return deprecated_inputErrorFromMessage(message.withLocation(
+        uri, offsetForToken(token), lengthForToken(token)));
   }
 
   @override

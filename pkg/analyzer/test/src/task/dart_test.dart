@@ -77,70 +77,70 @@ main() {
   });
 }
 
-isInstanceOf isBuildCompilationUnitElementTask =
-    new isInstanceOf<BuildCompilationUnitElementTask>();
-isInstanceOf isBuildDirectiveElementsTask =
-    new isInstanceOf<BuildDirectiveElementsTask>();
-isInstanceOf isBuildEnumMemberElementsTask =
-    new isInstanceOf<BuildEnumMemberElementsTask>();
-isInstanceOf isBuildExportNamespaceTask =
-    new isInstanceOf<BuildExportNamespaceTask>();
-isInstanceOf isBuildLibraryElementTask =
-    new isInstanceOf<BuildLibraryElementTask>();
-isInstanceOf isBuildPublicNamespaceTask =
-    new isInstanceOf<BuildPublicNamespaceTask>();
-isInstanceOf isBuildSourceExportClosureTask =
-    new isInstanceOf<BuildSourceExportClosureTask>();
-isInstanceOf isBuildTypeProviderTask =
-    new isInstanceOf<BuildTypeProviderTask>();
-isInstanceOf isComputeConstantDependenciesTask =
-    new isInstanceOf<ComputeConstantDependenciesTask>();
-isInstanceOf isComputeConstantValueTask =
-    new isInstanceOf<ComputeConstantValueTask>();
-isInstanceOf isComputeInferableStaticVariableDependenciesTask =
-    new isInstanceOf<ComputeInferableStaticVariableDependenciesTask>();
-isInstanceOf isContainingLibrariesTask =
-    new isInstanceOf<ContainingLibrariesTask>();
-isInstanceOf isDartErrorsTask = new isInstanceOf<DartErrorsTask>();
-isInstanceOf isEvaluateUnitConstantsTask =
-    new isInstanceOf<EvaluateUnitConstantsTask>();
-isInstanceOf isGatherUsedImportedElementsTask =
-    new isInstanceOf<GatherUsedImportedElementsTask>();
-isInstanceOf isGatherUsedLocalElementsTask =
-    new isInstanceOf<GatherUsedLocalElementsTask>();
-isInstanceOf isGenerateHintsTask = new isInstanceOf<GenerateHintsTask>();
-isInstanceOf isGenerateLintsTask = new isInstanceOf<GenerateLintsTask>();
-isInstanceOf isInferInstanceMembersInUnitTask =
-    new isInstanceOf<InferInstanceMembersInUnitTask>();
-isInstanceOf isInferStaticVariableTypesInUnitTask =
-    new isInstanceOf<InferStaticVariableTypesInUnitTask>();
-isInstanceOf isInferStaticVariableTypeTask =
-    new isInstanceOf<InferStaticVariableTypeTask>();
-isInstanceOf isLibraryErrorsReadyTask =
-    new isInstanceOf<LibraryErrorsReadyTask>();
-isInstanceOf isLibraryUnitErrorsTask =
-    new isInstanceOf<LibraryUnitErrorsTask>();
-isInstanceOf isParseDartTask = new isInstanceOf<ParseDartTask>();
-isInstanceOf isPartiallyResolveUnitReferencesTask =
-    new isInstanceOf<PartiallyResolveUnitReferencesTask>();
-isInstanceOf isResolveDirectiveElementsTask =
-    new isInstanceOf<ResolveDirectiveElementsTask>();
-isInstanceOf isResolveLibraryReferencesTask =
-    new isInstanceOf<ResolveLibraryReferencesTask>();
-isInstanceOf isResolveLibraryTask = new isInstanceOf<ResolveLibraryTask>();
-isInstanceOf isResolveLibraryTypeNamesTask =
-    new isInstanceOf<ResolveLibraryTypeNamesTask>();
-isInstanceOf isResolveTopLevelUnitTypeBoundsTask =
-    new isInstanceOf<ResolveTopLevelUnitTypeBoundsTask>();
-isInstanceOf isResolveUnitTask = new isInstanceOf<ResolveUnitTask>();
-isInstanceOf isResolveUnitTypeNamesTask =
-    new isInstanceOf<ResolveUnitTypeNamesTask>();
-isInstanceOf isResolveVariableReferencesTask =
-    new isInstanceOf<ResolveVariableReferencesTask>();
-isInstanceOf isScanDartTask = new isInstanceOf<ScanDartTask>();
-isInstanceOf isStrongModeVerifyUnitTask =
-    new isInstanceOf<StrongModeVerifyUnitTask>();
-isInstanceOf isVerifyUnitTask = new isInstanceOf<VerifyUnitTask>();
+final isBuildCompilationUnitElementTask =
+    new TypeMatcher<BuildCompilationUnitElementTask>();
+final isBuildDirectiveElementsTask =
+    new TypeMatcher<BuildDirectiveElementsTask>();
+final isBuildEnumMemberElementsTask =
+    new TypeMatcher<BuildEnumMemberElementsTask>();
+final isBuildExportNamespaceTask =
+    new TypeMatcher<BuildExportNamespaceTask>();
+final isBuildLibraryElementTask =
+    new TypeMatcher<BuildLibraryElementTask>();
+final isBuildPublicNamespaceTask =
+    new TypeMatcher<BuildPublicNamespaceTask>();
+final isBuildSourceExportClosureTask =
+    new TypeMatcher<BuildSourceExportClosureTask>();
+final isBuildTypeProviderTask =
+    new TypeMatcher<BuildTypeProviderTask>();
+final isComputeConstantDependenciesTask =
+    new TypeMatcher<ComputeConstantDependenciesTask>();
+final isComputeConstantValueTask =
+    new TypeMatcher<ComputeConstantValueTask>();
+final isComputeInferableStaticVariableDependenciesTask =
+    new TypeMatcher<ComputeInferableStaticVariableDependenciesTask>();
+final isContainingLibrariesTask =
+    new TypeMatcher<ContainingLibrariesTask>();
+final isDartErrorsTask = new TypeMatcher<DartErrorsTask>();
+final isEvaluateUnitConstantsTask =
+    new TypeMatcher<EvaluateUnitConstantsTask>();
+final isGatherUsedImportedElementsTask =
+    new TypeMatcher<GatherUsedImportedElementsTask>();
+final isGatherUsedLocalElementsTask =
+    new TypeMatcher<GatherUsedLocalElementsTask>();
+final isGenerateHintsTask = new TypeMatcher<GenerateHintsTask>();
+final isGenerateLintsTask = new TypeMatcher<GenerateLintsTask>();
+final isInferInstanceMembersInUnitTask =
+    new TypeMatcher<InferInstanceMembersInUnitTask>();
+final isInferStaticVariableTypesInUnitTask =
+    new TypeMatcher<InferStaticVariableTypesInUnitTask>();
+final isInferStaticVariableTypeTask =
+    new TypeMatcher<InferStaticVariableTypeTask>();
+final isLibraryErrorsReadyTask =
+    new TypeMatcher<LibraryErrorsReadyTask>();
+final isLibraryUnitErrorsTask =
+    new TypeMatcher<LibraryUnitErrorsTask>();
+final isParseDartTask = new TypeMatcher<ParseDartTask>();
+final isPartiallyResolveUnitReferencesTask =
+    new TypeMatcher<PartiallyResolveUnitReferencesTask>();
+final isResolveDirectiveElementsTask =
+    new TypeMatcher<ResolveDirectiveElementsTask>();
+final isResolveLibraryReferencesTask =
+    new TypeMatcher<ResolveLibraryReferencesTask>();
+final isResolveLibraryTask = new TypeMatcher<ResolveLibraryTask>();
+final isResolveLibraryTypeNamesTask =
+    new TypeMatcher<ResolveLibraryTypeNamesTask>();
+final isResolveTopLevelUnitTypeBoundsTask =
+    new TypeMatcher<ResolveTopLevelUnitTypeBoundsTask>();
+final isResolveUnitTask = new TypeMatcher<ResolveUnitTask>();
+final isResolveUnitTypeNamesTask =
+    new TypeMatcher<ResolveUnitTypeNamesTask>();
+final isResolveVariableReferencesTask =
+    new TypeMatcher<ResolveVariableReferencesTask>();
+final isScanDartTask = new TypeMatcher<ScanDartTask>();
+final isStrongModeVerifyUnitTask =
+    new TypeMatcher<StrongModeVerifyUnitTask>();
+final isVerifyUnitTask = new TypeMatcher<VerifyUnitTask>();
 
 final LintCode _testLintCode = new LintCode('test lint', 'test lint code');
 
@@ -248,7 +248,7 @@ class BuildDirectiveElementsTaskTest extends _AbstractDartTaskTest {
    */
   void checkMetadata(Element element, CompilationUnitElement compilationUnit) {
     expect(element.metadata, hasLength(1));
-    expect(element.metadata[0], new isInstanceOf<ElementAnnotationImpl>());
+    expect(element.metadata[0], new TypeMatcher<ElementAnnotationImpl>());
     ElementAnnotationImpl elementAnnotation = element.metadata[0];
     expect(elementAnnotation.element, isNull); // Not yet resolved
     expect(elementAnnotation.compilationUnit, isNotNull);
@@ -565,7 +565,7 @@ part 'part.dart';''',
         .getCacheEntry(new LibrarySpecificUnit(sourceA, sourcePart))
         .getValue(RESOLVED_UNIT1);
     // Validate metadata
-    expect(part.directives[0], new isInstanceOf<PartOfDirective>());
+    expect(part.directives[0], new TypeMatcher<PartOfDirective>());
     expect(part.directives[0].element, same(libraryA));
     expect(
         resolutionMap.elementDeclaredByDirective(part.directives[0]).metadata,
@@ -3830,7 +3830,7 @@ typedef F<T extends String>();
       String expectedBoundTypeString, String expectedBoundElementName) {
     TypeAnnotation bound = typeParameter.bound;
     // TODO(brianwilkerson) Extend this to support function types as bounds.
-    expect(bound, new isInstanceOf<TypeName>());
+    expect(bound, new TypeMatcher<TypeName>());
     TypeName boundNode = bound;
     Identifier boundName = boundNode.name;
     expect(boundNode.type.toString(), expectedBoundTypeString);
@@ -4910,7 +4910,7 @@ class _AbstractDartTaskTest extends AbstractContextTest {
 
   List<dynamic> computeLibraryResults(
       List<Source> sources, ResultDescriptor result,
-      {isInstanceOf matcher: null}) {
+      {Matcher matcher: null}) {
     dynamic compute(Source source) {
       computeResult(new LibrarySpecificUnit(source, source), result,
           matcher: matcher);
@@ -4922,7 +4922,7 @@ class _AbstractDartTaskTest extends AbstractContextTest {
 
   List<Map<ResultDescriptor, dynamic>> computeLibraryResultsMap(
       List<Source> sources, ResultDescriptor result,
-      {isInstanceOf matcher: null}) {
+      {Matcher matcher: null}) {
     Map<ResultDescriptor, dynamic> compute(Source source) {
       computeResult(source, result, matcher: matcher);
       return outputs;

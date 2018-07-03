@@ -8,6 +8,8 @@
  * check out the [Element] class, the base class for many of the HTML
  * DOM types.
  *
+ * For information on writing web apps with Dart, see https://webdev.dartlang.org.
+ *
  * {@category Web}
  */
 library dart.dom.html;
@@ -9929,7 +9931,7 @@ class DocumentFragment extends Node
    * last child of this document fragment.
    */
   void appendHtml(String text,
-      {NodeValidator validator, NodeTreeSanitizer, treeSanitizer}) {
+      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
     this.append(new DocumentFragment.html(text,
         validator: validator, treeSanitizer: treeSanitizer));
   }
@@ -25475,6 +25477,23 @@ class RtcPeerConnection extends EventTarget {
     return completer.future;
   }
 
+  /**
+  * Temporarily exposes _getStats and old getStats as getLegacyStats until Chrome fully supports
+  * new getStats API.
+  */
+  @JSName('getStats')
+  Future<RtcStatsResponse> getLegacyStats([MediaStreamTrack selector]) {
+    var completer = new Completer<RtcStatsResponse>();
+    _getStats((value) {
+      completer.complete(value);
+    }, selector);
+    return completer.future;
+  }
+
+  @JSName('getStats')
+  Future _getStats(
+      [RtcStatsCallback successCallback, MediaStreamTrack selector]) native;
+
   static Future generateCertificate(/*AlgorithmIdentifier*/ keygenAlgorithm) =>
       JS('dynamic', 'generateCertificate(#)', keygenAlgorithm);
 
@@ -30670,11 +30689,12 @@ class Window extends EventTarget
   Console get console => Console._safeConsole;
 
   /**
-   * Access a sandboxed file system of the specified `size`. If `persistent` is
-   * true, the application will request permission from the user to create
-   * lasting storage. This storage cannot be freed without the user's
-   * permission. Returns a [Future] whose value stores a reference to the
-   * sandboxed file system for use. Because the file system is sandboxed,
+   * Access a sandboxed file system of `size` bytes.
+   *
+   * If `persistent` is true, the application will request permission from the
+   * user to create lasting storage. This storage cannot be freed without the
+   * user's permission. Returns a [Future] whose value stores a reference to
+   * the sandboxed file system for use. Because the file system is sandboxed,
    * applications cannot access file systems created in other web pages.
    */
   Future<FileSystem> requestFileSystem(int size, {bool persistent: false}) {
@@ -38622,7 +38642,11 @@ class _JSElementUpgrader implements ElementUpgrader {
   Element upgrade(Element element) {
     // Only exact type matches are supported- cannot be a subclass.
     if (element.runtimeType != _nativeType) {
-      throw new ArgumentError('element is not subclass of $_nativeType');
+      // Some browsers may represent non-upgraded elements <x-foo> as
+      // UnknownElement and not a plain HtmlElement.
+      if (_nativeType != HtmlElement || element.runtimeType != UnknownElement) {
+        throw new ArgumentError('element is not subclass of $_nativeType');
+      }
     }
 
     setNativeSubclassDispatchRecord(element, _interceptor);

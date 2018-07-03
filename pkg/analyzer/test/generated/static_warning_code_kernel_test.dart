@@ -14,6 +14,11 @@ main() {
 
 const potentialAnalyzerProblem = const Object();
 
+/// Tests marked with this annotation fail because of an Analyzer problem.
+class AnalyzerProblem {
+  const AnalyzerProblem(String issueUri);
+}
+
 /// Tests marked with this annotation fail because of a Fasta problem.
 class FastaProblem {
   const FastaProblem(String issueUri);
@@ -216,14 +221,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   test_argumentTypeNotAssignable_invocation_functionParameter_generic() async {
     return super
         .test_argumentTypeNotAssignable_invocation_functionParameter_generic();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_invocation_functionTypes_optional() async {
-    return super
-        .test_argumentTypeNotAssignable_invocation_functionTypes_optional();
   }
 
   @override
@@ -462,13 +459,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @potentialAnalyzerProblem
   test_assignmentToTypeParameter() async {
     return super.test_assignmentToTypeParameter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_caseBlockNotTerminated() async {
-    return super.test_caseBlockNotTerminated();
   }
 
   @override
@@ -958,13 +948,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_invalidGetterOverrideReturnType() async {
-    return super.test_invalidGetterOverrideReturnType();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_invalidGetterOverrideReturnType_implicit() async {
     return super.test_invalidGetterOverrideReturnType_implicit();
   }
@@ -987,42 +970,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_invalidMethodOverrideNamedParamType() async {
-    return super.test_invalidMethodOverrideNamedParamType();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidMethodOverrideNormalParamType_interface() async {
-    return super.test_invalidMethodOverrideNormalParamType_interface();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidMethodOverrideNormalParamType_superclass() async {
-    return super.test_invalidMethodOverrideNormalParamType_superclass();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidMethodOverrideNormalParamType_superclass_interface() async {
-    return super
-        .test_invalidMethodOverrideNormalParamType_superclass_interface();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidMethodOverrideNormalParamType_twoInterfaces() async {
-    return super.test_invalidMethodOverrideNormalParamType_twoInterfaces();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_invalidMethodOverrideNormalParamType_twoInterfaces_conflicting() async {
     return super
         .test_invalidMethodOverrideNormalParamType_twoInterfaces_conflicting();
@@ -1031,64 +978,8 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_invalidMethodOverrideOptionalParamType() async {
-    return super.test_invalidMethodOverrideOptionalParamType();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidMethodOverrideOptionalParamType_twoInterfaces() async {
-    return super.test_invalidMethodOverrideOptionalParamType_twoInterfaces();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidMethodOverrideReturnType_interface() async {
-    return super.test_invalidMethodOverrideReturnType_interface();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidMethodOverrideReturnType_interface_grandparent() async {
-    return super.test_invalidMethodOverrideReturnType_interface_grandparent();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidMethodOverrideReturnType_mixin() async {
-    return super.test_invalidMethodOverrideReturnType_mixin();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidMethodOverrideReturnType_superclass() async {
-    return super.test_invalidMethodOverrideReturnType_superclass();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidMethodOverrideReturnType_superclass_grandparent() async {
-    return super.test_invalidMethodOverrideReturnType_superclass_grandparent();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_invalidMethodOverrideReturnType_twoInterfaces() async {
     return super.test_invalidMethodOverrideReturnType_twoInterfaces();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidMethodOverrideReturnType_void() async {
-    return super.test_invalidMethodOverrideReturnType_void();
   }
 
   @override
@@ -1136,23 +1027,9 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_invalidSetterOverrideNormalParamType() async {
-    return super.test_invalidSetterOverrideNormalParamType();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_invalidSetterOverrideNormalParamType_superclass_interface() async {
     return super
         .test_invalidSetterOverrideNormalParamType_superclass_interface();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidSetterOverrideNormalParamType_twoInterfaces() async {
-    return super.test_invalidSetterOverrideNormalParamType_twoInterfaces();
   }
 
   @override
@@ -1863,41 +1740,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @potentialAnalyzerProblem
   test_undefinedSetter() async {
     return super.test_undefinedSetter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_undefinedStaticMethodOrGetter_getter() async {
-    return super.test_undefinedStaticMethodOrGetter_getter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_undefinedStaticMethodOrGetter_getter_inSuperclass() async {
-    return super.test_undefinedStaticMethodOrGetter_getter_inSuperclass();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_undefinedStaticMethodOrGetter_method() async {
-    return super.test_undefinedStaticMethodOrGetter_method();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_undefinedStaticMethodOrGetter_method_inSuperclass() async {
-    return super.test_undefinedStaticMethodOrGetter_method_inSuperclass();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_undefinedStaticMethodOrGetter_setter_inSuperclass() async {
-    return super.test_undefinedStaticMethodOrGetter_setter_inSuperclass();
   }
 
   @failingTest

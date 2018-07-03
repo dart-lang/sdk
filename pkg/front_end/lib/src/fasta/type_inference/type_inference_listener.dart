@@ -27,8 +27,7 @@ import '../kernel/kernel_shadow_ast.dart'
 /// The default implementation (in this base class) does nothing, however it can
 /// be used to debug type inference by uncommenting the
 /// "with TypeInferenceDebugging" clause below.
-abstract class TypeInferenceListener<Location, Declaration, Reference,
-    PrefixInfo> {
+abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   void asExpression(
       ExpressionJudgment judgment,
       Location location,
@@ -173,7 +172,7 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
       DartType loopVariableType,
       Location writeLocation,
       DartType writeVariableType,
-      Declaration writeVariable,
+      covariant Object writeVariableBinder,
       Reference writeTarget);
 
   void forStatement(
@@ -422,7 +421,7 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
       ExpressionJudgment judgment,
       Location location,
       DartType writeContext,
-      Declaration writeVariable,
+      covariant Object writeVariableBinder,
       Reference combiner,
       DartType inferredType);
 
@@ -457,7 +456,7 @@ abstract class TypeInferenceListener<Location, Declaration, Reference,
 ///
 /// TODO(paulberry): fuse this with KernelFactory.
 class KernelTypeInferenceListener
-    implements TypeInferenceListener<int, int, Node, int> {
+    implements TypeInferenceListener<int, Node, int> {
   @override
   void asExpression(ExpressionJudgment judgment, location, void expression,
       Token asOperator, void literalType, DartType inferredType) {}
@@ -612,7 +611,7 @@ class KernelTypeInferenceListener
       DartType loopVariableType,
       writeLocation,
       DartType writeVariableType,
-      writeVariable,
+      covariant void writeVariableBinder,
       writeTarget) {}
 
   @override
@@ -888,8 +887,13 @@ class KernelTypeInferenceListener
       DartType inferredType) {}
 
   @override
-  void variableAssign(ExpressionJudgment judgment, location,
-      DartType writeContext, writeVariable, combiner, DartType inferredType) {}
+  void variableAssign(
+      ExpressionJudgment judgment,
+      location,
+      DartType writeContext,
+      covariant void writeVariableBinder,
+      combiner,
+      DartType inferredType) {}
 
   @override
   void variableDeclaration(

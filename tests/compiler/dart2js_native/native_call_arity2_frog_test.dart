@@ -78,20 +78,16 @@ testStaticContext() {
   Expect.equals(0, a.foo());
   Expect.equals(1, a.foo(10));
   Expect.equals(2, a.foo(10, 20));
-  Expect.throws(() => a.foo(10, 20, 30));
 
   Expect.equals(1, a.foo(10));
   Expect.equals(2, a.foo(null, 20));
-  Expect.throws(() => a.foo(10, 20, 30));
 
   Expect.equals(0, b.foo());
   Expect.equals(1, b.foo(10));
   Expect.equals(2, b.foo(10, 20));
-  Expect.throws(() => b.foo(10, 20, 30));
 
   Expect.equals(1, b.foo(10));
   Expect.equals(2, b.foo(null, 20));
-  Expect.throws(() => b.foo(10, 20, 30));
 }
 
 main() {

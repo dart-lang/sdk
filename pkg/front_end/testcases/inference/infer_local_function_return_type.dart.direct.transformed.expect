@@ -21,7 +21,7 @@ static method test() → dynamic {
           :return_value = 42;
           break #L1;
         }
-        :async_completer.{asy::Completer::complete}(:return_value);
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
       on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -51,7 +51,7 @@ static method test() → dynamic {
           :return_value = 42;
           break #L2;
         }
-        :async_completer.{asy::Completer::complete}(:return_value);
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
       on dynamic catch(dynamic :exception, dynamic :stack_trace) {

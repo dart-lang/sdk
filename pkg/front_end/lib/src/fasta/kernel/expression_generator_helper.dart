@@ -35,6 +35,7 @@ import 'kernel_ast_api.dart'
         Initializer,
         Member,
         Name,
+        Node,
         Procedure,
         StaticGet,
         TypeParameter,
@@ -153,4 +154,13 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   Message warnUnresolvedMethod(Name name, int charOffset, {bool isSuper});
 
   void warnTypeArgumentsMismatch(String name, int expected, int charOffset);
+
+  Expression wrapInLocatedCompileTimeError(
+      Expression expression, LocatedMessage message,
+      {List<LocatedMessage> context});
+
+  Expression evaluateArgumentsBefore(
+      Arguments arguments, Expression expression);
+
+  void storeTypeUse(int offset, Node node);
 }

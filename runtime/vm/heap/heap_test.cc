@@ -576,4 +576,39 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldToNewChain) {
   EXPECT(size_before < size_after);
 }
 
+static void NoopFinalizer(void* isolate_callback_data,
+                          Dart_WeakPersistentHandle handle,
+                          void* peer) {}
+
+ISOLATE_UNIT_TEST_CASE(ExternalPromotion) {
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  heap->CollectAllGarbage();
+  intptr_t size_before = kWordSize * (heap->new_space()->ExternalInWords() +
+                                      heap->old_space()->ExternalInWords());
+
+  Array& old = Array::Handle(Array::New(100, Heap::kOld));
+  Array& neu = Array::Handle();
+  for (intptr_t i = 0; i < 100; i++) {
+    neu = Array::New(1, Heap::kNew);
+    FinalizablePersistentHandle::New(isolate, neu, NULL, NoopFinalizer, 1 * MB);
+    old.SetAt(i, neu);
+  }
+
+  intptr_t size_middle = kWordSize * (heap->new_space()->ExternalInWords() +
+                                      heap->old_space()->ExternalInWords());
+  EXPECT_EQ(size_before + 100 * MB, size_middle);
+
+  old = Array::null();
+  neu = Array::null();
+
+  heap->CollectAllGarbage();
+
+  intptr_t size_after = kWordSize * (heap->new_space()->ExternalInWords() +
+                                     heap->old_space()->ExternalInWords());
+
+  EXPECT_EQ(size_before, size_after);
+}
+
 }  // namespace dart

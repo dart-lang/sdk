@@ -52,6 +52,7 @@ import 'kernel_expression_generator.dart'
         KernelLargeIntAccessGenerator,
         KernelLoadLibraryGenerator,
         KernelNullAwarePropertyAccessGenerator,
+        KernelPrefixUseGenerator,
         KernelPropertyAccessGenerator,
         KernelReadOnlyAccessGenerator,
         KernelStaticAccessGenerator,
@@ -60,6 +61,7 @@ import 'kernel_expression_generator.dart'
         KernelThisIndexedAccessGenerator,
         KernelThisPropertyAccessGenerator,
         KernelTypeUseGenerator,
+        KernelUnexpectedQualifiedUseGenerator,
         KernelUnlinkedGenerator,
         KernelUnresolvedNameGenerator,
         KernelVariableUseGenerator;
@@ -116,6 +118,7 @@ import 'forest.dart'
         Generator,
         LoadLibraryBuilder,
         PrefixBuilder,
+        PrefixUseGenerator,
         TypeDeclarationBuilder,
         UnlinkedDeclaration;
 
@@ -448,7 +451,8 @@ class Fangorn extends Forest {
       Expression operand, isOperator, Token notOperator, covariant type) {
     int offset = offsetForToken(isOperator);
     if (notOperator != null) {
-      return new IsNotJudgment(operand, isOperator, notOperator, type, offset);
+      return new IsNotJudgment(operand, isOperator, notOperator, type, offset)
+        ..fileOffset = offset;
     }
     return new IsJudgment(operand, isOperator, type)..fileOffset = offset;
   }
@@ -470,8 +474,9 @@ class Fangorn extends Forest {
   }
 
   @override
-  Expression notExpression(Expression operand, Token token) {
-    return new NotJudgment(token, operand)..fileOffset = offsetForToken(token);
+  Expression notExpression(Expression operand, Token token, bool isSynthetic) {
+    return new NotJudgment(isSynthetic, token, operand)
+      ..fileOffset = offsetForToken(token);
   }
 
   @override
@@ -757,21 +762,20 @@ class Fangorn extends Forest {
   KernelDeferredAccessGenerator deferredAccessGenerator(
       ExpressionGeneratorHelper helper,
       Token token,
-      PrefixBuilder builder,
-      Generator generator) {
-    return new KernelDeferredAccessGenerator(helper, token, builder, generator);
+      PrefixUseGenerator prefixGenerator,
+      Generator suffixGenerator) {
+    return new KernelDeferredAccessGenerator(
+        helper, token, prefixGenerator, suffixGenerator);
   }
 
   @override
   KernelTypeUseGenerator typeUseGenerator(
       ExpressionGeneratorHelper helper,
       Token token,
-      PrefixBuilder prefix,
-      int declarationReferenceOffset,
       TypeDeclarationBuilder declaration,
       String plainNameForRead) {
-    return new KernelTypeUseGenerator(helper, token, prefix,
-        declarationReferenceOffset, declaration, plainNameForRead);
+    return new KernelTypeUseGenerator(
+        helper, token, declaration, plainNameForRead);
   }
 
   @override
@@ -822,6 +826,22 @@ class Fangorn extends Forest {
       Procedure interfaceTarget) {
     return new KernelDelayedPostfixIncrement(
         helper, token, generator, binaryOperator, interfaceTarget);
+  }
+
+  @override
+  KernelPrefixUseGenerator prefixUseGenerator(
+      ExpressionGeneratorHelper helper, Token token, PrefixBuilder prefix) {
+    return new KernelPrefixUseGenerator(helper, token, prefix);
+  }
+
+  @override
+  KernelUnexpectedQualifiedUseGenerator unexpectedQualifiedUseGenerator(
+      ExpressionGeneratorHelper helper,
+      Token token,
+      Generator prefixGenerator,
+      bool isUnresolved) {
+    return new KernelUnexpectedQualifiedUseGenerator(
+        helper, token, prefixGenerator, isUnresolved);
   }
 }
 

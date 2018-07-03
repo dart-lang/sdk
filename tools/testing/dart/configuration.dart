@@ -33,7 +33,6 @@ class Configuration {
       this.hotReload,
       this.hotReloadRollback,
       this.isChecked,
-      bool isStrong,
       this.isHostChecked,
       this.isCsp,
       this.isMinified,
@@ -84,11 +83,7 @@ class Configuration {
       this.fastTestsOnly,
       this.printPassingStdout})
       : _packages = packages,
-        _timeout = timeout,
-        isStrong = isStrong ||
-            // DDC always runs in strong mode.
-            compiler == Compiler.dartdevc ||
-            compiler == Compiler.dartdevk;
+        _timeout = timeout;
 
   final Architecture architecture;
   final Compiler compiler;
@@ -109,7 +104,6 @@ class Configuration {
   final bool hotReload;
   final bool hotReloadRollback;
   final bool isChecked;
-  final bool isStrong;
   final bool isHostChecked;
   final bool isCsp;
   final bool isMinified;
@@ -256,7 +250,6 @@ class Configuration {
     if (useEnableAsserts) args.add("--enable-asserts");
     if (useDart2JSWithKernel) args.add("--use-kernel");
     if (useDart2JSOldFrontend) args.add("--use-old-frontend");
-    if (isStrong) args.add("--strong");
     return args;
   }
 
@@ -463,7 +456,6 @@ class Configuration {
         'compiler': compiler.name,
         'runtime': runtime.name,
         'checked': isChecked,
-        'strong': isStrong,
         'host_checked': isHostChecked,
         'minified': isMinified,
         'csp': isCsp,

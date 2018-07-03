@@ -27,8 +27,10 @@ import '../builder/builder.dart';
 
 import '../constant_context.dart' show ConstantContext;
 
+import '../crash.dart' show Crash;
+
 import '../deprecated_problems.dart'
-    show Crash, deprecated_InputError, deprecated_inputError;
+    show deprecated_InputError, deprecated_inputError;
 
 import '../fasta_codes.dart'
     show Message, messageExpectedBlockToSkip, templateInternalProblemNotFound;
@@ -37,7 +39,7 @@ import '../kernel/kernel_body_builder.dart' show KernelBodyBuilder;
 
 import '../parser.dart' show Assert, MemberKind, Parser, optional;
 
-import '../problems.dart' show internalProblem, unexpected;
+import '../problems.dart' show DebugAbort, internalProblem, unexpected;
 
 import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
 
@@ -538,7 +540,7 @@ class DietListener extends StackListener {
   StackListener createListener(
       ModifierBuilder builder, Scope memberScope, bool isInstanceMember,
       [Scope formalParameterScope,
-      TypeInferenceListener<int, int, Node, int> listener]) {
+      TypeInferenceListener<int, Node, int> listener]) {
     listener ??= new KernelTypeInferenceListener();
     // Note: we set thisType regardless of whether we are building a static
     // member, since that provides better error recovery.
@@ -750,6 +752,8 @@ class DietListener extends StackListener {
       listener.checkEmpty(token.charOffset);
       listenerFinishFunction(listener, startToken, metadata, kind,
           metadataConstants, formals, asyncModifier, body);
+    } on DebugAbort {
+      rethrow;
     } on deprecated_InputError {
       rethrow;
     } catch (e, s) {

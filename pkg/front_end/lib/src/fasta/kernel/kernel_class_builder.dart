@@ -430,6 +430,10 @@ abstract class KernelClassBuilder
     transformProcedureToNoSuchMethodForwarder(noSuchMethod, target, cloned);
     cls.procedures.add(cloned);
     cloned.parent = cls;
+
+    KernelLibraryBuilder library = this.library;
+    library.noSuchMethodForwardersOrigins.add(cloned);
+    library.noSuchMethodForwardersOrigins.add(procedure);
   }
 
   void addNoSuchMethodForwarderGetterForField(Member noSuchMethod,

@@ -32,7 +32,7 @@ main() {
   nativeTesting();
   setup();
 
-  var a = new A();
+  dynamic a = new A();
   var z = makeZ();
 
   Expect.equals(100, z.foo());

@@ -7,6 +7,17 @@ import 'dart:collection';
 import 'package:yaml/src/event.dart';
 import 'package:yaml/yaml.dart';
 
+/// Given a [map], return the [YamlNode] associated with the given [key], or
+/// `null` if there is no matching key.
+YamlNode getKey(YamlMap map, String key) {
+  for (YamlNode k in map.nodes.keys) {
+    if (k is YamlScalar && k.value == key) {
+      return k;
+    }
+  }
+  return null;
+}
+
 /// Given a [map], return the value associated with the key whose value matches
 /// the given [key], or `null` if there is no matching key.
 YamlNode getValue(YamlMap map, String key) {

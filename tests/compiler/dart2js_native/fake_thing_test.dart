@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "dart:_foreign_helper" show JS;
 
 // Test that native objects cannot accidentally or maliciously be mistaken for
 // Dart objects.
@@ -20,7 +21,7 @@ void setup() {
 (function(){
   function A() {}
   A.prototype.$isThing = true;
-  make1 = function(){return new A;};
+  make1 = function(){return new A();};
   make2 = function(){return {$isThing: true}};
 })()""");
 }

@@ -48,7 +48,7 @@ class ListCommand extends Command {
   String get invocation => '${runner.executableName} $name';
 
   void run() {
-    if (argResults['machine']) {
+    if (argResults['machine'] as bool) {
       final Map map = {
         'benchmarks': benchmarks.map((b) => b.toJson()).toList()
       };
@@ -96,7 +96,7 @@ class RunCommand extends Command {
     }
 
     final String benchmarkId = argResults.rest.first;
-    final int repeatCount = int.parse(argResults['repeat']);
+    final int repeatCount = int.parse(argResults['repeat'] as String);
     final bool quick = argResults['quick'];
     final bool useCFE = argResults['use-cfe'];
     final bool verbose = argResults['verbose'];

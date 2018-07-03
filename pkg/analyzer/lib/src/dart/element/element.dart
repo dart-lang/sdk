@@ -2482,7 +2482,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
     if (_redirectedConstructor == null) {
       if (_kernelConstructor != null || _kernelFactory != null) {
         _redirectedConstructor = enclosingUnit._kernelContext
-            .getRedirectedConstructor(_kernelConstructor, _kernelFactory);
+            .getRedirectedConstructor(this, _kernelConstructor, _kernelFactory);
       }
       if (serializedExecutable != null) {
         if (serializedExecutable.isRedirectedConstructor) {
@@ -2810,6 +2810,8 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
   @override
   DynamicTypeImpl type;
 
+  LibraryElement _library;
+
   /**
    * Initialize a newly created instance of this class. Instances of this class
    * should <b>not</b> be created except as part of creating the type associated
@@ -2822,6 +2824,13 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
 
   @override
   ElementKind get kind => ElementKind.DYNAMIC;
+
+  @override
+  LibraryElement get library => _library;
+  set library(LibraryElement library) {
+    assert(library.name == 'dart.core');
+    _library = library;
+  }
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => null;
@@ -6225,7 +6234,7 @@ abstract class KernelUnitResynthesizerContext {
    * Return the [ConstructorElementImpl] to which the given [kernelConstructor]
    * or [kernelFactory] redirects.
    */
-  ConstructorElementImpl getRedirectedConstructor(
+  ConstructorElement getRedirectedConstructor(ElementImpl context,
       kernel.Constructor kernelConstructor, kernel.Procedure kernelFactory);
 
   /**
@@ -8400,6 +8409,10 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   List<ElementAnnotation> get metadata {
+    if (_kernel != null) {
+      _metadata ??=
+          enclosingUnit._kernelContext.buildAnnotations(_kernel.annotations);
+    }
     if (unlinkedParam != null) {
       return _metadata ??=
           _buildAnnotations(enclosingUnit, unlinkedParam.annotations);

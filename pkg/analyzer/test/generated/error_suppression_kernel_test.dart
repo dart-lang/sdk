@@ -51,6 +51,30 @@ class ErrorSuppressionTest_Kernel extends ErrorSuppressionTest_Driver {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33676')
+  test_ignore_for_file_whitespace_variant() async {
+    // Bad state: Unable to convert (null, @xyz, Not a constant expression.)
+    await super.test_ignore_for_file_whitespace_variant();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33676')
+  test_ignore_second() async {
+    // Bad state: Unable to convert (null, @xyz, Not a constant expression.)
+    await super.test_ignore_second();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33676')
+  test_ignore_second_trailing() async {
+    // Bad state: Unable to convert (null, @xyz, Not a constant expression.)
+    await super.test_ignore_second_trailing();
+  }
+
+  @override
+  @failingTest
   test_invalid_error_code() async {
     // Expected 1 errors of type StaticTypeWarningCode.INVALID_ASSIGNMENT, found 0;
     //          1 errors of type CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, found 0
@@ -62,6 +86,22 @@ class ErrorSuppressionTest_Kernel extends ErrorSuppressionTest_Driver {
   test_missing_error_codes() async {
     // UnimplementedError: kernel: (Let) let final dynamic #t1 = #lib1::x in let ...
     await super.test_missing_error_codes();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33676')
+  test_multiple_comments() async {
+    // Bad state: Unable to convert (null, @xyz, Not a constant expression.)
+    await super.test_multiple_comments();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33676')
+  test_multiple_ignore_for_files() async {
+    // Bad state: Unable to convert (null, @xyz, Not a constant expression.)
+    await super.test_multiple_ignore_for_files();
   }
 
   @override
@@ -106,4 +146,9 @@ class ErrorSuppressionTest_Kernel extends ErrorSuppressionTest_Driver {
     //          1 errors of type CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, found 0
     await super.test_no_ignores();
   }
+}
+
+/// Tests marked with this annotation fail because of a Fasta problem.
+class FastaProblem {
+  const FastaProblem(String issueUri);
 }

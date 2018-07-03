@@ -1264,7 +1264,7 @@ class FunctionTypeImplTest extends EngineTestCase {
     v.function.returnType = u.type;
     // We don't care whether the types compare equal or not.  We just need the
     // computation to terminate.
-    expect(s.type == u.type, new isInstanceOf<bool>());
+    expect(s.type == u.type, new TypeMatcher<bool>());
   }
 
   void test_getElement() {
@@ -1413,7 +1413,7 @@ class FunctionTypeImplTest extends EngineTestCase {
     t.function.returnType = s.type;
     // We don't care what the hash code is.  We just need its computation to
     // terminate.
-    expect(t.type.hashCode, new isInstanceOf<int>());
+    expect(t.type.hashCode, new TypeMatcher<int>());
   }
 
   void test_isAssignableTo_normalAndPositionalArgs() {

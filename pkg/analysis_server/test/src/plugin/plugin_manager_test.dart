@@ -363,6 +363,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
     pkg1Dir.deleteSync(recursive: true);
   }
 
+  @TestTimeout(const Timeout.factor(4))
   test_restartPlugins() async {
     io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     String pkg1Path = pkg1Dir.resolveSymbolicLinksSync();

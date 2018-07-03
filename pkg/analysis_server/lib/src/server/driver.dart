@@ -151,7 +151,7 @@ class CommandLineParser {
     }
   }
 
-  _getNextFlagIndex(args, i) {
+  int _getNextFlagIndex(List<String> args, int i) {
     for (; i < args.length; ++i) {
       if (args[i].startsWith('--')) {
         return i;
@@ -382,8 +382,8 @@ class Driver implements ServerStarter {
     } else {
       // No path to the SDK was provided.
       // Use FolderBasedDartSdk.defaultSdkDirectory, which will make a guess.
-      defaultSdkPath = FolderBasedDartSdk
-          .defaultSdkDirectory(PhysicalResourceProvider.INSTANCE)
+      defaultSdkPath = FolderBasedDartSdk.defaultSdkDirectory(
+              PhysicalResourceProvider.INSTANCE)
           .path;
     }
     // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
@@ -513,12 +513,13 @@ class Driver implements ServerStarter {
         negatable: false);
     parser.addOption(NEW_ANALYSIS_DRIVER_LOG,
         help: "set a destination for the new analysis driver's log");
-    if (telemetry.SHOW_ANALYTICS_UI) {
-      parser.addFlag(ANALYTICS_FLAG,
-          help: 'enable or disable sending analytics information to Google');
-    }
+    parser.addFlag(ANALYTICS_FLAG,
+        help: 'enable or disable sending analytics information to Google',
+        hide: !telemetry.SHOW_ANALYTICS_UI);
     parser.addFlag(SUPPRESS_ANALYTICS_FLAG,
-        negatable: false, help: 'suppress analytics for this session');
+        negatable: false,
+        help: 'suppress analytics for this session',
+        hide: !telemetry.SHOW_ANALYTICS_UI);
     parser.addOption(PORT_OPTION,
         help: "the http diagnostic port on which the server provides"
             " status and performance information");

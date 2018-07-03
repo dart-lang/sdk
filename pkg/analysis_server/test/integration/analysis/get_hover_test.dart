@@ -62,14 +62,19 @@ main() {
    * match the hover parameters.  [propagatedType], if specified, is the
    * expected propagated type of the element.
    */
-  checkHover(String target, int length, List<String> descriptionRegexps,
-      String kind, List<String> staticTypeRegexps,
-      {bool isLocal: false,
-      bool isCore: false,
-      String docRegexp: null,
-      bool isLiteral: false,
-      List<String> parameterRegexps: null,
-      propagatedType: null}) {
+  Future<AnalysisGetHoverResult> checkHover(
+    String target,
+    int length,
+    List<String> descriptionRegexps,
+    String kind,
+    List<String> staticTypeRegexps, {
+    bool isLocal: false,
+    bool isCore: false,
+    String docRegexp: null,
+    bool isLiteral: false,
+    List<String> parameterRegexps: null,
+    propagatedType: null,
+  }) {
     int offset = text.indexOf(target);
     return sendAnalysisGetHover(pathname, offset).then((result) {
       expect(result.hovers, hasLength(1));

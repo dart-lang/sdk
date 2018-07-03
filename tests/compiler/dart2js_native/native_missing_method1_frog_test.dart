@@ -33,7 +33,7 @@ class B {
 
 typedContext() {
   confuse(new B()).foo();
-  A a = makeA();
+  dynamic a = makeA();
   Expect.throws(() => a.foo(), (e) => e is NoSuchMethodError);
   Expect.throws(() => a.foo, (e) => e is NoSuchMethodError);
   Expect.throws(() => a.foo = 4, (e) => e is NoSuchMethodError);

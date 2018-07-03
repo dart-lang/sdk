@@ -785,8 +785,8 @@ class DeclarationBuilder<T extends TypeBuilder> {
   }
 
   DeclarationBuilder.library()
-      : this(<String, Declaration>{}, <String, Declaration>{}, null, "library",
-            -1, null);
+      : this(<String, Declaration>{}, <String, Declaration>{}, null,
+            "<library>", -1, null);
 
   DeclarationBuilder createNested(String name, bool hasMembers) {
     return new DeclarationBuilder<T>(

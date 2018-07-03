@@ -18,6 +18,9 @@ implicit_closure_test: Skip # Incompatible flag: --use_slow_path
 regress_23408_test: RuntimeError
 vm/regress_27201_test: Skip # Deferred loading happens eagerly.
 
+[ $mode == debug ]
+large_class_declaration_test: Slow, Pass
+
 [ $mode == product ]
 assertion_test: SkipByDesign # Requires checked mode.
 generic_test: SkipByDesign # Requires checked mode.

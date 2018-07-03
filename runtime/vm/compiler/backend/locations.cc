@@ -28,7 +28,11 @@ LocationSummary::LocationSummary(Zone* zone,
                                  intptr_t temp_count,
                                  LocationSummary::ContainsCall contains_call)
     : num_inputs_(input_count),
+#if defined(TARGET_ARCH_ARM)
+      num_temps_(temp_count + (contains_call == kCallOnSharedSlowPath ? 1 : 0)),
+#else
       num_temps_(temp_count),
+#endif
       stack_bitmap_(NULL),
       contains_call_(contains_call),
       live_registers_() {
@@ -37,6 +41,14 @@ LocationSummary::LocationSummary(Zone* zone,
 #endif
   input_locations_ = zone->Alloc<Location>(num_inputs_);
   temp_locations_ = zone->Alloc<Location>(num_temps_);
+
+#if defined(TARGET_ARCH_ARM)
+  if (contains_call == kCallOnSharedSlowPath) {
+    // TODO(sjindel): Mitigate the negative effect on the fast-path of blocking
+    // LR.
+    set_temp(temp_count, Location::RegisterLocation(LR));
+  }
+#endif
 }
 
 LocationSummary* LocationSummary::Make(

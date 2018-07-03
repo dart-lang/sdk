@@ -62,6 +62,7 @@ import 'package:front_end/src/fasta/kernel/kernel_expression_generator.dart'
         KernelLargeIntAccessGenerator,
         KernelLoadLibraryGenerator,
         KernelNullAwarePropertyAccessGenerator,
+        KernelPrefixUseGenerator,
         KernelPropertyAccessGenerator,
         KernelReadOnlyAccessGenerator,
         KernelStaticAccessGenerator,
@@ -70,6 +71,7 @@ import 'package:front_end/src/fasta/kernel/kernel_expression_generator.dart'
         KernelThisIndexedAccessGenerator,
         KernelThisPropertyAccessGenerator,
         KernelTypeUseGenerator,
+        KernelUnexpectedQualifiedUseGenerator,
         KernelUnlinkedGenerator,
         KernelUnresolvedNameGenerator,
         KernelVariableUseGenerator,
@@ -134,6 +136,9 @@ main() {
     library.addProcedure(getter);
     library.addProcedure(setter);
     cls.addMember(interfaceTarget);
+
+    KernelPrefixUseGenerator prefixUseGenerator =
+        new KernelPrefixUseGenerator(helper, token, prefixBuilder);
 
     check(
         "DelayedAssignment(offset: 4, value: expression,"
@@ -207,11 +212,12 @@ main() {
         new IncompletePropertyAccessGenerator(helper, token, name));
     check(
         "DeferredAccessGenerator(offset: 4,"
-        " builder: Instance of 'PrefixBuilder',"
-        " generator: ThisAccessGenerator(offset: 4, isInitializer: false,"
+        " prefixGenerator: PrefixUseGenerator("
+        "offset: 4, prefix: myPrefix, deferred: false),"
+        " suffixGenerator: ThisAccessGenerator(offset: 4, isInitializer: false,"
         " isSuper: false))",
         new KernelDeferredAccessGenerator(
-            helper, token, prefixBuilder, generator));
+            helper, token, prefixUseGenerator, generator));
     check(
         "ReadOnlyAccessGenerator(offset: 4, expression: expression,"
         " plainNameForRead: foo, value: null)",
@@ -225,13 +231,19 @@ main() {
     check(
         "TypeUseGenerator(offset: 4, expression: T,"
         " plainNameForRead: foo, value: null)",
-        new KernelTypeUseGenerator(
-            helper, token, prefixBuilder, -1, declaration, "foo"));
+        new KernelTypeUseGenerator(helper, token, declaration, "foo"));
     check("UnresolvedNameGenerator(offset: 4, name: bar)",
         new KernelUnresolvedNameGenerator(helper, token, name));
     check(
         "UnlinkedGenerator(offset: 4, name: foo)",
         new KernelUnlinkedGenerator(
             helper, token, new UnlinkedDeclaration("foo", false, -1, null)));
+    check("PrefixUseGenerator(offset: 4, prefix: myPrefix, deferred: false)",
+        prefixUseGenerator);
+    check(
+        "UnexpectedQualifiedUseGenerator("
+        "offset: 4, prefixGenerator: , isInitializer: false, isSuper: false)",
+        new KernelUnexpectedQualifiedUseGenerator(
+            helper, token, generator, false));
   });
 }

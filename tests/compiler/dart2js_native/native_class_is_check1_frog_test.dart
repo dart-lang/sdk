@@ -8,7 +8,7 @@ import "native_testing.dart";
 
 abstract class I {
   I read();
-  write(I x);
+  write(covariant I x);
 }
 
 // Native implementation.

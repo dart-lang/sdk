@@ -25,7 +25,7 @@ class ChangeBuilderImplTest {
     String path = '/test.dart';
     FileEditBuilderImpl fileEditBuilder =
         await builder.createFileEditBuilder(path);
-    expect(fileEditBuilder, new isInstanceOf<FileEditBuilder>());
+    expect(fileEditBuilder, const TypeMatcher<FileEditBuilder>());
     SourceFileEdit fileEdit = fileEditBuilder.fileEdit;
     expect(fileEdit.file, path);
   }
@@ -126,7 +126,7 @@ class EditBuilderImplTest {
       builder.addInsertion(10, (EditBuilder builder) {
         LinkedEditBuilderImpl linkBuilder =
             (builder as EditBuilderImpl).createLinkedEditBuilder();
-        expect(linkBuilder, new isInstanceOf<LinkedEditBuilder>());
+        expect(linkBuilder, const TypeMatcher<LinkedEditBuilder>());
       });
     });
   }
@@ -318,7 +318,7 @@ class FileEditBuilderImplTest {
       int length = 5;
       EditBuilderImpl editBuilder =
           (builder as FileEditBuilderImpl).createEditBuilder(offset, length);
-      expect(editBuilder, new isInstanceOf<EditBuilder>());
+      expect(editBuilder, const TypeMatcher<EditBuilder>());
       SourceEdit sourceEdit = editBuilder.sourceEdit;
       expect(sourceEdit.length, length);
       expect(sourceEdit.offset, offset);

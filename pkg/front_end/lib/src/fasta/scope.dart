@@ -63,7 +63,8 @@ class Scope extends MutableScope {
             isModifiable: false);
 
   Scope.nested(Scope parent, String debugName, {bool isModifiable: true})
-      : this(<String, Declaration>{}, null, parent, debugName,
+      : this(
+            <String, Declaration>{}, <String, Declaration>{}, parent, debugName,
             isModifiable: isModifiable);
 
   Scope copyWithParent(Scope parent, String debugName) {

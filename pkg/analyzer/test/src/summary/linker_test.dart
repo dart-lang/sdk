@@ -27,7 +27,7 @@ class LinkerUnitTest extends SummaryLinkerTest {
   @override
   bool get allowMissingFiles => false;
 
-  Matcher get isUndefined => new isInstanceOf<UndefinedElementForLink>();
+  Matcher get isUndefined => const TypeMatcher<UndefinedElementForLink>();
 
   LibraryElementInBuildUnit get testLibrary => _testLibrary ??=
       linker.getLibrary(linkerInputs.testDartUri) as LibraryElementInBuildUnit;

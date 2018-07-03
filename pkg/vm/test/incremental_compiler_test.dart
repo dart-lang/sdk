@@ -103,6 +103,10 @@ main() {
         }
       });
 
+      vm.stderr.transform(utf8.decoder).transform(splitter).listen((String s) {
+        print("vm stderr: $s");
+      });
+
       String portLine = await portLineCompleter.future;
 
       final RegExp observatoryPortRegExp =

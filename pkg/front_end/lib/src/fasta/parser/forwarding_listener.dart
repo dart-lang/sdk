@@ -877,8 +877,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleAsOperator(Token operator, Token endToken) {
-    listener?.handleAsOperator(operator, endToken);
+  void handleAsOperator(Token operator) {
+    listener?.handleAsOperator(operator);
   }
 
   @override
@@ -1059,8 +1059,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleIsOperator(Token operator, Token not, Token endToken) {
-    listener?.handleIsOperator(operator, not, endToken);
+  void handleIsOperator(Token isOperator, Token not) {
+    listener?.handleIsOperator(isOperator, not);
   }
 
   @override
@@ -1338,9 +1338,6 @@ class ForwardingListener implements Listener {
   Token newSyntheticToken(Token next) {
     return listener?.newSyntheticToken(next);
   }
-
-  @override
-  List<ParserError> get recoverableErrors => listener?.recoverableErrors;
 
   @override
   set suppressParseErrors(bool value) {

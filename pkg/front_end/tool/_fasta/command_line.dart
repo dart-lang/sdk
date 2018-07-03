@@ -4,7 +4,9 @@
 
 library fasta.tool.command_line;
 
-import 'dart:io' show exit;
+import 'dart:async' show Future;
+
+import 'dart:io' show exit, exitCode;
 
 import 'package:build_integration/file_system/single_root.dart'
     show SingleRootFileSystem;
@@ -25,6 +27,9 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
+import 'package:front_end/src/fasta/deprecated_problems.dart'
+    show deprecated_InputError;
+
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show
         Message,
@@ -33,7 +38,7 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
         messageFastaUsageShort,
         templateUnspecified;
 
-import 'package:front_end/src/fasta/problems.dart' show unhandled;
+import 'package:front_end/src/fasta/problems.dart' show DebugAbort, unhandled;
 
 import 'package:front_end/src/fasta/severity.dart' show Severity;
 
@@ -457,4 +462,26 @@ Message computeUsage(String programName, bool verbose) {
   sb.write(options);
   // TODO(ahe): Don't use [templateUnspecified].
   return templateUnspecified.withArguments("$sb");
+}
+
+Future<T> runProtectedFromAbort<T>(Future<T> Function() action,
+    [T failingValue]) async {
+  if (CompilerContext.isActive) {
+    throw "runProtectedFromAbort should be called from 'main',"
+        " that is, outside a compiler context.";
+  }
+  try {
+    return await action();
+  } on DebugAbort catch (e) {
+    print(e.message.message);
+
+    // DebugAbort should never happen in production code, so we want test.py to
+    // treat this as a crash which is signalled by exiting with 255.
+    exit(255);
+  } on deprecated_InputError catch (e) {
+    exitCode = 1;
+    await CompilerContext.runWithDefaultOptions((c) =>
+        new Future<void>.sync(() => c.report(e.message, Severity.error)));
+  }
+  return failingValue;
 }

@@ -468,15 +468,16 @@ ConstantPool {
 }
 [@vm.bytecode=
 Bytecode {
-  Entry                1
+  Entry                2
   CheckStack
+  CheckFunctionTypeArgs 1, 0
   PushConstant         CP#1
-  Push                 FP[-5]
+  Push                 r0
   InstantiateTypeArgumentsTOS 0, CP#2
   PushConstant         CP#0
   AllocateT
-  StoreLocal           r0
-  Push                 r0
+  StoreLocal           r1
+  Push                 r1
   PushConstant         CP#4
   IndirectStaticCall   1, CP#3
   Drop1

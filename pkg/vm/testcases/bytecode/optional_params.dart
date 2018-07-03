@@ -16,6 +16,12 @@ void foo2(y, z, {c = 'default_c', a = 42, b = const ['default_b']}) {
   print('c = $c');
 }
 
+void foo3<P, Q>(z, y, {bool a: false, Map<P, Q> b}) {
+  print(P);
+  print(y);
+  print(b);
+}
+
 main() {
   foo1('fixed_x', 'concrete_a');
   foo2('fixed_y', 'fixed_z', a: 'concrete_a');

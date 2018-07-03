@@ -103,7 +103,7 @@ class AbstractContextTest {
    * Compute the given [result] for the given [target].
    */
   void computeResult(AnalysisTarget target, ResultDescriptor result,
-      {isInstanceOf matcher: null}) {
+      {Matcher matcher: null}) {
     oldOutputs = outputs;
     task = analysisDriver.computeResult(target, result);
     if (matcher == null) {

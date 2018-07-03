@@ -38,8 +38,7 @@ final _variables = {
   "preview_dart_2": new _Variable.bool((c) => !c.noPreviewDart2),
   "runtime": new _Variable(_runtimeName, Runtime.names),
   "spec_parser": new _Variable.bool((c) => c.compiler == Compiler.specParser),
-  "strong": new _Variable.bool(
-      (c) => c.isStrong || c.compilerConfiguration.previewDart2),
+  "strong": new _Variable.bool((c) => !c.noPreviewDart2),
   "system": new _Variable((c) => c.system.name, System.names),
   "use_sdk": new _Variable.bool((c) => c.useSdk)
 };

@@ -1172,7 +1172,9 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     // malformed.
     if ((finalization >= kCanonicalize) && !type.IsMalformed() &&
         !type.IsCanonical() && type.IsType()) {
-      CheckTypeBounds(cls, type);
+      if (!Isolate::Current()->strong()) {
+        CheckTypeBounds(cls, type);
+      }
       return type.Canonicalize();
     }
     return type.raw();
@@ -1314,7 +1316,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
 
   // If we are done finalizing a graph of mutually recursive types, check their
   // bounds.
-  if (is_root_type) {
+  if (is_root_type && !Isolate::Current()->strong()) {
     for (intptr_t i = pending_types->length() - 1; i >= 0; i--) {
       const AbstractType& type = pending_types->At(i);
       if (!type.IsMalformed() && !type.IsCanonical()) {

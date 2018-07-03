@@ -3126,18 +3126,22 @@ void ValueGraphVisitor::VisitStaticSetterNode(StaticSetterNode* node) {
   BuildStaticSetter(node, true);  // Result needed.
 }
 
-static intptr_t OffsetForLengthGetter(MethodRecognizer::Kind kind) {
+static const NativeFieldDesc* NativeFieldForLengthGetter(
+    MethodRecognizer::Kind kind) {
   switch (kind) {
     case MethodRecognizer::kObjectArrayLength:
     case MethodRecognizer::kImmutableArrayLength:
-      return Array::length_offset();
+      return NativeFieldDesc::Array_length();
+
     case MethodRecognizer::kTypedDataLength:
       // .length is defined in _TypedList which is the base class for internal
       // and external typed data.
       ASSERT(TypedData::length_offset() == ExternalTypedData::length_offset());
-      return TypedData::length_offset();
+      return NativeFieldDesc::TypedData_length();
+
     case MethodRecognizer::kGrowableArrayLength:
-      return GrowableObjectArray::length_offset();
+      return NativeFieldDesc::GrowableObjectArray_length();
+
     default:
       UNREACHABLE();
       return 0;
@@ -3153,15 +3157,10 @@ LoadLocalInstr* EffectGraphVisitor::BuildLoadThisVar(LocalScope* scope,
 
 LoadFieldInstr* EffectGraphVisitor::BuildNativeGetter(
     NativeBodyNode* node,
-    MethodRecognizer::Kind kind,
-    intptr_t offset,
-    const Type& type,
-    intptr_t class_id) {
+    const NativeFieldDesc* native_field) {
   Value* receiver = Bind(BuildLoadThisVar(node->scope(), node->token_pos()));
   LoadFieldInstr* load =
-      new (Z) LoadFieldInstr(receiver, offset, type, node->token_pos());
-  load->set_result_cid(class_id);
-  load->set_recognized_kind(kind);
+      new (Z) LoadFieldInstr(receiver, native_field, node->token_pos());
   return load;
 }
 
@@ -3200,10 +3199,8 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
       }
       case MethodRecognizer::kStringBaseLength:
       case MethodRecognizer::kStringBaseIsEmpty: {
-        LoadFieldInstr* load = BuildNativeGetter(
-            node, MethodRecognizer::kStringBaseLength, String::length_offset(),
-            Type::ZoneHandle(Z, Type::SmiType()), kSmiCid);
-        load->set_is_immutable(true);
+        LoadFieldInstr* load =
+            BuildNativeGetter(node, NativeFieldDesc::String_length());
         if (kind == MethodRecognizer::kStringBaseLength) {
           return ReturnDefinition(load);
         }
@@ -3221,9 +3218,7 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
       case MethodRecognizer::kImmutableArrayLength:
       case MethodRecognizer::kTypedDataLength: {
         LoadFieldInstr* load =
-            BuildNativeGetter(node, kind, OffsetForLengthGetter(kind),
-                              Type::ZoneHandle(Z, Type::SmiType()), kSmiCid);
-        load->set_is_immutable(kind != MethodRecognizer::kGrowableArrayLength);
+            BuildNativeGetter(node, NativeFieldForLengthGetter(kind));
         return ReturnDefinition(load);
       }
       case MethodRecognizer::kClassIDgetID: {
@@ -3241,10 +3236,7 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         data_load->set_result_cid(kArrayCid);
         Value* data = Bind(data_load);
         LoadFieldInstr* length_load = new (Z) LoadFieldInstr(
-            data, Array::length_offset(), Type::ZoneHandle(Z, Type::SmiType()),
-            node->token_pos());
-        length_load->set_result_cid(kSmiCid);
-        length_load->set_recognized_kind(MethodRecognizer::kObjectArrayLength);
+            data, NativeFieldDesc::Array_length(), node->token_pos());
         return ReturnDefinition(length_load);
       }
       case MethodRecognizer::kListFactory: {
@@ -3342,9 +3334,8 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         return ReturnDefinition(create_array);
       }
       case MethodRecognizer::kLinkedHashMap_getIndex: {
-        return ReturnDefinition(BuildNativeGetter(
-            node, kind, LinkedHashMap::index_offset(), Object::dynamic_type(),
-            kTypedDataUint32ArrayCid));
+        return ReturnDefinition(
+            BuildNativeGetter(node, NativeFieldDesc::LinkedHashMap_index()));
       }
       case MethodRecognizer::kLinkedHashMap_setIndex: {
         return ReturnDefinition(DoNativeSetterStoreValue(
@@ -3352,17 +3343,15 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
       }
       case MethodRecognizer::kLinkedHashMap_getData: {
         return ReturnDefinition(
-            BuildNativeGetter(node, kind, LinkedHashMap::data_offset(),
-                              Object::dynamic_type(), kArrayCid));
+            BuildNativeGetter(node, NativeFieldDesc::LinkedHashMap_data()));
       }
       case MethodRecognizer::kLinkedHashMap_setData: {
         return ReturnDefinition(DoNativeSetterStoreValue(
             node, LinkedHashMap::data_offset(), kEmitStoreBarrier));
       }
       case MethodRecognizer::kLinkedHashMap_getHashMask: {
-        return ReturnDefinition(
-            BuildNativeGetter(node, kind, LinkedHashMap::hash_mask_offset(),
-                              Type::ZoneHandle(Z, Type::SmiType()), kSmiCid));
+        return ReturnDefinition(BuildNativeGetter(
+            node, NativeFieldDesc::LinkedHashMap_hash_mask()));
       }
       case MethodRecognizer::kLinkedHashMap_setHashMask: {
         // Smi field; no barrier needed.
@@ -3370,9 +3359,8 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
             node, LinkedHashMap::hash_mask_offset(), kNoStoreBarrier));
       }
       case MethodRecognizer::kLinkedHashMap_getUsedData: {
-        return ReturnDefinition(
-            BuildNativeGetter(node, kind, LinkedHashMap::used_data_offset(),
-                              Type::ZoneHandle(Z, Type::SmiType()), kSmiCid));
+        return ReturnDefinition(BuildNativeGetter(
+            node, NativeFieldDesc::LinkedHashMap_used_data()));
       }
       case MethodRecognizer::kLinkedHashMap_setUsedData: {
         // Smi field; no barrier needed.
@@ -3380,9 +3368,9 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
             node, LinkedHashMap::used_data_offset(), kNoStoreBarrier));
       }
       case MethodRecognizer::kLinkedHashMap_getDeletedKeys: {
-        return ReturnDefinition(
-            BuildNativeGetter(node, kind, LinkedHashMap::deleted_keys_offset(),
-                              Type::ZoneHandle(Z, Type::SmiType()), kSmiCid));
+        return ReturnDefinition(BuildNativeGetter(
+            node, NativeFieldDesc::Get(
+                      NativeFieldDesc::kLinkedHashMap_deleted_keys)));
       }
       case MethodRecognizer::kLinkedHashMap_setDeletedKeys: {
         // Smi field; no barrier needed.

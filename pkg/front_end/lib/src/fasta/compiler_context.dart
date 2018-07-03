@@ -111,6 +111,8 @@ class CompilerContext {
     return context;
   }
 
+  static bool get isActive => Zone.current[compilerContextKey] != null;
+
   /// Perform [action] in a [Zone] where [this] will be available as
   /// `CompilerContext.current`.
   Future<T> runInContext<T>(Future<T> action(CompilerContext c)) {

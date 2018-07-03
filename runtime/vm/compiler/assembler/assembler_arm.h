@@ -22,6 +22,7 @@ namespace dart {
 // Forward declarations.
 class RuntimeEntry;
 class StubEntry;
+class RegisterSet;
 
 // Instruction encoding bits.
 enum {
@@ -698,7 +699,7 @@ class Assembler : public ValueObject {
   void BranchLink(const Code& code, Patchability patchable);
   void BranchLinkToRuntime();
 
-  void CallNullErrorShared(bool save_fpu_registers) { UNREACHABLE(); }
+  void CallNullErrorShared(bool save_fpu_registers);
 
   // Branch and link to an entry address. Call sequence can be patched.
   void BranchLinkPatchable(const StubEntry& stub_entry);
@@ -909,6 +910,9 @@ class Assembler : public ValueObject {
 
   void PushList(RegList regs, Condition cond = AL);
   void PopList(RegList regs, Condition cond = AL);
+
+  void PushRegisters(const RegisterSet& regs);
+  void PopRegisters(const RegisterSet& regs);
 
   void CompareRegisters(Register rn, Register rm) { cmp(rn, Operand(rm)); }
   void BranchIf(Condition condition, Label* label) { b(label, condition); }

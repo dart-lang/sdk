@@ -130,6 +130,10 @@ _platform_sdk_snapshots = [
     "../utils/dartfmt",
   ],
   [
+    "kernel-service",
+    "../utils/kernel-service",
+  ],
+  [
     "pub",
     "../utils/pub",
   ],
@@ -169,12 +173,12 @@ _full_sdk_snapshots = [
     "../utils/bazel:kernel_worker",
   ],
   [
-    "pub",
-    "../utils/pub",
-  ],
-  [
     "kernel-service",
     "../utils/kernel-service",
+  ],
+  [
+    "pub",
+    "../utils/pub",
   ],
 ]
 

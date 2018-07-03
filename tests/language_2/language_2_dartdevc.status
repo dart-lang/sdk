@@ -36,11 +36,6 @@ const_cast2_test/none: CompileTimeError
 const_constructor_mixin3_test/01: MissingCompileTimeError # Issue 33644
 const_constructor_mixin_test/01: MissingCompileTimeError # Issue 33644
 const_for_in_variable_test/01: MissingCompileTimeError
-const_types_test/07: MissingCompileTimeError
-const_types_test/08: MissingCompileTimeError
-const_types_test/14: MissingCompileTimeError
-const_types_test/15: MissingCompileTimeError
-constant_type_literal_test/01: MissingCompileTimeError # DDC allows type parameter type literals in const expressions.
 constructor_type_parameter_test/00: MissingCompileTimeError
 constructor_with_type_parameters_test/03: MissingCompileTimeError
 covariance_field_test/03: RuntimeError
@@ -48,6 +43,7 @@ covariant_override/tear_off_type_test: RuntimeError # Issue 28395
 default_implementation2_test: CompileTimeError # Issue 30855
 deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in ddc
+dynamic_prefix_core_test/01: MissingCompileTimeError
 emit_const_fields_test: CompileTimeError
 enum_syntax_test/05: MissingCompileTimeError
 enum_syntax_test/06: MissingCompileTimeError
@@ -77,7 +73,6 @@ implicit_creation/implicit_const_context_prefix_constructor_generic_test: Compil
 implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_indexed_compound_assignment_test: RuntimeError
 implicit_downcast_during_indexed_if_null_assignment_test: RuntimeError
-import_core_prefix_test: CompileTimeError
 import_private_test/01: MissingCompileTimeError # Issue 29920
 initializing_formal_final_test: MissingCompileTimeError
 instantiate_tearoff_after_contravariance_check_test: RuntimeError
@@ -161,6 +156,9 @@ regress_30339_test: CompileTimeError # As expected. Should we make this a multi 
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 29920
 setter_override2_test/02: MissingCompileTimeError # Issue 14736
 stacktrace_test: RuntimeError # Issue 29920
+static_setter_conflicts_test/02: MissingCompileTimeError
+static_setter_conflicts_test/11: MissingCompileTimeError
+static_setter_conflicts_test/12: MissingCompileTimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
@@ -368,7 +366,6 @@ const_types_test/39: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 constructor_redirect_test/01: MissingCompileTimeError
 covariant_subtyping_test: RuntimeError
-cyclic_constructor_test/01: MissingCompileTimeError
 cyclic_type_variable_test/01: MissingCompileTimeError
 cyclic_type_variable_test/02: MissingCompileTimeError
 cyclic_type_variable_test/03: MissingCompileTimeError

@@ -67,54 +67,68 @@ _async<T>(Function() initGenerator) {
   };
 
   var zone = Zone.current;
-  if (zone != Zone.root) {
+  if (!identical(zone, _rootZone)) {
     onValue = zone.registerUnaryCallback(onValue);
     onError = zone.registerUnaryCallback(onError);
   }
+
   var asyncFuture = _Future<T>();
-  var body = () {
+
+  // This will be set to true once we've yielded to the event loop.
+  //
+  // Before we've done that, we need to complete the future asynchronously to
+  // match dart2js/VM. See https://github.com/dart-lang/sdk/issues/33330
+  //
+  // Once we've yielded to the event loop we can complete synchronously.
+  // Other implementations call this `isSync` to indicate that.
+  bool isRunningAsEvent = false;
+  runBody() {
     try {
       iter = JS('', '#[Symbol.iterator]()', initGenerator());
       var iteratorValue = JS('', '#.next(null)', iter);
       var value = JS('', '#.value', iteratorValue);
       if (JS('bool', '#.done', iteratorValue)) {
-        // TODO(jmesserly): this is needed to work around unsoundness in our
-        // allowed cast failures. We have async methods that return a raw Future
-        // where a Future<T> is expected. If we call:
+        // TODO(jmesserly): this is a workaround for ignored cast failures.
+        // Remove it once we've fixed those. We should be able to call:
         //
-        //     asyncFuture._complete(value);
+        //     if (isRunningAsEvent) {
+        //       asyncFuture._complete(value);
+        //     } else {
+        //       asyncFuture._asyncComplete(value);
+        //     }
         //
-        // Then it ends up interpreting these invalid Future<dynamic> as values
-        // rather than as futures (because complete checks `is Future<T>`).
-        //
-        // For now we inline `_Future._complete` and handle the unsoundness by
-        // checking against raw future types instead of the Fuutre<T> types.
+        // But if the user code returns `Future<dynamic>` instead of
+        // `Future<T>`, that function won't recognize it as a future and will
+        // instead treat it as a completed value.
         if (value is Future) {
           if (value is _Future) {
             _Future._chainCoreFuture(value, asyncFuture);
           } else {
             _Future._chainForeignFuture(value, asyncFuture);
           }
-        } else {
+        } else if (isRunningAsEvent) {
           asyncFuture._completeWithValue(JS('', '#', value));
+        } else {
+          asyncFuture._asyncComplete(JS('', '#', value));
         }
       } else {
         _Future._chainCoreFuture(onAwait(value), asyncFuture);
       }
     } catch (e, s) {
-      if (dart.startAsyncSynchronously) {
-        scheduleMicrotask(() {
-          _completeWithErrorCallback(asyncFuture, e, s);
-        });
-      } else {
+      if (isRunningAsEvent) {
         _completeWithErrorCallback(asyncFuture, e, s);
+      } else {
+        _asyncCompleteWithErrorCallback(asyncFuture, e, s);
       }
     }
-  };
+  }
+
   if (dart.startAsyncSynchronously) {
-    body();
+    runBody();
+    isRunningAsEvent = true;
   } else {
-    scheduleMicrotask(body);
+    isRunningAsEvent = true;
+    scheduleMicrotask(runBody);
   }
   return asyncFuture;
 }

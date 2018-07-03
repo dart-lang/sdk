@@ -654,7 +654,7 @@ class A {
     ConstructorDeclaration constructor = classA.members[2];
     ParameterElement paramElement =
         constructor.parameters.parameters[0].element;
-    expect(paramElement, new isInstanceOf<FieldFormalParameterElement>());
+    expect(paramElement, new TypeMatcher<FieldFormalParameterElement>());
     expect((paramElement as FieldFormalParameterElement).field,
         field.fields.variables[0].element);
     ConstructorFieldInitializer initializer = constructor.initializers[0];

@@ -8,6 +8,7 @@
 
 allowed_hosts = [
   'boringssl.googlesource.com',
+  'chrome-infra-packages.appspot.com',
   'chromium.googlesource.com',
   'dart.googlesource.com',
   'fuchsia.googlesource.com',
@@ -67,7 +68,7 @@ vars = {
 
   # Note: updates to dart_style have to be coordinated carefully with
   # the infrastructure-team so that the internal formatter in
-  # `sdk/tools/sdks/*/dart-sdk/bin/dartfmt` matches the version here.
+  # `sdk/tools/sdks/dart-sdk/bin/dartfmt` matches the version here.
   #
   # Please follow this process to make updates:
   #   * file an issue with area-infrastructure requesting a roll for this
@@ -77,14 +78,14 @@ vars = {
   #     minutes later.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_tag": "1.1.0",  # Please see the note above before updating.
+  "dart_style_tag": "1.1.1",  # Please see the note above before updating.
 
   "dartdoc_tag" : "v0.20.1",
   "fixnum_tag": "0.10.5",
   "func_rev": "25eec48146a58967d75330075ab376b3838b18a8",
   "glob_tag": "1.1.5",
   "html_tag" : "0.13.3",
-  "http_io_tag": "35dc43c9144cf7ed4236843dacd62ebaf89df21a",
+  "http_io_tag": "265e90afbffacb7b2988385d4a6aa2f14e970d44",
   "http_multi_server_tag" : "2.0.4",
   "http_parser_tag" : "3.1.1",
   "http_retry_tag": "0.1.1",
@@ -94,10 +95,10 @@ vars = {
   "intl_tag": "0.15.2",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.6",
-  "linter_tag": "0.1.54",
+  "linter_tag": "0.1.56",
   "logging_tag": "0.11.3+1",
   "markdown_tag": "2.0.0",
-  "matcher_tag": "0.12.1+4",
+  "matcher_tag": "0.12.3",
   "mime_tag": "0.9.6",
   "mockito_tag": "d39ac507483b9891165e422ec98d9fb480037c8b",
   "mustache4dart_tag" : "v2.1.2",
@@ -131,10 +132,10 @@ vars = {
   "test_process_tag": "1.0.1",
   "term_glyph_tag": "1.0.0",
   "test_reflective_loader_tag": "0.1.4",
-  "test_tag": "0.12.38",
+  "test_tag": "1.0.0",
   "tuple_tag": "v1.0.1",
   "typed_data_tag": "1.1.3",
-  "usage_tag": "3.3.0",
+  "usage_tag": "3.4.0",
   "utf_tag": "0.9.0+4",
   "watcher_tag": "0.9.7+8",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
@@ -152,10 +153,20 @@ deps = {
     Var("chromium_git") + "/chromium/llvm-project/cfe/tools/clang-format.git" +
     "@" + Var("clang_format_scripts_rev"),
 
+  Var("dart_root") + "/tools/sdks": {
+      "packages": [
+          {
+              "package": "dart/dart-sdk/${{platform}}",
+              "version": "version:2.0.0-dev.65.0",
+          },
+      ],
+      "dep_type": "cipd",
+  },
+
   Var("dart_root") + "/tests/co19/src":
       Var("dart_git") + "co19.git" + "@" + Var("co19_rev"),
 
-Var("dart_root") + "/tests/co19_2/src":
+  Var("dart_root") + "/tests/co19_2/src":
       Var("chromium_git") + "/external/github.com/dart-lang/co19.git" +
       "@" + Var("co19_2_rev"),
 
@@ -371,22 +382,6 @@ hooks = [
       '--recursive',
       '--directory',
       Var('dart_root') + '/third_party/d8',
-    ],
-  },
-  {
-    "name": "checked_in_dart_sdks",
-    "pattern": ".",
-    "action": [
-      "download_from_google_storage",
-      "--no_auth",
-      "--no_resume",
-      "--bucket",
-      "dart-dependencies",
-      "--recursive",
-      "--auto_platform",
-      "--extract",
-      "--directory",
-      Var('dart_root') + "/tools/sdks",
     ],
   },
   {

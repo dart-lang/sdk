@@ -21,45 +21,144 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   @override
   bool get useCFE => true;
 
-  @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_annotation_prefixed_classField() {
-    // TODO(paulberry): broken because prefixes are not working properly
-    return super.test_annotation_prefixed_classField();
-  }
-
   @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31605')
-  test_constructor_redirected_generic() async {
-    await super.test_constructor_redirected_generic();
-  }
+  test_annotation_onVariableList_topLevelVariable() =>
+      super.test_annotation_onVariableList_topLevelVariable();
 
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_instanceCreation_prefixed() {
-    // TODO(paulberry): broken because prefixes are not working properly
-    return super.test_instanceCreation_prefixed();
+  test_closure_generic() async {
+    // Bad state: Not found T in main() → dynamic
+    // https://github.com/dart-lang/sdk/issues/33722
+    await super.test_closure_generic();
   }
 
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_isExpression_not() {
-    // TODO(paulberry): I suspect that the special case for is! has bit rotted
-    return super.test_isExpression_not();
+  test_local_function_generic() async {
+    // Bad state: Not found T in main() → void
+    // https://github.com/dart-lang/sdk/issues/33722
+    await super.test_local_function_generic();
   }
 
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_local_function_generic() {
-    // TODO(paulberry): I suspect this is broken due to the function type's
-    // generic parameters not being properly associated with the generic
-    // parameters from the kernel representation.
-    return super.test_local_function_generic();
+  test_unresolved_assignment_left_indexed1_simple() async {
+    await super.test_unresolved_assignment_left_indexed1_simple();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_assignment_left_indexed2_simple() async {
+    await super.test_unresolved_assignment_left_indexed2_simple();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_assignment_left_indexed3_simple() async {
+    await super.test_unresolved_assignment_left_indexed3_simple();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_assignment_left_indexed4_simple() async {
+    await super.test_unresolved_assignment_left_indexed4_simple();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_instanceCreation_name_11() async {
+    await super.test_unresolved_instanceCreation_name_11();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_instanceCreation_name_21() async {
+    await super.test_unresolved_instanceCreation_name_21();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_instanceCreation_name_22() async {
+    await super.test_unresolved_instanceCreation_name_22();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_instanceCreation_name_31() async {
+    await super.test_unresolved_instanceCreation_name_31();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_instanceCreation_name_32() async {
+    await super.test_unresolved_instanceCreation_name_32();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_instanceCreation_name_33() async {
+    await super.test_unresolved_instanceCreation_name_33();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_methodInvocation_noTarget() async {
+    await super.test_unresolved_methodInvocation_noTarget();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_methodInvocation_target_resolved() async {
+    await super.test_unresolved_methodInvocation_target_resolved();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_methodInvocation_target_unresolved() async {
+    await super.test_unresolved_methodInvocation_target_unresolved();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_postfix_operand() async {
+    // Bad state: No data for a at 11
+    await super.test_unresolved_postfix_operand();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_postfix_operator() async {
+//    Actual: 'dynamic'
+//    Which: is different.
+//    Expected: A
+    await super.test_unresolved_postfix_operator();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_unresolved_prefix_operand() async {
+    // Bad state: No data for a at 13
+    await super.test_unresolved_prefix_operand();
   }
 }
 

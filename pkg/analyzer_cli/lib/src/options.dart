@@ -363,10 +363,9 @@ class CommandLineOptions {
           help: 'Verbose output.',
           negatable: false);
 
-    if (telemetry.SHOW_ANALYTICS_UI) {
-      parser.addFlag('analytics',
-          help: 'Enable or disable sending analytics information to Google.');
-    }
+    parser.addFlag('analytics',
+        help: 'Enable or disable sending analytics information to Google.',
+        hide: !telemetry.SHOW_ANALYTICS_UI);
 
     // Build mode options.
     if (!hide) {

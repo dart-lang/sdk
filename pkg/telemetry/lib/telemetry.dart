@@ -13,9 +13,6 @@ import 'package:usage/usage_io.dart';
 
 export 'package:usage/usage.dart' show Analytics;
 
-// TODO(devoncarew): Hard-coded to off for now. Remove when we're ready to ship.
-final bool _HARD_CODE_OFF = true;
-
 // TODO(devoncarew): Don't show the UI until we're ready to ship.
 final bool SHOW_ANALYTICS_UI = false;
 
@@ -38,8 +35,10 @@ final String analyticsNotice =
 ///
 /// An example return value might be `'Analytics are currently enabled (and can
 /// be disabled with --no-analytics).'`
-String createAnalyticsStatusMessage(bool enabled,
-    {String command: 'analytics'}) {
+String createAnalyticsStatusMessage(
+  bool enabled, {
+  String command: 'analytics',
+}) {
   String currentState = enabled ? 'enabled' : 'disabled';
   String toggleState = enabled ? 'disabled' : 'enabled';
   String commandToggle = enabled ? 'no-$command' : command;
@@ -53,15 +52,14 @@ String createAnalyticsStatusMessage(bool enabled,
 ///
 /// This analytics instance will share a common enablement state with the rest
 /// of the Dart SDK tools.
-Analytics createAnalyticsInstance(String trackingId, String applicationName,
-    {bool disableForSession: false}) {
+_TelemetryAnalytics createAnalyticsInstance(
+  String trackingId,
+  String applicationName, {
+  bool disableForSession: false,
+}) {
   Directory dir = getDartStorageDirectory();
   if (!dir.existsSync()) {
     dir.createSync();
-  }
-
-  if (_HARD_CODE_OFF) {
-    disableForSession = true;
   }
 
   File file = new File(path.join(dir.path, _settingsFileName));
@@ -73,8 +71,9 @@ Analytics createAnalyticsInstance(String trackingId, String applicationName,
 ///
 /// Typically, the directory is `~/.dart/` (and the settings file is
 /// `analytics.json`).
-Directory getDartStorageDirectory() =>
-    new Directory(path.join(userHomeDir(), _dartDirectoryName));
+Directory getDartStorageDirectory() {
+  return new Directory(path.join(userHomeDir(), _dartDirectoryName));
+}
 
 /// Return the version of the Dart SDK.
 String getDartVersion() => usage_io.getDartVersion();
@@ -88,8 +87,7 @@ class _TelemetryAnalytics extends AnalyticsImpl {
     String applicationVersion,
     File file,
     this.disableForSession,
-  )
-      : super(
+  ) : super(
           trackingId,
           new IOPersistentProperties.fromFile(file),
           new IOPostHandler(),
@@ -107,20 +105,38 @@ class _TelemetryAnalytics extends AnalyticsImpl {
     if (disableForSession || isRunningOnBot()) {
       return false;
     }
-    return super.enabled;
+
+    // If there's no explicit setting (enabled or disabled) then we don't send.
+    return (properties['enabled'] as bool) ?? false;
   }
 }
 
 bool isRunningOnBot() {
-  // - https://docs.travis-ci.com/user/environment-variables/
-  // - https://www.appveyor.com/docs/environment-variables/
-  // - CHROME_HEADLESS and BUILDBOT_BUILDERNAME are properties on Chrome infra
-  //   bots.
-  return Platform.environment['TRAVIS'] == 'true' ||
-      Platform.environment['BOT'] == 'true' ||
-      Platform.environment['CONTINUOUS_INTEGRATION'] == 'true' ||
-      Platform.environment['CHROME_HEADLESS'] == '1' ||
-      Platform.environment.containsKey('BUILDBOT_BUILDERNAME') ||
-      Platform.environment.containsKey('APPVEYOR') ||
-      Platform.environment.containsKey('CI');
+  final Map<String, String> env = Platform.environment;
+
+  return env['BOT'] != 'false' &&
+      (env['BOT'] == 'true'
+          // https://docs.travis-ci.com/user/environment-variables/#Default-Environment-Variables
+          ||
+          env['TRAVIS'] == 'true' ||
+          env['CONTINUOUS_INTEGRATION'] == 'true' ||
+          env.containsKey('CI') // Travis and AppVeyor
+
+          // https://www.appveyor.com/docs/environment-variables/
+          ||
+          env.containsKey('APPVEYOR')
+
+          // https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-env-vars.html
+          ||
+          (env.containsKey('AWS_REGION') &&
+              env.containsKey('CODEBUILD_INITIATOR'))
+
+          // https://wiki.jenkins.io/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-belowJenkinsSetEnvironmentVariables
+          ||
+          env.containsKey('JENKINS_URL')
+
+          // Properties on Flutter's Chrome Infra bots.
+          ||
+          env['CHROME_HEADLESS'] == '1' ||
+          env.containsKey('BUILDBOT_BUILDERNAME'));
 }

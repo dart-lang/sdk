@@ -131,12 +131,87 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ ret();
 }
 
+void StubCode::GenerateSharedStub(Assembler* assembler,
+                                  bool save_fpu_registers,
+                                  const RuntimeEntry* target,
+                                  intptr_t self_code_stub_offset_from_thread,
+                                  bool allow_return) {
+  __ Push(LR);
+
+  // We want the saved registers to appear like part of the caller's frame, so
+  // we push them before calling EnterStubFrame.
+  RegisterSet all_registers;
+  all_registers.AddAllNonReservedRegisters(save_fpu_registers);
+  __ PushRegisters(all_registers);
+
+  const intptr_t kSavedCpuRegisterSlots =
+      Utils::CountOneBitsWord(kDartAvailableCpuRegs);
+
+  const intptr_t kSavedFpuRegisterSlots =
+      save_fpu_registers ? kNumberOfFpuRegisters * kFpuRegisterSize / kWordSize
+                         : 0;
+
+  const intptr_t kAllSavedRegistersSlots =
+      kSavedCpuRegisterSlots + kSavedFpuRegisterSlots;
+
+  // Copy down the return address so the stack layout is correct.
+  __ ldr(TMP, Address(SPREG, kAllSavedRegistersSlots * kWordSize));
+  __ Push(TMP);
+
+  __ ldr(CODE_REG, Address(THR, self_code_stub_offset_from_thread));
+
+  __ EnterStubFrame();
+
+  __ ldr(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
+  __ ldr(R5, Address(THR, Thread::OffsetFromThread(target)));
+  __ LoadImmediate(R4, /*argument_count=*/0);
+  __ ldr(TMP, Address(THR, Thread::call_to_runtime_entry_point_offset()));
+  __ blr(TMP);
+
+  if (!allow_return) {
+    __ Breakpoint();
+    return;
+  }
+  __ LeaveStubFrame();
+
+  // Drop "official" return address -- we can just use the one stored above the
+  // saved registers.
+  __ Drop(1);
+
+  __ PopRegisters(all_registers);
+
+  __ Pop(LR);
+  __ ret(LR);
+}
+
 void StubCode::GenerateNullErrorSharedWithoutFPURegsStub(Assembler* assembler) {
-  __ Breakpoint();
+  GenerateSharedStub(assembler, /*save_fpu_registers=*/false,
+                     &kNullErrorRuntimeEntry,
+                     Thread::null_error_shared_without_fpu_regs_stub_offset(),
+                     /*allow_return=*/false);
 }
 
 void StubCode::GenerateNullErrorSharedWithFPURegsStub(Assembler* assembler) {
-  __ Breakpoint();
+  GenerateSharedStub(assembler, /*save_fpu_registers=*/true,
+                     &kNullErrorRuntimeEntry,
+                     Thread::null_error_shared_with_fpu_regs_stub_offset(),
+                     /*allow_return=*/false);
+}
+
+void StubCode::GenerateStackOverflowSharedWithoutFPURegsStub(
+    Assembler* assembler) {
+  GenerateSharedStub(
+      assembler, /*save_fpu_registers=*/false, &kStackOverflowRuntimeEntry,
+      Thread::stack_overflow_shared_without_fpu_regs_stub_offset(),
+      /*allow_return=*/true);
+}
+
+void StubCode::GenerateStackOverflowSharedWithFPURegsStub(
+    Assembler* assembler) {
+  GenerateSharedStub(assembler, /*save_fpu_registers=*/true,
+                     &kStackOverflowRuntimeEntry,
+                     Thread::stack_overflow_shared_with_fpu_regs_stub_offset(),
+                     /*allow_return=*/true);
 }
 
 void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
@@ -1891,10 +1966,6 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
   __ SetPrologueOffset();
   __ EnterStubFrame();
 
-  // Save exit frame information to enable stack walking as we are about
-  // to transition to Dart VM C++ code.
-  __ StoreToOffset(FP, THR, Thread::top_exit_frame_info_offset());
-
 #if defined(DEBUG)
   {
     Label ok;
@@ -1906,9 +1977,6 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
     __ Bind(&ok);
   }
 #endif
-
-  // Mark that the thread is executing VM code.
-  __ StoreToOffset(R5, THR, Thread::vm_tag_offset());
 
   // Setup space on stack for result of the interpreted function call.
   __ Push(ZR);
@@ -1929,7 +1997,7 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
 
   // Push 4th Dart argument of the interpreted function call.
   // R2: Smi-tagged arguments array length.
-  PushArrayOfArguments(assembler);
+  PushArrayOfArguments(assembler);  // May call into the runtime.
   const intptr_t kNumArgs = 4;
 
   // Reserve space for arguments and align frame before entering C++ world.
@@ -1958,13 +2026,20 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
   __ StoreToOffset(R3, SP, retval_offset);
   __ mov(R0, SP);  // Pass the pointer to the NativeArguments.
 
+  // Save exit frame information to enable stack walking as we are about
+  // to transition to Dart VM C++ code.
+  __ StoreToOffset(FP, THR, Thread::top_exit_frame_info_offset());
+
+  // Mark that the thread is executing VM code.
+  __ LoadImmediate(R5, kInterpretCallRuntimeEntry.GetEntryPoint());
+  __ StoreToOffset(R5, THR, Thread::vm_tag_offset());
+
   // We are entering runtime code, so the C stack pointer must be restored from
   // the stack limit to the top of the stack. We cache the stack limit address
   // in a callee-saved register.
   __ mov(R25, CSP);
   __ mov(CSP, SP);
 
-  __ LoadImmediate(R5, kInterpretCallRuntimeEntry.GetEntryPoint());
   __ blr(R5);
 
   // Restore SP and CSP.

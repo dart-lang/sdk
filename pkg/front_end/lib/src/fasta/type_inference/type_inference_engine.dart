@@ -242,14 +242,14 @@ abstract class TypeInferenceEngine {
   /// with the given [uri].
   TypeInferrer createLocalTypeInferrer(
       Uri uri,
-      TypeInferenceListener<int, int, Node, int> listener,
+      TypeInferenceListener<int, Node, int> listener,
       InterfaceType thisType,
       SourceLibraryBuilder library);
 
   /// Creates a [TypeInferrer] object which is ready to perform type inference
   /// on the given [field].
   TypeInferrer createTopLevelTypeInferrer(
-      TypeInferenceListener<int, int, Node, int> listener,
+      TypeInferenceListener<int, Node, int> listener,
       InterfaceType thisType,
       ShadowField field);
 

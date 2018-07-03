@@ -29,8 +29,8 @@ testIterator(List expect, Iterable input) {
 class MyIterable<T> extends IterableBase<T> {
   final List<T> values;
   MyIterable(List<T> values) : this.values = values;
-  Iterator get iterator {
-    return new MyListIterator(values);
+  Iterator<T> get iterator {
+    return new MyListIterator<T>(values);
   }
 }
 

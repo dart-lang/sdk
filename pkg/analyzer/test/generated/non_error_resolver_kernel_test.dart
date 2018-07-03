@@ -21,14 +21,14 @@ const notForDart2 = const Object();
 /// them, or know that this is an analyzer problem.
 const potentialAnalyzerProblem = const Object();
 
-/// Tests marked with this annotation fail because of a Fasta problem.
-class FastaProblem {
-  const FastaProblem(String issueUri);
-}
-
 /// Tests marked with this annotation fail because of an Analyzer problem.
 class AnalyzerProblem {
   const AnalyzerProblem(String issueUri);
+}
+
+/// Tests marked with this annotation fail because of a Fasta problem.
+class FastaProblem {
+  const FastaProblem(String issueUri);
 }
 
 @reflectiveTest
@@ -119,29 +119,25 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_constConstructorWithNonConstSuper_unresolved() async {
-    return super.test_constConstructorWithNonConstSuper_unresolved();
+  test_conflictingStaticSetterAndInstanceMember_thisClass_method() async {
+    // Bad state: Unable to convert (null, @39, Conflicts with member 'x'.)
+    return super
+        .test_conflictingStaticSetterAndInstanceMember_thisClass_method();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33676')
+  test_constConstructorWithMixinWithField() {
+    // Bad state: Unable to convert (Unspecified, null, @52, Can't extend a mixin application and be 'const'.)
+    return super.test_constConstructorWithMixinWithField();
   }
 
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_constDeferredClass_new() async {
-    return super.test_constDeferredClass_new();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
-  test_constructorDeclaration_scope_signature() async {
-    return super.test_constructorDeclaration_scope_signature();
-  }
-
-  @override
-  @failingTest
-  test_duplicateDefinition_emptyName() {
-    // NoSuchMethodError: The setter 'enclosingElement=' was called on null.
-    return super.test_duplicateDefinition_emptyName();
+  test_constConstructorWithNonConstSuper_unresolved() async {
+    return super.test_constConstructorWithNonConstSuper_unresolved();
   }
 
   @override
@@ -174,15 +170,9 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
-  test_functionDeclaration_scope_signature() async {
-    return super.test_functionDeclaration_scope_signature();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
+  @potentialAnalyzerProblem
   test_functionTypeAlias_scope_signature() async {
+    // Caused by Bad state: Found 1 annotation nodes and 0 element annotations
     return super.test_functionTypeAlias_scope_signature();
   }
 
@@ -195,32 +185,9 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31641')
-  test_invalidAnnotation_constantVariable_field() async {
-    return super.test_invalidAnnotation_constantVariable_field();
-  }
-
-  @override
-  @failingTest
-  test_invalidAnnotation_constantVariable_field_importWithPrefix() {
-    // type 'PrefixedIdentifierImpl' is not a subtype of type 'SimpleIdentifier'
-    // of 'topEntity'
-    return super
-        .test_invalidAnnotation_constantVariable_field_importWithPrefix();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
   test_invocationOfNonFunction_Object() async {
     return super.test_invocationOfNonFunction_Object();
-  }
-
-  @override
-  @failingTest
-  test_issue_32394() {
-    // Failed assertion: line 1133 pos 12: 'element != null': is not true.
-    return super.test_issue_32394();
   }
 
   @override
@@ -236,13 +203,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   test_metadata_enumConstantDeclaration() {
     // Failed to resolve 2 nodes
     return super.test_metadata_enumConstantDeclaration();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
-  test_methodDeclaration_scope_signature() async {
-    return super.test_methodDeclaration_scope_signature();
   }
 
   @override
@@ -289,16 +249,10 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_returnOfInvalidType_typeParameter_18468() async {
-    return super.test_returnOfInvalidType_typeParameter_18468();
-  }
-
-  @override
-  @failingTest
-  test_undefinedGetter_static_conditionalAccess() {
-    // Bad state: No data for A at 36
-    return super.test_undefinedGetter_static_conditionalAccess();
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33677')
+  test_undefinedIdentifier_synthetic_whenExpression() {
+    // Expected 0 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 1 (29)
+    return super.test_undefinedIdentifier_synthetic_whenExpression();
   }
 
   @override
@@ -306,19 +260,5 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_undefinedIdentifier_synthetic_whenMethodName() async {
     return super.test_undefinedIdentifier_synthetic_whenMethodName();
-  }
-
-  @override
-  @failingTest
-  test_undefinedMethod_static_conditionalAccess() {
-    // Bad state: No data for A at 39
-    return super.test_undefinedMethod_static_conditionalAccess();
-  }
-
-  @override
-  @failingTest
-  test_undefinedSetter_static_conditionalAccess() {
-    // Bad state: No data for A at 34
-    return super.test_undefinedSetter_static_conditionalAccess();
   }
 }

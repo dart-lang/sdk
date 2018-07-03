@@ -22,9 +22,9 @@ main() {
   });
 }
 
-isInstanceOf isDartScriptsTask = new isInstanceOf<DartScriptsTask>();
-isInstanceOf isHtmlErrorsTask = new isInstanceOf<HtmlErrorsTask>();
-isInstanceOf isParseHtmlTask = new isInstanceOf<ParseHtmlTask>();
+final isDartScriptsTask = new TypeMatcher<DartScriptsTask>();
+final isHtmlErrorsTask = new TypeMatcher<HtmlErrorsTask>();
+final isParseHtmlTask = new TypeMatcher<ParseHtmlTask>();
 
 @reflectiveTest
 class DartScriptsTaskTest extends AbstractContextTest {

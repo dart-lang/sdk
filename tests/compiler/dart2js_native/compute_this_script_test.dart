@@ -11,6 +11,6 @@ main() {
   // of our test runner, but I can think of no other way to test this.
   // -- ahe
   if (!thisScript.endsWith('/out.js')) {
-    throw 'Unexpected script: "$thiscript"';
+    throw 'Unexpected script: "$thisScript"';
   }
 }

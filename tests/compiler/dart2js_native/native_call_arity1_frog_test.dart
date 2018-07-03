@@ -66,17 +66,17 @@ testStaticContext() {
   A a = makeA();
   B b = makeB();
 
-  Expect.throws(() => a.foo());
+  Expect.throws(() => (a as dynamic).foo());
   Expect.equals(1, a.foo(10));
-  Expect.throws(() => a.foo(10, 20));
-  Expect.throws(() => a.foo(10, 20, 30));
+  Expect.throws(() => (a as dynamic).foo(10, 20));
+  Expect.throws(() => (a as dynamic).foo(10, 20, 30));
 
   Expect.equals(0, b.foo());
   Expect.equals(1, b.foo(10));
   Expect.equals(2, b.foo(10, 20));
   Expect.equals(3, b.foo(10, 20, 30));
 
-  Expect.throws(() => b.foo(10, 20, 30, 40));
+  Expect.throws(() => (b as dynamic).foo(10, 20, 30, 40));
 }
 
 main() {

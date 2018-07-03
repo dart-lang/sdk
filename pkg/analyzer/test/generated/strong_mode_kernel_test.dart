@@ -382,20 +382,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
 
   @override
   @failingTest
-  test_genericMethod_nestedFunctions() {
-    // Expected: '<S>(S) → <S>(S) → S'; Actual: '<S₀>(S) → <S>(S) → S'
-    return super.test_genericMethod_nestedFunctions();
-  }
-
-  @override
-  @failingTest
-  test_genericMethod_override_differentContextsSameBounds() {
-    // UnimplementedError: TODO(paulberry): TypeParameterType
-    return super.test_genericMethod_override_differentContextsSameBounds();
-  }
-
-  @override
-  @failingTest
   test_genericMethod_override_invalidContravariantTypeParamBounds() async {
     // Expected 1 errors of type StrongModeCode.STRONG_MODE_INVALID_METHOD_OVERRIDE, found 0
     await super
@@ -408,13 +394,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
     // Expected 1 errors of type StrongModeCode.STRONG_MODE_INVALID_METHOD_OVERRIDE, found 0
     await super
         .test_genericMethod_override_invalidContravariantTypeParamBounds();
-  }
-
-  @override
-  @failingTest
-  test_genericMethod_override_invalidReturnType() async {
-    // Expected 1 errors of type StrongModeCode.STRONG_MODE_INVALID_METHOD_OVERRIDE, found 0
-    await super.test_genericMethod_override_invalidReturnType();
   }
 
   @override
@@ -443,6 +422,11 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
   test_genericMethod_toplevel_field_staticTearoff() {
     // Failed to resolve 1 nodes
     return super.test_genericMethod_toplevel_field_staticTearoff();
+  }
+
+  @override
+  test_notInstantiatedBound_class_error_recursion_less_direct() async {
+    return super.test_notInstantiatedBound_class_error_recursion_less_direct();
   }
 
   @override

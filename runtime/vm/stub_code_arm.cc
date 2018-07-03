@@ -112,14 +112,92 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ Ret();
 }
 
+void StubCode::GenerateSharedStub(Assembler* assembler,
+                                  bool save_fpu_registers,
+                                  const RuntimeEntry* target,
+                                  intptr_t self_code_stub_offset_from_thread,
+                                  bool allow_return) {
+  __ Push(LR);
+
+  // We want the saved registers to appear like part of the caller's frame, so
+  // we push them before calling EnterStubFrame.
+  //
+  // TODO(sjindel): We could skip saving LR (and thus remove one bit from the
+  // stackmap of the callsite), but this would add ARM-specific complexity to
+  // FlowGraphCompiler::RecordSafepoint and
+  // FlowGraphCompiler::SlowPathEnvironmentFor.
+  RegisterSet all_registers;
+  all_registers.AddAllNonReservedRegisters(save_fpu_registers);
+  __ PushRegisters(all_registers);
+
+  const intptr_t kSavedCpuRegisterSlots =
+      Utils::CountOneBitsWord(kDartAvailableCpuRegs);
+
+  const intptr_t kSavedFpuRegisterSlots =
+      save_fpu_registers ? kNumberOfFpuRegisters * kFpuRegisterSize / kWordSize
+                         : 0;
+
+  const intptr_t kAllSavedRegistersSlots =
+      kSavedCpuRegisterSlots + kSavedFpuRegisterSlots;
+
+  // Copy down the return address so the stack layout is correct.
+  __ ldr(TMP, Address(SPREG, kAllSavedRegistersSlots * kWordSize));
+  __ Push(TMP);
+
+  __ ldr(CODE_REG, Address(THR, self_code_stub_offset_from_thread));
+
+  __ EnterStubFrame();
+
+  __ ldr(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
+  __ ldr(R9, Address(THR, Thread::OffsetFromThread(target)));
+  __ mov(R4, Operand(/*argument_count=*/0));
+  __ ldr(TMP, Address(THR, Thread::call_to_runtime_entry_point_offset()));
+  __ blx(TMP);
+
+  if (!allow_return) {
+    __ Breakpoint();
+    return;
+  }
+  __ LeaveStubFrame();
+
+  // Drop "official" return address -- we can just use the one stored above the
+  // saved registers.
+  __ Drop(1);
+
+  __ PopRegisters(all_registers);
+
+  __ Pop(LR);
+  __ bx(LR);
+}
+
 void StubCode::GenerateNullErrorSharedWithoutFPURegsStub(Assembler* assembler) {
-  // TODO(sjindel): implement.
-  __ Breakpoint();
+  GenerateSharedStub(assembler, /*save_fpu_registers=*/false,
+                     &kNullErrorRuntimeEntry,
+                     Thread::null_error_shared_without_fpu_regs_stub_offset(),
+                     /*allow_return=*/false);
 }
 
 void StubCode::GenerateNullErrorSharedWithFPURegsStub(Assembler* assembler) {
-  // TODO(sjindel): implement.
-  __ Breakpoint();
+  GenerateSharedStub(assembler, /*save_fpu_registers=*/true,
+                     &kNullErrorRuntimeEntry,
+                     Thread::null_error_shared_with_fpu_regs_stub_offset(),
+                     /*allow_return=*/false);
+}
+
+void StubCode::GenerateStackOverflowSharedWithoutFPURegsStub(
+    Assembler* assembler) {
+  GenerateSharedStub(
+      assembler, /*save_fpu_registers=*/false, &kStackOverflowRuntimeEntry,
+      Thread::stack_overflow_shared_without_fpu_regs_stub_offset(),
+      /*allow_return=*/true);
+}
+
+void StubCode::GenerateStackOverflowSharedWithFPURegsStub(
+    Assembler* assembler) {
+  GenerateSharedStub(assembler, /*save_fpu_registers=*/true,
+                     &kStackOverflowRuntimeEntry,
+                     Thread::stack_overflow_shared_with_fpu_regs_stub_offset(),
+                     /*allow_return=*/true);
 }
 
 // Input parameters:

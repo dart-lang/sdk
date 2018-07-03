@@ -15,6 +15,9 @@ valid_source_locations_test: Pass, Slow # Generally slow, even in release-x64.
 [ $arch == arm ]
 process_service_test: Pass, Fail # Issue 24344
 
+[ $arch == arm64 ]
+get_object_rpc_test: RuntimeError
+
 [ $compiler == app_jit ]
 bad_reload_test: RuntimeError # Issue 27806
 complex_reload_test: RuntimeError # Issue 27806

@@ -22,7 +22,7 @@ static method b() → asy::Future<(core::int) → core::int> /* originally async
         :return_value = (dynamic x) → dynamic => x;
         break #L1;
       }
-      :async_completer.{asy::Completer::complete}(:return_value);
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {

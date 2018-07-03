@@ -47,8 +47,7 @@ import '../../api_prototype/file_system.dart' show FileSystem;
 
 import '../compiler_context.dart' show CompilerContext;
 
-import '../deprecated_problems.dart'
-    show deprecated_InputError, reportCrash, resetCrashReporting;
+import '../crash.dart' show withCrashReporting;
 
 import '../dill/dill_target.dart' show DillTarget;
 
@@ -135,7 +134,6 @@ class KernelTarget extends TargetImplementation {
         uriToSource = uriToSource ?? CompilerContext.current.uriToSource,
         metadataCollector = metadataCollector,
         super(dillTarget.ticker, uriTranslator, dillTarget.backendTarget) {
-    resetCrashReporting();
     loader = createLoader();
   }
 
@@ -220,9 +218,8 @@ class KernelTarget extends TargetImplementation {
     builder.mixedInType = null;
   }
 
-  void handleInputError(deprecated_InputError error, {bool isFullComponent}) {
-    if (error != null) {
-      LocatedMessage message = deprecated_InputError.toMessage(error);
+  void handleInputError(LocatedMessage message, {bool isFullComponent}) {
+    if (message != null) {
       context.report(message, Severity.error);
       errors.add(message);
     }
@@ -232,39 +229,42 @@ class KernelTarget extends TargetImplementation {
   @override
   Future<Component> buildOutlines({CanonicalName nameRoot}) async {
     if (loader.first == null) return null;
-    try {
-      loader.createTypeInferenceEngine();
-      await loader.buildOutlines();
-      loader.coreLibrary.becomeCoreLibrary(const DynamicType());
-      dynamicType.bind(loader.coreLibrary["dynamic"]);
-      loader.resolveParts();
-      loader.computeLibraryScopes();
-      objectType.bind(loader.coreLibrary["Object"]);
-      bottomType.bind(loader.coreLibrary["Null"]);
-      loader.resolveTypes();
-      loader.computeDefaultTypes(dynamicType, bottomType, objectClassBuilder);
-      List<SourceClassBuilder> myClasses = collectMyClasses();
-      loader.checkSemantics(myClasses);
-      loader.finishTypeVariables(objectClassBuilder, dynamicType);
-      loader.buildComponent();
-      installDefaultSupertypes();
-      installDefaultConstructors(myClasses);
-      loader.resolveConstructors();
-      component =
-          link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
-      computeCoreTypes();
-      loader.computeHierarchy();
-      loader.performTopLevelInference(myClasses);
-      loader.checkOverrides(myClasses);
-      loader.checkAbstractMembers(myClasses);
-      loader.addNoSuchMethodForwarders(myClasses);
-    } on deprecated_InputError catch (e) {
-      ticker.logMs("Got deprecated_InputError");
-      handleInputError(e, isFullComponent: false);
-    } catch (e, s) {
-      return reportCrash(e, s, loader?.currentUriForCrashReporting);
-    }
-    return component;
+    return withCrashReporting<Component>(
+        () async {
+          loader.createTypeInferenceEngine();
+          await loader.buildOutlines();
+          loader.coreLibrary.becomeCoreLibrary(const DynamicType());
+          dynamicType.bind(loader.coreLibrary["dynamic"]);
+          loader.resolveParts();
+          loader.computeLibraryScopes();
+          objectType.bind(loader.coreLibrary["Object"]);
+          bottomType.bind(loader.coreLibrary["Null"]);
+          loader.resolveTypes();
+          loader.computeDefaultTypes(
+              dynamicType, bottomType, objectClassBuilder);
+          List<SourceClassBuilder> myClasses = collectMyClasses();
+          loader.checkSemantics(myClasses);
+          loader.finishTypeVariables(objectClassBuilder, dynamicType);
+          loader.buildComponent();
+          installDefaultSupertypes();
+          installDefaultConstructors(myClasses);
+          loader.resolveConstructors();
+          component = link(new List<Library>.from(loader.libraries),
+              nameRoot: nameRoot);
+          computeCoreTypes();
+          loader.computeHierarchy();
+          loader.performTopLevelInference(myClasses);
+          loader.checkOverrides(myClasses);
+          loader.checkAbstractMembers(myClasses);
+          loader.addNoSuchMethodForwarders(myClasses);
+          return component;
+        },
+        () => loader?.currentUriForCrashReporting,
+        onInputError: (LocatedMessage message) {
+          ticker.logMs("Got unrecoverable error");
+          handleInputError(message, isFullComponent: false);
+          return component;
+        });
   }
 
   /// Build the kernel representation of the component loaded by this
@@ -283,28 +283,31 @@ class KernelTarget extends TargetImplementation {
       return component;
     }
 
-    try {
-      ticker.logMs("Building component");
-      await loader.buildBodies();
-      loader.finishDeferredLoadTearoffs();
-      List<SourceClassBuilder> myClasses = collectMyClasses();
-      finishAllConstructors(myClasses);
-      loader.finishNativeMethods();
-      loader.finishPatchMethods();
-      runBuildTransformations();
+    return withCrashReporting<Component>(
+        () async {
+          ticker.logMs("Building component");
+          await loader.buildBodies();
+          loader.finishDeferredLoadTearoffs();
+          loader.finishNoSuchMethodForwarders();
+          List<SourceClassBuilder> myClasses = collectMyClasses();
+          finishAllConstructors(myClasses);
+          loader.finishNativeMethods();
+          loader.finishPatchMethods();
+          runBuildTransformations();
 
-      if (verify) this.verify();
-      if (errors.isNotEmpty) {
-        handleInputError(null, isFullComponent: true);
-      }
-      handleRecoverableErrors(loader.unhandledErrors);
-    } on deprecated_InputError catch (e) {
-      ticker.logMs("Got deprecated_InputError");
-      handleInputError(e, isFullComponent: true);
-    } catch (e, s) {
-      return reportCrash(e, s, loader?.currentUriForCrashReporting);
-    }
-    return component;
+          if (verify) this.verify();
+          if (errors.isNotEmpty) {
+            handleInputError(null, isFullComponent: true);
+          }
+          handleRecoverableErrors(loader.unhandledErrors);
+          return component;
+        },
+        () => loader?.currentUriForCrashReporting,
+        onInputError: (LocatedMessage message) {
+          ticker.logMs("Got unrecoverable error");
+          handleInputError(message, isFullComponent: true);
+          return component;
+        });
   }
 
   /// Adds a synthetic field named `#errors` to the main library that contains

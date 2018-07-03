@@ -23,6 +23,9 @@ class KernelInvalidTypeBuilder
             .withLocation(fileUri, charOffset, noLength),
         super(name, charOffset, fileUri);
 
+  @override
+  InvalidType get target => const InvalidType();
+
   DartType buildType(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
     return buildTypesWithBuiltArguments(library, null);

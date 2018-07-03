@@ -36,8 +36,10 @@ class ThisAccessGenerator extends KernelGenerator {
     if (!isSuper) {
       return forest.thisExpression(token);
     } else {
-      return helper.buildCompileTimeError(messageSuperAsExpression,
-          offsetForToken(token), lengthForToken(token));
+      return new SyntheticExpressionJudgment(helper.buildCompileTimeError(
+          messageSuperAsExpression,
+          offsetForToken(token),
+          lengthForToken(token)));
     }
   }
 
@@ -91,8 +93,8 @@ class ThisAccessGenerator extends KernelGenerator {
     if (isInitializer) {
       return buildConstructorInitializer(offset, new Name(""), arguments);
     } else if (isSuper) {
-      return helper.buildCompileTimeError(
-          messageSuperAsExpression, offset, noLength);
+      return new SyntheticExpressionJudgment(helper.buildCompileTimeError(
+          messageSuperAsExpression, offset, noLength));
     } else {
       return helper.buildMethodInvocation(
           forest.thisExpression(null), callName, arguments, offset,
@@ -109,12 +111,14 @@ class ThisAccessGenerator extends KernelGenerator {
           constructor.function, arguments, offset, <TypeParameter>[]);
     }
     if (constructor == null || argMessage != null) {
-      return helper.buildInvalidInitializer(buildThrowNoSuchMethodError(
-          forest.literalNull(null)..fileOffset = offset, arguments,
-          isSuper: isSuper,
-          name: name.name,
-          offset: offset,
-          argMessage: argMessage));
+      return helper.buildInvalidInitializer(new SyntheticExpressionJudgment(
+          helper.throwNoSuchMethodError(
+              forest.literalNull(null)..fileOffset = offset,
+              name.name,
+              arguments,
+              offset,
+              isSuper: isSuper,
+              argMessage: argMessage)));
     } else if (isSuper) {
       return helper.buildSuperInitializer(
           false, constructor, arguments, offset);
@@ -163,17 +167,6 @@ class ThisAccessGenerator extends KernelGenerator {
   }
 
   @override
-  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    return unsupported("_makeRead", offsetForToken(token), uri);
-  }
-
-  @override
-  Expression _makeWrite(Expression value, bool voidContext,
-      ComplexAssignmentJudgment complexAssignment) {
-    return unsupported("_makeWrite", offsetForToken(token), uri);
-  }
-
-  @override
   void printOn(StringSink sink) {
     sink.write(", isInitializer: ");
     sink.write(isInitializer);
@@ -192,17 +185,6 @@ abstract class IncompleteSendGenerator extends KernelGenerator {
   withReceiver(Object receiver, int operatorOffset, {bool isNullAware});
 
   Arguments get arguments => null;
-
-  @override
-  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    return unsupported("_makeRead", offsetForToken(token), uri);
-  }
-
-  @override
-  Expression _makeWrite(Expression value, bool voidContext,
-      ComplexAssignmentJudgment complexAssignment) {
-    return unsupported("_makeWrite", offsetForToken(token), uri);
-  }
 
   @override
   void printOn(StringSink sink) {
@@ -230,16 +212,6 @@ class IncompleteErrorGenerator extends IncompleteSendGenerator
       length = lengthForToken(token);
     }
     return helper.buildCompileTimeError(message, offset, length);
-  }
-
-  @override
-  DartType buildErroneousTypeNotAPrefix(Identifier suffix) {
-    helper.addProblem(
-        templateNotAPrefixInTypeAnnotation.withArguments(
-            token.lexeme, suffix.name),
-        offsetForToken(token),
-        lengthOfSpan(token, suffix.token));
-    return const InvalidType();
   }
 
   @override
@@ -278,18 +250,6 @@ class SendAccessGenerator extends IncompleteSendGenerator {
   withReceiver(Object receiver, int operatorOffset, {bool isNullAware: false}) {
     if (receiver is Generator) {
       return receiver.buildPropertyAccess(this, operatorOffset, isNullAware);
-    }
-    if (receiver is PrefixBuilder) {
-      PrefixBuilder prefix = receiver;
-      if (isNullAware) {
-        helper.deprecated_addCompileTimeError(
-            offsetForToken(token),
-            "Library prefix '${prefix.name}' can't be used with null-aware "
-            "operator.\nTry removing '?'.");
-      }
-      receiver = helper.scopeLookup(prefix.exportScope, name.name, token,
-          isQualified: true, prefix: prefix);
-      return helper.finishSend(receiver, arguments, offsetForToken(token));
     }
     return helper.buildMethodInvocation(
         helper.toValue(receiver), name, arguments, offsetForToken(token),
@@ -361,18 +321,6 @@ class IncompletePropertyAccessGenerator extends IncompleteSendGenerator {
     if (receiver is Generator) {
       return receiver.buildPropertyAccess(this, operatorOffset, isNullAware);
     }
-    if (receiver is PrefixBuilder) {
-      PrefixBuilder prefix = receiver;
-      if (isNullAware) {
-        helper.deprecated_addCompileTimeError(
-            offsetForToken(token),
-            "Library prefix '${prefix.name}' can't be used with null-aware "
-            "operator.\nTry removing '?'.");
-      }
-      return helper.scopeLookup(prefix.exportScope, name.name, token,
-          isQualified: true, prefix: prefix);
-    }
-
     return PropertyAccessGenerator.make(
         helper, token, helper.toValue(receiver), name, null, null, isNullAware);
   }

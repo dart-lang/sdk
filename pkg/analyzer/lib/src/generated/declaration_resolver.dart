@@ -122,7 +122,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     _walk(new ElementWalker.forClass(element), () {
       super.visitClassDeclaration(node);
     });
-    _resolveMetadata(node, node.metadata, element);
+    resolveMetadata(node, node.metadata, element);
     return null;
   }
 
@@ -142,7 +142,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     _walk(new ElementWalker.forClass(element), () {
       super.visitClassTypeAlias(node);
     });
-    _resolveMetadata(node, node.metadata, element);
+    resolveMetadata(node, node.metadata, element);
     return null;
   }
 
@@ -154,7 +154,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       node.element = element;
       super.visitConstructorDeclaration(node);
     });
-    _resolveMetadata(node, node.metadata, element);
+    resolveMetadata(node, node.metadata, element);
     if (_applyKernelTypes) {
       _applyTypeToIdentifier(node.returnType, element.returnType);
       node.name?.staticType = element.type;
@@ -204,7 +204,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       normalParameter.accept(this);
     });
 
-    _resolveMetadata(node, node.metadata, element);
+    resolveMetadata(node, node.metadata, element);
     return null;
   }
 
@@ -224,12 +224,12 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     _walk(new ElementWalker.forClass(element), () {
       for (EnumConstantDeclaration constant in node.constants) {
         VariableElement element = _match(constant.name, _walker.getVariable());
-        _resolveMetadata(node, constant.metadata, element);
+        resolveMetadata(node, constant.metadata, element);
       }
       _walker.getFunction(); // toString()
       super.visitEnumDeclaration(node);
     });
-    _resolveMetadata(node, node.metadata, element);
+    resolveMetadata(node, node.metadata, element);
     return null;
   }
 
@@ -246,7 +246,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
           .indexOf(node);
       annotations = _walker.element.library.exports[index].metadata;
     }
-    _resolveAnnotations(node, node.metadata, annotations);
+    resolveAnnotations(node, node.metadata, annotations);
     return null;
   }
 
@@ -270,7 +270,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         _applyType(firstFieldElement.type, node.fields.type);
       }
     }
-    _resolveMetadata(node, node.metadata, firstFieldElement);
+    resolveMetadata(node, node.metadata, firstFieldElement);
     return null;
   }
 
@@ -283,7 +283,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       _walk(new ElementWalker.forParameter(element, isFunctionTyped), () {
         super.visitFieldFormalParameter(node);
       });
-      _resolveMetadata(node, node.metadata, element);
+      resolveMetadata(node, node.metadata, element);
       _setGenericFunctionType(node.type, element.type);
       return null;
     } else {
@@ -339,7 +339,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
       super.visitFunctionDeclaration(node);
     });
-    _resolveMetadata(node, node.metadata, element);
+    resolveMetadata(node, node.metadata, element);
     return null;
   }
 
@@ -364,7 +364,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     _walk(new ElementWalker.forTypedef(element), () {
       super.visitFunctionTypeAlias(node);
     });
-    _resolveMetadata(node, node.metadata, element);
+    resolveMetadata(node, node.metadata, element);
     return null;
   }
 
@@ -376,7 +376,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       _walk(new ElementWalker.forParameter(element, true), () {
         super.visitFunctionTypedFormalParameter(node);
       });
-      _resolveMetadata(node, node.metadata, element);
+      resolveMetadata(node, node.metadata, element);
       return null;
     } else {
       return super.visitFunctionTypedFormalParameter(node);
@@ -415,7 +415,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     _walk(new ElementWalker.forGenericTypeAlias(element), () {
       super.visitGenericTypeAlias(node);
     });
-    _resolveMetadata(node, node.metadata, element);
+    resolveMetadata(node, node.metadata, element);
     return null;
   }
 
@@ -432,7 +432,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
           .indexOf(node);
       annotations = _walker.element.library.imports[index].metadata;
     }
-    _resolveAnnotations(node, node.metadata, annotations);
+    resolveAnnotations(node, node.metadata, annotations);
     return null;
   }
 
@@ -452,7 +452,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     if (annotations.isEmpty && node.metadata.isNotEmpty) {
       annotations = _walker.element.library.metadata;
     }
-    _resolveAnnotations(node, node.metadata, annotations);
+    resolveAnnotations(node, node.metadata, annotations);
     return null;
   }
 
@@ -495,7 +495,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
       super.visitMethodDeclaration(node);
     });
-    _resolveMetadata(node, node.metadata, element);
+    resolveMetadata(node, node.metadata, element);
     return null;
   }
 
@@ -512,7 +512,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
           .indexOf(node);
       annotations = _walker.element.library.parts[index].metadata;
     }
-    _resolveAnnotations(node, node.metadata, annotations);
+    resolveAnnotations(node, node.metadata, annotations);
     return null;
   }
 
@@ -538,7 +538,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       _walk(new ElementWalker.forParameter(element, false), () {
         super.visitSimpleFormalParameter(node);
       });
-      _resolveMetadata(node, node.metadata, element);
+      resolveMetadata(node, node.metadata, element);
       return null;
     } else {
       return super.visitSimpleFormalParameter(node);
@@ -567,7 +567,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         _applyType(firstElement.type, type);
       }
     }
-    _resolveMetadata(node, node.metadata, firstElement);
+    resolveMetadata(node, node.metadata, firstElement);
     return null;
   }
 
@@ -591,7 +591,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     }
     _setGenericFunctionType(node.bound, element.bound);
     super.visitTypeParameter(node);
-    _resolveMetadata(node, node.metadata, element);
+    resolveMetadata(node, node.metadata, element);
     return null;
   }
 
@@ -600,17 +600,16 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     VariableElement element = _match(node.name, _walker.getVariable());
     if (_applyKernelTypes) {
       node.name.staticType = element.type;
-    } else {
-      Expression initializer = node.initializer;
-      if (initializer != null) {
-        _walk(
-            new ElementWalker.forExecutable(
-                element.initializer, _enclosingUnit), () {
-          super.visitVariableDeclaration(node);
-        });
-      } else {
+    }
+    Expression initializer = node.initializer;
+    if (initializer != null) {
+      _walk(
+          new ElementWalker.forExecutable(element.initializer, _enclosingUnit),
+          () {
         super.visitVariableDeclaration(node);
-      }
+      });
+    } else {
+      super.visitVariableDeclaration(node);
     }
     return null;
   }
@@ -626,7 +625,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       node.type?.accept(this);
       if (node.parent is! FieldDeclaration &&
           node.parent is! TopLevelVariableDeclaration) {
-        _resolveMetadata(node, node.metadata, firstVariable);
+        resolveMetadata(node, node.metadata, firstVariable);
       }
       return null;
     }
@@ -698,39 +697,6 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Associate each of the annotation [nodes] with the corresponding
-   * [ElementAnnotation] in [annotations]. If there is a problem, report it
-   * against the given [parent] node.
-   */
-  void _resolveAnnotations(AstNode parent, NodeList<Annotation> nodes,
-      List<ElementAnnotation> annotations) {
-    int nodeCount = nodes.length;
-    if (nodeCount != annotations.length) {
-      throw new StateError('Found $nodeCount annotation nodes and '
-          '${annotations.length} element annotations');
-    }
-    for (int i = 0; i < nodeCount; i++) {
-      nodes[i].elementAnnotation = annotations[i];
-    }
-  }
-
-  /**
-   * If [element] is not `null`, associate each of the annotation [nodes] with
-   * the corresponding [ElementAnnotation] in [element.metadata]. If there is a
-   * problem, report it against the given [parent] node.
-   *
-   * If [element] is `null`, do nothing--this allows us to be robust in the
-   * case where we are operating on an element model that hasn't been fully
-   * built.
-   */
-  void _resolveMetadata(
-      AstNode parent, NodeList<Annotation> nodes, Element element) {
-    if (element != null) {
-      _resolveAnnotations(parent, nodes, element.metadata);
-    }
-  }
-
-  /**
    * If the given [typeNode] is a [GenericFunctionType], set its [type].
    */
   void _setGenericFunctionType(TypeAnnotation typeNode, DartType type) {
@@ -766,6 +732,39 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     callback();
     walker.validate();
     _walker = outerWalker;
+  }
+
+  /**
+   * Associate each of the annotation [nodes] with the corresponding
+   * [ElementAnnotation] in [annotations]. If there is a problem, report it
+   * against the given [parent] node.
+   */
+  static void resolveAnnotations(AstNode parent, NodeList<Annotation> nodes,
+      List<ElementAnnotation> annotations) {
+    int nodeCount = nodes.length;
+    if (nodeCount != annotations.length) {
+      throw new StateError('Found $nodeCount annotation nodes and '
+          '${annotations.length} element annotations');
+    }
+    for (int i = 0; i < nodeCount; i++) {
+      nodes[i].elementAnnotation = annotations[i];
+    }
+  }
+
+  /**
+   * If [element] is not `null`, associate each of the annotation [nodes] with
+   * the corresponding [ElementAnnotation] in [element.metadata]. If there is a
+   * problem, report it against the given [parent] node.
+   *
+   * If [element] is `null`, do nothing--this allows us to be robust in the
+   * case where we are operating on an element model that hasn't been fully
+   * built.
+   */
+  static void resolveMetadata(
+      AstNode parent, NodeList<Annotation> nodes, Element element) {
+    if (element != null) {
+      resolveAnnotations(parent, nodes, element.metadata);
+    }
   }
 
   static bool _isBodyToCreateElementsFor(FunctionBody node) {

@@ -4,9 +4,9 @@
 
 main() {
   var a = [0, 1];
-  a[1.2]; //                      //# 01: runtime error
-  a[1.2] = 4; //                  //# 02: runtime error
-  checkIndex(a, 1.4);             //# 03: runtime error
+  a[1.2]; //                      //# 01: compile-time error
+  a[1.2] = 4; //                  //# 02: compile-time error
+  checkIndex(a, 1.4); //# 03: runtime error
   checkIndexedAssignment(a, 1.4); //# 04: runtime error
   checkIndex(a, 0);
   checkIndexedAssignment(a, 0);

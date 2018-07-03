@@ -31,18 +31,15 @@ Bytecode {
   Jump                 L4
 L1:
   PushConstant         CP#9
-  StoreLocal           r0
-  Drop1
+  PopLocal             r0
   Jump                 L4
 L2:
   PushConstant         CP#10
-  StoreLocal           r0
-  Drop1
+  PopLocal             r0
   Jump                 L4
 L3:
   PushConstant         CP#11
-  StoreLocal           r0
-  Drop1
+  PopLocal             r0
   Jump                 L4
 L4:
   Push                 r0
@@ -136,18 +133,15 @@ Bytecode {
   Jump                 L3
 L1:
   PushConstant         CP#15
-  StoreLocal           r0
-  Drop1
+  PopLocal             r0
   Jump                 L4
 L2:
   PushConstant         CP#16
-  StoreLocal           r0
-  Drop1
+  PopLocal             r0
   Jump                 L4
 L3:
   PushConstant         CP#17
-  StoreLocal           r0
-  Drop1
+  PopLocal             r0
 L4:
   Push                 r0
   ReturnTOS
@@ -249,19 +243,16 @@ Bytecode {
   Jump                 L3
 L1:
   PushConstant         CP#15
-  StoreLocal           r0
-  Drop1
+  PopLocal             r0
   Jump                 L2
 L2:
   PushConstant         CP#16
-  StoreLocal           r0
-  Drop1
+  PopLocal             r0
   PushConstant         CP#17
   ReturnTOS
 L3:
   PushConstant         CP#18
-  StoreLocal           r0
-  Drop1
+  PopLocal             r0
   Push                 r0
   ReturnTOS
   PushConstant         CP#0

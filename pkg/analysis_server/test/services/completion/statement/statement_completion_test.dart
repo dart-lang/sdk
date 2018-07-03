@@ -35,7 +35,11 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
   int _afterLast(String source, String match) =>
       source.lastIndexOf(match) + match.length;
 
-  void _assertHasChange(String message, String expectedCode, [Function cmp]) {
+  void _assertHasChange(
+    String message,
+    String expectedCode, [
+    int Function(String) cmp,
+  ]) {
     if (change.message == message) {
       if (!change.edits.isEmpty) {
         String resultCode =

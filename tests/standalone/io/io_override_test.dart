@@ -162,6 +162,11 @@ Future<Socket> socketConnect(host, int port,
   return null;
 }
 
+Future<ConnectionTask<Socket>> socketStartConnect(host, int port,
+    {sourceAddress}) {
+  return null;
+}
+
 Future<Null> ioOverridesRunTest() async {
   Future<Null> f = IOOverrides.runZoned(
     () async {
@@ -181,6 +186,7 @@ Future<Null> ioOverridesRunTest() async {
       Expect.isNull(new Directory("directory").watch());
       Expect.isTrue(new Link("link") is LinkMock);
       Expect.isNull(Socket.connect(null, 0));
+      Expect.isNull(Socket.startConnect(null, 0));
     },
     createDirectory: DirectoryMock.createDirectory,
     getCurrentDirectory: DirectoryMock.getCurrent,
@@ -197,6 +203,7 @@ Future<Null> ioOverridesRunTest() async {
     fsWatchIsSupported: FileSystemWatcherMock.watchSupported,
     createLink: LinkMock.createLink,
     socketConnect: socketConnect,
+    socketStartConnect: socketStartConnect,
   );
   Expect.isFalse(new Directory("directory") is DirectoryMock);
   Expect.isTrue(new Directory("directory") is Directory);

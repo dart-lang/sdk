@@ -62,6 +62,9 @@
 %   and JavaScript integers.
 % - Remove appendix on naming conventions.
 % - Make it explicit that "dynamic" is exported from dart:core.
+% - Remove "boolean conversion". It's just an error to not be a bool.
+% - Adjust cyclic subtype prevention rule for type variables.
+% - Clarify that it is an error to use FutureOr<T> as a superinterface etc.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -2270,8 +2273,11 @@ It is a compile-time error to specify an \EXTENDS{} clause for class \code{Objec
 The scope of the \EXTENDS{} and \WITH{} clauses of a class $C$ is the type-parameter scope of $C$.
 
 \LMHash{}
-It is a compile-time error if the \EXTENDS{} clause of a class $C$ specifies a type variable (\ref{generics}), a type alias (\ref{typedef}), an enumerated type (\ref{enums}), a malformed type, or a deferred type (\ref{staticTypes}) as a superclass.
-It is a compile-time error if the \EXTENDS{} clause of a class $C$ specifies type \DYNAMIC{} as a superinterface.
+It is a compile-time error if the type in the \EXTENDS{} clause of a class $C$ is
+a type variable (\ref{generics}), a type alias (\ref{typedef}),
+an enumerated type (\ref{enums}), a malformed type (\ref{staticTypes}),
+a deferred type (\ref{staticTypes}), type \DYNAMIC{} (\ref{typeDynamic}),
+or type \code{FutureOr<$T$>} for any $T$ (\ref{typeFutureOr}).
 
 \commentary{
 The type parameters of a generic class are available in the lexical scope of the superclass clause, potentially shadowing classes in the surrounding scope.
@@ -2426,11 +2432,15 @@ This set includes the interface of its superclass and the interfaces specified i
 The scope of the \IMPLEMENTS{} clause of a class $C$ is the type-parameter scope of $C$.
 
 \LMHash{}
-It is a compile-time error if the \IMPLEMENTS{} clause of a class $C$ specifies a type variable (\ref{generics}), a type alias (\ref{typedef}), an enumerated type (\ref{enums}), a malformed type, or a deferred type (\ref{staticTypes}) as a superinterface.
-It is a compile-time error if the \IMPLEMENTS{} clause of a class $C$ specifies type \DYNAMIC{} as a superinterface.
-It is a compile-time error if the \IMPLEMENTS{} clause of a class $C$ specifies a type $T$ as a superinterface more than once.
-It is a compile-time error if the superclass of a class $C$ is specified as a superinterface of $C$.
-It is a compile-time error if a class $C$ has two superinterfaces that are different instantiations of the same generic class. \commentary{For example, a class may not have both `List<int>` and `List<num>` as superinterfaces.}
+It is a compile-time error if an element in the type list of the \IMPLEMENTS{} clause of a class $C$ is
+a type variable (\ref{generics}), a type alias (\ref{typedef}),
+an enumerated type (\ref{enums}), a malformed type (\ref{staticTypes}),
+a deferred type (\ref{staticTypes}), type \DYNAMIC{} (\ref{typeDynamic}),
+or type \code{FutureOr<$T$>} for any $T$ (\ref{typeFutureOr}).
+It is a compile-time error if two elements in the type list of the \IMPLEMENTS{} clause of a class $C$ specifies the same type $T$.
+It is a compile-time error if the superclass of a class $C$ is one of the elements of the type list of the \IMPLEMENTS{} clause of $C$.
+It is a compile-time error if a class $C$ has two superinterfaces that are different instantiations of the same generic class.
+\commentary{For example, a class may not have both `List<int>` and `List<num>` as superinterfaces.}
 % If we need to allow multiple instantiations, they'll need to have a most
 % specific one, and then we can add the following clause
 %, unless it implements one that is a subtype of all the other. \commentary{This ensures that each class implements one {\em most specific} version of a generic class' interface.}
@@ -2623,8 +2633,13 @@ The restriction on constructors simplifies the construction of mixin application
 \LMHash{}
 A mixin may be applied to a superclass, yielding a new class.
 Mixin application occurs when one or more mixins are mixed into a class declaration via its \WITH{} clause.
-The mixin application may be used to extend a class per section (\ref{classes}); alternatively, a class may be defined as a mixin application as described in this section.
-It is a compile-time error if the \WITH{} clause of a mixin application $C$ includes a type variable (\ref{generics}), a type alias (\ref{typedef}), an enumerated type (\ref{enums}), a malformed type, or a deferred type (\ref{staticTypes}).
+The mixin application may be used to extend a class per section \ref{classes};
+alternatively, a class may be defined as a mixin application as described in this section.
+It is a compile-time error if an element in the type list of the \WITH{} clause of a mixin application is
+a type variable (\ref{generics}), a type alias (\ref{typedef}),
+an enumerated type (\ref{enums}), a malformed type (\ref{staticTypes}),
+a deferred type (\ref{staticTypes}), type \DYNAMIC{} (\ref{typeDynamic}),
+or type \code{FutureOr<$T$>} for any $T$ (\ref{typeFutureOr}).
 
 \begin{grammar}
 {\bf mixinApplicationClass:}identifier typeParameters? `=' mixinApplication `{\escapegrammar ;}'
@@ -2925,8 +2940,15 @@ where each formal type parameter has been replaced by the corresponding actual t
 \LMHash{}
 A type parameter $T$ may be suffixed with an \EXTENDS{} clause that specifies the {\em upper bound} for $T$.
 If no \EXTENDS{} clause is present, the upper bound is \code{Object}.
-It is a static type warning if a type parameter is a supertype of its upper bound.
-The bounds of type variables are a form of type annotation and have no effect on execution in production mode.
+It is a static type warning if a type parameter is a supertype of its upper bound
+when that upper bound is itself a type variable.
+
+\commentary{
+This prevents circular declarations like
+\code{X \EXTENDS{} X}
+and
+\code{X \EXTENDS{} Y, Y \EXTENDS{} X}.
+}
 
 \LMHash{}
 Type parameters are declared in the type parameter scope of a class or function.
@@ -3784,45 +3806,6 @@ Invoking the getter \code{runtimeType} on a boolean value returns the \code{Type
 The static type of a boolean literal is \code{bool}.
 
 
-\subsubsection{Boolean Conversion}
-\LMLabel{booleanConversion}
-
-\LMHash{}
-{\em Boolean conversion} maps any object $o$ into a boolean.
-Boolean conversion is defined by the function application
-
-\begin{dartCode}
-(bool v)\{
-         \ASSERT{}(v != \NULL{});
-%	\IF{} (\NULL{} == v) \{ \THROW{} \NEW{} AssertionError('null is not a bool')\};
-         \RETURN{} identical(v, \TRUE{});
-\}(o)
-\end{dartCode}
-
-\rationale{
-Boolean conversion is used as part of control-flow constructs and boolean expressions.
-Ideally, one would simply insist that control-flow decisions be based exclusively on booleans.
-This is straightforward in a statically typed setting.
-In a dynamically typed language, it requires a dynamic check.
-Sophisticated virtual machines can minimize the penalty involved.
-Alas, Dart must be compiled into Javascript.
-Boolean conversion allows this to be done efficiently.
-
-At the same time, this formulation differs radically from Javascript, where most numbers and objects are interpreted as \TRUE{}.
-Dart's approach prevents usages such \code{\IF{} (a-b) ... ; }because it does not agree with the low level conventions whereby non-null objects or non-zero numbers are treated as \TRUE{}.
-Indeed, there is no way to derive \TRUE{} from a non-boolean object via boolean conversion, so this kind of low level hackery is nipped in the bud.
-
-Dart also avoids the strange behaviors that can arise due to the interaction of boolean conversion with autoboxing in Javascript.
-A notorious example is the situation where \FALSE{} can be interpreted as \TRUE{}.
-In Javascript, booleans are not objects, and instead are autoboxed into objects where ``needed''.
-If \FALSE{} gets autoboxed into an object, that object can be coerced into \TRUE{} (as it is a non-null object).
-}
-
-\commentary{
-Because boolean conversion requires its parameter to be a boolean, any construct that makes use of boolean conversion will cause a dynamic type error in checked mode if the value to be converted is not a boolean.
-}
-
-
 \subsection{Strings}
 \LMLabel{strings}
 
@@ -4091,7 +4074,7 @@ or to a \code{Symbol} instance that is \code{==} to that instance.
 
 \LMHash{}
 A symbol literal \code{\#\_$id$}, evaluates to an instance of \code{Symbol}
-representing the private identifier \code{_$id} of the containing library.
+representing the private identifier \code{\_\id} of the containing library.
 All occurences of \code{\#\_$id$} {\em in the same library} evaluate to the same instance,
 and no other symbol literals evaluate to that \code{Symbol} instance
 or to a \code{Symbol} instance that is \code{==} to that instance.
@@ -6654,7 +6637,7 @@ Evaluation of a conditional expression $c$ of the form $e_1 ? e_2 : e_3$ proceed
 
 \LMHash{}
 First, $e_1$ is evaluated to an object $o_1$.
-Then, $o_1$ is subjected to boolean conversion (\ref{booleanConversion}) producing an object $r$.
+It is a run-time error if the run-time type of $o_1$ is not \code{bool}.
 If $r$ is \TRUE, then the value of $c$ is the result of evaluating the expression $e_2$.
 Otherwise the value of $c$ is the result of evaluating the expression $e_3$.
 
@@ -6716,10 +6699,18 @@ The logical boolean expressions combine boolean objects using the boolean conjun
 A {\em logical boolean expression} is either an equality expression (\ref{equality}), or an invocation of a logical boolean operator on an expression $e_1$ with argument $e_2$.
 
 \LMHash{}
-Evaluation of a logical boolean expression $b$ of the form $e_1 || e_2$ causes the evaluation of $e_1$ which is then subjected to boolean conversion, producing an object $o_1$; if $o_1$ is \TRUE, the result of evaluating $b$ is \TRUE, otherwise $e_2$ is evaluated to an object $o_2$, which is then subjected to boolean conversion (\ref{booleanConversion}) producing an object $r$, which is the value of $b$.
+Evaluation of a logical boolean expression $b$ of the form $e_1 || e_2$ causes the evaluation of $e_1$ to a value $o_1$.
+It is a run-time error if the run-time type of $o_1$ is not \code{bool}.
+If $o_1$ is \TRUE, the result of evaluating $b$ is \TRUE, otherwise $e_2$ is evaluated to an object $o_2$.
+It is a run-time error if the run-time type of $o_2$ is not \code{bool}.
+Otherwise the result of evaluating $b$ is $o_2$.
 
 \LMHash{}
-Evaluation of a logical boolean expression $b$ of the form $e_1 \&\& e_2$ causes the evaluation of $e_1$ which is then subjected to boolean conversion, producing an object $o_1$; if $o_1$ is not \TRUE, the result of evaluating $b$ is \FALSE, otherwise $e_2$ is evaluated to an object $o_2$, which is then subjected to boolean conversion evaluating to an object $r$, which is the value of $b$.
+Evaluation of a logical boolean expression $b$ of the form $e_1 \&\& e_2$ causes the evaluation of $e_1$ producing an object $o_1$.
+It is a run-time error if the run-time type of $o_1$ is not \code{bool}.
+If $o_1$ is \FALSE, the result of evaluating $b$ is \FALSE, otherwise $e_2$ is evaluated to an object $o_2$.
+It is a run-time error if the run-time type of $o_2$ is not \code{bool}.
+Otherwise the result of evaluating $b$ is $o_2$.
 
 \LMHash{}
 A logical boolean expression $b$ of the form $e_1 \&\& e_2$ shows that a variable $v$ has type
@@ -7773,8 +7764,8 @@ Execution of an if statement of the form \code{\IF{} ($b$) $s_1$ \ELSE{} $s_2$} 
 
 \LMHash{}
 First, the expression $b$ is evaluated to an object $o$.
-Then, $o$ is subjected to boolean conversion (\ref{booleanConversion}), producing an object $r$.
-If $r$ is \TRUE{}, then the block statement $s_1$ is executed, otherwise the block statement $s_2$ is executed.
+It is a run-time error if the run-time type of $o$ is not \code{bool}.
+If $o$ is \TRUE{}, then the block statement $s_1$ is executed, otherwise the block statement $s_2$ is executed.
 
 \LMHash{}
 It is a static type warning if the type of the expression $b$ may not be assigned to \code{bool}.
@@ -7834,8 +7825,9 @@ Then:
 If this is the first iteration of the for loop, let $v'$ be $v$.
 Otherwise, let $v'$ be the variable $v''$ created in the previous execution of step \ref{allocateFreshVar}.
 \item
-The expression $[v'/v]c$ is evaluated and subjected to boolean conversion (\ref{booleans}).
-If the result is \FALSE{}, the for loop completes normally.
+The expression $[v'/v]c$ is evaluated to a value $o$.
+It is a run-time error if the run-time type of $o$ is not \code{bool}.
+If $o$ is \FALSE{}, the for loop completes normally.
 Otherwise, execution continues at step \ref{beginIteration}.
 \item
 \label{beginIteration}
@@ -8007,13 +7999,13 @@ Execution of a while statement of the form \code{\WHILE{} ($e$) $s$;} proceeds a
 
 \LMHash{}
 The expression $e$ is evaluated to an object $o$.
-Then, $o$ is subjected to boolean conversion (\ref{booleanConversion}), producing an object $r$.
+It is a run-time error if the run-time type of $o$ is not \code{bool}.
 
 \LMHash{}
-If $r$ is \FALSE{}, then execution of the while statement completes normally (\ref{completion}).
+If $o$ is \FALSE{}, then execution of the while statement completes normally (\ref{completion}).
 
 \LMHash{}
-Otherwise $r$ is \TRUE{} and then the statement $\{s\}$ is executed.
+Otherwise $o$ is \TRUE{} and then the statement $\{s\}$ is executed.
 If that execution completes normally or it continues with no label or to a label (\ref{labels}) that prefixes the \WHILE{} statement (\ref{completion}), then the while statement is re-executed.
 If the execution breaks without a label, execution of the while statement completes normally.
 \commentary{
@@ -8045,9 +8037,9 @@ If that execution continues with no label, or to a label (\ref{labels}) that pre
 
 \LMHash{}
 Then, the expression $e$ is evaluated to an object $o$.
-Then, $o$ is subjected to boolean conversion (\ref{booleanConversion}), producing an object $r$.
-If $r$ is \FALSE{}, execution of the do statement completes normally (\ref{completion}).
-If $r$ is \TRUE{}, then the do statement is re-executed.
+It is a run-time error if the run-time type of $o$ is not \code{bool}.
+If $o$ is \FALSE{}, execution of the do statement completes normally (\ref{completion}).
+If $o$ is \TRUE{}, then the do statement is re-executed.
 
 \LMHash{}
 It is a static type warning if the static type of $e$ may not be assigned to \code{bool}.
@@ -8169,10 +8161,10 @@ Matching of a \CASE{} clause \CASE{} $e_{k}: s_{k}$ of a switch statement
 against the value of a variable \id{} proceeds as follows:
 
 \LMHash{}
-The expression \code{$e_k$ == \id} is evaluated to an object $o$ which is then subjected to boolean conversion evaluating to a value $v$.
-If $v$ is not \TRUE{} the following case, \CASE{} $e_{k+1}: s_{k+1}$ is matched against \id{} if $k < n$.
-If $k = n$, then the \DEFAULT{} clause's statements are executed (\ref{case-execute}).
-If $v$ is \TRUE{}, let $h$ be the smallest number such that $h \ge k$ and $s_h$ is non-empty.
+The expression \code{$e_k$ == \id} is evaluated to an object $o$.
+It is a run-time error if the run-time type of $o$ is not \code{bool}.
+If $o$ is \FALSE{} the following case, \CASE{} $e_{k+1}: s_{k+1}$ is matched against \id{} if $k < n$, and if $k = n$, then the \DEFAULT{} clause's statements are executed (\ref{case-execute}).
+If $o$ is \TRUE{}, let $h$ be the smallest number such that $h \ge k$ and $s_h$ is non-empty.
 If no such $h$ exists, let $h = n + 1$.
 The case statements $s_h$ are then executed (\ref{case-execute}).
 
@@ -8190,9 +8182,10 @@ Matching of a \CASE{} clause \CASE{} $e_{k}: s_{k}$ of a switch statement
 against the value of a variable \id{} proceeds as follows:
 
 \LMHash{}
-The expression \code{$e_k$ == \id} is evaluated to an object $o$ which is then subjected to boolean conversion evaluating to a value $v$.
-If $v$ is not \TRUE{} the following case, \CASE{} $e_{k+1}: s_{k+1}$ is matched against \id{} if $k < n$.
-If $v$ is \TRUE{}, let $h$ be the smallest integer such that $h \ge k$ and $s_h$ is non-empty.
+The expression \code{$e_k$ == \id} is evaluated to an object $o$.
+It is a run-time error if the run-time type of $o$ is not \code{bool}.
+If $o$ is \FALSE{} the following case, \CASE{} $e_{k+1}: s_{k+1}$ is matched against \id{} if $k < n$.
+If $o$ is \TRUE{}, let $h$ be the smallest integer such that $h \ge k$ and $s_h$ is non-empty.
 If such a $h$ exists, the case statements $s_h$ are executed (\ref{case-execute}).
 Otherwise the switch statement completes normally (\ref{completion}).
 
@@ -10070,7 +10063,13 @@ Other tools can interpret the type information more aggressively and warn about 
 The built-in type declaration \code{dynamic},
 which is declared in the library \code{dart:core},
 denotes the \DYNAMIC{} type.
-When the name \DYNAMIC{} exported by \code{dart:core} is evaluated as an expression, it evaluates to a \code{Type} object representing the \DYNAMIC{} type, even though \DYNAMIC{} is not a class.
+When the name \DYNAMIC{} exported by \code{dart:core} is evaluated as an expression,
+it evaluates to a \code{Type} object representing the \DYNAMIC{} type,
+even though \DYNAMIC{} is not a class.
+
+
+\subsection{Type FutureOr}
+\LMLabel{typeFutureOr}
 
 \LMHash{}
 The built-in type declaration \code{FutureOr},
@@ -10108,9 +10107,12 @@ to provide a more precise type analysis.
 \LMHash{}
 The type \code{FutureOr<$T$>} has an interface that is identical to that
 of \code{Object}.
-\commentary{The only members that can be invoked on a value with static type
-\code{FutureOr<$T$>} are members that are also on \code{Object}.}
-\rationale{We only want to allow invocations of members that are inherited from
+\commentary{
+The only members that can be invoked on a value with static type
+\code{FutureOr<$T$>} are members that are also on \code{Object}.
+}
+\rationale{
+We only want to allow invocations of members that are inherited from
 a common supertype of both $T$ and \code{Future<$T$>}.
 In most cases the only common supertype is \code{Object}. The exceptions, like
 \code{FutureOr<Future<Object>>} which has \code{Future<Object>} as common

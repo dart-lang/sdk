@@ -340,6 +340,11 @@ class AnalysisServer {
   DiagnosticServer diagnosticServer;
 
   /**
+   * The analytics instance; note, this object can be `null`.
+   */
+  telemetry.Analytics get analytics => options.analytics;
+
+  /**
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    *
@@ -829,8 +834,12 @@ class AnalysisServer {
   /**
    * Sends a `server.error` notification.
    */
-  void sendServerErrorNotification(String message, exception, stackTrace,
-      {bool fatal: false}) {
+  void sendServerErrorNotification(
+    String message,
+    dynamic exception,
+    /*StackTrace*/ stackTrace, {
+    bool fatal: false,
+  }) {
     StringBuffer buffer = new StringBuffer();
     buffer.write(exception ?? 'null exception');
     if (stackTrace != null) {
@@ -849,18 +858,25 @@ class AnalysisServer {
 
     // send to crash reporting
     if (options.crashReportSender != null) {
-      // Catch and ignore any exceptions when reporting exceptions (network
-      // errors or other).
       options.crashReportSender
-          .sendReport(exception, stackTrace: stackTrace)
-          .catchError((_) {});
+          .sendReport(exception,
+              stackTrace: stackTrace is StackTrace ? stackTrace : null)
+          .catchError((_) {
+        // Catch and ignore any exceptions when reporting exceptions (network
+        // errors or other).
+      });
     }
 
     // remember the last few exceptions
     if (exception is CaughtException) {
       stackTrace ??= exception.stackTrace;
     }
-    exceptions.add(new ServerException(message, exception, stackTrace, fatal));
+    exceptions.add(new ServerException(
+      message,
+      exception,
+      stackTrace is StackTrace ? stackTrace : null,
+      fatal,
+    ));
   }
 
   /**
@@ -1000,13 +1016,15 @@ class AnalysisServer {
   }
 
   Future<Null> shutdown() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     running = false;
 
-    await options.analytics
-        ?.waitForLastPing(timeout: new Duration(milliseconds: 200));
-    options.analytics?.close();
+    if (options.analytics != null) {
+      options.analytics
+          .waitForLastPing(timeout: new Duration(milliseconds: 200))
+          .then((_) {
+        options.analytics.close();
+      });
+    }
 
     // Defer closing the channel and shutting down the instrumentation server so
     // that the shutdown response can be sent and logged.

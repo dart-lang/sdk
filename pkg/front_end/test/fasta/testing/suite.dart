@@ -304,7 +304,7 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
           }
         }
       } on deprecated_InputError catch (e, s) {
-        return fail(null, e.error, s);
+        return fail(null, e.message.message, s);
       }
       context.componentToTarget.clear();
       context.componentToTarget[p] = sourceTarget;

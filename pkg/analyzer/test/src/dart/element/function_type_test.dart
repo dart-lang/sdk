@@ -260,7 +260,7 @@ class FunctionTypeTest {
     var fReturnArgReturn = (fReturnArg as FunctionType).returnType;
     expect(fReturnArgReturn.element, same(listType.element));
     expect((fReturnArgReturn as InterfaceType).typeArguments[0],
-        new isInstanceOf<CircularFunctionTypeImpl>());
+        new TypeMatcher<CircularFunctionTypeImpl>());
     basicChecks(f.function.type,
         element: same(f.function), displayName: isNotNull, returnType: fReturn);
     if (bug_33302_fixed) {
@@ -282,7 +282,7 @@ class FunctionTypeTest {
     var gReturnArgReturn = (gReturnArg as FunctionType).returnType;
     expect(gReturnArgReturn.element, same(listType.element));
     expect((gReturnArgReturn as InterfaceType).typeArguments[0],
-        new isInstanceOf<CircularFunctionTypeImpl>());
+        new TypeMatcher<CircularFunctionTypeImpl>());
     basicChecks(g.function.type,
         element: same(g.function), displayName: isNotNull, returnType: gReturn);
     if (bug_33302_fixed) {
@@ -310,7 +310,7 @@ class FunctionTypeTest {
     var fParamType = f.type.normalParameterTypes[0];
     expect(fParamType.element, same(g.function));
     expect((fParamType as FunctionType).normalParameterTypes[0],
-        new isInstanceOf<CircularFunctionTypeImpl>());
+        new TypeMatcher<CircularFunctionTypeImpl>());
     basicChecks(f.function.type,
         element: same(f.function),
         displayName: isNotNull,
@@ -334,7 +334,7 @@ class FunctionTypeTest {
     var gParamType = g.type.normalParameterTypes[0];
     expect(gParamType.element, same(f.function));
     expect((gParamType as FunctionType).normalParameterTypes[0],
-        new isInstanceOf<CircularFunctionTypeImpl>());
+        new TypeMatcher<CircularFunctionTypeImpl>());
     basicChecks(g.function.type,
         element: same(g.function),
         displayName: isNotNull,
@@ -361,7 +361,7 @@ class FunctionTypeTest {
     var fReturn = f.type.returnType;
     expect(fReturn.element, same(g.function));
     expect((fReturn as FunctionType).returnType,
-        new isInstanceOf<CircularFunctionTypeImpl>());
+        new TypeMatcher<CircularFunctionTypeImpl>());
     basicChecks(f.function.type,
         element: same(f.function), displayName: isNotNull, returnType: fReturn);
     if (bug_33302_fixed) {
@@ -374,7 +374,7 @@ class FunctionTypeTest {
     var gReturn = g.type.returnType;
     expect(gReturn.element, same(f.function));
     expect((gReturn as FunctionType).returnType,
-        new isInstanceOf<CircularFunctionTypeImpl>());
+        new TypeMatcher<CircularFunctionTypeImpl>());
     basicChecks(g.function.type,
         element: same(g.function), displayName: isNotNull, returnType: gReturn);
     if (bug_33302_fixed) {
@@ -444,7 +444,7 @@ class FunctionTypeTest {
     // dynamic Function<T>()
     var t = new MockTypeParameterElement('T');
     FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [t], []);
-    expect(() => f.instantiate([]), throwsA(new isInstanceOf<ArgumentError>()));
+    expect(() => f.instantiate([]), throwsA(new TypeMatcher<ArgumentError>()));
   }
 
   test_synthetic_instantiate_no_type_formals() {
@@ -543,7 +543,7 @@ class FunctionTypeTest {
     var t = new MockTypeParameterElement('T');
     FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [], []);
     expect(() => f.substitute2([], [t.type]),
-        throwsA(new isInstanceOf<ArgumentError>()));
+        throwsA(new TypeMatcher<ArgumentError>()));
   }
 
   test_synthetic_substitute_share_returnType_and_parameters() {
@@ -630,7 +630,7 @@ class FunctionTypeTest {
     var t = new MockTypeParameterElement('T');
     var e = new MockFunctionTypedElement(typeParameters: [t]);
     FunctionType f = new FunctionTypeImpl(e);
-    expect(() => f.instantiate([]), throwsA(new isInstanceOf<ArgumentError>()));
+    expect(() => f.instantiate([]), throwsA(new TypeMatcher<ArgumentError>()));
   }
 
   test_unnamedConstructor_instantiate_noop() {
@@ -817,7 +817,7 @@ class FunctionTypeTest {
     var e = new MockFunctionTypedElement(enclosingElement: c);
     FunctionType f = new FunctionTypeImpl(e);
     expect(() => f.substitute2([], [t.type]),
-        throwsA(new isInstanceOf<ArgumentError>()));
+        throwsA(new TypeMatcher<ArgumentError>()));
   }
 
   test_unnamedConstructor_substitute_bound_recursive() {

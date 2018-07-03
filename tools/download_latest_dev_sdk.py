@@ -5,7 +5,7 @@
 
 # This script downloads the latest dev SDK from
 # http://gsdview.appspot.com/dart-archive/channels/dev/raw/latest/sdk/
-# into tools/sdks/$HOST_OS/. It is intended to be invoked from Jiri hooks in
+# into tools/sdks/. It is intended to be invoked from Jiri hooks in
 # a Fuchsia checkout.
 
 import os
@@ -49,7 +49,7 @@ def main(argv):
   host_os = host_os_for_sdk(HOST_OS)
   zip_file = ('dartsdk-%s-x64-release.zip' % HOST_OS)
   sha_file = zip_file + '.sha256sum'
-  sdk_path = os.path.join(DART_ROOT, 'tools', 'sdks', host_os)
+  sdk_path = os.path.join(DART_ROOT, 'tools', 'sdks')
   local_sha_path = os.path.join(sdk_path, sha_file)
   remote_sha_path = os.path.join(sdk_path, sha_file + '.remote')
   zip_path = os.path.join(sdk_path, zip_file)

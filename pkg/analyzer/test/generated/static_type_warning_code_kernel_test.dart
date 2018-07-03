@@ -254,20 +254,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_invalidAssignment_defaultValue_named() async {
-    // UnimplementedError: kernel: (Let) let final dynamic #t1 = 0 in let ...
-    await super.test_invalidAssignment_defaultValue_named();
-  }
-
-  @override
-  @failingTest
-  test_invalidAssignment_defaultValue_optional() async {
-    // UnimplementedError: kernel: (Let) let final dynamic #t2 = 0 in let ...
-    await super.test_invalidAssignment_defaultValue_optional();
-  }
-
-  @override
-  @failingTest
   test_invalidAssignment_dynamic() async {
     // Bad state: No reference information for dynamic at 11
     await super.test_invalidAssignment_dynamic();
@@ -705,20 +691,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_undefinedGetter_static() async {
-    // Bad state: No reference information for A at 19
-    await super.test_undefinedGetter_static();
-  }
-
-  @override
-  @failingTest
-  test_undefinedGetter_typeLiteral_conditionalAccess() async {
-    // Bad state: No reference information for A at 18
-    await super.test_undefinedGetter_typeLiteral_conditionalAccess();
-  }
-
-  @override
-  @failingTest
   test_undefinedGetter_wrongNumberOfTypeArguments_tooLittle() async {
     // AnalysisException: Element mismatch in /test.dart at main(A<dynamic, dynamic> a) → dynamic
     await super.test_undefinedGetter_wrongNumberOfTypeArguments_tooLittle();
@@ -736,6 +708,14 @@ class StaticTypeWarningCodeTest_Kernel
   test_undefinedGetter_wrongOfTypeArgument() async {
     // Expected 1 errors of type StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, found 0
     await super.test_undefinedGetter_wrongOfTypeArgument();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33679')
+  test_undefinedMethod() async {
+    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_METHOD, found 2
+    await super.test_undefinedMethod();
   }
 
   @override
@@ -775,6 +755,14 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33679')
+  test_undefinedMethod_private() async {
+    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_METHOD, found 2
+    await super.test_undefinedMethod_private();
+  }
+
+  @override
+  @failingTest
   test_undefinedMethod_proxy_annotation_fakeProxy() async {
     // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_METHOD, found 0
     await super.test_undefinedMethod_proxy_annotation_fakeProxy();
@@ -785,13 +773,6 @@ class StaticTypeWarningCodeTest_Kernel
   test_undefinedMethod_typeLiteral_cascadeTarget() async {
     // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_METHOD, found 0
     await super.test_undefinedMethod_typeLiteral_cascadeTarget();
-  }
-
-  @override
-  @failingTest
-  test_undefinedMethod_typeLiteral_conditionalAccess() async {
-    // Bad state: No reference information for A at 18
-    await super.test_undefinedMethod_typeLiteral_conditionalAccess();
   }
 
   @override
@@ -834,20 +815,6 @@ class StaticTypeWarningCodeTest_Kernel
   test_undefinedOperator_prefixExpression() async {
     // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_OPERATOR, found 0
     await super.test_undefinedOperator_prefixExpression();
-  }
-
-  @override
-  @failingTest
-  test_undefinedSetter_static() async {
-    // Bad state: No reference information for A at 17
-    await super.test_undefinedSetter_static();
-  }
-
-  @override
-  @failingTest
-  test_undefinedSuperGetter() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_SUPER_GETTER, found 0
-    await super.test_undefinedSuperGetter();
   }
 
   @override
@@ -926,20 +893,6 @@ class StaticTypeWarningCodeTest_Kernel
   test_wrongNumberOfTypeArguments_classAlias() async {
     // AnalysisException: Element mismatch in /test.dart at /test.dart
     await super.test_wrongNumberOfTypeArguments_classAlias();
-  }
-
-  @override
-  @failingTest
-  test_wrongNumberOfTypeArguments_tooFew() async {
-    // AnalysisException: Element mismatch in /test.dart at /test.dart
-    await super.test_wrongNumberOfTypeArguments_tooFew();
-  }
-
-  @override
-  @failingTest
-  test_wrongNumberOfTypeArguments_tooMany() async {
-    // AnalysisException: Element mismatch in /test.dart at /test.dart
-    await super.test_wrongNumberOfTypeArguments_tooMany();
   }
 
   @override

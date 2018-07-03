@@ -5,14 +5,13 @@
 [ $compiler == dart2js ]
 bound_closure_super_test: RuntimeError
 fake_thing_test: RuntimeError # Issue 13010
-mirror_intercepted_field_test: SkipByDesign # mirrors not supported
-native_mirror_test: SkipByDesign # mirrors not supported
-native_no_such_method_exception3_frog_test: SkipByDesign # mirrors not supported
-native_no_such_method_exception4_frog_test: SkipByDesign # mirrors not supported
-native_no_such_method_exception5_frog_test: SkipByDesign # mirrors not supported
 
 [ $browser ]
 *: Skip
+
+[ $compiler == dart2js && $checked && !$strong ]
+error_safeToString_test: RuntimeError # Fix for Issue 33627 disabled native class sharing
+native_method_inlining_test: RuntimeError
 
 [ $compiler == dart2js && $fasta ]
 native_library_same_name_used_frog_test: CompileTimeError
@@ -23,3 +22,7 @@ subclassing_super_field_2_test: RuntimeError
 
 [ $compiler == dart2js && $minified ]
 optimization_hints_test: RuntimeError, OK # Test relies on unminified names.
+
+[ $compiler == dart2js && $strong ]
+error_safeToString_test: RuntimeError # Fix for Issue 33627 disabled native class sharing
+native_checked_fields_frog_test: RuntimeError

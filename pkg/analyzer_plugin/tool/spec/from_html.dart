@@ -212,7 +212,7 @@ class ApiReader {
     String event = html.attributes['event'];
     context = '$context.${event != null ? event : 'event'}';
     checkAttributes(html, ['event'], context);
-    TypeDecl params;
+    TypeObject params;
     recurse(html, context, {
       'params': (dom.Element child) {
         params = typeObjectFromHtml(child, '$context.params');
@@ -365,8 +365,8 @@ class ApiReader {
     String kind = html.attributes['kind'];
     String context = kind != null ? kind : 'refactoring';
     checkAttributes(html, ['kind'], context);
-    TypeDecl feedback;
-    TypeDecl options;
+    TypeObject feedback;
+    TypeObject options;
     recurse(html, context, {
       'feedback': (dom.Element child) {
         feedback = typeObjectFromHtml(child, '$context.feedback');
@@ -422,8 +422,8 @@ class ApiReader {
         optionalAttributes: ['experimental', 'deprecated']);
     bool experimental = html.attributes['experimental'] == 'true';
     bool deprecated = html.attributes['deprecated'] == 'true';
-    TypeDecl params;
-    TypeDecl result;
+    TypeObject params;
+    TypeObject result;
     recurse(html, context, {
       'params': (dom.Element child) {
         params = typeObjectFromHtml(child, '$context.params');

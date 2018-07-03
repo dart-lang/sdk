@@ -61,7 +61,7 @@ class PubPackageMapProviderTest {
     expect(result, hasLength(1));
     expect(result.keys, contains(packageName));
     expect(result[packageName], hasLength(1));
-    expect(result[packageName][0], new isInstanceOf<Folder>());
+    expect(result[packageName][0], new TypeMatcher<Folder>());
     expect(result[packageName][0].path, equals(folderPath));
   }
 
@@ -91,7 +91,7 @@ class PubPackageMapProviderTest {
     expect(result, hasLength(1));
     expect(result.keys, contains(packageName));
     expect(result[packageName], hasLength(1));
-    expect(result[packageName][0], new isInstanceOf<Folder>());
+    expect(result[packageName][0], new TypeMatcher<Folder>());
     expect(result[packageName][0].path, equals(folderPath));
   }
 
@@ -110,7 +110,7 @@ class PubPackageMapProviderTest {
     expect(result.keys, contains(packageName));
     expect(result[packageName], hasLength(2));
     for (int i = 0; i < 2; i++) {
-      expect(result[packageName][i], new isInstanceOf<Folder>());
+      expect(result[packageName][i], new TypeMatcher<Folder>());
       expect(result[packageName][i].path, isIn([folderPath1, folderPath2]));
     }
   }

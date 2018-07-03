@@ -16403,6 +16403,9 @@
       "generateCertificate": {
         "support_level": "untriaged"
       },
+      "getLegacyStats": {
+        "support_level": "untriaged"
+      },
       "getLocalStreams": {},
       "getReceivers": {
         "support_level": "untriaged"

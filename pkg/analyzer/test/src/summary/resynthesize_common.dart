@@ -207,7 +207,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         ? resynthesized.actualElement
         : resynthesized;
     if (original is Member) {
-      expect(resynthesizedNonHandle, new isInstanceOf<Member>(), reason: desc);
+      expect(resynthesizedNonHandle, new TypeMatcher<Member>(), reason: desc);
       if (resynthesizedNonHandle is Member) {
         List<DartType> resynthesizedTypeArguments =
             resynthesizedNonHandle.definingType.typeArguments;
@@ -223,7 +223,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       }
     } else {
       expect(
-          resynthesizedNonHandle, isNot(new isInstanceOf<ConstructorMember>()),
+          resynthesizedNonHandle, isNot(new TypeMatcher<ConstructorMember>()),
           reason: desc);
     }
   }
@@ -477,7 +477,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       } else if (o is ThisExpression && r is ThisExpression) {
         // Nothing to compare.
       } else if (o is NullLiteral) {
-        expect(r, new isInstanceOf<NullLiteral>(), reason: desc);
+        expect(r, new TypeMatcher<NullLiteral>(), reason: desc);
       } else if (o is BooleanLiteral && r is BooleanLiteral) {
         expect(r.value, o.value, reason: desc);
       } else if (o is IntegerLiteral && r is IntegerLiteral) {
@@ -764,9 +764,9 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
 
     // Validate members.
     if (oImpl is Member) {
-      expect(rImpl, new isInstanceOf<Member>(), reason: desc);
+      expect(rImpl, new TypeMatcher<Member>(), reason: desc);
     } else {
-      expect(rImpl, isNot(new isInstanceOf<Member>()), reason: desc);
+      expect(rImpl, isNot(new TypeMatcher<Member>()), reason: desc);
     }
   }
 
@@ -1091,7 +1091,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
           reason: desc);
       if (original.element.enclosingElement == null &&
           original.element is FunctionElement) {
-        expect(resynthesized.element, new isInstanceOf<FunctionElement>());
+        expect(resynthesized.element, new TypeMatcher<FunctionElement>());
         expect(resynthesized.element.enclosingElement, isNull, reason: desc);
         compareFunctionElements(
             resynthesized.element, original.element, '$desc.element',
@@ -1197,7 +1197,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       Element actualElement = element.actualElement;
       // A handle should never point to a member, because if it did, then
       // "is Member" checks on the handle would produce the wrong result.
-      expect(actualElement, isNot(new isInstanceOf<Member>()), reason: desc);
+      expect(actualElement, isNot(new TypeMatcher<Member>()), reason: desc);
       return getActualElement(actualElement, desc);
     } else if (element is Member) {
       return getActualElement(element.baseElement, desc);
@@ -2389,7 +2389,7 @@ class C<T extends Object, U extends D> {}
 class D {}
 ''');
     checkElementText(library, r'''
-class C<T extends Object, U extends D> {
+class C<T, U extends D> {
 }
 class D {
 }
@@ -2620,6 +2620,25 @@ int foo() {}
 const dynamic v = 1 +
         foo/*location: test.dart;foo*/();
 int foo() {}
+''');
+    }
+  }
+
+  test_const_invalid_typeMismatch() async {
+    var library = await checkLibrary(r'''
+const int a = 0;
+const bool b = a + 5;
+''', allowErrors: true);
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+const int a = 0;
+const bool b = #invalidConst;
+''');
+    } else {
+      checkElementText(library, r'''
+const int a = 0;
+const bool b =
+        a/*location: test.dart;a?*/ + 5;
 ''');
     }
   }
@@ -7503,6 +7522,37 @@ C<dynamic, dynamic> c;
     }
   }
 
+  test_instantiateToBounds_functionTypeAlias_reexported() async {
+    addLibrarySource('/a.dart', r'''
+class O {}
+typedef T F<T extends O>(T p);
+''');
+    addLibrarySource('/b.dart', r'''
+export 'a.dart' show F;
+''');
+    var library = await checkLibrary('''
+import 'b.dart';
+class C {
+  F f() => null;
+}
+''');
+    if (isStrongMode) {
+      checkElementText(library, r'''
+import 'b.dart';
+class C {
+  (O) → O f() {}
+}
+''');
+    } else {
+      checkElementText(library, r'''
+import 'b.dart';
+class C {
+  (dynamic) → dynamic f() {}
+}
+''');
+    }
+  }
+
   test_instantiateToBounds_functionTypeAlias_simple() async {
     var library = await checkLibrary('''
 typedef F<T extends num>(T p);
@@ -10050,7 +10100,7 @@ typedef F<T, U> = U Function(T t);
     var library = await checkLibrary(
         'typedef U F<T extends Object, U extends D>(T t); class D {}');
     checkElementText(library, r'''
-typedef F<T extends Object, U extends D> = U Function(T t);
+typedef F<T, U extends D> = U Function(T t);
 class D {
 }
 ''');

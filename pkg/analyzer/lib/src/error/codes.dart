@@ -1227,6 +1227,9 @@ class CompileTimeErrorCode extends ErrorCode {
           "'{0}' can't be used in both 'extends' and 'implements' clauses.",
           correction: "Try removing one of the occurances.");
 
+  static const CompileTimeErrorCode IMPLICIT_CALL_OF_NON_METHOD =
+      const CompileTimeErrorCode.fromFasta('IMPLICIT_CALL_OF_NON_METHOD');
+
   /**
    * 7.6.1 Generative Constructors: Note that <b>this</b> is not in scope on the
    * right hand side of an initializer.
@@ -2031,6 +2034,12 @@ class CompileTimeErrorCode extends ErrorCode {
           "initializers.",
           correction: "Try changing the import to not be deferred.");
 
+  static const CompileTimeErrorCode NON_SYNC_ABSTRACT_METHOD =
+      const CompileTimeErrorCode.fromFasta('NON_SYNC_ABSTRACT_METHOD');
+
+  static const CompileTimeErrorCode NON_SYNC_FACTORY_METHOD =
+      const CompileTimeErrorCode.fromFasta('NON_SYNC_FACTORY_METHOD');
+
   /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i>
    * or if <i>m > n</i>.
@@ -2436,6 +2445,9 @@ class CompileTimeErrorCode extends ErrorCode {
           "Typedefs can't reference themselves directly or recursively via "
           "another typedef.");
 
+  static const CompileTimeErrorCode TYPE_PARAMETER_ON_CONSTRUCTOR =
+      const CompileTimeErrorCode.fromFasta('TYPE_PARAMETER_ON_CONSTRUCTOR');
+
   /**
    * 15 Metadata: Metadata consists of a series of annotations, each of which
    * begin with the character @, followed by a constant expression that must be
@@ -2636,6 +2648,14 @@ class CompileTimeErrorCode extends ErrorCode {
       : super.temporary(name, message,
             correction: correction,
             isUnresolvedIdentifier: isUnresolvedIdentifier);
+
+  /**
+   * Initialize a newly created error code to have the given [name]. No message
+   * or correction are necessary because the error code is only used when
+   * translating an error produced by fasta, and both will be taken from the
+   * error being translated.
+   */
+  const CompileTimeErrorCode.fromFasta(String name) : this(name, '');
 
   @override
   ErrorSeverity get errorSeverity => ErrorType.COMPILE_TIME_ERROR.severity;

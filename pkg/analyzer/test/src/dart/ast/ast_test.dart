@@ -30,7 +30,7 @@ class ExpressionImplTest extends ParserTestCase {
     expect(index >= 0, isTrue);
     NodeLocator visitor = new NodeLocator(index);
     AstNodeImpl node = visitor.searchWithin(testUnit);
-    expect(node, new isInstanceOf<ExpressionImpl>());
+    expect(node, new TypeMatcher<ExpressionImpl>());
     expect((node as ExpressionImpl).inConstantContext,
         isInContext ? isTrue : isFalse);
   }

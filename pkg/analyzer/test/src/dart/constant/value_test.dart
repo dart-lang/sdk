@@ -21,7 +21,7 @@ main() {
 const int LONG_MAX_VALUE = 0x7fffffffffffffff;
 
 final Matcher throwsEvaluationException =
-    throwsA(new isInstanceOf<EvaluationException>());
+    throwsA(new TypeMatcher<EvaluationException>());
 
 @reflectiveTest
 class DartObjectImplTest extends EngineTestCase {

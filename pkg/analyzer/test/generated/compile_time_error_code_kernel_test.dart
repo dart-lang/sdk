@@ -52,13 +52,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_async_used_as_identifier_in_annotation() async {
-    // 'package:analyzer/src/dart/constant/utilities.dart': Failed assertion: line 184 pos 14: 'node.parent is PartOfDirective ||
-    await super.test_async_used_as_identifier_in_annotation();
-  }
-
-  @override
-  @failingTest
   test_async_used_as_identifier_in_break_statement() async {
     // Bad state: No type information for true at 21
     await super.test_async_used_as_identifier_in_break_statement();
@@ -73,19 +66,20 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_async_used_as_identifier_in_prefix() {
-    // NoSuchMethodError: The getter 'element' was called on null.
-    return super.test_async_used_as_identifier_in_prefix();
-  }
-
-  @override
-  @failingTest
   test_bug_23176() async {
     // This test fails because the kernel driver element model produces a
     // different element model result than the regular parser produces. Once these
     // tests enable the faster parser (and not just the kernel driver), this
     // should be looked at again.
     return super.test_bug_23176();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_builtInIdentifierAsType_dynamicMissingPrefix() async {
+    // Kernel and analyzer report different errors. Which is the correct one?
+    await super.test_builtInIdentifierAsType_dynamicMissingPrefix();
   }
 
   @override
@@ -279,28 +273,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_constConstructorWithNonFinalField_super() async {
     // UnimplementedError: For ShadowInvalidInitializer
     await super.test_constConstructorWithNonFinalField_super();
-  }
-
-  @override
-  @failingTest
-  test_constConstructorWithNonFinalField_this() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, found 0
-    await super.test_constConstructorWithNonFinalField_this();
-  }
-
-  @override
-  @failingTest
-  test_constDeferredClass() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONST_DEFERRED_CLASS, found 0;
-    //          0 errors of type HintCode.UNUSED_IMPORT, found 1 (21)
-    await super.test_constDeferredClass();
-  }
-
-  @override
-  @failingTest
-  test_constDeferredClass_namedConstructor() async {
-    // 'package:analyzer/src/fasta/resolution_applier.dart': Failed assertion: line 632 pos 14: 'constructorName.name == null': is not true.
-    await super.test_constDeferredClass_namedConstructor();
   }
 
   @override
@@ -706,65 +678,9 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_duplicateDefinition_locals_inCase() async {
-    // Bad state: No type information for a at 58
-    await super.test_duplicateDefinition_locals_inCase();
-  }
-
-  @override
-  @failingTest
-  test_duplicateDefinition_locals_inFunctionBlock() async {
-    // Bad state: No declaration information for m(a) {} at 24
-    await super.test_duplicateDefinition_locals_inFunctionBlock();
-  }
-
-  @override
-  @failingTest
-  test_duplicateDefinition_locals_inIf() async {
-    // Bad state: No type information for a at 49
-    await super.test_duplicateDefinition_locals_inIf();
-  }
-
-  @override
-  @failingTest
-  test_duplicateDefinition_locals_inMethodBlock() async {
-    // Bad state: No type information for a at 37
-    await super.test_duplicateDefinition_locals_inMethodBlock();
-  }
-
-  @override
-  @failingTest
-  test_duplicateDefinition_parameters_inConstructor() async {
-    // Expected 1 errors of type CompileTimeErrorCode.DUPLICATE_DEFINITION, found 0
-    await super.test_duplicateDefinition_parameters_inConstructor();
-  }
-
-  @override
-  @failingTest
-  test_duplicateDefinition_parameters_inFunctionTypeAlias() async {
-    // Expected 1 errors of type CompileTimeErrorCode.DUPLICATE_DEFINITION, found 0
-    await super.test_duplicateDefinition_parameters_inFunctionTypeAlias();
-  }
-
-  @override
-  @failingTest
   test_duplicateDefinition_parameters_inLocalFunction() async {
     // Expected 1 errors of type CompileTimeErrorCode.DUPLICATE_DEFINITION, found 0
     await super.test_duplicateDefinition_parameters_inLocalFunction();
-  }
-
-  @override
-  @failingTest
-  test_duplicateDefinition_parameters_inMethod() async {
-    // Expected 1 errors of type CompileTimeErrorCode.DUPLICATE_DEFINITION, found 0
-    await super.test_duplicateDefinition_parameters_inMethod();
-  }
-
-  @override
-  @failingTest
-  test_duplicateDefinition_parameters_inTopLevelFunction() async {
-    // Expected 1 errors of type CompileTimeErrorCode.DUPLICATE_DEFINITION, found 0
-    await super.test_duplicateDefinition_parameters_inTopLevelFunction();
   }
 
   @override
@@ -838,7 +754,7 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30960')
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/30959')
   test_exportOfNonLibrary() async {
     return super.test_exportOfNonLibrary();
   }
@@ -1037,6 +953,69 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
     // Expected 1 errors of type CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, found 0;
     //          1 errors of type StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0
     await super.test_fromEnvironment_bool_badDefault_whenDefined();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeArgument_class() async {
+    await super.test_genericFunctionTypeArgument_class();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeArgument_function() async {
+    await super.test_genericFunctionTypeArgument_function();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeArgument_functionType() async {
+    await super.test_genericFunctionTypeArgument_functionType();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeArgument_method() async {
+    await super.test_genericFunctionTypeArgument_method();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeAsBound_class() async {
+    await super.test_genericFunctionTypeAsBound_class();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeAsBound_genericFunction() async {
+    await super.test_genericFunctionTypeAsBound_genericFunction();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeAsBound_genericFunctionTypedef() async {
+    await super.test_genericFunctionTypeAsBound_genericFunctionTypedef();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeAsBound_parameterOfFunction() async {
+    await super.test_genericFunctionTypeAsBound_parameterOfFunction();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeAsBound_typedef() async {
+    await super.test_genericFunctionTypeAsBound_typedef();
   }
 
   @override
@@ -2242,13 +2221,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_notEnoughRequiredArguments_const_super() async {
-    // UnimplementedError: For ShadowInvalidInitializer
-    await super.test_notEnoughRequiredArguments_const_super();
-  }
-
-  @override
-  @failingTest
   test_optionalParameterInOperator_named() async {
     // Expected 1 errors of type CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR, found 0
     await super.test_optionalParameterInOperator_named();
@@ -2259,34 +2231,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_optionalParameterInOperator_positional() async {
     // Expected 1 errors of type CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR, found 0
     await super.test_optionalParameterInOperator_positional();
-  }
-
-  @override
-  @failingTest
-  test_prefix_assignment_compound_in_method() async {
-    // Bad state: No reference information for p at 46
-    await super.test_prefix_assignment_compound_in_method();
-  }
-
-  @override
-  @failingTest
-  test_prefix_assignment_compound_not_in_method() async {
-    // Bad state: No reference information for p at 32
-    await super.test_prefix_assignment_compound_not_in_method();
-  }
-
-  @override
-  @failingTest
-  test_prefix_assignment_in_method() async {
-    // Bad state: No reference information for p at 46
-    await super.test_prefix_assignment_in_method();
-  }
-
-  @override
-  @failingTest
-  test_prefix_assignment_not_in_method() async {
-    // Bad state: No reference information for p at 32
-    await super.test_prefix_assignment_not_in_method();
   }
 
   @override
@@ -2371,20 +2315,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30857')
   test_prefixCollidesWithTopLevelMembers_type() async {
     return super.test_prefixCollidesWithTopLevelMembers_type();
-  }
-
-  @override
-  @failingTest
-  test_prefixNotFollowedByDot() async {
-    // Bad state: No reference information for p at 39
-    await super.test_prefixNotFollowedByDot();
-  }
-
-  @override
-  @failingTest
-  test_prefixNotFollowedByDot_compoundAssignment() async {
-    // Bad state: No reference information for p at 32
-    await super.test_prefixNotFollowedByDot_compoundAssignment();
   }
 
   @override
@@ -2482,13 +2412,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_recursiveCompileTimeConstant_cycle() async {
-    // UnimplementedError: kernel: (ShadowMethodInvocation) #lib4::y.+(1)
-    await super.test_recursiveCompileTimeConstant_cycle();
-  }
-
-  @override
-  @failingTest
   test_recursiveCompileTimeConstant_initializer_after_toplevel_var() async {
     // Expected 1 errors of type CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, found 0
     await super
@@ -2496,24 +2419,10 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   }
 
   @override
-  @failingTest
-  test_recursiveCompileTimeConstant_singleVariable() async {
-    // Expected 1 errors of type CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, found 0
-    await super.test_recursiveCompileTimeConstant_singleVariable();
-  }
-
-  @override
-  @failingTest
+  @failingTest // Fasta deliberately only reports this error once.
   test_recursiveConstructorRedirect() async {
-    // Expected 2 errors of type CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT, found 0
+    // Expected 2 errors of type CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT, found 1
     await super.test_recursiveConstructorRedirect();
-  }
-
-  @override
-  @failingTest
-  test_recursiveConstructorRedirect_directSelfReference() async {
-    // Expected 1 errors of type CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT, found 0
-    await super.test_recursiveConstructorRedirect_directSelfReference();
   }
 
   @override
@@ -2703,6 +2612,13 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  test_referencedBeforeDeclaration_hideInBlock_function() async {
+    // Expected 1 errors of type CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, found 2
+    await super.test_referencedBeforeDeclaration_hideInBlock_function();
+  }
+
+  @override
+  @failingTest
   test_referencedBeforeDeclaration_hideInBlock_local() async {
     // Bad state: No type information for v at 38
     await super.test_referencedBeforeDeclaration_hideInBlock_local();
@@ -2727,6 +2643,13 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_referencedBeforeDeclaration_inInitializer_directly() async {
     // Bad state: No type information for v at 15
     await super.test_referencedBeforeDeclaration_inInitializer_directly();
+  }
+
+  @override
+  @failingTest
+  test_referencedBeforeDeclaration_type_localFunction() async {
+    // Expected 1 errors of type CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, found 2
+    await super.test_referencedBeforeDeclaration_type_localFunction();
   }
 
   @override
@@ -2769,13 +2692,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_returnInGenerator_syncStar() async {
     // AnalysisException: Element mismatch in /test.dart at /test.dart
     await super.test_returnInGenerator_syncStar();
-  }
-
-  @override
-  @failingTest
-  test_sharedDeferredPrefix() async {
-    // Bad state: Expected element reference for analyzer offset 86; got one for kernel offset 90
-    await super.test_sharedDeferredPrefix();
   }
 
   @override
@@ -2872,14 +2788,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_typeAliasCannotReferenceItself_functionTypedParameter_returnType() async {
-    // Expected 1 errors of type CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, found 0
-    await super
-        .test_typeAliasCannotReferenceItself_functionTypedParameter_returnType();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
   test_typeAliasCannotReferenceItself_generic() async {
     return super.test_typeAliasCannotReferenceItself_generic();
@@ -2887,52 +2795,9 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
-  test_typeAliasCannotReferenceItself_parameterType_named() async {
-    return super.test_typeAliasCannotReferenceItself_parameterType_named();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
-  test_typeAliasCannotReferenceItself_parameterType_positional() async {
-    return super.test_typeAliasCannotReferenceItself_parameterType_positional();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
-  test_typeAliasCannotReferenceItself_parameterType_required() async {
-    return super.test_typeAliasCannotReferenceItself_parameterType_required();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
-  test_typeAliasCannotReferenceItself_parameterType_typeArgument() async {
-    return super
-        .test_typeAliasCannotReferenceItself_parameterType_typeArgument();
-  }
-
-  @override
-  @failingTest
-  test_typeAliasCannotReferenceItself_returnType() async {
-    // Expected 1 errors of type CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, found 0
-    await super.test_typeAliasCannotReferenceItself_returnType();
-  }
-
-  @override
-  @failingTest
   test_typeAliasCannotReferenceItself_returnType_indirect() async {
     // Expected 2 errors of type CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, found 0
     await super.test_typeAliasCannotReferenceItself_returnType_indirect();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
-  test_typeAliasCannotReferenceItself_typeVariableBounds() async {
-    return super.test_typeAliasCannotReferenceItself_typeVariableBounds();
   }
 
   @override
@@ -3053,20 +2918,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_wrongNumberOfParametersForOperator1() async {
-    // Expected 1 errors of type CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR, found 0
-    await super.test_wrongNumberOfParametersForOperator1();
-  }
-
-  @override
-  @failingTest
-  test_wrongNumberOfParametersForOperator_minus() async {
-    // Expected 1 errors of type CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS, found 0
-    await super.test_wrongNumberOfParametersForOperator_minus();
-  }
-
-  @override
-  @failingTest
   test_wrongNumberOfParametersForOperator_tilde() async {
     // Expected 1 errors of type CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR, found 0
     await super.test_wrongNumberOfParametersForOperator_tilde();
@@ -3104,69 +2955,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_yieldInNonGenerator_async() async {
     // Test passes, even though if fails in the superclass
     await super.test_yieldInNonGenerator_async();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericFunctionTypeAsBound_class() async {
-    await super.test_genericFunctionTypeAsBound_class();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericFunctionTypeAsBound_genericFunction() async {
-    await super.test_genericFunctionTypeAsBound_genericFunction();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericFunctionTypeAsBound_genericFunctionTypedef() async {
-    await super.test_genericFunctionTypeAsBound_genericFunctionTypedef();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericFunctionTypeAsBound_parameterOfFunction() async {
-    await super.test_genericFunctionTypeAsBound_parameterOfFunction();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericFunctionTypeAsBound_typedef() async {
-    await super.test_genericFunctionTypeAsBound_typedef();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericFunctionTypeArgument_class() async {
-    await super.test_genericFunctionTypeArgument_class();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericFunctionTypeArgument_functionType() async {
-    await super.test_genericFunctionTypeArgument_functionType();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericFunctionTypeArgument_function() async {
-    await super.test_genericFunctionTypeArgument_function();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_genericFunctionTypeArgument_method() async {
-    await super.test_genericFunctionTypeArgument_method();
   }
 }
 

@@ -1060,7 +1060,7 @@ class A native 'something' {
         ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
       ]);
     }
-    expect(member, new isInstanceOf<ClassDeclaration>());
+    expect(member, new TypeMatcher<ClassDeclaration>());
     ClassDeclaration declaration = member;
     expect(declaration.nativeClause, isNotNull);
     expect(declaration.nativeClause.nativeKeyword, isNotNull);

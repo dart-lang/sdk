@@ -22,6 +22,7 @@ namespace dart {
 // Forward declarations.
 class RuntimeEntry;
 class StubEntry;
+class RegisterSet;
 
 class Immediate : public ValueObject {
  public:
@@ -429,6 +430,9 @@ class Assembler : public ValueObject {
 
   void PushRegister(Register r) { Push(r); }
   void PopRegister(Register r) { Pop(r); }
+
+  void PushRegisters(const RegisterSet& registers);
+  void PopRegisters(const RegisterSet& registers);
 
   void Drop(intptr_t stack_elements) {
     add(SP, SP, Operand(stack_elements * kWordSize));
@@ -1379,7 +1383,7 @@ class Assembler : public ValueObject {
   void BranchLinkPatchable(const StubEntry& stub_entry);
   void BranchLinkToRuntime();
 
-  void CallNullErrorShared(bool save_fpu_registers) { UNREACHABLE(); }
+  void CallNullErrorShared(bool save_fpu_registers);
 
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.

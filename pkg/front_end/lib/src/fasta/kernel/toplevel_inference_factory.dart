@@ -189,7 +189,7 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       DartType loopVariableType,
       int writeOffset,
       DartType writeVariableType,
-      int writeVariableDeclarationOffset,
+      covariant void writeVariableBinder,
       Node writeTarget) {}
 
   @override
@@ -485,7 +485,7 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       ExpressionJudgment judgment,
       int fileOffset,
       DartType writeContext,
-      int writeVariableDeclarationOffset,
+      covariant void writeVariableBinder,
       Node combiner,
       DartType inferredType) {}
 

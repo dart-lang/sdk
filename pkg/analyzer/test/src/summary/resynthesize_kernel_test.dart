@@ -134,54 +134,9 @@ class C {
 ''');
   }
 
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_class_type_parameters_bound() async {
-    // https://github.com/dart-lang/sdk/issues/29561
-    // Fasta does not provide a flag for explicit vs. implicit Object bound.
-    await super.test_class_type_parameters_bound();
-  }
-
   @failingTest // See dartbug.com/32290
   test_const_constructor_inferred_args() =>
       super.test_const_constructor_inferred_args();
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
-  test_constructor_redirected_factory_named_generic() async {
-    await super.test_constructor_redirected_factory_named_generic();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
-  test_constructor_redirected_factory_named_imported_generic() async {
-    await super.test_constructor_redirected_factory_named_imported_generic();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
-  test_constructor_redirected_factory_named_prefixed_generic() async {
-    await super.test_constructor_redirected_factory_named_prefixed_generic();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
-  test_constructor_redirected_factory_unnamed_generic() async {
-    await super.test_constructor_redirected_factory_unnamed_generic();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
-  test_constructor_redirected_factory_unnamed_imported_generic() async {
-    await super.test_constructor_redirected_factory_unnamed_imported_generic();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
-  test_constructor_redirected_factory_unnamed_prefixed_generic() async {
-    await super.test_constructor_redirected_factory_unnamed_prefixed_generic();
-  }
 
   @failingTest
   @notForDart2
@@ -199,27 +154,6 @@ class C {
   @notForDart2
   test_exportImport_configurations_useFirst() async {
     await super.test_exportImport_configurations_useFirst();
-  }
-
-  @failingTest
-  @override
-  test_futureOr() async {
-    // TODO(brianwilkerson) Triage this failure.
-    fail('Inconsistent results');
-  }
-
-  @failingTest
-  @override
-  test_futureOr_const() async {
-    // TODO(brianwilkerson) Triage this failure.
-    fail('Inconsistent results');
-  }
-
-  @failingTest
-  @override
-  test_futureOr_inferred() async {
-    // TODO(brianwilkerson) Triage this failure.
-    fail('Inconsistent results');
   }
 
   test_getElement_unit() async {
@@ -249,18 +183,6 @@ class C {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30725')
   test_import_invalidUri_metadata() async {
     await super.test_import_invalidUri_metadata();
-  }
-
-  @override
-  @failingTest
-  test_invalid_annotation_prefixed_constructor() {
-    return super.test_invalid_annotation_prefixed_constructor();
-  }
-
-  @override
-  @failingTest
-  test_invalid_annotation_unprefixed_constructor() {
-    return super.test_invalid_annotation_unprefixed_constructor();
   }
 
   @failingTest
@@ -300,49 +222,6 @@ class C {
   }
 
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
-  test_metadata_fieldFormalParameter() async {
-    await super.test_metadata_fieldFormalParameter();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
-  test_metadata_fieldFormalParameter_withDefault() async {
-    await super.test_metadata_fieldFormalParameter_withDefault();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
-  test_metadata_functionTypedFormalParameter() async {
-    await super.test_metadata_functionTypedFormalParameter();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
-  test_metadata_functionTypedFormalParameter_withDefault() async {
-    await super.test_metadata_functionTypedFormalParameter_withDefault();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
-  test_metadata_simpleFormalParameter() async {
-    await super.test_metadata_simpleFormalParameter();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
-  test_metadata_simpleFormalParameter_withDefault() async {
-    await super.test_metadata_simpleFormalParameter_withDefault();
-  }
-
-  @failingTest
-  @notForDart2
-  test_parameter_checked() async {
-    // @checked is deprecated, use `covariant` instead.
-    await super.test_parameter_checked();
-  }
-
-  @failingTest
   @notForDart2
   test_parameter_checked_inherited() async {
     // @checked is deprecated, use `covariant` instead.
@@ -362,34 +241,9 @@ class C {
   }
 
   @failingTest
-  @potentialAnalyzerProblem
-  test_typedef_type_parameters_bound() async {
-    // https://github.com/dart-lang/sdk/issues/29561
-    await super.test_typedef_type_parameters_bound();
-  }
-
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30267')
   test_unresolved_annotation_instanceCreation_argument_super() async {
     await super.test_unresolved_annotation_instanceCreation_argument_super();
-  }
-
-  @override
-  @failingTest
-  test_unresolved_annotation_prefixedIdentifier_badPrefix() {
-    return super.test_unresolved_annotation_prefixedIdentifier_badPrefix();
-  }
-
-  @override
-  @failingTest
-  test_unresolved_annotation_prefixedIdentifier_noDeclaration() {
-    return super.test_unresolved_annotation_prefixedIdentifier_noDeclaration();
-  }
-
-  @override
-  @failingTest
-  test_unresolved_annotation_simpleIdentifier() {
-    return super.test_unresolved_annotation_simpleIdentifier();
   }
 
   Future<KernelResynthesizer> _createResynthesizer(Uri testUri) async {
@@ -415,7 +269,7 @@ class C {
         fsState,
         resourceProvider.pathContext);
 
-    LibraryOutlineResult libraryResult = await compiler.getOutline(testUri);
+    LibraryCompilationResult libraryResult = await compiler.compile(testUri);
 
     // Remember Kernel libraries produced by the compiler.
     var libraryMap = <String, kernel.Library>{};

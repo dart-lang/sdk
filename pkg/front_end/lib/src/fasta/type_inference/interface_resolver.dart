@@ -1112,6 +1112,9 @@ class InterfaceResolver {
           procedure._field.initializer != null) {
         node = new FieldInitializerInferenceNode(
             _typeInferenceEngine, procedure._field, library);
+      }
+
+      if (node != null && procedure is SyntheticAccessor) {
         ShadowField.setInferenceNode(procedure._field, node);
       }
     }

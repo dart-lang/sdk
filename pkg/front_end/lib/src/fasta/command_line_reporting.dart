@@ -20,16 +20,15 @@ import 'colors.dart' show green, magenta, red;
 
 import 'compiler_context.dart' show CompilerContext;
 
-import 'deprecated_problems.dart'
-    show Crash, deprecated_InputError, safeToString;
+import 'crash.dart' show Crash, safeToString;
 
 import 'fasta_codes.dart' show LocatedMessage;
 
-import 'messages.dart' show getLocation, getSourceLine, isVerbose;
+import 'messages.dart' show getLocation, getSourceLine;
 
-import 'problems.dart' show unhandled;
+import 'problems.dart' show DebugAbort, unhandled;
 
-import 'severity.dart' show Severity;
+import 'severity.dart' show Severity, severityPrefixes;
 
 import 'scanner/characters.dart' show $CARET, $SPACE, $TAB;
 
@@ -48,8 +47,9 @@ String format(LocatedMessage message, Severity severity, {Location location}) {
       // empty names.
       length = 1;
     }
+    String prefix = severityPrefixes[severity];
     String text =
-        "${severityName(severity, capitalized: true)}: ${message.message}";
+        prefix == null ? message.message : "$prefix: ${message.message}";
     if (message.tip != null) {
       text += "\n${message.tip}";
     }
@@ -161,26 +161,6 @@ bool shouldThrowOn(Severity severity) {
   }
 }
 
-/// Convert [severity] to a name that can be used to prefix a message.
-String severityName(Severity severity, {bool capitalized: false}) {
-  switch (severity) {
-    case Severity.error:
-      return capitalized ? "Error" : "error";
-
-    case Severity.internalProblem:
-      return capitalized ? "Internal problem" : "internal problem";
-
-    case Severity.warning:
-      return capitalized ? "Warning" : "warning";
-
-    case Severity.context:
-      return capitalized ? "Context" : "context";
-
-    default:
-      return unhandled("$severity", "severityName", -1, null);
-  }
-}
-
 /// Print a formatted message and throw when errors are treated as fatal.
 /// Also set [exitCode] depending on the value of
 /// `CompilerContext.current.options.setExitCodeOnProblem`.
@@ -197,11 +177,7 @@ void _printAndThrowIfDebugging(
   }
   print(text);
   if (shouldThrowOn(severity)) {
-    if (isVerbose) print(StackTrace.current);
-    // TODO(sigmund,ahe): ensure there is no circularity when InputError is
-    // handled.
-    throw new deprecated_InputError(uri, charOffset,
-        "Compilation aborted due to fatal ${severityName(severity)}.");
+    throw new DebugAbort(uri, charOffset, severity, StackTrace.current);
   }
 }
 

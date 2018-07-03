@@ -497,26 +497,27 @@ ConstantPool {
 }
 [@vm.bytecode=
 Bytecode {
-  Entry                1
+  Entry                2
   CheckStack
+  CheckFunctionTypeArgs 1, 0
   PushConstant         CP#0
   PushConstant         CP#1
   PushConstant         CP#2
   CreateArrayTOS
-  StoreLocal           r0
-  Push                 r0
+  StoreLocal           r1
+  Push                 r1
   PushConstant         CP#3
   PushConstant         CP#4
   StoreIndexedTOS
-  Push                 r0
+  Push                 r1
   PushConstant         CP#4
   Push                 FP[-7]
   StoreIndexedTOS
-  Push                 r0
+  Push                 r1
   PushConstant         CP#5
   Push                 FP[-6]
   StoreIndexedTOS
-  Push                 r0
+  Push                 r1
   PushConstant         CP#6
   PushConstant         CP#5
   StoreIndexedTOS
@@ -529,21 +530,21 @@ Bytecode {
   PushConstant         CP#1
   PushConstant         CP#2
   CreateArrayTOS
-  StoreLocal           r0
-  Push                 r0
+  StoreLocal           r1
+  Push                 r1
   PushConstant         CP#3
   PushConstant         CP#12
   StoreIndexedTOS
-  Push                 r0
+  Push                 r1
   PushConstant         CP#4
   Push                 FP[-7]
   StoreIndexedTOS
-  Push                 r0
+  Push                 r1
   PushConstant         CP#5
   Push                 FP[-6]
   InstanceCall1        1, CP#13
   StoreIndexedTOS
-  Push                 r0
+  Push                 r1
   PushConstant         CP#6
   PushConstant         CP#6
   StoreIndexedTOS
@@ -553,7 +554,7 @@ Bytecode {
   IndirectStaticCall   1, CP#9
   Drop1
   PushConstant         CP#16
-  Push                 FP[-8]
+  Push                 r0
   InstantiateTypeArgumentsTOS 0, CP#17
   PushConstant         CP#18
   PushConstant         CP#19
@@ -562,17 +563,17 @@ Bytecode {
   IndirectStaticCall   1, CP#9
   Drop1
   PushConstant         CP#16
-  Push                 FP[-8]
+  Push                 r0
   InstantiateTypeArgumentsTOS 0, CP#21
   PushConstant         CP#1
   PushConstant         CP#5
   CreateArrayTOS
-  StoreLocal           r0
-  Push                 r0
+  StoreLocal           r1
+  Push                 r1
   PushConstant         CP#3
   Push                 FP[-5]
   StoreIndexedTOS
-  Push                 r0
+  Push                 r1
   PushConstant         CP#4
   PushConstant         CP#2
   StoreIndexedTOS
@@ -638,14 +639,15 @@ ConstantPool {
 }
 [@vm.bytecode=
 Bytecode {
-  Entry                0
+  Entry                1
   CheckStack
+  CheckFunctionTypeArgs 1, 0
   PushConstant         CP#0
   PushConstant         CP#2
   IndirectStaticCall   1, CP#1
   Drop1
   PushConstant         CP#4
-  Push                 FP[-5]
+  Push                 r0
   InstantiateType      CP#3
   PushConstant         CP#5
   IndirectStaticCall   1, CP#1

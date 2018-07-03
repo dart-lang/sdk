@@ -16,7 +16,7 @@ import 'package:kernel/ast.dart'
 
 import 'body_builder.dart' show Identifier, LabelTarget;
 
-import 'expression_generator.dart' show Generator;
+import 'expression_generator.dart' show Generator, PrefixUseGenerator;
 
 import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
@@ -31,7 +31,9 @@ import '../scanner.dart' show Token;
 
 export 'body_builder.dart' show Identifier, Operator;
 
-export 'expression_generator.dart' show Generator;
+export 'constness.dart' show Constness;
+
+export 'expression_generator.dart' show Generator, PrefixUseGenerator;
 
 export 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
@@ -254,7 +256,8 @@ abstract class Forest {
   Expression logicalExpression(
       Expression leftOperand, Token operator, Expression rightOperand);
 
-  Expression notExpression(Expression operand, Token location);
+  Expression notExpression(
+      Expression operand, Token location, bool isSynthetic);
 
   /// Return a representation of a parenthesized condition consisting of the
   /// given [expression] between the [leftParenthesis] and [rightParenthesis].
@@ -405,16 +408,14 @@ abstract class Forest {
   Generator loadLibraryGenerator(ExpressionGeneratorHelper helper,
       Token location, LoadLibraryBuilder builder);
 
-  Generator deferredAccessGenerator(ExpressionGeneratorHelper helper,
-      Token location, PrefixBuilder builder, Generator generator);
-
-  Generator typeUseGenerator(
+  Generator deferredAccessGenerator(
       ExpressionGeneratorHelper helper,
       Token location,
-      PrefixBuilder prefix,
-      int declarationReferenceOffset,
-      TypeDeclarationBuilder declaration,
-      String plainNameForRead);
+      PrefixUseGenerator prefixGenerator,
+      Generator suffixGenerator);
+
+  Generator typeUseGenerator(ExpressionGeneratorHelper helper, Token location,
+      TypeDeclarationBuilder declaration, String plainNameForRead);
 
   Generator readOnlyAccessGenerator(ExpressionGeneratorHelper helper,
       Token location, Expression expression, String plainNameForRead);
@@ -437,6 +438,12 @@ abstract class Forest {
       Generator generator,
       Name binaryOperator,
       Procedure interfaceTarget);
+
+  Generator prefixUseGenerator(
+      ExpressionGeneratorHelper helper, Token location, PrefixBuilder prefix);
+
+  Generator unexpectedQualifiedUseGenerator(ExpressionGeneratorHelper helper,
+      Token token, Generator prefixGenerator, bool isUnresolved);
 
   // TODO(ahe): Remove this method when all users are moved here.
   Arguments castArguments(Arguments arguments) {

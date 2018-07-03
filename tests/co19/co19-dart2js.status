@@ -607,7 +607,6 @@ LayoutTests/fast/dom/MutationObserver/removed-out-of-order_t01: RuntimeError # P
 LayoutTests/fast/dom/MutationObserver/weak-callback-gc-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Node/fragment-mutation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Node/initial-values_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/NodeIterator/NodeIterator-basic_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/bug-19527_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/insertNode-empty-fragment-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/mutation_t01: RuntimeError # Please triage this failure
@@ -618,13 +617,11 @@ LayoutTests/fast/dom/Range/range-expand_t01: RuntimeError # Please triage this f
 LayoutTests/fast/dom/Range/range-insertNode-separate-endContainer_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/range-insertNode-splittext_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/dumpNodeList-2_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/SelectorAPI/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-medialist-item_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/detached-parent-rule-without-wrapper_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/detached-stylesheet-without-wrapper_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/removed-media-rule-deleted-parent-crash_t01: RuntimeError
 LayoutTests/fast/dom/StyleSheet/removed-stylesheet-rule-deleted-parent-crash_t01: RuntimeError
-LayoutTests/fast/dom/TreeWalker/TreeWalker-basic_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Window/getMatchedCSSRules-nested-rules_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Window/getMatchedCSSRules-null-crash_t01: RuntimeError
 LayoutTests/fast/dom/Window/getMatchedCSSRules-parent-stylesheets_t01: RuntimeError
@@ -651,7 +648,6 @@ LayoutTests/fast/dom/focus-contenteditable_t01: Pass, RuntimeError # Please tria
 LayoutTests/fast/dom/fragment-activation-focuses-target_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/getElementsByClassName/010_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/getElementsByClassName/011_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/dom/getElementsByClassName/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl-doesnt-fire-onscroll_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-when-dir-change_t01: RuntimeError # Please triage this failure
@@ -710,7 +706,6 @@ LayoutTests/fast/events/document-elementFromPoint_t01: RuntimeError # Please tri
 LayoutTests/fast/events/event-attributes-after-exception_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-creation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-listener-html-non-html-confusion_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/events/event-trace_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/fire-scroll-event-element_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/events/fire-scroll-event_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/events/init-message-event_t01: RuntimeError # Please triage this failure
@@ -1373,6 +1368,7 @@ LayoutTests/fast/dom/HTMLScriptElement/script-for-attribute-unexpected-execution
 LayoutTests/fast/dom/HTMLScriptElement/script-reexecution_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLTemplateElement/inertContents_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/create-contextual-fragment-script-unmark-already-started_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/events/event-trace_t01: RuntimeError # runtimeType.toString() returns minified names
 LayoutTests/fast/files/workers/inline-worker-via-blob-url_t01: SkipByDesign # inlined script
 LayoutTests/fast/loader/scroll-position-restored-on-back_t01: Skip # Timeout. Please triage this failure
 WebPlatformTest/webstorage/event_local_key_t01: Skip # Timeout. Please triage this failure.
@@ -1741,7 +1737,6 @@ LayoutTests/fast/dom/MutationObserver/observe-childList_t01: RuntimeError # Plea
 LayoutTests/fast/dom/MutationObserver/weak-callback-gc-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Node/fragment-mutation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Node/initial-values_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/NodeIterator/NodeIterator-basic_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/bug-19527_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/insertNode-empty-fragment-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/mutation_t01: RuntimeError # Please triage this failure
@@ -1750,10 +1745,8 @@ LayoutTests/fast/dom/Range/range-detached-exceptions_t01: RuntimeError # Please 
 LayoutTests/fast/dom/Range/range-insertNode-separate-endContainer_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/range-insertNode-splittext_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/dumpNodeList-2_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/SelectorAPI/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-medialist-item_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/detached-stylesheet-without-wrapper_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/TreeWalker/TreeWalker-basic_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Window/getMatchedCSSRules-with-pseudo-elements-complex_t01: Pass, RuntimeError # Issue 29634
 LayoutTests/fast/dom/Window/window-resize-contents_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Window/window-scroll-arguments_t01: RuntimeError # Please triage this failure
@@ -1769,7 +1762,6 @@ LayoutTests/fast/dom/dataset_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/document-importNode-arguments_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/domparser-parsefromstring-mimetype-support_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/getElementsByClassName/011_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/getElementsByClassName/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-when-dir-change_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: RuntimeError # Please triage this failure
@@ -1792,7 +1784,6 @@ LayoutTests/fast/events/add-event-without-document_t01: RuntimeError # Please tr
 LayoutTests/fast/events/change-overflow-on-overflow-change_t01: Skip # Times out.
 LayoutTests/fast/events/document-elementFromPoint_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-creation_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/events/event-trace_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/fire-scroll-event_t01: Pass, RuntimeError # Issue 29634
 LayoutTests/fast/events/initkeyboardevent-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/invalid-003_t01: RuntimeError # Please triage this failure
@@ -2476,10 +2467,8 @@ LayoutTests/fast/css/content/content-none_t01: RuntimeError # Please triage this
 LayoutTests/fast/css/content/content-normal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/content/content-quotes-06_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/counters/complex-before_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/counters/counter-cssText_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/counters/counter-reset-subtree-insert-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/css-escaped-identifier_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/css-properties-case-insensitive_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/css3-nth-tokens-style_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/cursor-parsing-image-set_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/cursor-parsing_t01: RuntimeError # Please triage this failure
@@ -2543,7 +2532,6 @@ LayoutTests/fast/css/parsing-at-rule-recovery_t01: RuntimeError # Please triage 
 LayoutTests/fast/css/parsing-css-allowed-string-characters_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-page-rule_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-selector-error-recovery_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/parsing-unexpected-eof_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-webkit-font-smoothing_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/position-absolute-float_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/pseudo-any_t01: RuntimeError # Please triage this failure
@@ -2713,7 +2701,6 @@ LayoutTests/fast/dom/MutationObserver/removed-out-of-order_t01: RuntimeError # P
 LayoutTests/fast/dom/MutationObserver/weak-callback-gc-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Node/fragment-mutation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Node/initial-values_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/NodeIterator/NodeIterator-basic_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/bug-19527_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/getClientRects-character_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/insertNode-empty-fragment-crash_t01: RuntimeError # Please triage this failure
@@ -2727,7 +2714,6 @@ LayoutTests/fast/dom/Range/range-insertNode-separate-endContainer_t01: RuntimeEr
 LayoutTests/fast/dom/Range/range-insertNode-splittext_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/caseTagX_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/dumpNodeList-2_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/SelectorAPI/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-insert-import-rule-to-shadow-stylesheets_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-medialist-item_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/detached-parent-rule-without-wrapper_t01: RuntimeError # Please triage this failure
@@ -2735,7 +2721,6 @@ LayoutTests/fast/dom/StyleSheet/detached-shadow-style_t01: RuntimeError # Please
 LayoutTests/fast/dom/StyleSheet/empty-shadow-style_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/removed-media-rule-deleted-parent-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/removed-stylesheet-rule-deleted-parent-crash_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/TreeWalker/TreeWalker-basic_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Window/getMatchedCSSRules-nested-rules_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Window/getMatchedCSSRules-null-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Window/getMatchedCSSRules-parent-stylesheets_t01: RuntimeError # Please triage this failure
@@ -2788,7 +2773,6 @@ LayoutTests/fast/dom/focus-contenteditable_t01: Pass, RuntimeError # Please tria
 LayoutTests/fast/dom/fragment-activation-focuses-target_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/getElementsByClassName/010_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/getElementsByClassName/011_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/getElementsByClassName/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl-doesnt-fire-onscroll_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-when-dir-change_t01: RuntimeError # Please triage this failure
@@ -2901,7 +2885,6 @@ LayoutTests/fast/events/event-attributes-after-exception_t01: RuntimeError # Ple
 LayoutTests/fast/events/event-creation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-fire-order_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-listener-html-non-html-confusion_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/events/event-trace_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/fire-scroll-event_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/form-onchange_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/init-message-event_t01: RuntimeError # Issue 28983
@@ -3195,7 +3178,6 @@ LayoutTests/fast/speechsynthesis/speech-synthesis-utterance-uses-voice_t01: Skip
 LayoutTests/fast/speechsynthesis/speech-synthesis-voices_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/storage/disallowed-storage_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/storage/storage-disallowed-in-data-url_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/sub-pixel/computedstylemargin_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/sub-pixel/cssom-subpixel-precision_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/svg/getbbox_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/svg/tabindex-focus_t01: RuntimeError # Please triage this failure
@@ -3641,7 +3623,10 @@ LayoutTests/fast/canvas/webgl/tex-input-validation_t01: RuntimeError # Please tr
 LayoutTests/fast/canvas/webgl/tex-sub-image-2d-bad-args_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/texture-complete_t01: Skip # Times out sometimes
 LayoutTests/fast/canvas/webgl/texture-npot_t01: Skip # Times out sometimes
+LayoutTests/fast/css/counters/counter-cssText_t01: RuntimeError
+LayoutTests/fast/css/parsing-unexpected-eof_t01: RuntimeError
 LayoutTests/fast/forms/submit-form-attributes_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/sub-pixel/computedstylemargin_t01: RuntimeError
 LayoutTests/fast/text/whitespace/nowrap-line-break-after-white-space_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JSInterop failure
@@ -3657,6 +3642,8 @@ LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: RuntimeErr
 LayoutTests/fast/forms/submit-form-attributes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/media/color-does-not-include-alpha_t01: RuntimeError # Issue 31161
 LayoutTests/fast/media/media-query-list_t01: Pass, RuntimeError # Issue 32257
+LibTest/core/Uri/Uri_A06_t03: Pass, Slow
+LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Slow
 
 [ $compiler == dart2js && $runtime == ff && $checked ]
 LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: RuntimeError # Please triage this failure
@@ -3969,7 +3956,6 @@ LayoutTests/fast/css/counters/counter-cssText_t01: RuntimeError # Please triage 
 LayoutTests/fast/css/css-escaped-identifier_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/css-keyframe-style-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/css-keyframe-unexpected-end_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/css-properties-case-insensitive_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/css-selector-text_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/css3-nth-tokens-script_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/css/css3-nth-tokens-style_t01: RuntimeError # Please triage this failure
@@ -4054,7 +4040,6 @@ LayoutTests/fast/css/modify-ua-rules-from-javascript_t01: RuntimeError # Please 
 LayoutTests/fast/css/nested-at-rules_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/nested-rule-parent-sheet_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/overflow-property_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/padding-no-renderer_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/padding-start-end_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parse-color-int-or-percent-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-at-rule-recovery_t01: RuntimeError # Please triage this failure
@@ -4301,7 +4286,7 @@ LayoutTests/fast/dom/MutationObserver/weak-callback-gc-crash_t01: RuntimeError #
 LayoutTests/fast/dom/Node/contains-method_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Node/fragment-mutation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Node/initial-values_t01: Skip # Times out. Please triage this failure
-LayoutTests/fast/dom/NodeIterator/NodeIterator-basic_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/NodeIterator/NodeIterator-basic_t01: RuntimeError
 LayoutTests/fast/dom/NodeList/nodelist-moved-to-fragment-2_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/NodeList/nodelist-reachable_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/13000_t01: RuntimeError # Please triage this failure
@@ -4327,7 +4312,6 @@ LayoutTests/fast/dom/Selection/getRangeAt_t01: RuntimeError # Please triage this
 LayoutTests/fast/dom/SelectorAPI/caseID_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/caseTagX_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/dumpNodeList-2_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/SelectorAPI/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-insert-import-rule-to-shadow-stylesheets_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-medialist-item_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/detached-parent-rule-without-wrapper_t01: RuntimeError # Please triage this failure
@@ -4340,7 +4324,7 @@ LayoutTests/fast/dom/StyleSheet/removed-stylesheet-rule-deleted-parent-crash_t01
 LayoutTests/fast/dom/Text/next-element-sibling_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Text/normalize-crash-in-spell-checker_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Text/previous-element-sibling_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/TreeWalker/TreeWalker-basic_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/TreeWalker/TreeWalker-basic_t01: RuntimeError
 LayoutTests/fast/dom/Window/atob-btoa_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Window/getMatchedCSSRules-nested-rules_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Window/getMatchedCSSRules-null-crash_t01: RuntimeError # Please triage this failure
@@ -4411,7 +4395,6 @@ LayoutTests/fast/dom/getElementById-consistency_t01: RuntimeError # Please triag
 LayoutTests/fast/dom/getElementsByClassName/010_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/getElementsByClassName/011_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/getElementsByClassName/014_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/getElementsByClassName/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/getelementsbyname-invalidation-cache_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl-doesnt-fire-onscroll_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Please triage this failure
@@ -4539,7 +4522,6 @@ LayoutTests/fast/events/event-listener-list-mutation_t01: RuntimeError # Please 
 LayoutTests/fast/events/event-listener-sharing_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-on-created-document_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-on-xhr-document_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/events/event-trace_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/fire-scroll-event_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/form-onchange_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/init-message-event_t01: RuntimeError # Please triage this failure
@@ -5890,7 +5872,6 @@ LayoutTests/fast/dom/MutationObserver/observe-options-attributes_t01: RuntimeErr
 LayoutTests/fast/dom/MutationObserver/observe-options-character-data_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/MutationObserver/weak-callback-gc-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Node/initial-values_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/NodeIterator/NodeIterator-basic_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/bug-19527_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/insertNode-empty-fragment-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/mutation_t01: RuntimeError # Please triage this failure
@@ -5905,12 +5886,11 @@ LayoutTests/fast/dom/Range/range-isPointInRange_t01: RuntimeError # Please triag
 LayoutTests/fast/dom/Range/range-on-detached-node_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/surroundContents-for-detached-node_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/dumpNodeList-2_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/SelectorAPI/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-insert-import-rule-to-shadow-stylesheets_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-medialist-item_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/detached-shadow-style_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/empty-shadow-style_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/TreeWalker/TreeWalker-basic_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/TreeWalker/TreeWalker-basic_t01: RuntimeError
 LayoutTests/fast/dom/Window/atob-btoa_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Window/getMatchedCSSRules-parent-stylesheets_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Window/window-resize-contents_t01: RuntimeError # Please triage this failure
@@ -5945,7 +5925,6 @@ LayoutTests/fast/dom/document-set-title-mutations_t01: RuntimeError # Please tri
 LayoutTests/fast/dom/document-set-title-no-reuse_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/domparser-parsefromstring-mimetype-support_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/fragment-activation-focuses-target_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/getElementsByClassName/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl-doesnt-fire-onscroll_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-when-dir-change_t01: RuntimeError # Please triage this failure
@@ -6054,7 +6033,6 @@ LayoutTests/fast/events/event-fire-order_t01: Pass, RuntimeError # Issue 29632
 LayoutTests/fast/events/event-listener-html-non-html-confusion_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-on-created-document_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-on-xhr-document_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/events/event-trace_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/initkeyboardevent-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/invalid-003_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/invalid-004_t01: RuntimeError # Please triage this failure
@@ -6176,8 +6154,6 @@ LayoutTests/fast/forms/textarea-maxlength_t01: RuntimeError # Please triage this
 LayoutTests/fast/forms/textarea-paste-newline_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textarea-selection-preservation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/validationMessage_t01: RuntimeError # Issue 32567
-LayoutTests/fast/forms/validity-property_t01: RuntimeError # co19 issue 140
-LayoutTests/fast/forms/willvalidate_t01: RuntimeError # co19 issue 142
 LayoutTests/fast/html/hidden-attr_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/html/imports/import-element-removed-flag_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/html/imports/import-events_t01: RuntimeError # Please triage this failure
@@ -6967,9 +6943,6 @@ Language/Classes/Constructors/Generative_Constructors/execution_t06: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t07: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t12: Crash
 Language/Classes/Constructors/Generative_Constructors/initializing_formals_execution_t02: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/redirection_t03: Crash
-Language/Classes/Constructors/Generative_Constructors/redirection_t07: Crash
-Language/Classes/Constructors/Generative_Constructors/redirection_t08: Crash
 Language/Classes/Getters/same_name_method_t03: MissingCompileTimeError
 Language/Classes/Getters/same_name_method_t04: MissingCompileTimeError
 Language/Classes/Getters/same_name_method_t05: MissingCompileTimeError
@@ -7084,7 +7057,6 @@ LibTest/core/int/truncate_A01_t01: CompileTimeError # Larger than 64 bit int
 LibTest/html/HttpRequest/getAllResponseHeaders_A01_t01: Crash
 LibTest/html/HttpRequest/getResponseHeader_A01_t01: Crash
 LibTest/html/HttpRequest/getString_A01_t01: Crash
-LibTest/html/HttpRequest/overrideMimeType_A01_t01: Crash
 LibTest/html/HttpRequest/request_A01_t01: Crash
 LibTest/html/HttpRequest/setRequestHeader_A01_t01: Crash
 LibTest/html/HttpRequest/statusText_A01_t01: Crash
@@ -7098,25 +7070,11 @@ LibTest/math/pow_A10_t01: CompileTimeError # Larger than 64 bit int
 WebPlatformTest/html/semantics/embedded-content/the-audio-element/audio_constructor_t01: RuntimeError
 
 [ $compiler == dart2js && $fasta && $host_checked ]
-Language/Classes/Constructors/Factories/redirecting_constructor_t03: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t04: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t05: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t06: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t07: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t12: Crash
-Language/Classes/Constructors/Generative_Constructors/initializers_t12: Crash # Issue 33157
-Language/Classes/Constructors/Generative_Constructors/redirection_t03: Crash
-Language/Classes/Constructors/Generative_Constructors/redirection_t07: Crash
-Language/Classes/Constructors/Generative_Constructors/redirection_t08: Crash
-Language/Classes/Instance_Methods/Operators/allowed_names_t20: Crash
-Language/Classes/member_definition_t04: Crash
-Language/Classes/member_definition_t06: Crash
-Language/Classes/member_definition_t07: Crash
-Language/Classes/member_definition_t08: Crash
-Language/Classes/member_definition_t09: Crash
-Language/Classes/member_definition_t10: Crash
-Language/Classes/member_definition_t11: Crash
-Language/Classes/member_definition_t12: Crash
 Language/Expressions/Constants/depending_on_itself_t03: Crash
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: Crash
 Language/Expressions/Method_Invocation/Super_Invocation/accessible_instance_member_t02: Crash
@@ -7136,7 +7094,6 @@ LibTest/html/HttpRequest/getAllResponseHeaders_A01_t01: Crash
 LibTest/html/HttpRequest/getResponseHeader_A01_t01: Crash
 LibTest/html/HttpRequest/getString_A01_t01: Crash
 LibTest/html/HttpRequest/onError_A01_t02: Crash
-LibTest/html/HttpRequest/overrideMimeType_A01_t01: Crash
 LibTest/html/HttpRequest/request_A01_t01: Crash
 LibTest/html/HttpRequest/responseText_A01_t02: Crash
 LibTest/html/HttpRequest/setRequestHeader_A01_t01: Crash
@@ -7244,6 +7201,9 @@ LibTest/typed_data/Uint16List/runtimeType_A01_t01: Fail # co19-roll r559: Please
 LibTest/typed_data/Uint32List/runtimeType_A01_t01: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8ClampedList/runtimeType_A01_t01: Fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8List/runtimeType_A01_t01: Fail # co19-roll r559: Please triage this failure
+
+[ $compiler == dart2js && $strong ]
+*: SkipByDesign # co19 suite is not for strong-mode
 
 [ $compiler == dart2js && !$strong ]
 LibTest/typed_data/Float32x4List/first_A01_t02: Pass # co19 issue 130 + type error

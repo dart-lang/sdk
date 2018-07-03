@@ -36,6 +36,6 @@ void main() {
       expect(body, contains(analytics.trackingId));
       expect(body, contains('1.0.0'));
       expect(body, contains(analytics.clientId));
-    });
+    }, skip: CRASH_REPORTING_DISABLED);
   });
 }

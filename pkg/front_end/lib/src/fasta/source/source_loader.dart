@@ -383,6 +383,16 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Finished deferred load tearoffs $count");
   }
 
+  void finishNoSuchMethodForwarders() {
+    int count = 0;
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      if (library.loader == this) {
+        count += library.finishNoSuchMethodForwarders();
+      }
+    });
+    ticker.logMs("Finished noSuchMethod forwarders for $count procedures");
+  }
+
   void resolveConstructors() {
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {

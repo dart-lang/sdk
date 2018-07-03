@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/fasta/resolution_storer.dart';
+import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:front_end/src/base/syntactic_entity.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:kernel/kernel.dart' as kernel;
@@ -44,7 +45,10 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   @override
   void visitAnnotation(Annotation node) {
     Identifier name = node.name;
-    SimpleIdentifier constructorName = node.constructorName;
+    ArgumentList argumentList = node.arguments;
+
+    SimpleIdentifier fieldName;
+    SimpleIdentifier constructorName;
 
     var data = _get(name);
     if (name is SimpleIdentifier) {
@@ -58,14 +62,31 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         data = _get(name.identifier);
         name.identifier.staticElement = data.reference;
         name.identifier.staticType = data.inferredType;
+
+        if (argumentList == null) {
+          fieldName = node.constructorName;
+        } else {
+          constructorName = node.constructorName;
+        }
       } else {
         name.prefix.staticElement = data.reference;
         name.prefix.staticType = data.inferredType;
-        constructorName = name.identifier;
+
+        if (argumentList == null) {
+          fieldName = name.identifier;
+        } else {
+          constructorName = name.identifier;
+        }
       }
     }
 
-    ArgumentList argumentList = node.arguments;
+    if (fieldName != null) {
+      data = _get(fieldName);
+      node.element = data.reference;
+      fieldName.staticElement = data.reference;
+      fieldName.staticType = data.inferredType;
+    }
+
     if (argumentList != null) {
       var data = _get(argumentList);
       ConstructorElement element = data.reference;
@@ -234,10 +255,9 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   @override
   void visitFormalParameterList(FormalParameterList parameterList) {
     for (var parameter in parameterList.parameters) {
+      parameter.metadata?.accept(this);
       if (parameter is DefaultFormalParameter) {
-        if (parameter.defaultValue != null) {
-          parameter.defaultValue.accept(this);
-        }
+        parameter.defaultValue?.accept(this);
       }
     }
   }
@@ -268,7 +288,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         List<TypeParameter> typeParameters = typeParameterList.typeParameters;
         for (var i = 0; i < typeParameters.length; i++) {
           TypeParameter typeParameter = typeParameters[i];
-          assert(typeParameter.bound == null);
           typeParameter.name.staticElement = element.typeParameters[i];
           typeParameter.name.staticType = _typeContext.typeType;
         }
@@ -294,7 +313,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     parameterList.accept(this);
 
     node.body.accept(this);
-    _storeFunctionType(_get(node).inferredType, element);
+    _storeFunctionType(_get(node.parameters).inferredType, element);
 
     // Associate the elements with the nodes.
     if (element != null) {
@@ -331,9 +350,9 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    node.target.accept(this);
+    node.target?.accept(this);
 
-    DartType targetType = node.target.staticType;
+    DartType targetType = node.realTarget.staticType;
     var data = _get(node.leftBracket);
     MethodElement element = data.reference;
 
@@ -350,19 +369,57 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    var data = _get(node.argumentList);
+    ConstructorName constructorName = node.constructorName;
+    Identifier typeIdentifier = constructorName.type.name;
+    SimpleIdentifier classIdentifier;
+    SimpleIdentifier constructorIdentifier;
 
-    PrefixElement prefix = data.prefixInfo;
+    var data = _get(typeIdentifier);
+    TypeName newTypeName;
+    if (typeIdentifier is SimpleIdentifier) {
+      classIdentifier = typeIdentifier;
+      constructorIdentifier = constructorName.name;
+    } else if (typeIdentifier is PrefixedIdentifier) {
+      if (data.prefixInfo != null) {
+        typeIdentifier.prefix.staticElement = data.prefixInfo;
+
+        classIdentifier = typeIdentifier.identifier;
+        constructorIdentifier = node.constructorName.name;
+
+        data = _get(classIdentifier);
+      } else {
+        classIdentifier = typeIdentifier.prefix;
+        constructorIdentifier = typeIdentifier.identifier;
+
+        TypeArgumentList typeArguments = constructorName.type.typeArguments;
+        newTypeName = astFactory.typeName(classIdentifier, typeArguments);
+        constructorName.type = newTypeName;
+        constructorName.period = typeIdentifier.period;
+        constructorName.name = constructorIdentifier;
+      }
+    }
+    classIdentifier.staticElement = data.reference;
+
+    data = _get(node.argumentList);
 
     ConstructorElement constructor = data.reference;
     DartType type = data.inferredType;
 
-    ConstructorName constructorName = node.constructorName;
-    applyConstructorElement(
-        _enclosingLibraryElement, prefix, constructor, type, constructorName);
+    TypeArgumentList typeArguments = constructorName.type.typeArguments;
+    if (typeArguments != null) {
+      _applyTypeArgumentsToList(
+          _enclosingLibraryElement, type, typeArguments.arguments);
+    }
 
     node.staticElement = constructor;
     node.staticType = type;
+
+    node.constructorName.staticElement = constructor;
+    node.constructorName.type.type = constructor.returnType;
+
+    typeIdentifier.staticType = type;
+    classIdentifier.staticType = type;
+    constructorIdentifier?.staticElement = constructor;
 
     ArgumentList argumentList = node.argumentList;
     _applyResolutionToArguments(argumentList);
@@ -623,10 +680,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     if (node.parent is TopLevelVariableDeclaration) {
       node.variables.accept(this);
     } else {
-      if (node.metadata.isNotEmpty) {
-        // TODO(paulberry): handle this case
-        throw new UnimplementedError('Metadata on a variable declaration list');
-      }
+      node.metadata.accept(this);
       node.variables.accept(this);
       if (node.type != null) {
         DartType type = node.variables[0].name.staticType;
@@ -655,7 +709,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     int entityOffset = entity.offset;
     var data = _data[entityOffset];
     if (failIfAbsent && data == null) {
-      throw new StateError('No data for $entity at $entityOffset');
+      String fileName = _enclosingLibraryElement.source.fullName;
+      throw new StateError('No data for $entity at $entityOffset in $fileName');
     }
     return data;
   }
@@ -697,18 +752,36 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
   void _storeFunctionType(DartType type, FunctionElementImpl element) {
     if (type is FunctionType && element != null) {
-      element.returnType = type.returnType;
+      DartType Function(DartType) substituteConstituentType;
+      if (type.typeFormals.length == element.typeParameters.length &&
+          type.typeFormals.length != 0) {
+        var argumentTypes = element.typeParameters.map((e) => e.type).toList();
+        var parameterTypes = type.typeFormals.map((e) => e.type).toList();
+        substituteConstituentType =
+            (DartType t) => t.substitute2(argumentTypes, parameterTypes);
+        for (int i = 0; i < type.typeFormals.length; i++) {
+          (element.typeParameters[i] as TypeParameterElementImpl).bound =
+              type.typeFormals[i].bound == null
+                  ? null
+                  : substituteConstituentType(type.typeFormals[i].bound);
+        }
+      } else {
+        substituteConstituentType = (DartType t) => t;
+      }
+      element.returnType = substituteConstituentType(type.returnType);
       int normalParameterIndex = 0;
       int optionalParameterIndex = 0;
       for (ParameterElementImpl parameter in element.parameters) {
         if (parameter.isNamed) {
-          parameter.type = type.namedParameterTypes[parameter.name];
+          parameter.type = substituteConstituentType(
+              type.namedParameterTypes[parameter.name]);
         } else if (normalParameterIndex < type.normalParameterTypes.length) {
-          parameter.type = type.normalParameterTypes[normalParameterIndex++];
+          parameter.type = substituteConstituentType(
+              type.normalParameterTypes[normalParameterIndex++]);
         } else if (optionalParameterIndex <
             type.optionalParameterTypes.length) {
-          parameter.type =
-              type.optionalParameterTypes[optionalParameterIndex++];
+          parameter.type = substituteConstituentType(
+              type.optionalParameterTypes[optionalParameterIndex++]);
         }
       }
     }
@@ -767,6 +840,9 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     for (int i = 0; i < length; i++) {
       ParameterElementImpl element = parameterElements[i];
       FormalParameter parameter = parameters[i];
+
+      DeclarationResolver.resolveMetadata(
+          parameter, parameter.metadata, element);
 
       NormalFormalParameter normalParameter;
       if (parameter is NormalFormalParameter) {

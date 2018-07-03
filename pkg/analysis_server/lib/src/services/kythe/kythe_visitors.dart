@@ -83,6 +83,7 @@ String _getSignature(ResourceProvider provider, Element element,
 
 class CodedBufferWriter {
   CodedBufferWriter(var v);
+
   toBuffer() {}
 }
 
@@ -894,8 +895,8 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
   _handleRefCallEdge(
     Element element, {
     SyntacticEntity syntacticEntity: null,
-    start: _notFound,
-    end: _notFound,
+    int start: _notFound,
+    int end: _notFound,
     KytheVName enclosingTarget: null,
   }) {
     if (element is ExecutableElement &&
@@ -931,8 +932,8 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
     Element element,
     List<String> refEdgeTypes, {
     SyntacticEntity syntacticEntity: null,
-    start: _notFound,
-    end: _notFound,
+    int start: _notFound,
+    int end: _notFound,
     KytheVName enclosingTarget: null,
     KytheVName enclosingAnchor: null,
   }) {

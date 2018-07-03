@@ -23,7 +23,6 @@ analyzer/test/generated/strong_mode_kernel_test: Slow, Pass
 analyzer/test/src/dart/analysis/driver_kernel_test: Slow, Pass
 analyzer/test/src/summary/resynthesize_kernel_test: Slow, Pass
 analyzer/test/src/task/strong/checker_test: Slow, Pass
-analyzer2dart/test/*: Skip # Analyzer2dart is not maintained anymore.
 analyzer_plugin/test/plugin/folding_mixin_test: Slow, Pass
 analyzer_plugin/tool/spec/check_all_test: Skip # Issue 29133
 dart_messages/test/dart_messages_test: Skip # Requires a package root.
@@ -74,6 +73,7 @@ collection/test/equality_test/none: Pass, Fail # Issue 14348
 compiler/tool/*: SkipByDesign # Only meant to run on vm
 front_end/test/*: SkipByDesign # Only meant to run on vm, most use dart:mirrors and dart:io
 front_end/tool/*: SkipByDesign # Only meant to run on vm
+smith/test/*: SkipByDesign # Only meant to run on vm
 status_file/test/normalize_test: SkipByDesign # Uses dart:io
 status_file/test/parse_and_normalize_test: SkipByDesign # Uses dart:io
 status_file/test/repo_status_files_test: SkipByDesign # Uses dart:io
@@ -133,7 +133,6 @@ analysis_server/tool/spec/check_all_test: SkipByDesign # Uses dart:io.
 analyzer/test/*: SkipByDesign # Uses dart:io.
 analyzer/tool/summary/check_test: SkipByDesign # Uses dart:io.
 analyzer/tool/task_dependency_graph/check_test: SkipByDesign # Uses dart:io.
-analyzer2dart/*: SkipByDesign # Uses dart:io.
 analyzer_cli/*: SkipByDesign # Uses dart:io.
 compiler/tool/*: SkipByDesign # Only meant to run on vm
 dart_messages/test/dart_messages_test: Skip # Uses dart:io.
@@ -167,8 +166,9 @@ analysis_server/test/integration/analysis/package_root_test: Pass, RuntimeError 
 analysis_server/test/services/completion/dart/keyword_contributor_test: Fail
 analysis_server/test/services/completion/dart/override_contributor_test: Fail
 analysis_server/test/services/completion/statement/statement_completion_test: Fail
-analysis_server/test/services/correction/fix_test: Fail
+analysis_server/test/services/correction/fix_test: Fail, Timeout
 analysis_server/test/services/refactoring/extract_local_test: Fail
+analysis_server/test/src/plugin/plugin_manager_test: Pass, Slow
 analyzer/test/generated/compile_time_error_code_driver_test: Fail
 analyzer/test/generated/compile_time_error_code_kernel_test: Fail
 analyzer/test/generated/compile_time_error_code_kernel_test.dart: Fail
@@ -231,6 +231,9 @@ crypto/test/base64_test: Slow, Pass
 
 [ $compiler == dart2js && $csp ]
 mutation_observer: Skip # This test cannot run under CSP because it is injecting a JavaScript polyfill
+
+[ $compiler == dart2js && $strong ]
+status_file/test/status_expression_dnf_test: RuntimeError # not strong-clean
 
 [ $compiler == dart2js && ($runtime == chrome || $runtime == ff) ]
 async/test/stream_zip_test: SkipSlow # Times out. Issue 22050

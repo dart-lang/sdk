@@ -961,26 +961,27 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
   RawFunction::Kind kind = Function::kind(function);
   switch (kind) {
     case RawFunction::kImplicitGetter: {
-      // Field offset in words is cached as a Smi in function's data_.
-      RawInstance* instance = reinterpret_cast<RawInstance*>((*SP)[0]);
+      // Field object is cached in function's data_.
+      RawInstance* instance = reinterpret_cast<RawInstance*>(*call_base);
       RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
       intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
-      (*SP)[0] =
-          reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
+      *SP = call_base;
+      **SP = reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
       *invoked = true;
       return true;
     }
     case RawFunction::kImplicitSetter: {
-      // Field offset in words is cached as a Smi in function's data_.
+      // Field object is cached in function's data_.
       // TODO(regis): We currently ignore field.guarded_cid() and the type
       // test of the setter value. Either execute these tests here or fall
       // back to compiling the setter when required.
-      RawInstance* instance = reinterpret_cast<RawInstance*>((*SP)[-1]);
+      RawInstance* instance = reinterpret_cast<RawInstance*>(*call_base);
       RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
       intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
       reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words] =
-          (*SP)[0];
-      *--(*SP) = Object::null();
+          *(call_base + 1);
+      *SP = call_base;
+      **SP = Object::null();
       *invoked = true;
       return true;
     }
@@ -990,10 +991,10 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
       RawInstance* value = field->ptr()->value_.static_value_;
       if (value == Object::sentinel().raw() ||
           value == Object::transition_sentinel().raw()) {
-        (*SP)[1] = 0;  // Result of invoking the initializer.
-        (*SP)[2] = field;
-        Exit(thread, *FP, *SP + 3, *pc);
-        NativeArguments native_args(thread, 1, *SP + 2, *SP + 1);
+        call_top[1] = 0;  // Unused result of invoking the initializer.
+        call_top[2] = field;
+        Exit(thread, *FP, call_top + 3, *pc);
+        NativeArguments native_args(thread, 1, call_top + 2, call_top + 1);
         if (!InvokeRuntime(thread, this, DRT_InitStaticField, native_args)) {
           return false;
         }
@@ -1002,12 +1003,14 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
         value = field->ptr()->value_.static_value_;
       }
       // Field was initialized. Return its value.
-      *++(*SP) = value;
+      *SP = call_base;
+      **SP = value;
       *invoked = true;
       return true;
     }
     case RawFunction::kNoSuchMethodDispatcher:
     case RawFunction::kInvokeFieldDispatcher:
+    case RawFunction::kMethodExtractor:
       // TODO(regis): Implement. For now, use jitted version.
       break;
     default:
@@ -2284,7 +2287,10 @@ RawObject* Interpreter::Call(const Code& code,
           // SP[0] is type.
           *++SP = Smi::New(0);  // len
           *++SP = thread->isolate()->object_store()->growable_list_factory();
-          argdesc_ = ArgumentsDescriptor::New(0, 2);  // Returns a cached desc.
+          // Change the ArgumentsDescriptor of the call with a new cached one.
+          argdesc_ = ArgumentsDescriptor::New(
+              0, KernelBytecode::kNativeCallToGrowableListArgc);
+          // Note the special handling of the return of this call in DecodeArgc.
           if (!Invoke(thread, SP - 2, SP, &pc, &FP, &SP)) {
             HANDLE_EXCEPTION;
           }

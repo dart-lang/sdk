@@ -627,7 +627,7 @@ class C {
     ClassDeclaration cls = unit.declarations[0];
     MethodDeclaration method = cls.members[0];
     FormalParameter parameter = method.parameters.parameters[0];
-    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
+    expect(parameter, new TypeMatcher<DefaultFormalParameter>());
   }
 
   test_class_method_patch_success_implicitReturnType() {

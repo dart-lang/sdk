@@ -178,7 +178,10 @@ class SourceClassBuilder extends KernelClassBuilder {
 
     scope.setters.forEach((String name, Declaration setter) {
       Declaration member = scopeBuilder[name];
-      if (member == null || !member.isField || member.isFinal) return;
+      if (member == null ||
+          !(member.isField && !member.isFinal ||
+              member.isRegularMethod && member.isStatic && setter.isStatic))
+        return;
       if (member.isInstanceMember == setter.isInstanceMember) {
         addProblem(templateConflictsWithMember.withArguments(name),
             setter.charOffset, noLength);
@@ -192,6 +195,15 @@ class SourceClassBuilder extends KernelClassBuilder {
         addProblem(templateConflictsWithSetterWarning.withArguments(name),
             member.charOffset, noLength);
       }
+    });
+
+    scope.setters.forEach((String name, Declaration setter) {
+      Declaration constructor = constructorScopeBuilder[name];
+      if (constructor == null || !setter.isStatic) return;
+      addProblem(templateConflictsWithConstructor.withArguments(name),
+          setter.charOffset, noLength);
+      addProblem(templateConflictsWithSetter.withArguments(name),
+          constructor.charOffset, noLength);
     });
 
     cls.procedures.sort(compareProcedures);

@@ -17,7 +17,7 @@ static field dynamic f = () → asy::Future<dynamic> /* originally async */ {
         :return_value = 0;
         break #L1;
       }
-      :async_completer.{asy::Completer::complete}(:return_value);
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {

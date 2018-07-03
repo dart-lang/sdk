@@ -102,6 +102,7 @@ class ProgramBuilder {
   final Registry _registry;
 
   final FunctionEntity _mainFunction;
+  final Iterable<ClassEntity> _rtiNeededClasses;
 
   /// True if the program should store function types in the metadata.
   bool _storeFunctionTypesInMetadata = false;
@@ -136,7 +137,7 @@ class ProgramBuilder {
       this._inferredData,
       this._sourceInformationStrategy,
       this._sorter,
-      Set<ClassEntity> rtiNeededClasses,
+      this._rtiNeededClasses,
       this._mainFunction)
       : this.collector = new Collector(
             _options,
@@ -151,7 +152,7 @@ class ProgramBuilder {
             _interceptorData,
             _oneShotInterceptorData,
             _closedWorld,
-            rtiNeededClasses,
+            _rtiNeededClasses,
             _generatedCode,
             _sorter),
         this._registry = new Registry(_outputUnitData.mainOutputUnit, _sorter);
@@ -236,7 +237,7 @@ class ProgramBuilder {
         collector.computeInterceptorsReferencedFromConstants();
 
     _unneededNativeClasses = _task.nativeEmitter.prepareNativeClasses(
-        nativeClasses, interceptorClassesNeededByConstants);
+        nativeClasses, interceptorClassesNeededByConstants, _rtiNeededClasses);
 
     _addJsInteropStubs(_registry.mainLibrariesMap);
 

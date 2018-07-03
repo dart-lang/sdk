@@ -5,6 +5,7 @@
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token;
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/generated/resolver.dart' show ResolverErrorCode;
 import 'package:front_end/src/api_prototype/compilation_message.dart';
 import 'package:front_end/src/fasta/messages.dart' show Code, Message;
 
@@ -509,6 +510,12 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.PREFIX_AFTER_COMBINATOR, offset, length);
         return;
+      case "RECURSIVE_CONSTRUCTOR_REDIRECT":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT,
+            offset,
+            length);
+        return;
       case "REDIRECTING_CONSTRUCTOR_WITH_BODY":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY, offset, length);
@@ -635,6 +642,11 @@ class FastaErrorReporter {
   }
 
   void reportCompilationMessage(CompilationMessage message) {
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/33680
+    if (message.code == 'MissingImplementationCause') {
+      return;
+    }
+
     String errorCodeStr = message.analyzerCode;
     ErrorCode errorCode = _getErrorCode(errorCodeStr);
     if (errorCode != null) {
@@ -645,8 +657,13 @@ class FastaErrorReporter {
           errorCode,
           message.message,
           message.tip));
-    } else {
-      // TODO(mfairhurst) throw here, and fail all tests that trip this.
+    } else if (message.severity != Severity.context) {
+      // Messages with [Severity.context] are supposed to give extra information
+      // to messages of other kinds, and it should be possible to ignore them
+      // without affecting the discoverability of compile-time errors.  See also
+      // https://github.com/dart-lang/sdk/issues/33730.
+      throw new StateError('Unable to convert (${message.code}, $errorCodeStr, '
+          '@${message.span.start.offset}, $message)');
     }
   }
 
@@ -681,13 +698,16 @@ class FastaErrorReporter {
   /// Return the [ErrorCode] for the given [shortName], or `null` if not found.
   static ErrorCode _getErrorCode(String shortName) {
     const prefixes = const {
-      CompileTimeErrorCode: 'CompileTimeErrorCode',
-      ParserErrorCode: 'ParserErrorCode',
-      StaticTypeWarningCode: 'StaticTypeWarningCode',
-      StaticWarningCode: 'StaticWarningCode'
+      CompileTimeErrorCode: 'CompileTimeErrorCode.',
+      StrongModeCode: 'StrongModeCode.STRONG_MODE_',
+      ResolverErrorCode: 'ResolverErrorCode.',
+      ParserErrorCode: 'ParserErrorCode.',
+      ScannerErrorCode: 'ScannerErrorCode.',
+      StaticTypeWarningCode: 'StaticTypeWarningCode.',
+      StaticWarningCode: 'StaticWarningCode.'
     };
     for (var prefix in prefixes.values) {
-      var uniqueName = '$prefix.$shortName';
+      var uniqueName = '$prefix$shortName';
       var errorCode = errorCodeByUniqueName(uniqueName);
       if (errorCode != null) {
         return errorCode;

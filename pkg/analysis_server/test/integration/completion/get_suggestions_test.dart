@@ -112,7 +112,7 @@ main() {
       // Exception expected
       return null;
     }).then((result) {
-      expect(result, new isInstanceOf<CompletionGetSuggestionsResult>());
+      expect(result, const TypeMatcher<CompletionGetSuggestionsResult>());
     });
   }
 }

@@ -446,12 +446,12 @@ class TestUtils {
         configuration.compiler == Compiler.dartk ||
         configuration.compiler == Compiler.dartkp) {
       var checked = configuration.isChecked ? '-checked' : '';
-      var strong = configuration.isStrong ? '-strong' : '';
+      var legacy = configuration.noPreviewDart2 ? '-legacy' : '';
       var minified = configuration.isMinified ? '-minified' : '';
       var csp = configuration.isCsp ? '-csp' : '';
       var sdk = configuration.useSdk ? '-sdk' : '';
       var dirName = "${configuration.compiler.name}"
-          "$checked$strong$minified$csp$sdk";
+          "$checked$legacy$minified$csp$sdk";
       var generatedPath =
           configuration.buildDirectory + "/generated_compilations/$dirName";
       if (FileSystemEntity.isDirectorySync(generatedPath)) {

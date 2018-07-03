@@ -9,6 +9,9 @@ import 'package:http/http.dart' as http;
 import 'package:stack_trace/stack_trace.dart';
 import 'package:usage/usage.dart';
 
+// Reporting disabled until we're set up on the backend.
+const bool CRASH_REPORTING_DISABLED = true;
+
 /// Crash backend host.
 const String _crashServerHost = 'clients2.google.com';
 
@@ -46,7 +49,7 @@ class CrashReportSender {
   ///
   /// The report is populated from data in [error] and [stackTrace].
   Future sendReport(dynamic error, {StackTrace stackTrace}) async {
-    if (!analytics.enabled) {
+    if (!analytics.enabled || CRASH_REPORTING_DISABLED) {
       return;
     }
 
@@ -63,8 +66,7 @@ class CrashReportSender {
       req.fields['product'] = crashProductId;
       req.fields['version'] = analytics.applicationVersion;
       req.fields['osName'] = Platform.operatingSystem;
-      // TODO(devoncarew): Report the operating system version when we're able.
-      //req.fields['osVersion'] = Platform.operatingSystemVersion;
+      req.fields['osVersion'] = Platform.operatingSystemVersion;
       req.fields['type'] = 'DartError';
       req.fields['error_runtime_type'] = '${error.runtimeType}';
 

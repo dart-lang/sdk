@@ -44,6 +44,8 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
 
   final ScopeBuilder constructorScopeBuilder;
 
+  Map<String, ConstructorRedirection> redirectingConstructors;
+
   ClassBuilder(
       List<MetadataBuilder> metadata,
       int modifiers,
@@ -78,6 +80,23 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   LibraryBuilder get library {
     LibraryBuilder library = parent;
     return library.partOfLibrary ?? library;
+  }
+
+  /// Registers a constructor redirection for this class and returns true if
+  /// this redirection gives rise to a cycle that has not been reported before.
+  bool checkConstructorCyclic(String source, String target) {
+    ConstructorRedirection redirect = new ConstructorRedirection(target);
+    redirectingConstructors ??= <String, ConstructorRedirection>{};
+    redirectingConstructors[source] = redirect;
+    while (redirect != null) {
+      if (redirect.cycleReported) return false;
+      if (redirect.target == source) {
+        redirect.cycleReported = true;
+        return true;
+      }
+      redirect = redirectingConstructors[redirect.target];
+    }
+    return false;
   }
 
   @override
@@ -226,4 +245,11 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   }
 
   void prepareTopLevelInference() {}
+}
+
+class ConstructorRedirection {
+  String target;
+  bool cycleReported;
+
+  ConstructorRedirection(this.target) : cycleReported = false;
 }

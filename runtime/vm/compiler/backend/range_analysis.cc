@@ -2683,25 +2683,43 @@ void ConstraintInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 }
 
 void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  switch (recognized_kind()) {
-    case MethodRecognizer::kObjectArrayLength:
-    case MethodRecognizer::kImmutableArrayLength:
-      *range = Range(RangeBoundary::FromConstant(0),
-                     RangeBoundary::FromConstant(Array::kMaxElements));
-      break;
+  if (native_field() != nullptr) {
+    switch (native_field()->kind()) {
+      case NativeFieldDesc::kArray_length:
+      case NativeFieldDesc::kGrowableObjectArray_length:
+        *range = Range(RangeBoundary::FromConstant(0),
+                       RangeBoundary::FromConstant(Array::kMaxElements));
+        break;
 
-    case MethodRecognizer::kTypedDataLength:
-      *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
-      break;
+      case NativeFieldDesc::kTypedData_length:
+        *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
+        break;
 
-    case MethodRecognizer::kStringBaseLength:
-      *range = Range(RangeBoundary::FromConstant(0),
-                     RangeBoundary::FromConstant(String::kMaxElements));
-      break;
+      case NativeFieldDesc::kString_length:
+        *range = Range(RangeBoundary::FromConstant(0),
+                       RangeBoundary::FromConstant(String::kMaxElements));
+        break;
 
-    default:
-      Definition::InferRange(analysis, range);
+      case NativeFieldDesc::kLinkedHashMap_index:
+      case NativeFieldDesc::kLinkedHashMap_data:
+      case NativeFieldDesc::kTypeArguments:
+        // Not an integer valued field.
+        UNREACHABLE();
+        break;
+
+      case NativeFieldDesc::kLinkedHashMap_hash_mask:
+      case NativeFieldDesc::kLinkedHashMap_used_data:
+      case NativeFieldDesc::kLinkedHashMap_deleted_keys:
+        *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
+        break;
+
+      case NativeFieldDesc::kArgumentsDescriptor_type_args_len:
+        *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
+        break;
+    }
+    return;
   }
+  Definition::InferRange(analysis, range);
 }
 
 void LoadIndexedInstr::InferRange(RangeAnalysis* analysis, Range* range) {

@@ -19,7 +19,7 @@ typedef fisk();
 
 main() {
   void foo(A x) {}
-  var map = {'a': 0, 'b': main};
+  var map = <String, dynamic>{'a': 0, 'b': main};
   try {
     map.values.forEach((x) => x.rti_only_native_test_field);
   } finally {

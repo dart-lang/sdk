@@ -1739,7 +1739,7 @@ class C {}
     ClassDeclaration c = result.unit.declarations[1] as ClassDeclaration;
     Annotation a = c.metadata[0];
     expect(a.name.name, 'fff');
-    expect(a.name.staticElement, new isInstanceOf<FunctionElement>());
+    expect(a.name.staticElement, new TypeMatcher<FunctionElement>());
   }
 
   test_getResult_invalidUri() async {

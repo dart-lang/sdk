@@ -223,11 +223,14 @@ void EventHandlerImplementation::HandleInterruptFd() {
         // message.
         intptr_t old_mask = di->Mask();
         Dart_Port port = msg[i].dart_port;
-        di->RemovePort(port);
+        if (port != ILLEGAL_PORT) {
+          di->RemovePort(port);
+        }
         intptr_t new_mask = di->Mask();
         UpdateEpollInstance(old_mask, di);
 
         intptr_t fd = di->fd();
+        ASSERT(fd == socket->fd());
         if (di->IsListeningSocket()) {
           // We only close the socket file descriptor from the operating
           // system if there are no other dart socket objects which

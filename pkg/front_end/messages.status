@@ -6,7 +6,6 @@ AbstractClassInstantiation/analyzerCode: Fail
 AbstractClassInstantiation/example: Fail
 AbstractClassMember/script5: Fail
 AbstractClassMember/script6: Fail
-AbstractNotSync/analyzerCode: Fail
 AbstractNotSync/example: Fail
 AbstractRedirectedClassInstantiation/analyzerCode: Fail
 AbstractRedirectedClassInstantiation/example: Fail
@@ -21,7 +20,6 @@ AssertExtraneousArgument/analyzerCode: Fail
 AssertExtraneousArgument/example: Fail
 AsyncAsIdentifier/example: Fail
 AwaitAsIdentifier/example: Fail
-AwaitNotAsync/analyzerCode: Fail
 AwaitNotAsync/example: Fail
 BreakOutsideOfLoop/script1: Fail
 BuiltInIdentifierAsType/example: Fail
@@ -35,9 +33,8 @@ CantInferPackagesFromManyInputs/analyzerCode: Fail
 CantInferPackagesFromManyInputs/example: Fail
 CantInferPackagesFromPackageUri/analyzerCode: Fail
 CantInferPackagesFromPackageUri/example: Fail
-CantInferTypeDueToCircularity/analyzerCode: Fail
+CantInferTypeDueToCircularity/dart2jsCode: Fail
 CantInferTypeDueToCircularity/example: Fail
-CantInferTypeDueToInconsistentOverrides/analyzerCode: Fail
 CantInferTypeDueToInconsistentOverrides/example: Fail
 CantUseSuperBoundedTypeForInstanceCreation/analyzerCode: Fail
 CantUseSuperBoundedTypeForInstanceCreation/example: Fail
@@ -60,7 +57,6 @@ ConstAfterFactory/script1: Fail
 ConstAndCovariant/script2: Fail
 ConstAndFinal/script1: Fail
 ConstAndVar/script1: Fail
-ConstConstructorNonFinalField/analyzerCode: Fail
 ConstConstructorNonFinalField/example: Fail
 ConstEvalContext/analyzerCode: Fail # This is just used for displaying the context.
 ConstEvalContext/example: Fail # This is just used for displaying the context.
@@ -90,7 +86,6 @@ ConstEvalZeroDivisor/example: Fail
 ConstFieldWithoutInitializer/example: Fail
 ConstructorNotFound/analyzerCode: Fail
 ConstructorNotFound/example: Fail
-ConstructorWithTypeParameters/analyzerCode: Fail # No corresponding analyzer message
 ContinueOutsideOfLoop/script1: Fail
 ContinueWithoutLabelInCase/script1: Fail
 CouldNotParseUri/analyzerCode: Fail
@@ -103,11 +98,9 @@ CovariantMember/script1: Fail
 CovariantMember/script2: Fail
 CyclicClassHierarchy/analyzerCode: Fail
 CyclicClassHierarchy/example: Fail
-CyclicTypedef/analyzerCode: Fail
 CyclicTypedef/example: Fail
 DeclaredMemberConflictsWithInheritedMember/analyzerCode: Fail
 DeferredAfterPrefix/example: Fail
-DeferredPrefixDuplicated/analyzerCode: Fail
 DeferredPrefixDuplicated/example: Fail
 DeferredTypeAnnotation/example: Fail
 DillOutlineSummary/analyzerCode: Fail
@@ -120,11 +113,8 @@ DuplicatedDefinition/analyzerCode: Fail
 DuplicatedDefinition/example: Fail
 DuplicatedExportInType/analyzerCode: Fail
 DuplicatedExportInType/example: Fail
-DuplicatedImportInType/analyzerCode: Fail
 DuplicatedModifier/script1: Fail
-DuplicatedName/analyzerCode: Fail
 DuplicatedName/example: Fail
-DuplicatedParameterName/analyzerCode: Fail
 DuplicatedParameterName/example: Fail
 Encoding/analyzerCode: Fail
 EnumConstantSameNameAsEnclosing/analyzerCode: Fail
@@ -176,7 +166,6 @@ ExtraneousModifier/script5: Fail
 ExtraneousModifier/script7: Fail
 ExtraneousModifier/script8: Fail
 ExtraneousModifier/script9: Fail
-FactoryNotSync/analyzerCode: Fail
 FactoryNotSync/example: Fail
 FastaCLIArgumentRequired/analyzerCode: Fail
 FastaCLIArgumentRequired/example: Fail
@@ -196,7 +185,7 @@ ForInLoopNotAssignable/statement: Fail
 FunctionTypeDefaultValue/example: Fail
 FunctionTypedParameterVar/script1: Fail
 GeneratorReturnsValue/example: Fail
-GetterNotFound/analyzerCode: Fail
+GetterNotFound/dart2jsCode: Fail
 GetterNotFound/example: Fail
 GetterWithFormals/example: Fail
 IllegalAssignmentToNonAssignable/script1: Fail
@@ -206,15 +195,12 @@ IllegalMixinDueToConstructors/analyzerCode: Fail
 IllegalMixinDueToConstructors/example: Fail
 ImplementsBeforeExtends/script: Fail
 ImplementsBeforeWith/script: Fail
-ImplicitCallOfNonMethod/analyzerCode: Fail
 ImplicitCallOfNonMethod/example: Fail
 ImportAfterPart/script1: Fail
 InheritedMembersConflict/analyzerCode: Fail
 InputFileNotFound/analyzerCode: Fail
 InputFileNotFound/example: Fail
 IntegerLiteralIsOutOfRange/example: Fail
-InternalVerificationError/analyzerCode: Fail
-InternalVerificationError/example: Fail
 InterpolationInUri/example: Fail
 InvalidCastFunctionExpr/example: Fail
 InvalidCastLiteralList/example: Fail
@@ -243,7 +229,7 @@ MemberWithSameNameAsClass/analyzerCode: Fail
 MemberWithSameNameAsClass/example: Fail
 MetadataTypeArguments/analyzerCode: Fail
 MetadataTypeArguments/example: Fail
-MethodNotFound/analyzerCode: Fail
+MethodNotFound/dart2jsCode: Fail
 MethodNotFound/example: Fail
 MissingAssignableSelector/script1: Fail
 MissingAssignmentInInitializer/script1: Fail
@@ -251,7 +237,7 @@ MissingInput/analyzerCode: Fail
 MissingInput/example: Fail
 MissingMain/analyzerCode: Fail
 MissingMain/example: Fail
-MissingPartOf/analyzerCode: Fail
+MissingPartOf/dart2jsCode: Fail
 MissingPrefixInDeferredImport/example: Fail
 MixinInferenceNoMatchingClass/analyzerCode: Fail
 MixinInferenceNoMatchingClass/example: Fail
@@ -262,7 +248,6 @@ MultipleWith/script: Fail
 NamedFunctionExpression/example: Fail
 NativeClauseShouldBeAnnotation/example: Fail
 NoFormals/example: Fail
-NoSuchNamedParameter/analyzerCode: Fail
 NoSuchNamedParameter/example: Fail
 NoUnnamedConstructorInObject/analyzerCode: Fail
 NoUnnamedConstructorInObject/example: Fail
@@ -274,23 +259,18 @@ NotAPrefixInTypeAnnotation/example: Fail
 NotAType/example: Fail
 NotAnLvalue/analyzerCode: Fail
 NotAnLvalue/example: Fail
-OperatorMinusParameterMismatch/analyzerCode: Fail
 OperatorMinusParameterMismatch/example: Fail
 OperatorParameterMismatch0/analyzerCode: Fail
 OperatorParameterMismatch0/example: Fail
-OperatorParameterMismatch1/analyzerCode: Fail
 OperatorParameterMismatch1/example: Fail
-OperatorParameterMismatch2/analyzerCode: Fail
 OperatorParameterMismatch2/example: Fail
 OperatorWithOptionalFormals/analyzerCode: Fail
 OperatorWithOptionalFormals/example: Fail
 OverrideFewerNamedArguments/analyzerCode: Fail
 OverrideFewerNamedArguments/example: Fail
-OverrideFewerPositionalArguments/analyzerCode: Fail
 OverrideFewerPositionalArguments/example: Fail
 OverrideMismatchNamedParameter/analyzerCode: Fail
 OverrideMismatchNamedParameter/example: Fail
-OverrideMoreRequiredArguments/analyzerCode: Fail
 OverrideMoreRequiredArguments/example: Fail
 OverrideTypeMismatchParameter/example: Fail
 OverrideTypeMismatchReturnType/example: Fail
@@ -298,15 +278,15 @@ OverrideTypeVariablesMismatch/analyzerCode: Fail
 OverrideTypeVariablesMismatch/example: Fail
 PackageNotFound/analyzerCode: Fail
 PackageNotFound/example: Fail
-PartOfLibraryNameMismatch/analyzerCode: Fail
+PartOfLibraryNameMismatch/dart2jsCode: Fail
 PartOfLibraryNameMismatch/example: Fail
-PartOfSelf/analyzerCode: Fail
+PartOfSelf/dart2jsCode: Fail
 PartOfTwoLibraries/analyzerCode: Fail # Issue 33227
-PartOfUriMismatch/analyzerCode: Fail
+PartOfUriMismatch/dart2jsCode: Fail
 PartOfUriMismatch/example: Fail
-PartOfUseUri/analyzerCode: Fail
+PartOfUseUri/dart2jsCode: Fail
 PartOfUseUri/example: Fail
-PartTwice/analyzerCode: Fail
+PartTwice/dart2jsCode: Fail
 PatchClassTypeVariablesMismatch/analyzerCode: Fail
 PatchClassTypeVariablesMismatch/example: Fail
 PatchDeclarationMismatch/analyzerCode: Fail
@@ -335,7 +315,7 @@ SdkSpecificationNotFound/analyzerCode: Fail
 SdkSpecificationNotFound/example: Fail
 SdkSummaryNotFound/analyzerCode: Fail
 SdkSummaryNotFound/example: Fail
-SetterNotFound/analyzerCode: Fail
+SetterNotFound/dart2jsCode: Fail
 SetterNotFound/example: Fail
 SetterNotSync/example: Fail
 SetterWithWrongNumberOfFormals/example: Fail
@@ -351,10 +331,10 @@ SuperAsIdentifier/analyzerCode: Fail
 SuperAsIdentifier/example: Fail
 SuperNullAware/example: Fail
 SuperclassHasNoDefaultConstructor/example: Fail
-SuperclassHasNoGetter/analyzerCode: Fail
+SuperclassHasNoGetter/dart2jsCode: Fail
 SuperclassHasNoGetter/example: Fail
 SuperclassHasNoMethod/example: Fail
-SuperclassHasNoSetter/analyzerCode: Fail
+SuperclassHasNoSetter/dart2jsCode: Fail
 SuperclassHasNoSetter/example: Fail
 SuperclassMethodArgumentMismatch/analyzerCode: Fail
 SuperclassMethodArgumentMismatch/example: Fail
@@ -364,21 +344,17 @@ SupertypeIsIllegal/analyzerCode: Fail
 SupertypeIsIllegal/example: Fail
 SupertypeIsTypeVariable/analyzerCode: Fail
 SupertypeIsTypeVariable/example: Fail
-SwitchCaseFallThrough/analyzerCode: Fail
 SwitchCaseFallThrough/example: Fail
 ThisAccessInFieldInitializer/analyzerCode: Fail
 ThisAccessInFieldInitializer/example: Fail
 ThisAsIdentifier/analyzerCode: Fail
 ThisAsIdentifier/example: Fail
-TooFewArguments/analyzerCode: Fail
 TooFewArguments/example: Fail
-TooManyArguments/analyzerCode: Fail
 TooManyArguments/example: Fail
 TopLevelOperator/script1: Fail
 TopLevelOperator/script2: Fail
 TopLevelOperator/script3: Fail
 TypeAfterVar/example: Fail
-TypeArgumentMismatch/analyzerCode: Fail
 TypeArgumentMismatch/example: Fail
 TypeArgumentsOnTypeVariable/script1: Fail
 TypeNotFound/analyzerCode: Fail

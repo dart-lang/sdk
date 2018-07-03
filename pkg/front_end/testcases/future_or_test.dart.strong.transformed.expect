@@ -30,7 +30,7 @@ class B extends core::Object {
           :return_value = this.{self::B::a}.{self::A::foo}();
           break #L1;
         }
-        :async_completer.{asy::Completer::complete}(:return_value);
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
       on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -63,7 +63,7 @@ class C extends core::Object {
           :return_value = this.{self::C::b}.{self::B::bar}() as{TypeError} asy::FutureOr<core::int>;
           break #L2;
         }
-        :async_completer.{asy::Completer::complete}(:return_value);
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
       on dynamic catch(dynamic :exception, dynamic :stack_trace) {

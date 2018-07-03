@@ -3047,6 +3047,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (node.initializer == null) {
       HInstruction initialValue = graph.addConstantNull(closedWorld);
       localsHandler.updateLocal(local, initialValue);
+    } else if (node.isConst) {
+      ConstantValue constant = _elementMap.getConstantValue(node.initializer);
+      assert(constant != null, failedAt(CURRENT_ELEMENT_SPANNABLE));
+      HInstruction initialValue = graph.addConstant(constant, closedWorld);
+      localsHandler.updateLocal(local, initialValue);
     } else {
       node.initializer.accept(this);
       HInstruction initialValue = pop();

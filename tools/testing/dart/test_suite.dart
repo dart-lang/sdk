@@ -394,22 +394,22 @@ abstract class TestSuite {
 
   String createOutputDirectory(Path testPath) {
     var checked = configuration.isChecked ? '-checked' : '';
-    var strong = configuration.isStrong ? '-strong' : '';
+    var legacy = configuration.noPreviewDart2 ? '-legacy' : '';
     var minified = configuration.isMinified ? '-minified' : '';
     var sdk = configuration.useSdk ? '-sdk' : '';
     var dirName = "${configuration.compiler.name}-${configuration.runtime.name}"
-        "$checked$strong$minified$sdk";
+        "$checked$legacy$minified$sdk";
     return createGeneratedTestDirectoryHelper("tests", dirName, testPath);
   }
 
   String createCompilationOutputDirectory(Path testPath) {
     var checked = configuration.isChecked ? '-checked' : '';
-    var strong = configuration.isStrong ? '-strong' : '';
+    var legacy = configuration.noPreviewDart2 ? '-legacy' : '';
     var minified = configuration.isMinified ? '-minified' : '';
     var csp = configuration.isCsp ? '-csp' : '';
     var sdk = configuration.useSdk ? '-sdk' : '';
     var dirName = "${configuration.compiler.name}"
-        "$checked$strong$minified$csp$sdk";
+        "$checked$legacy$minified$csp$sdk";
     return createGeneratedTestDirectoryHelper(
         "compilations", dirName, testPath);
   }
@@ -481,9 +481,6 @@ class VMTestSuite extends TestSuite {
       args.add('--use-dart-frontend');
       // '--dfe' has to be the first argument for run_vm_test to pick it up.
       args.insert(0, '--dfe=$buildDir/gen/kernel-service.dart.snapshot');
-    }
-
-    if (configuration.isStrong) {
       args.add('--strong');
     }
 

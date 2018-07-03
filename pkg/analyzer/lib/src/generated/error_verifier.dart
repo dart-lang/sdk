@@ -929,9 +929,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           _checkForConstWithNonConst(node);
           _checkForConstWithUndefinedConstructor(
               node, constructorName, typeName);
-          if (!_options.strongMode) {
-            _checkForConstWithTypeParameters(typeName);
-          }
+          _checkForConstWithTypeParameters(typeName);
           _checkForConstDeferredClass(node, constructorName, typeName);
         } else {
           _checkForNewWithUndefinedConstructor(node, constructorName, typeName);
@@ -961,7 +959,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   Object visitListLiteral(ListLiteral node) {
     TypeArgumentList typeArguments = node.typeArguments;
     if (typeArguments != null) {
-      if (!_options.strongMode && node.isConst) {
+      if (node.isConst) {
         NodeList<TypeAnnotation> arguments = typeArguments.arguments;
         if (arguments.isNotEmpty) {
           _checkForInvalidTypeArgumentInConstTypedLiteral(arguments,
@@ -981,7 +979,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     TypeArgumentList typeArguments = node.typeArguments;
     if (typeArguments != null) {
       NodeList<TypeAnnotation> arguments = typeArguments.arguments;
-      if (!_options.strongMode && arguments.isNotEmpty) {
+      if (arguments.isNotEmpty) {
         if (node.isConst) {
           _checkForInvalidTypeArgumentInConstTypedLiteral(arguments,
               CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP);

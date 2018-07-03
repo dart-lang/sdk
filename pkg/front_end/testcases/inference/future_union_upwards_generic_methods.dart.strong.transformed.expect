@@ -41,7 +41,7 @@ static method main() → dynamic /* originally async */ {
         core::List<self::A> list = result;
         list = result2;
       }
-      :async_completer.{asy::Completer::complete}(:return_value);
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {

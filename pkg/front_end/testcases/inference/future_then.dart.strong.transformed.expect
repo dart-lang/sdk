@@ -12,13 +12,13 @@ class MyFuture<T extends core::Object = dynamic> extends core::Object implements
     return null;
   method then<S extends core::Object = dynamic>((self::MyFuture::T) → asy::FutureOr<self::MyFuture::then::S> f, {core::Function onError = null}) → self::MyFuture<self::MyFuture::then::S>
     return null;
-  no-such-method-forwarder method /* from org-dartlang-testcase-sdk:///sdk/lib/async/future.dart */ catchError(core::Function onError, {(core::Object) → core::bool test = null}) → asy::Future<self::MyFuture::T>
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ catchError(core::Function onError, {(core::Object) → core::bool test = null}) → asy::Future<self::MyFuture::T>
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withoutType("catchError", const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[onError]), core::Map::unmodifiable<core::Symbol, dynamic>(<core::Symbol, dynamic>{#test: test}), false)) as{TypeError} asy::Future<self::MyFuture::T>;
-  no-such-method-forwarder method /* from org-dartlang-testcase-sdk:///sdk/lib/async/future.dart */ whenComplete(() → asy::FutureOr<dynamic> action) → asy::Future<self::MyFuture::T>
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ whenComplete(() → asy::FutureOr<dynamic> action) → asy::Future<self::MyFuture::T>
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withoutType("whenComplete", const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[action]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false)) as{TypeError} asy::Future<self::MyFuture::T>;
-  no-such-method-forwarder method /* from org-dartlang-testcase-sdk:///sdk/lib/async/future.dart */ timeout(core::Duration timeLimit, {generic-covariant-impl () → asy::FutureOr<self::MyFuture::T> onTimeout = null}) → asy::Future<self::MyFuture::T>
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ timeout(core::Duration timeLimit, {generic-covariant-impl () → asy::FutureOr<self::MyFuture::T> onTimeout = null}) → asy::Future<self::MyFuture::T>
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withoutType("timeout", const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[timeLimit]), core::Map::unmodifiable<core::Symbol, dynamic>(<core::Symbol, dynamic>{#onTimeout: onTimeout}), false)) as{TypeError} asy::Future<self::MyFuture::T>;
-  no-such-method-forwarder method /* from org-dartlang-testcase-sdk:///sdk/lib/async/future.dart */ asStream() → asy::Stream<self::MyFuture::T>
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ asStream() → asy::Stream<self::MyFuture::T>
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withoutType("asStream", const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false)) as{TypeError} asy::Stream<self::MyFuture::T>;
 }
 static method test() → void {
@@ -40,7 +40,7 @@ static method test() → void {
           :return_value = :result;
           break #L1;
         }
-        :async_completer.{asy::Completer::complete}(:return_value);
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
       on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -69,7 +69,7 @@ static method test() → void {
           :return_value = :result;
           break #L2;
         }
-        :async_completer.{asy::Completer::complete}(:return_value);
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
       on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -96,7 +96,7 @@ static method test() → void {
           :return_value = 3;
           break #L3;
         }
-        :async_completer.{asy::Completer::complete}(:return_value);
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
       on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -123,7 +123,7 @@ static method test() → void {
           :return_value = 3;
           break #L4;
         }
-        :async_completer.{asy::Completer::complete}(:return_value);
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
       on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -154,7 +154,7 @@ static method test() → void {
           :return_value = asy::Future::value<core::int>(3);
           break #L5;
         }
-        :async_completer.{asy::Completer::complete}(:return_value);
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
       on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -181,7 +181,7 @@ static method test() → void {
           :return_value = asy::Future::value<core::int>(3);
           break #L6;
         }
-        :async_completer.{asy::Completer::complete}(:return_value);
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
       on dynamic catch(dynamic :exception, dynamic :stack_trace) {

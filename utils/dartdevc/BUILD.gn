@@ -282,36 +282,49 @@ prebuilt_dart_action("dartdevc_test_pkg") {
   ]
 
   outputs = [
-    "$target_gen_dir/pkg/async_helper.dill",
     "$target_gen_dir/pkg/async_helper.js",
     "$target_gen_dir/pkg/async_helper.sum",
-    "$target_gen_dir/pkg/collection.dill",
     "$target_gen_dir/pkg/collection.js",
     "$target_gen_dir/pkg/collection.sum",
-    "$target_gen_dir/pkg/expect.dill",
     "$target_gen_dir/pkg/expect.js",
     "$target_gen_dir/pkg/expect.sum",
-    "$target_gen_dir/pkg/js.dill",
     "$target_gen_dir/pkg/js.js",
     "$target_gen_dir/pkg/js.sum",
-    "$target_gen_dir/pkg/matcher.dill",
     "$target_gen_dir/pkg/matcher.js",
     "$target_gen_dir/pkg/matcher.sum",
-    "$target_gen_dir/pkg/meta.dill",
     "$target_gen_dir/pkg/meta.js",
     "$target_gen_dir/pkg/meta.sum",
-    "$target_gen_dir/pkg/path.dill",
     "$target_gen_dir/pkg/path.js",
     "$target_gen_dir/pkg/path.sum",
-    "$target_gen_dir/pkg/stack_trace.dill",
     "$target_gen_dir/pkg/stack_trace.js",
     "$target_gen_dir/pkg/stack_trace.sum",
 
     # TODO(rnystrom): Remove this when unittest is no longer used. Also remove
     # any of the above packages that are only here because unittest uses them.
-    "$target_gen_dir/pkg/unittest.dill",
     "$target_gen_dir/pkg/unittest.js",
     "$target_gen_dir/pkg/unittest.sum",
+
+    "$target_gen_dir/pkg_kernel/async_helper.dill",
+    "$target_gen_dir/pkg_kernel/async_helper.js",
+    "$target_gen_dir/pkg_kernel/collection.dill",
+    "$target_gen_dir/pkg_kernel/collection.js",
+    "$target_gen_dir/pkg_kernel/expect.dill",
+    "$target_gen_dir/pkg_kernel/expect.js",
+    "$target_gen_dir/pkg_kernel/js.dill",
+    "$target_gen_dir/pkg_kernel/js.js",
+    "$target_gen_dir/pkg_kernel/matcher.dill",
+    "$target_gen_dir/pkg_kernel/matcher.js",
+    "$target_gen_dir/pkg_kernel/meta.dill",
+    "$target_gen_dir/pkg_kernel/meta.js",
+    "$target_gen_dir/pkg_kernel/path.dill",
+    "$target_gen_dir/pkg_kernel/path.js",
+    "$target_gen_dir/pkg_kernel/stack_trace.dill",
+    "$target_gen_dir/pkg_kernel/stack_trace.js",
+
+    # TODO(rnystrom): Remove this when unittest is no longer used. Also remove
+    # any of the above packages that are only here because unittest uses them.
+    "$target_gen_dir/pkg_kernel/unittest.dill",
+    "$target_gen_dir/pkg_kernel/unittest.js",
   ]
 
   script = "../../pkg/dev_compiler/tool/build_pkgs.dart"

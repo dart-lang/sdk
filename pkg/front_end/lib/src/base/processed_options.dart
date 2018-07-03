@@ -33,8 +33,6 @@ import '../base/performance_logger.dart' show PerformanceLog;
 
 import '../fasta/command_line_reporting.dart' as command_line_reporting;
 
-import '../fasta/deprecated_problems.dart' show deprecated_InputError;
-
 import '../fasta/fasta_codes.dart'
     show
         FormattedMessage,
@@ -55,7 +53,7 @@ import '../fasta/fasta_codes.dart'
 
 import '../fasta/messages.dart' show getLocation;
 
-import '../fasta/problems.dart' show unimplemented;
+import '../fasta/problems.dart' show DebugAbort, unimplemented;
 
 import '../fasta/severity.dart' show Severity;
 
@@ -210,17 +208,17 @@ class ProcessedOptions {
 
   void report(LocatedMessage message, Severity severity,
       {List<LocatedMessage> context}) {
-    context ??= [];
+    context ??= const <LocatedMessage>[];
     if (_raw.onProblem != null) {
-      _raw.onProblem(format(message, severity), severity,
-          context.map((message) => format(message, Severity.context)).toList());
+      List<FormattedMessage> formattedContext =
+          new List<FormattedMessage>(context.length);
+      for (int i = 0; i < context.length; i++) {
+        formattedContext[i] = format(context[i], severity);
+      }
+      _raw.onProblem(format(message, severity), severity, formattedContext);
       if (command_line_reporting.shouldThrowOn(severity)) {
-        if (verbose) print(StackTrace.current);
-        throw new deprecated_InputError(
-            message.uri,
-            message.charOffset,
-            "Compilation aborted due to fatal "
-            "${command_line_reporting.severityName(severity)}.");
+        throw new DebugAbort(
+            message.uri, message.charOffset, severity, StackTrace.current);
       }
       return;
     }
@@ -348,8 +346,8 @@ class ProcessedOptions {
       var uris = _raw.inputSummaries;
       if (uris == null || uris.isEmpty) return const <Component>[];
       // TODO(sigmund): throttle # of concurrent opreations.
-      var allBytes = await Future
-          .wait(uris.map((uri) => fileSystem.entityForUri(uri).readAsBytes()));
+      var allBytes = await Future.wait(
+          uris.map((uri) => fileSystem.entityForUri(uri).readAsBytes()));
       _inputSummariesComponents =
           allBytes.map((bytes) => loadComponent(bytes, nameRoot)).toList();
     }
@@ -363,8 +361,8 @@ class ProcessedOptions {
       var uris = _raw.linkedDependencies;
       if (uris == null || uris.isEmpty) return const <Component>[];
       // TODO(sigmund): throttle # of concurrent opreations.
-      var allBytes = await Future
-          .wait(uris.map((uri) => fileSystem.entityForUri(uri).readAsBytes()));
+      var allBytes = await Future.wait(
+          uris.map((uri) => fileSystem.entityForUri(uri).readAsBytes()));
       _linkedDependencies =
           allBytes.map((bytes) => loadComponent(bytes, nameRoot)).toList();
     }

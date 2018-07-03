@@ -44,7 +44,7 @@ Future<String> generateMessagesFile() async {
 part of fasta.codes;
 """);
 
-  List<String> keys = yaml.keys.toList()..sort();
+  List<String> keys = yaml.keys.cast<String>().toList()..sort();
   for (String name in keys) {
     var description = yaml[name];
     while (description is String) {
@@ -135,6 +135,12 @@ String compileTemplate(String name, String template, String tip,
         parameters.add("Token token");
         conversions.add("String lexeme = token.lexeme;");
         arguments.add("'token': token");
+        break;
+
+      case "lexeme2":
+        parameters.add("Token token2");
+        conversions.add("String lexeme2 = token2.lexeme;");
+        arguments.add("'token2': token2");
         break;
 
       case "string":

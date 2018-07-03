@@ -19,7 +19,7 @@ static method main() → dynamic /* originally async */ {
         [yield] let dynamic #t1 = asy::_awaitHelper("Hello, World!", :async_op_then, :async_op_error, :async_op) in null;
         core::print(:result);
       }
-      :async_completer.{asy::Completer::complete}(:return_value);
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {

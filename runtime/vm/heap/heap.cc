@@ -135,16 +135,17 @@ void Heap::AllocateExternal(intptr_t cid, intptr_t size, Space space) {
       // Attempt to free some external allocation by a scavenge. (If the total
       // remains above the limit, next external alloc will trigger another.)
       CollectGarbage(kScavenge, kExternal);
+      // Promotion may have pushed old space over its limit.
+      if (old_space_.NeedsGarbageCollection()) {
+        CollectGarbage(kMarkSweep, kExternal);
+      }
     }
   } else {
     ASSERT(space == kOld);
     old_space_.AllocateExternal(cid, size);
-  }
-  // Idle GC does not check whether promotions should trigger a full GC.
-  // As a workaround, we check here on every external allocation. See issue
-  // dartbug.com/33314.
-  if (old_space_.NeedsGarbageCollection()) {
-    CollectAllGarbage(kExternal);
+    if (old_space_.NeedsGarbageCollection()) {
+      CollectAllGarbage(kExternal);
+    }
   }
 }
 

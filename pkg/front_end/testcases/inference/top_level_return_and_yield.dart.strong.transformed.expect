@@ -25,7 +25,7 @@ Try changing the type of the left hand side, or casting the right hand side to '
                                  ^" in let final (dynamic) → dynamic #t2 = (dynamic x) → dynamic => x in null;
         break #L1;
       }
-      :async_completer.{asy::Completer::complete}(:return_value);
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {

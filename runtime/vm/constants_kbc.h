@@ -1079,7 +1079,14 @@ class KernelBytecode {
     }
   }
 
+  static const uint8_t kNativeCallToGrowableListArgc = 2;
+
   DART_FORCE_INLINE static uint8_t DecodeArgc(KBCInstr call) {
+    if (DecodeOpcode(call) == KernelBytecode::kNativeCall) {
+      // The only NativeCall redirecting to a bytecode function is the call
+      // to new _GrowableList<E>(0).
+      return kNativeCallToGrowableListArgc;
+    }
     ASSERT(IsCallOpcode(call));
     return (call >> 8) & 0xFF;
   }

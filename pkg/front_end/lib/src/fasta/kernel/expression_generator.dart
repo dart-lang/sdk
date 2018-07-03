@@ -11,11 +11,16 @@ import '../constant_context.dart' show ConstantContext;
 
 import '../fasta_codes.dart'
     show
-        LocatedMessage,
+        Message,
+        Template,
+        messageCantUsePrefixAsExpression,
+        messageCantUsePrefixWithNullAware,
         messageInvalidInitializer,
+        templateCantUseDeferredPrefixAsConstant,
         templateDeferredTypeAnnotation,
         templateIntegerLiteralIsOutOfRange,
         templateMissingExplicitTypeArguments,
+        templateNotAPrefixInTypeAnnotation,
         templateNotAType,
         templateUnresolvedPrefixInTypeAnnotation;
 
@@ -38,12 +43,13 @@ import '../parser.dart' show lengthForToken, lengthOfSpan, offsetForToken;
 
 import '../problems.dart' show unhandled, unsupported;
 
+import 'constness.dart' show Constness;
+
 import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
 import 'forest.dart'
     show
         Forest,
-        Identifier,
         LoadLibraryBuilder,
         PrefixBuilder,
         TypeDeclarationBuilder,
@@ -62,6 +68,7 @@ import 'kernel_ast_api.dart'
         Member,
         Name,
         Procedure,
+        SyntheticExpressionJudgment,
         TypeParameterType,
         VariableDeclaration;
 
@@ -138,16 +145,6 @@ abstract class ExpressionGenerator {
   ///
   /// At runtime, [value] will be evaluated before throwing an exception.
   Expression makeInvalidWrite(Expression value);
-
-  /* Expression | Generator */ buildThrowNoSuchMethodError(
-      Expression receiver, Arguments arguments,
-      {bool isSuper,
-      bool isGetter,
-      bool isSetter,
-      bool isStatic,
-      String name,
-      int offset,
-      LocatedMessage argMessage});
 }
 
 /// A generator represents a subexpression for which we can't yet build an
@@ -185,8 +182,8 @@ abstract class Generator implements ExpressionGenerator {
   Initializer buildFieldInitializer(Map<String, int> initializedFields) {
     int offset = offsetForToken(token);
     return helper.buildInvalidInitializer(
-        helper.buildCompileTimeError(
-            messageInvalidInitializer, offset, lengthForToken(token)),
+        new SyntheticExpressionJudgment(helper.buildCompileTimeError(
+            messageInvalidInitializer, offset, lengthForToken(token))),
         offset);
   }
 
@@ -220,23 +217,21 @@ abstract class Generator implements ExpressionGenerator {
     return const InvalidType();
   }
 
-  @override
-  /* Expression | Generator */ buildThrowNoSuchMethodError(
-      Expression receiver, Arguments arguments,
-      {bool isSuper: false,
-      bool isGetter: false,
-      bool isSetter: false,
-      bool isStatic: false,
-      String name,
-      int offset,
-      LocatedMessage argMessage}) {
-    return helper.throwNoSuchMethodError(receiver, name ?? plainNameForWrite,
-        arguments, offset ?? offsetForToken(this.token),
-        isGetter: isGetter,
-        isSetter: isSetter,
-        isSuper: isSuper,
-        isStatic: isStatic,
-        argMessage: argMessage);
+  /* Expression | Generator */ Object prefixedLookup(Token name) {
+    return new UnexpectedQualifiedUseGenerator(helper, name, this, false);
+  }
+
+  Expression invokeConstructor(List<DartType> typeArguments, String name,
+      Arguments arguments, Token nameToken, Constness constness) {
+    if (typeArguments != null) {
+      assert(forest.argumentsTypeArguments(arguments).isEmpty);
+      forest.argumentsSetTypeArguments(arguments, typeArguments);
+    }
+    return new SyntheticExpressionJudgment(helper.throwNoSuchMethodError(
+        forest.literalNull(token),
+        name == "" ? plainNameForRead : "${plainNameForRead}.$name",
+        arguments,
+        nameToken.charOffset));
   }
 
   bool get isThisPropertyAccess => false;
@@ -472,26 +467,27 @@ abstract class LoadLibraryGenerator implements Generator {
 
 abstract class DeferredAccessGenerator implements Generator {
   factory DeferredAccessGenerator(ExpressionGeneratorHelper helper, Token token,
-      PrefixBuilder builder, Generator generator) {
-    return helper.forest
-        .deferredAccessGenerator(helper, token, builder, generator);
+      PrefixUseGenerator prefixGenerator, Generator suffixGenerator) {
+    return helper.forest.deferredAccessGenerator(
+        helper, token, prefixGenerator, suffixGenerator);
   }
 
-  PrefixBuilder get builder;
+  PrefixUseGenerator get prefixGenerator;
 
-  Generator get generator;
+  Generator get suffixGenerator;
 
   @override
   buildPropertyAccess(
       IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
     var propertyAccess =
-        generator.buildPropertyAccess(send, operatorOffset, isNullAware);
+        suffixGenerator.buildPropertyAccess(send, operatorOffset, isNullAware);
     if (propertyAccess is Generator) {
       return new DeferredAccessGenerator(
-          helper, token, builder, propertyAccess);
+          helper, token, prefixGenerator, propertyAccess);
     } else {
       Expression expression = propertyAccess;
-      return helper.wrapInDeferredCheck(expression, builder, token.charOffset);
+      return helper.wrapInDeferredCheck(
+          expression, prefixGenerator.prefix, token.charOffset);
     }
   }
 
@@ -509,48 +505,49 @@ abstract class DeferredAccessGenerator implements Generator {
       {bool nonInstanceAccessIsError: false}) {
     helper.addProblem(
         templateDeferredTypeAnnotation.withArguments(
-            generator.buildTypeWithBuiltArguments(arguments,
+            suffixGenerator.buildTypeWithBuiltArguments(arguments,
                 nonInstanceAccessIsError: nonInstanceAccessIsError),
-            builder.name),
-        offsetForToken(token),
-        lengthForToken(token));
+            prefixGenerator.plainNameForRead),
+        offsetForToken(prefixGenerator.token),
+        lengthOfSpan(prefixGenerator.token, token));
     return const InvalidType();
   }
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
     return helper.wrapInDeferredCheck(
-        generator.doInvocation(offset, arguments), builder, token.charOffset);
+        suffixGenerator.doInvocation(offset, arguments),
+        prefixGenerator.prefix,
+        token.charOffset);
+  }
+
+  @override
+  Expression invokeConstructor(List<DartType> typeArguments, String name,
+      Arguments arguments, Token nameToken, Constness constness) {
+    return helper.wrapInDeferredCheck(
+        suffixGenerator.invokeConstructor(
+            typeArguments, name, arguments, nameToken, constness),
+        prefixGenerator.prefix,
+        offsetForToken(suffixGenerator.token));
   }
 
   @override
   void printOn(StringSink sink) {
-    sink.write(", builder: ");
-    sink.write(builder);
-    sink.write(", generator: ");
-    sink.write(generator);
+    sink.write(", prefixGenerator: ");
+    sink.write(prefixGenerator);
+    sink.write(", suffixGenerator: ");
+    sink.write(suffixGenerator);
   }
 }
 
 abstract class TypeUseGenerator implements Generator {
-  factory TypeUseGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      PrefixBuilder prefix,
-      int declarationReferenceOffset,
-      TypeDeclarationBuilder declaration,
-      String plainNameForRead) {
-    return helper.forest.typeUseGenerator(helper, token, prefix,
-        declarationReferenceOffset, declaration, plainNameForRead);
+  factory TypeUseGenerator(ExpressionGeneratorHelper helper, Token token,
+      TypeDeclarationBuilder declaration, String plainNameForRead) {
+    return helper.forest
+        .typeUseGenerator(helper, token, declaration, plainNameForRead);
   }
 
-  PrefixBuilder get prefix;
-
   TypeDeclarationBuilder get declaration;
-
-  /// The offset at which the [declaration] is referenced by this generator,
-  /// or `-1` if the reference is implicit.
-  int get declarationReferenceOffset;
 
   @override
   String get debugName => "TypeUseGenerator";
@@ -609,6 +606,14 @@ abstract class TypeUseGenerator implements Generator {
     }
     return type;
   }
+
+  @override
+  Expression invokeConstructor(List<DartType> typeArguments, String name,
+      Arguments arguments, Token nameToken, Constness constness) {
+    helper.storeTypeUse(offsetForToken(token), declaration.target);
+    return helper.buildConstructorInvocation(declaration, nameToken, arguments,
+        name, typeArguments, offsetForToken(nameToken ?? token), constness);
+  }
 }
 
 abstract class ReadOnlyAccessGenerator implements Generator {
@@ -644,7 +649,7 @@ abstract class LargeIntAccessGenerator implements Generator {
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
-    return buildError();
+    return new SyntheticExpressionJudgment(buildError());
   }
 
   @override
@@ -657,11 +662,9 @@ abstract class LargeIntAccessGenerator implements Generator {
 abstract class ErroneousExpressionGenerator implements Generator {
   /// Pass [arguments] that must be evaluated before throwing an error.  At
   /// most one of [isGetter] and [isSetter] should be true and they're passed
-  /// to [ExpressionGeneratorHelper.buildThrowNoSuchMethodError] if it is used.
+  /// to [ExpressionGeneratorHelper.throwNoSuchMethodError] if it is used.
   Expression buildError(Arguments arguments,
       {bool isGetter: false, bool isSetter: false, int offset});
-
-  DartType buildErroneousTypeNotAPrefix(Identifier suffix);
 
   Name get name => unsupported("name", offsetForToken(token), uri);
 
@@ -672,13 +675,14 @@ abstract class ErroneousExpressionGenerator implements Generator {
 
   @override
   Initializer buildFieldInitializer(Map<String, int> initializedFields) {
-    return helper.buildInvalidInitializer(
-        buildError(forest.argumentsEmpty(token), isSetter: true));
+    return helper.buildInvalidInitializer(new SyntheticExpressionJudgment(
+        buildError(forest.argumentsEmpty(token), isSetter: true)));
   }
 
   @override
   doInvocation(int offset, Arguments arguments) {
-    return buildError(arguments, offset: offset);
+    return new SyntheticExpressionJudgment(
+        buildError(arguments, offset: offset));
   }
 
   @override
@@ -689,21 +693,10 @@ abstract class ErroneousExpressionGenerator implements Generator {
   }
 
   @override
-  buildThrowNoSuchMethodError(Expression receiver, Arguments arguments,
-      {bool isSuper: false,
-      bool isGetter: false,
-      bool isSetter: false,
-      bool isStatic: false,
-      String name,
-      int offset,
-      LocatedMessage argMessage}) {
-    return this;
-  }
-
-  @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return buildError(forest.arguments(<Expression>[value], token),
-        isSetter: true);
+    return new SyntheticExpressionJudgment(buildError(
+        forest.arguments(<Expression>[value], token),
+        isSetter: true));
   }
 
   @override
@@ -712,8 +705,9 @@ abstract class ErroneousExpressionGenerator implements Generator {
       bool voidContext: false,
       Procedure interfaceTarget,
       bool isPreIncDec: false}) {
-    return buildError(forest.arguments(<Expression>[value], token),
-        isGetter: true);
+    return new SyntheticExpressionJudgment(buildError(
+        forest.arguments(<Expression>[value], token),
+        isGetter: true));
   }
 
   @override
@@ -721,11 +715,11 @@ abstract class ErroneousExpressionGenerator implements Generator {
       {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
     // TODO(ahe): For the Analyzer, we probably need to build a prefix
     // increment node that wraps an error.
-    return buildError(
+    return new SyntheticExpressionJudgment(buildError(
         forest.arguments(
             <Expression>[forest.literalInt(1, null)..fileOffset = offset],
             token),
-        isGetter: true);
+        isGetter: true));
   }
 
   @override
@@ -733,33 +727,45 @@ abstract class ErroneousExpressionGenerator implements Generator {
       {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
     // TODO(ahe): For the Analyzer, we probably need to build a post increment
     // node that wraps an error.
-    return buildError(
+    return new SyntheticExpressionJudgment(buildError(
         forest.arguments(
             <Expression>[forest.literalInt(1, null)..fileOffset = offset],
             token),
-        isGetter: true);
+        isGetter: true));
   }
 
   @override
   Expression buildNullAwareAssignment(
       Expression value, DartType type, int offset,
       {bool voidContext: false}) {
-    return buildError(forest.arguments(<Expression>[value], token),
-        isSetter: true);
+    return new SyntheticExpressionJudgment(buildError(
+        forest.arguments(<Expression>[value], token),
+        isSetter: true));
   }
 
   @override
-  Expression buildSimpleRead() =>
-      buildError(forest.argumentsEmpty(token), isGetter: true);
+  Expression buildSimpleRead() => new SyntheticExpressionJudgment(
+      buildError(forest.argumentsEmpty(token), isGetter: true));
 
   @override
-  Expression makeInvalidRead() =>
-      buildError(forest.argumentsEmpty(token), isGetter: true);
+  Expression makeInvalidRead() => new SyntheticExpressionJudgment(
+      buildError(forest.argumentsEmpty(token), isGetter: true));
 
   @override
   Expression makeInvalidWrite(Expression value) {
-    return buildError(forest.arguments(<Expression>[value], token),
-        isSetter: true);
+    return new SyntheticExpressionJudgment(buildError(
+        forest.arguments(<Expression>[value], token),
+        isSetter: true));
+  }
+
+  @override
+  Expression invokeConstructor(List<DartType> typeArguments, String name,
+      Arguments arguments, Token nameToken, Constness constness) {
+    if (typeArguments != null) {
+      assert(forest.argumentsTypeArguments(arguments).isEmpty);
+      forest.argumentsSetTypeArguments(arguments, typeArguments);
+    }
+    return new SyntheticExpressionJudgment(buildError(arguments));
   }
 }
 
@@ -769,20 +775,13 @@ abstract class UnresolvedNameGenerator implements ErroneousExpressionGenerator {
     return helper.forest.unresolvedNameGenerator(helper, token, name);
   }
 
+  @override
   String get debugName => "UnresolvedNameGenerator";
 
-  Expression doInvocation(int charOffset, Arguments arguments) {
-    return buildError(arguments, offset: charOffset);
-  }
-
   @override
-  DartType buildErroneousTypeNotAPrefix(Identifier suffix) {
-    helper.addProblem(
-        templateUnresolvedPrefixInTypeAnnotation.withArguments(
-            name.name, suffix.name),
-        offsetForToken(token),
-        lengthOfSpan(token, suffix.token));
-    return const InvalidType();
+  Expression doInvocation(int charOffset, Arguments arguments) {
+    return new SyntheticExpressionJudgment(
+        buildError(arguments, offset: charOffset));
   }
 
   @override
@@ -796,6 +795,11 @@ abstract class UnresolvedNameGenerator implements ErroneousExpressionGenerator {
         offset,
         isGetter: isGetter,
         isSetter: isSetter);
+  }
+
+  @override
+  /* Expression | Generator */ Object prefixedLookup(Token name) {
+    return new UnexpectedQualifiedUseGenerator(helper, name, this, true);
   }
 }
 
@@ -1000,5 +1004,149 @@ abstract class DelayedPostfixIncrement implements ContextAwareGenerator {
     sink.write(binaryOperator.name);
     sink.write(", interfaceTarget: ");
     printQualifiedNameOn(interfaceTarget, sink);
+  }
+}
+
+abstract class PrefixUseGenerator implements Generator {
+  factory PrefixUseGenerator(
+      ExpressionGeneratorHelper helper, Token token, PrefixBuilder prefix) {
+    return helper.forest.prefixUseGenerator(helper, token, prefix);
+  }
+
+  PrefixBuilder get prefix;
+
+  @override
+  String get plainNameForRead => prefix.name;
+
+  @override
+  String get debugName => "PrefixUseGenerator";
+
+  @override
+  Expression buildSimpleRead() => makeInvalidRead();
+
+  @override
+  /* Expression | Generator */ Object prefixedLookup(Token name) {
+    if (helper.constantContext != ConstantContext.none && prefix.deferred) {
+      helper.addProblem(
+          templateCantUseDeferredPrefixAsConstant.withArguments(token),
+          offsetForToken(token),
+          lengthForToken(token));
+    }
+    Object result = helper.scopeLookup(prefix.exportScope, name.lexeme, name,
+        isQualified: true, prefix: prefix);
+    if (prefix.deferred) {
+      if (result is Generator) {
+        if (result is! LoadLibraryGenerator) {
+          result = new DeferredAccessGenerator(helper, name, this, result);
+        }
+      } else {
+        helper.wrapInDeferredCheck(result, prefix, offsetForToken(token));
+      }
+    }
+    return result;
+  }
+
+  @override
+  /* Expression | Generator | Initializer */ doInvocation(
+      int offset, Arguments arguments) {
+    return helper.wrapInLocatedCompileTimeError(
+        helper.evaluateArgumentsBefore(arguments, forest.literalNull(token)),
+        messageCantUsePrefixAsExpression.withLocation(
+            helper.uri, offsetForToken(token), lengthForToken(token)));
+  }
+
+  @override
+  /* Expression | Generator */ buildPropertyAccess(
+      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
+    if (send is IncompleteSendGenerator) {
+      assert(send.name.name == send.token.lexeme,
+          "'${send.name.name}' != ${send.token.lexeme}");
+      Object result = prefixedLookup(send.token);
+      if (send is SendAccessGenerator) {
+        result = helper.finishSend(
+            result,
+            send.arguments as dynamic /* TODO(ahe): Remove this cast. */,
+            offsetForToken(token));
+      }
+      if (isNullAware) {
+        result = helper.wrapInLocatedCompileTimeError(
+            helper.toValue(result),
+            messageCantUsePrefixWithNullAware.withLocation(
+                helper.uri, offsetForToken(token), lengthForToken(token)));
+      }
+      return result;
+    } else {
+      return buildSimpleRead();
+    }
+  }
+
+  @override
+  Expression makeInvalidRead() {
+    return new SyntheticExpressionJudgment(helper.buildCompileTimeError(
+        messageCantUsePrefixAsExpression,
+        offsetForToken(token),
+        lengthForToken(token)));
+  }
+
+  @override
+  Expression makeInvalidWrite(Expression value) => makeInvalidRead();
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", prefix: ");
+    sink.write(prefix.name);
+    sink.write(", deferred: ");
+    sink.write(prefix.deferred);
+  }
+}
+
+abstract class UnexpectedQualifiedUseGenerator implements Generator {
+  factory UnexpectedQualifiedUseGenerator(ExpressionGeneratorHelper helper,
+      Token token, Generator prefixGenerator, bool isUnresolved) {
+    return helper.forest.unexpectedQualifiedUseGenerator(
+        helper, token, prefixGenerator, isUnresolved);
+  }
+
+  Generator get prefixGenerator;
+
+  bool get isUnresolved;
+
+  @override
+  String get plainNameForRead {
+    return "${prefixGenerator.plainNameForRead}.${token.lexeme}";
+  }
+
+  @override
+  String get debugName => "UnexpectedQualifiedUseGenerator";
+
+  @override
+  Expression buildSimpleRead() => makeInvalidRead();
+
+  @override
+  Expression doInvocation(int offset, Arguments arguments) {
+    return new SyntheticExpressionJudgment(helper.throwNoSuchMethodError(
+        forest.literalNull(null)..fileOffset = offset,
+        plainNameForRead,
+        arguments,
+        offsetForToken(token)));
+  }
+
+  @override
+  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
+      {bool nonInstanceAccessIsError: false}) {
+    Template<Message Function(Token, Token)> template = isUnresolved
+        ? templateUnresolvedPrefixInTypeAnnotation
+        : templateNotAPrefixInTypeAnnotation;
+    helper.addProblem(
+        template.withArguments(prefixGenerator.token, token),
+        offsetForToken(prefixGenerator.token),
+        lengthOfSpan(prefixGenerator.token, token));
+    return const InvalidType();
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", prefixGenerator: ");
+    prefixGenerator.printOn(sink);
   }
 }

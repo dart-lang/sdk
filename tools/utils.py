@@ -676,7 +676,6 @@ def CheckedInSdkPath():
   tools_dir = os.path.dirname(os.path.realpath(__file__))
   return os.path.join(tools_dir,
                       'sdks',
-                      osname,
                       'dart-sdk')
 
 
@@ -684,21 +683,7 @@ def CheckedInSdkExecutable():
   name = 'dart'
   if IsWindows():
     name = 'dart.exe'
-  elif GuessOS() == 'linux':
-    arch = GuessArchitecture()
-    if arch == 'arm':
-      name = 'dart-arm'
-    elif arch == 'arm64':
-      name = 'dart-arm64'
-    elif arch == 'armv5te':
-      # TODO(zra): This binary does not exist, yet. Check one in once we have
-      # sufficient stability.
-      name = 'dart-armv5te'
-    elif arch == 'armv6':
-      # TODO(zra): Ditto.
-      name = 'dart-armv6'
   return os.path.join(CheckedInSdkPath(), 'bin', name)
-
 
 def CheckedInSdkCheckExecutable():
   executable = CheckedInSdkExecutable()

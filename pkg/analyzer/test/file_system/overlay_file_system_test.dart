@@ -20,9 +20,9 @@ main() {
   });
 }
 
-var _isFile = new isInstanceOf<File>();
-var _isFileSystemException = new isInstanceOf<FileSystemException>();
-var _isFolder = new isInstanceOf<Folder>();
+final _isFile = new TypeMatcher<File>();
+final _isFileSystemException = new TypeMatcher<FileSystemException>();
+final _isFolder = new TypeMatcher<Folder>();
 
 @reflectiveTest
 class FileTest extends OverlayTestSupport {
@@ -462,7 +462,7 @@ class FolderTest extends OverlayTestSupport {
   test_delete_notExisting() {
     Folder folder = _folder(exists: false);
     expect(folder.exists, isFalse);
-    expect(() => folder.delete(), throwsA(new isInstanceOf<ArgumentError>()));
+    expect(() => folder.delete(), throwsA(new TypeMatcher<ArgumentError>()));
   }
 
   test_exists_false() {

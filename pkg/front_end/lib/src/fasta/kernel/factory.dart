@@ -163,7 +163,7 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       DartType loopVariableType,
       int writeOffset,
       DartType writeVariableType,
-      int writeVariableDeclarationOffset,
+      covariant Object writeVariableBinder,
       Node writeTarget);
 
   Statement forStatement(
@@ -423,7 +423,7 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       ExpressionJudgment judgment,
       int fileOffset,
       DartType writeContext,
-      int writeVariableDeclarationOffset,
+      covariant Object writeVariableBinder,
       Node combiner,
       DartType inferredType);
 
