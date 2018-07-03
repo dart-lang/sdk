@@ -114,7 +114,6 @@ valid_source_locations_test: RuntimeError
 # These are the non-kernel specific versions so skip tests and allow errors.
 [ $compiler == dartk ]
 add_breakpoint_rpc_test: SkipByDesign # non-kernel specific version of add_breakpoint_rpc_kernel_test.
-async_single_step_out_test: RuntimeError # Issue 29158, Async debugging
 async_star_single_step_into_test: RuntimeError # Issue 29158, Async debugging
 async_star_step_out_test: RuntimeError # Issue 29158, Async debugging
 async_step_out_test: RuntimeError # Issue 29158, Async debugging
@@ -226,6 +225,7 @@ async_single_step_exception_test: RuntimeError
 [ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
 add_breakpoint_rpc_kernel_test: RuntimeError # Issue #33087
 async_generator_breakpoint_test: Pass, RuntimeError, Crash # dartbug.com/33175 for the crash
+async_single_step_out_test: RuntimeError
 bad_reload_test: Skip # Times out on sim architectures, also RuntimeError.
 break_on_activation_test: RuntimeError # Issue #33087
 complex_reload_test: Skip # Times out on sim architectures, also RuntimeError.

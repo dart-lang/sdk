@@ -22,7 +22,7 @@ static method returnsString() → asy::FutureOr<core::String> /* originally asyn
         :return_value = "oh no";
         break #L1;
       }
-      :async_completer.{asy::Completer::complete}(:return_value);
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {

@@ -139,7 +139,7 @@ static method f() → asy::Future<dynamic> /* originally async */ {
             }
         }
       }
-      :async_completer.{asy::Completer::complete}(:return_value);
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -212,7 +212,7 @@ static method main() → asy::Future<dynamic> /* originally async */ {
             }
         }
       }
-      :async_completer.{asy::Completer::complete}(:return_value);
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {

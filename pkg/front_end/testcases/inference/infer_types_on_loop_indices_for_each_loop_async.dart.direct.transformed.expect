@@ -51,7 +51,7 @@ class Bar<T extends asy::Stream<core::String> = dynamic> extends core::Object {
               }
           }
         }
-        :async_completer.{asy::Completer::complete}(:return_value);
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
       on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -107,7 +107,7 @@ class Baz<T extends core::Object = dynamic, E extends asy::Stream<self::Baz::T> 
               }
           }
         }
-        :async_completer.{asy::Completer::complete}(:return_value);
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
       on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -294,7 +294,7 @@ static method test() → dynamic /* originally async */ {
             }
         }
       }
-      :async_completer.{asy::Completer::complete}(:return_value);
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {

@@ -33,7 +33,7 @@ static method f1() → asy::Future<core::List<core::Object>> /* originally async
         :return_value = <dynamic>[1];
         break #L1;
       }
-      :async_completer.{asy::Completer::complete}(:return_value);
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -62,7 +62,7 @@ static method f3() → asy::Future<core::Object> /* originally async */ {
         :return_value = 3;
         break #L2;
       }
-      :async_completer.{asy::Completer::complete}(:return_value);
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -95,7 +95,7 @@ static method foo() → asy::Future<self::X> /* originally async */ {
         :return_value = new self::X::•(#t1, :result);
         break #L3;
       }
-      :async_completer.{asy::Completer::complete}(:return_value);
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -123,7 +123,7 @@ static method main() → asy::Future<void> /* originally async */ {
         [yield] let dynamic #t6 = asy::_awaitHelper(self::foo(), :async_op_then, :async_op_error, :async_op) in null;
         core::print(:result);
       }
-      :async_completer.{asy::Completer::complete}(:return_value);
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {

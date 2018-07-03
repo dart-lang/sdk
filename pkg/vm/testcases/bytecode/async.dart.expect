@@ -90,7 +90,7 @@ ConstantPool {
   [11] = FieldOffset dart.core::_Closure::_context
   [12] = Int 42
   [13] = ArgDesc num-args 2, num-type-args 0, names []
-  [14] = ICData target-name 'complete', arg-desc CP#13
+  [14] = StaticICData target 'dart.async::_completeOnAsyncReturn', arg-desc CP#13
   [15] = Type dynamic
   [16] = ArgDesc num-args 3, num-type-args 0, names []
   [17] = ICData target-name 'completeError', arg-desc CP#16
@@ -134,7 +134,8 @@ L2:
   LoadFieldTOS         CP#4
   Push                 r4
   LoadFieldTOS         CP#6
-  InstanceCall1        2, CP#14
+  PushConstant         CP#14
+  IndirectStaticCall   2, CP#13
   Drop1
   PushConstant         CP#5
   ReturnTOS
@@ -178,7 +179,7 @@ L1:
         :return_value = 42;
         break #L1;
       }
-      :async_completer.{asy::Completer::complete}(:return_value);
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -310,7 +311,7 @@ ConstantPool {
   [21] = StaticICData target 'dart.async::_awaitHelper', arg-desc CP#18
   [22] = ArgDesc num-args 2, num-type-args 0, names []
   [23] = ICData target-name '+', arg-desc CP#22
-  [24] = ICData target-name 'complete', arg-desc CP#22
+  [24] = StaticICData target 'dart.async::_completeOnAsyncReturn', arg-desc CP#22
   [25] = Type dynamic
   [26] = ArgDesc num-args 3, num-type-args 0, names []
   [27] = ICData target-name 'completeError', arg-desc CP#26
@@ -415,7 +416,8 @@ L4:
   LoadFieldTOS         CP#6
   Push                 r4
   LoadFieldTOS         CP#8
-  InstanceCall1        2, CP#24
+  PushConstant         CP#24
+  IndirectStaticCall   2, CP#22
   Drop1
   PushConstant         CP#7
   ReturnTOS
@@ -475,7 +477,7 @@ L1:
         :return_value = :async_temporary_0.{core::num::+}(:result);
         break #L2;
       }
-      :async_completer.{asy::Completer::complete}(:return_value);
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -620,7 +622,7 @@ ConstantPool {
   [34] = ICData target-name '<', arg-desc CP#18
   [35] = ICData target-name '+', arg-desc CP#18
   [36] = ICData target-name '+', arg-desc CP#18
-  [37] = ICData target-name 'complete', arg-desc CP#18
+  [37] = StaticICData target 'dart.async::_completeOnAsyncReturn', arg-desc CP#18
   [38] = Type dynamic
   [39] = ArgDesc num-args 3, num-type-args 0, names []
   [40] = ICData target-name 'completeError', arg-desc CP#39
@@ -876,7 +878,8 @@ L9:
   LoadFieldTOS         CP#5
   Push                 r4
   LoadFieldTOS         CP#7
-  InstanceCall1        2, CP#37
+  PushConstant         CP#37
+  IndirectStaticCall   2, CP#18
   Drop1
   PushConstant         CP#6
   ReturnTOS
@@ -942,7 +945,7 @@ L1:
         :return_value = sum;
         break #L3;
       }
-      :async_completer.{asy::Completer::complete}(:return_value);
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -1112,7 +1115,7 @@ ConstantPool {
   [44] = Int 5
   [45] = StaticICData target 'dart.async::_awaitHelper', arg-desc CP#22
   [46] = ICData target-name '+', arg-desc CP#24
-  [47] = ICData target-name 'complete', arg-desc CP#24
+  [47] = StaticICData target 'dart.async::_completeOnAsyncReturn', arg-desc CP#24
   [48] = ArgDesc num-args 3, num-type-args 0, names []
   [49] = ICData target-name 'completeError', arg-desc CP#48
   [50] = EndClosureFunctionScope
@@ -1552,7 +1555,8 @@ L9:
   LoadFieldTOS         CP#7
   Push                 r4
   LoadFieldTOS         CP#9
-  InstanceCall1        2, CP#47
+  PushConstant         CP#47
+  IndirectStaticCall   2, CP#24
   Drop1
   PushConstant         CP#8
   ReturnTOS
@@ -1648,7 +1652,7 @@ L1:
           break #L4;
         }
       }
-      :async_completer.{asy::Completer::complete}(:return_value);
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -1733,7 +1737,7 @@ ConstantPool {
   [28] = StaticICData target 'dart.core::print', arg-desc CP#6
   [29] = StaticICData target 'dart.core::print', arg-desc CP#6
   [30] = StaticICData target 'dart.core::print', arg-desc CP#6
-  [31] = ICData target-name 'complete', arg-desc CP#24
+  [31] = StaticICData target 'dart.async::_completeOnAsyncReturn', arg-desc CP#24
   [32] = ArgDesc num-args 3, num-type-args 0, names []
   [33] = ICData target-name 'completeError', arg-desc CP#32
   [34] = EndClosureFunctionScope
@@ -1882,7 +1886,8 @@ L4:
   LoadFieldTOS         CP#8
   Push                 r4
   LoadFieldTOS         CP#10
-  InstanceCall1        2, CP#31
+  PushConstant         CP#31
+  IndirectStaticCall   2, CP#24
   Drop1
   PushConstant         CP#9
   ReturnTOS
@@ -2037,7 +2042,7 @@ Closure CP#3 {
             core::print("fin");
           }
         }
-        :async_completer.{asy::Completer::complete}(:return_value);
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
       on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -2167,7 +2172,7 @@ ConstantPool {
   [23] = ArgDesc num-args 3, num-type-args 0, names []
   [24] = StaticICData target 'dart.core::_AssertionError::_throwNew', arg-desc CP#23
   [25] = Int 7
-  [26] = ICData target-name 'complete', arg-desc CP#20
+  [26] = StaticICData target 'dart.async::_completeOnAsyncReturn', arg-desc CP#20
   [27] = Type dynamic
   [28] = ICData target-name 'completeError', arg-desc CP#23
   [29] = EndClosureFunctionScope
@@ -2253,7 +2258,8 @@ L4:
   LoadFieldTOS         CP#5
   Push                 r4
   LoadFieldTOS         CP#7
-  InstanceCall1        2, CP#26
+  PushConstant         CP#26
+  IndirectStaticCall   2, CP#20
   Drop1
   PushConstant         CP#6
   ReturnTOS
@@ -2309,7 +2315,7 @@ L1:
         :return_value = 7;
         break #L6;
       }
-      :async_completer.{asy::Completer::complete}(:return_value);
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {

@@ -54,7 +54,7 @@ Try changing the type of the left hand side, or casting the right hand side to '
               }
           }
         }
-        :async_completer.{asy::Completer::complete}(:return_value);
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
       on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -113,7 +113,7 @@ Try changing the type of the left hand side, or casting the right hand side to '
               }
           }
         }
-        :async_completer.{asy::Completer::complete}(:return_value);
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
       on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -312,7 +312,7 @@ Try changing the type of the left hand side, or casting the right hand side to '
             }
         }
       }
-      :async_completer.{asy::Completer::complete}(:return_value);
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {

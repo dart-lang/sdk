@@ -48,7 +48,7 @@ static method test() → void {
           :return_value = :async_temporary_0;
           break #L1;
         }
-        :async_completer.{asy::Completer::complete}(:return_value);
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
       on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -77,7 +77,7 @@ static method test() → void {
           :return_value = (let final core::int #t4 = :result in #t4.==(null) ?{core::Object} asy::Future::value<core::int>(3) : #t4) as{TypeError} asy::FutureOr<core::int>;
           break #L2;
         }
-        :async_completer.{asy::Completer::complete}(:return_value);
+        asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
       }
       on dynamic catch(dynamic :exception, dynamic :stack_trace) {

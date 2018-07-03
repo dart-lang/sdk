@@ -20,7 +20,7 @@ static field () → asy::Future<core::int> g = () → asy::Future<core::int> /* 
         :return_value = self::futureOrInt;
         break #L1;
       }
-      :async_completer.{asy::Completer::complete}(:return_value);
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {

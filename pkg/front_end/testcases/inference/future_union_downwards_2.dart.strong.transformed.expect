@@ -39,7 +39,7 @@ static method g2() → asy::Future<core::List<core::int>> /* originally async */
         :return_value = <core::int>[3];
         break #L1;
       }
-      :async_completer.{asy::Completer::complete}(:return_value);
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -66,7 +66,7 @@ static method g3() → asy::Future<core::List<core::int>> /* originally async */
         :return_value = new self::MyFuture::value<core::List<core::int>>(<core::int>[3]);
         break #L2;
       }
-      :async_completer.{asy::Completer::complete}(:return_value);
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {

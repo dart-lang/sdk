@@ -46,7 +46,7 @@ static method test() → void /* originally async */ {
                 :return_value = x0;
                 break #L2;
               }
-              :async_completer.{asy::Completer::complete}(:return_value);
+              asy::_completeOnAsyncReturn(:async_completer, :return_value);
               return;
             }
             on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -73,7 +73,7 @@ static method test() → void /* originally async */ {
                 :return_value = x1;
                 break #L3;
               }
-              :async_completer.{asy::Completer::complete}(:return_value);
+              asy::_completeOnAsyncReturn(:async_completer, :return_value);
               return;
             }
             on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -100,7 +100,7 @@ static method test() → void /* originally async */ {
                 :return_value = x2;
                 break #L4;
               }
-              :async_completer.{asy::Completer::complete}(:return_value);
+              asy::_completeOnAsyncReturn(:async_completer, :return_value);
               return;
             }
             on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -127,7 +127,7 @@ static method test() → void /* originally async */ {
                 :return_value = x3;
                 break #L5;
               }
-              :async_completer.{asy::Completer::complete}(:return_value);
+              asy::_completeOnAsyncReturn(:async_completer, :return_value);
               return;
             }
             on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -154,7 +154,7 @@ static method test() → void /* originally async */ {
                 :return_value = x4;
                 break #L6;
               }
-              :async_completer.{asy::Completer::complete}(:return_value);
+              asy::_completeOnAsyncReturn(:async_completer, :return_value);
               return;
             }
             on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -181,7 +181,7 @@ static method test() → void /* originally async */ {
                 :return_value = x5;
                 break #L7;
               }
-              :async_completer.{asy::Completer::complete}(:return_value);
+              asy::_completeOnAsyncReturn(:async_completer, :return_value);
               return;
             }
             on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -208,7 +208,7 @@ static method test() → void /* originally async */ {
                 :return_value = x6;
                 break #L8;
               }
-              :async_completer.{asy::Completer::complete}(:return_value);
+              asy::_completeOnAsyncReturn(:async_completer, :return_value);
               return;
             }
             on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -235,7 +235,7 @@ static method test() → void /* originally async */ {
                 :return_value = x7;
                 break #L9;
               }
-              :async_completer.{asy::Completer::complete}(:return_value);
+              asy::_completeOnAsyncReturn(:async_completer, :return_value);
               return;
             }
             on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -262,7 +262,7 @@ static method test() → void /* originally async */ {
                 :return_value = x8;
                 break #L10;
               }
-              :async_completer.{asy::Completer::complete}(:return_value);
+              asy::_completeOnAsyncReturn(:async_completer, :return_value);
               return;
             }
             on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -289,7 +289,7 @@ static method test() → void /* originally async */ {
                 :return_value = x9;
                 break #L11;
               }
-              :async_completer.{asy::Completer::complete}(:return_value);
+              asy::_completeOnAsyncReturn(:async_completer, :return_value);
               return;
             }
             on dynamic catch(dynamic :exception, dynamic :stack_trace) {
@@ -322,7 +322,7 @@ static method test() → void /* originally async */ {
         [yield] let dynamic #t10 = asy::_awaitHelper(x9, :async_op_then, :async_op_error, :async_op) in null;
         dynamic y9 = :result;
       }
-      :async_completer.{asy::Completer::complete}(:return_value);
+      asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
     }
     on dynamic catch(dynamic :exception, dynamic :stack_trace) {

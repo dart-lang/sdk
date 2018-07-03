@@ -1056,11 +1056,12 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     // return value variable followed by a break from the labeled body.
     return new Block(<Statement>[
       body,
-      new ExpressionStatement(new MethodInvocation(
-          new VariableGet(completerVariable),
-          new Name("complete"),
-          new Arguments([new VariableGet(returnVariable)]),
-          helper.completerComplete)),
+      new ExpressionStatement(new StaticInvocation(
+          helper.completeOnAsyncReturn,
+          new Arguments([
+            new VariableGet(completerVariable),
+            new VariableGet(returnVariable)
+          ]))),
       new ReturnStatement()..fileOffset = enclosingFunction.fileEndOffset
     ]);
   }
@@ -1095,6 +1096,7 @@ class HelperNodes {
   final Member completerCompleteError;
   final Member completerConstructor;
   final Member asyncAwaitCompleterConstructor;
+  final Member completeOnAsyncReturn;
   final Member completerFuture;
   final Library coreLibrary;
   final CoreTypes coreTypes;
@@ -1134,6 +1136,7 @@ class HelperNodes {
       this.completerCompleteError,
       this.completerConstructor,
       this.asyncAwaitCompleterConstructor,
+      this.completeOnAsyncReturn,
       this.completerFuture,
       this.coreLibrary,
       this.coreTypes,
@@ -1174,6 +1177,7 @@ class HelperNodes {
         coreTypes.completerCompleteError,
         coreTypes.completerSyncConstructor,
         coreTypes.asyncAwaitCompleterConstructor,
+        coreTypes.completeOnAsyncReturn,
         coreTypes.completerFuture,
         coreTypes.coreLibrary,
         coreTypes,
