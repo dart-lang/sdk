@@ -161,7 +161,9 @@ currently.''',
         hide: true),
     new _Option.bool('checked', 'Run tests in checked mode.'),
     new _Option.bool('strong', 'Deprecated, no-op.', hide: true),
-    new _Option.bool('host_checked', 'Run compiler in checked mode.',
+    // TODO(sigmund): rename flag once we migrate all dart2js bots to the test
+    // matrix.
+    new _Option.bool('host_checked', 'Run compiler with assertions enabled.',
         hide: true),
     new _Option.bool('minified', 'Enable minification in the compiler.',
         hide: true),
