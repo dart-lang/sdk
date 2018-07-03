@@ -4,16 +4,13 @@
 
 ### Language
 
-* New member conflict rules have been implemented. Most cases of conflicting
-  members with the same name are now static errors. Issue [33235][issue 33235].
-
-[issue 33235]: https://github.com/dart-lang/sdk/issues/33235
-
 #### Strong Mode
 
 ### Dart VM
 
 ### Tool Changes
+
+#### dartfmt
 
 #### Pub
 
@@ -23,8 +20,27 @@
 
 ### Core library changes
 
+## 2.0.0-dev.67.0
+
+### Language
+
+* New member conflict rules have been implemented. Most cases of conflicting
+  members with the same name are now static errors. Issue [33235][issue 33235].
+
+[issue 33235]: https://github.com/dart-lang/sdk/issues/33235
+
+### Tool Changes
+
+#### dartfmt
+
+  * Format expressions inside string interpolation.
+
+### Core library changes
+
   * `dart:io`
     * Adds `HttpClient.connectionTimeout`.
+
+## 2.0.0-dev.66.0
 
 ## 2.0.0-dev.65.0
 
