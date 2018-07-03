@@ -251,7 +251,6 @@ list_concurrent_modify_test: RuntimeError
 main_test: RuntimeError
 nan_infinity_test/01: RuntimeError
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
-uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 
 [ $compiler == dart2js && $fasta ]
 bigint_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
@@ -284,22 +283,6 @@ num_parse_test/01: CompileTimeError, OK # Error if web int literal cannot be rep
 num_parse_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 num_sign_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 
-[ $compiler == dart2js && $fasta && $host_checked && $strong ]
-error_stack_trace1_test: RuntimeError # Issue 12399
-growable_list_test: RuntimeError # Concurrent modifications test always runs
-integer_to_radix_string_test/01: RuntimeError
-integer_to_radix_string_test/02: RuntimeError
-integer_to_radix_string_test/none: RuntimeError
-integer_to_string_test/01: RuntimeError
-iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
-list_concurrent_modify_test: RuntimeError # dart2js does not fully implement these
-list_unmodifiable_test: RuntimeError
-main_test: RuntimeError
-nan_infinity_test/01: RuntimeError
-regexp/pcre_test: RuntimeError
-symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
-uri_base_test: RuntimeError
-
 [ $compiler == dart2js && $fasta && $minified && $strong ]
 dynamic_nosuchmethod_test: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
@@ -326,6 +309,21 @@ uri_base_test: RuntimeError
 
 [ $compiler == dart2js && !$fasta ]
 *: SkipByDesign
+
+[ $compiler == dart2js && $strong ]
+error_stack_trace1_test: RuntimeError # Issue 12399
+growable_list_test: RuntimeError # Concurrent modifications test always runs
+integer_to_radix_string_test/01: RuntimeError
+integer_to_radix_string_test/02: RuntimeError
+integer_to_radix_string_test/none: RuntimeError
+integer_to_string_test/01: RuntimeError
+iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
+list_concurrent_modify_test: RuntimeError # dart2js does not fully implement these
+list_unmodifiable_test: RuntimeError
+main_test: RuntimeError
+nan_infinity_test/01: RuntimeError
+regexp/pcre_test: RuntimeError
+symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
 
 [ $compiler != dart2js && $fasta ]
 bool_from_environment2_test/03: MissingCompileTimeError

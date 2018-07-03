@@ -94,6 +94,7 @@ dummy_compiler_test: RuntimeError, Slow # Issue 32439. self-hosting doesn't work
 code_motion_exception_test: Skip # Requires unminified operator names.
 deferred/reflect_multiple_annotations_test: Fail
 deferred/reflect_multiple_default_arg_test: Fail
+generic_method_dynamic_type_test: Fail, OK # Tests expected output of Type.toString().
 mirrors_used_warning_test/minif: Fail, OK # Tests warning that minified code will be broken.
 runtime_type_test: Fail, OK # Tests extected output of Type.toString().
 to_string_test: Fail # Issue 7179.

@@ -12,7 +12,6 @@ html/async_spawnuri_test: SkipByDesign
 html/async_test: SkipByDesign
 html/custom/document_register_type_extensions_test/construction: Pass, Timeout # Roll 50 failure
 html/custom/document_register_type_extensions_test/registration: Pass, Timeout # Roll 50 failure
-html/custom/element_upgrade_failure_test: MissingCompileTimeError
 html/custom/entered_left_view_test/shadow_dom: Pass, Timeout # Roll 50 failure
 html/custom_elements_test: Pass, Timeout # Issue 26789
 html/debugger_test: CompileTimeError # Issue 30900
@@ -340,11 +339,13 @@ js/prototype_access_test: RuntimeError
 [ $compiler == dart2js && $runtime == d8 && $fasta && $minified ]
 collection/list_test: RuntimeError
 
-[ $compiler == dart2js && $runtime != d8 && $runtime != jsshell ]
+[ $compiler == dart2js && $runtime != d8 ]
 html/html_mock_test: RuntimeError # Issue 31038
 html/input_element_attributes_test: RuntimeError
-html/js_dart_functions_test: RuntimeError # does not implement Dart 2 implicit `.call` tearoff
 html/js_extend_class_test: RuntimeError
+
+[ $compiler == dart2js && $runtime != d8 && !$strong ]
+html/js_dart_functions_test: RuntimeError # does not implement Dart 2 implicit `.call` tearoff
 
 [ $compiler == dart2js && $runtime == drt && !$checked ]
 html/audiocontext_test/functional: Pass, Fail
@@ -487,6 +488,15 @@ js/null_test: RuntimeError # Issue 30652
 [ $compiler == dart2js && $browser && $csp ]
 html/custom/element_upgrade_test: Fail # Issue 17298
 html/custom/js_custom_test: Fail # Issue 14643
+
+[ $compiler == dart2js && $browser && $strong ]
+collection/list_test: RuntimeError
+html/element_classes_svg_test: RuntimeError
+html/fileapi_directory_reader_test: RuntimeError
+html/interactive_media_test: RuntimeError
+html/js_array_test: RuntimeError
+html/js_mock_test: RuntimeError
+html/typed_arrays_range_checks_test: RuntimeError
 
 [ $compiler == dart2js && $checked ]
 convert/utf85_test: Pass, Slow # Issue 12029.
@@ -786,7 +796,17 @@ async/future_or_bad_type_test: MissingCompileTimeError
 [ $compiler == dart2js && $minified ]
 html/canvas_pixel_array_type_alias_test/types2_runtimeTypeName: Fail, OK # Issue 12605
 
+[ $compiler == dart2js && $strong ]
+async/future_or_type_test: RuntimeError
+async/future_test/01: RuntimeError
+async/future_test/none: RuntimeError
+async/slow_consumer2_test: RuntimeError
+async/stream_controller_async_test: RuntimeError
+async/stream_distinct_test: RuntimeError
+async/stream_join_test: RuntimeError
+
 [ $compiler == dart2js && !$strong ]
+html/custom/element_upgrade_failure_test: MissingCompileTimeError
 html/element_classes_svg_test: RuntimeError # Expected runtime type check only in strong mode.
 
 [ $compiler == dart2js && ($runtime == chrome || $runtime == ff) ]
