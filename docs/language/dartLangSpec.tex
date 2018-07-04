@@ -65,6 +65,8 @@
 % - Remove "boolean conversion". It's just an error to not be a bool.
 % - Adjust cyclic subtype prevention rule for type variables.
 % - Clarify that it is an error to use FutureOr<T> as a superinterface etc.
+% - Eliminate the notion of static warnings, all program faults are now errors.
+% - It is no longer an error for a getter to have return type `void`.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -308,11 +310,11 @@ Examples would be the classes \code{Object} and \code{Type} representing the roo
 }
 
 \LMHash{}
-When the specification says that one piece of syntax {\em is equivalent to} another piece of syntax, it means that it is equivalent in all ways, and the former syntax should generate the same static warnings and have the same run-time behavior as the latter.
+When the specification says that one piece of syntax {\em is equivalent to} another piece of syntax, it means that it is equivalent in all ways, and the former syntax should generate the same compile-time errors and have the same run-time behavior as the latter, if any.
 \commentary{
 Error messages, if any, should always refer to the original syntax.
 }
-If execution or evaluation of a construct is said to be equivalent to execution or evaluation of another construct, then only the run-time behavior is equivalent, and only the static warnings or errors mentioned for the original syntax applies.
+If execution or evaluation of a construct is said to be equivalent to execution or evaluation of another construct, then only the run-time behavior is equivalent, and compile-time errors apply only for the original syntax.
 
 
 \section{Overview}
@@ -421,8 +423,8 @@ The interaction of lexical scoping and inheritance is a subtle one.
 Ultimately, the question is whether lexical scoping takes precedence over inheritance or vice versa.
 Dart chooses the former.
 
-Allowing inherited names to take precedence over locally declared names can create unexpected situations as code evolves.
-Specifically, the behavior of code in a subclass can change without warning if a new name is introduced in a superclass.
+Allowing inherited names to take precedence over locally declared names could create unexpected situations as code evolves.
+Specifically, the behavior of code in a subclass could silently change if a new name is introduced in a superclass.
 Consider:
 }
 
@@ -514,8 +516,8 @@ No state is ever shared between isolates.
 Isolates are created by spawning (\ref{spawningAnIsolate}).
 
 
-\section{Errors and Warnings}
-\LMLabel{errorsAndWarnings}
+\section{Errors}
+\LMLabel{errors}
 
 \LMHash{}
 This specification distinguishes between several kinds of errors.
@@ -529,12 +531,16 @@ A Dart implementation has considerable freedom as to when compilation takes plac
 Modern programming language implementations often interleave compilation and execution, so that compilation of a method may be delayed, e.g., until it is first invoked.
 Consequently, compile-time errors in a method $m$ may be reported as late as the time of $m$'s first invocation.
 
-As a web language, Dart is often loaded directly from source, with no intermediate binary representation.
+Dart is often loaded directly from source, with no intermediate binary representation.
 In the interests of rapid loading, Dart implementations may choose to avoid full parsing of method bodies, for example.
 This can be done by tokenizing the input and checking for balanced curly braces on method body entry.
 In such an implementation, even syntax errors will be detected only when the method needs to be executed, at which time it will be compiled (JITed).
 
 In a development environment a compiler should of course report compilation errors eagerly so as to best serve the programmer.
+
+A Dart development environment might choose to support error eliminating program transformations, e.g.,
+replacing an erroneous expression by the invocation of a debugger.
+It is outside the scope of this document to specify how such transformations work, and where they may be applied.
 }
 
 \LMHash{}
@@ -553,18 +559,15 @@ It is then the embedder's decision whether to terminate the isolate or not.
 }
 
 \LMHash{}
-{\em Static warnings} are those errors reported by the static checker.
-They have no effect on execution.
-Many, but not all, static warnings relate to types, in which case they are known as {\em static type warnings}.
-Static warnings must be provided by Dart compilers used during development such as those incorporated in IDEs or otherwise intended to be used by developers for developing code.
-Compilers that are part of run-time execution environments such as virtual machines should not issue static warnings.
+When this specification says that a {\em run-time error} occurs,
+it means that a corresponding error object is thrown.
+When it says that a {\em dynamic type error} occurs,
+it represents a failed run-time type check,
+and the object which is thrown implements \code{TypeError}.
 
 \LMHash{}
-{\em Dynamic type errors} are type errors reported in checked mode.
-
-\LMHash{}
-{\em Run-time errors} are exceptions thrown during execution.
-Whenever we say that an exception $ex$ is {\em thrown}, it acts like an expression had {\em thrown} (\ref{completion}) with $ex$ as exception object and with a stack trace corresponding to the current system state.
+Whenever we say that an exception $ex$ is {\em thrown},
+it acts like an expression had {\em thrown} (\ref{completion}) with $ex$ as exception object and with a stack trace corresponding to the current system state.
 When we say that {\em a} $C$ {\em is thrown}, where $C$ is a class, we mean that an instance of class $C$ is thrown.
 
 \LMHash{}
@@ -631,19 +634,18 @@ A {\em final variable} is a variable whose binding is fixed upon initialization;
 The declaration of a final variable must include the modifier \FINAL{}.
 
 \LMHash{}
-It is a static warning if a final instance variable that has been initialized at its point of declaration is also initialized in a constructor.
-% It is a static warning if a final instance variable that has been initialized by means of an initializing formal of a constructor is also initialized elsewhere in the same constructor.
+It is a compile-time error if a final instance variable whose declaration has an initializer expression
+is also initialized by a constructor, either by an initializing formal or an initializer list entry.
 It is a compile-time error if a local variable $v$ is final and $v$ is not initialized at its point of declaration.
-It is a static warning and a dynamic error to assign to a final local variable.
+It is a compile-time error to assign to a final local variable.
 
 \commentary{
-A library or static variable is guaranteed to have an initializer at its declaration by the grammar.
-
-Attempting to assign to a final variable anywhere except in its declaration or in a constructor header will cause a run-time error to be thrown as discussed below.
-The assignment will also give rise to a static warning.
-Any repeated assignment to a final variable will also lead to a run-time error.
-
-Taken as a whole, the rules ensure that any attempt to execute multiple assignments to a final variable will yield static warnings and repeated assignments will fail dynamically.
+It is a compile-time error if a final instance variable
+that has been initialized by means of an initializing formal of a constructor $k$
+is also initialized in the initializer list of $k$ (\ref{initializerLists}).
+Any attempt to assign to a final non-local variable \id{} will cause a compile-time error,
+because it amounts to an invocation of a setter named \code{\id=},
+except of course when such a setter has been declared separately.
 }
 
 \LMHash{}
@@ -867,7 +869,7 @@ The other modifiers do not apply here, because they apply only to generators, di
 Let $R$ be the static type of $e$
 and let $T$ be the actual return type (\ref{actualTypeOfADeclaration})
 of the function that has this body.
-It is a static warning if $T$ is not \VOID{} and either
+It is a compile-time error if $T$ is not \VOID{} and either
 the function is synchronous and the static type of $R$ is not assignable to $T$,
 or the function is asynchronous and \code{Future<$flatten(R)$>}
 is not assignable to $T$.
@@ -904,9 +906,9 @@ No other scenario makes sense because the object returned by the factory would b
 This situation is very unusual so it is not worth making an exception to the general rule for constructors in order to allow it.
 }
 \LMHash{}
-It is a static warning if the declared return type of a function marked \ASYNC{} is not a supertype of \code{Future<\mbox{$T$}>} for some type $T$.
-It is a static warning if the declared return type of a function marked \SYNC* is not a supertype of \code{Iterable<\mbox{$T$}>} for some type $T$.
-It is a static warning if the declared return type of a function marked \ASYNC* is not a supertype of \code{Stream<\mbox{$T$}>} for some type $T$.
+It is a compile-time error if the declared return type of a function marked \ASYNC{} is not a supertype of \code{Future<$T$>} for some type $T$.
+It is a compile-time error if the declared return type of a function marked \SYNC* is not a supertype of \code{Iterable<$T$>} for some type $T$.
+It is a compile-time error if the declared return type of a function marked \ASYNC* is not a supertype of \code{Stream<$T$>} for some type $T$.
 
 
 \subsection{Function Declarations}
@@ -1358,18 +1360,15 @@ It is a compile-time error if a generic class declares a type variable with the 
 Instance methods are functions (\ref{functions}) whose declarations are immediately contained within a class declaration and that are not declared \STATIC{}.
 The instance methods of a class $C$ are those instance methods declared by $C$ and the instance methods inherited by $C$ from its superclass.
 
-%make these warnings if possible
+\LMHash{}
+It is a compile-time error if an instance method $m_1$ overrides (\ref{inheritanceAndOverriding}) an instance member $m_2$ and $m_1$ has a greater number of required parameters than $m_2$.
+It is a compile-time error if an instance method $m_1$ overrides an instance member $m_2$ and $m_1$ has fewer positional parameters than $m_2$.
+It is a compile-time error if an instance method $m_1$ overrides an instance member $m_2$ and $m_1$ does not declare all the named parameters declared by $m_2$.
 
 \LMHash{}
-It is a static warning if an instance method $m_1$ overrides (\ref{inheritanceAndOverriding}) an instance member $m_2$ and $m_1$ has a greater number of required parameters than $m_2$.
-It is a static warning if an instance method $m_1$ overrides an instance member $m_2$ and $m_1$ has fewer positional parameters than $m_2$.
-It is a static warning if an instance method $m_1$ overrides an instance member $m_2$ and $m_1$ does not declare all the named parameters declared by $m_2$.
-
-% not quite right. It should be ok to override a method that requires N parameters with one that requires M < N but accepts the others as optional.
-
-\LMHash{}
-It is a static warning if an instance method $m_1$ overrides an instance member $m_2$ and the type of $m_1$ is not a subtype of the type of $m_2$.
-It is a static warning if an instance method $m_1$ overrides an instance member $m_2$, the signature of $m_2$ explicitly specifies a default value for a formal parameter $p$, and the signature of $m_1$ implies a different default value for $p$.
+%% TODO(eernst): We need to use the concept of 'correctly overrides' rather than 'is a subtype of', e.g., to treat `void` correctly.
+It is a compile-time error if an instance method $m_1$ overrides an instance member $m_2$ and the type of $m_1$ is not a subtype of the type of $m_2$.
+It is a compile-time error if an instance method $m_1$ overrides an instance member $m_2$, the signature of $m_2$ explicitly specifies a default value for a formal parameter $p$, and the signature of $m_1$ implies a different default value for $p$.
 
 \commentary{
 A method declaration may conflict with other declarations
@@ -1433,13 +1432,22 @@ It is a compile-time error if the arity of the user-declared operator \code{\~{}
 It is a compile-time error to declare an optional parameter in an operator.
 
 \LMHash{}
-It is a static warning if the return type of the user-declared operator \code{[]=} is explicitly declared and not \VOID{}.
+It is a compile-time error if the return type of a user-declared operator \code{[]=} is explicitly declared and not \VOID{}.
 
 \commentary{
 If no return type is specified for a user-declared operator \code{[]=}, its return type is \VOID{} (\ref{typeOfAFunction}).
 }
 
-% add rationale: return in []= methods will have no effect, a the expression always returns its second argument (the RHS of the assignment, for consistency with assignment in general). So it's best to enforce this by declaring the method to be void, even though the expression that uses it returns an object with the type of the RHS, as described in \ref{assignment}.
+\rationale{
+The return type is \VOID{} because
+a return statement in an implementation of operator \code{[]=} does not return a value.
+Consider a non-throwing evaluation of an expression $e$ of the form \code{$e_1$[$e_2$] = $e_3$},
+and assume that the evaluation of $e_3$ yields an instance $o$.
+$e$ will then evaluate to $o$,
+and even if the executed body of operator \code{[]=} completes with a value $o'$,
+that is, if $o'$ is returned, that value is simply ignored.
+The rationale for this behavior is that assignments should be guaranteed to evaluate to the assigned value.
+}
 
 
 \subsection{Getters}
@@ -1474,9 +1482,8 @@ and a method can never override a getter or an instance variable.
 }
 
 \LMHash{}
-It is a static warning if the return type of a getter is \VOID.
-It is a static warning if a getter $m_1$ overrides (\ref{inheritanceAndOverriding}) a getter
-$m_2$ and the type of $m_1$ is not a subtype of the type of $m_2$.
+It is a compile-time error if a getter $m_1$ overrides (\ref{inheritanceAndOverriding}) a getter $m_2$
+and the return type of $m_1$ is not a subtype of the return type of $m_2$.
 
 
 \subsection{Setters}
@@ -1514,12 +1521,12 @@ It is a compile-time error if a setter's formal parameter list does not consist 
 We could enforce this via the grammar, but we'd have to specify the evaluation rules in that case.
 }
 
-%It is a compile-time error if a class has both a setter and a method with the same name. This restriction holds regardless of whether the setter is defined explicitly or implicitly, or whether the setter or the method are inherited or not.
-
 \LMHash{}
-It is a static warning if a setter declares a return type other than \VOID{}.
-It is a static warning if a setter $m_1$ overrides (\ref{inheritanceAndOverriding}) a setter $m_2$ and the type of $m_1$ is not a subtype of the type of $m_2$.
-It is a static warning if a class has a setter named $v=$ with argument type $T$ and a getter named $v$ with return type $S$, and $T$ may not be assigned to $S$.
+It is a compile-time error if a setter declares a return type other than \VOID{}.
+It is a compile-time error if a setter $m_1$ overrides (\ref{inheritanceAndOverriding}) a setter $m_2$
+and the parameter type of $m_1$ is not a supertype of the parameter type of $m_2$.
+It is a compile-time error if a class has a setter named $v=$ with argument type $T$ and a getter named $v$ with return type $S$,
+and $S$ may not be assigned to $T$.
 
 \commentary{
 A setter declaration may conflict with other declarations
@@ -1551,25 +1558,25 @@ The normative specification for this appears under the definitions of lookup for
 }
 
 % so does an abstract method override a method in a superclass or not? Does the superclass method get inherited or not?  This generally makes the spec inconsistent, as there is no simple answer.
-% For example - if we say it does not override, then the superclass member is inherited, in which case the rules for warning break down, and also there is question of whether there are two definitions of the same name.
+% For example - if we say it does not override, then the superclass member is inherited, in which case the rules for errors break down, and also there is question of whether there are two definitions of the same name.
 % But if we do override, method lookup rules break down.  So several things need revisiting.
 
 \rationale{
 The purpose of an abstract method is to provide a declaration for purposes such as type checking and reflection.
 In classes used as mixins, it is often useful to introduce such declarations for methods that the mixin expects will be provided by the superclass the mixin is applied to.
 }
-%always results in a run-time error. This must be \code{NoSuchMethodError} or an instance of a subclass of \code{NoSuchMethodError}, such as \code{AbstractMethodError}.
 
 \LMHash{}
-It is a static warning if an abstract member $m$ is declared or inherited in a concrete class $C$ unless:
+%% TODO(eernst): Revise this to use the concepts of interfaces, and do not say that an abstract member is inherited by a class.
+It is a compile-time error if an abstract member $m$ is declared or inherited in a concrete class $C$ unless:
 \begin{itemize}
 \item $m$ overrides a concrete member, or
 \item $C$ has a concrete \code{noSuchMethod()} method distinct from the one declared in class \code{Object}.
 \end{itemize}
 
 \rationale{
-We wish to warn if one declares a concrete class with abstract members.
-However, code like the following should work without warnings:
+We wish to detect if one declares a concrete class with abstract members.
+However, code like the following should work:
 }
 
 \begin{dartCode}
@@ -1587,7 +1594,7 @@ However, code like the following should work without warnings:
 
 \rationale{
 At run time, the concrete method \code{one} declared in \code{Base} will be executed, and no problem should arise.
-Therefore no warning should be issued and so we suppress warnings if a corresponding concrete member exists in the hierarchy.
+Therefore no error should be raised if a corresponding concrete member exists in the hierarchy.
 }
 
 
@@ -1612,34 +1619,6 @@ However, a constant instance variable could not be treated as a true compile-tim
 Given that the value does not depend on the instance, it is better to use a static class variable.
 An instance getter for it can always be defined manually if desired.
 }
-
-%An instance variable declaration of one of the forms \code{$T$ $v$;}, \code{\FINAL{} $T$ $v$;} , \code{$T$ $v$ = $e$;}, \code{\CONST{} $T$ $v$ = $e$;} or \code{\FINAL{} $T$ $v$ = $e$;} always induces an implicit getter function (\ref{getters}) with signature
-
-%$T$ \GET{} $v$
-
-%whose invocation evaluates to the value stored in $v$.
-
-%An instance variable declaration of one of the forms \code{\VAR{} $v$;}, \code{\FINAL{} $v$;}, \code{\VAR{} $v$ = $e$;}, \code{\CONST{} $v$ = $e$;} or \code{\FINAL{} $v$ = $e$;} always induces an implicit getter function with signature
-
-%\GET{} $v$
-
-%whose invocation evaluates to the value stored in $v$.
-
-%\commentary{Getters are introduced for all instance and static variables (\ref{staticVariables}), regardless of whether they are const/final or not.}
-
-%A non-final instance variable declaration of the form \code{$T$ $v$;} or the form \code{$T$ $v$ = $e$;} always induces an implicit setter function (\ref{setters}) with signature
-
-%\VOID{} \SET{} $v=(T$ $x)$
-
-%whose execution sets the value of $v$ to the incoming argument $x$.
-
-%A non-final instance variable declaration of the form \code{\VAR{} $v$;} or the form \code{\VAR{} $v$ = $e$;} always induces an implicit setter function with signature
-
-%\SET{} $v=(x)$
-
-%whose execution sets the value of $v$ to the incoming argument $x$.
-
-% It is a compile-time error/warning if a class $C$ declares a final instance variable $v$ and $C$ inherits a setter $v=$.
 
 
 \subsection{Constructors}
@@ -1687,7 +1666,7 @@ It is a compile-time error if an initializing formal is used by a function other
 \LMHash{}
 If an explicit type is attached to the initializing formal, that is its static type.
 Otherwise, the type of an initializing formal named \id{} is $T_{id}$, where $T_{id}$ is the type of the instance variable named \id{} in the immediately enclosing class.
-It is a static warning if the static type of \id{} is not a subtype of $T_{id}$.
+It is a compile-time error if the static type of \id{} is not a subtype of $T_{id}$.
 
 \LMHash{}
 Initializing formals constitute an exception to the rule that every formal parameter introduces a local variable into the formal parameter scope (\ref{formalParameters}).
@@ -1797,7 +1776,7 @@ Each final instance variable $f$ declared in the immediately enclosing class mus
 \item Initialization by means of an initializing formal of $k$.
 \end{itemize}
 
-or a static warning occurs.
+or a compile-time error occurs.
 It is a compile-time error if $k$'s initializer list contains an initializer for a variable that is not an instance variable declared in the immediately surrounding class.
 
 \commentary{
@@ -2001,7 +1980,8 @@ Such cycles are therefore illegal.
 }
 
 \LMHash{}
-It is a static warning if $type$ does not denote a class accessible in the current scope; if $type$ does denote such a class $C$ it is a static warning if the referenced constructor (be it \metavar{type} or \code{\metavar{type}.\id}) is not a constructor of $C$.
+It is a compile-time error if $type$ does not denote a class accessible in the current scope;
+if $type$ does denote such a class $C$ it is a compile-time error if the referenced constructor (be it \metavar{type} or \code{\metavar{type}.\id}) is not a constructor of $C$.
 
 \commentary{
 Note that it is not possible to modify the arguments being passed to $k'$.
@@ -2045,14 +2025,14 @@ However, redirecting factories have several advantages:
 It is a compile-time error if $k$ is prefixed with the \CONST{} modifier but $k'$ is not a constant constructor (\ref{constantConstructors}).
 
 \LMHash{}
-It is a static warning if the function type of $k'$ is not a subtype of the type of $k$.
+It is a compile-time error if the function type of $k'$ is not a subtype of the type of $k$.
 
 \commentary{
 This implies that the resulting object conforms to the interface of the immediately enclosing class of $k$.
 }
 
 \LMHash{}
-It is a static type warning if any of the type arguments to $k'$ are not subtypes of the bounds of the corresponding formal type parameters of $type$.
+It is a compile-time error if any of the type arguments to $k'$ are not subtypes of the bounds of the corresponding formal type parameters of $type$.
 
 
 \subsubsection{Constant Constructors}
@@ -2358,11 +2338,8 @@ Also, getters don't override setters and vice versa.
 Finally, static members never override anything.
 }
 
-\LMHash{}
-It is a static warning if a concrete class inherits an abstract method.
-
 \commentary{
-For convenience, here is a summary of the relevant rules.
+For convenience, here is a summary of the relevant rules, using `error' to denote compile-time errors.
 Remember that this is not normative.
 The controlling language is in the relevant sections of the specification.
 
@@ -2373,46 +2350,43 @@ The controlling language is in the relevant sections of the specification.
   When we speak of members here, we mean accessible instance or static variables, getters, setters, and methods (\ref{classes}).
 \item You cannot have two members with the same name in the same class - be they declared or inherited (\ref{scoping}, \ref{classes}).
 \item Static members are never inherited.
-\item It is a warning if you have an static member named $m$ in your class or any superclass (even though it is not inherited) and an instance member of the same name (\ref{instanceMethods}, \ref{getters}, \ref{setters}).
-\item It is a warning if you have a static setter $v=$, and an instance member $v$ (\ref{setters}).
-\item It is a warning if you have a static getter $v$ and an instance setter $v=$ (\ref{getters}).
+\item It is an error if you have an static member named $m$ in your class and an instance member of the same name (\ref{instanceMethods}, \ref{getters}, \ref{setters}).
+\item It is an error if you have a static setter $v=$, and an instance member $v$ (\ref{setters}).
+\item It is an error if you have a static getter $v$ and an instance setter $v=$ (\ref{getters}).
 \item If you define an instance member named $m$, and your superclass has an instance member of the same name, they override each other.
 This may or may not be legal.
 \item \label{typeSigAssignable}
-If two members override each other, it is a static warning if their type signatures are not assignable to each other (\ref{instanceMethods}, \ref{getters}, \ref{setters}) (and since these are function types, this means the same as "subtypes of each other").
+%% TODO(eernst): This is commentary, but we may need to adjust it to say 'correctly overrides'.
+If two members override each other, it is an error if their type signatures are not assignable to each other (\ref{instanceMethods}, \ref{getters}, \ref{setters}) (and since these are function types, this means the same as "subtypes of each other").
 \item \label{requiredParams}
-If two members override each other, it is a static warning if the overriding member has more required parameters than the overridden one (\ref{instanceMethods}).
+If two members override each other, it is an error if the overriding member has more required parameters than the overridden one (\ref{instanceMethods}).
 \item \label{optionalPositionals}
-If two members override each other, it is a static warning if the overriding member has fewer positional parameters than the overridden one (\ref{instanceMethods}).
+If two members override each other, it is an error if the overriding member has fewer positional parameters than the overridden one (\ref{instanceMethods}).
 \item \label{namedParams}
-If two members override each other, it is a static warning if the overriding member does not have all the named parameters that the overridden one has (\ref{instanceMethods}).
-\item Setters, getters and operators never have optional parameters of any kind; it's a compile-time error (\ref{operators}, \ref{getters}, \ref{setters}).
-\item It is a compile-time error if a member has the same name as its enclosing class (\ref{classes}).
+If two members override each other, it is an error if the overriding member does not have all the named parameters that the overridden one has (\ref{instanceMethods}).
+\item Setters, getters and operators never have optional parameters of any kind; it's an error (\ref{operators}, \ref{getters}, \ref{setters}).
+\item It is an error if a member has the same name as its enclosing class (\ref{classes}).
 \item A class has an implicit interface (\ref{classes}).
 \item Superinterface members are not inherited by a class, but are inherited by its implicit interface.
 Interfaces have their own inheritance rules (\ref{interfaceInheritanceAndOverriding}).
 \item A member is abstract if it has no body and is not labeled \EXTERNAL{} (\ref{abstractInstanceMembers}, \ref{externalFunctions}).
 \item A class is abstract if{}f it is explicitly labeled \ABSTRACT{}.% or if it declares (not just inherits) an abstract member (\ref{classes}).
-\item It is a static warning if a concrete class has an abstract member (declared or inherited).
-\item It is a static warning and a dynamic error to call a non-factory constructor of an abstract class (\ref{new}).
-\item If a class defines an instance member named $m$, and any of its superinterfaces have a member named $m$, the interface of the class overrides $m$.
+\item It is an error if a concrete class has an abstract member (declared or inherited).
+\item It is an error to call a non-factory constructor of an abstract class using an instance creation expression (\ref{instanceCreation}),
+  such a constructor may only be invoked from another constructor using a super invocation (\ref{superinvocation}).
+\item If a class defines an instance member named $m$,
+  and any of its superinterfaces have a member named $m$,
+  the interface of the class contains the $m$ from the class itself.
 \item An interface inherits all members of its superinterfaces that are not overridden and not members of multiple superinterfaces.
 \item If multiple superinterfaces of an interface define a member with the same name $m$, then at most one member is inherited.
+%% TODO(eernst): Switch to use 'correctly overrides' terminology.
 That member (if it exists) is the one whose type is a subtype of all the others.
-If there is no such member, then:
-\begin{itemize}
-\item A static warning is given.
-\item If possible the interface gets a member named $m$ that has the minimum number of required parameters among all the members in the superinterfaces, the maximal number of positionals, and the superset of named parameters.
-The types of these are all \DYNAMIC{}.
-If this is impossible then no member $m$ appears in the interface.
-\end{itemize} (\ref{interfaceInheritanceAndOverriding})
+If there is no such member, then an error occurs (\ref{interfaceInheritanceAndOverriding}).
 \item Rule \ref{typeSigAssignable} applies to interfaces as well as classes (\ref{interfaceInheritanceAndOverriding}).
-\item It is a static warning if a concrete class does not have an implementation for a method in any of its superinterfaces unless it has a concrete \code{noSuchMethod} method (\ref{superinterfaces}) distinct from the one in class \code{Object}.
+\item It is an error if a concrete class does not have an implementation for a method in any of its superinterfaces unless it has a concrete \code{noSuchMethod} method (\ref{superinterfaces}) distinct from the one in class \code{Object}.
 \item The identifier of a named constructor cannot be the same as the name of a member declared (as opposed to inherited) in the same class (\ref{constructors}).
 \end{enumerate}
 }
-
-%Can we have abstract getters and setters?
 
 
 \subsection{Superinterfaces}
@@ -2448,8 +2422,6 @@ It is a compile-time error if a class $C$ has two superinterfaces that are diffe
 \rationale{
 One might argue that it is harmless to repeat a type in the superinterface list, so why make it an error? The issue is not so much that the situation described in program source is erroneous, but that it is pointless.
 As such, it is an indication that the programmer may very well have meant to say something else - and that is a mistake that should be called to her or his attention.
-Nevertheless, we could simply issue a warning; and perhaps we should and will.
-That said, problems like these are local and easily corrected on the spot, so we feel justified in taking a harder line.
 }
 
 \LMHash{}
@@ -2457,7 +2429,9 @@ It is a compile-time error if the interface of a class $C$ is a superinterface o
 
 \LMHash{}
 Let $C$ be a concrete class that does not have a concrete \code{noSuchMethod()} method distinct from the one declared in class \code{Object}.
-It is a static warning if the implicit interface of $C$ includes an instance member $m$ of type $F$ and $C$ does not declare or inherit a corresponding concrete instance member $m$ of type $F'$ such that $F' <: F$.
+%% TODO(eernst): Adjust to use 'correctly overrides' terminology.
+It is a compile-time error if the implicit interface of $C$ includes an accessible instance member $m$ of type $F$,
+and $C$ does not declare or inherit a corresponding concrete instance member $m$ of type $F'$ such that $F' <: F$.
 
 \commentary{
 A class does not inherit members from its superinterfaces.
@@ -2465,20 +2439,29 @@ However, its implicit interface does.
 }
 
 \rationale{
-We choose to issue these warnings only for concrete classes; an abstract class might legitimately be designed with the expectation that concrete subclasses will implement part of the interface.
-We also disable these warnings if a concrete \code{noSuchMethod()} declaration is present or inherited from any class other than \code{Object}.
-In such cases, the supported interface is going to be implemented via \code{noSuchMethod()} and no actual declarations of the implemented interface's members are needed.
-This allows proxy classes for specific types to be implemented without provoking type warnings.
+We choose to raise these compile-time errors only for concrete classes;
+an abstract class might legitimately be designed with the expectation that concrete subclasses will implement part of the interface.
+We also disable these errors if a concrete \code{noSuchMethod()} declaration is present or inherited from any class other than \code{Object},
+unless a concrete member $m$ is declared or inherited.
+The point is that there is an error to disable,
+so the signature of the concrete $m$ is not a correct override of the signature in the class interface.
+Otherwise, when all such errors have been disabled,
+the supported interface is going to be implemented via \code{noSuchMethod()}
+and no actual declarations of the implemented interface's members are needed.
+This allows proxy classes for specific types to be implemented without provoking errors.
 }
 
 \LMHash{}
-It is a static warning if the implicit interface of a class $C$ includes an instance member $m$ of type $F$ and $C$ declares or inherits a corresponding instance member $m$ of type $F'$ if $F'$ is not a subtype of $F$.
+%% TODO(eernst): Switch to use 'correctly overrides' terminology.
+It is a compile-time error if the implicit interface of a class $C$ includes an instance member $m$ of type $F$ and $C$ declares or inherits a corresponding instance member $m$ of type $F'$ if $F'$ is not a subtype of $F$.
 
 \rationale{
-However, if a class does explicitly declare a member that conflicts with its superinterface, this always yields a static warning.
+However, if a class does explicitly declare a member that conflicts with its superinterface, this always yields an error.
 }
-%It is a static warning if an imported superinterface of a class $C$ declares private members.
 
+% TODO(eernst): When integrating nosuchmethod-forwarders.md, delete this and make sure that we mention the
+% case where there is no `noSuchMethod` and we still generate forwarders.
+% Consider: It is a compile-time error if an imported superinterface of a class $C$ declares private members.
 % Should we ignore unimplemented private members?
 
 
@@ -2557,10 +2540,10 @@ Let $I$ be the implicit interface of a class $C$ declared in library $L$.
 $I$ {\em inherits} all members of $inherited(I, L)$ and $I$ {\em overrides} $m'$ if $m' \in overrides(I, L)$.
 
 \LMHash{}
-All the static warnings pertaining to the overriding of instance members given in section \ref{classes} above hold for overriding between interfaces as well.
+All the compile-time errors pertaining to the overriding of instance members given in section \ref{classes} above hold for overriding between interfaces as well.
 
 \LMHash{}
-It is a static warning if $m$ is a method and $m'$ is a getter, or if $m$ is a getter and $m'$ is a method.
+It is a compile-time error if $m$ is a method and $m'$ is a getter, or if $m$ is a getter and $m'$ is a method.
 
 %Let $I = S_0$ be the implicit interface of a class $C$ declared in library $L$, and let $\{S_1, \ldots, S_k\}$ be the set of all superinterfaces of $I$.
 
@@ -2572,40 +2555,13 @@ It is a static warning if $m$ is a method and $m'$ is a getter, or if $m$ is a g
 However, if the above rules would cause multiple members $m_1, \ldots, m_k$ with the same name $n$ to be inherited (because identically named members existed in several superinterfaces) then at most one member is inherited.
 
 \LMHash{}
-If some but not all of the $m_i, 1 \le i \le k$ are getters none of the $m_i$ are inherited, and a static warning is issued.
+If some but not all of the $m_i, 1 \le i \le k$ are getters, a compile-time error occurs.
 
 \LMHash{}
+%% TODO(eernst): Adjust to use 'correctly overrides' terminology.
 Otherwise, if the static types $T_1, \ldots, T_k$ of the members $m_1, \ldots, m_k$ are not identical then there must be an $x \in 1 .. k$ such that $T_x <: T_i$ for all $i \in 1 .. k$,
-or a static type warning occurs.
-The member that is inherited  is $m_x$, if it exists; otherwise:
-let $numberOfPositionals(f)$ denote the number of positional parameters of a function $f$,
-and let $numberOfRequiredParams(f)$ denote the number of required parameters of a function $f$.
-Furthermore, let $s$ denote the set of all named parameters of the $m_1, \ldots, m_k$.
-Then let
-
-$h = max(numberOfPositionals(m_i)), $
-
-$r = min(numberOfRequiredParams(m_i)), i \in 1 .. k$.
-
-\LMHash{}
-Then $I$ has a method named $n$, with $r$ required parameters of type \DYNAMIC{}, $h$ positional parameters of type \DYNAMIC{}, named parameters $s$ of type \DYNAMIC{} and return type \DYNAMIC{}.
-
-\commentary{
-The only situation where the run-time system would be concerned with this would be during reflection, if a mirror attempted to obtain the signature of an interface member.
-}
-
-\rationale{
-The current solution is a tad complex, but is robust in the face of type annotation changes.
-Alternatives: (a) No member is inherited in case of conflict.
-(b) The first m is selected (based on order of superinterface list).
-(c) Inherited member chosen at random.
-
-(a) means that the presence of an inherited member of an interface varies depending on type signatures.
-(b) is sensitive to irrelevant details of the declaration, and
-(c) is liable to give unpredictable results between implementations or even between different compilation sessions.
-}
-
-% Need warnings if overrider conflicts with overriddee either because signatures are incompatible or because done is a method and one is a getter or setter.
+or a compile-time error occurs.
+The member that is inherited  is $m_x$, if it exists.
 
 
 \section{Mixins}
@@ -2726,11 +2682,12 @@ It is a compile-time error if a well formed mixin cannot be derived from $M$ (re
 
 \LMHash{}
 Let $K$ be a class declaration with the same constructors, superclass and interfaces as $C$, and the instance members declared by $M$ (respectively $M_1, \ldots, M_k$).
-It is a static warning if the declaration of $K$ would cause a static warning.
 It is a compile-time error if the declaration of $K$ would cause a compile-time error.
 
 \commentary{
-If, for example, $M$ declares an instance member $im$ whose type is at odds with the type of a member of the same name in $S$, this will result in a static warning just as if we had defined $K$ by means of an ordinary class declaration extending $S$, with a body that included $im$.
+If, for example,
+$M$ declares an instance member $im$ whose type is at odds with the type of a member of the same name in $S$,
+this will result in a compile-time error just as if we had defined $K$ by means of an ordinary class declaration extending $S$, with a body that included $im$.
 }
 
 \LMHash{}
@@ -2743,11 +2700,11 @@ Let $M_A$ be a mixin derived from a class $M$ with direct superclass $S_{static}
 
 \LMHash{}
 Let $A$ be an application of $M_A$.
-It is a static warning if the superclass of $A$ is not a subtype of $S_{static}$.
+It is a compile-time error if the superclass of $A$ is not a subtype of $S_{static}$.
 
 \LMHash{}
 Let $C$ be a class declaration that includes $M_A$ in a with clause.
-It is a static warning if $C$ does not implement, directly or indirectly, all the direct superinterfaces of $M$.
+It is a compile-time error if $C$ does not implement, directly or indirectly, all the direct superinterfaces of $M$.
 
 
 \subsection{Mixin Composition}
@@ -2781,7 +2738,7 @@ and $Id_2$ is a unique identifier that does not exist anywhere in the program.
 \rationale{
 The intermediate classes produced by mixin composition are regarded as abstract because they cannot be instantiated independently.
 They are only introduced as anonymous superclasses of ordinary class declarations and mixin applications.
-Consequently, no warning is given if a mixin composition includes abstract members, or incompletely implements an interface.
+Consequently, no errors are raised if a mixin composition includes abstract members, or incompletely implements an interface.
 }
 
 \LMHash{}
@@ -2857,8 +2814,8 @@ $X_1\ \EXTENDS\ B_1, \ldots,\ X_m\ \EXTENDS\ B_m$,
 and a parameterized type $T$ of the form \code{C<$T_1, \ldots,\ T_l$>}.
 
 \LMHash{}
-It is a static warning if $m \not= l$.
-It is a static warning if $T$ is not well-bounded
+It is a compile-time error if $m \not= l$.
+It is a compile-time error if $T$ is not well-bounded
 (\ref{superBoundedTypes}).
 
 \commentary{
@@ -2883,8 +2840,8 @@ and right hand side $T$,
 and the parameterized type $S$ of the form \code{F<$T_1, \ldots,\ T_l$>}.
 
 \LMHash{}
-It is a static warning if $m \not= l$.
-It is a static warning if $S$ is not well-bounded
+It is a compile-time error if $m \not= l$.
+It is a compile-time error if $S$ is not well-bounded
 (\ref{superBoundedTypes}).
 
 \commentary{
@@ -2919,8 +2876,8 @@ where the static type of \code{f} is a generic function type with formal type pa
 $X_1\ \EXTENDS\ B_1, \ldots,\ X_m\ \EXTENDS\ B_m$.
 
 \LMHash{}
-It is a static warning if $m \not= l$.
-It is a static warning if there exists a $j$
+It is a compile-time error if $m \not= l$.
+It is a compile-time error if there exists a $j$
 such that $T_j$ is not a subtype of $[T_1/X_1, \ldots, T_m/X_m]B_j$.
 
 \commentary{
@@ -2940,7 +2897,7 @@ where each formal type parameter has been replaced by the corresponding actual t
 \LMHash{}
 A type parameter $T$ may be suffixed with an \EXTENDS{} clause that specifies the {\em upper bound} for $T$.
 If no \EXTENDS{} clause is present, the upper bound is \code{Object}.
-It is a static type warning if a type parameter is a supertype of its upper bound
+It is a compile-time error if a type parameter is a supertype of its upper bound
 when that upper bound is itself a type variable.
 
 \commentary{
@@ -4258,7 +4215,7 @@ A run-time map literal $\{k_1:e_1, \ldots, k_n :e_n\}$ is evaluated as
 $<\DYNAMIC{}, \DYNAMIC{}>\{k_1:e_1, \ldots, k_n :e_n\}$.
 
 \LMHash{}
-If{}f all the keys in a map literal are compile-time constants, it is a static warning if the values of any two keys in a map literal are equal.
+It is a compile-time error if two keys of a constant map literal are equal.
 
 \LMHash{}
 A map literal is ordered: iterating over the keys and/or values of the maps always happens in the
@@ -4574,7 +4531,7 @@ Instance creation expressions invoke constructors to produce instances.
 %It is a compile-time error if a constructor of a non-generic type invoked by a new expression or a constant object expression is passed any type arguments. It is a compile-time error if a constructor of a generic type with $n$ type parameters invoked by a new expression or a constant object expression is passed $m$ type arguments where $m \ne n$, or if any of its type arguments is misconstructed (\ref{parameterizedTypes}).
 
 \LMHash{}
-It is a static type warning if
+It is a compile-time error if
 the type $T$ in an instance creation expression of one of the forms
 
 \code{\NEW{} $T$.\id($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)},
@@ -4584,7 +4541,7 @@ the type $T$ in an instance creation expression of one of the forms
 \code{\CONST{} $T$.\id($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)},
 
 \code{\CONST{} $T$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
-is malformed (\ref{dynamicTypeSystem}) or malbounded (\ref{parameterizedTypes}).
+is malformed (\ref{staticTypes}) or malbounded (\ref{parameterizedTypes}).
 
 \LMHash{}
 It is a compile-time error if the type $T$ in an instance creation expression of one of the forms
@@ -4620,23 +4577,17 @@ or the form
 
 \code{\NEW{} $T$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}.
 
-%It is a run-time type error if
-%the type $T$ is malformed.
-%It is a static warning if $T$ is a malformed type.
-
-%not a class accessible in the current scope, optionally followed by type arguments.
-
 \LMHash{}
 If $T$ is a class or parameterized type accessible in the current scope then:
 \begin{itemize}
 \item
 If $e$ is of the form
-\code{\NEW{} $T$.\id($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
-it is a static warning if \code{$T$.\id} is not the name of a constructor declared by the type $T$.
+\code{\NEW{} $T$.\id($a_1, \ldots,\ a_n,\ x_{n+1}:\ a_{n+1}, \ldots,\ x_{n+k}:\ a_{n+k}$)}
+it is a compile-time error if \code{$T$.\id} is not the name of a constructor declared by the type $T$.
 \item
 If $e$ is of the form
 \code{\NEW{} $T$($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
-it is a static warning if the type $T$ does not declare a constructor with the same name as the declaration of $T$.
+it is a compile-time error if the type $T$ does not declare a constructor with the same name as the declaration of $T$.
 \end{itemize}
 
 \LMHash{}
@@ -4724,15 +4675,16 @@ Otherwise the execution throws an exception $x$ and stack trace $t$,
 and then evaluation of $e$ also throws $x$ and $t$ (\ref{evaluation}).
 
 \LMHash{}
-It is a static warning if $q$ is a constructor of an abstract class and $q$ is not a factory constructor.
+It is a compile-time error if $q$ is a constructor of an abstract class and $q$ is not a factory constructor.
 
 \commentary{
-The above gives precise meaning to the idea that instantiating an abstract class leads to a warning.
+The above gives precise meaning to the idea that instantiating an abstract class leads to an error.
 A similar clause applies to constant object creation in the next section.
 }
 
 \rationale{
-In particular, a factory constructor can be declared in an abstract class and used safely, as it will either produce a valid instance or lead to a warning inside its own declaration.
+In particular, a factory constructor can be declared in an abstract class and used safely,
+as it will either produce a valid instance or throw.
 }
 
 \LMHash{}
@@ -4745,7 +4697,7 @@ or the form
 \code{\NEW{} $T$($a_1, \ldots,\ a_n,\ x_{n+1}:\ a_{n+1}, \ldots,\ x_{n+k}:\ a_{n+k}$)}
 
 is $T$.
-It is a static warning if the static type of $a_i, 1 \le i \le n + k$ may not be assigned to the type of the corresponding formal parameter of the constructor \code{$T$.\id} (respectively $T$).
+It is a compile-time error if the static type of $a_i, 1 \le i \le n + k$ may not be assigned to the type of the corresponding formal parameter of the constructor \code{$T$.\id} (respectively $T$).
 
 
 \subsubsection{Const}
@@ -4842,7 +4794,7 @@ or the form
 \code{\CONST{} $T$($a_1, \ldots,\ a_n,\ x_{n+1}:\ a_{n+1}, \ldots,\ x_{n+k}:\ a_{n+k}$)}
 
 is $T$.
-It is a static warning if the static type of $a_i, 1 \le i \le n+ k$ may not be assigned to the type of the corresponding formal parameter of the constructor \code{$T$.\id} (respectively $T$).
+It is a compile-time error if the static type of $a_i, 1 \le i \le n+ k$ may not be assigned to the type of the corresponding formal parameter of the constructor \code{$T$.\id} (respectively $T$).
 
 \LMHash{}
 It is a compile-time error if evaluation of a constant object results in an uncaught exception being thrown.
@@ -4875,7 +4827,7 @@ Due to the rules governing constant constructors, evaluating the constructor \co
 }
 
 \LMHash{}
-Given an instance creation expression of the form \CONST{} $q(a_1, \ldots,\ a_n)$ it is a static warning if $q$ is a constructor of an abstract class (\ref{abstractInstanceMembers}) but $q$ is not a factory constructor.
+Given an instance creation expression of the form \CONST{} $q(a_1, \ldots,\ a_n)$ it is a compile-time error if $q$ is a constructor of an abstract class (\ref{abstractInstanceMembers}) but $q$ is not a factory constructor.
 
 
 \subsection{Spawning an Isolate}
@@ -4890,7 +4842,7 @@ An isolate's memory is finite, as is the space available to its thread's call st
 It is possible for a running isolate to exhaust its memory or stack, resulting in a run-time error that cannot be effectively caught, which will force the isolate to be suspended.
 
 \commentary{
-As discussed in section \ref{errorsAndWarnings}, the handling of a suspended isolate is the responsibility of the embedder.
+As discussed in section \ref{errors}, the handling of a suspended isolate is the responsibility of the embedder.
 }
 
 
@@ -5186,7 +5138,7 @@ It is a compile-time error if $q_i = q_j$ for any $i \ne j$.
 Let $T_i$ be the static type of $a_i$.
 If the static type of $f$ is \DYNAMIC{} or the built-in class \FUNCTION{},
 no further static checks are performed.
-Otherwise, it is a static type warning if the static type of $f$ is not a function type.
+Otherwise, it is a compile-time error if the static type of $f$ is not a function type.
 
 \LMHash{}
 Otherwise, let $X_1, \ldots, X_s$ be the formal type parameters of the static type of $f$,
@@ -5199,10 +5151,10 @@ Checks regarding the number of type parameters and their bounds is specified in 
 }
 
 \LMHash{}
-It is a static warning if $T_j$ may not be assigned to $S_j, j \in 1 .. m$.
-It is a static warning if $m < h$ or if $m > n$.
-Furthermore, each $q_i, i \in 1 .. l$, must have a corresponding named parameter in the set $\{p_{h+1}, \ldots, p_{h+k}\}$ or a static warning occurs.
-It is a static warning if $T_{m+j}$ may not be assigned to $S_{q_j}, j \in 1 .. l$.
+It is a compile-time error if $T_j$ may not be assigned to $S_j, j \in 1 .. m$.
+It is a compile-time error if $m < h$ or if $m > n$.
+Furthermore, each $q_i, i \in 1 .. l$, must have a corresponding named parameter in the set $\{p_{h+1}, \ldots, p_{h+k}\}$ or a compile-time error occurs.
+It is a compile-time error if $T_{m+j}$ may not be assigned to $S_{q_j}, j \in 1 .. l$.
 
 
 \subsubsection{Unqualified Invocation}
@@ -5250,7 +5202,7 @@ If $i$ does not occur inside a top level or static function, $i$ is equivalent t
 \code{\THIS{}.\id<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}.
 
 % Should also say:
-% It is a static warning if $i$ occurs inside a top level or static function (be it function, method, getter, or setter) or variable initializer and there is no lexically visible declaration named \id{} in scope.
+% It is a compile-time error if $i$ occurs inside a top level or static function (be it function, method, getter, or setter) or variable initializer and there is no lexically visible declaration named \id{} in scope.
 
 
 \subsubsection{Function Expression Invocation}
@@ -5329,7 +5281,7 @@ and its result is the result of evaluating $i$.
 
 \LMHash{}
 Let $F$ be the static type of $e_f$.
-It is a static warning unless one of the following conditions is satisfied:
+It is a compile-time error unless one of the following conditions is satisfied:
 \begin{enumerate}
 \item $F$ is \DYNAMIC{}.
 \item $F$ is \FUNCTION{}.
@@ -5526,7 +5478,7 @@ The static type of $i$ is the same as the static type of
 \code{$e$.$m$<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}.
 
 \noindent
-Exactly the same static warnings that would be caused by
+Exactly the same compile-time errors that would be caused by
 
 \code{$e$.$m$<$A_1, \ldots,\ A_r$>($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)}
 
@@ -5649,7 +5601,7 @@ Notice that the wording carefully avoids re-evaluating the receiver $o$ and the 
 
 \LMHash{}
 Let $T$ be the static type of $e$.
-It is a static type warning if $T$ does not have an accessible (\ref{privacy}) instance member named $m$, unless either:
+It is a compile-time error if $T$ does not have an accessible (\ref{privacy}) instance member named $m$, unless either:
 \begin{itemize}
 \item $T$ is \code{Type}, $e$ is a constant type literal,
 and the class corresponding to $e$ has a static getter named $m$.
@@ -5661,13 +5613,11 @@ a receiver of type \FUNCTION{} is treated like a receiver of type \DYNAMIC{}.
 The expectation is that any concrete subclass of \FUNCTION{} will implement \CALL,
 but there is no method signature which can be assumed for \CALL{} in \FUNCTION{}
 because every signature will conflict with some potential overriding declarations.
-Note that any use of \CALL{} on a subclass of \FUNCTION{} that fails to implement \CALL{} will provoke a warning,
-as this exemption is limited to type \FUNCTION{}, and does not apply to its subtypes.
 }
 \end{itemize}
 
 \LMHash{}
-If $T.m$ exists, it is a static type warning if the type $F$ of $T.m$ may not be assigned to a function type.
+If $T.m$ exists, it is a compile-time error if the type $F$ of $T.m$ may not be assigned to a function type.
 If $T.m$ does not exist, or if $F$ is not a function type, the static type of $i$ is \DYNAMIC{}.
 Otherwise, let $X_1, \ldots, X_s$ be the formal type parameters of the type of $F$,
 and $T_0$ its declared return type.
@@ -5844,10 +5794,10 @@ or in a static method or variable initializer.
 
 \LMHash{}
 Let $S_{static}$ be the superclass of the immediately enclosing class.
-It is a static type warning if $S_{static}$ does not have an accessible (\ref{privacy}) instance member named $m$.
+It is a compile-time error if $S_{static}$ does not have an accessible (\ref{privacy}) instance member named $m$.
 
 \LMHash{}
-If $S_{static}.m$ exists, it is a static type warning if the type $F$ of $S_{static}.m$ may not be assigned to a function type.
+If $S_{static}.m$ exists, it is a compile-time error if the type $F$ of $S_{static}.m$ may not be assigned to a function type.
 If $S_{static}.m$ does not exist, or if $F$ is not a function type, the static type of $i$ is \DYNAMIC{};
 Otherwise, let $X_1, \ldots, X_s$ be the formal type parameters of the type of $F$,
 and $T_0$ its declared return type.
@@ -5859,7 +5809,7 @@ That is, the declared return type where each formal type parameter has been repl
 }
 
 % The following is not needed because it is specified in 'Binding Actuals to Formals"
-%Let $T_i$ be the static type of $a_i, i \in 1 .. n+k$. It is a static warning if $F$ is not a supertype of $(T_1, \ldots, t_n, \{T_{n+1}\ x_{n+1}, \ldots, T_{n+k}\ x_{n+k}\}) \to \bot$.
+%Let $T_i$ be the static type of $a_i, i \in 1 .. n+k$. It is a compile-time error if $F$ is not a supertype of $(T_1, \ldots, t_n, \{T_{n+1}\ x_{n+1}, \ldots, T_{n+k}\ x_{n+k}\}) \to \bot$.
 
 
 \subsubsection{Sending Messages}
@@ -5911,7 +5861,7 @@ Then $e$ evaluates to $r$.
 
 The static type of $e$ is the same as the static type of \code{$e_1$.\id}.
 Let $T$ be the static type of $e_1$ and let $y$ be a fresh variable of type $T$.
-Exactly the same static warnings that would be caused by \code{$y$.\id} are also generated in the case of \code{$e_1$?.\id}.
+Exactly the same compile-time errors that would be caused by \code{$y$.\id} are also generated in the case of \code{$e_1$?.\id}.
 
 \LMHash{}
 Unconditional property extraction has one of two syntactic forms: $e.m$ (\ref{getterAccessAndMethodExtraction}) or $\SUPER.m$ (\ref{superGetterAccessAndMethodClosurization}), where $e$ is an expression and $m$ is an identifier.
@@ -5980,7 +5930,7 @@ This precludes \code{int.toString} but not \code{(int).toString} because in the 
 
 \LMHash{}
 Let $T$ be the static type of $e$.
-It is a static type warning if $T$ does not have a method or getter named $m$,
+It is a compile-time error if $T$ does not have a method or getter named $m$,
 unless $T$ is \code{Type},
 $e$ is a constant type literal,
 and the class corresponding to $e$ has a static method or getter named $m$.
@@ -6043,7 +5993,7 @@ Then the method \code{noSuchMethod()} is looked up in $S_{dynamic}$ and invoked 
 
 \LMHash{}
 Let $S_{static}$ be the superclass of the immediately enclosing class.
-It is a static type warning if $S_{static}$ does not have an accessible instance method or getter named $m$.
+It is a compile-time error if $S_{static}$ does not have an accessible instance method or getter named $m$.
 
 The static type of $i$ is:
 \begin{itemize}
@@ -6334,7 +6284,7 @@ Otherwise, the assignment is equivalent to the assignment \code{\THIS{}.$v$ = $e
 In checked mode, it is a dynamic type error if $o$ is not the null object (\ref{null}) and the interface of the class of $o$ is not a subtype of the actual type (\ref{actualTypeOfADeclaration}) of $v$.
 
 \LMHash{}
-It is a static type warning if the static type of $e$ may not be assigned to the static type of $v$.
+It is a compile-time error if the static type of $e$ may not be assigned to the static type of $v$.
 The static type of the expression $v$ \code{=} $e$ is the static type of $e$.
 
 \LMHash{}
@@ -6354,7 +6304,7 @@ Then $a$ evaluates to $r$.
 \LMHash{}
 The static type of $a$ is the static type of $e_2$.
 Let $T$ be the static type of $e_1$ and let $y$ be a fresh variable of type $T$.
-Exactly the same static warnings that would be caused by \code{$y$.$v$ = $e_2$} are also generated in the case of \code{$e_1$?.$v$ = $e_2$}.
+Exactly the same compile-time errors that would be caused by \code{$y$.$v$ = $e_2$} are also generated in the case of \code{$e_1$?.$v$ = $e_2$}.
 
 \LMHash{}
 Evaluation of an assignment of the form \code{$e_1$.$v$ = $e_2$} proceeds as follows:
@@ -6402,10 +6352,10 @@ In checked mode, it is a dynamic type error if $o_2$ is not the null object (\re
 
 \LMHash{}
 Let $T$ be the static type of $e_1$.
-It is a static type warning if $T$ does not have an accessible instance setter named $v=$ unless $T$ is \code{Type}, $e_1$ is a constant type literal and the class corresponding to $e_1$ has a static setter named $v=$.
+It is a compile-time error if $T$ does not have an accessible instance setter named $v=$ unless $T$ is \code{Type}, $e_1$ is a constant type literal and the class corresponding to $e_1$ has a static setter named $v=$.
 
 \LMHash{}
-It is a static type warning if the static type of $e_2$ may not be assigned to the static type of the formal parameter of the setter $v=$.
+It is a compile-time error if the static type of $e_2$ may not be assigned to the static type of the formal parameter of the setter $v=$.
 The static type of the expression $e_1.v$ \code{=} $e_2$ is the static type of $e_2$.
 
 \LMHash{}
@@ -6440,10 +6390,10 @@ In checked mode, it is a dynamic type error if $o$ is not the null object (\ref{
 
 \LMHash{}
 Let $S_{static}$ be the superclass of the immediately enclosing class.
-It is a static type warning if $S_{static}$ does not have an accessible instance setter named $v=$ unless $S_{static}$.
+It is a compile-time error if $S_{static}$ does not have an accessible instance setter named $v=$ unless $S_{static}$.
 
 \LMHash{}
-It is a static type warning if the static type of $e$ may not be assigned to the static type of the formal parameter of the setter $v=$.
+It is a compile-time error if the static type of $e$ may not be assigned to the static type of the formal parameter of the setter $v=$.
 The static type of the expression $\SUPER.v$ \code{=} $e$ is the static type of $e$.
 
 \LMHash{}
@@ -6465,7 +6415,9 @@ The static type of the expression \code{\SUPER[$e_1$] = $e_2$} is the static typ
 % Should we add: It is a dynamic error if $e_1$ evaluates to an constant list or map.
 
 \LMHash{}
-It is a static warning if an assignment of the form $v = e$ occurs inside a top level or static function (be it function, method, getter, or setter) or variable initializer and there is neither a local variable declaration with name $v$ nor setter declaration with name $v=$ in the lexical scope enclosing the assignment.
+It is a compile-time error if an assignment of the form $v = e$ occurs inside a top level or static function (be it function, method, getter, or setter) or variable initializer,
+and there is neither a local variable (\commentary{which includes formal parameters}) with name $v$
+nor a setter declaration with name $v=$ in the lexical scope enclosing the assignment.
 
 \LMHash{}
 It is a compile-time error to invoke any of the setters of class \code{Object} on a prefix object (\ref{imports}) or on a constant type literal that is immediately followed by the token `.'.
@@ -6548,24 +6500,24 @@ A compound assignment of the form $C?.v$ {\em ??=} $e_2$ is equivalent to the ex
 
 \LMHash{}
 The static type of a compound assignment of the form $v$ {\em ??=} $e$ is the least upper bound of the static type of $v$ and the static type of $e$.
-Exactly the same static warnings that would be caused by $v = e$ are also generated in the case of $v$ {\em ??=} $e$.
+Exactly the same compile-time errors that would be caused by $v = e$ are also generated in the case of $v$ {\em ??=} $e$.
 
 \LMHash{}
 The static type of a compound assignment of the form $C.v$ {\em ??=} $e$ is the least upper bound of the static type of $C.v$ and the static type of $e$.
-Exactly the same static warnings that would be caused by $C.v = e$ are also generated in the case of $C.v$ {\em ??=} $e$.
+Exactly the same compile-time errors that would be caused by $C.v = e$ are also generated in the case of $C.v$ {\em ??=} $e$.
 
 \LMHash{}
 The static type of a compound assignment of the form $e_1.v$ {\em ??=} $e_2$ is the least upper bound of the static type of $e_1.v$ and the static type of $e_2$.
 Let $T$ be the static type of $e_1$ and let $z$ be a fresh variable of type $T$.
-Exactly the same static warnings that would be caused by $z.v = e_2$ are also generated in the case of $e_1.v$ {\em ??=} $e_2$.
+Exactly the same compile-time errors that would be caused by $z.v = e_2$ are also generated in the case of $e_1.v$ {\em ??=} $e_2$.
 
 \LMHash{}
 The static type of a compound assignment of the form $e_1[e_2]$ {\em ??=} $e_3$ is the least upper bound of the static type of $e_1[e_2]$ and the static type of $e_3$.
-Exactly the same static warnings that would be caused by $e_1[e_2] = e_3$ are also generated in the case of $e_1[e_2]$ {\em ??=} $e_3$.
+Exactly the same compile-time errors that would be caused by $e_1[e_2] = e_3$ are also generated in the case of $e_1[e_2]$ {\em ??=} $e_3$.
 
 \LMHash{}
 The static type of a compound assignment of the form $\SUPER.v$ {\em ??=} $e$ is the least upper bound of the static type of $\SUPER.v$ and the static type of $e$.
-Exactly the same static warnings that would be caused by $\SUPER.v = e$ are also generated in the case of $\SUPER.v$ {\em ??=} $e$.
+Exactly the same compile-time errors that would be caused by $\SUPER.v = e$ are also generated in the case of $\SUPER.v$ {\em ??=} $e$.
 
 \LMHash{}
 For any other valid operator $op$, a compound assignment of the form \code{$v$ $op$= $e$} is equivalent to \code{$v$ = $v$ $op$ $e$}.
@@ -6596,7 +6548,7 @@ Then $a$ evaluates to $r$.
 
 \LMHash{}
 The static type of \code{$e_1$?.$v$ $op$= $e_2$} is the static type of \code{$e_1$.$v$ $op$ $e_2$}.
-Exactly the same static warnings that would be caused by \code{$e_1$.$v$ $op$= $e_2$} are also generated in the case of \code{$e_1$?.$v$ $op$= $e_2$}.
+Exactly the same compile-time errors that would be caused by \code{$e_1$.$v$ $op$= $e_2$} are also generated in the case of \code{$e_1$?.$v$ $op$= $e_2$}.
 
 \LMHash{}
 A compound assignment of the form $C?.v$ $op = e_2$ is equivalent to the expression
@@ -6652,7 +6604,7 @@ If all of the following hold:
 then the type of $v$ is known to be $T$ in $e_2$.
 
 \LMHash{}
-It is a static type warning if the static type of $e_1$ may not be assigned to \code{bool}.
+It is a compile-time error if the static type of $e_1$ may not be assigned to \code{bool}.
 The static type of $c$ is the least upper bound (\ref{leastUpperBounds}) of the static type of $e_2$ and the static type of $e_3$.
 
 
@@ -6731,7 +6683,7 @@ Furthermore, if all of the following hold:
 then the type of $v$ is known to be $T$ in $e_2$.
 
 \LMHash{}
-It is a static warning if the static type of $e_1$ may not be assigned to \code{bool} or if the static type of $e_2$ may not be assigned to \code{bool}.
+It is a compile-time error if the static type of $e_1$ may not be assigned to \code{bool} or if the static type of $e_2$ may not be assigned to \code{bool}.
 The static type of a logical boolean expression is \code{bool}.
 
 
@@ -7055,7 +7007,7 @@ If such a function were to suspend waiting for a future, it would no longer be s
 }
 
 \commentary{
-It is not a static warning if the type of $e$ is not a subtype of \code{Future}.
+It is not a compile-time error if the type of $e$ is not a subtype of \code{Future}.
 Tools may choose to give a hint in such cases.
 }
 
@@ -7400,8 +7352,7 @@ If, however, $e$ occurs inside a static member, a compile-time error occurs.
 \item If $d$ is the declaration of a static variable, static getter or static setter declared in class $C$, then evaluation of $e$ is equivalent to evaluation of the property extraction (\ref{propertyExtraction}) \code{$C$.\id}.
 \item If $d$ is the declaration of a library variable, top-level getter or top-level setter, then evaluation of $e$ is equivalent to evaluation of the top level getter invocation (\ref{topLevelGetterInvocation}) \id.
 \item Otherwise, if $e$ occurs inside a top level or static function (be it function, method, getter, or setter) or variable initializer, evaluation of $e$ causes a \code{NoSuchMethod} to be thrown.
-\item Otherwise, evaluation of $e$ is equivalent to evaluation of the property extraction (\ref{propertyExtraction}) \THIS{}.\id.
-% This implies that referring to an undefined static getter by simple name is an error, whereas doing so by qualified name is only a warning. Same with assignments.  Revise?
+\item Otherwise, evaluation of $e$ is equivalent to evaluation of the property extraction (\ref{propertyExtraction}) \code{\THIS.\id}.
 \end{itemize}
 
 \LMHash{}
@@ -7422,12 +7373,16 @@ Note that if one declares a setter, we bind to the corresponding getter even if 
 }
 
 \rationale{
- This prevents situations where one uses uncorrelated setters and getters.
+This prevents situations where one uses uncorrelated setters and getters.
 The intent is to prevent errors when a getter in a surrounding scope is used accidentally.
 }
 
 \LMHash{}
-It is a static warning if an identifier expression \id{} occurs inside a top level or static function (be it function, method, getter, or setter) or variable initializer and there is no declaration $d$ with name \id{} in the lexical scope enclosing the expression.
+It is a compile-time error if an identifier expression \id{} occurs inside a top level or static function
+(be it function, method, getter, or setter)
+or in an instance variable initializer,
+or in an initializer list expression,
+and there is no declaration $d$ with name \id{} in the lexical scope enclosing the expression.
 
 
 \subsection{Type Test}
@@ -7472,9 +7427,9 @@ Let $v$ be a local variable or a formal parameter.
 An is-expression of the form \code{$v$ \IS{} $T$} shows that $v$ has type $T$ if{}f $T$ is more specific than the type $S$ of the expression $v$ and both $T \ne \DYNAMIC{}$ and $S \ne \DYNAMIC{}$.
 
 \rationale{
-The motivation for the ``shows that v has type T" relation is to reduce spurious warnings thereby enabling a more natural coding style.
+The motivation for the ``shows that v has type T" relation is to reduce spurious errors thereby enabling a more natural coding style.
 The rules in the current specification are deliberately kept simple.
-It would be upwardly compatible to refine these rules in the future; such a refinement would accept more code without warning, but not reject any code now warning-free.
+It would be upwardly compatible to refine these rules in the future; such a refinement would accept more code without errors, but not reject any code now error-free.
 
 The rule only applies to locals and parameters, as instance or static variables could be modified via side-effecting functions or methods that are not accessible to a local analysis.
 
@@ -7482,7 +7437,7 @@ It is pointless to deduce a weaker type than what is already known.
 Furthermore, this would lead to a situation where multiple types are associated with a variable at a given point, which complicates the specification.
 Hence the requirement that $T << S$ (we use $<<$ rather than subtyping because subtyping is not a partial order).
 
-We do not want to refine the type of a variable of type \DYNAMIC{}, as this could lead to more warnings rather than fewer.
+We do not want to refine the type of a variable of type \DYNAMIC{}, as this could lead to more errors rather than fewer.
 The opposite requirement, that $T \ne \DYNAMIC{}$ is a safeguard lest $S$ ever be $\bot$.
 }
 
@@ -7754,7 +7709,7 @@ If we assume that \code{v} is declared in the scope of the method \code{main()},
 The cleanest approach would be to require a block following the test, rather than an arbitrary statement.
 However, this goes against long standing custom, undermining Dart's goal of familiarity.
 Instead, we choose to insert a block, introducing a scope, around the statement following the predicate (and similarly for \ELSE{} and loops).
-This will cause both a warning and a run-time error in the case above.
+This will cause a compile-time error in the case above.
 Of course, if there is a declaration of \code{v} in the surrounding scope, programmers might still be surprised.
 We expect tools to highlight cases of shadowing to help avoid such situations.
 }
@@ -7768,7 +7723,7 @@ It is a run-time error if the run-time type of $o$ is not \code{bool}.
 If $o$ is \TRUE{}, then the block statement $s_1$ is executed, otherwise the block statement $s_2$ is executed.
 
 \LMHash{}
-It is a static type warning if the type of the expression $b$ may not be assigned to \code{bool}.
+It is a compile-time error if the type of the expression $b$ may not be assigned to \code{bool}.
 
 \LMHash{}
 If:
@@ -7855,7 +7810,7 @@ The expression executed at the end of each iteration uses a fresh variable $v''$
 }
 
 \LMHash{}
-It is a static warning if the static type of $c$ may not be assigned to \code{bool}.
+It is a compile-time error if the static type of $c$ may not be assigned to \code{bool}.
 
 %A for statement of the form \code{\FOR{} ($d$ ; $c$; $e$) $s$} is equivalent to the following code:
 
@@ -7891,8 +7846,7 @@ this code is checked under the assumption that $n0$ is declared to be of type $T
 where $T$ is the static type of \code{$e$.iterator}.
 
 \commentary{
-It follows that it is a static warning if $D$ is empty and \id{} is a final variable,
-and a dynamic error will then occur if the body is executed.
+It follows that it is a compile-time error if $D$ is empty and \id{} is a final variable.
 }
 
 
@@ -7913,8 +7867,7 @@ proceeds as follows:
 \LMHash{}
 The expression $e$ is evaluated to an object $o$.
 It is a dynamic error if $o$ is not an instance of a class that implements \code{Stream}.
-It is a static warning if $D$ is empty and \id{} is a final variable,
-and it is then a dynamic error if the body is executed.
+It is a compile-time error if $D$ is empty and \id{} is a final variable.
 
 \LMHash{}
 The stream associated with the innermost enclosing asynchronous for loop, if any, is paused.
@@ -8014,7 +7967,7 @@ it does end execution of the loop, but the break itself is handled by the surrou
 }
 
 \LMHash{}
-It is a static type warning if the static type of $e$ may not be assigned to \code{bool}.
+It is a compile-time error if the static type of $e$ may not be assigned to \code{bool}.
 
 
 \subsection{Do}
@@ -8042,7 +7995,7 @@ If $o$ is \FALSE{}, execution of the do statement completes normally (\ref{compl
 If $o$ is \TRUE{}, then the do statement is re-executed.
 
 \LMHash{}
-It is a static type warning if the static type of $e$ may not be assigned to \code{bool}.
+It is a compile-time error if the static type of $e$ may not be assigned to \code{bool}.
 
 
 \subsection{Switch}
@@ -8190,10 +8143,11 @@ If such a $h$ exists, the case statements $s_h$ are executed (\ref{case-execute}
 Otherwise the switch statement completes normally (\ref{completion}).
 
 \LMHash{}
-It is a static warning if the type of $e$ may not be assigned to the type of $e_k$.
+It is a compile-time error if the type of $e$ may not be assigned to the type of $e_k$.
 Let $s$ be the last statement of the statement sequence $s_k$.
 If $s$ is a non-empty block statement, let $s$ instead be the last statement of the block statement.
-It is a static warning $s$ is not a \BREAK{}, \CONTINUE{}, \RETHROW{} or \RETURN{} statement or an expression statement where the expression is a \THROW{} expression.
+It is a compile-time error if $s$ is not a \BREAK{}, \CONTINUE{}, \RETHROW{} or \RETURN{} statement
+or an expression statement where the expression is a \THROW{} expression.
 
 \rationale{
 The behavior of switch cases intentionally differs from the C tradition.
@@ -8205,8 +8159,6 @@ We have chosen not to do so in order to facilitate porting of switch statements 
 Implicitly breaking the control flow at the end of a case would silently alter the meaning of ported code that relied on fall-through, potentially forcing the programmer to deal with subtle bugs.
 Our design ensures that the difference is immediately brought to the coder's attention.
 The programmer will be notified at compile time if they forget to end a case with a statement that terminates the straight-line control flow.
-We could make this warning a compile-time error, but refrain from doing so because do not wish to force the programmer to deal with this issue immediately while porting code.
-If developers ignore the warning and run their code, a run-time error will prevent the program from misbehaving in hard-to-debug ways (at least with respect to this issue).
 
 The sophistication of the analysis of fall-through is another issue.
 For now, we have opted for a very straightforward syntactic requirement.
@@ -8224,7 +8176,7 @@ There are obviously situations where code does not fall through, and yet does no
 }
 
 \LMHash{}
-It is a static warning if all of the following conditions hold:
+It is a compile-time error if all of the following conditions hold:
 \begin{itemize}
 \item The switch statement does not have a default clause.
 \item The static type of $e$ is an enumerated typed with elements $id_1, \ldots, id_n$.
@@ -8232,7 +8184,7 @@ It is a static warning if all of the following conditions hold:
 \end{itemize}
 
 \commentary{
-In other words, a warning will be issued if a switch statement over an enum is not exhaustive.
+In other words, an error will be raised if a switch statement over an enum is not exhaustive.
 }
 
 
@@ -8395,7 +8347,7 @@ Otherwise the \TRY{} statement completes in the same way as the execution of $b$
 
 \LMHash{}
 If $T_1$ is a malformed or deferred type (\ref{staticTypes}), then performing a match causes a run-time error.
-It is a static warning if $T_i$, $1 \le i \le n$ is a deferred or malformed type.
+It is a compile-time error if $T_i$, $1 \le i \le n$ is a deferred or malformed type.
 
 
 \subsubsection{\ON{}-\CATCH{} clauses}
@@ -8452,8 +8404,8 @@ If the body of $f$ is marked \ASYNC{} (\ref{functions}) and the run-time type of
 Then the return statement returns the value $r$ (\ref{completion}).
 
 \LMHash{}
-It is a static type warning if the body of $f$ is marked \ASYNC{} and the type \code{Future<$flatten(T)$>} (\ref{functionExpressions}) may not be assigned to the declared return type of $f$.
-Otherwise, it is a static type warning if $T$ may not be assigned to the declared return type of $f$.
+It is a compile-time error if the body of $f$ is marked \ASYNC{} and the type \code{Future<$flatten(T)$>} (\ref{functionExpressions}) may not be assigned to the declared return type of $f$.
+Otherwise, it is a compile-time error if $T$ may not be assigned to the declared return type of $f$.
 
 \LMHash{}
 Let $S$ be the run-time type of $o$.
@@ -8493,14 +8445,14 @@ In the case of a generator function, the value returned by the function is the i
 
 \LMHash{}
 Let $f$ be the function immediately enclosing a return statement of the form \RETURN{};.
-It is a static warning if $f$ is neither a generator nor a generative constructor and either:
+It is a compile-time error if $f$ is neither a generator nor a generative constructor and either:
 \begin{itemize}
 \item $f$ is synchronous and the return type of $f$ may not be assigned to \VOID{} (\ref{typeVoid}) or,
 \item $f$ is asynchronous and the return type of $f$ may not be assigned to \code{Future<Null>}.
 \end{itemize}
 
 \commentary{
-Hence, a static warning will not be issued if $f$ has no declared return type, since the return type would be \DYNAMIC{} and \DYNAMIC{} may be assigned to \VOID{} and to \code{Future<Null>}.
+Hence, a compile-time error will not be raised if $f$ has no declared return type, since the return type would be \DYNAMIC{} and \DYNAMIC{} may be assigned to \VOID{} and to \code{Future<Null>}.
 However, any synchronous non-generator function that declares a return type must return an expression explicitly.
 }
 \rationale{
@@ -8520,7 +8472,9 @@ Leaving the return type of a function marked \ASYNC{} blank will be interpreted 
 Executing a return statement with no expression, \code{\RETURN;} returns with no value (\ref{completion}).
 
 \LMHash{}
-It is a static warning if a function contains both one or more explicit return statements of the form \code{\RETURN;} and one or more return statements of the form \code{\RETURN{} $e$;}.
+% TODO(eernst): For integration of invalid_returns.md: We do allow that now, and
+% many other things, eg `void foo(bool b) { if (b) return; return print(''); }`.
+It is a compile-time error if a function contains both one or more explicit return statements of the form \code{\RETURN;} and one or more return statements of the form \code{\RETURN{} $e$;}.
 
 
 \subsection{Labels}
@@ -8677,7 +8631,7 @@ It is a compile-time error if a yield statement appears in a function that is no
 
 \LMHash{}
 Let $T$ be the static type of $e$ and let $f$ be the immediately enclosing function.
-It is a static type warning if either:
+It is a compile-time error if either:
 \begin{itemize}
 \item
 the body of $f$ is marked \ASYNC* and the type \code{Stream<T>} may not be assigned to the declared return type of $f$.
@@ -8746,9 +8700,9 @@ It is a compile-time error if a yield-each statement appears in a function that 
 
 \LMHash{}
 Let $T$ be the static type of $e$ and let $f$ be the immediately enclosing function.
-It is a static type warning if $T$ may not be assigned to the declared return type of $f$.
-If $f$ is synchronous it is a static type warning if $T$ may not be assigned to \code{Iterable}.
-If $f$ is asynchronous it is a static type warning if $T$ may not be assigned to \code{Stream}.
+It is a compile-time error if $T$ may not be assigned to the declared return type of $f$.
+If $f$ is synchronous it is a compile-time error if $T$ may not be assigned to \code{Iterable}.
+If $f$ is asynchronous it is a compile-time error if $T$ may not be assigned to \code{Stream}.
 
 
 \subsection{Assert}
@@ -8795,7 +8749,7 @@ Otherwise, $e$ is evaluated to an object $m$
 and then the execution of the assert statement throws (\ref{completion}) an \code{AssertionError} containing $m$ and with a stack trace corresponding to the current execution state at the assertion.
 
 \LMHash{}
-It is a static type warning if the type of $e$ may not be assigned to \code{bool}.
+It is a compile-time error if the type of $e$ may not be assigned to \code{bool}.
 
 \rationale{
 Why is this a statement, not a built in function call? Because it is handled magically so it has no effect and no overhead in production mode.
@@ -8954,7 +8908,7 @@ It is a compile-time error if the specified URI of an immediate import does not 
 The interpretation of URIs is described in section \ref{uris} below.
 
 \LMHash{}
-It is a static warning if the specified URI of a deferred import does not refer to a library declaration.
+It is a compile-time error if the specified URI of a deferred import does not refer to a library declaration.
 
 \rationale{
 One cannot detect the problem at compile time because compilation often occurs during execution and one does not know what the URI refers to.
@@ -9000,7 +8954,7 @@ Calling the method results in a run-time error.
 \end{itemize}
 
 \rationale{
-The purpose of adding members of $B$ to $p$ is to ensure that any warnings issued when using $p$ are correct, and no spurious warnings are generated.
+The purpose of adding members of $B$ to $p$ is to ensure that any errors raised when using $p$ are correct, and no spurious errors are generated.
 In fact, at run time we cannot add these members until $B$ is loaded; but any such invocations will fail at run time as specified by virtue of being completely absent.
 }
 %But this is still a lie detectable by reflection. Probably revise so the type of p has these members but p does not.
@@ -9124,18 +9078,15 @@ It is recommended that tools that deploy Dart code produce output in which all i
 }
 
 \LMHash{}
-If a name $N$ is referenced by a library $L$ and $N$ is introduced into the top level scope of $L$ by more than one import, and not all the imports denote the same declaration, then:
-\begin{itemize}
-\item A static warning occurs.
-\item If $N$ is referenced as a function, getter or setter, a \code{NoSuchMethodError} is thrown.
-\item If $N$ is referenced as a type, it is treated as a malformed type.
-\end{itemize}
+If a name $N$ is referenced by a library $L$ and $N$ is introduced into the top level scope of $L$ by more than one import
+and not all the imports denote the same declaration,
+a compile-time error occurs.
 
 \LMHash{}
 We say that the namespace $NS$ {\em has been imported into} $L$.
 
 \commentary{
-It is neither an error nor a warning if $N$ is introduced by two or more imports but never referred to.
+It is not an error if $N$ is introduced by two or more imports but never referred to.
 }
 
 \rationale{
@@ -9152,7 +9103,7 @@ In contrast a library comprises both imports and their usage; the library is und
 }
 
 \LMHash{}
-It is a static warning to import two different libraries with the same name unless their name is the empty string.
+It is a compile-time error to import two different libraries with the same name unless their name is the empty string.
 
 \commentary{
 A widely disseminated library should be given a name that will not conflict with other such libraries.
@@ -9160,7 +9111,7 @@ The preferred mechanism for this is using pub, the Dart package manager, which p
 }
 
 \commentary{
-Note that no errors or warnings are given if one hides or shows a name that is not in a namespace.
+Note that no errors are raised if one hides or shows a name that is not in a namespace.
 }
 \rationale{
 This prevents situations where removing a name from a library would cause breakage of a client library.
@@ -9181,7 +9132,7 @@ Any import of \code{dart:core}, even if restricted via \SHOW{}, \HIDE{} or \AS{}
 It would be nice if there was nothing special about \code{dart:core}.
 However, its use is pervasive, which leads to the decision to import it automatically.
 However, some library $L$ may wish to define entities with names used by \code{dart:core} (which it can easily do, as the names declared by a library take precedence).
-Other libraries may wish to use $L$ and may want to use members of $L$ that conflict with the core library without having to use a prefix and without encountering warnings.
+Other libraries may wish to use $L$ and may want to use members of $L$ that conflict with the core library without having to use a prefix and without encountering errors.
 The above rule makes this possible, essentially canceling \code{dart:core}'s special treatment by means of yet another special rule.
 }
 
@@ -9258,7 +9209,7 @@ When no confusion can arise, we may simply state that $L$ {\em re-exports }$B$, 
 
 \LMHash{}
 It is a compile-time error if a name $N$ is re-exported by a library $L$ and $N$ is introduced into the export namespace of $L$ by more than one export, unless all exports refer to same declaration for the name $N$.
-It is a static warning to export two different libraries with the same name unless their name is the empty string.
+It is a compile-time error to export two different libraries with the same name unless their name is the empty string.
 
 
 \subsection{Parts}
@@ -9290,7 +9241,7 @@ A part declaration consists of a part header followed by a sequence of top-level
 Compiling a part directive of the form \code{\PART{} $s$;} causes the Dart system to attempt to compile the contents of the URI that is the value of $s$.
 The top-level declarations at that URI are then compiled by the Dart compiler in the scope of the current library.
 It is a compile-time error if the contents of the URI are not a valid part declaration.
-It is a static warning if the referenced part declaration $p$ names a library other than the current library as the library to which $p$ belongs.
+It is a compile-time error if the referenced part declaration $p$ names a library other than the current library as the library to which $p$ belongs.
 
 \LMHash{}
 Let $L$ be a library.
@@ -9475,11 +9426,12 @@ They have no effect whatsoever in production mode.
 \end{grammar}
 
 \LMHash{}
-A Dart implementation must provide a static checker that detects and reports exactly those situations this specification identifies as static warnings and only those situations.
+A Dart implementation must provide a static checker that detects and reports exactly those situations this specification identifies as compile-time errors,
+and only those situations.
 However:
 \begin{itemize}
 \item Running the static checker on a program $P$ is not required for compiling and running $P$.
-\item Running the static checker on a program $P$ must not prevent successful compilation of $P$ nor may it prevent the execution of $P$, regardless of whether any static warnings occur.
+\item Running the static checker on a program $P$ must not prevent successful compilation of $P$ nor may it prevent the execution of $P$, regardless of whether any compile-time errors occur.
 \end{itemize}
 
 \commentary{
@@ -9528,17 +9480,17 @@ A type $T$ is {\em malformed} if{}f:
 \end{itemize}
 
 \LMHash{}
-Any use of a malformed type gives rise to a static warning.
-A malformed type is then interpreted as \DYNAMIC{} by the static type checker and the run-time system unless explicitly specified otherwise.
+Any use of a malformed type gives rise to a compile-time error.
+A malformed type is then interpreted as \DYNAMIC{} by the static type checker unless explicitly specified otherwise.
 
 \rationale{
-This ensures that the developer is spared a series of cascading warnings as the malformed type interacts with other types.
+This ensures that the developer is spared a series of cascading errors as the malformed type interacts with other types.
 }
 
 \LMHash{}
 A type $T$ is {\em deferred} if{}f it is of the form $p.T$ where $p$ is a deferred prefix.
-It is a static warning to use a deferred type in a type annotation, type test, type cast or as a type parameter.
-However, all other static warnings must be issued under the assumption that all deferred libraries have successfully been loaded.
+It is a compile-time error to use a deferred type in a type annotation, type test, type cast or as a type parameter.
+However, all other compile-time errors must be issued under the assumption that all deferred libraries have successfully been loaded.
 
 % Now, when passed to a generic, p.T also has to be treated as dynamic - otherwise we have to fail immediately. Where do we say that? And how does this fit with idea that as a type object it fails? Should we say that the accessor on p returns dynamic instead of failing? Do we distinguish its use in a constructor vs its use in an annotation? It's not that we evaluate type objects in constructor args - these cannot represent parameterized types.
 
@@ -9600,10 +9552,8 @@ main() \{
 \end{dartCode}
 
 \commentary{
-The type of the formal parameter of $f$ is $foo$, which is undeclared in the lexical scope.
-This will lead to a static type warning.
-At run time the program will print \code{yoyoma}, because $foo$ is treated as \DYNAMIC{}.
-%fail when executing the type test on the first line of $main()$ because it leads to a subtype comparison involving a malformed type ($foo$).
+The type of the formal parameter of \code{f} is \code{foo}, which is undeclared in the lexical scope.
+This will lead to a compile-time error.
 
 As another example take
 }
@@ -9617,7 +9567,7 @@ main() \{
 \end{dartCode}
 
 \commentary{
-Since $i$ is not a type, a static warning will be issue at the declaration of $j$.
+Since $i$ is not a type, a compile-time error will be issue at the declaration of $j$.
 However, the program can be executed without incident in production mode because the undeclared type $i$ is treated as \DYNAMIC{}.
 However, in checked mode, the implicit subtype test at the assignment will trigger an error at run time.
 }
@@ -9630,7 +9580,7 @@ Here is an example involving malbounded types:
 \CLASS{} I<T \EXTENDS{} num> \{\}
 \CLASS{} J \{\}
 
-\CLASS{} A<T> \IMPLEMENTS{} J, I<T> // type warning: T is not a subtype of num
+\CLASS{} A<T> \IMPLEMENTS{} J, I<T> // compile-time error: T is not a subtype of num
 \{ ...
 \}
 \end{dartCode}
@@ -9950,7 +9900,6 @@ A function type $T$ may be assigned to a function type $S$, written $T \Longleft
 \LMHash{}
 A function is always an instance of some class that implements the class \FUNCTION{}.
 All function types are subtypes of \FUNCTION{}.
-It is a static warning if a concrete class implements \FUNCTION{} and does not have a concrete method named \CALL{} unless that class has a concrete \code{noSuchMethod()} distinct from the one declared in class \code{Object}.
 
 %\commentary{Need to specify how a function values dynamic type is derived from its static signature.}
 
@@ -10019,20 +9968,25 @@ The type \DYNAMIC{} denotes the unknown type.
 
 \LMHash{}
 If no static type annotation has been provided the type system assumes the declaration has the unknown type.
+%% TODO(eernst): Change when adding specification of instantiate-to-bound.
 If a generic type is used but type arguments are not provided, then the type arguments default to the unknown type.
 
 \commentary{
+%% TODO(eernst): Delete when adding specification of instantiate-to-bound.
 This means that given a generic declaration \code{$G$<$T_1, \ldots,\ T_n$>}, the type $G$ is equivalent to
 \code{$G$<$\DYNAMIC{}, \ldots,\ \DYNAMIC{}$>}.
 }
 
 \LMHash{}
+%% TODO(eernst): Rephrase to say that receivers of type `dynamic` _are treated as if_ this were the case.
 Type \DYNAMIC{} has methods for every possible identifier and arity, with every possible combination of named parameters.
 These methods all have \DYNAMIC{} as their return type, and their formal parameters all have type \DYNAMIC{}.
 Type \DYNAMIC{} has properties for every possible identifier.
 These properties all have type \DYNAMIC{}.
 
 \rationale{
+%% TODO(eernst): Change this entire rationale when adding specification of instantiate-to-bound.
+
 From a usability perspective, we want to ensure that the checker does not issue errors everywhere an unknown type is used.
 The definitions above ensure that no secondary errors are reported when accessing an unknown type.
 
@@ -10055,7 +10009,7 @@ This forces users to write type information in their client code just because th
 We do not want to impose this on Dart programmers, some of which may be blissfully unaware of types in general, and genericity in particular.
 
 What of static checking? Surely we would want to flag (2) when users have explicitly asked for static typechecking? Yes, but the reality is that the Dart static checker is likely to be running in the background by default.
-Engineering teams typically desire a ``clean build'' free of warnings and so the checker is designed to be extremely charitable.
+Engineering teams typically desire a ``clean build'' free of errors and so the checker is designed to be extremely charitable.
 Other tools can interpret the type information more aggressively and warn about violations of conventional (and sound) static type discipline.
 }
 
@@ -10070,6 +10024,8 @@ even though \DYNAMIC{} is not a class.
 
 \subsection{Type FutureOr}
 \LMLabel{typeFutureOr}
+
+%% TODO(eernst): We should make this a separate section, or change the title of this section.
 
 \LMHash{}
 The built-in type declaration \code{FutureOr},
@@ -10089,9 +10045,9 @@ type relations:
 \commentary{The last point guarantees that generic type \code{FutureOr} is
 {\em covariant} in its type parameter, just like class types.
 That is, if $S$ <: $T$ then \code{FutureOr<$S$>} <: \code{FutureOr<$T$>}.}
-If the type arguments passed to \code{FutureOr} would issue static warnings
+If the type arguments passed to \code{FutureOr} would incur compile-time errors
 if applied to a normal generic class with one type parameter,
-the same warnings are issued for \code{FutureOr}.
+the same compile-time errors are issued for \code{FutureOr}.
 The name \code{FutureOr} as an expression
 denotes a \code{Type} object representing the type \code{FutureOr<dynamic>}.
 
@@ -10124,6 +10080,8 @@ only allow invocations of members inherited from \code{Object}.
 \subsection{Type Void}
 \LMLabel{typeVoid}
 
+%% TODO(eernst): Adjust everything in this section when specifying generalized-void.
+
 \LMHash{}
 The special type \VOID{} may only be used as the return type of a function: it is a compile-time error to use \VOID{} in any other context.
 
@@ -10144,12 +10102,12 @@ $\VOID{} <: \DYNAMIC{}$ (as \DYNAMIC{} is a supertype of all types)
 
 The analogous rules also hold for the $<<$ relation for similar reasons.
 
-Hence, the static checker will issue warnings if one attempts to access a member of the result of a void method invocation (even for members of the null object (\ref{null}), such as \code{==}).
-Likewise, passing the result of a void method as a parameter or assigning it to a variable will cause a warning unless the variable/formal parameter has type dynamic.
+Hence, the static checker will issue errors if one attempts to access a member of the result of a void method invocation (even for members of the null object (\ref{null}), such as \code{==}).
+Likewise, passing the result of a void method as a parameter or assigning it to a variable will raise an error unless the variable/formal parameter has type dynamic.
 
 On the other hand, it is possible to return the result of a void method from within a void method.
 One can also return the null object (\ref{null}); or a value of type \DYNAMIC{}.
-Returning any other result will cause a type warning.
+Returning any other result will cause a compile-time error.
 In checked mode, a dynamic type error would arise if a non-null object was returned from a void method (since no object has run-time type \DYNAMIC{}).
 }
 
@@ -10167,21 +10125,8 @@ No instance ever has type \VOID{}.
 \subsection{Parameterized Types}
 \LMLabel{parameterizedTypes}
 
-% TODO(eernst): Deletions needed below when switching warning-->error; new
-% concept may be needed when adding support for generic tear-offs.
-%
-% Details:
-%
-% When switching to Dart 2 the static warnings about having an incorrect
-% number of type arguments or violating the bounds will become compile-time
-% errors, and we will no longer need a specification of the dynamic
-% semantics: Parameterized types will always apply a compile-time constant
-% denotation of a class (a dynamic value, i.e., an instance of \code{Type},
-% cannot be applied to actual type arguments), so no error free program can
-% need this semantics.
-%
-% We may want to add a new concept for the application of a generic
-% function to actual type arguments (maybe it's an extra kind of
+% TODO(eernst): We may want to add a new concept for the application of a
+% generic function to actual type arguments (maybe it's an extra kind of
 % 'parameterized type', but it differs from the generic class case because
 % we _can_ have dynamic invocations of a generic function). But this does
 % not arise as a stand-alone entity before we introduce generic tear-offs
@@ -10199,11 +10144,15 @@ When using the former, we will often leave the latter implicit.
 
 \LMHash{}
 Let $T$ be a parameterized type \code{$G$<$S_1, \ldots,\ S_n$>}.
-Assume that $T$ is not malformed.
 
-\commentary{
-In particular, $G$ denotes a generic type with $n$ formal type parameters.
-}
+\LMHash{}
+It is a compile-time error if $G$ is not a generic type,
+or $G$ is a generic type, but the number of formal type parameters in the declaration of $G$ is not $n$.
+Otherwise, let
+$X_1, \ldots, X_n$
+be the formal type parameters of $G$, and let
+$B_1, \ldots, B_n$
+be the corresponding upper bounds, using \DYNAMIC{} when no bound is declared.
 
 \LMHash{}
 $T$ is {\em malbounded} if{}f either
@@ -10211,26 +10160,29 @@ $S_i$ is malbounded for one or more $i \in 1 .. n$,
 or $T$ is not well-bounded (\ref{superBoundedTypes}).
 
 \LMHash{}
-Any use of a malbounded type gives rise to a static warning.
+It is a compile-time error if $T$ is malbounded.
+
+\LMHash{}
+$T$ is evaluated as follows.
+Let $t_i$ be the result of evaluating $S_i$, for $i \in 1 .. n$.
+$T$ then evaluates to the generic instantiation where $G$ is applied to $t_1, \ldots, t_n$.
 
 \LMHash{}
 Let $T$ be a parameterized type of the form
 \code{$G$<$A_1, \ldots,\ A_n$>}
 and assume that $T$ is not malformed and not malbounded.
-If $S$ is the static type of a member $m$ declared by $G$,
-then the static type of the member $m$ of an expression of type $T$ is
+If $S$ is the static type of a member $m$ of $G$,
+then the static type of the member $m$ of an expression of type
+\code{$G$<$A_1, \ldots,\ A_n$>}
+is
 $[A_1/X_1, \ldots, A_n/X_n]S$,
 where $X_1, \ldots, X_n$ are the formal type parameters of $G$.
 
-\LMHash{}
-Let $T$ be a parameterized type of the form
-\code{$G$<$A_1, \ldots,\ A_n$>}
-and assume that $T$ is not malformed and not malbounded.
-$T$ is then evaluated as follows:
-
-\LMHash{}
-For $j \in 1 .. n$, evaluate $A_j$ to a type $t_j$.
-$T$ then evaluates to the generic instantiation where $G$ is applied to $t_1, \ldots, t_n$.
+%% TODO(eernst): This is the location where we can specify that each of the type arguments
+%% of the receiver type \code{$G$<$A_1, \ldots,\ A_n$>} must be replaced by the bottom type
+%% (`Null`, for now) in locations of the member type where it occurs contravariantly. For
+%% instance, `c.f` should have static type `void Function(Null)` when `c` has static type
+%% `C<T>` for any `T`, and we have `class C<X> { void Function(X) f; }`.
 
 
 \subsubsection{Actual Type of Declaration}
