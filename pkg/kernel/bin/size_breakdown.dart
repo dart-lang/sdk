@@ -7,8 +7,7 @@ import 'dart:io';
 
 import 'package:kernel/kernel.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
-
-import 'util.dart';
+import 'package:kernel/src/tool/command_line_util.dart';
 
 void usage() {
   print("Gives an overview of which parts of the dill file");

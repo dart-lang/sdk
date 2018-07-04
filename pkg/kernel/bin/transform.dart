@@ -21,8 +21,7 @@ import 'package:kernel/transformations/treeshaker.dart' as treeshaker;
 // import 'package:kernel/verifier.dart';
 import 'package:kernel/transformations/coq.dart' as coq;
 import 'package:kernel/vm/constants_native_effects.dart';
-
-import 'util.dart';
+import 'package:kernel/src/tool/command_line_util.dart';
 
 ArgParser parser = new ArgParser()
   ..addOption('format',
