@@ -340,7 +340,7 @@ class Configuration {
         isHostChecked = isHostChecked ?? false,
         isMinified = isMinified ?? false,
         isStrong = isStrong ?? false,
-        previewDart2 = previewDart2 ?? false,
+        previewDart2 = previewDart2 ?? true,
         useBlobs = useBlobs ?? false,
         useDart2JSWithKernel = useDart2JSWithKernel ?? false,
         useDart2JSOldFrontEnd = useDart2JSOldFrontEnd ?? false,

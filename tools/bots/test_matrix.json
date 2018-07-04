@@ -125,6 +125,87 @@
       ".packages"
     ]
   },
+  "configurations": {
+    "vm-legacy-(linux|mac|win)-(debug|release)-(ia32|x64)": {
+      "options": {
+        "preview-dart-2": false
+      }},
+    "vm-legacy-checked-(linux|mac|win)-(debug|release)-(ia32|x64)": {
+      "options": {
+        "preview-dart-2": false,
+        "checked": true
+      }},
+    "vm-legacy-linux-debug-simarm": {
+      "options": {
+        "preview-dart-2": false
+      }},
+    "vm-legacy-checked-linux-debug-simarm": {
+      "options": {
+        "preview-dart-2": false,
+        "checked": true
+      }},
+    "vm-legacy-linux-release-(simarm|simarm64)": {
+      "options": {
+        "preview-dart-2": false
+      }},
+    "vm-legacy-checked-linux-release-(simarm|simarm64)": {
+      "options": {
+        "preview-dart-2": false,
+        "checked": true
+      }},
+    "vm-legacy-mac-(debug|release)-simdbc64": {
+      "options": {
+        "preview-dart-2": false
+      }},
+    "vm-legacy-checked-mac-(debug|release)-simdbc64": {
+      "options": {
+        "preview-dart-2": false,
+        "checked": true
+      }},
+    "vm-legacy-(linux|mac|win)-product-x64": {
+      "options": {
+        "preview-dart-2": false
+      }},
+    "vm-legacy-asan-linux-release-x64": {
+      "options": {
+        "preview-dart-2": false,
+        "builder-tag": "asan",
+        "timeout": 240
+      }},
+    "vm-legacy-checked-asan-linux-release-x64": {
+      "options": {
+        "preview-dart-2": false,
+        "checked": true,
+        "builder-tag": "asan",
+        "timeout": 240
+      }},
+    "dartk-legacy-linux-release-x64": {
+      "options": {
+        "preview-dart-2": false
+      }},
+    "dartkp-linux-release-(simarm|simarm64)": {
+      "options": {
+        "use-blobs": true
+    }},
+    "dartkp-win-release-x64": {
+      "options": {
+        "use-blobs": true
+    }},
+    "dartkp-linux-release-x64": { },
+    "dartkp-linux-debug-x64": {
+      "options": {
+        "vm-options": "no-enable-malloc-hooks"
+    }},
+    "dartk-(linux|mac)-(debug|release)-x64": { },
+    "dartk-win-release-x64": { },
+    "dartk-linux-(debug|release)-simdbc64": { },
+    "dartk-linux-release-(simarm|simarm64)": { },
+    "app_jit-legacy-linux-(debug|product|release)-x64": {
+      "options": {
+        "preview-dart-2": false
+      }},
+    "app_jitk-linux-(debug|product|release)-x64": { }
+  },
   "builder_configurations": [
     {
       "builders": [
@@ -212,7 +293,10 @@
         },
         {
           "name": "vm tests",
-          "arguments": ["--builder-tag=swarming", "--no-preview-dart-2"]
+          "arguments": [
+            "-n=vm-legacy-${system}-product-x64",
+            "--builder-tag=swarming",
+            "--no-preview-dart-2"]
         }
       ]
     },
@@ -247,15 +331,18 @@
         },
         {
           "name": "vm tests",
-          "arguments": ["--builder-tag=swarming", "--no-preview-dart-2"]
+          "arguments": [
+            "-n=vm-legacy-${system}-${mode}-${arch}",
+            "--builder-tag=swarming",
+            "--no-preview-dart-2"]
         },
         {
           "name": "checked vm tests",
           "arguments": [
+            "-n=vm-legacy-checked-${system}-${mode}-${arch}",
             "--builder-tag=swarming",
             "--checked",
-            "--no-preview-dart-2"
-          ]
+            "--no-preview-dart-2"]
         }
       ]
     },
@@ -274,11 +361,19 @@
         },
         {
           "name": "vm ia32 tests",
-          "arguments": ["--arch=ia32", "--no-preview-dart-2", "vm"]
+          "arguments": [
+            "-n=vm-legacy-linux-debug-ia32",
+            "--arch=ia32",
+            "--no-preview-dart-2",
+            "vm"]
         },
         {
           "name": "vm x64 tests",
-          "arguments": ["--arch=x64", "--no-preview-dart-2", "vm"]
+          "arguments": [
+            "-n=vm-legacy-linux-debug-x64",
+            "--arch=x64",
+            "--no-preview-dart-2",
+            "vm"]
         }
       ]
     },
@@ -297,7 +392,10 @@
         },
         {
           "name": "vm legacy tests",
-          "arguments": ["--compiler=dartk", "--no-preview-dart-2"],
+          "arguments": [
+            "-n=dartk-legacy-linux-release-x64",
+            "--compiler=dartk",
+            "--no-preview-dart-2"],
           "fileset": "vm-kernel",
           "shards": 10
         }
@@ -322,11 +420,11 @@
           ]
         },
         {
-          "name": "strong vm tests",
+          "name": "vm tests",
           "arguments": [
+            "-n=dartkp-${system}-release-${arch}",
             "--compiler=dartkp",
             "--runtime=dart_precompiled",
-            "--strong",
             "--use-blobs"
           ],
           "fileset": "vm-kernel",
@@ -351,11 +449,11 @@
           ]
         },
         {
-          "name": "strong vm tests",
+          "name": "vm tests",
           "arguments": [
+            "-n=dartkp-linux-release-x64",
             "--compiler=dartkp",
-            "--runtime=dart_precompiled",
-            "--strong"
+            "--runtime=dart_precompiled"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -379,12 +477,12 @@
           ]
         },
         {
-          "name": "strong vm tests",
+          "name": "vm tests",
           "arguments": [
+            "-n=dartkp-linux-debug-x64",
             "--compiler=dartkp",
             "--runtime=dart_precompiled",
-            "--vm-options=--no-enable-malloc-hooks",
-            "--strong"
+            "--vm-options=--no-enable-malloc-hooks"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -411,7 +509,11 @@
         },
         {
           "name": "vm tests",
-          "arguments": ["--timeout=240", "--no-preview-dart-2"],
+          "arguments": [
+            "-n=vm-legacy-asan-linux-release-x64",
+            "--timeout=240",
+            "--no-preview-dart-2",
+            "--builder-tag=asan"],
           "environment": {
             "ASAN_OPTIONS": "handle_segv=0:detect_stack_use_after_return=0",
             "ASAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
@@ -419,7 +521,12 @@
         },
         {
           "name": "checked vm tests",
-          "arguments": ["--checked", "--no-preview-dart-2", "--timeout=240"],
+          "arguments": [
+            "-n=vm-legacy-checked-asan-linux-release-x64",
+            "--checked",
+            "--no-preview-dart-2",
+            "--timeout=240",
+            "--builder-tag=asan"],
           "environment": {
             "ASAN_OPTIONS": "handle_segv=0:detect_stack_use_after_return=0",
             "ASAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
@@ -449,8 +556,10 @@
           "arguments": ["runtime_kernel"]
         },
         {
-          "name": "strong vm tests",
-          "arguments": ["--compiler=dartk", "--strong"],
+          "name": "vm tests",
+          "arguments": [
+            "-n=dartk-${system}-${mode}-${arch}",
+            "--compiler=dartk"],
           "fileset": "vm-kernel",
           "shards": 10
         }
@@ -475,7 +584,10 @@
         },
         {
           "name": "vm tests",
-          "arguments": ["--compiler=app_jit", "--no-preview-dart-2"]
+          "arguments": [
+            "-n=app_jit-legacy-linux-${mode}-x64",
+            "--compiler=app_jit",
+            "--no-preview-dart-2"]
         }
       ]
     },
@@ -498,7 +610,9 @@
         },
         {
           "name": "vm tests",
-          "arguments": ["--compiler=app_jitk", "--strong"]
+          "arguments": [
+            "-n=app_jitk-linux-${mode}-x64",
+            "--compiler=app_jitk"]
         }
       ]
     },
