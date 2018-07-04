@@ -332,7 +332,7 @@ Future<List<int>> _getPidList(int pid, List<String> diagnostics) async {
   }
   if (lines.length > startLine) {
     for (var i = startLine; i < lines.length; ++i) {
-      var pid = int.parse(lines[i], onError: (source) => null);
+      var pid = int.tryParse(lines[i]);
       if (pid != null) pids.add(pid);
     }
   } else {

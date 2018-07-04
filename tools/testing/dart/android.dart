@@ -63,7 +63,7 @@ Future<AdbCommandResult> _executeCommand(String executable, List<String> args,
     if (timeout != null) {
       timer = new Timer(timeout, () {
         timedOut = true;
-        process.kill(ProcessSignal.SIGTERM);
+        process.kill(ProcessSignal.sigterm);
         timer = null;
       });
     }

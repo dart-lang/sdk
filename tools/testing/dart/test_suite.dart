@@ -722,7 +722,7 @@ class StandardTestSuite extends TestSuite {
       String pattern = regex.pattern;
       if (pattern.contains("/")) {
         String lastPart = pattern.substring(pattern.lastIndexOf("/") + 1);
-        if (int.parse(lastPart, onError: (_) => -1) >= 0 ||
+        if (int.tryParse(lastPart) != null ||
             lastPart.toLowerCase() == "none") {
           pattern = pattern.substring(0, pattern.lastIndexOf("/"));
         }
