@@ -26,6 +26,9 @@ field_type_check2_test/01: MissingRuntimeError
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
 await_future_test: Pass, Timeout # Issue 26735
 
+[ $compiler == dart2js && $runtime == chrome && $strong ]
+stacktrace_test: RuntimeError
+
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
 
@@ -37,10 +40,16 @@ field_type_check2_test/01: MissingRuntimeError
 assertion_test: RuntimeError
 implicit_creation/implicit_new_constructor_generic_test: Pass
 
+[ $compiler == dart2js && $runtime == d8 && $strong ]
+stacktrace_test: RuntimeError
+
 [ $compiler == dart2js && $runtime == ff ]
 field_override_optimization_test: RuntimeError
 field_type_check2_test/01: MissingRuntimeError
 round_test: Pass, Fail, OK # Fixed in ff 35. Common JavaScript engine Math.round bug.
+
+[ $compiler == dart2js && $runtime == ff && $strong ]
+call_function_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == jsshell ]
 async_call_test: RuntimeError # Timer interface not supported: Issue 7728.
@@ -1160,7 +1169,6 @@ stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/withtraceparameter: RuntimeError # Issue 12698
 stacktrace_rethrow_nonerror_test: RuntimeError # Issue 12698
-stacktrace_test: RuntimeError # Issue 12698
 string_interpolation_and_buffer_test: RuntimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError

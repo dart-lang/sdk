@@ -46,6 +46,9 @@ unconditional_dartio_import_test: RuntimeError # Uses dart:io
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
 consistent_index_error_string_test: Pass, Slow # Issue 25940
 
+[ $compiler == dart2js && $runtime == ff && $strong ]
+bound_closure_interceptor_type_test: RuntimeError
+
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 

@@ -87,6 +87,9 @@ html/js_typed_interop_rename_static_test: RuntimeError
 html/no_linked_scripts_htmltest: Timeout, Pass # Issue 32262
 html/worker_test/functional: RuntimeError # Issue 32261
 
+[ $compiler == dart2js && $runtime == chrome && $strong ]
+html/fileapi_directory_reader_test: RuntimeError
+
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 html/audiobuffersourcenode_test/supported: Fail # TODO(dart2js-team): Please triage this failure.
 html/audiocontext_test/supported: RuntimeError # TODO(dart2js-team): Please triage this failure.
@@ -339,9 +342,6 @@ js/prototype_access_test: RuntimeError
 [ $compiler == dart2js && $runtime == d8 && $fasta && $minified ]
 collection/list_test: RuntimeError
 
-[ $compiler == dart2js && $runtime == d8 && $strong ]
-collection/list_test: RuntimeError
-
 [ $compiler == dart2js && $runtime != d8 ]
 html/html_mock_test: RuntimeError # Issue 31038
 html/input_element_attributes_test: RuntimeError
@@ -358,6 +358,7 @@ async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
+convert/utf85_test: Pass, Slow, Timeout
 html/custom/attribute_changed_callback_test: Skip # Times out
 html/custom/constructor_calls_created_synchronously_test: Pass, Timeout
 html/custom/created_callback_test: Skip # Times out
@@ -366,8 +367,8 @@ html/dart_object_local_storage_test: Skip # sessionStorage NS_ERROR_DOM_NOT_SUPP
 html/element_animate_test/timing_dict: RuntimeError # Issue 26730
 html/element_classes_test: RuntimeError # Issue 27535
 html/element_types_content_test: Pass, RuntimeError # Issues 28983, 29922
-html/element_types_keygen_test: RuntimeError # Issue 29922
 html/element_types_keygen_test: Fail
+html/element_types_keygen_test: RuntimeError # Issue 29922
 html/element_types_shadow_test: Pass, RuntimeError # Issues 28983, 29922
 html/file_sample_test: Skip # FileSystem not supported on FireFox.
 html/fileapi_supported_test: Skip # FileSystem not supported on FireFox.
@@ -386,8 +387,8 @@ html/speechrecognition_test: RuntimeError # Please triage.
 html/text_event_test: Fail # Issue 17893
 html/webgl_1_test: Pass, Fail # Issue 8219
 
-[ $compiler == dart2js && $runtime == ff && $system == windows ]
-convert/utf85_test: Pass, Slow, Timeout
+[ $compiler == dart2js && $runtime == ff && $strong ]
+html/gamepad_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == ie11 ]
 html/element_types_content_test: RuntimeError # Issue 29922
@@ -494,7 +495,6 @@ html/custom/js_custom_test: Fail # Issue 14643
 
 [ $compiler == dart2js && $browser && $strong ]
 html/element_classes_svg_test: RuntimeError
-html/fileapi_directory_reader_test: RuntimeError
 html/interactive_media_test: RuntimeError
 html/js_array_test: RuntimeError
 html/js_mock_test: RuntimeError
@@ -806,6 +806,7 @@ async/slow_consumer2_test: RuntimeError
 async/stream_controller_async_test: RuntimeError
 async/stream_distinct_test: RuntimeError
 async/stream_join_test: RuntimeError
+collection/list_test: RuntimeError
 
 [ $compiler == dart2js && !$strong ]
 html/custom/element_upgrade_failure_test: MissingCompileTimeError

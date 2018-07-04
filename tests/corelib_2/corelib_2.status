@@ -644,7 +644,8 @@ regexp/pcre_test: Pass, Slow, Timeout
 string_case_test/01: RuntimeError # Issue 18061: German double S.
 
 [ $runtime == ff || $runtime == jsshell ]
-double_parse_test/02: Fail, OK # Issue 30468
+double_parse_test: Fail, OK # Issue 30468
+double_try_parse_test: Fail, OK # Issue 30468
 regexp/UC16_test: RuntimeError
 
 [ $hot_reload || $hot_reload_rollback ]
