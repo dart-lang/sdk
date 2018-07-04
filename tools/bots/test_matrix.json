@@ -128,12 +128,40 @@
   "builder_configurations": [
     {
       "builders": [
+        "front-end-legacy-linux-release-x64"
+      ],
+      "meta": {
+        "description": "Runs the fasta legacy mode tests."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "create_sdk",
+            "dartdevc_test",
+            "kernel_platform_files",
+            "runtime_kernel"
+          ]
+        },
+        {
+          "name": "fasta legacy mode sdk tests",
+          "arguments": [
+            "--compiler=fasta",
+            "--no-preview-dart-2",
+            "--runtime=none"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
         "front-end-linux-release-x64",
         "front-end-mac-release-x64",
         "front-end-win-release-x64"
       ],
       "meta": {
-        "description": "Runs the front-end unit tests, fasta tests and fasta legacy mode tests."
+        "description": "Runs the front-end unit tests and fasta tests."
       },
       "steps": [
         {
@@ -163,14 +191,6 @@
             "--compiler=fasta",
             "--runtime=none",
             "--strong"
-          ]
-        },
-        {
-          "name": "fasta legacy mode sdk tests",
-          "arguments": [
-            "--compiler=fasta",
-            "--no-preview-dart-2",
-            "--runtime=none"
           ]
         }
       ]
