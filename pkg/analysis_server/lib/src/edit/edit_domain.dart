@@ -782,6 +782,7 @@ class _RefactoringManager {
         refactoring is ExtractMethodRefactoring ||
         refactoring is ExtractWidgetRefactoring ||
         refactoring is InlineMethodRefactoring ||
+        refactoring is MoveFileRefactoring ||
         refactoring is RenameRefactoring;
   }
 
@@ -1158,6 +1159,12 @@ class _RefactoringManager {
       InlineMethodOptions inlineOptions = params.options;
       inlineRefactoring.deleteSource = inlineOptions.deleteSource;
       inlineRefactoring.inlineAll = inlineOptions.inlineAll;
+      return new RefactoringStatus();
+    }
+    if (refactoring is MoveFileRefactoring) {
+      MoveFileRefactoring moveRefactoring = this.refactoring;
+      MoveFileOptions moveOptions = params.options;
+      moveRefactoring.newFile = moveOptions.newFile;
       return new RefactoringStatus();
     }
     if (refactoring is RenameRefactoring) {
