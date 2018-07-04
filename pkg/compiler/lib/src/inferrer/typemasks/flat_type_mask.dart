@@ -334,22 +334,70 @@ class FlatTypeMask implements TypeMask {
     assert(TypeMask.assertIsNormalized(this, closedWorld));
     assert(TypeMask.assertIsNormalized(other, closedWorld));
     FlatTypeMask flatOther = other;
+
+    ClassEntity otherBase = flatOther.base;
+
+    bool includeNull = isNullable && flatOther.isNullable;
+
     if (isEmptyOrNull) {
-      return flatOther.isNullable ? this : nonNullable();
+      return includeNull ? this : nonNullable();
     } else if (flatOther.isEmptyOrNull) {
-      return isNullable ? flatOther : other.nonNullable();
-    } else if (base == flatOther.base) {
-      return intersectionSame(flatOther, closedWorld);
-    } else if (closedWorld.isSubclassOf(flatOther.base, base)) {
-      return intersectionStrictSubclass(flatOther, closedWorld);
-    } else if (closedWorld.isSubclassOf(base, flatOther.base)) {
-      return flatOther.intersectionStrictSubclass(this, closedWorld);
-    } else if (closedWorld.isSubtypeOf(flatOther.base, base)) {
-      return intersectionStrictSubtype(flatOther, closedWorld);
-    } else if (closedWorld.isSubtypeOf(base, flatOther.base)) {
-      return flatOther.intersectionStrictSubtype(this, closedWorld);
-    } else {
-      return intersectionDisjoint(flatOther, closedWorld);
+      return includeNull ? other : other.nonNullable();
+    }
+
+    SubclassResult result = closedWorld.classHierarchy
+        .commonSubclasses(base, _classQuery, otherBase, flatOther._classQuery);
+
+    switch (result.kind) {
+      case SubclassResultKind.EMPTY:
+        return includeNull
+            ? closedWorld.abstractValueDomain.nullType
+            : closedWorld.abstractValueDomain.emptyType;
+      case SubclassResultKind.EXACT1:
+        assert(isExact);
+        return includeNull ? this : nonNullable();
+      case SubclassResultKind.EXACT2:
+        assert(other.isExact);
+        return includeNull ? other : other.nonNullable();
+      case SubclassResultKind.SUBCLASS1:
+        assert(isSubclass);
+        return includeNull ? this : nonNullable();
+      case SubclassResultKind.SUBCLASS2:
+        assert(flatOther.isSubclass);
+        return includeNull ? other : other.nonNullable();
+      case SubclassResultKind.SUBTYPE1:
+        assert(isSubtype);
+        return includeNull ? this : nonNullable();
+      case SubclassResultKind.SUBTYPE2:
+        assert(flatOther.isSubtype);
+        return includeNull ? other : other.nonNullable();
+      case SubclassResultKind.SET:
+      default:
+        if (result.classes.isEmpty) {
+          return includeNull
+              ? closedWorld.abstractValueDomain.nullType
+              : closedWorld.abstractValueDomain.emptyType;
+        } else if (result.classes.length == 1) {
+          ClassEntity cls = result.classes.first;
+          return includeNull
+              ? new TypeMask.subclass(cls, closedWorld)
+              : new TypeMask.nonNullSubclass(cls, closedWorld);
+        }
+
+        List<FlatTypeMask> masks = <FlatTypeMask>[];
+        if (includeNull) {
+          for (ClassEntity cls in result.classes) {
+            masks.add(new TypeMask.subclass(cls, closedWorld));
+          }
+        } else {
+          for (ClassEntity cls in result.classes) {
+            masks.add(new TypeMask.nonNullSubclass(cls, closedWorld));
+          }
+        }
+        if (masks.length > UnionTypeMask.MAX_UNION_LENGTH) {
+          return UnionTypeMask.flatten(masks, closedWorld);
+        }
+        return new UnionTypeMask._internal(masks);
     }
   }
 
@@ -430,54 +478,6 @@ class FlatTypeMask implements TypeMask {
     } else {
       return new FlatTypeMask.normalized(other.base, combined, closedWorld);
     }
-  }
-
-  TypeMask intersectionStrictSubtype(
-      FlatTypeMask other, JClosedWorld closedWorld) {
-    assert(base != other.base);
-    assert(closedWorld.isSubtypeOf(other.base, base));
-    if (!isSubtype) return intersectionHelper(other, closedWorld);
-    // Only the other mask puts constraints on the intersection mask,
-    // so base the combined flags on the other mask. Only if both
-    // masks are nullable, will the result be nullable too.
-    // The result is guaranteed to be normalized, as the other type
-    // was normalized.
-    int combined = other.flags & ((flags & 1) | ~1);
-    if (other.flags == combined) {
-      return other;
-    } else {
-      return new FlatTypeMask.normalized(other.base, combined, closedWorld);
-    }
-  }
-
-  TypeMask intersectionDisjoint(FlatTypeMask other, JClosedWorld closedWorld) {
-    assert(base != other.base);
-    assert(!closedWorld.isSubtypeOf(base, other.base));
-    assert(!closedWorld.isSubtypeOf(other.base, base));
-    return intersectionHelper(other, closedWorld);
-  }
-
-  TypeMask intersectionHelper(FlatTypeMask other, JClosedWorld closedWorld) {
-    assert(base != other.base);
-    assert(!closedWorld.isSubclassOf(base, other.base));
-    assert(!closedWorld.isSubclassOf(other.base, base));
-    // If one of the masks are exact or if both of them are subclass
-    // masks, then the intersection is empty.
-    if (isExact || other.isExact) return intersectionEmpty(other);
-    if (isSubclass && other.isSubclass) return intersectionEmpty(other);
-    assert(isSubtype || other.isSubtype);
-    int kind = (isSubclass || other.isSubclass) ? SUBCLASS : SUBTYPE;
-    Iterable<ClassEntity> candidates = closedWorld.commonSubclasses(
-        base, _classQuery, other.base, other._classQuery);
-    if (candidates.isEmpty) return intersectionEmpty(other);
-    // Run through the list of candidates and compute the union. The
-    // result will only be nullable if both masks are nullable. We have
-    // to normalize here, as we generate types based on new base classes.
-    int combined = (kind << 1) | (flags & other.flags & 1);
-    Iterable<TypeMask> masks = candidates.map((ClassEntity cls) {
-      return new FlatTypeMask.normalized(cls, combined, closedWorld);
-    });
-    return UnionTypeMask.unionOf(masks, closedWorld);
   }
 
   TypeMask intersectionEmpty(FlatTypeMask other) {

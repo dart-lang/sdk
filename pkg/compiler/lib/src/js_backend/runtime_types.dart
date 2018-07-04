@@ -13,10 +13,11 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_emitter/js_emitter.dart' show Emitter;
 import '../options.dart';
+import '../universe/class_hierarchy.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
-import '../world.dart' show ClassQuery, JClosedWorld, KClosedWorld;
+import '../world.dart' show JClosedWorld, KClosedWorld;
 import 'backend_usage.dart';
 import 'namer.dart';
 import 'native_data.dart';
@@ -1469,7 +1470,8 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
         classesNeedingTypeArguments.add(cls);
 
         // TODO(ngeoffray): This should use subclasses, not subtypes.
-        closedWorld.forEachStrictSubtypeOf(cls, (ClassEntity sub) {
+        closedWorld.classHierarchy.forEachStrictSubtypeOf(cls,
+            (ClassEntity sub) {
           potentiallyNeedTypeArguments(sub);
         });
       } else if (entity is FunctionEntity) {
@@ -1694,19 +1696,31 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
                 impliedClass(runtimeTypeUse.argumentType);
 
             // TODO(johnniwinther): Special case use of `this.runtimeType`.
-            if (closedWorld.isSubtypeOf(receiverClass, argumentClass)) {
-              addClass(receiverClass);
-            } else if (closedWorld.isSubtypeOf(argumentClass, receiverClass)) {
-              addClass(argumentClass);
+            SubclassResult result = closedWorld.classHierarchy.commonSubclasses(
+                receiverClass,
+                ClassQuery.SUBTYPE,
+                argumentClass,
+                ClassQuery.SUBTYPE);
+            switch (result.kind) {
+              case SubclassResultKind.EMPTY:
+                break;
+              case SubclassResultKind.EXACT1:
+              case SubclassResultKind.SUBCLASS1:
+              case SubclassResultKind.SUBTYPE1:
+                addClass(receiverClass);
+                break;
+              case SubclassResultKind.EXACT2:
+              case SubclassResultKind.SUBCLASS2:
+              case SubclassResultKind.SUBTYPE2:
+                addClass(argumentClass);
+                break;
+              case SubclassResultKind.SET:
+                for (ClassEntity cls in result.classes) {
+                  addClass(cls);
+                  if (neededOnAll) break;
+                }
+                break;
             }
-            if (neededOnAll) break;
-            // TODO(johnniwinther): Special case use of `this.runtimeType`.
-            // TODO(johnniwinther): Rename [commonSubclasses] to something like
-            // [strictCommonClasses] and support the non-strict case directly.
-            // Since we do a subclassesOf
-            classesDirectlyNeedingRuntimeType.addAll(
-                closedWorld.commonSubclasses(receiverClass, ClassQuery.SUBTYPE,
-                    argumentClass, ClassQuery.SUBTYPE));
             break;
           case RuntimeTypeUseKind.unknown:
             addClass(impliedClass(runtimeTypeUse.receiverType));
@@ -1717,15 +1731,17 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       Set<ClassEntity> allClassesNeedingRuntimeType;
       if (neededOnAll) {
         neededOnFunctions = true;
-        allClassesNeedingRuntimeType =
-            closedWorld.subclassesOf(commonElements.objectClass).toSet();
+        allClassesNeedingRuntimeType = closedWorld.classHierarchy
+            .subclassesOf(commonElements.objectClass)
+            .toSet();
       } else {
         allClassesNeedingRuntimeType = new Set<ClassEntity>();
         // TODO(johnniwinther): Support this operation directly in
         // [ClosedWorld] using the [ClassSet]s.
         for (ClassEntity cls in classesDirectlyNeedingRuntimeType) {
           if (!allClassesNeedingRuntimeType.contains(cls)) {
-            allClassesNeedingRuntimeType.addAll(closedWorld.subtypesOf(cls));
+            allClassesNeedingRuntimeType
+                .addAll(closedWorld.classHierarchy.subtypesOf(cls));
           }
         }
       }

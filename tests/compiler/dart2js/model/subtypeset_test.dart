@@ -67,7 +67,7 @@ runTests({bool strongMode: false}) async {
 
   void checkClass(ClassEntity cls, List<ClassEntity> expectedSubtypes,
       {bool checkSubset: false}) {
-    ClassSet node = world.getClassSet(cls);
+    ClassSet node = world.classHierarchy.getClassSet(cls);
     Set<ClassEntity> actualSubtypes = node.subtypes().toSet();
     if (checkSubset) {
       for (ClassEntity subtype in expectedSubtypes) {
