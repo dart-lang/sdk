@@ -1,3 +1,6 @@
+## 0.32.3
+* Pull fix in kernel package where non-executable util.dart was moved out of bin/.
+
 ## 0.32.2
 
 * Improved const evaluation analysis (new errors for `const A(B())` if `B` is non-const).
