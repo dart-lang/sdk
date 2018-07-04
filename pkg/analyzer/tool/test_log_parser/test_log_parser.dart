@@ -20,6 +20,8 @@ main(List<String> args) async {
   TestResult currentResult;
   Map<String, List<TestResult>> testsByExpectedAndActual =
       <String, List<TestResult>>{};
+  Map<String, List<TestResult>> testsByStackTrace =
+      <String, List<TestResult>>{};
   while (index < output.length) {
     String currentLine = output[index];
     if (currentLine.startsWith('FAILED:')) {
@@ -49,6 +51,10 @@ main(List<String> args) async {
         }
         if (hasStackTrace) {
           currentResult.stackTrace = output.sublist(index + 1, endIndex - 2);
+          String traceLine = currentResult.traceLine;
+          testsByStackTrace
+              .putIfAbsent(traceLine, () => <TestResult>[])
+              .add(currentResult);
         }
         index = endIndex;
       }
@@ -93,10 +99,19 @@ main(List<String> args) async {
       print('  $message');
     }
   }
+  if (testsByStackTrace.isNotEmpty) {
+    print('');
+    print('Unique stack traces (${testsByStackTrace.length}):');
+    for (String traceLine in testsByStackTrace.keys) {
+      print('  $traceLine');
+    }
+  }
 }
 
 /// A representation of the result of a single test.
 class TestResult {
+  static final RegExp framePattern = new RegExp('#[0-9]+ ');
+
   String testName;
   String expected;
   String actual;
@@ -104,4 +119,15 @@ class TestResult {
   List<String> stackTrace;
 
   TestResult(this.testName, this.expected, this.actual);
+
+  String get traceLine {
+    for (int i = 0; i < stackTrace.length; i++) {
+      String traceLine = stackTrace[i];
+      if (traceLine.startsWith(framePattern) &&
+          traceLine.contains('(package:')) {
+        return traceLine;
+      }
+    }
+    return null;
+  }
 }
