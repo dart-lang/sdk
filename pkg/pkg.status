@@ -122,6 +122,7 @@ analysis_server/test/src/plugin/plugin_manager_test: Pass, Slow
 analyzer/test/file_system/physical_resource_provider_test: Pass, Fail # Issue 25472
 analyzer/test/generated/hint_code_driver_test: Pass, Slow
 analyzer/test/generated/non_error_resolver_kernel_test: Pass, Slow
+analyzer/test/src/dart/analysis/driver_resolution_kernel_test: Pass, Slow
 analyzer/test/src/summary/resynthesize_ast_test: Pass, Slow
 analyzer/test/src/task/strong/front_end_inference_test: Pass, Slow
 analyzer/test/src/task/strong/inferred_type_test: Pass, Slow
