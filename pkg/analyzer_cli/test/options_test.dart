@@ -195,12 +195,6 @@ main() {
         expect(options.sourceFiles, equals(['foo.dart']));
       });
 
-      test('strong mode', () {
-        CommandLineOptions options =
-            CommandLineOptions.parse(['--strong', 'foo.dart']);
-        expect(options.strongMode, isTrue);
-      });
-
       test('hintsAreFatal', () {
         CommandLineOptions options = CommandLineOptions
             .parse(['--dart-sdk', '.', '--fatal-lints', 'foo.dart']);

@@ -169,9 +169,9 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
           'This option cannot be used with --packages.',
       hide: ddc && hide);
   parser.addFlag(strongModeFlag,
-      help: 'Enable strong static checks (https://goo.gl/DqcBsw).',
+      help: 'Enable strong mode (deprecated); this option is now ignored.',
       defaultsTo: true,
-      hide: ddc,
+      hide: true,
       negatable: true);
   parser.addFlag(declarationCastsFlag,
       negatable: true,

@@ -142,7 +142,9 @@ class CommandLineOptions {
   final bool infosAreFatal;
 
   /// Whether to use strong static checking.
-  final bool strongMode;
+  ///
+  /// This flag is deprecated and hard-coded to `true`.
+  final bool strongMode = true;
 
   /// Whether implicit casts are enabled (in strong mode)
   final bool implicitCasts;
@@ -202,7 +204,6 @@ class CommandLineOptions {
         infosAreFatal = args['fatal-infos'] || args['fatal-hints'],
         warningsAreFatal = args['fatal-warnings'],
         lintsAreFatal = args['fatal-lints'],
-        strongMode = args['strong'],
         implicitCasts = args[implicitCastsFlag],
         implicitDynamic = !args['no-implicit-dynamic'],
         verbose = args['verbose'],
@@ -589,6 +590,13 @@ class CommandLineOptions {
           return null; // Only reachable in testing.
         }
       }
+
+      if (results.wasParsed(strongModeFlag)) {
+        errorSink.writeln(
+            'Note: the --strong flag is deprecated and will be removed in an '
+            'future release.\n');
+      }
+
       return new CommandLineOptions._fromArgs(results);
     } on FormatException catch (e) {
       errorSink.writeln(e.message);
