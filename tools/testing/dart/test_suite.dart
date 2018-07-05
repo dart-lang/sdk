@@ -1298,11 +1298,6 @@ class StandardTestSuite extends TestSuite {
           filePath.directoryPath.segments().last.contains('html_common')) {
         args.add("--use-dart2js-libraries");
       }
-      if (configuration.noPreviewDart2) {
-        args.add("--no-preview-dart-2");
-      } else {
-        args.add("--preview-dart-2");
-      }
     }
 
     if (configuration.compiler == Compiler.dart2js) {

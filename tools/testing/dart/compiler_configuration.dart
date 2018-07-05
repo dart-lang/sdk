@@ -1003,8 +1003,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
       arguments.add('--enable_type_checks');
     }
     if (!previewDart2) {
-      arguments.add('--no-preview-dart-2');
-      arguments.add('--no-strong');
+      throw new ArgumentError('--no-preview-dart-2 not supported');
     }
     if (_configuration.useAnalyzerCfe) {
       arguments.add('--use-cfe');
