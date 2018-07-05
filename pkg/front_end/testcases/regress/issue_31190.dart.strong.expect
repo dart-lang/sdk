@@ -1,3 +1,16 @@
+// Errors:
+//
+// pkg/front_end/testcases/regress/issue_31190.dart:1: Error: Can't use type arguments with type variable 'T'.
+// Try removing the type arguments.
+//
+// pkg/front_end/testcases/regress/issue_31190.dart:6:5: Error: 'U' isn't a type.
+//   T<U> v;
+//     ^
+//
+// pkg/front_end/testcases/regress/issue_31190.dart:6:3: Error: 'T' expects 0 type arguments.
+//   T<U> v;
+//   ^
+
 library;
 import self as self;
 import "dart:core" as core;
@@ -8,10 +21,4 @@ class Typed<T extends core::Object = dynamic> extends core::Object {
     : super core::Object::•()
     ;
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_31190.dart:1: Error: Can't use type arguments with type variable 'T'.
-Try removing the type arguments.", "pkg/front_end/testcases/regress/issue_31190.dart:6:5: Error: 'U' isn't a type.
-  T<U> v;
-    ^", "pkg/front_end/testcases/regress/issue_31190.dart:6:3: Error: 'T' expects 0 type arguments.
-  T<U> v;
-  ^"]/* from null */;
 static method main() → dynamic {}

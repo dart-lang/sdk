@@ -13,7 +13,8 @@ import 'dart:io' show Directory, File, IOSink;
 
 import 'dart:typed_data' show Uint8List;
 
-import 'package:kernel/ast.dart' show Library, Component;
+import 'package:kernel/ast.dart'
+    show Component, Field, Library, ListLiteral, StringLiteral;
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
@@ -129,7 +130,19 @@ class MatchExpectation extends Step<Component, Component, ChainContext> {
     Uri base = uri.resolve(".");
     Uri dartBase = Uri.base;
     StringBuffer buffer = new StringBuffer();
-    new Printer(buffer).writeLibraryFile(library);
+    for (Field field in library.fields) {
+      if (field.name.name != "#errors") continue;
+      ListLiteral list = field.initializer;
+      buffer.write("// Errors:");
+      for (StringLiteral string in list.expressions) {
+        buffer.write("\n//");
+        for (String line in string.value.split("\n")) {
+          buffer.write("\n// $line");
+        }
+      }
+      buffer.write("\n\n");
+    }
+    new ErrorPrinter(buffer).writeLibraryFile(library);
     String actual = "$buffer".replaceAll("$base", "org-dartlang-testcase:///");
     actual = actual.replaceAll("$dartBase", "org-dartlang-testcase-sdk:///");
     actual = actual.replaceAll("\\n", "\n");
@@ -297,4 +310,31 @@ Future<void> openWrite(Uri uri, f(IOSink sink)) async {
     await sink.close();
   }
   print("Wrote $uri");
+}
+
+class ErrorPrinter extends Printer {
+  ErrorPrinter(StringSink sink, {Object importTable, Object metadata})
+      : super(sink, importTable: importTable, metadata: metadata);
+
+  ErrorPrinter._inner(ErrorPrinter parent, Object importTable, Object metadata)
+      : super(parent.sink,
+            importTable: importTable,
+            metadata: metadata,
+            syntheticNames: parent.syntheticNames,
+            annotator: parent.annotator,
+            showExternal: parent.showExternal,
+            showOffsets: parent.showOffsets,
+            showMetadata: parent.showMetadata);
+
+  @override
+  ErrorPrinter createInner(importTable, metadata) {
+    return new ErrorPrinter._inner(this, importTable, metadata);
+  }
+
+  @override
+  visitField(Field node) {
+    if (node.name.name != "#errors") {
+      super.visitField(node);
+    }
+  }
 }

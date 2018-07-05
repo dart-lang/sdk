@@ -1,3 +1,15 @@
+// Errors:
+//
+// pkg/front_end/testcases/rasta/super.dart:43:5: Error: '+' is not a prefix operator.
+// Try removing '+'.
+//     +super;
+//     ^
+//
+// pkg/front_end/testcases/rasta/super.dart:44:9: Error: '+' is not a prefix operator.
+// Try removing '+'.
+//     use(+super);
+//         ^
+
 library;
 import self as self;
 import "dart:core" as core;
@@ -51,8 +63,14 @@ class C extends self::B {
     self::use(super.{self::A::~}());
     super.{self::A::unary-}();
     self::use(super.{self::A::unary-}());
-    this.•.+(invalid-expression "pkg/front_end/testcases/rasta/super.dart:43:6: Error: Can't use `super` as an expression.\n    +super;\n     ^");
-    self::use(this.•.+(invalid-expression "pkg/front_end/testcases/rasta/super.dart:44:10: Error: Can't use `super` as an expression.\n    use(+super);\n         ^"));
+    invalid-expression "pkg/front_end/testcases/rasta/super.dart:43:6: Error: Can't use 'super' as an expression.
+To delegate a constructor to a super constructor, put the super call as an initializer.
+    +super;
+     ^^^^^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:44:10: Error: Can't use 'super' as an expression.
+To delegate a constructor to a super constructor, put the super call as an initializer.
+    use(+super);
+         ^^^^^");
     super.{self::A::==}(87);
     self::use(super.{self::A::==}(87));
     !super.{self::A::==}(87);
@@ -253,7 +271,6 @@ class C extends self::B {
     self::use(super.{self::A::n} = super.{self::A::n}.-(42));
   }
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/rasta/super.dart:43:5: Error: '+' is not a prefix operator.\nTry removing '+'.\n    +super;\n    ^", "pkg/front_end/testcases/rasta/super.dart:44:9: Error: '+' is not a prefix operator.\nTry removing '+'.\n    use(+super);\n        ^"]/* from null */;
 static method use(dynamic x) → dynamic {
   if(x.==(new core::DateTime::now().millisecondsSinceEpoch))
     throw "Shouldn't happen";

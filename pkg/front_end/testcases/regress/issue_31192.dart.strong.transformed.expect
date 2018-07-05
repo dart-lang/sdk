@@ -1,3 +1,10 @@
+// Errors:
+//
+// pkg/front_end/testcases/regress/issue_31192.dart:7:17: Error: Expected an assignment after the field name.
+// To initialize a field, use the syntax 'name = value'.
+//   Increment() : x++ {}
+//                 ^
+
 library;
 import self as self;
 import "dart:core" as core;
@@ -9,8 +16,4 @@ class Increment extends core::Object {
   Increment() : x++ {}
                 ^" {}
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_31192.dart:7:17: Error: Expected an assignment after the field name.
-To initialize a field, use the syntax 'name = value'.
-  Increment() : x++ {}
-                ^"]/* from null */;
 static method main() → dynamic {}

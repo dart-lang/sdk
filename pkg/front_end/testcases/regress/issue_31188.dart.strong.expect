@@ -1,3 +1,25 @@
+// Errors:
+//
+// pkg/front_end/testcases/regress/issue_31188.dart:7:18: Error: Expected ';' before this.
+// type T = Map<A, B>
+//                  ^
+//
+// pkg/front_end/testcases/regress/issue_31188.dart:7:18: Error: Expected a declaration, but got '>'.
+// type T = Map<A, B>
+//                  ^
+//
+// pkg/front_end/testcases/regress/issue_31188.dart:7:1: Error: Type 'type' not found.
+// type T = Map<A, B>
+// ^
+//
+// pkg/front_end/testcases/regress/issue_31188.dart:7:1: Error: 'type' isn't a type.
+// type T = Map<A, B>
+// ^^^^
+//
+// pkg/front_end/testcases/regress/issue_31188.dart:7:14: Error: Getter not found: 'A'.
+// type T = Map<A, B>
+//              ^
+
 library;
 import self as self;
 import "dart:core" as core;
@@ -7,15 +29,4 @@ Try correcting the name to the name of an existing method, or defining a method 
 type T = Map<A, B>
             ^";
 static field invalid-type B;
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_31188.dart:7:18: Error: Expected ';' before this.
-type T = Map<A, B>
-                 ^", "pkg/front_end/testcases/regress/issue_31188.dart:7:18: Error: Expected a declaration, but got '>'.
-type T = Map<A, B>
-                 ^", "pkg/front_end/testcases/regress/issue_31188.dart:7:1: Error: Type 'type' not found.
-type T = Map<A, B>
-^", "pkg/front_end/testcases/regress/issue_31188.dart:7:1: Error: 'type' isn't a type.
-type T = Map<A, B>
-^^^^", "pkg/front_end/testcases/regress/issue_31188.dart:7:14: Error: Getter not found: 'A'.
-type T = Map<A, B>
-             ^"]/* from null */;
 static method main() → dynamic {}
