@@ -91,10 +91,6 @@ class CommandLineOptions {
   /// Whether to display version information
   final bool displayVersion;
 
-  /// Whether to treat type mismatches found during constant evaluation as
-  /// errors.
-  final bool enableTypeChecks;
-
   /// Whether to ignore unrecognized flags
   final bool ignoreUnrecognizedFlags;
 
@@ -185,7 +181,6 @@ class CommandLineOptions {
         disableCacheFlushing = args['disable-cache-flushing'],
         disableHints = args['no-hints'],
         displayVersion = args['version'],
-        enableTypeChecks = args['enable_type_checks'],
         ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],
         lints = args[lintsFlag],
         log = args['log'],
@@ -471,10 +466,10 @@ class CommandLineOptions {
           negatable: false,
           hide: hide)
       ..addFlag('enable_type_checks',
-          help: 'Check types in constant evaluation.',
+          help: 'Check types in constant evaluation (deprecated).',
           defaultsTo: false,
           negatable: false,
-          hide: hide)
+          hide: true)
       // TODO(brianwilkerson) Remove the following option after we're sure that
       // it's no longer being used.
       ..addFlag('enable-assert-initializers',

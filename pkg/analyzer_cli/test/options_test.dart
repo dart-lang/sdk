@@ -61,7 +61,6 @@ main() {
         expect(options.lints, isFalse);
         expect(options.displayVersion, isFalse);
         expect(options.enableSuperMixins, isFalse);
-        expect(options.enableTypeChecks, isFalse);
         expect(options.infosAreFatal, isFalse);
         expect(options.ignoreUnrecognizedFlags, isFalse);
         expect(options.log, isFalse);
@@ -101,12 +100,6 @@ main() {
         CommandLineOptions options = CommandLineOptions
             .parse(['--dart-sdk', '.', '--supermixin', 'foo.dart']);
         expect(options.enableSuperMixins, isTrue);
-      });
-
-      test('enable type checks', () {
-        CommandLineOptions options = CommandLineOptions
-            .parse(['--dart-sdk', '.', '--enable_type_checks', 'foo.dart']);
-        expect(options.enableTypeChecks, isTrue);
       });
 
       test('hintsAreFatal', () {

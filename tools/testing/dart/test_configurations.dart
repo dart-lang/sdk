@@ -137,7 +137,7 @@ Future testConfigurations(List<Configuration> configurations) async {
     } else if (configuration.runtime.isSafari) {
       // Safari does not allow us to run from a fresh profile, so we can only
       // use one browser. Additionally, you can not start two simulators
-      // for mobile safari simultainiously.
+      // for mobile safari simultaneously.
       maxBrowserProcesses = 1;
     } else if (configuration.runtime == Runtime.chrome &&
         Platform.operatingSystem == 'macos') {
