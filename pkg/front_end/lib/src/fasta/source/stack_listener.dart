@@ -4,7 +4,8 @@
 
 library fasta.stack_listener;
 
-import 'package:kernel/ast.dart' show AsyncMarker, Expression, FunctionNode;
+import 'package:kernel/ast.dart'
+    show AsyncMarker, Expression, FunctionNode, TreeNode;
 
 import '../fasta_codes.dart'
     show
@@ -87,7 +88,7 @@ abstract class StackListener extends Listener {
 
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
   // and ast_builder.dart.
-  List<Expression> finishMetadata() {
+  List<Expression> finishMetadata(TreeNode parent) {
     return unsupported("finishMetadata", -1, uri);
   }
 

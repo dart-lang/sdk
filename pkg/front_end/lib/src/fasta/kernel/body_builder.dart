@@ -743,9 +743,42 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  List<Expression> finishMetadata() {
+  List<Expression> finishMetadata(TreeNode parent) {
     List<Expression> expressions = pop();
     _typeInferrer.inferMetadata(this, factory, expressions);
+    if (parent is Class) {
+      for (Expression expression in expressions) {
+        parent.addAnnotation(expression);
+      }
+    } else if (parent is Library) {
+      for (Expression expression in expressions) {
+        parent.addAnnotation(expression);
+      }
+    } else if (parent is LibraryDependency) {
+      for (Expression expression in expressions) {
+        parent.addAnnotation(expression);
+      }
+    } else if (parent is LibraryPart) {
+      for (Expression expression in expressions) {
+        parent.addAnnotation(expression);
+      }
+    } else if (parent is Member) {
+      for (Expression expression in expressions) {
+        parent.addAnnotation(expression);
+      }
+    } else if (parent is Typedef) {
+      for (Expression expression in expressions) {
+        parent.addAnnotation(expression);
+      }
+    } else if (parent is TypeParameter) {
+      for (Expression expression in expressions) {
+        parent.addAnnotation(expression);
+      }
+    } else if (parent is VariableDeclaration) {
+      for (Expression expression in expressions) {
+        parent.addAnnotation(expression);
+      }
+    }
     return expressions;
   }
 
