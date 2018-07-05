@@ -16,6 +16,15 @@
 
 #### Dart2js
 
+#### Analyzer
+
+  * The analysis server will now only analyze code in Dart 2 mode ('strong
+    mode'). It will emit warnings for analysis options files that have
+    `strong-mode: false` set (and will emit a hint for `strong-mode: true`,
+    which is no longer necessary).
+  * The dartanalyzer `--strong` flag is now deprecated and ignored; the
+    command-line analyzer now only analyzes code in strong mode.
+
 #### Other Tools
 
 ### Core library changes
