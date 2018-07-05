@@ -55,6 +55,7 @@ part '/absolute/uri.dart';
 
   @failingTest
   test_file_importedLibrary_sideways() async {
+    fail('Not yet implemented/tested');
     String pathA = '/project/000/1111/a.dart';
     testFile = '/project/000/1111/sub/folder/test.dart';
     addSource(pathA, '''
@@ -72,6 +73,7 @@ import '../new/folder/name/new_name.dart';
 
   @failingTest
   test_file_importedLibrary_down() async {
+    fail('Not yet implemented/tested');
     String pathA = '/project/000/1111/a.dart';
     testFile = '/project/000/1111/test.dart';
     addSource(pathA, '''
@@ -89,6 +91,7 @@ import '22/new_name.dart';
 
   @failingTest
   test_file_importedLibrary_package() async {
+    fail('Not yet implemented/tested');
     // configure packages
     testFile = '/packages/my_pkg/lib/aaa/test.dart';
     newFile(testFile, content: '');
@@ -119,6 +122,7 @@ import 'package:my_pkg/bbb/ccc/new_name.dart';
 
   @failingTest
   test_file_importedLibrary_up() async {
+    fail('Not yet implemented/tested');
     String pathA = '/project/000/1111/a.dart';
     testFile = '/project/000/1111/22/test.dart';
     addSource(pathA, '''
@@ -156,6 +160,7 @@ part '22/new_name.dart';
 
   @failingTest
   test_file_referenced_by_multiple_libraries() async {
+    fail('Not yet implemented/tested');
     String pathA = '/project/000/1111/a.dart';
     String pathB = '/project/000/b.dart';
     testFile = '/project/000/1111/22/test.dart';
