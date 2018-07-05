@@ -9,9 +9,11 @@ import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:path/path.dart' as pathos;
 
 /**
@@ -26,11 +28,6 @@ class MoveFileRefactoringImpl extends RefactoringImpl
 
   String oldFile;
   String newFile;
-
-  SourceChange change;
-  LibraryElement library;
-  String oldLibraryDir;
-  String newLibraryDir;
 
   MoveFileRefactoringImpl(ResourceProvider resourceProvider, this.workspace,
       this.source, this.oldFile)
@@ -58,8 +55,47 @@ class MoveFileRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange() async {
-    // TODO(dantup): Implement!
-    return new SourceChange('Update File References');
+    var changeBuilder =
+        new DartChangeBuilder(workspace.drivers.first.currentSession);
+
+    final drivers =
+        workspace.drivers.where((d) => d.contextRoot.containsFile(newFile));
+    if (drivers.length != 1) {
+      // TODO(dantup): What to do in this case? Should we throw?
+      return changeBuilder.sourceChange;
+    }
+
+    final driver = drivers.first; // The above guarantees there's exactly one.
+    final result = await driver.getResult(oldFile);
+    final element = result?.unit?.element;
+    if (element == null) {
+      return changeBuilder.sourceChange;
+    }
+    final library = element.library;
+
+    // If this element is a library, update outgoing references inside the file.
+    if (library != null && element == library.definingCompilationUnit) {
+      await changeBuilder.addFileEdit(library.source.fullName, (builder) {
+        final oldDir = pathContext.dirname(oldFile);
+        final newDir = pathContext.dirname(newFile);
+        _updateUriReferences(builder, library.imports, oldDir, newDir);
+        _updateUriReferences(builder, library.exports, oldDir, newDir);
+        _updateUriReferences(builder, library.parts, oldDir, newDir);
+      });
+    }
+
+    // Update incoming references to this file
+    List<SearchMatch> matches =
+        await workspace.searchEngine.searchReferences(result.unit.element);
+    List<SourceReference> references = getSourceReferences(matches);
+    for (SourceReference reference in references) {
+      await changeBuilder.addFileEdit(reference.file, (builder) {
+        String newUri = _computeNewUri(reference);
+        builder.addSimpleReplacement(reference.range, "'$newUri'");
+      });
+    }
+
+    return changeBuilder.sourceChange;
   }
 
   @override
@@ -91,23 +127,43 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     return true;
   }
 
-  void _updateUriReference(UriReferencedElement element) {
+  void _updateUriReference(DartFileEditBuilder builder,
+      UriReferencedElement element, String oldDir, String newDir) {
     if (!element.isSynthetic) {
       String elementUri = element.uri;
       if (_isRelativeUri(elementUri)) {
-        String elementPath = pathContext.join(oldLibraryDir, elementUri);
-        String newUri = _getRelativeUri(elementPath, newLibraryDir);
+        String elementPath = pathContext.join(oldDir, elementUri);
+        String newUri = _getRelativeUri(elementPath, newDir);
         int uriOffset = element.uriOffset;
         int uriLength = element.uriEnd - uriOffset;
-        doSourceChange_addElementEdit(
-            change, library, new SourceEdit(uriOffset, uriLength, "'$newUri'"));
+        builder.addSimpleReplacement(
+            new SourceRange(uriOffset, uriLength), "'$newUri'");
       }
     }
   }
 
-  void _updateUriReferences(List<UriReferencedElement> elements) {
+  void _updateUriReferences(DartFileEditBuilder builder,
+      List<UriReferencedElement> elements, String oldDir, String newDir) {
     for (UriReferencedElement element in elements) {
-      _updateUriReference(element);
+      _updateUriReference(builder, element, oldDir, newDir);
     }
+  }
+
+  /**
+   * Computes the URI to use to reference [newFile] from [reference].
+   */
+  String _computeNewUri(SourceReference reference) {
+    String refDir = pathContext.dirname(reference.file);
+    // try to keep package: URI
+    // if (_isPackageReference(reference)) {
+    //   Source newSource = new NonExistingSource(
+    //       newFile, pathos.toUri(newFile), UriKind.FILE_URI);
+    //   Uri restoredUri = context.sourceFactory.restoreUri(newSource);
+    //   if (restoredUri != null) {
+    //     return restoredUri.toString();
+    //   }
+    // }
+    // if no package: URI, prepare relative
+    return _getRelativeUri(newFile, refDir);
   }
 }

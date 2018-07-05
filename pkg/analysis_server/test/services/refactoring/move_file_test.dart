@@ -20,7 +20,6 @@ main() {
 class MoveFileTest extends RefactoringTest {
   MoveFileRefactoring refactoring;
 
-  @failingTest
   test_file_containing_imports_exports_parts() async {
     String pathA = '/project/000/1111/a.dart';
     String pathB = '/project/000/1111/b.dart';
@@ -135,7 +134,6 @@ import 'new_name.dart';
     assertNoFileChange(testFile);
   }
 
-  @failingTest
   test_file_referenced_by_part() async {
     String pathA = '/project/000/1111/a.dart';
     testFile = '/project/000/1111/22/test.dart';
@@ -187,6 +185,14 @@ part '1111/22/new_name.dart';
   }
 
   @failingTest
+  test_renaming_part_that_uses_uri_in_part_of() async {
+    // If the file is a part in a library, and the part-of directive uses a URI
+    // rather than a library name, that will need updating too (if the relative
+    // path to the parent changes).
+    fail('Not yet implemented/tested');
+  }
+
+  @failingTest
   test_projectFolder() async {
     fail('Not yet implemented/tested');
   }
@@ -197,7 +203,24 @@ part '1111/22/new_name.dart';
   }
 
   @failingTest
+  test_folder_outside_workspace_returns_failure() async {
+    fail('Not yet implemented/tested');
+  }
+
+  @failingTest
   test_project_folder_ancestor() async {
+    fail('Not yet implemented/tested');
+  }
+
+  @failingTest
+  test_nonexistent_file_returns_suitable_failure() async {
+    fail('Not yet implemented/tested');
+  }
+
+  @failingTest
+  test_dart_uris_are_unmodified() async {
+    // TODO(dantup): See _computeNewUri implementation which currently only
+    // handles relative + package: urls (package url handling is also incomplete)
     fail('Not yet implemented/tested');
   }
 
