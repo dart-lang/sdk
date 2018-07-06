@@ -4,11 +4,9 @@
 
 /// Helper program that shows the inlining data on a dart program.
 
-import 'package:compiler/src/js_backend/backend.dart';
 import '../equivalence/show_helper.dart';
 import 'inlining_test.dart';
 
 main(List<String> args) async {
-  JavaScriptBackend.cacheCodegenImpactForTesting = true;
-  await show(createArgParser().parse(args), computeMemberIrInlinings);
+  await show(createArgParser().parse(args), const InliningDataComputer());
 }

@@ -21,7 +21,7 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir =
         new Directory.fromUri(Platform.script.resolve('inference_data'));
-    await checkTests(dataDir, computeMemberIrInferredData,
+    await checkTests(dataDir, const InferenceDataComputer(),
         args: args, options: [stopAfterTypeInference]);
   });
 }
@@ -32,8 +32,45 @@ class Tags {
   static const String cannotThrow = 'no-throw';
 }
 
-abstract class ComputeValueMixin {
-  InferredData get inferredData;
+class InferenceDataComputer extends DataComputer {
+  const InferenceDataComputer();
+
+  /// Compute side effects data for [member] from kernel based inference.
+  ///
+  /// Fills [actualMap] with the data.
+  @override
+  void computeMemberData(
+      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+      {bool verbose: false}) {
+    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
+    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    MemberDefinition definition = elementMap.getMemberDefinition(member);
+    new InferredDataIrComputer(
+            compiler.reporter,
+            actualMap,
+            elementMap,
+            compiler.backendClosedWorldForTesting,
+            backendStrategy.closureDataLookup,
+            compiler.globalInference.inferredData)
+        .run(definition.node);
+  }
+}
+
+/// AST visitor for computing side effects data for a member.
+class InferredDataIrComputer extends IrDataExtractor {
+  final JClosedWorld closedWorld;
+  final KernelToElementMapForBuilding _elementMap;
+  final ClosureDataLookup _closureDataLookup;
+  final InferredData inferredData;
+
+  InferredDataIrComputer(
+      DiagnosticReporter reporter,
+      Map<Id, ActualData> actualMap,
+      this._elementMap,
+      this.closedWorld,
+      this._closureDataLookup,
+      this.inferredData)
+      : super(reporter, actualMap);
 
   String getMemberValue(MemberEntity member) {
     Features features = new Features();
@@ -50,42 +87,6 @@ abstract class ComputeValueMixin {
     }
     return features.getText();
   }
-}
-
-/// Compute side effects data for [member] from kernel based inference.
-///
-/// Fills [actualMap] with the data.
-void computeMemberIrInferredData(
-    Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
-    {bool verbose: false}) {
-  KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-  KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
-  MemberDefinition definition = elementMap.getMemberDefinition(member);
-  new InferredDataIrComputer(
-          compiler.reporter,
-          actualMap,
-          elementMap,
-          compiler.backendClosedWorldForTesting,
-          backendStrategy.closureDataLookup,
-          compiler.globalInference.inferredData)
-      .run(definition.node);
-}
-
-/// AST visitor for computing side effects data for a member.
-class InferredDataIrComputer extends IrDataExtractor with ComputeValueMixin {
-  final JClosedWorld closedWorld;
-  final KernelToElementMapForBuilding _elementMap;
-  final ClosureDataLookup _closureDataLookup;
-  final InferredData inferredData;
-
-  InferredDataIrComputer(
-      DiagnosticReporter reporter,
-      Map<Id, ActualData> actualMap,
-      this._elementMap,
-      this.closedWorld,
-      this._closureDataLookup,
-      this.inferredData)
-      : super(reporter, actualMap);
 
   @override
   String computeMemberValue(Id id, ir.Member node) {

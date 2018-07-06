@@ -24,46 +24,54 @@ const List<String> skipForKernel = const <String>[];
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(dataDir, computeKernelClosureData,
+    await checkTests(dataDir, const ClosureDataComputer(),
         skipForKernel: skipForKernel, args: args, testOmit: true);
   });
 }
 
-/// Compute closure data mapping for [member] as a kernel based element.
-///
-/// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
-/// for the data origin.
-void computeKernelClosureData(
-    Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
-    {bool verbose: false}) {
-  KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-  KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
-  GlobalLocalsMap localsMap = backendStrategy.globalLocalsMapForTesting;
-  ClosureDataLookup closureDataLookup = backendStrategy.closureDataLookup;
-  MemberDefinition definition = elementMap.getMemberDefinition(member);
-  assert(
-      definition.kind == MemberKind.regular ||
-          definition.kind == MemberKind.constructor,
-      failedAt(member, "Unexpected member definition $definition"));
-  new ClosureIrChecker(
-          compiler.reporter,
-          actualMap,
-          elementMap,
-          member,
-          localsMap.getLocalsMap(member),
-          closureDataLookup,
-          compiler.codegenWorldBuilder,
-          verbose: verbose)
-      .run(definition.node);
+class ClosureDataComputer extends DataComputer {
+  const ClosureDataComputer();
+
+  @override
+  void computeMemberData(
+      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+      {bool verbose: false}) {
+    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
+    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    GlobalLocalsMap localsMap = backendStrategy.globalLocalsMapForTesting;
+    ClosureDataLookup closureDataLookup = backendStrategy.closureDataLookup;
+    MemberDefinition definition = elementMap.getMemberDefinition(member);
+    assert(
+        definition.kind == MemberKind.regular ||
+            definition.kind == MemberKind.constructor,
+        failedAt(member, "Unexpected member definition $definition"));
+    new ClosureIrChecker(
+            compiler.reporter,
+            actualMap,
+            elementMap,
+            member,
+            localsMap.getLocalsMap(member),
+            closureDataLookup,
+            compiler.codegenWorldBuilder,
+            verbose: verbose)
+        .run(definition.node);
+  }
 }
 
 /// Kernel IR visitor for computing closure data.
-class ClosureIrChecker extends IrDataExtractor with ComputeValueMixin {
+class ClosureIrChecker extends IrDataExtractor {
   final MemberEntity member;
   final ClosureDataLookup closureDataLookup;
   final CodegenWorldBuilder codegenWorldBuilder;
   final KernelToLocalsMap _localsMap;
   final bool verbose;
+
+  Map<BoxLocal, String> boxNames = <BoxLocal, String>{};
+  Link<ScopeInfo> scopeInfoStack = const Link<ScopeInfo>();
+
+  Link<CapturedScope> capturedScopeStack = const Link<CapturedScope>();
+  Link<ClosureRepresentationInfo> closureRepresentationInfoStack =
+      const Link<ClosureRepresentationInfo>();
 
   ClosureIrChecker(
       DiagnosticReporter reporter,
@@ -77,6 +85,14 @@ class ClosureIrChecker extends IrDataExtractor with ComputeValueMixin {
       : super(reporter, actualMap) {
     pushMember(member);
   }
+
+  ScopeInfo get scopeInfo => scopeInfoStack.head;
+  CapturedScope get capturedScope => capturedScopeStack.head;
+
+  ClosureRepresentationInfo get closureRepresentationInfo =>
+      closureRepresentationInfoStack.isNotEmpty
+          ? closureRepresentationInfoStack.head
+          : null;
 
   visitFunctionExpression(ir.FunctionExpression node) {
     ClosureRepresentationInfo info = closureDataLookup.getClosureInfo(node);
@@ -133,23 +149,6 @@ class ClosureIrChecker extends IrDataExtractor with ComputeValueMixin {
   String computeMemberValue(Id id, ir.Member node) {
     return computeObjectValue(member);
   }
-}
-
-abstract class ComputeValueMixin {
-  bool get verbose;
-  Map<BoxLocal, String> boxNames = <BoxLocal, String>{};
-  ClosureDataLookup get closureDataLookup;
-  Link<ScopeInfo> scopeInfoStack = const Link<ScopeInfo>();
-  ScopeInfo get scopeInfo => scopeInfoStack.head;
-  CapturedScope get capturedScope => capturedScopeStack.head;
-  Link<CapturedScope> capturedScopeStack = const Link<CapturedScope>();
-  Link<ClosureRepresentationInfo> closureRepresentationInfoStack =
-      const Link<ClosureRepresentationInfo>();
-  ClosureRepresentationInfo get closureRepresentationInfo =>
-      closureRepresentationInfoStack.isNotEmpty
-          ? closureRepresentationInfoStack.head
-          : null;
-  CodegenWorldBuilder get codegenWorldBuilder;
 
   void pushMember(MemberEntity member) {
     scopeInfoStack =

@@ -25,8 +25,7 @@ main(List<String> args) {
         new Directory.fromUri(Platform.script.resolve('emission'));
     await checkTests(
       dataDir,
-      computeKernelRtiMemberEmission,
-      computeClassDataFromKernel: computeKernelRtiClassEmission,
+      const RtiEmissionDataComputer(),
       args: args,
       skipForStrong: [
         // Dart 1 semantics:
@@ -100,24 +99,38 @@ abstract class ComputeValueMixin {
   }
 }
 
-void computeKernelRtiMemberEmission(
-    Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
-    {bool verbose: false}) {
-  KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-  KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
-  MemberDefinition definition = elementMap.getMemberDefinition(member);
-  new RtiMemberEmissionIrComputer(compiler.reporter, actualMap, elementMap,
-          member, compiler, backendStrategy.closureDataLookup)
-      .run(definition.node);
-}
+class RtiEmissionDataComputer extends DataComputer {
+  const RtiEmissionDataComputer();
 
-void computeKernelRtiClassEmission(
-    Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
-    {bool verbose: false}) {
-  KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-  KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
-  new RtiClassEmissionIrComputer(compiler, elementMap, actualMap)
-      .computeClassValue(cls);
+  @override
+  void setup() {
+    cacheRtiDataForTesting = true;
+  }
+
+  @override
+  bool get computesClassData => true;
+
+  @override
+  void computeMemberData(
+      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+      {bool verbose: false}) {
+    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
+    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    MemberDefinition definition = elementMap.getMemberDefinition(member);
+    new RtiMemberEmissionIrComputer(compiler.reporter, actualMap, elementMap,
+            member, compiler, backendStrategy.closureDataLookup)
+        .run(definition.node);
+  }
+
+  @override
+  void computeClassData(
+      Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
+      {bool verbose: false}) {
+    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
+    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    new RtiClassEmissionIrComputer(compiler, elementMap, actualMap)
+        .computeClassValue(cls);
+  }
 }
 
 class RtiClassEmissionIrComputer extends DataRegistry with ComputeValueMixin {

@@ -31,8 +31,7 @@ runTests(List<String> args, [int shardIndex]) {
   cacheRtiDataForTesting = true;
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(dataDir, computeKernelRtiMemberNeed,
-        computeClassDataFromKernel: computeKernelRtiClassNeed,
+    await checkTests(dataDir, const RtiNeedDataComputer(),
         options: [],
         skipForKernel: [
           'runtime_type_closure_equals2.dart',
@@ -239,30 +238,44 @@ class FindTypeVisitor extends BaseDartTypeVisitor<bool, Null> {
   }
 }
 
-/// Compute RTI need data for [member] from the new frontend.
-///
-/// Fills [actualMap] with the data.
-void computeKernelRtiMemberNeed(
-    Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
-    {bool verbose: false}) {
-  KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-  KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
-  MemberDefinition definition = elementMap.getMemberDefinition(member);
-  new RtiMemberNeedIrComputer(compiler.reporter, actualMap, elementMap, member,
-          compiler, backendStrategy.closureDataLookup)
-      .run(definition.node);
-}
+class RtiNeedDataComputer extends DataComputer {
+  const RtiNeedDataComputer();
 
-/// Compute RTI need data for [cls] from the new frontend.
-///
-/// Fills [actualMap] with the data.
-void computeKernelRtiClassNeed(
-    Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
-    {bool verbose: false}) {
-  KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-  KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
-  new RtiClassNeedIrComputer(compiler, elementMap, actualMap)
-      .computeClassValue(cls);
+  @override
+  void setup() {
+    cacheRtiDataForTesting = true;
+  }
+
+  @override
+  bool get computesClassData => true;
+
+  /// Compute RTI need data for [member] from the new frontend.
+  ///
+  /// Fills [actualMap] with the data.
+  @override
+  void computeMemberData(
+      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+      {bool verbose: false}) {
+    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
+    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    MemberDefinition definition = elementMap.getMemberDefinition(member);
+    new RtiMemberNeedIrComputer(compiler.reporter, actualMap, elementMap,
+            member, compiler, backendStrategy.closureDataLookup)
+        .run(definition.node);
+  }
+
+  /// Compute RTI need data for [cls] from the new frontend.
+  ///
+  /// Fills [actualMap] with the data.
+  @override
+  void computeClassData(
+      Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
+      {bool verbose: false}) {
+    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
+    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    new RtiClassNeedIrComputer(compiler, elementMap, actualMap)
+        .computeClassValue(cls);
+  }
 }
 
 abstract class IrMixin implements ComputeValueMixin {

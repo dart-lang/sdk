@@ -32,8 +32,7 @@ const List<String> compilerOptions = const <String>[];
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(dataDir, computeKernelOutputUnitData,
-        computeClassDataFromKernel: computeKernelClassOutputUnitData,
+    await checkTests(dataDir, const OutputUnitDataComputer(),
         libDirectory: new Directory.fromUri(Platform.script.resolve('libs')),
         skipForKernel: skipForKernel,
         options: compilerOptions,
@@ -79,30 +78,57 @@ String outputUnitString(OutputUnit unit) {
   return 'OutputUnit(${unit.name}, {$sb})';
 }
 
-/// OutputData for [member] as a kernel based element.
-///
-/// At this point the compiler has already been run, so it is holding the
-/// relevant OutputUnits, we just need to extract that information from it. We
-/// fill [actualMap] with the data computed about what the resulting OutputUnit
-/// is.
-void computeKernelOutputUnitData(
-    Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
-    {bool verbose: false}) {
-  KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-  KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
-  MemberDefinition definition = elementMap.getMemberDefinition(member);
-  new TypeMaskIrComputer(compiler.reporter, actualMap, elementMap, member,
-          compiler.backend.outputUnitData, backendStrategy.closureDataLookup)
-      .run(definition.node);
+class OutputUnitDataComputer extends DataComputer {
+  const OutputUnitDataComputer();
+
+  /// OutputData for [member] as a kernel based element.
+  ///
+  /// At this point the compiler has already been run, so it is holding the
+  /// relevant OutputUnits, we just need to extract that information from it. We
+  /// fill [actualMap] with the data computed about what the resulting OutputUnit
+  /// is.
+  @override
+  void computeMemberData(
+      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+      {bool verbose: false}) {
+    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
+    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    MemberDefinition definition = elementMap.getMemberDefinition(member);
+    new OutputUnitIrComputer(compiler.reporter, actualMap, elementMap, member,
+            compiler.backend.outputUnitData, backendStrategy.closureDataLookup)
+        .run(definition.node);
+  }
+
+  @override
+  bool get computesClassData => true;
+
+  @override
+  void computeClassData(
+      Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
+      {bool verbose: false}) {
+    OutputUnitData data = compiler.backend.outputUnitData;
+    String value = outputUnitString(data.outputUnitForClass(cls));
+
+    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
+    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    ClassDefinition definition = elementMap.getClassDefinition(cls);
+
+    _registerValue(
+        new ClassId(cls.name),
+        value,
+        cls,
+        computeSourceSpanFromTreeNode(definition.node),
+        actualMap,
+        compiler.reporter);
+  }
 }
 
-/// IR visitor for computing inference data for a member.
-class TypeMaskIrComputer extends IrDataExtractor {
+class OutputUnitIrComputer extends IrDataExtractor {
   final KernelToElementMapForBuilding _elementMap;
   final OutputUnitData _data;
   final ClosureDataLookup _closureDataLookup;
 
-  TypeMaskIrComputer(
+  OutputUnitIrComputer(
       DiagnosticReporter reporter,
       Map<Id, ActualData> actualMap,
       this._elementMap,
@@ -151,25 +177,6 @@ class TypeMaskIrComputer extends IrDataExtractor {
     }
     return null;
   }
-}
-
-void computeKernelClassOutputUnitData(
-    Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
-    {bool verbose: false}) {
-  OutputUnitData data = compiler.backend.outputUnitData;
-  String value = outputUnitString(data.outputUnitForClass(cls));
-
-  KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-  KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
-  ClassDefinition definition = elementMap.getClassDefinition(cls);
-
-  _registerValue(
-      new ClassId(cls.name),
-      value,
-      cls,
-      computeSourceSpanFromTreeNode(definition.node),
-      actualMap,
-      compiler.reporter);
 }
 
 /// Set [actualMap] to hold a key of [id] with the computed data [value]

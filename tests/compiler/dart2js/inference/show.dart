@@ -5,7 +5,6 @@
 /// Helper program that shows the inferrer data on a dart program.
 
 import 'package:args/args.dart';
-import 'package:compiler/src/inferrer/inferrer_engine.dart';
 import '../equivalence/id_equivalence_helper.dart';
 import '../equivalence/show_helper.dart';
 import 'inference_test_helper.dart';
@@ -19,16 +18,14 @@ main(List<String> args) async {
   argParser.addFlag('callers', defaultsTo: false);
   ArgResults results = argParser.parse(args);
 
-  ComputeMemberDataFunction kernelFunction;
+  DataComputer dataComputer;
   if (results['side-effects']) {
-    kernelFunction = computeMemberIrSideEffects;
+    dataComputer = const SideEffectsDataComputer();
   }
   if (results['callers']) {
-    InferrerEngineImpl.retainDataForTesting = true;
-    kernelFunction = computeMemberIrCallers;
+    dataComputer = const CallersDataComputer();
   } else {
-    InferrerEngineImpl.useSorterForTesting = true;
-    kernelFunction = computeMemberIrTypeMasks;
+    dataComputer = const TypeMaskDataComputer();
   }
-  await show(results, kernelFunction, options: [/*stopAfterTypeInference*/]);
+  await show(results, dataComputer, options: [/*stopAfterTypeInference*/]);
 }

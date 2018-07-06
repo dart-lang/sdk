@@ -20,19 +20,50 @@ import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 
 main(List<String> args) {
-  JavaScriptBackend.cacheCodegenImpactForTesting = true;
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(dataDir, computeMemberIrInlinings, args: args);
+    await checkTests(dataDir, const InliningDataComputer(), args: args);
   });
 }
 
-abstract class ComputeValueMixin {
-  JavaScriptBackend get backend;
+class InliningDataComputer extends DataComputer {
+  const InliningDataComputer();
 
-  ConstructorBodyEntity getConstructorBody(ConstructorEntity constructor);
+  @override
+  void setup() {
+    JavaScriptBackend.cacheCodegenImpactForTesting = true;
+  }
 
-  String getTooDifficultReason(MemberEntity member);
+  /// Compute type inference data for [member] from kernel based inference.
+  ///
+  /// Fills [actualMap] with the data.
+  @override
+  void computeMemberData(
+      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+      {bool verbose: false}) {
+    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
+    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    MemberDefinition definition = elementMap.getMemberDefinition(member);
+    new InliningIrComputer(compiler.reporter, actualMap, elementMap, member,
+            compiler.backend, backendStrategy.closureDataLookup)
+        .run(definition.node);
+  }
+}
+
+/// AST visitor for computing inference data for a member.
+class InliningIrComputer extends IrDataExtractor {
+  final JavaScriptBackend backend;
+  final KernelToElementMapForBuilding _elementMap;
+  final ClosureDataLookup _closureDataLookup;
+
+  InliningIrComputer(
+      DiagnosticReporter reporter,
+      Map<Id, ActualData> actualMap,
+      this._elementMap,
+      MemberEntity member,
+      this.backend,
+      this._closureDataLookup)
+      : super(reporter, actualMap);
 
   String getMemberValue(MemberEntity member) {
     if (member is FunctionEntity) {
@@ -76,43 +107,12 @@ abstract class ComputeValueMixin {
     }
     return null;
   }
-}
-
-/// Compute type inference data for [member] from kernel based inference.
-///
-/// Fills [actualMap] with the data.
-void computeMemberIrInlinings(
-    Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
-    {bool verbose: false}) {
-  KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-  KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
-  MemberDefinition definition = elementMap.getMemberDefinition(member);
-  new InliningIrComputer(compiler.reporter, actualMap, elementMap, member,
-          compiler.backend, backendStrategy.closureDataLookup)
-      .run(definition.node);
-}
-
-/// AST visitor for computing inference data for a member.
-class InliningIrComputer extends IrDataExtractor with ComputeValueMixin {
-  final JavaScriptBackend backend;
-  final KernelToElementMapForBuilding _elementMap;
-  final ClosureDataLookup _closureDataLookup;
-
-  InliningIrComputer(
-      DiagnosticReporter reporter,
-      Map<Id, ActualData> actualMap,
-      this._elementMap,
-      MemberEntity member,
-      this.backend,
-      this._closureDataLookup)
-      : super(reporter, actualMap);
 
   ConstructorBodyEntity getConstructorBody(ConstructorEntity constructor) {
     return _elementMap
         .getConstructorBody(_elementMap.getMemberDefinition(constructor).node);
   }
 
-  @override
   String getTooDifficultReason(MemberEntity member) {
     if (member is! FunctionEntity) return null;
     return kernel.InlineWeeder.cannotBeInlinedReason(_elementMap, member, null,
