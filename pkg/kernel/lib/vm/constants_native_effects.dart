@@ -47,8 +47,10 @@ class VmConstantsBackend implements ConstantsBackend {
     switch (nativeName) {
       case 'Bool_fromEnvironment':
         final String name = (positionalArguments[0] as StringConstant).value;
-        final BoolConstant constant = namedArguments['defaultValue'];
-        final bool defaultValue = constant != null ? constant.value : false;
+        final Constant constant = namedArguments['defaultValue'];
+        final bool defaultValue = constant is BoolConstant
+            ? constant.value
+            : (constant is NullConstant ? null : false);
         bool value;
         if (defines != null) {
           value = defines[name] == 'true'

@@ -169,7 +169,6 @@ web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 [ $compiler == dartkp ]
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-constant_string_interpolation2_test: DartkCrash # Issue 33628
 covariant_subtyping_test: RuntimeError
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
