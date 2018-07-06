@@ -61,34 +61,6 @@ class KernelTypeGraphInferrer extends TypeGraphInferrer {
         _compiler.backendStrategy.sorter,
         _inferredDataBuilder);
   }
-
-  @override
-  GlobalTypeInferenceResults createResults() {
-    return new KernelGlobalTypeInferenceResults(this, closedWorld);
-  }
-}
-
-class KernelGlobalTypeInferenceResults extends GlobalTypeInferenceResults {
-  KernelGlobalTypeInferenceResults(
-      TypesInferrer inferrer, JClosedWorld closedWorld)
-      : super(inferrer, closedWorld);
-
-  GlobalTypeInferenceMemberResult createMemberResult(
-      TypeGraphInferrer inferrer, MemberEntity member,
-      {bool isJsInterop: false}) {
-    return new GlobalTypeInferenceMemberResultImpl(
-        member,
-        // We store data in the context of the enclosing method, even
-        // for closure elements.
-        inferrer.inferrer.lookupDataOfMember(member),
-        inferrer,
-        isJsInterop);
-  }
-
-  GlobalTypeInferenceParameterResult createParameterResult(
-      TypeGraphInferrer inferrer, Local parameter) {
-    return new GlobalTypeInferenceParameterResultImpl(parameter, inferrer);
-  }
 }
 
 class KernelInferrerEngine extends InferrerEngineImpl {

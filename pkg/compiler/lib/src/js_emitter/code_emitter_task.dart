@@ -14,6 +14,7 @@ import '../deferred_load.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
+import '../js_backend/inferred_data.dart';
 import '../universe/world_builder.dart' show CodegenWorldBuilder;
 import '../world.dart' show JClosedWorld;
 import 'full_emitter/emitter.dart' as full_js_emitter;
@@ -169,7 +170,8 @@ class CodeEmitterTask extends CompilerTask {
     });
   }
 
-  int assembleProgram(Namer namer, JClosedWorld closedWorld) {
+  int assembleProgram(
+      Namer namer, JClosedWorld closedWorld, InferredData inferredData) {
     return measure(() {
       _finalizeRti();
       ProgramBuilder programBuilder = new ProgramBuilder(
@@ -199,7 +201,7 @@ class CodeEmitterTask extends CompilerTask {
           this,
           closedWorld,
           closedWorld.allocatorAnalysis,
-          compiler.globalInference.inferredData,
+          inferredData,
           backend.sourceInformationStrategy,
           compiler.backendStrategy.sorter,
           typeTestRegistry.rtiNeededClasses,

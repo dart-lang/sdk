@@ -51,7 +51,7 @@ class InferenceDataComputer extends DataComputer {
             elementMap,
             compiler.backendClosedWorldForTesting,
             backendStrategy.closureDataLookup,
-            compiler.globalInference.inferredData)
+            compiler.globalInference.resultsForTesting.inferredData)
         .run(definition.node);
   }
 }

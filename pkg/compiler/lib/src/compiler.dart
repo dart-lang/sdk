@@ -402,7 +402,8 @@ abstract class Compiler {
         onProgress: showCodegenProgress);
     codegenEnqueuer.logSummary(reporter.log);
 
-    int programSize = backend.assembleProgram(closedWorld);
+    int programSize = backend.assembleProgram(
+        closedWorld, globalInferenceResults.inferredData);
 
     if (options.dumpInfo) {
       dumpInfoTask.reportSize(programSize);

@@ -738,8 +738,8 @@ class JavaScriptBackend {
   }
 
   /// Generates the output and returns the total size of the generated code.
-  int assembleProgram(JClosedWorld closedWorld) {
-    int programSize = emitter.assembleProgram(namer, closedWorld);
+  int assembleProgram(JClosedWorld closedWorld, InferredData inferredData) {
+    int programSize = emitter.assembleProgram(namer, closedWorld, inferredData);
     closedWorld.noSuchMethodData.emitDiagnostic(reporter);
     return programSize;
   }

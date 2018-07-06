@@ -180,68 +180,30 @@ abstract class TypesInferrer {
   void clear();
   bool isMemberCalledOnce(MemberEntity element);
   bool isFixedArrayCheckedForGrowable(ir.Node node);
-  GlobalTypeInferenceResults createResults();
 }
 
 /// Results produced by the global type-inference algorithm.
 ///
 /// All queries in this class may contain results that assume whole-program
-/// closed-world semantics. Any [TypeMask] for an element or node that we return
-/// was inferred to be a "guaranteed type", that means, it is a type that we
-/// can prove to be correct for all executions of the program.
+/// closed-world semantics. Any [AbstractValue] for an element or node that we
+/// return was inferred to be a "guaranteed type", that means, it is a type that
+/// we can prove to be correct for all executions of the program.
 abstract class GlobalTypeInferenceResults {
-  // TODO(sigmund): store relevant data & drop reference to inference engine.
-  final TypeGraphInferrer _inferrer;
-  final JClosedWorld closedWorld;
-  final Map<MemberEntity, GlobalTypeInferenceMemberResult> _memberResults =
-      <MemberEntity, GlobalTypeInferenceMemberResult>{};
-  final Map<Local, GlobalTypeInferenceParameterResult> _parameterResults =
-      <Local, GlobalTypeInferenceParameterResult>{};
+  JClosedWorld get closedWorld;
 
-  GlobalTypeInferenceResults(this._inferrer, this.closedWorld);
+  InferredData get inferredData;
 
-  /// Create the [GlobalTypeInferenceMemberResult] object for [member].
-  GlobalTypeInferenceMemberResult createMemberResult(
-      TypeGraphInferrer inferrer, MemberEntity member,
-      {bool isJsInterop: false});
+  GlobalTypeInferenceMemberResult resultOfMember(MemberEntity member);
 
-  /// Create the [GlobalTypeInferenceParameterResult] object for [parameter].
-  GlobalTypeInferenceParameterResult createParameterResult(
-      TypeGraphInferrer inferrer, Local parameter);
-
-  // TODO(sigmund,johnniwinther): compute result objects eagerly and make it an
-  // error to query for results that don't exist.
-  GlobalTypeInferenceMemberResult resultOfMember(MemberEntity member) {
-    assert(
-        member is! ConstructorBodyEntity,
-        failedAt(
-            member,
-            "unexpected input: ConstructorBodyElements are created"
-            " after global type inference, no data is avaiable for them."));
-
-    bool isJsInterop = closedWorld.nativeData.isJsInteropMember(member);
-    return _memberResults.putIfAbsent(member,
-        () => createMemberResult(_inferrer, member, isJsInterop: isJsInterop));
-  }
-
-  // TODO(sigmund,johnniwinther): compute result objects eagerly and make it an
-  // error to query for results that don't exist.
-  GlobalTypeInferenceElementResult resultOfParameter(Local parameter) {
-    return _parameterResults.putIfAbsent(
-        parameter, () => createParameterResult(_inferrer, parameter));
-  }
+  GlobalTypeInferenceElementResult resultOfParameter(Local parameter);
 
   /// Returns the type of a [selector] when applied to a receiver with the given
   /// type [mask].
-  AbstractValue typeOfSelector(Selector selector, AbstractValue mask) =>
-      _inferrer.getTypeOfSelector(selector, mask);
+  AbstractValue typeOfSelector(Selector selector, AbstractValue mask);
 
   /// Returns whether a fixed-length constructor call goes through a growable
   /// check.
-  // TODO(sigmund): move into the result of the element containing such
-  // constructor call.
-  bool isFixedArrayCheckedForGrowable(ir.Node ctorCall) =>
-      _inferrer.isFixedArrayCheckedForGrowable(ctorCall);
+  bool isFixedArrayCheckedForGrowable(ir.Node node);
 }
 
 /// Global analysis that infers concrete types.
@@ -257,8 +219,6 @@ class GlobalTypeInferenceTask extends CompilerTask {
 
   GlobalTypeInferenceResults resultsForTesting;
 
-  InferredData inferredData;
-
   GlobalTypeInferenceTask(Compiler compiler)
       : compiler = compiler,
         super(compiler.measurer);
@@ -272,12 +232,82 @@ class GlobalTypeInferenceTask extends CompilerTask {
           disableTypeInference: compiler.disableTypeInference);
       typesInferrerInternal.analyzeMain(mainElement);
       typesInferrerInternal.clear();
-      GlobalTypeInferenceResults results =
-          typesInferrerInternal.createResults();
+
+      GlobalTypeInferenceResultsImpl results =
+          new GlobalTypeInferenceResultsImpl(
+              typesInferrerInternal, closedWorld);
       closedWorld.noSuchMethodData.categorizeComplexImplementations(results);
-      inferredData = inferredDataBuilder.close(closedWorld);
+      results.inferredData = inferredDataBuilder.close(closedWorld);
       resultsForTesting = results;
       return results;
     });
   }
+}
+
+class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
+  final JClosedWorld closedWorld;
+  InferredData inferredData;
+  final TypeGraphInferrer _inferrer;
+  // TODO(sigmund): store relevant data & drop reference to inference engine.
+  final Map<MemberEntity, GlobalTypeInferenceMemberResult> _memberResults =
+      <MemberEntity, GlobalTypeInferenceMemberResult>{};
+  final Map<Local, GlobalTypeInferenceParameterResult> _parameterResults =
+      <Local, GlobalTypeInferenceParameterResult>{};
+
+  GlobalTypeInferenceResultsImpl(this._inferrer, this.closedWorld);
+
+  GlobalTypeInferenceMemberResult _createMemberResult(
+      TypeGraphInferrer inferrer, MemberEntity member,
+      {bool isJsInterop: false}) {
+    return new GlobalTypeInferenceMemberResultImpl(
+        member,
+        // We store data in the context of the enclosing method, even
+        // for closure elements.
+        inferrer.inferrer.lookupDataOfMember(member),
+        inferrer,
+        isJsInterop);
+  }
+
+  GlobalTypeInferenceParameterResult _createParameterResult(
+      TypeGraphInferrer inferrer, Local parameter) {
+    return new GlobalTypeInferenceParameterResultImpl(parameter, inferrer);
+  }
+
+  // TODO(sigmund,johnniwinther): compute result objects eagerly and make it an
+  // error to query for results that don't exist.
+  @override
+  GlobalTypeInferenceMemberResult resultOfMember(MemberEntity member) {
+    assert(
+        member is! ConstructorBodyEntity,
+        failedAt(
+            member,
+            "unexpected input: ConstructorBodyElements are created"
+            " after global type inference, no data is avaiable for them."));
+
+    bool isJsInterop = closedWorld.nativeData.isJsInteropMember(member);
+    return _memberResults.putIfAbsent(member,
+        () => _createMemberResult(_inferrer, member, isJsInterop: isJsInterop));
+  }
+
+  // TODO(sigmund,johnniwinther): compute result objects eagerly and make it an
+  // error to query for results that don't exist.
+  @override
+  GlobalTypeInferenceElementResult resultOfParameter(Local parameter) {
+    return _parameterResults.putIfAbsent(
+        parameter, () => _createParameterResult(_inferrer, parameter));
+  }
+
+  /// Returns the type of a [selector] when applied to a receiver with the given
+  /// type [mask].
+  @override
+  AbstractValue typeOfSelector(Selector selector, AbstractValue mask) =>
+      _inferrer.getTypeOfSelector(selector, mask);
+
+  /// Returns whether a fixed-length constructor call goes through a growable
+  /// check.
+  // TODO(sigmund): move into the result of the element containing such
+  // constructor call.
+  @override
+  bool isFixedArrayCheckedForGrowable(ir.Node ctorCall) =>
+      _inferrer.isFixedArrayCheckedForGrowable(ctorCall);
 }

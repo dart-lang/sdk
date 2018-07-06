@@ -92,7 +92,7 @@ abstract class GraphBuilder {
 
   JsInteropAnalysis get jsInteropAnalysis => backend.jsInteropAnalysis;
 
-  InferredData get inferredData => compiler.globalInference.inferredData;
+  InferredData get inferredData => globalInferenceResults.inferredData;
 
   DeferredLoadTask get deferredLoadTask => compiler.deferredLoadTask;
 
