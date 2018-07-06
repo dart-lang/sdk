@@ -235,7 +235,9 @@ class SimpleFormatter implements ReportFormatter {
   void writeSummary() {
     var summary = '${pluralize("file", fileCount)} analyzed, '
         '${pluralize("issue", errorCount)} found'
-        "${filteredLintCount == 0 ? '' : ' ($filteredLintCount filtered)'}, in $elapsedMs ms.";
+        "${filteredLintCount == 0
+            ? ''
+            : ' ($filteredLintCount filtered)'}, in $elapsedMs ms.";
     out.writeln(summary);
     // Cache for output table sizing
     _summaryLength = summary.length;
@@ -306,8 +308,9 @@ void _writeTimings(IOSink out, List<_Stat> timings, int summaryLength) {
     totalTime += stat.elapsed;
     // TODO: Shame timings slower than 100ms?
     // TODO: Present both total times and time per count?
-    out.writeln(
-        '${stat.name.padRight(longestName)}${stat.elapsed.toString().padLeft(pad)}');
+    out.writeln('${stat.name.padRight(longestName)}${stat.elapsed
+        .toString()
+        .padLeft(pad)}');
   }
   out
     ..writeln(line)

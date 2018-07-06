@@ -59,8 +59,8 @@ String get enumerateErrorRules => rules
     .join('\n\n');
 
 String get enumerateGroups => Group.builtin
-    .map((Group g) =>
-        '<li><strong>${g.name}</strong> - ${markdownToHtml(g.description)}</li>')
+    .map((Group g) => '<li><strong>${g
+        .name}</strong> - ${markdownToHtml(g.description)}</li>')
     .join('\n');
 
 String get enumeratePubRules => rules
@@ -120,7 +120,8 @@ String qualify(LintRule r) =>
     (r.maturity == Maturity.stable ? '' : ' (${r.maturity.name})');
 
 String toDescription(LintRule r) =>
-    '<strong><a href = "${r.name}.html">${qualify(r)}</a></strong><br/>${markdownToHtml(r.description)}';
+    '<strong><a href = "${r.name}.html">${qualify(
+        r)}</a></strong><br/>${markdownToHtml(r.description)}';
 
 class Generator {
   LintRule rule;
