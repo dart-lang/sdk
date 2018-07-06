@@ -180,7 +180,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       _locals.setCapturedAndBoxed(variable, field);
     });
 
-    return _analyzedNode.accept(this);
+    return visit(_analyzedNode);
   }
 
   bool isIncompatibleInvoke(FunctionEntity function, ArgumentsTypes arguments) {
@@ -216,8 +216,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     }
   }
 
-  TypeInformation visit(ir.Node node) {
-    return node == null ? null : node.accept(this);
+  TypeInformation visit(ir.Node node, {bool conditionContext: false}) {
+    var oldAccumulateIsChecks = _accumulateIsChecks;
+    _accumulateIsChecks = conditionContext;
+    var result = node?.accept(this);
+    _accumulateIsChecks = oldAccumulateIsChecks;
+    return result;
   }
 
   void visitList(List<ir.Node> nodes) {
@@ -419,7 +423,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   @override
   visitBlock(ir.Block block) {
     for (ir.Statement statement in block.statements) {
-      statement.accept(this);
+      visit(statement);
       if (_locals.aborts) break;
     }
   }
@@ -564,7 +568,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       TypeInformation elementType;
       int length = 0;
       for (ir.Expression element in listLiteral.expressions) {
-        TypeInformation type = element.accept(this);
+        TypeInformation type = visit(element);
         elementType = elementType == null
             ? _types.allocatePhi(null, null, type, isTry: false)
             : _types.addPhiInput(null, elementType, type);
@@ -601,8 +605,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   @override
   TypeInformation visitReturnStatement(ir.ReturnStatement node) {
     ir.Node expression = node.expression;
-    recordReturnType(
-        expression == null ? _types.nullType : expression.accept(this));
+    recordReturnType(expression == null ? _types.nullType : visit(expression));
     _locals.seenReturnOrThrow = true;
     initializationIsIndefinite();
     return null;
@@ -711,7 +714,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       if (argument is ir.ThisExpression) {
         _markThisAsExposed();
       }
-      positional.add(argument.accept(this));
+      positional.add(visit(argument));
     }
     for (ir.NamedExpression argument in arguments.named) {
       named ??= <String, TypeInformation>{};
@@ -721,7 +724,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       if (value is ir.ThisExpression) {
         _markThisAsExposed();
       }
-      named[argument.name] = value.accept(this);
+      named[argument.name] = visit(value);
     }
 
     return new ArgumentsTypes(positional, named);
@@ -1298,7 +1301,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     _conditionIsSimple = true;
     _positiveIsChecks = positiveTests;
     _negativeIsChecks = negativeTests;
-    visit(node);
+    visit(node, conditionContext: true);
     bool simpleCondition = _conditionIsSimple;
     _accumulateIsChecks = oldAccumulateIsChecks;
     _positiveIsChecks = oldPositiveIsChecks;
@@ -1380,7 +1383,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     List<IsCheck> temp = _positiveIsChecks;
     _positiveIsChecks = _negativeIsChecks;
     _negativeIsChecks = temp;
-    visit(node.operand);
+    visit(node.operand, conditionContext: _accumulateIsChecks);
     temp = _positiveIsChecks;
     _positiveIsChecks = _negativeIsChecks;
     _negativeIsChecks = temp;
@@ -1399,7 +1402,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         _positiveIsChecks = <IsCheck>[];
         _negativeIsChecks = <IsCheck>[];
       }
-      visit(node.left);
+      visit(node.left, conditionContext: _accumulateIsChecks);
       LocalsHandler saved = _locals;
       _locals = new LocalsHandler.from(_locals, node);
       _updateIsChecks(_positiveIsChecks, _negativeIsChecks);
@@ -1411,7 +1414,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         _positiveIsChecks = oldPositiveIsChecks;
         _negativeIsChecks = oldNegativeIsChecks;
       }
-      visit(node.right);
+      visit(node.right, conditionContext: _accumulateIsChecks);
       if (oldAccumulateIsChecks) {
         bool invalidatedInRightHandSide(IsCheck check) {
           return narrowed.locals[check.local] != _locals.locals[check.local];
@@ -1434,10 +1437,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       if (isSimple) {
         _updateIsChecks(negativeIsChecks, positiveIsChecks);
       }
-      bool oldAccumulateIsChecks = _accumulateIsChecks;
-      _accumulateIsChecks = false;
-      visit(node.right);
-      _accumulateIsChecks = oldAccumulateIsChecks;
+      visit(node.right, conditionContext: false);
       saved.mergeDiamondFlow(_locals, null);
       _locals = saved;
       return _types.boolType;
