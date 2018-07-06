@@ -74,7 +74,7 @@ class KernelClosureAnalysis {
 // TODO(efortuna): Change inheritance hierarchy so that the
 // ClosureConversionTask doesn't inherit from ClosureTask because it's just a
 // glorified timer.
-class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
+class KernelClosureConversionTask extends ClosureConversionTask {
   final KernelToElementMapForBuilding _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
   final CompilerOptions _options;

@@ -28,7 +28,7 @@ main(List<String> args) {
   });
 }
 
-abstract class ComputeValueMixin<T> {
+abstract class ComputeValueMixin {
   InferredData get inferredData;
 
   String getMemberValue(MemberEntity member) {
@@ -53,17 +53,16 @@ void computeMemberIrSideEffects(
           actualMap,
           elementMap,
           compiler.backendClosedWorldForTesting,
-          backendStrategy.closureDataLookup as ClosureDataLookup<ir.Node>,
+          backendStrategy.closureDataLookup,
           compiler.globalInference.inferredData)
       .run(definition.node);
 }
 
 /// AST visitor for computing side effects data for a member.
-class SideEffectsIrComputer extends IrDataExtractor
-    with ComputeValueMixin<ir.Node> {
+class SideEffectsIrComputer extends IrDataExtractor with ComputeValueMixin {
   final JClosedWorld closedWorld;
   final KernelToElementMapForBuilding _elementMap;
-  final ClosureDataLookup<ir.Node> _closureDataLookup;
+  final ClosureDataLookup _closureDataLookup;
   final InferredData inferredData;
 
   SideEffectsIrComputer(

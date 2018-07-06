@@ -6,6 +6,7 @@ library type_graph_inferrer;
 
 import 'dart:collection' show Queue;
 
+import 'package:kernel/ast.dart' as ir;
 import '../elements/entities.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
@@ -45,8 +46,8 @@ class WorkQueue {
   int get length => queue.length;
 }
 
-abstract class TypeGraphInferrer<T> implements TypesInferrer<T> {
-  InferrerEngine<T> inferrer;
+abstract class TypeGraphInferrer implements TypesInferrer {
+  InferrerEngine inferrer;
   final bool _disableTypeInference;
   final JClosedWorld closedWorld;
 
@@ -66,7 +67,7 @@ abstract class TypeGraphInferrer<T> implements TypesInferrer<T> {
     inferrer.runOverAllElements();
   }
 
-  InferrerEngine<T> createInferrerEngineFor(FunctionEntity main);
+  InferrerEngine createInferrerEngineFor(FunctionEntity main);
 
   AbstractValue getReturnTypeOfMember(MemberEntity element) {
     if (_disableTypeInference) return _dynamicType;
@@ -95,12 +96,12 @@ abstract class TypeGraphInferrer<T> implements TypesInferrer<T> {
     return inferrer.types.getInferredTypeOfParameter(element).type;
   }
 
-  AbstractValue getTypeForNewList(T node) {
+  AbstractValue getTypeForNewList(ir.Node node) {
     if (_disableTypeInference) return _dynamicType;
     return inferrer.types.allocatedLists[node].type;
   }
 
-  bool isFixedArrayCheckedForGrowable(T node) {
+  bool isFixedArrayCheckedForGrowable(ir.Node node) {
     if (_disableTypeInference) return true;
     ListTypeInformation info = inferrer.types.allocatedLists[node];
     return info.checksGrowable;

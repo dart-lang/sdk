@@ -4,7 +4,7 @@
 
 library dart2js.source_information;
 
-import 'package:kernel/ast.dart' show Location;
+import 'package:kernel/ast.dart' as ir;
 import '../common.dart';
 import '../elements/entities.dart';
 import '../js/js.dart' show JavaScriptNodeSourceInformation;
@@ -37,13 +37,13 @@ abstract class SourceInformation extends JavaScriptNodeSourceInformation {
 }
 
 /// Strategy for creating, processing and applying [SourceInformation].
-class SourceInformationStrategy<T> {
+class SourceInformationStrategy {
   const SourceInformationStrategy();
 
   /// Create a [SourceInformationBuilder] for [member].
-  SourceInformationBuilder<T> createBuilderForContext(
+  SourceInformationBuilder createBuilderForContext(
       covariant MemberEntity member) {
-    return new SourceInformationBuilder<T>();
+    return new SourceInformationBuilder();
   }
 
   /// Generate [SourceInformation] marker for non-preamble code.
@@ -54,7 +54,7 @@ class SourceInformationStrategy<T> {
 }
 
 /// Interface for generating [SourceInformation].
-class SourceInformationBuilder<T> {
+class SourceInformationBuilder {
   const SourceInformationBuilder();
 
   /// Create a [SourceInformationBuilder] for [member].
@@ -70,51 +70,51 @@ class SourceInformationBuilder<T> {
 
   /// Generate [SourceInformation] for the generic [node].
   @deprecated
-  SourceInformation buildGeneric(T node) => null;
+  SourceInformation buildGeneric(ir.Node node) => null;
 
   /// Generate [SourceInformation] for an instantiation of a class using [node]
   /// for the source position.
-  SourceInformation buildCreate(T node) => null;
+  SourceInformation buildCreate(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the return [node].
-  SourceInformation buildReturn(T node) => null;
+  SourceInformation buildReturn(ir.Node node) => null;
 
   /// Generate [SourceInformation] for an implicit return in [element].
   SourceInformation buildImplicitReturn(covariant MemberEntity element) => null;
 
   /// Generate [SourceInformation] for the loop [node].
-  SourceInformation buildLoop(T node) => null;
+  SourceInformation buildLoop(ir.Node node) => null;
 
   /// Generate [SourceInformation] for a read access like `a.b` where in
   /// [receiver] points to the left-most part of the access, `a` in the example,
   /// and [property] points to the 'name' of accessed property, `b` in the
   /// example.
-  SourceInformation buildGet(T node) => null;
+  SourceInformation buildGet(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the read access in [node].
-  SourceInformation buildCall(T receiver, T call) => null;
+  SourceInformation buildCall(ir.Node receiver, ir.Node call) => null;
 
   /// Generate [SourceInformation] for the if statement in [node].
-  SourceInformation buildIf(T node) => null;
+  SourceInformation buildIf(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the constructor invocation in [node].
-  SourceInformation buildNew(T node) => null;
+  SourceInformation buildNew(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the throw in [node].
-  SourceInformation buildThrow(T node) => null;
+  SourceInformation buildThrow(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the assignment in [node].
-  SourceInformation buildAssignment(T node) => null;
+  SourceInformation buildAssignment(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the variable declaration inserted as
   /// first statement of a function.
   SourceInformation buildVariableDeclaration() => null;
 
   /// Generate [SourceInformation] for the await [node].
-  SourceInformation buildAwait(T node) => null;
+  SourceInformation buildAwait(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the yield or yield* [node].
-  SourceInformation buildYield(T node) => null;
+  SourceInformation buildYield(ir.Node node) => null;
 
   /// Generate [SourceInformation] for async/await boiler plate code.
   SourceInformation buildAsyncBody() => null;
@@ -123,58 +123,58 @@ class SourceInformationBuilder<T> {
   SourceInformation buildAsyncExit() => null;
 
   /// Generate [SourceInformation] for an invocation of a foreign method.
-  SourceInformation buildForeignCode(T node) => null;
+  SourceInformation buildForeignCode(ir.Node node) => null;
 
   /// Generate [SourceInformation] for a string interpolation of [node].
-  SourceInformation buildStringInterpolation(T node) => null;
+  SourceInformation buildStringInterpolation(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the for-in `iterator` access in [node].
-  SourceInformation buildForInIterator(T node) => null;
+  SourceInformation buildForInIterator(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the for-in `moveNext` call in [node].
-  SourceInformation buildForInMoveNext(T node) => null;
+  SourceInformation buildForInMoveNext(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the for-in `current` access in [node].
-  SourceInformation buildForInCurrent(T node) => null;
+  SourceInformation buildForInCurrent(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the for-in variable assignment in [node].
-  SourceInformation buildForInSet(T node) => null;
+  SourceInformation buildForInSet(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the operator `[]` access in [node].
-  SourceInformation buildIndex(T node) => null;
+  SourceInformation buildIndex(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the operator `[]=` assignment in [node].
-  SourceInformation buildIndexSet(T node) => null;
+  SourceInformation buildIndexSet(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the binary operation in [node].
-  SourceInformation buildBinary(T node) => null;
+  SourceInformation buildBinary(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the unary operation in [node].
-  SourceInformation buildUnary(T node) => null;
+  SourceInformation buildUnary(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the try statement in [node].
-  SourceInformation buildTry(T node) => null;
+  SourceInformation buildTry(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the unary operator in [node].
-  SourceInformation buildCatch(T node) => null;
+  SourceInformation buildCatch(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the is-test in [node].
-  SourceInformation buildIs(T node) => null;
+  SourceInformation buildIs(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the as-cast in [node].
-  SourceInformation buildAs(T node) => null;
+  SourceInformation buildAs(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the switch statement [node].
-  SourceInformation buildSwitch(T node) => null;
+  SourceInformation buildSwitch(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the switch case in [node].
-  SourceInformation buildSwitchCase(T node) => null;
+  SourceInformation buildSwitchCase(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the list literal in [node].
-  SourceInformation buildListLiteral(T node) => null;
+  SourceInformation buildListLiteral(ir.Node node) => null;
 
   /// Generate [SourceInformation] for the break/continue in [node].
-  SourceInformation buildGoto(T node) => null;
+  SourceInformation buildGoto(ir.Node node) => null;
 }
 
 /// A location in a source file.
@@ -221,7 +221,7 @@ abstract class SourceLocation {
 /// A location in a source file.
 abstract class AbstractSourceLocation extends SourceLocation {
   final SourceFile _sourceFile;
-  Location _location;
+  ir.Location _location;
 
   AbstractSourceLocation(this._sourceFile) {
     assert(

@@ -91,13 +91,8 @@ void computeKernelOutputUnitData(
   KernelBackendStrategy backendStrategy = compiler.backendStrategy;
   KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
   MemberDefinition definition = elementMap.getMemberDefinition(member);
-  new TypeMaskIrComputer(
-          compiler.reporter,
-          actualMap,
-          elementMap,
-          member,
-          compiler.backend.outputUnitData,
-          backendStrategy.closureDataLookup as ClosureDataLookup<ir.Node>)
+  new TypeMaskIrComputer(compiler.reporter, actualMap, elementMap, member,
+          compiler.backend.outputUnitData, backendStrategy.closureDataLookup)
       .run(definition.node);
 }
 
@@ -105,7 +100,7 @@ void computeKernelOutputUnitData(
 class TypeMaskIrComputer extends IrDataExtractor {
   final KernelToElementMapForBuilding _elementMap;
   final OutputUnitData _data;
-  final ClosureDataLookup<ir.Node> _closureDataLookup;
+  final ClosureDataLookup _closureDataLookup;
 
   TypeMaskIrComputer(
       DiagnosticReporter reporter,

@@ -58,11 +58,11 @@ runTests(List<String> args, [int shardIndex]) {
   });
 }
 
-abstract class ComputeValueMixin<T> {
-  GlobalTypeInferenceResults<T> get results;
+abstract class ComputeValueMixin {
+  GlobalTypeInferenceResults get results;
 
   String getMemberValue(MemberEntity member) {
-    GlobalTypeInferenceMemberResult<T> memberResult =
+    GlobalTypeInferenceMemberResult memberResult =
         results.resultOfMember(member);
     if (member.isFunction || member.isConstructor || member.isGetter) {
       return getTypeMaskValue(memberResult.returnType);
@@ -78,7 +78,7 @@ abstract class ComputeValueMixin<T> {
   }
 
   String getParameterValue(Local parameter) {
-    GlobalTypeInferenceParameterResult<T> elementResult =
+    GlobalTypeInferenceParameterResult elementResult =
         results.resultOfParameter(parameter);
     return getTypeMaskValue(elementResult.type);
   }
@@ -105,18 +105,17 @@ void computeMemberIrTypeMasks(
           member,
           localsMap.getLocalsMap(member),
           compiler.globalInference.resultsForTesting,
-          backendStrategy.closureDataLookup as ClosureDataLookup<ir.Node>)
+          backendStrategy.closureDataLookup)
       .run(definition.node);
 }
 
 /// IR visitor for computing inference data for a member.
-class TypeMaskIrComputer extends IrDataExtractor
-    with ComputeValueMixin<ir.Node> {
-  final GlobalTypeInferenceResults<ir.Node> results;
-  GlobalTypeInferenceElementResult<ir.Node> result;
+class TypeMaskIrComputer extends IrDataExtractor with ComputeValueMixin {
+  final GlobalTypeInferenceResults results;
+  GlobalTypeInferenceElementResult result;
   final KernelToElementMapForBuilding _elementMap;
   final KernelToLocalsMap _localsMap;
-  final ClosureDataLookup<ir.Node> _closureDataLookup;
+  final ClosureDataLookup _closureDataLookup;
 
   TypeMaskIrComputer(
       DiagnosticReporter reporter,
@@ -131,7 +130,7 @@ class TypeMaskIrComputer extends IrDataExtractor
 
   @override
   visitFunctionExpression(ir.FunctionExpression node) {
-    GlobalTypeInferenceElementResult<ir.Node> oldResult = result;
+    GlobalTypeInferenceElementResult oldResult = result;
     ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
     result = results.resultOfMember(info.callMethod);
     super.visitFunctionExpression(node);
@@ -140,7 +139,7 @@ class TypeMaskIrComputer extends IrDataExtractor
 
   @override
   visitFunctionDeclaration(ir.FunctionDeclaration node) {
-    GlobalTypeInferenceElementResult<ir.Node> oldResult = result;
+    GlobalTypeInferenceElementResult oldResult = result;
     ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
     result = results.resultOfMember(info.callMethod);
     super.visitFunctionDeclaration(node);

@@ -41,22 +41,22 @@ bool useStaticResultTypes = false;
 class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   final CompilerOptions _options;
   final JClosedWorld _closedWorld;
-  final ClosureDataLookup<ir.Node> _closureDataLookup;
-  final InferrerEngine<ir.Node> _inferrer;
-  final TypeSystem<ir.Node> _types;
+  final ClosureDataLookup _closureDataLookup;
+  final InferrerEngine _inferrer;
+  final TypeSystem _types;
   final MemberEntity _analyzedMember;
   final ir.Node _analyzedNode;
   final KernelToElementMapForBuilding _elementMap;
   final KernelToLocalsMap _localsMap;
-  final GlobalTypeInferenceElementData<ir.Node> _memberData;
+  final GlobalTypeInferenceElementData _memberData;
   final bool _inGenerativeConstructor;
 
-  LocalsHandler<ir.Node> _locals;
+  LocalsHandler _locals;
   final SideEffectsBuilder _sideEffectsBuilder;
-  final Map<JumpTarget, List<LocalsHandler<ir.Node>>> _breaksFor =
-      <JumpTarget, List<LocalsHandler<ir.Node>>>{};
-  final Map<JumpTarget, List<LocalsHandler<ir.Node>>> _continuesFor =
-      <JumpTarget, List<LocalsHandler<ir.Node>>>{};
+  final Map<JumpTarget, List<LocalsHandler>> _breaksFor =
+      <JumpTarget, List<LocalsHandler>>{};
+  final Map<JumpTarget, List<LocalsHandler>> _continuesFor =
+      <JumpTarget, List<LocalsHandler>>{};
   TypeInformation _returnType;
   final Set<Local> _capturedVariables = new Set<Local>();
 
@@ -91,9 +91,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         this._inGenerativeConstructor = _analyzedNode is ir.Constructor {
     if (_locals != null) return;
 
-    FieldInitializationScope<ir.Node> fieldScope =
+    FieldInitializationScope fieldScope =
         _inGenerativeConstructor ? new FieldInitializationScope(_types) : null;
-    _locals = new LocalsHandler<ir.Node>(
+    _locals = new LocalsHandler(
         _inferrer, _types, _options, _analyzedNode, fieldScope);
   }
 
@@ -529,7 +529,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       continueTargets.forEach(_clearBreaksAndContinues);
     } else {
       LocalsHandler saved = _locals;
-      List<LocalsHandler<ir.Node>> localsToMerge = <LocalsHandler<ir.Node>>[];
+      List<LocalsHandler> localsToMerge = <LocalsHandler>[];
       bool hasDefaultCase = false;
 
       for (ir.SwitchCase switchCase in node.cases) {
@@ -965,10 +965,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   void _setupBreaksAndContinues(JumpTarget target) {
     if (target == null) return;
     if (target.isContinueTarget) {
-      _continuesFor[target] = <LocalsHandler<ir.Node>>[];
+      _continuesFor[target] = <LocalsHandler>[];
     }
     if (target.isBreakTarget) {
-      _breaksFor[target] = <LocalsHandler<ir.Node>>[];
+      _breaksFor[target] = <LocalsHandler>[];
     }
   }
 
@@ -977,15 +977,15 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     _breaksFor.remove(element);
   }
 
-  List<LocalsHandler<ir.Node>> _getBreaks(JumpTarget target) {
-    List<LocalsHandler<ir.Node>> list = <LocalsHandler<ir.Node>>[_locals];
+  List<LocalsHandler> _getBreaks(JumpTarget target) {
+    List<LocalsHandler> list = <LocalsHandler>[_locals];
     if (target == null) return list;
     if (!target.isBreakTarget) return list;
     return list..addAll(_breaksFor[target]);
   }
 
-  List<LocalsHandler<ir.Node>> _getLoopBackEdges(JumpTarget target) {
-    List<LocalsHandler<ir.Node>> list = <LocalsHandler<ir.Node>>[_locals];
+  List<LocalsHandler> _getLoopBackEdges(JumpTarget target) {
+    List<LocalsHandler> list = <LocalsHandler>[_locals];
     if (target == null) return list;
     if (!target.isContinueTarget) return list;
     return list..addAll(_continuesFor[target]);
@@ -1507,7 +1507,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // We don't put the closure in the work queue of the
     // inferrer, because it will share information with its enclosing
     // method, like for example the types of local variables.
-    LocalsHandler<ir.Node> closureLocals =
+    LocalsHandler closureLocals =
         new LocalsHandler.from(_locals, node, useOtherTryBlock: false);
     KernelTypeGraphBuilder visitor = new KernelTypeGraphBuilder(
         _options,

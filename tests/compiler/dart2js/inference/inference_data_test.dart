@@ -32,7 +32,7 @@ class Tags {
   static const String cannotThrow = 'no-throw';
 }
 
-abstract class ComputeValueMixin<T> {
+abstract class ComputeValueMixin {
   InferredData get inferredData;
 
   String getMemberValue(MemberEntity member) {
@@ -66,17 +66,16 @@ void computeMemberIrInferredData(
           actualMap,
           elementMap,
           compiler.backendClosedWorldForTesting,
-          backendStrategy.closureDataLookup as ClosureDataLookup<ir.Node>,
+          backendStrategy.closureDataLookup,
           compiler.globalInference.inferredData)
       .run(definition.node);
 }
 
 /// AST visitor for computing side effects data for a member.
-class InferredDataIrComputer extends IrDataExtractor
-    with ComputeValueMixin<ir.Node> {
+class InferredDataIrComputer extends IrDataExtractor with ComputeValueMixin {
   final JClosedWorld closedWorld;
   final KernelToElementMapForBuilding _elementMap;
-  final ClosureDataLookup<ir.Node> _closureDataLookup;
+  final ClosureDataLookup _closureDataLookup;
   final InferredData inferredData;
 
   InferredDataIrComputer(

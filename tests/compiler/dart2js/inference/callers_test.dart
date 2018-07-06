@@ -27,7 +27,7 @@ main(List<String> args) {
   });
 }
 
-abstract class ComputeValueMixin<T> {
+abstract class ComputeValueMixin {
   TypeGraphInferrer get inferrer;
 
   String getMemberValue(MemberEntity member) {
@@ -66,16 +66,15 @@ void computeMemberIrCallers(
           actualMap,
           elementMap,
           compiler.globalInference.typesInferrerInternal,
-          backendStrategy.closureDataLookup as ClosureDataLookup<ir.Node>)
+          backendStrategy.closureDataLookup)
       .run(definition.node);
 }
 
 /// AST visitor for computing side effects data for a member.
-class CallersIrComputer extends IrDataExtractor
-    with ComputeValueMixin<ir.Node> {
+class CallersIrComputer extends IrDataExtractor with ComputeValueMixin {
   final TypeGraphInferrer inferrer;
   final KernelToElementMapForBuilding _elementMap;
-  final ClosureDataLookup<ir.Node> _closureDataLookup;
+  final ClosureDataLookup _closureDataLookup;
 
   CallersIrComputer(DiagnosticReporter reporter, Map<Id, ActualData> actualMap,
       this._elementMap, this.inferrer, this._closureDataLookup)

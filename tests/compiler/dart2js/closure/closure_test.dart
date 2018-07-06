@@ -58,9 +58,9 @@ void computeKernelClosureData(
 }
 
 /// Kernel IR visitor for computing closure data.
-class ClosureIrChecker extends IrDataExtractor with ComputeValueMixin<ir.Node> {
+class ClosureIrChecker extends IrDataExtractor with ComputeValueMixin {
   final MemberEntity member;
-  final ClosureDataLookup<ir.Node> closureDataLookup;
+  final ClosureDataLookup closureDataLookup;
   final CodegenWorldBuilder codegenWorldBuilder;
   final KernelToLocalsMap _localsMap;
   final bool verbose;
@@ -135,10 +135,10 @@ class ClosureIrChecker extends IrDataExtractor with ComputeValueMixin<ir.Node> {
   }
 }
 
-abstract class ComputeValueMixin<T> {
+abstract class ComputeValueMixin {
   bool get verbose;
   Map<BoxLocal, String> boxNames = <BoxLocal, String>{};
-  ClosureDataLookup<T> get closureDataLookup;
+  ClosureDataLookup get closureDataLookup;
   Link<ScopeInfo> scopeInfoStack = const Link<ScopeInfo>();
   ScopeInfo get scopeInfo => scopeInfoStack.head;
   CapturedScope get capturedScope => capturedScopeStack.head;
@@ -167,7 +167,7 @@ abstract class ComputeValueMixin<T> {
     capturedScopeStack = capturedScopeStack.tail;
   }
 
-  void pushLoopNode(T node) {
+  void pushLoopNode(ir.Node node) {
     //scopeInfoStack = // TODO?
     //    scopeInfoStack.prepend(closureDataLookup.getScopeInfo(member));
     capturedScopeStack = capturedScopeStack
@@ -182,7 +182,7 @@ abstract class ComputeValueMixin<T> {
     capturedScopeStack = capturedScopeStack.tail;
   }
 
-  void pushLocalFunction(T node) {
+  void pushLocalFunction(ir.Node node) {
     closureRepresentationInfoStack = closureRepresentationInfoStack
         .prepend(closureDataLookup.getClosureInfo(node));
     dump(node);
@@ -200,8 +200,8 @@ abstract class ComputeValueMixin<T> {
       print(' capturedScope (${capturedScope.runtimeType})');
       capturedScope.forEachBoxedVariable((a, b) => print('  boxed: $a->$b'));
     }
-    print(
-        ' closureRepresentationInfo (${closureRepresentationInfo.runtimeType})');
+    print(' closureRepresentationInfo (${closureRepresentationInfo
+        .runtimeType})');
     closureRepresentationInfo
         ?.forEachFreeVariable((a, b) => print('  free: $a->$b'));
     closureRepresentationInfo

@@ -92,8 +92,8 @@ class PositionSourceInformation extends SourceInformation {
   }
 }
 
-abstract class AbstractPositionSourceInformationStrategy<T>
-    implements JavaScriptSourceInformationStrategy<T> {
+abstract class AbstractPositionSourceInformationStrategy
+    implements JavaScriptSourceInformationStrategy {
   const AbstractPositionSourceInformationStrategy();
 
   @override

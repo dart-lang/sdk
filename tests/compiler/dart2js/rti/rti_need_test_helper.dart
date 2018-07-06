@@ -63,7 +63,7 @@ class Tags {
   static const String instantiationsNeedTypeArguments = 'needsInst';
 }
 
-abstract class ComputeValueMixin<T> {
+abstract class ComputeValueMixin {
   Compiler get compiler;
 
   ResolutionWorldBuilder get resolutionWorldBuilder =>
@@ -248,13 +248,8 @@ void computeKernelRtiMemberNeed(
   KernelBackendStrategy backendStrategy = compiler.backendStrategy;
   KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
   MemberDefinition definition = elementMap.getMemberDefinition(member);
-  new RtiMemberNeedIrComputer(
-          compiler.reporter,
-          actualMap,
-          elementMap,
-          member,
-          compiler,
-          backendStrategy.closureDataLookup as ClosureDataLookup<ir.Node>)
+  new RtiMemberNeedIrComputer(compiler.reporter, actualMap, elementMap, member,
+          compiler, backendStrategy.closureDataLookup)
       .run(definition.node);
 }
 
@@ -270,7 +265,7 @@ void computeKernelRtiClassNeed(
       .computeClassValue(cls);
 }
 
-abstract class IrMixin implements ComputeValueMixin<ir.Node> {
+abstract class IrMixin implements ComputeValueMixin {
   @override
   MemberEntity getFrontendMember(MemberEntity backendMember) {
     ElementEnvironment elementEnvironment = compiler
@@ -320,7 +315,7 @@ abstract class IrMixin implements ComputeValueMixin<ir.Node> {
 }
 
 class RtiClassNeedIrComputer extends DataRegistry
-    with ComputeValueMixin<ir.Node>, IrMixin {
+    with ComputeValueMixin, IrMixin {
   final Compiler compiler;
   final KernelToElementMapForBuilding _elementMap;
   final Map<Id, ActualData> actualMap;
@@ -339,9 +334,9 @@ class RtiClassNeedIrComputer extends DataRegistry
 
 /// AST visitor for computing inference data for a member.
 class RtiMemberNeedIrComputer extends IrDataExtractor
-    with ComputeValueMixin<ir.Node>, IrMixin {
+    with ComputeValueMixin, IrMixin {
   final KernelToElementMapForBuilding _elementMap;
-  final ClosureDataLookup<ir.Node> _closureDataLookup;
+  final ClosureDataLookup _closureDataLookup;
   final Compiler compiler;
 
   RtiMemberNeedIrComputer(

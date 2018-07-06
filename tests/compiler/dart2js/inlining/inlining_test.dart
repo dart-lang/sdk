@@ -27,7 +27,7 @@ main(List<String> args) {
   });
 }
 
-abstract class ComputeValueMixin<T> {
+abstract class ComputeValueMixin {
   JavaScriptBackend get backend;
 
   ConstructorBodyEntity getConstructorBody(ConstructorEntity constructor);
@@ -87,22 +87,16 @@ void computeMemberIrInlinings(
   KernelBackendStrategy backendStrategy = compiler.backendStrategy;
   KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
   MemberDefinition definition = elementMap.getMemberDefinition(member);
-  new InliningIrComputer(
-          compiler.reporter,
-          actualMap,
-          elementMap,
-          member,
-          compiler.backend,
-          backendStrategy.closureDataLookup as ClosureDataLookup<ir.Node>)
+  new InliningIrComputer(compiler.reporter, actualMap, elementMap, member,
+          compiler.backend, backendStrategy.closureDataLookup)
       .run(definition.node);
 }
 
 /// AST visitor for computing inference data for a member.
-class InliningIrComputer extends IrDataExtractor
-    with ComputeValueMixin<ir.Node> {
+class InliningIrComputer extends IrDataExtractor with ComputeValueMixin {
   final JavaScriptBackend backend;
   final KernelToElementMapForBuilding _elementMap;
-  final ClosureDataLookup<ir.Node> _closureDataLookup;
+  final ClosureDataLookup _closureDataLookup;
 
   InliningIrComputer(
       DiagnosticReporter reporter,

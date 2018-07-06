@@ -62,7 +62,7 @@ class StackFrame {
   final AsyncMarker asyncMarker;
   final KernelToLocalsMap localsMap;
   final KernelToTypeInferenceMap typeInferenceMap;
-  final SourceInformationBuilder<ir.Node> sourceInformationBuilder;
+  final SourceInformationBuilder sourceInformationBuilder;
 
   StackFrame(this.parent, this.member, this.asyncMarker, this.localsMap,
       this.typeInferenceMap, this.sourceInformationBuilder);
@@ -98,11 +98,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
   @override
   JavaScriptBackend get backend => compiler.backend;
 
-  final SourceInformationStrategy<ir.Node> _sourceInformationStrategy;
+  final SourceInformationStrategy _sourceInformationStrategy;
   final KernelToElementMapForBuilding _elementMap;
   final GlobalTypeInferenceResults globalInferenceResults;
   final GlobalLocalsMap _globalLocalsMap;
-  LoopHandler<ir.Node> loopHandler;
+  LoopHandler loopHandler;
   TypeBuilder typeBuilder;
 
   final NativeEmitter nativeEmitter;
@@ -2009,8 +2009,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         // to the body.
         SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
         JumpTarget target = localsMap.getJumpTargetForDo(node);
-        LabelDefinition label =
-            target.addLabel(null, 'loop', isBreakTarget: true);
+        LabelDefinition label = target.addLabel('loop', isBreakTarget: true);
         HLabeledBlockInformation info = new HLabeledBlockInformation(
             new HSubGraphBlockInformation(bodyGraph), <LabelDefinition>[label]);
         loopEntryBlock.setBlockFlow(info, current);

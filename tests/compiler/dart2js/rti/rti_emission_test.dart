@@ -54,7 +54,7 @@ class Tags {
   static const String functionType = 'functionType';
 }
 
-abstract class ComputeValueMixin<T> {
+abstract class ComputeValueMixin {
   Compiler get compiler;
   ProgramLookup lookup;
 
@@ -106,13 +106,8 @@ void computeKernelRtiMemberEmission(
   KernelBackendStrategy backendStrategy = compiler.backendStrategy;
   KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
   MemberDefinition definition = elementMap.getMemberDefinition(member);
-  new RtiMemberEmissionIrComputer(
-          compiler.reporter,
-          actualMap,
-          elementMap,
-          member,
-          compiler,
-          backendStrategy.closureDataLookup as ClosureDataLookup<ir.Node>)
+  new RtiMemberEmissionIrComputer(compiler.reporter, actualMap, elementMap,
+          member, compiler, backendStrategy.closureDataLookup)
       .run(definition.node);
 }
 
@@ -125,8 +120,7 @@ void computeKernelRtiClassEmission(
       .computeClassValue(cls);
 }
 
-class RtiClassEmissionIrComputer extends DataRegistry
-    with ComputeValueMixin<ir.Node> {
+class RtiClassEmissionIrComputer extends DataRegistry with ComputeValueMixin {
   final Compiler compiler;
   final KernelToElementMapForBuilding _elementMap;
   final Map<Id, ActualData> actualMap;
@@ -144,9 +138,9 @@ class RtiClassEmissionIrComputer extends DataRegistry
 }
 
 class RtiMemberEmissionIrComputer extends IrDataExtractor
-    with ComputeValueMixin<ir.Node> {
+    with ComputeValueMixin {
   final KernelToElementMapForBuilding _elementMap;
-  final ClosureDataLookup<ir.Node> _closureDataLookup;
+  final ClosureDataLookup _closureDataLookup;
   final Compiler compiler;
 
   RtiMemberEmissionIrComputer(

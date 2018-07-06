@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:kernel/ast.dart' as ir;
 import 'common/tasks.dart' show CompilerTask, Measurer;
 import 'common.dart';
 import 'elements/entities.dart';
@@ -9,8 +10,8 @@ import 'elements/types.dart';
 
 // TODO(johnniwinther,efortuna): Split [ClosureConversionTask] from
 // [ClosureDataLookup].
-abstract class ClosureConversionTask<T> extends CompilerTask
-    implements ClosureDataLookup<T> {
+abstract class ClosureConversionTask extends CompilerTask
+    implements ClosureDataLookup {
   ClosureConversionTask(Measurer measurer) : super(measurer);
 }
 
@@ -18,16 +19,16 @@ abstract class ClosureConversionTask<T> extends CompilerTask
 /// to preserve Dart semantics when compiled to JavaScript. Given a particular
 /// node to look up, it returns a information about the internal representation
 /// of how closure conversion is implemented. T is an ir.Node or Node.
-abstract class ClosureDataLookup<T> {
+abstract class ClosureDataLookup {
   /// Look up information about the variables that have been mutated and are
   /// used inside the scope of [node].
   ScopeInfo getScopeInfo(MemberEntity member);
 
-  ClosureRepresentationInfo getClosureInfo(T localFunction);
+  ClosureRepresentationInfo getClosureInfo(ir.Node localFunction);
 
   /// Look up information about a loop, in case any variables it declares need
   /// to be boxed/snapshotted.
-  CapturedLoopScope getCapturedLoopScope(T loopNode);
+  CapturedLoopScope getCapturedLoopScope(ir.Node loopNode);
 
   /// Accessor to the information about scopes that closures capture. Used by
   /// the SSA builder.

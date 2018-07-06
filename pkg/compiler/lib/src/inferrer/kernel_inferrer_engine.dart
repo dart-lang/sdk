@@ -28,11 +28,11 @@ import 'type_graph_inferrer.dart';
 import 'type_graph_nodes.dart';
 import 'type_system.dart';
 
-class KernelTypeGraphInferrer extends TypeGraphInferrer<ir.Node> {
+class KernelTypeGraphInferrer extends TypeGraphInferrer {
   final Compiler _compiler;
   final KernelToElementMapForBuilding _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
-  final ClosureDataLookup<ir.Node> _closureDataLookup;
+  final ClosureDataLookup _closureDataLookup;
   final InferredDataBuilder _inferredDataBuilder;
 
   KernelTypeGraphInferrer(
@@ -46,7 +46,7 @@ class KernelTypeGraphInferrer extends TypeGraphInferrer<ir.Node> {
       : super(closedWorld, disableTypeInference: disableTypeInference);
 
   @override
-  InferrerEngine<ir.Node> createInferrerEngineFor(FunctionEntity main) {
+  InferrerEngine createInferrerEngineFor(FunctionEntity main) {
     return new KernelInferrerEngine(
         _compiler.options,
         _compiler.progress,
@@ -68,16 +68,15 @@ class KernelTypeGraphInferrer extends TypeGraphInferrer<ir.Node> {
   }
 }
 
-class KernelGlobalTypeInferenceResults
-    extends GlobalTypeInferenceResults<ir.Node> {
+class KernelGlobalTypeInferenceResults extends GlobalTypeInferenceResults {
   KernelGlobalTypeInferenceResults(
-      TypesInferrer<ir.Node> inferrer, JClosedWorld closedWorld)
+      TypesInferrer inferrer, JClosedWorld closedWorld)
       : super(inferrer, closedWorld);
 
-  GlobalTypeInferenceMemberResult<ir.Node> createMemberResult(
-      TypeGraphInferrer<ir.Node> inferrer, MemberEntity member,
+  GlobalTypeInferenceMemberResult createMemberResult(
+      TypeGraphInferrer inferrer, MemberEntity member,
       {bool isJsInterop: false}) {
-    return new GlobalTypeInferenceMemberResultImpl<ir.Node>(
+    return new GlobalTypeInferenceMemberResultImpl(
         member,
         // We store data in the context of the enclosing method, even
         // for closure elements.
@@ -86,17 +85,16 @@ class KernelGlobalTypeInferenceResults
         isJsInterop);
   }
 
-  GlobalTypeInferenceParameterResult<ir.Node> createParameterResult(
-      TypeGraphInferrer<ir.Node> inferrer, Local parameter) {
-    return new GlobalTypeInferenceParameterResultImpl<ir.Node>(
-        parameter, inferrer);
+  GlobalTypeInferenceParameterResult createParameterResult(
+      TypeGraphInferrer inferrer, Local parameter) {
+    return new GlobalTypeInferenceParameterResultImpl(parameter, inferrer);
   }
 }
 
-class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
+class KernelInferrerEngine extends InferrerEngineImpl {
   final KernelToElementMapForBuilding _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
-  final ClosureDataLookup<ir.Node> _closureDataLookup;
+  final ClosureDataLookup _closureDataLookup;
 
   KernelInferrerEngine(
       CompilerOptions options,
@@ -225,7 +223,7 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
   }
 
   @override
-  GlobalTypeInferenceElementData<ir.Node> createElementData() {
+  GlobalTypeInferenceElementData createElementData() {
     return new KernelGlobalTypeInferenceElementData();
   }
 
@@ -237,10 +235,10 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
   }
 }
 
-class KernelTypeSystemStrategy implements TypeSystemStrategy<ir.Node> {
+class KernelTypeSystemStrategy implements TypeSystemStrategy {
   KernelToElementMapForBuilding _elementMap;
   GlobalLocalsMap _globalLocalsMap;
-  ClosureDataLookup<ir.Node> _closureDataLookup;
+  ClosureDataLookup _closureDataLookup;
 
   KernelTypeSystemStrategy(
       this._elementMap, this._globalLocalsMap, this._closureDataLookup);
@@ -271,7 +269,7 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy<ir.Node> {
   ParameterTypeInformation createParameterTypeInformation(
       AbstractValueDomain abstractValueDomain,
       covariant JLocal parameter,
-      TypeSystem<ir.Node> types) {
+      TypeSystem types) {
     MemberEntity context = parameter.memberContext;
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(context);
     ir.FunctionNode functionNode =
@@ -340,7 +338,7 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy<ir.Node> {
 }
 
 class KernelGlobalTypeInferenceElementData
-    extends GlobalTypeInferenceElementData<ir.Node> {
+    extends GlobalTypeInferenceElementData {
   // TODO(johnniwinther): Rename this together with [typeOfSend].
   Map<ir.Node, AbstractValue> _sendMap;
 

@@ -12,8 +12,7 @@ import 'js.dart';
 
 /// [SourceInformationStrategy] that can associate source information with
 /// JavaScript output.
-class JavaScriptSourceInformationStrategy<T>
-    extends SourceInformationStrategy<T> {
+class JavaScriptSourceInformationStrategy extends SourceInformationStrategy {
   const JavaScriptSourceInformationStrategy();
 
   /// Creates a processor that can associate source information on [Node] with
