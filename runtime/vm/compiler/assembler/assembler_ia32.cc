@@ -2512,12 +2512,13 @@ Address Assembler::ElementAddressForIntIndex(bool is_external,
                                              intptr_t cid,
                                              intptr_t index_scale,
                                              Register array,
-                                             intptr_t index) {
+                                             intptr_t index,
+                                             intptr_t extra_disp) {
   if (is_external) {
-    return Address(array, index * index_scale);
+    return Address(array, index * index_scale + extra_disp);
   } else {
     const int64_t disp = static_cast<int64_t>(index) * index_scale +
-                         Instance::DataOffsetFor(cid);
+                         Instance::DataOffsetFor(cid) + extra_disp;
     ASSERT(Utils::IsInt(32, disp));
     return FieldAddress(array, static_cast<int32_t>(disp));
   }
@@ -2549,12 +2550,13 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
                                              intptr_t cid,
                                              intptr_t index_scale,
                                              Register array,
-                                             Register index) {
+                                             Register index,
+                                             intptr_t extra_disp) {
   if (is_external) {
-    return Address(array, index, ToScaleFactor(index_scale), 0);
+    return Address(array, index, ToScaleFactor(index_scale), extra_disp);
   } else {
     return FieldAddress(array, index, ToScaleFactor(index_scale),
-                        Instance::DataOffsetFor(cid));
+                        Instance::DataOffsetFor(cid) + extra_disp);
   }
 }
 

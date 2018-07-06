@@ -2258,8 +2258,7 @@ static bool CanUnboxDouble() {
 }
 
 static bool ShouldInlineInt64ArrayOps() {
-  // TODO(ajcbik): look into doing this even for 32-bit targets.
-  return (kBitsPerWord == 64) && FlowGraphCompiler::SupportsUnboxedInt64();
+  return FlowGraphCompiler::SupportsUnboxedInt64();
 }
 
 static bool CanUnboxInt32() {

@@ -1011,6 +1011,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
 
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
       return CompileType::Int();
 
     default:
@@ -1039,6 +1041,9 @@ Representation LoadIndexedInstr::representation() const {
       return kUnboxedInt32;
     case kTypedDataUint32ArrayCid:
       return kUnboxedUint32;
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
+      return kUnboxedInt64;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
@@ -1081,6 +1086,11 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
   } else if (representation() == kUnboxedInt32) {
     ASSERT(class_id() == kTypedDataInt32ArrayCid);
     locs->set_out(0, Location::RequiresRegister());
+  } else if (representation() == kUnboxedInt64) {
+    ASSERT(class_id() == kTypedDataInt64ArrayCid ||
+           class_id() == kTypedDataUint64ArrayCid);
+    locs->set_out(0, Location::Pair(Location::RequiresRegister(),
+                                    Location::RequiresRegister()));
   } else {
     ASSERT(representation() == kTagged);
     locs->set_out(0, Location::RequiresRegister());
@@ -1148,6 +1158,28 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
+  if (representation() == kUnboxedInt64) {
+    ASSERT(locs()->out(0).IsPairLocation());
+    PairLocation* result_pair = locs()->out(0).AsPairLocation();
+    Register result_lo = result_pair->At(0).reg();
+    Register result_hi = result_pair->At(1).reg();
+    if ((index_scale() == 1) && index.IsRegister()) {
+      __ SmiUntag(index.reg());
+    }
+    ASSERT(class_id() == kTypedDataInt64ArrayCid ||
+           class_id() == kTypedDataUint64ArrayCid);
+    __ movl(result_lo, element_address);
+    element_address = index.IsRegister()
+                          ? Assembler::ElementAddressForRegIndex(
+                                IsExternal(), class_id(), index_scale(), array,
+                                index.reg(), kWordSize)
+                          : Assembler::ElementAddressForIntIndex(
+                                IsExternal(), class_id(), index_scale(), array,
+                                Smi::Cast(index.constant()).Value(), kWordSize);
+    __ movl(result_hi, element_address);
+    return;
+  }
+
   ASSERT(representation() == kTagged);
 
   Register result = locs()->out(0).reg();
@@ -1208,6 +1240,9 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
       return kUnboxedInt32;
     case kTypedDataUint32ArrayCid:
       return kUnboxedUint32;
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
+      return kUnboxedInt64;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
@@ -1263,6 +1298,11 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
       locs->set_in(2, Location::RequiresRegister());
+      break;
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
+      locs->set_in(2, Location::Pair(Location::RequiresRegister(),
+                                     Location::RequiresRegister()));
       break;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
@@ -1364,6 +1404,24 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataUint32ArrayCid:
       __ movl(element_address, locs()->in(2).reg());
       break;
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid: {
+      ASSERT(locs()->in(2).IsPairLocation());
+      PairLocation* value_pair = locs()->in(2).AsPairLocation();
+      Register value_lo = value_pair->At(0).reg();
+      Register value_hi = value_pair->At(1).reg();
+      __ movl(element_address, value_lo);
+      element_address =
+          index.IsRegister()
+              ? Assembler::ElementAddressForRegIndex(IsExternal(), class_id(),
+                                                     index_scale(), array,
+                                                     index.reg(), kWordSize)
+              : Assembler::ElementAddressForIntIndex(
+                    IsExternal(), class_id(), index_scale(), array,
+                    Smi::Cast(index.constant()).Value(), kWordSize);
+      __ movl(element_address, value_hi);
+      break;
+    }
     case kTypedDataFloat32ArrayCid:
       __ movss(element_address, locs()->in(2).fpu_reg());
       break;
