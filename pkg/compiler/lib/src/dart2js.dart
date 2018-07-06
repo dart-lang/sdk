@@ -125,7 +125,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   bool trustTypeAnnotations = false;
   bool checkedMode = false;
   bool strongMode = true;
-  bool forceStrongMode = true;
+  bool forceStrongMode = false;
   List<String> hints = <String>[];
   bool verbose;
   bool throwOnError;
