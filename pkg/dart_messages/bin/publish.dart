@@ -128,7 +128,7 @@ void emitDart2js() {
           out.write(escapeExampleContent(example));
         } else if (example is Map) {
           out.writeln("      const {");
-          example.forEach((String fileName, String content) {
+          example.forEach((fileName, content) {
             out.writeln("      '$fileName': ");
             out.write(escapeExampleContent(content));
             out.writeln(",");
