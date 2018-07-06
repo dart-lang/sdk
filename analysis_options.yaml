@@ -16,20 +16,30 @@ linter:
     - annotate_overrides
     - avoid_annotating_with_dynamic
 #    - avoid_as
+#    - avoid_bool_literals_in_conditional_expressions # under review (see #1068)
     - avoid_catches_without_on_clauses
     - avoid_catching_errors
 #    - avoid_classes_with_only_static_members
+#    - avoid_double_and_int_checks # under review (see #1068)
     - avoid_empty_else
+#    - avoid_field_initializers_in_const_classes # under review (see #1068)
 #    - avoid_function_literals_in_foreach_calls
     - avoid_init_to_null
+#    - avoid_js_rounded_ints # under review (see #1068)
     - avoid_null_checks_in_equality_operators
     - avoid_positional_boolean_parameters
+#    - avoid_private_typedef_functions # under review (see #1068)
+#    - avoid_relative_lib_imports # under review (see #1068)
+#    - avoid_renaming_method_parameters # under review (see #1068)
     - avoid_return_types_on_setters
     - avoid_returning_null
     - avoid_returning_this
     - avoid_setters_without_getters
+#    - avoid_single_cascade_in_expression_statements # under review (see #1068)
     - avoid_slow_async_io
+#    - avoid_types_as_parameter_names # under review (see #1068)
 #    - avoid_types_on_closure_parameters
+#    - avoid_unused_constructor_parameters # under review (see #1068)
     - await_only_futures
     - camel_case_types
     - cancel_subscriptions
@@ -38,10 +48,12 @@ linter:
     - comment_references
 #    - constant_identifier_names
     - control_flow_in_finally
+#    - curly_braces_in_flow_control_structures # under review (see #1068)
     - directives_ordering
     - empty_catches
     - empty_constructor_bodies
     - empty_statements
+#    - file_names # under review (see #1068)
     - hash_and_equals
     - implementation_imports
     - invariant_booleans
@@ -49,11 +61,13 @@ linter:
     - join_return_with_assignment
     - library_names
     - library_prefixes
+#    - lines_longer_than_80_chars # under review (see #1068)
     - list_remove_unrelated_type
     - literal_only_boolean_expressions
     - no_adjacent_strings_in_list
     - no_duplicate_case_values
 #    - non_constant_identifier_names
+#    - null_closures # under review (see #1068)
 #    - omit_local_variable_types
 #    - one_member_abstracts
     - only_throw_errors
@@ -64,10 +78,13 @@ linter:
     - parameter_assignments
     - prefer_adjacent_string_concatenation
     - prefer_asserts_in_initializer_lists
+#    - prefer_bool_in_asserts # under review (see #1068)
     - prefer_collection_literals
     - prefer_conditional_assignment
 #    - prefer_const_constructors
     - prefer_const_constructors_in_immutables
+#    - prefer_const_declarations # under review (see #1068)
+#    - prefer_const_literals_to_create_immutables # under review (see #1068)
     - prefer_constructors_over_static_methods
     - prefer_contains
     - prefer_equal_for_default_values
@@ -76,11 +93,14 @@ linter:
 #    - prefer_final_locals
     - prefer_foreach
 #    - prefer_function_declarations_over_variables
+#    - prefer_generic_function_type_aliases # under review (see #1068)
     - prefer_initializing_formals
 #    - prefer_interpolation_to_compose_strings
     - prefer_is_empty
     - prefer_is_not_empty
+#    - prefer_iterable_whereType # under review (see #1068)
     - prefer_single_quotes
+#    - prefer_typing_uninitialized_variables # under review (see #1068)
 #    - public_member_api_docs
     - recursive_getters
     - slash_for_doc_comments
@@ -100,6 +120,8 @@ linter:
     - unnecessary_null_aware_assignments
     - unnecessary_null_in_if_null_operators
     - unnecessary_overrides
+#    - unnecessary_parenthesis # under review (see #1068)
+#    - unnecessary_statements # under review (see #1068)
     - unnecessary_this
     - unrelated_type_equality_checks
     - use_rethrow_when_possible
@@ -107,3 +129,4 @@ linter:
     - use_string_buffers
     - use_to_and_as_if_applicable
     - valid_regexps
+#    - void_checks # under review (see #1068)
