@@ -2013,8 +2013,8 @@ abstract class KernelClosedWorldMixin implements ClosedWorldBase {
   @override
   bool hasConcreteMatch(ClassEntity cls, Selector selector,
       {ClassEntity stopAtSuperclass}) {
-    assert(
-        isInstantiated(cls), failedAt(cls, '$cls has not been instantiated.'));
+    assert(classHierarchy.isInstantiated(cls),
+        failedAt(cls, '$cls has not been instantiated.'));
     MemberEntity element = elementEnvironment
         .lookupClassMember(cls, selector.name, setter: selector.isSetter);
     if (element == null) return false;
@@ -2057,13 +2057,6 @@ abstract class KernelClosedWorldMixin implements ClosedWorldBase {
   OrderedTypeSet getOrderedTypeSet(ClassEntity cls) {
     return elementMap._getOrderedTypeSet(cls);
   }
-
-  @override
-  bool checkInvariants(ClassEntity cls, {bool mustBeInstantiated: true}) =>
-      true;
-
-  @override
-  bool checkEntity(Entity element) => true;
 }
 
 class KClosedWorldImpl extends ClosedWorldRtiNeedMixin implements KClosedWorld {
@@ -2996,10 +2989,4 @@ class KernelClassQueries extends ClassQueries {
   ClassEntity getAppliedMixin(ClassEntity cls) {
     return elementMap._getAppliedMixin(cls);
   }
-
-  @override
-  bool validateClass(ClassEntity cls) => true;
-
-  @override
-  bool checkClass(ClassEntity cls) => true;
 }

@@ -242,7 +242,7 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
     rtiChecksBuilderClosed = true;
 
     Map<ClassEntity, ClassUse> classUseMap = <ClassEntity, ClassUse>{};
-    for (ClassEntity cls in _closedWorld
+    for (ClassEntity cls in _closedWorld.classHierarchy
         .getClassSet(_closedWorld.commonElements.objectClass)
         .subtypes()) {
       ClassUse classUse = new ClassUse()
@@ -261,7 +261,7 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
 
   Set<ClassEntity> computeCheckedClasses(
       CodegenWorldBuilder codegenWorldBuilder, Set<DartType> implicitIsChecks) {
-    return _closedWorld
+    return _closedWorld.classHierarchy
         .getClassSet(_closedWorld.commonElements.objectClass)
         .subtypes()
         .toSet();

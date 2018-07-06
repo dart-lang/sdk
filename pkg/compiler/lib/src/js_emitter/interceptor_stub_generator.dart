@@ -301,8 +301,8 @@ class InterceptorStubGenerator {
       bool containsJsIndexable = _closedWorld
               .isImplemented(_commonElements.jsIndexingBehaviorInterface) &&
           classes.any((cls) {
-            return _closedWorld.isSubtypeOf(
-                cls, _commonElements.jsIndexingBehaviorInterface);
+            return _closedWorld.classHierarchy
+                .isSubtypeOf(cls, _commonElements.jsIndexingBehaviorInterface);
           });
       // The index set operator requires a check on its set value in
       // checked mode, so we don't optimize the interceptor if the

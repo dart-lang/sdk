@@ -113,7 +113,8 @@ class ElementInfoCollector {
   FieldInfo visitField(FieldEntity field, {ClassEntity containingClass}) {
     var isInInstantiatedClass = false;
     if (containingClass != null) {
-      isInInstantiatedClass = closedWorld.isInstantiated(containingClass);
+      isInInstantiatedClass =
+          closedWorld.classHierarchy.isInstantiated(containingClass);
     }
     if (!isInInstantiatedClass && !_hasBeenResolved(field)) {
       return null;

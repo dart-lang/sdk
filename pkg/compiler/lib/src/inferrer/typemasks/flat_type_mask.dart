@@ -55,11 +55,13 @@ class FlatTypeMask implements TypeMask {
       return new FlatTypeMask.internal(base, flags);
     }
     if ((flags >> 1) == SUBTYPE) {
-      if (!world.hasAnyStrictSubtype(base) || world.hasOnlySubclasses(base)) {
+      if (!world.classHierarchy.hasAnyStrictSubtype(base) ||
+          world.classHierarchy.hasOnlySubclasses(base)) {
         flags = (flags & 0x1) | (SUBCLASS << 1);
       }
     }
-    if (((flags >> 1) == SUBCLASS) && !world.hasAnyStrictSubclass(base)) {
+    if (((flags >> 1) == SUBCLASS) &&
+        !world.classHierarchy.hasAnyStrictSubclass(base)) {
       flags = (flags & 0x1) | (EXACT << 1);
     }
     CommonMasks commonMasks = world.abstractValueDomain;
@@ -102,10 +104,10 @@ class FlatTypeMask implements TypeMask {
     } else if (isExact) {
       return false;
     } else if (isSubclass) {
-      return closedWorld.isSubclassOf(other, base);
+      return closedWorld.classHierarchy.isSubclassOf(other, base);
     } else {
       assert(isSubtype);
-      return closedWorld.isSubtypeOf(other, base);
+      return closedWorld.classHierarchy.isSubtypeOf(other, base);
     }
   }
 
@@ -164,7 +166,7 @@ class FlatTypeMask implements TypeMask {
     if (flatOther.isSubclass) {
       if (isSubtype)
         return (otherBase == closedWorld.commonElements.objectClass);
-      return closedWorld.isSubclassOf(base, otherBase);
+      return closedWorld.classHierarchy.isSubclassOf(base, otherBase);
     }
     assert(flatOther.isSubtype);
     // Check whether this TypeMask satisfies otherBase's interface.
@@ -212,7 +214,7 @@ class FlatTypeMask implements TypeMask {
 
   bool satisfies(ClassEntity cls, JClosedWorld closedWorld) {
     if (isEmptyOrNull) return false;
-    if (closedWorld.isSubtypeOf(base, cls)) return true;
+    if (closedWorld.classHierarchy.isSubtypeOf(base, cls)) return true;
     return false;
   }
 
@@ -224,7 +226,9 @@ class FlatTypeMask implements TypeMask {
     if (isExact) {
       return base;
     } else if (isSubclass) {
-      return closedWorld.hasAnyStrictSubclass(base) ? null : base;
+      return closedWorld.classHierarchy.hasAnyStrictSubclass(base)
+          ? null
+          : base;
     } else {
       assert(isSubtype);
       return null;
@@ -251,13 +255,13 @@ class FlatTypeMask implements TypeMask {
       return flatOther.isNullable ? nullable() : this;
     } else if (base == flatOther.base) {
       return unionSame(flatOther, closedWorld);
-    } else if (closedWorld.isSubclassOf(flatOther.base, base)) {
+    } else if (closedWorld.classHierarchy.isSubclassOf(flatOther.base, base)) {
       return unionStrictSubclass(flatOther, closedWorld);
-    } else if (closedWorld.isSubclassOf(base, flatOther.base)) {
+    } else if (closedWorld.classHierarchy.isSubclassOf(base, flatOther.base)) {
       return flatOther.unionStrictSubclass(this, closedWorld);
-    } else if (closedWorld.isSubtypeOf(flatOther.base, base)) {
+    } else if (closedWorld.classHierarchy.isSubtypeOf(flatOther.base, base)) {
       return unionStrictSubtype(flatOther, closedWorld);
-    } else if (closedWorld.isSubtypeOf(base, flatOther.base)) {
+    } else if (closedWorld.classHierarchy.isSubtypeOf(base, flatOther.base)) {
       return flatOther.unionStrictSubtype(this, closedWorld);
     } else {
       return new UnionTypeMask._internal(<FlatTypeMask>[this, flatOther]);
@@ -286,7 +290,7 @@ class FlatTypeMask implements TypeMask {
 
   TypeMask unionStrictSubclass(FlatTypeMask other, JClosedWorld closedWorld) {
     assert(base != other.base);
-    assert(closedWorld.isSubclassOf(other.base, base));
+    assert(closedWorld.classHierarchy.isSubclassOf(other.base, base));
     assert(TypeMask.assertIsNormalized(this, closedWorld));
     assert(TypeMask.assertIsNormalized(other, closedWorld));
     int combined;
@@ -313,8 +317,8 @@ class FlatTypeMask implements TypeMask {
 
   TypeMask unionStrictSubtype(FlatTypeMask other, JClosedWorld closedWorld) {
     assert(base != other.base);
-    assert(!closedWorld.isSubclassOf(other.base, base));
-    assert(closedWorld.isSubtypeOf(other.base, base));
+    assert(!closedWorld.classHierarchy.isSubclassOf(other.base, base));
+    assert(closedWorld.classHierarchy.isSubtypeOf(other.base, base));
     assert(TypeMask.assertIsNormalized(this, closedWorld));
     assert(TypeMask.assertIsNormalized(other, closedWorld));
     // Since the other mask is a subtype of this mask, we need the
@@ -416,8 +420,12 @@ class FlatTypeMask implements TypeMask {
     // Normalization guarantees that isExact === !isSubclass && !isSubtype.
     // Both are subclass or subtype masks, so if there is a subclass
     // relationship, they are not disjoint.
-    if (closedWorld.isSubclassOf(flatOther.base, base)) return false;
-    if (closedWorld.isSubclassOf(base, flatOther.base)) return false;
+    if (closedWorld.classHierarchy.isSubclassOf(flatOther.base, base)) {
+      return false;
+    }
+    if (closedWorld.classHierarchy.isSubclassOf(base, flatOther.base)) {
+      return false;
+    }
 
     // Two different base classes have no common subclass unless one is a
     // subclass of the other (checked above).
@@ -434,10 +442,10 @@ class FlatTypeMask implements TypeMask {
     assert(a.isSubclass || a.isSubtype);
     assert(b.isSubtype);
     var elements = a.isSubclass
-        ? closedWorld.strictSubclassesOf(a.base)
-        : closedWorld.strictSubtypesOf(a.base);
+        ? closedWorld.classHierarchy.strictSubclassesOf(a.base)
+        : closedWorld.classHierarchy.strictSubtypesOf(a.base);
     for (var element in elements) {
-      if (closedWorld.isSubtypeOf(element, b.base)) return false;
+      if (closedWorld.classHierarchy.isSubtypeOf(element, b.base)) return false;
     }
     return true;
   }
@@ -463,7 +471,7 @@ class FlatTypeMask implements TypeMask {
   TypeMask intersectionStrictSubclass(
       FlatTypeMask other, JClosedWorld closedWorld) {
     assert(base != other.base);
-    assert(closedWorld.isSubclassOf(other.base, base));
+    assert(closedWorld.classHierarchy.isSubclassOf(other.base, base));
     // If this mask isn't at least a subclass mask, then the
     // intersection with the other mask is empty.
     if (isExact) return intersectionEmpty(other);
@@ -508,12 +516,12 @@ class FlatTypeMask implements TypeMask {
       return closedWorld.hasElementIn(base, selector, element);
     } else if (isSubclass) {
       return closedWorld.hasElementIn(base, selector, element) ||
-          closedWorld.isSubclassOf(other, base) ||
+          closedWorld.classHierarchy.isSubclassOf(other, base) ||
           closedWorld.hasAnySubclassThatMixes(base, other);
     } else {
       assert(isSubtype);
       bool result = closedWorld.hasElementIn(base, selector, element) ||
-          closedWorld.isSubtypeOf(other, base) ||
+          closedWorld.classHierarchy.isSubtypeOf(other, base) ||
           closedWorld.hasAnySubclassThatImplements(other, base) ||
           closedWorld.hasAnySubclassOfMixinUseThatImplements(other, base);
       if (result) return true;
@@ -522,7 +530,7 @@ class FlatTypeMask implements TypeMask {
       Iterable<ClassEntity> mixinUses = closedWorld.mixinUsesOf(base);
       return mixinUses.any((mixinApplication) =>
           closedWorld.hasElementIn(mixinApplication, selector, element) ||
-          closedWorld.isSubclassOf(other, mixinApplication) ||
+          closedWorld.classHierarchy.isSubclassOf(other, mixinApplication) ||
           closedWorld.hasAnySubclassThatMixes(mixinApplication, other));
     }
   }
@@ -560,7 +568,9 @@ class FlatTypeMask implements TypeMask {
       //}
       return null;
     } else {
-      if (closedWorld.isSubclassOf(base, enclosing)) return result;
+      if (closedWorld.classHierarchy.isSubclassOf(base, enclosing)) {
+        return result;
+      }
       if (closedWorld.isSubclassOfMixinUseOf(base, enclosing)) return result;
     }
     return null;

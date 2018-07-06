@@ -674,11 +674,6 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
   AbstractValueDomain get abstractValueDomain {
     return _abstractValueDomain;
   }
-
-  @override
-  void registerClosureClass(ClassEntity cls) {
-    throw new UnsupportedError('JsClosedWorld.registerClosureClass');
-  }
 }
 
 class ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {

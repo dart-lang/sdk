@@ -4144,10 +4144,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
         Selector selector, MemberEntity element) {
       bool isLength = selector.isGetter && selector.name == "length";
       if (isLength || selector.isIndex) {
-        return closedWorld.isSubtypeOf(
+        return closedWorld.classHierarchy.isSubtypeOf(
             element.enclosingClass, commonElements.jsIndexableClass);
       } else if (selector.isIndexSet) {
-        return closedWorld.isSubtypeOf(
+        return closedWorld.classHierarchy.isSubtypeOf(
             element.enclosingClass, commonElements.jsMutableIndexableClass);
       } else {
         return false;
@@ -4830,11 +4830,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
       js.Name operator = namer.operatorIs(element);
       HInstruction isFieldName =
           graph.addConstantStringFromName(operator, closedWorld);
-      HInstruction asFieldName = closedWorld.hasAnyStrictSubtype(element) ||
-              closedWorld.nativeData.isJsInteropClass(element)
-          ? graph.addConstantStringFromName(
-              namer.substitutionName(element), closedWorld)
-          : graph.addConstantNull(closedWorld);
+      HInstruction asFieldName =
+          closedWorld.classHierarchy.hasAnyStrictSubtype(element) ||
+                  closedWorld.nativeData.isJsInteropClass(element)
+              ? graph.addConstantStringFromName(
+                  namer.substitutionName(element), closedWorld)
+              : graph.addConstantNull(closedWorld);
       List<HInstruction> inputs = <HInstruction>[
         expression,
         isFieldName,
@@ -5581,8 +5582,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // constructor's factory.  A simplified version is to check this is a
       // constructor body for a leaf class.
       ClassEntity class_ = element.enclosingClass;
-      if (closedWorld.isDirectlyInstantiated(class_)) {
-        return !closedWorld.isIndirectlyInstantiated(class_);
+      if (closedWorld.classHierarchy.isDirectlyInstantiated(class_)) {
+        return !closedWorld.classHierarchy.isIndirectlyInstantiated(class_);
       }
       return false;
     }

@@ -116,7 +116,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   bool _isInClassOrSubclass(MemberEntity member) {
     ClassEntity cls = _elementMap.getMemberThisType(_analyzedMember)?.element;
     if (cls == null) return false;
-    return _closedWorld.isSubclassOf(member.enclosingClass, cls);
+    return _closedWorld.classHierarchy.isSubclassOf(member.enclosingClass, cls);
   }
 
   /// Checks whether the access or update of [selector] on [mask] potentially
@@ -274,7 +274,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     _inferrer.recordExposesThis(_analyzedMember, _isThisExposed);
 
     if (cls.isAbstract) {
-      if (_closedWorld.isInstantiated(cls)) {
+      if (_closedWorld.classHierarchy.isInstantiated(cls)) {
         _returnType = _types.nonNullSubclass(cls);
       } else {
         // TODO(johnniwinther): Avoid analyzing [_analyzedMember] in this
@@ -1048,9 +1048,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     ClassEntity cls = constructor.enclosingClass;
     return cls.library.canonicalUri == Uris.dart__native_typed_data &&
         _closedWorld.nativeData.isNativeClass(cls) &&
-        _closedWorld.isSubtypeOf(
-            cls, _closedWorld.commonElements.typedDataClass) &&
-        _closedWorld.isSubtypeOf(cls, _closedWorld.commonElements.listClass) &&
+        _closedWorld.classHierarchy
+            .isSubtypeOf(cls, _closedWorld.commonElements.typedDataClass) &&
+        _closedWorld.classHierarchy
+            .isSubtypeOf(cls, _closedWorld.commonElements.listClass) &&
         constructor.name == '';
   }
 

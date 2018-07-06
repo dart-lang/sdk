@@ -107,30 +107,31 @@ abstract class TypeMask implements AbstractValue {
 
   factory TypeMask.exact(ClassEntity base, JClosedWorld closedWorld) {
     assert(
-        closedWorld.isInstantiated(base),
+        closedWorld.classHierarchy.isInstantiated(base),
         failedAt(
             base ?? CURRENT_ELEMENT_SPANNABLE,
             "Cannot create exact type mask for uninstantiated "
-            "class $base.\n${closedWorld.dump(base)}"));
+            "class $base.\n${closedWorld.classHierarchy.dump(base)}"));
     return new FlatTypeMask.exact(base);
   }
 
   factory TypeMask.exactOrEmpty(ClassEntity base, JClosedWorld closedWorld) {
-    if (closedWorld.isInstantiated(base)) return new FlatTypeMask.exact(base);
+    if (closedWorld.classHierarchy.isInstantiated(base))
+      return new FlatTypeMask.exact(base);
     return const TypeMask.empty();
   }
 
   factory TypeMask.subclass(ClassEntity base, JClosedWorld closedWorld) {
     assert(
-        closedWorld.isInstantiated(base),
+        closedWorld.classHierarchy.isInstantiated(base),
         failedAt(
             base ?? CURRENT_ELEMENT_SPANNABLE,
             "Cannot create subclass type mask for uninstantiated "
-            "class $base.\n${closedWorld.dump(base)}"));
+            "class $base.\n${closedWorld.classHierarchy.dump(base)}"));
     ClassEntity topmost = closedWorld.getLubOfInstantiatedSubclasses(base);
     if (topmost == null) {
       return new TypeMask.empty();
-    } else if (closedWorld.hasAnyStrictSubclass(topmost)) {
+    } else if (closedWorld.classHierarchy.hasAnyStrictSubclass(topmost)) {
       return new FlatTypeMask.subclass(topmost);
     } else {
       return new TypeMask.exact(topmost, closedWorld);
@@ -142,10 +143,10 @@ abstract class TypeMask implements AbstractValue {
     if (topmost == null) {
       return new TypeMask.empty();
     }
-    if (closedWorld.hasOnlySubclasses(topmost)) {
+    if (closedWorld.classHierarchy.hasOnlySubclasses(topmost)) {
       return new TypeMask.subclass(topmost, closedWorld);
     }
-    if (closedWorld.hasAnyStrictSubtype(topmost)) {
+    if (closedWorld.classHierarchy.hasAnyStrictSubtype(topmost)) {
       return new FlatTypeMask.subtype(topmost);
     } else {
       return new TypeMask.exact(topmost, closedWorld);
@@ -156,17 +157,17 @@ abstract class TypeMask implements AbstractValue {
 
   factory TypeMask.nonNullExact(ClassEntity base, JClosedWorld closedWorld) {
     assert(
-        closedWorld.isInstantiated(base),
+        closedWorld.classHierarchy.isInstantiated(base),
         failedAt(
             base ?? CURRENT_ELEMENT_SPANNABLE,
             "Cannot create exact type mask for uninstantiated "
-            "class $base.\n${closedWorld.dump(base)}"));
+            "class $base.\n${closedWorld.classHierarchy.dump(base)}"));
     return new FlatTypeMask.nonNullExact(base);
   }
 
   factory TypeMask.nonNullExactOrEmpty(
       ClassEntity base, JClosedWorld closedWorld) {
-    if (closedWorld.isInstantiated(base)) {
+    if (closedWorld.classHierarchy.isInstantiated(base)) {
       return new FlatTypeMask.nonNullExact(base);
     }
     return const TypeMask.nonNullEmpty();
@@ -174,15 +175,15 @@ abstract class TypeMask implements AbstractValue {
 
   factory TypeMask.nonNullSubclass(ClassEntity base, JClosedWorld closedWorld) {
     assert(
-        closedWorld.isInstantiated(base),
+        closedWorld.classHierarchy.isInstantiated(base),
         failedAt(
             base ?? CURRENT_ELEMENT_SPANNABLE,
             "Cannot create subclass type mask for uninstantiated "
-            "class $base.\n${closedWorld.dump(base)}"));
+            "class $base.\n${closedWorld.classHierarchy.dump(base)}"));
     ClassEntity topmost = closedWorld.getLubOfInstantiatedSubclasses(base);
     if (topmost == null) {
       return new TypeMask.nonNullEmpty();
-    } else if (closedWorld.hasAnyStrictSubclass(topmost)) {
+    } else if (closedWorld.classHierarchy.hasAnyStrictSubclass(topmost)) {
       return new FlatTypeMask.nonNullSubclass(topmost);
     } else {
       return new TypeMask.nonNullExact(topmost, closedWorld);
@@ -194,10 +195,10 @@ abstract class TypeMask implements AbstractValue {
     if (topmost == null) {
       return new TypeMask.nonNullEmpty();
     }
-    if (closedWorld.hasOnlySubclasses(topmost)) {
+    if (closedWorld.classHierarchy.hasOnlySubclasses(topmost)) {
       return new TypeMask.nonNullSubclass(topmost, closedWorld);
     }
-    if (closedWorld.hasAnyStrictSubtype(topmost)) {
+    if (closedWorld.classHierarchy.hasAnyStrictSubtype(topmost)) {
       return new FlatTypeMask.nonNullSubtype(topmost);
     } else {
       return new TypeMask.nonNullExact(topmost, closedWorld);
@@ -239,22 +240,22 @@ abstract class TypeMask implements AbstractValue {
     if (mask is FlatTypeMask) {
       if (mask.isEmptyOrNull) return null;
       if (mask.isExact) {
-        if (!closedWorld.isInstantiated(mask.base)) {
+        if (!closedWorld.classHierarchy.isInstantiated(mask.base)) {
           return 'Exact ${mask.base} is not instantiated.';
         }
         return null;
       }
       if (mask.isSubclass) {
-        if (!closedWorld.hasAnyStrictSubclass(mask.base)) {
+        if (!closedWorld.classHierarchy.hasAnyStrictSubclass(mask.base)) {
           return 'Subclass ${mask.base} does not have any subclasses.';
         }
         return null;
       }
       assert(mask.isSubtype);
-      if (!closedWorld.hasAnyStrictSubtype(mask.base)) {
+      if (!closedWorld.classHierarchy.hasAnyStrictSubtype(mask.base)) {
         return 'Subtype ${mask.base} does not have any subclasses.';
       }
-      if (closedWorld.hasOnlySubclasses(mask.base)) {
+      if (closedWorld.classHierarchy.hasOnlySubclasses(mask.base)) {
         return 'Subtype ${mask.base} only has subclasses.';
       }
       return null;

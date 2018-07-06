@@ -612,12 +612,12 @@ testClosures({bool strongMode}) async {
   checkIsFunction(ClassEntity cls, {bool expected: true}) {
     Expect.equals(
         expected,
-        world.isSubtypeOf(cls, functionClass),
+        world.classHierarchy.isSubtypeOf(cls, functionClass),
         "Expected $cls ${expected ? '' : 'not '}to be a subtype "
         "of $functionClass.");
   }
 
   checkIsFunction(A, expected: !strongMode);
 
-  world.forEachStrictSubtypeOf(closureClass, checkIsFunction);
+  world.classHierarchy.forEachStrictSubtypeOf(closureClass, checkIsFunction);
 }

@@ -11,23 +11,93 @@ import 'class_set.dart';
 // TODO(johnniwinther): Move more methods from `JClosedWorld` to
 // `ClassHierarchy`.
 abstract class ClassHierarchy {
-  /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
-  /// of known classes.
-  ///
-  /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [JClosedWorld].
-  ClassHierarchyNode getClassHierarchyNode(ClassEntity cls);
+  /// Returns `true` if [cls] is either directly or indirectly instantiated.
+  bool isInstantiated(ClassEntity cls);
 
-  /// Returns [ClassSet] for [cls] used to model the extends and implements
-  /// relations of known classes.
+  /// Returns `true` if [cls] is directly instantiated. This means that at
+  /// runtime instances of exactly [cls] are assumed to exist.
+  bool isDirectlyInstantiated(ClassEntity cls);
+
+  /// Returns `true` if [cls] is abstractly instantiated. This means that at
+  /// runtime instances of [cls] or unknown subclasses of [cls] are assumed to
+  /// exist.
   ///
-  /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [JClosedWorld].
-  ClassSet getClassSet(ClassEntity cls);
+  /// This is used to mark native and/or reflectable classes as instantiated.
+  /// For native classes we do not know the exact class that instantiates [cls]
+  /// so [cls] here represents the root of the subclasses. For reflectable
+  /// classes we need event abstract classes to be 'live' even though they
+  /// cannot themselves be instantiated.
+  bool isAbstractlyInstantiated(ClassEntity cls);
+
+  /// Returns `true` if [cls] is either directly or abstractly instantiated.
+  ///
+  /// See [isDirectlyInstantiated] and [isAbstractlyInstantiated].
+  bool isExplicitlyInstantiated(ClassEntity cls);
+
+  /// Returns `true` if [cls] is indirectly instantiated, that is through a
+  /// subclass.
+  bool isIndirectlyInstantiated(ClassEntity cls);
+
+  /// Return `true` if [x] is a subclass of [y].
+  bool isSubclassOf(ClassEntity x, ClassEntity y);
 
   /// Returns `true` if [x] is a subtype of [y], that is, if [x] implements an
   /// instance of [y].
   bool isSubtypeOf(ClassEntity x, ClassEntity y);
+
+  /// Returns an iterable over the live classes that extend [cls] including
+  /// [cls] itself.
+  Iterable<ClassEntity> subclassesOf(ClassEntity cls);
+
+  /// Returns an iterable over the live classes that extend [cls] _not_
+  /// including [cls] itself.
+  Iterable<ClassEntity> strictSubclassesOf(ClassEntity cls);
+
+  /// Returns the number of live classes that extend [cls] _not_
+  /// including [cls] itself.
+  int strictSubclassCount(ClassEntity cls);
+
+  /// Applies [f] to each live class that extend [cls] _not_ including [cls]
+  /// itself.
+  void forEachStrictSubclassOf(
+      ClassEntity cls, IterationStep f(ClassEntity cls));
+
+  /// Returns `true` if [predicate] applies to any live class that extend [cls]
+  /// _not_ including [cls] itself.
+  bool anyStrictSubclassOf(ClassEntity cls, bool predicate(ClassEntity cls));
+
+  /// Returns an iterable over the directly instantiated that implement [cls]
+  /// possibly including [cls] itself, if it is live.
+  Iterable<ClassEntity> subtypesOf(ClassEntity cls);
+
+  /// Returns an iterable over the live classes that implement [cls] _not_
+  /// including [cls] if it is live.
+  Iterable<ClassEntity> strictSubtypesOf(ClassEntity cls);
+
+  /// Returns the number of live classes that implement [cls] _not_
+  /// including [cls] itself.
+  int strictSubtypeCount(ClassEntity cls);
+
+  /// Applies [f] to each live class that implements [cls] _not_ including [cls]
+  /// itself.
+  void forEachStrictSubtypeOf(
+      ClassEntity cls, IterationStep f(ClassEntity cls));
+
+  /// Returns `true` if [predicate] applies to any live class that implements
+  /// [cls] _not_ including [cls] itself.
+  bool anyStrictSubtypeOf(ClassEntity cls, bool predicate(ClassEntity cls));
+
+  /// Returns `true` if [a] and [b] have any known common subtypes.
+  bool haveAnyCommonSubtypes(ClassEntity a, ClassEntity b);
+
+  /// Returns `true` if any live class other than [cls] extends [cls].
+  bool hasAnyStrictSubclass(ClassEntity cls);
+
+  /// Returns `true` if any live class other than [cls] implements [cls].
+  bool hasAnyStrictSubtype(ClassEntity cls);
+
+  /// Returns `true` if all live classes that implement [cls] extend it.
+  bool hasOnlySubclasses(ClassEntity cls);
 
   /// Returns a [SubclassResult] for the subclasses that are contained in
   /// the subclass/subtype sets of both [cls1] and [cls2].
@@ -50,18 +120,24 @@ abstract class ClassHierarchy {
   SubclassResult commonSubclasses(
       ClassEntity cls1, ClassQuery query1, ClassEntity cls2, ClassQuery query2);
 
-  /// Returns an iterable over the directly instantiated that implement [cls]
-  /// possibly including [cls] itself, if it is live.
-  Iterable<ClassEntity> subtypesOf(ClassEntity cls);
+  /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
+  /// of known classes.
+  ///
+  /// This method is only provided for testing. For queries on classes, use the
+  /// methods defined in [JClosedWorld].
+  ClassHierarchyNode getClassHierarchyNode(ClassEntity cls);
 
-  /// Returns an iterable over the live classes that extend [cls] including
-  /// [cls] itself.
-  Iterable<ClassEntity> subclassesOf(ClassEntity cls);
+  /// Returns [ClassSet] for [cls] used to model the extends and implements
+  /// relations of known classes.
+  ///
+  /// This method is only provided for testing. For queries on classes, use the
+  /// methods defined in [JClosedWorld].
+  ClassSet getClassSet(ClassEntity cls);
 
-  /// Applies [f] to each live class that implements [cls] _not_ including [cls]
-  /// itself.
-  void forEachStrictSubtypeOf(
-      ClassEntity cls, IterationStep f(ClassEntity cls));
+  /// Returns a string representation of the closed world.
+  ///
+  /// If [cls] is provided, the dump will contain only classes related to [cls].
+  String dump([ClassEntity cls]);
 }
 
 class ClassHierarchyImpl implements ClassHierarchy {
@@ -72,39 +148,102 @@ class ClassHierarchyImpl implements ClassHierarchy {
   ClassHierarchyImpl(
       this._commonElements, this._classHierarchyNodes, this._classSets);
 
-  /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
-  /// of known classes.
-  ///
-  /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [JClosedWorld].
-  ClassHierarchyNode getClassHierarchyNode(ClassEntity cls) {
-    return _classHierarchyNodes[cls];
+  @override
+  bool isInstantiated(ClassEntity cls) {
+    ClassHierarchyNode node = _classHierarchyNodes[cls];
+    return node != null && node.isInstantiated;
   }
 
-  /// Returns [ClassSet] for [cls] used to model the extends and implements
-  /// relations of known classes.
-  ///
-  /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [JClosedWorld].
-  ClassSet getClassSet(ClassEntity cls) {
-    return _classSets[cls];
+  @override
+  bool isDirectlyInstantiated(ClassEntity cls) {
+    ClassHierarchyNode node = _classHierarchyNodes[cls];
+    return node != null && node.isDirectlyInstantiated;
+  }
+
+  @override
+  bool isAbstractlyInstantiated(ClassEntity cls) {
+    ClassHierarchyNode node = _classHierarchyNodes[cls];
+    return node != null && node.isAbstractlyInstantiated;
+  }
+
+  @override
+  bool isExplicitlyInstantiated(ClassEntity cls) {
+    ClassHierarchyNode node = _classHierarchyNodes[cls];
+    return node != null && node.isExplicitlyInstantiated;
+  }
+
+  @override
+  bool isIndirectlyInstantiated(ClassEntity cls) {
+    ClassHierarchyNode node = _classHierarchyNodes[cls];
+    return node != null && node.isIndirectlyInstantiated;
   }
 
   /// Returns `true` if [x] is a subtype of [y], that is, if [x] implements an
   /// instance of [y].
   bool isSubtypeOf(ClassEntity x, ClassEntity y) {
     ClassSet classSet = _classSets[y];
-    assert(classSet != null,
-        failedAt(y, "No ClassSet for $y (${y.runtimeType}): ${_classSets}"));
+    assert(
+        classSet != null,
+        failedAt(
+            y,
+            "No ClassSet for $y (${y.runtimeType}): "
+            "${dump(y)} : ${_classSets}"));
     ClassHierarchyNode classHierarchyNode = _classHierarchyNodes[x];
     assert(classHierarchyNode != null,
-        failedAt(x, "No ClassHierarchyNode for $x"));
+        failedAt(x, "No ClassHierarchyNode for $x: ${dump(x)}"));
     return classSet.hasSubtype(classHierarchyNode);
   }
 
   /// Return `true` if [x] is a (non-strict) subclass of [y].
   bool isSubclassOf(ClassEntity x, ClassEntity y) {
     return _classHierarchyNodes[y].hasSubclass(_classHierarchyNodes[x]);
+  }
+
+  /// Returns an iterable over the directly instantiated classes that extend
+  /// [cls] possibly including [cls] itself, if it is live.
+  Iterable<ClassEntity> subclassesOf(ClassEntity cls) {
+    ClassHierarchyNode hierarchy = _classHierarchyNodes[cls];
+    if (hierarchy == null) return const <ClassEntity>[];
+    return hierarchy
+        .subclassesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED);
+  }
+
+  /// Returns an iterable over the directly instantiated classes that extend
+  /// [cls] _not_ including [cls] itself.
+  Iterable<ClassEntity> strictSubclassesOf(ClassEntity cls) {
+    ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
+    if (subclasses == null) return const <ClassEntity>[];
+    return subclasses.subclassesByMask(
+        ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
+        strict: true);
+  }
+
+  /// Returns the number of live classes that extend [cls] _not_
+  /// including [cls] itself.
+  int strictSubclassCount(ClassEntity cls) {
+    ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
+    if (subclasses == null) return 0;
+    return subclasses.instantiatedSubclassCount;
+  }
+
+  /// Applies [f] to each live class that extend [cls] _not_ including [cls]
+  /// itself.
+  void forEachStrictSubclassOf(
+      ClassEntity cls, IterationStep f(ClassEntity cls)) {
+    ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
+    if (subclasses == null) return;
+    subclasses.forEachSubclass(f, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
+        strict: true);
+  }
+
+  /// Returns `true` if [predicate] applies to any live class that extend [cls]
+  /// _not_ including [cls] itself.
+  bool anyStrictSubclassOf(ClassEntity cls, bool predicate(ClassEntity cls)) {
+    ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
+    if (subclasses == null) return false;
+    return subclasses.anySubclass(
+        predicate, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
+        strict: true);
   }
 
   /// Returns an iterable over the directly instantiated that implement [cls]
@@ -119,15 +258,6 @@ class ClassHierarchyImpl implements ClassHierarchy {
     }
   }
 
-  /// Returns an iterable over the directly instantiated classes that extend
-  /// [cls] possibly including [cls] itself, if it is live.
-  Iterable<ClassEntity> subclassesOf(ClassEntity cls) {
-    ClassHierarchyNode hierarchy = _classHierarchyNodes[cls];
-    if (hierarchy == null) return const <ClassEntity>[];
-    return hierarchy
-        .subclassesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED);
-  }
-
   /// Returns an iterable over the directly instantiated that implement [cls]
   /// _not_ including [cls].
   Iterable<ClassEntity> strictSubtypesOf(ClassEntity cls) {
@@ -140,24 +270,12 @@ class ClassHierarchyImpl implements ClassHierarchy {
     }
   }
 
-  /// Returns an iterable over the directly instantiated classes that extend
-  /// [cls] _not_ including [cls] itself.
-  Iterable<ClassEntity> strictSubclassesOf(ClassEntity cls) {
-    ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
-    if (subclasses == null) return const <ClassEntity>[];
-    return subclasses.subclassesByMask(
-        ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
-        strict: true);
-  }
-
-  /// Applies [f] to each live class that extend [cls] _not_ including [cls]
-  /// itself.
-  void forEachStrictSubclassOf(
-      ClassEntity cls, IterationStep f(ClassEntity cls)) {
-    ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
-    if (subclasses == null) return;
-    subclasses.forEachSubclass(f, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
-        strict: true);
+  /// Returns the number of live classes that implement [cls] _not_
+  /// including [cls] itself.
+  int strictSubtypeCount(ClassEntity cls) {
+    ClassSet classSet = _classSets[cls];
+    if (classSet == null) return 0;
+    return classSet.instantiatedSubtypeCount;
   }
 
   /// Applies [f] to each live class that implements [cls] _not_ including [cls]
@@ -168,6 +286,58 @@ class ClassHierarchyImpl implements ClassHierarchy {
     if (classSet == null) return;
     classSet.forEachSubtype(f, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
         strict: true);
+  }
+
+  /// Returns `true` if [predicate] applies to any live class that extend [cls]
+  /// _not_ including [cls] itself.
+  bool anyStrictSubtypeOf(ClassEntity cls, bool predicate(ClassEntity cls)) {
+    ClassSet classSet = _classSets[cls];
+    if (classSet == null) return false;
+    return classSet.anySubtype(
+        predicate, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
+        strict: true);
+  }
+
+  /// Returns `true` if [a] and [b] have any known common subtypes.
+  bool haveAnyCommonSubtypes(ClassEntity a, ClassEntity b) {
+    ClassSet classSetA = _classSets[a];
+    ClassSet classSetB = _classSets[b];
+    if (classSetA == null || classSetB == null) return false;
+    // TODO(johnniwinther): Implement an optimized query on [ClassSet].
+    Set<ClassEntity> subtypesOfB = classSetB.subtypes().toSet();
+    for (ClassEntity subtypeOfA in classSetA.subtypes()) {
+      if (subtypesOfB.contains(subtypeOfA)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Returns `true` if any directly instantiated class other than [cls] extends
+  /// [cls].
+  bool hasAnyStrictSubclass(ClassEntity cls) {
+    ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
+    if (subclasses == null) return false;
+    return subclasses.isIndirectlyInstantiated;
+  }
+
+  /// Returns `true` if any directly instantiated class other than [cls]
+  /// implements [cls].
+  bool hasAnyStrictSubtype(ClassEntity cls) {
+    return strictSubtypeCount(cls) > 0;
+  }
+
+  /// Returns `true` if all directly instantiated classes that implement [cls]
+  /// extend it.
+  bool hasOnlySubclasses(ClassEntity cls) {
+    // TODO(johnniwinther): move this to ClassSet?
+    if (cls == _commonElements.objectClass) return true;
+    ClassSet classSet = _classSets[cls];
+    if (classSet == null) {
+      // Vacuously true.
+      return true;
+    }
+    return classSet.hasOnlyInstantiatedSubclasses;
   }
 
   SubclassResult commonSubclasses(ClassEntity cls1, ClassQuery query1,
@@ -314,6 +484,37 @@ class ClassHierarchyImpl implements ClassHierarchy {
       return new SubclassResult(classes);
     }
   }
+
+  /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
+  /// of known classes.
+  ///
+  /// This method is only provided for testing. For queries on classes, use the
+  /// methods defined in [JClosedWorld].
+  ClassHierarchyNode getClassHierarchyNode(ClassEntity cls) {
+    return _classHierarchyNodes[cls];
+  }
+
+  /// Returns [ClassSet] for [cls] used to model the extends and implements
+  /// relations of known classes.
+  ///
+  /// This method is only provided for testing. For queries on classes, use the
+  /// methods defined in [JClosedWorld].
+  ClassSet getClassSet(ClassEntity cls) {
+    return _classSets[cls];
+  }
+
+  @override
+  String dump([ClassEntity cls]) {
+    StringBuffer sb = new StringBuffer();
+    if (cls != null) {
+      sb.write("Classes in the closed world related to $cls:\n");
+    } else {
+      sb.write("Instantiated classes in the closed world:\n");
+    }
+    getClassHierarchyNode(_commonElements.objectClass)
+        .printOn(sb, ' ', instantiatedOnly: cls == null, withRespectTo: cls);
+    return sb.toString();
+  }
 }
 
 class ClassHierarchyBuilder {
@@ -335,7 +536,6 @@ class ClassHierarchyBuilder {
   }
 
   ClassHierarchyNode _ensureClassHierarchyNode(ClassEntity cls) {
-    assert(_classQueries.checkClass(cls));
     return classHierarchyNodes.putIfAbsent(cls, () {
       ClassHierarchyNode parentNode;
       ClassEntity superclass = _classQueries.getSuperClass(cls);
@@ -348,7 +548,6 @@ class ClassHierarchyBuilder {
   }
 
   ClassSet _ensureClassSet(ClassEntity cls) {
-    assert(_classQueries.checkClass(cls));
     return classSets.putIfAbsent(cls, () {
       ClassHierarchyNode node = _ensureClassHierarchyNode(cls);
       ClassSet classSet = new ClassSet(node);
@@ -460,9 +659,6 @@ class ClassHierarchyBuilder {
 }
 
 abstract class ClassQueries {
-  bool checkClass(covariant ClassEntity cls);
-  bool validateClass(covariant ClassEntity cls);
-
   /// Returns the declaration of [cls].
   ClassEntity getDeclaration(covariant ClassEntity cls);
 

@@ -912,11 +912,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
       if (!info.hasInstantiation) {
         return;
       }
-      assert(_classQueries.checkClass(cls));
-      if (!_classQueries.validateClass(cls)) {
-        failedAt(cls, 'Class "${cls.name}" is not resolved.');
-      }
-
       _classHierarchyBuilder.updateClassHierarchyNodeForClass(cls,
           directlyInstantiated: info.isDirectlyInstantiated,
           abstractlyInstantiated: info.isAbstractlyInstantiated);

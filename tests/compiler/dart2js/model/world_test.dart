@@ -74,7 +74,7 @@ testClassSets() async {
           foundClasses.contains(expectedClass),
           "Expect $expectedClass in '$property' on $cls. "
           "Found:\n ${foundClasses.join('\n ')}\n"
-          "${closedWorld.dump(cls)}");
+          "${closedWorld.classHierarchy.dump(cls)}");
     }
     if (exact) {
       Expect.equals(
@@ -83,7 +83,7 @@ testClassSets() async {
           "Unexpected classes "
           "${foundClasses.where((c) => !expectedClasses.contains(c))} "
           "in '$property' on $cls.\n"
-          "${closedWorld.dump(cls)}");
+          "${closedWorld.classHierarchy.dump(cls)}");
     }
   }
 
@@ -109,32 +109,33 @@ testClassSets() async {
           expectedClasses.length,
           count,
           "Unexpected class count in '$property' on $cls.\n"
-          "${closedWorld.dump(cls)}");
+          "${closedWorld.classHierarchy.dump(cls)}");
     }
   }
 
   void testSubclasses(ClassEntity cls, List<ClassEntity> expectedClasses,
       {bool exact: true}) {
-    check('subclassesOf', cls, closedWorld.subclassesOf(cls), expectedClasses,
+    check('subclassesOf', cls, closedWorld.classHierarchy.subclassesOf(cls),
+        expectedClasses,
         exact: exact);
   }
 
   void testStrictSubclasses(ClassEntity cls, List<ClassEntity> expectedClasses,
       {bool exact: true}) {
-    check('strictSubclassesOf', cls, closedWorld.strictSubclassesOf(cls),
-        expectedClasses,
+    check('strictSubclassesOf', cls,
+        closedWorld.classHierarchy.strictSubclassesOf(cls), expectedClasses,
         exact: exact,
-        forEach: closedWorld.forEachStrictSubclassOf,
-        getCount: closedWorld.strictSubclassCount);
+        forEach: closedWorld.classHierarchy.forEachStrictSubclassOf,
+        getCount: closedWorld.classHierarchy.strictSubclassCount);
   }
 
   void testStrictSubtypes(ClassEntity cls, List<ClassEntity> expectedClasses,
       {bool exact: true}) {
-    check('strictSubtypesOf', cls, closedWorld.strictSubtypesOf(cls),
-        expectedClasses,
+    check('strictSubtypesOf', cls,
+        closedWorld.classHierarchy.strictSubtypesOf(cls), expectedClasses,
         exact: exact,
-        forEach: closedWorld.forEachStrictSubtypeOf,
-        getCount: closedWorld.strictSubtypeCount);
+        forEach: closedWorld.classHierarchy.forEachStrictSubtypeOf,
+        getCount: closedWorld.classHierarchy.strictSubtypeCount);
   }
 
   void testMixinUses(ClassEntity cls, List<ClassEntity> expectedClasses,
@@ -248,9 +249,13 @@ testProperties() async {
 
   check(String name, {bool hasStrictSubtype, bool hasOnlySubclasses}) {
     ClassEntity cls = env.getElement(name);
-    Expect.equals(hasStrictSubtype, closedWorld.hasAnyStrictSubtype(cls),
+    Expect.equals(
+        hasStrictSubtype,
+        closedWorld.classHierarchy.hasAnyStrictSubtype(cls),
         "Unexpected hasAnyStrictSubtype property on $cls.");
-    Expect.equals(hasOnlySubclasses, closedWorld.hasOnlySubclasses(cls),
+    Expect.equals(
+        hasOnlySubclasses,
+        closedWorld.classHierarchy.hasOnlySubclasses(cls),
         "Unexpected hasOnlySubclasses property on $cls.");
   }
 
@@ -360,26 +365,30 @@ testNativeClasses() async {
       int instantiatedSubtypeCount,
       List<ClassEntity> subclasses: const <ClassEntity>[],
       List<ClassEntity> subtypes: const <ClassEntity>[]}) {
-    ClassSet classSet = closedWorld.getClassSet(cls);
+    ClassSet classSet = closedWorld.classHierarchy.getClassSet(cls);
     ClassHierarchyNode node = classSet.node;
 
-    String dumpText = '\n${closedWorld.dump(cls)}';
+    String dumpText = '\n${closedWorld.classHierarchy.dump(cls)}';
 
     Expect.equals(
         isDirectlyInstantiated,
-        closedWorld.isDirectlyInstantiated(cls),
+        closedWorld.classHierarchy.isDirectlyInstantiated(cls),
         "Unexpected isDirectlyInstantiated property on $cls.$dumpText");
     Expect.equals(
         isAbstractlyInstantiated,
-        closedWorld.isAbstractlyInstantiated(cls),
+        closedWorld.classHierarchy.isAbstractlyInstantiated(cls),
         "Unexpected isAbstractlyInstantiated property on $cls.$dumpText");
     Expect.equals(
         isIndirectlyInstantiated,
-        closedWorld.isIndirectlyInstantiated(cls),
+        closedWorld.classHierarchy.isIndirectlyInstantiated(cls),
         "Unexpected isIndirectlyInstantiated property on $cls.$dumpText");
-    Expect.equals(hasStrictSubtype, closedWorld.hasAnyStrictSubtype(cls),
+    Expect.equals(
+        hasStrictSubtype,
+        closedWorld.classHierarchy.hasAnyStrictSubtype(cls),
         "Unexpected hasAnyStrictSubtype property on $cls.$dumpText");
-    Expect.equals(hasOnlySubclasses, closedWorld.hasOnlySubclasses(cls),
+    Expect.equals(
+        hasOnlySubclasses,
+        closedWorld.classHierarchy.hasOnlySubclasses(cls),
         "Unexpected hasOnlySubclasses property on $cls.$dumpText");
     Expect.equals(
         lubOfInstantiatedSubclasses,
@@ -399,19 +408,20 @@ testNativeClasses() async {
     }
     for (ClassEntity other in allClasses) {
       if (other == cls) continue;
-      if (!closedWorld.isExplicitlyInstantiated(other)) continue;
+      if (!closedWorld.classHierarchy.isExplicitlyInstantiated(other)) continue;
       Expect.equals(
           subclasses.contains(other),
-          closedWorld.isSubclassOf(other, cls),
+          closedWorld.classHierarchy.isSubclassOf(other, cls),
           "Unexpected subclass relation between $other and $cls.");
       Expect.equals(
           subtypes.contains(other),
-          closedWorld.isSubtypeOf(other, cls),
+          closedWorld.classHierarchy.isSubtypeOf(other, cls),
           "Unexpected subtype relation between $other and $cls.");
     }
 
     Set<ClassEntity> strictSubclasses = new Set<ClassEntity>();
-    closedWorld.forEachStrictSubclassOf(cls, (ClassEntity other) {
+    closedWorld.classHierarchy.forEachStrictSubclassOf(cls,
+        (ClassEntity other) {
       if (allClasses.contains(other)) {
         strictSubclasses.add(other);
       }
@@ -420,7 +430,7 @@ testNativeClasses() async {
         "Unexpected strict subclasses of $cls: ${strictSubclasses}.");
 
     Set<ClassEntity> strictSubtypes = new Set<ClassEntity>();
-    closedWorld.forEachStrictSubtypeOf(cls, (ClassEntity other) {
+    closedWorld.classHierarchy.forEachStrictSubtypeOf(cls, (ClassEntity other) {
       if (allClasses.contains(other)) {
         strictSubtypes.add(other);
       }

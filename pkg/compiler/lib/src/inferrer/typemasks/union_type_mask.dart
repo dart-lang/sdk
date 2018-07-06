@@ -107,8 +107,8 @@ class UnionTypeMask implements TypeMask {
     for (ClassEntity candidate in candidates) {
       bool isInstantiatedStrictSubclass(cls) =>
           cls != candidate &&
-          closedWorld.isExplicitlyInstantiated(cls) &&
-          closedWorld.isSubclassOf(cls, candidate);
+          closedWorld.classHierarchy.isExplicitlyInstantiated(cls) &&
+          closedWorld.classHierarchy.isSubclassOf(cls, candidate);
 
       int size;
       int kind;
@@ -121,11 +121,12 @@ class UnionTypeMask implements TypeMask {
         // TODO(sigmund, johnniwinther): computing length here (and below) is
         // expensive. If we can't prevent `flatten` from being called a lot, it
         // might be worth caching results.
-        size = closedWorld.strictSubclassCount(candidate);
-        assert(size <= closedWorld.strictSubtypeCount(candidate));
+        size = closedWorld.classHierarchy.strictSubclassCount(candidate);
+        assert(
+            size <= closedWorld.classHierarchy.strictSubtypeCount(candidate));
       } else {
         kind = FlatTypeMask.SUBTYPE;
-        size = closedWorld.strictSubtypeCount(candidate);
+        size = closedWorld.classHierarchy.strictSubtypeCount(candidate);
       }
       // Update the best candidate if the new one is better.
       if (bestElement == null || size < bestSize) {
@@ -237,10 +238,10 @@ class UnionTypeMask implements TypeMask {
     // Check for other members.
     Iterable<ClassEntity> members;
     if (flat.isSubclass) {
-      members = closedWorld.strictSubclassesOf(flat.base);
+      members = closedWorld.classHierarchy.strictSubclassesOf(flat.base);
     } else {
       assert(flat.isSubtype);
-      members = closedWorld.strictSubtypesOf(flat.base);
+      members = closedWorld.classHierarchy.strictSubtypesOf(flat.base);
     }
     return members.every((ClassEntity cls) => this.contains(cls, closedWorld));
   }

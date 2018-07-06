@@ -458,7 +458,7 @@ class TypeSystem<T> {
     assert(strategy.checkListNode(node));
     ClassEntity typedDataClass = _closedWorld.commonElements.typedDataClass;
     bool isTypedArray = typedDataClass != null &&
-        _closedWorld.isInstantiated(typedDataClass) &&
+        _closedWorld.classHierarchy.isInstantiated(typedDataClass) &&
         _abstractValueDomain.isInstanceOfOrNull(type.type, typedDataClass);
     bool isConst = (type.type == _abstractValueDomain.constListType);
     bool isFixed = (type.type == _abstractValueDomain.fixedListType) ||
