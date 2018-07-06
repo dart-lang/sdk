@@ -1948,6 +1948,15 @@
           ]
         },
         {
+          "name": "run language2 tests",
+          "arguments": [
+            "--analyzer-use-fasta-parser",
+            "--compiler=dart2analyzer",
+            "--use-sdk",
+            "language_2"
+          ]
+        },
+        {
           "name": "run analyzer unit tests",
           "arguments": [
             "--builder-tag=analyzer_use_fasta",

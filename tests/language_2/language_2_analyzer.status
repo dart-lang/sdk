@@ -7,6 +7,55 @@
 error_stacktrace_test/00: MissingCompileTimeError
 vm/lazy_deopt_with_exception_test: CompileTimeError
 
+[ $compiler == dart2analyzer && $analyzer_use_fasta_parser ]
+assignable_expression_test/50: MissingCompileTimeError
+async_await_syntax_test/b00a: MissingCompileTimeError
+async_await_syntax_test/b00b: MissingCompileTimeError
+async_await_syntax_test/b00c: MissingCompileTimeError
+async_await_syntax_test/e4: MissingCompileTimeError
+async_await_syntax_test/e5: MissingCompileTimeError
+async_await_syntax_test/e6: MissingCompileTimeError
+constructor_with_type_parameters_test/05: MissingCompileTimeError
+constructor_with_type_parameters_test/09: MissingCompileTimeError
+constructor_with_type_parameters_test/11: MissingCompileTimeError
+constructor_with_type_parameters_test/15: MissingCompileTimeError
+constructor_with_type_parameters_test/17: MissingCompileTimeError
+external_test/30: MissingCompileTimeError
+external_test/31: MissingCompileTimeError
+factory_with_type_parameters_test/01: MissingCompileTimeError
+factory_with_type_parameters_test/02: MissingCompileTimeError
+factory_with_type_parameters_test/05: MissingCompileTimeError
+factory_with_type_parameters_test/06: MissingCompileTimeError
+generic_metadata_test/02: MissingCompileTimeError
+generic_metadata_test/03: MissingCompileTimeError
+illegal_initializer_test/01: MissingCompileTimeError
+illegal_initializer_test/03: MissingCompileTimeError
+multiline_newline_test/01: Pass
+multiline_newline_test/01r: Pass
+multiline_newline_test/02: Pass
+multiline_newline_test/02r: Pass
+multiline_newline_test/04: Pass
+multiline_newline_test/04r: Pass
+multiline_newline_test/05: Pass
+multiline_newline_test/05r: Pass
+regress_29349_test: Pass
+this_test/01: MissingCompileTimeError
+this_test/02: MissingCompileTimeError
+this_test/03: MissingCompileTimeError
+this_test/04: MissingCompileTimeError
+this_test/05: MissingCompileTimeError
+this_test/06: MissingCompileTimeError
+this_test/07: MissingCompileTimeError
+this_test/08: MissingCompileTimeError
+unsupported_operators_test/01: MissingCompileTimeError
+unsupported_operators_test/02: MissingCompileTimeError
+unsupported_operators_test/03: MissingCompileTimeError
+unsupported_operators_test/04: MissingCompileTimeError
+void_type_function_types_test/04: MissingCompileTimeError
+void_type_function_types_test/06: MissingCompileTimeError
+void_type_function_types_test/08: MissingCompileTimeError
+void_type_function_types_test/none: Pass
+
 [ $compiler == dart2analyzer && $checked && !$fasta && !$strong ]
 abstract_beats_arguments_test: MissingCompileTimeError
 abstract_exact_selector_test/01: MissingCompileTimeError
