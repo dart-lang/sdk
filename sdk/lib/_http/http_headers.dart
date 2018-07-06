@@ -986,7 +986,7 @@ class _Cookie implements Cookie {
       }
     }
     
-    if (value[0] == '"' || value[value.length - 1] == '"')
+    if (value[0] == '"' && value[value.length - 1] == '"')
       value = value.slice(1, value.length - 2)
     
     for (int i = 0; i < value.length; i++) {
