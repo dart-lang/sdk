@@ -37,7 +37,8 @@ import 'null_compiler_output.dart' show NullCompilerOutput, NullSink;
 import 'options.dart' show CompilerOptions, DiagnosticOptions;
 import 'ssa/nodes.dart' show HInstruction;
 import 'types/abstract_value_domain.dart' show AbstractValueStrategy;
-import 'types/types.dart' show GlobalTypeInferenceTask;
+import 'types/types.dart'
+    show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
 import 'universe/selector.dart' show Selector;
 import 'universe/world_builder.dart'
     show ResolutionWorldBuilder, CodegenWorldBuilder;
@@ -312,106 +313,125 @@ abstract class Compiler {
     return resolutionEnqueuer;
   }
 
+  JClosedWorld computeClosedWorld(LibraryEntity rootLibrary) {
+    ResolutionEnqueuer resolutionEnqueuer = startResolution();
+    WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
+    FunctionEntity mainFunction =
+        frontendStrategy.computeMain(rootLibrary, mainImpact);
+
+    // In order to see if a library is deferred, we must compute the
+    // compile-time constants that are metadata.  This means adding
+    // something to the resolution queue.  So we cannot wait with
+    // this until after the resolution queue is processed.
+    deferredLoadTask.beforeResolution(rootLibrary);
+    impactStrategy = backend.createImpactStrategy(
+        supportDeferredLoad: deferredLoadTask.isProgramSplit,
+        supportDumpInfo: options.dumpInfo);
+
+    phase = PHASE_RESOLVING;
+    resolutionEnqueuer.applyImpact(mainImpact);
+    if (analyzeAll) {
+      libraryLoader.libraries.forEach((LibraryEntity library) {
+        reporter.log('Enqueuing ${library.canonicalUri}');
+        resolutionEnqueuer.applyImpact(computeImpactForLibrary(library));
+      });
+    } else if (options.analyzeMain) {
+      if (rootLibrary != null) {
+        resolutionEnqueuer.applyImpact(computeImpactForLibrary(rootLibrary));
+      }
+      if (librariesToAnalyzeWhenRun != null) {
+        for (Uri libraryUri in librariesToAnalyzeWhenRun) {
+          resolutionEnqueuer.applyImpact(
+              computeImpactForLibrary(libraryLoader.lookupLibrary(libraryUri)));
+        }
+      }
+    }
+    reporter.log('Resolving...');
+
+    processQueue(frontendStrategy.elementEnvironment, resolutionEnqueuer,
+        mainFunction, libraryLoader.libraries,
+        onProgress: showResolutionProgress);
+    backend.onResolutionEnd();
+    resolutionEnqueuer.logSummary(reporter.log);
+
+    _reporter.reportSuppressedMessagesSummary();
+
+    if (compilationFailed) {
+      if (!options.generateCodeWithCompileTimeErrors) {
+        return null;
+      }
+      if (mainFunction == null) return null;
+      if (!backend.enableCodegenWithErrorsIfSupported(NO_LOCATION_SPANNABLE)) {
+        return null;
+      }
+    }
+
+    if (options.analyzeOnly) return null;
+    assert(mainFunction != null);
+
+    JClosedWorld closedWorld = closeResolution(mainFunction);
+    backendClosedWorldForTesting = closedWorld;
+    return closedWorld;
+  }
+
+  GlobalTypeInferenceResults performGlobalTypeInference(
+      JClosedWorld closedWorld) {
+    FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction;
+    reporter.log('Inferring types...');
+    InferredDataBuilder inferredDataBuilder = new InferredDataBuilderImpl();
+    backend.processAnnotations(closedWorld, inferredDataBuilder);
+    return globalInference.runGlobalTypeInference(
+        mainFunction, closedWorld, inferredDataBuilder);
+  }
+
+  Enqueuer generateJavaScriptCode(JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults) {
+    FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction;
+    reporter.log('Compiling...');
+    phase = PHASE_COMPILING;
+
+    Enqueuer codegenEnqueuer =
+        startCodegen(closedWorld, globalInferenceResults);
+    if (compileAll) {
+      libraryLoader.libraries.forEach((LibraryEntity library) {
+        codegenEnqueuer.applyImpact(computeImpactForLibrary(library));
+      });
+    }
+    processQueue(closedWorld.elementEnvironment, codegenEnqueuer, mainFunction,
+        libraryLoader.libraries,
+        onProgress: showCodegenProgress);
+    codegenEnqueuer.logSummary(reporter.log);
+
+    int programSize = backend.assembleProgram(closedWorld);
+
+    if (options.dumpInfo) {
+      dumpInfoTask.reportSize(programSize);
+      dumpInfoTask.dumpInfo(closedWorld, globalInferenceResults);
+    }
+
+    backend.onCodegenEnd();
+
+    return codegenEnqueuer;
+  }
+
   /// Performs the compilation when all libraries have been loaded.
   void compileLoadedLibraries(LibraryEntity rootLibrary) =>
       selfTask.measureSubtask("Compiler.compileLoadedLibraries", () {
-        ResolutionEnqueuer resolutionEnqueuer = startResolution();
-        WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
-        FunctionEntity mainFunction =
-            frontendStrategy.computeMain(rootLibrary, mainImpact);
-
-        // In order to see if a library is deferred, we must compute the
-        // compile-time constants that are metadata.  This means adding
-        // something to the resolution queue.  So we cannot wait with
-        // this until after the resolution queue is processed.
-        deferredLoadTask.beforeResolution(rootLibrary);
-        impactStrategy = backend.createImpactStrategy(
-            supportDeferredLoad: deferredLoadTask.isProgramSplit,
-            supportDumpInfo: options.dumpInfo);
-
-        phase = PHASE_RESOLVING;
-        resolutionEnqueuer.applyImpact(mainImpact);
-        if (analyzeAll) {
-          libraryLoader.libraries.forEach((LibraryEntity library) {
-            reporter.log('Enqueuing ${library.canonicalUri}');
-            resolutionEnqueuer.applyImpact(computeImpactForLibrary(library));
-          });
-        } else if (options.analyzeMain) {
-          if (rootLibrary != null) {
-            resolutionEnqueuer
-                .applyImpact(computeImpactForLibrary(rootLibrary));
-          }
-          if (librariesToAnalyzeWhenRun != null) {
-            for (Uri libraryUri in librariesToAnalyzeWhenRun) {
-              resolutionEnqueuer.applyImpact(computeImpactForLibrary(
-                  libraryLoader.lookupLibrary(libraryUri)));
-            }
-          }
+        JClosedWorld closedWorld = computeClosedWorld(rootLibrary);
+        if (closedWorld != null) {
+          GlobalTypeInferenceResults globalInferenceResults =
+              performGlobalTypeInference(closedWorld);
+          if (stopAfterTypeInference) return;
+          Enqueuer codegenEnqueuer =
+              generateJavaScriptCode(closedWorld, globalInferenceResults);
+          checkQueues(enqueuer.resolution, codegenEnqueuer);
         }
-        reporter.log('Resolving...');
-
-        processQueue(frontendStrategy.elementEnvironment, resolutionEnqueuer,
-            mainFunction, libraryLoader.libraries,
-            onProgress: showResolutionProgress);
-        backend.onResolutionEnd();
-        resolutionEnqueuer.logSummary(reporter.log);
-
-        _reporter.reportSuppressedMessagesSummary();
-
-        if (compilationFailed) {
-          if (!options.generateCodeWithCompileTimeErrors) {
-            return;
-          }
-          if (mainFunction == null) return;
-          if (!backend
-              .enableCodegenWithErrorsIfSupported(NO_LOCATION_SPANNABLE)) {
-            return;
-          }
-        }
-
-        if (options.analyzeOnly) return;
-        assert(mainFunction != null);
-
-        JClosedWorld closedWorld = closeResolution(mainFunction);
-        backendClosedWorldForTesting = closedWorld;
-        mainFunction = closedWorld.elementEnvironment.mainFunction;
-
-        reporter.log('Inferring types...');
-        InferredDataBuilder inferredDataBuilder = new InferredDataBuilderImpl();
-        backend.processAnnotations(closedWorld, inferredDataBuilder);
-        globalInference.runGlobalTypeInference(
-            mainFunction, closedWorld, inferredDataBuilder);
-
-        if (stopAfterTypeInference) return;
-
-        reporter.log('Compiling...');
-        phase = PHASE_COMPILING;
-
-        Enqueuer codegenEnqueuer = startCodegen(closedWorld);
-        if (compileAll) {
-          libraryLoader.libraries.forEach((LibraryEntity library) {
-            codegenEnqueuer.applyImpact(computeImpactForLibrary(library));
-          });
-        }
-        processQueue(closedWorld.elementEnvironment, codegenEnqueuer,
-            mainFunction, libraryLoader.libraries,
-            onProgress: showCodegenProgress);
-        codegenEnqueuer.logSummary(reporter.log);
-
-        int programSize = backend.assembleProgram(closedWorld);
-
-        if (options.dumpInfo) {
-          dumpInfoTask.reportSize(programSize);
-          dumpInfoTask.dumpInfo(closedWorld);
-        }
-
-        backend.onCodegenEnd();
-
-        checkQueues(resolutionEnqueuer, codegenEnqueuer);
       });
 
-  Enqueuer startCodegen(JClosedWorld closedWorld) {
-    Enqueuer codegenEnqueuer = enqueuer.createCodegenEnqueuer(closedWorld);
+  Enqueuer startCodegen(JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults) {
+    Enqueuer codegenEnqueuer =
+        enqueuer.createCodegenEnqueuer(closedWorld, globalInferenceResults);
     _codegenWorldBuilder = codegenEnqueuer.worldBuilder;
     codegenEnqueuer.applyImpact(backend.onCodegenStart(
         closedWorld, _codegenWorldBuilder, backendStrategy.sorter));

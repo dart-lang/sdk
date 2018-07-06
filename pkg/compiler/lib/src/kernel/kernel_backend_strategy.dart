@@ -44,8 +44,10 @@ abstract class KernelBackendStrategy implements BackendStrategy {
 class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
   final JavaScriptBackend _backend;
   final JClosedWorld _closedWorld;
+  final GlobalTypeInferenceResults _globalInferenceResults;
 
-  KernelCodegenWorkItemBuilder(this._backend, this._closedWorld);
+  KernelCodegenWorkItemBuilder(
+      this._backend, this._closedWorld, this._globalInferenceResults);
 
   CompilerOptions get _options => _backend.compiler.options;
 
@@ -61,7 +63,8 @@ class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
       }
     }
 
-    return new KernelCodegenWorkItem(_backend, _closedWorld, entity);
+    return new KernelCodegenWorkItem(
+        _backend, _closedWorld, _globalInferenceResults, entity);
   }
 }
 
@@ -70,14 +73,16 @@ class KernelCodegenWorkItem extends CodegenWorkItem {
   final JClosedWorld _closedWorld;
   final MemberEntity element;
   final CodegenRegistry registry;
+  final GlobalTypeInferenceResults _globalInferenceResults;
 
-  KernelCodegenWorkItem(this._backend, this._closedWorld, this.element)
+  KernelCodegenWorkItem(this._backend, this._closedWorld,
+      this._globalInferenceResults, this.element)
       : registry =
             new CodegenRegistry(_closedWorld.elementEnvironment, element);
 
   @override
   WorldImpact run() {
-    return _backend.codegen(this, _closedWorld);
+    return _backend.codegen(this, _closedWorld, _globalInferenceResults);
   }
 }
 
@@ -92,14 +97,15 @@ class KernelSsaBuilder implements SsaBuilder {
       this.task, this._compiler, this._elementMap, this._globalLocalsMap);
 
   @override
-  HGraph build(CodegenWorkItem work, JClosedWorld closedWorld) {
+  HGraph build(CodegenWorkItem work, JClosedWorld closedWorld,
+      GlobalTypeInferenceResults results) {
     return task.measure(() {
       KernelSsaGraphBuilder builder = new KernelSsaGraphBuilder(
           work.element,
           _elementMap.getMemberThisType(work.element),
           _compiler,
           _elementMap,
-          _compiler.globalInference.results,
+          results,
           _globalLocalsMap,
           closedWorld,
           _compiler.codegenWorldBuilder,

@@ -37,6 +37,7 @@ import '../library_loader.dart' show LoadedLibraries;
 import '../native/native.dart' as native;
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
 import '../tracer.dart';
+import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/class_hierarchy.dart'
     show ClassHierarchyBuilder, ClassQueries;
@@ -72,7 +73,8 @@ abstract class FunctionCompiler {
   void onCodegenStart();
 
   /// Generates JavaScript code for `work.element`.
-  jsAst.Fun compile(CodegenWorkItem work, JClosedWorld closedWorld);
+  jsAst.Fun compile(CodegenWorkItem work, JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults);
 
   Iterable get tasks;
 }
@@ -635,7 +637,10 @@ class JavaScriptBackend {
 
   /// Creates an [Enqueuer] for code generation specific to this backend.
   CodegenEnqueuer createCodegenEnqueuer(
-      CompilerTask task, Compiler compiler, JClosedWorld closedWorld) {
+      CompilerTask task,
+      Compiler compiler,
+      JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults) {
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     CommonElements commonElements = closedWorld.commonElements;
     BackendImpacts impacts =
@@ -661,7 +666,8 @@ class JavaScriptBackend {
             closedWorld.nativeData,
             closedWorld,
             compiler.abstractValueStrategy.createSelectorStrategy()),
-        compiler.backendStrategy.createCodegenWorkItemBuilder(closedWorld),
+        compiler.backendStrategy
+            .createCodegenWorkItemBuilder(closedWorld, globalInferenceResults),
         new CodegenEnqueuerListener(
             elementEnvironment,
             commonElements,
@@ -675,7 +681,8 @@ class JavaScriptBackend {
   static bool cacheCodegenImpactForTesting = false;
   Map<MemberEntity, WorldImpact> codegenImpactsForTesting;
 
-  WorldImpact codegen(CodegenWorkItem work, JClosedWorld closedWorld) {
+  WorldImpact codegen(CodegenWorkItem work, JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults) {
     MemberEntity element = work.element;
     if (compiler.elementHasCompileTimeError(element)) {
       DiagnosticMessage message =
@@ -696,7 +703,8 @@ class JavaScriptBackend {
       return const WorldImpact();
     }
 
-    jsAst.Fun function = functionCompiler.compile(work, closedWorld);
+    jsAst.Fun function =
+        functionCompiler.compile(work, closedWorld, globalInferenceResults);
     if (function != null) {
       if (function.sourceInformation == null) {
         function = function.withSourceInformation(

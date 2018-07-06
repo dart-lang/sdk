@@ -60,7 +60,7 @@ abstract class CompilerTask {
   /// Perform [action] and measure its runtime (including any asynchronous
   /// callbacks, such as, [Future.then], but excluding code measured by other
   /// tasks).
-  measure(action()) => _isDisabled ? action() : _measureZoned(action);
+  T measure<T>(T action()) => _isDisabled ? action() : _measureZoned(action);
 
   /// Helper method that starts measuring with this [CompilerTask], that is,
   /// make this task the currently measured task.
@@ -91,7 +91,7 @@ abstract class CompilerTask {
     measurer.currentTask = previous;
   }
 
-  _measureZoned(action()) {
+  T _measureZoned<T>(T action()) {
     // Using zones, we're able to track asynchronous operations correctly, as
     // our zone will be asked to invoke `then` blocks. Then blocks (the closure
     // passed to runZoned, and other closures) are run via the `run` functions

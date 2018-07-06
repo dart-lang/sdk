@@ -656,8 +656,8 @@ class Emitter extends js_emitter.EmitterBase {
   buildMain(jsAst.Statement invokeMain) {
     List<jsAst.Statement> parts = <jsAst.Statement>[];
 
-    if (NativeGenerator
-        .needsIsolateAffinityTagInitialization(_closedWorld.backendUsage)) {
+    if (NativeGenerator.needsIsolateAffinityTagInitialization(
+        _closedWorld.backendUsage)) {
       parts.add(NativeGenerator.generateIsolateAffinityTagInitialization(
           _closedWorld.backendUsage, generateEmbeddedGlobalAccess, js("""
         // On V8, the 'intern' function converts a string to a symbol, which

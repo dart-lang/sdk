@@ -252,7 +252,7 @@ class GlobalTypeInferenceTask extends CompilerTask {
   /// accessed from outside this class for testing only.
   TypeGraphInferrer typesInferrerInternal;
 
-  GlobalTypeInferenceResults results;
+  GlobalTypeInferenceResults resultsForTesting;
 
   InferredData inferredData;
 
@@ -261,17 +261,20 @@ class GlobalTypeInferenceTask extends CompilerTask {
         super(compiler.measurer);
 
   /// Runs the global type-inference algorithm once.
-  void runGlobalTypeInference(FunctionEntity mainElement,
+  GlobalTypeInferenceResults runGlobalTypeInference(FunctionEntity mainElement,
       JClosedWorld closedWorld, InferredDataBuilder inferredDataBuilder) {
-    measure(() {
+    return measure(() {
       typesInferrerInternal ??= compiler.backendStrategy.createTypesInferrer(
           closedWorld, inferredDataBuilder,
           disableTypeInference: compiler.disableTypeInference);
       typesInferrerInternal.analyzeMain(mainElement);
       typesInferrerInternal.clear();
-      results = typesInferrerInternal.createResults();
+      GlobalTypeInferenceResults results =
+          typesInferrerInternal.createResults();
       closedWorld.noSuchMethodData.categorizeComplexImplementations(results);
       inferredData = inferredDataBuilder.close(closedWorld);
+      resultsForTesting = results;
+      return results;
     });
   }
 }

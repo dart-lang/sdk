@@ -194,8 +194,10 @@ class JsBackendStrategy implements KernelBackendStrategy {
   }
 
   @override
-  WorkItemBuilder createCodegenWorkItemBuilder(JClosedWorld closedWorld) {
-    return new KernelCodegenWorkItemBuilder(_compiler.backend, closedWorld);
+  WorkItemBuilder createCodegenWorkItemBuilder(JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults) {
+    return new KernelCodegenWorkItemBuilder(
+        _compiler.backend, closedWorld, globalInferenceResults);
   }
 
   @override

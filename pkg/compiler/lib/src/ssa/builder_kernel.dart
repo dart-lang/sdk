@@ -100,7 +100,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   final SourceInformationStrategy<ir.Node> _sourceInformationStrategy;
   final KernelToElementMapForBuilding _elementMap;
-  final GlobalTypeInferenceResults _globalInferenceResults;
+  final GlobalTypeInferenceResults globalInferenceResults;
   final GlobalLocalsMap _globalLocalsMap;
   LoopHandler<ir.Node> loopHandler;
   TypeBuilder typeBuilder;
@@ -123,19 +123,19 @@ class KernelSsaGraphBuilder extends ir.Visitor
   StackFrame _currentFrame;
 
   KernelSsaGraphBuilder(
-      this.initialTargetElement,
-      InterfaceType instanceType,
-      this.compiler,
-      this._elementMap,
-      this._globalInferenceResults,
-      this._globalLocalsMap,
-      this.closedWorld,
-      this._worldBuilder,
-      this.registry,
-      this.closureDataLookup,
-      this.nativeEmitter,
-      this._sourceInformationStrategy)
-      : this.targetElement = _effectiveTargetElementFor(initialTargetElement),
+    this.initialTargetElement,
+    InterfaceType instanceType,
+    this.compiler,
+    this._elementMap,
+    this.globalInferenceResults,
+    this._globalLocalsMap,
+    this.closedWorld,
+    this._worldBuilder,
+    this.registry,
+    this.closureDataLookup,
+    this.nativeEmitter,
+    this._sourceInformationStrategy,
+  )   : this.targetElement = _effectiveTargetElementFor(initialTargetElement),
         _infoReporter = compiler.dumpInfoTask,
         _allocatorAnalysis = closedWorld.allocatorAnalysis {
     _enterFrame(targetElement);
@@ -174,7 +174,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         member,
         asyncMarker,
         _globalLocalsMap.getLocalsMap(member),
-        new KernelToTypeInferenceMapImpl(member, _globalInferenceResults),
+        new KernelToTypeInferenceMapImpl(member, globalInferenceResults),
         _currentFrame != null
             ? _currentFrame.sourceInformationBuilder.forContext(member)
             : _sourceInformationStrategy.createBuilderForContext(member));

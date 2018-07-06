@@ -195,8 +195,9 @@ class RedirectingGenerativeConstantConstructor implements ConstantConstructor {
       List<ConstantExpression> arguments, CallStructure callStructure) {
     NormalizedArguments args =
         new NormalizedArguments(defaultValues, callStructure, arguments);
-    InstanceData appliedInstanceData = GenerativeConstantConstructor
-        .applyInstanceData(environment, args, thisConstructorInvocation);
+    InstanceData appliedInstanceData =
+        GenerativeConstantConstructor.applyInstanceData(
+            environment, args, thisConstructorInvocation);
     return appliedInstanceData;
   }
 

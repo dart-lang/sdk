@@ -67,8 +67,7 @@ abstract class GraphBuilder {
 
   CodeEmitterTask get emitter => backend.emitter;
 
-  GlobalTypeInferenceResults get globalInferenceResults =>
-      compiler.globalInference.results;
+  GlobalTypeInferenceResults get globalInferenceResults;
 
   ClosureDataLookup get closureDataLookup =>
       compiler.backendStrategy.closureDataLookup;

@@ -11,6 +11,7 @@ import '../elements/entities.dart' show FieldEntity, MemberEntity;
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend, FunctionCompiler;
+import '../types/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/use.dart';
 import '../world.dart' show JClosedWorld;
@@ -38,10 +39,11 @@ class SsaFunctionCompiler implements FunctionCompiler {
 
   /// Generates JavaScript code for `work.element`.
   /// Using the ssa builder, optimizer and codegenerator.
-  js.Fun compile(CodegenWorkItem work, JClosedWorld closedWorld) {
-    HGraph graph = _builder.build(work, closedWorld);
+  js.Fun compile(CodegenWorkItem work, JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults) {
+    HGraph graph = _builder.build(work, closedWorld, globalInferenceResults);
     if (graph == null) return null;
-    optimizer.optimize(work, graph, closedWorld);
+    optimizer.optimize(work, graph, closedWorld, globalInferenceResults);
     MemberEntity element = work.element;
     js.Expression result = generator.generateCode(work, graph, closedWorld);
     if (graph.needsAsyncRewrite) {
@@ -68,7 +70,8 @@ class SsaFunctionCompiler implements FunctionCompiler {
 abstract class SsaBuilder {
   /// Creates the [HGraph] for [work] or returns `null` if no code is needed
   /// for [work].
-  HGraph build(CodegenWorkItem work, JClosedWorld closedWorld);
+  HGraph build(CodegenWorkItem work, JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults);
 }
 
 class SsaBuilderTask extends CompilerTask {
@@ -88,8 +91,9 @@ class SsaBuilderTask extends CompilerTask {
 
   /// Creates the [HGraph] for [work] or returns `null` if no code is needed
   /// for [work].
-  HGraph build(CodegenWorkItem work, JClosedWorld closedWorld) {
-    return _builder.build(work, closedWorld);
+  HGraph build(CodegenWorkItem work, JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults) {
+    return _builder.build(work, closedWorld, globalInferenceResults);
   }
 }
 

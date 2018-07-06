@@ -24,8 +24,8 @@ const List<FunctionTypeData> existentialTypeData = const <FunctionTypeData>[
 
 main() {
   asyncTest(() async {
-    var env = await TypeEnvironment
-        .create(createTypedefs(existentialTypeData, additionalData: """
+    var env = await TypeEnvironment.create(
+        createTypedefs(existentialTypeData, additionalData: """
     class C1 {}
     class C2 {}
     class C3<T> {
@@ -39,7 +39,8 @@ main() {
     }
     void F11<Q extends C3<Q>>(Q q) {}
     void F12<P extends C3<P>>(P p) {}
-  """), options: [Flags.strongMode]);
+  """),
+        options: [Flags.strongMode]);
 
     testToString(FunctionType type, String expectedToString) {
       Expect.equals(expectedToString, type.toString());

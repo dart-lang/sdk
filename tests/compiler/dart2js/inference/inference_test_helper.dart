@@ -104,7 +104,7 @@ void computeMemberIrTypeMasks(
           elementMap,
           member,
           localsMap.getLocalsMap(member),
-          compiler.globalInference.results,
+          compiler.globalInference.resultsForTesting,
           backendStrategy.closureDataLookup as ClosureDataLookup<ir.Node>)
       .run(definition.node);
 }
