@@ -99,14 +99,7 @@ kernel/test/*: RuntimeError, OK # Issue 26103. Timers are not supported.
 analysis_server/test/benchmarks_test: Pass, Slow
 analysis_server/test/completion_test: Pass, Slow
 analysis_server/test/domain_completion_test: Pass, Slow
-analysis_server/test/integration/analysis/error_test: Pass, Slow
-analysis_server/test/integration/analysis/get_imported_elements_test: Pass, Slow
-analysis_server/test/integration/analysis/lint_test: Pass, Slow
-analysis_server/test/integration/completion: Pass, Slow
-analysis_server/test/integration/edit/format_test: Pass, Slow
-analysis_server/test/integration/edit/import_elements_test: Pass, Slow
-analysis_server/test/integration/edit/organize_directives_test: Pass, Slow
-analysis_server/test/integration/edit/sort_members_test: Pass, Slow
+analysis_server/test/integration/*: Pass, Slow
 analysis_server/test/integration/search/find_top_level_declarations_test: Pass, RuntimeError # 31571
 analysis_server/test/services/completion/dart/imported_reference_contributor_test: Pass, Slow
 analysis_server/test/services/completion/dart/keyword_contributor_test: Pass, Slow
