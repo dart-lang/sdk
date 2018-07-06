@@ -2433,13 +2433,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_recursiveFactoryRedirect_diverging() async {
-    // Bad state: Attempting to apply a non-parameterized type (TypeParameterTypeImpl) to type arguments
-    await super.test_recursiveFactoryRedirect_diverging();
-  }
-
-  @override
-  @failingTest
   test_recursiveFactoryRedirect_generic() async {
     // AnalysisException: Element mismatch in /test.dart at /test.dart
     await super.test_recursiveFactoryRedirect_generic();

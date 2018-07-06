@@ -76,7 +76,6 @@ import '../kernel/kernel_expression_generator.dart' show buildIsNull;
 import '../kernel/kernel_shadow_ast.dart'
     show
         ArgumentsJudgment,
-        ConstructorInvocationJudgment,
         ExpressionJudgment,
         NullJudgment,
         ShadowClass,
@@ -1782,11 +1781,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       return templateInvalidCastFunctionExpr;
     }
     if (expression is ConstructorInvocation) {
-      if (ConstructorInvocationJudgment.isRedirected(expression)) {
-        return null;
-      } else {
-        return templateInvalidCastNewExpr;
-      }
+      return templateInvalidCastNewExpr;
     }
     if (expression is StaticGet) {
       var target = expression.target;

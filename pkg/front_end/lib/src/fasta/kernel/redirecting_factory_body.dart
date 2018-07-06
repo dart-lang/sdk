@@ -114,10 +114,12 @@ class RedirectingFactoryBody extends ExpressionStatement {
   }
 }
 
+bool isRedirectingFactory(Member member) {
+  return member is Procedure && member.function.body is RedirectingFactoryBody;
+}
+
 RedirectingFactoryBody getRedirectingFactoryBody(Member member) {
-  return member is Procedure && member.function.body is RedirectingFactoryBody
-      ? member.function.body
-      : null;
+  return isRedirectingFactory(member) ? member.function.body : null;
 }
 
 class RedirectionTarget {

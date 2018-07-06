@@ -100,7 +100,8 @@ import 'redirecting_factory_body.dart'
         RedirectingFactoryBody,
         RedirectionTarget,
         getRedirectingFactoryBody,
-        getRedirectionTarget;
+        getRedirectionTarget,
+        isRedirectingFactory;
 
 import 'kernel_api.dart';
 
@@ -220,6 +221,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   /// If non-null, records instance fields which have already been initialized
   /// and where that was.
   Map<String, int> initializedFields;
+
+  /// List of built redirecting factory invocations.  The targets of the
+  /// invocations are to be resolved in a separate step.
+  final List<Expression> redirectingFactoryInvocations = <Expression>[];
 
   BodyBuilder(
       this.library,
@@ -539,6 +544,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         }
       }
     }
+
+    resolveRedirectingFactoryTargets();
   }
 
   @override
@@ -740,6 +747,92 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       unhandled("${builder.runtimeType}", "finishFunction", builder.charOffset,
           builder.fileUri);
     }
+
+    resolveRedirectingFactoryTargets();
+  }
+
+  void resolveRedirectingFactoryTargets() {
+    for (StaticInvocation invocation in redirectingFactoryInvocations) {
+      Procedure initialTarget = invocation.target;
+      Expression replacementNode;
+
+      RedirectionTarget redirectionTarget = getRedirectionTarget(initialTarget,
+          strongMode: library.loader.target.strongMode);
+      Member resolvedTarget = redirectionTarget?.target;
+
+      if (resolvedTarget == null) {
+        String name = initialTarget.enclosingClass.name;
+        if (initialTarget.name.name != "") {
+          name += ".${initialTarget.name.name}";
+        }
+        // TODO(dmitryas): Report this error earlier.
+        replacementNode = buildCompileTimeError(
+            fasta.templateCyclicRedirectingFactoryConstructors
+                .withArguments(initialTarget.name.name),
+            initialTarget.fileOffset,
+            name.length);
+      } else if (resolvedTarget is Constructor &&
+          resolvedTarget.enclosingClass.isAbstract) {
+        replacementNode = evaluateArgumentsBefore(
+            forest.arguments(invocation.arguments.positional, null,
+                types: invocation.arguments.types,
+                named: invocation.arguments.named),
+            buildAbstractClassInstantiationError(
+                fasta.templateAbstractRedirectedClassInstantiation
+                    .withArguments(resolvedTarget.enclosingClass.name),
+                resolvedTarget.enclosingClass.name,
+                initialTarget.fileOffset));
+      } else {
+        RedirectingFactoryBody redirectingFactoryBody =
+            getRedirectingFactoryBody(resolvedTarget);
+        if (redirectingFactoryBody != null) {
+          // If the redirection target is itself a redirecting factory, it means
+          // that it is unresolved.
+          assert(redirectingFactoryBody.isUnresolved);
+          String errorName = redirectingFactoryBody.unresolvedName;
+
+          replacementNode = new SyntheticExpressionJudgment(
+              throwNoSuchMethodError(
+                  forest.literalNull(null)..fileOffset = invocation.fileOffset,
+                  errorName,
+                  forest.arguments(invocation.arguments.positional, null,
+                      types: invocation.arguments.types,
+                      named: invocation.arguments.named),
+                  initialTarget.fileOffset));
+        } else {
+          Substitution substitution = Substitution.fromPairs(
+              initialTarget.function.typeParameters,
+              invocation.arguments.types);
+          invocation.arguments.types.clear();
+          invocation.arguments.types.length =
+              redirectionTarget.typeArguments.length;
+          for (int i = 0; i < invocation.arguments.types.length; i++) {
+            invocation.arguments.types[i] =
+                substitution.substituteType(redirectionTarget.typeArguments[i]);
+          }
+
+          replacementNode = buildStaticInvocation(
+              resolvedTarget,
+              forest.arguments(invocation.arguments.positional, null,
+                  types: invocation.arguments.types,
+                  named: invocation.arguments.named),
+              constness: invocation.isConst
+                  ? Constness.explicitConst
+                  : Constness.explicitNew,
+              charOffset: invocation.fileOffset);
+          // TODO(dmitryas): Find a better way to unwrap
+          // [SyntheticExpressionJudgment] or not to build it in the first place
+          // when it's not needed.
+          if (replacementNode is SyntheticExpressionJudgment) {
+            replacementNode =
+                (replacementNode as SyntheticExpressionJudgment).desugared;
+          }
+        }
+      }
+
+      invocation.replaceWith(replacementNode);
+    }
+    redirectingFactoryInvocations.clear();
   }
 
   @override
@@ -779,6 +872,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         parent.addAnnotation(expression);
       }
     }
+    resolveRedirectingFactoryTargets();
     return expressions;
   }
 
@@ -2631,28 +2725,29 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   Expression buildStaticInvocation(Member target, Arguments arguments,
-      {Constness constness: Constness.implicit,
-      int charOffset: -1,
-      Member initialTarget,
-      List<DartType> targetTypeArguments}) {
+      {Constness constness: Constness.implicit, int charOffset: -1}) {
+    // The argument checks for the initial target of redirecting factories
+    // invocations are skipped in Dart 1.
+    if (library.loader.target.strongMode || !isRedirectingFactory(target)) {
+      List<TypeParameter> typeParameters = target.function.typeParameters;
+      if (target is Constructor) {
+        assert(!target.enclosingClass.isAbstract);
+        typeParameters = target.enclosingClass.typeParameters;
+      }
+      LocatedMessage argMessage = checkArgumentsForFunction(
+          target.function, arguments, charOffset, typeParameters);
+      if (argMessage != null) {
+        return new SyntheticExpressionJudgment(throwNoSuchMethodError(
+            forest.literalNull(null)..fileOffset = charOffset,
+            target.name.name,
+            arguments,
+            charOffset,
+            candidate: target,
+            argMessage: argMessage));
+      }
+    }
+
     bool isConst = constness == Constness.explicitConst;
-    initialTarget ??= target;
-    List<TypeParameter> typeParameters = target.function.typeParameters;
-    if (target is Constructor) {
-      assert(!target.enclosingClass.isAbstract);
-      typeParameters = target.enclosingClass.typeParameters;
-    }
-    LocatedMessage argMessage = checkArgumentsForFunction(
-        target.function, arguments, charOffset, typeParameters);
-    if (argMessage != null) {
-      return new SyntheticExpressionJudgment(throwNoSuchMethodError(
-          forest.literalNull(null)..fileOffset = charOffset,
-          target.name.name,
-          arguments,
-          charOffset,
-          candidate: target,
-          argMessage: argMessage));
-    }
     if (target is Constructor) {
       isConst =
           isConst || constantContext != ConstantContext.none && target.isConst;
@@ -2661,8 +2756,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         return deprecated_buildCompileTimeError(
             "Not a const constructor.", charOffset);
       }
-      return new ConstructorInvocationJudgment(target, targetTypeArguments,
-          initialTarget, forest.castArguments(arguments),
+      return new ConstructorInvocationJudgment(
+          target, forest.castArguments(arguments),
           isConst: isConst)
         ..fileOffset = charOffset;
     } else {
@@ -2675,8 +2770,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           return deprecated_buildCompileTimeError(
               "Not a const factory.", charOffset);
         }
-        return new FactoryConstructorInvocationJudgment(target,
-            targetTypeArguments, initialTarget, forest.castArguments(arguments),
+        return new FactoryConstructorInvocationJudgment(
+            target, forest.castArguments(arguments),
             isConst: isConst)
           ..fileOffset = charOffset;
       } else {
@@ -2866,64 +2961,53 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
       Declaration b =
           type.findConstructorOrFactory(name, charOffset, uri, library);
-      Member target;
-      Member initialTarget;
-      List<DartType> targetTypeArguments;
+      Member target = b?.target;
       if (b == null) {
         // Not found. Reported below.
       } else if (b.isConstructor) {
-        initialTarget = b.target;
         if (type.isAbstract) {
-          return new InvalidConstructorInvocationJudgment(
-              evaluateArgumentsBefore(
-                  arguments,
-                  buildAbstractClassInstantiationError(
-                      fasta.templateAbstractClassInstantiation
-                          .withArguments(type.name),
-                      type.name,
-                      nameToken.charOffset)),
-              b.target,
-              arguments);
-        } else {
-          target = initialTarget;
-        }
-      } else if (b.isFactory) {
-        initialTarget = b.target;
-        RedirectionTarget redirectionTarget = getRedirectionTarget(
-            initialTarget,
-            strongMode: library.loader.target.strongMode);
-        target = redirectionTarget?.target;
-        targetTypeArguments = redirectionTarget?.typeArguments;
-        if (target == null) {
-          return deprecated_buildCompileTimeError(
-              "Cyclic definition of factory '${name}'.", nameToken.charOffset);
-        }
-        if (target is Constructor && target.enclosingClass.isAbstract) {
           return new SyntheticExpressionJudgment(evaluateArgumentsBefore(
               arguments,
               buildAbstractClassInstantiationError(
-                  fasta.templateAbstractRedirectedClassInstantiation
-                      .withArguments(target.enclosingClass.name),
-                  target.enclosingClass.name,
+                  fasta.templateAbstractClassInstantiation
+                      .withArguments(type.name),
+                  type.name,
                   nameToken.charOffset)));
-        }
-        RedirectingFactoryBody body = getRedirectingFactoryBody(target);
-        if (body != null) {
-          // If the redirection target is itself a redirecting factory, it
-          // means that it is unresolved. So we set target to null so we
-          // can generate a no-such-method error below.
-          assert(body.isUnresolved);
-          target = null;
-          errorName = body.unresolvedName;
         }
       }
       if (target is Constructor ||
           (target is Procedure && target.kind == ProcedureKind.Factory)) {
-        return buildStaticInvocation(target, arguments,
-            constness: constness,
-            charOffset: nameToken.charOffset,
-            initialTarget: initialTarget,
-            targetTypeArguments: targetTypeArguments);
+        Expression invocation;
+
+        if (!library.loader.target.strongMode && isRedirectingFactory(target)) {
+          // In non-strong mode the checks that are done in
+          // [buildStaticInvocation] on the initial target of a redirecting
+          // factory invocation should be skipped.  So, we build the invocation
+          // nodes directly here without doing any checks.
+          if (target.function.typeParameters != null &&
+              target.function.typeParameters.length !=
+                  forest.argumentsTypeArguments(arguments).length) {
+            arguments = forest.arguments(
+                forest.argumentsPositional(arguments), null,
+                named: forest.argumentsNamed(arguments),
+                types: new List<DartType>.filled(
+                    target.function.typeParameters.length, const DynamicType(),
+                    growable: true));
+          }
+          invocation = new FactoryConstructorInvocationJudgment(
+              target, forest.castArguments(arguments),
+              isConst: constness == Constness.explicitConst)
+            ..fileOffset = nameToken.charOffset;
+        } else {
+          invocation = buildStaticInvocation(target, arguments,
+              constness: constness, charOffset: nameToken.charOffset);
+        }
+
+        if (invocation is StaticInvocation && isRedirectingFactory(target)) {
+          redirectingFactoryInvocations.add(invocation);
+        }
+
+        return invocation;
       } else {
         errorName ??= debugName(type.name, name);
       }

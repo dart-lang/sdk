@@ -2481,3 +2481,15 @@ CantUseDeferredPrefixAsConstant:
     main() {
       const prefix.Object();
     }
+
+CyclicRedirectingFactoryConstructors:
+  template: "Cyclic definition of factory '#name'."
+  analyzerCode: RECURSIVE_FACTORY_REDIRECT
+  dart2jsCode: "*fatal*"
+  severity: ERROR
+  script: |
+    class Foo {
+      factory Foo.foo() = Foo.bar;
+      factory Foo.bar() = Foo.foo;
+    }
+    main() { var foo = new Foo.foo(); }

@@ -94,7 +94,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       [int charOffset = -1]);
 
   Expression buildStaticInvocation(Procedure target, Arguments arguments,
-      {Constness constness, int charOffset, Member initialTarget});
+      {Constness constness, int charOffset});
 
   Expression buildProblemExpression(
       ProblemBuilder builder, int offset, int length);

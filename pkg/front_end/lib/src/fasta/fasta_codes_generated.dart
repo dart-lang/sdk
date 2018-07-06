@@ -1462,6 +1462,30 @@ Message _withArgumentsCyclicClassHierarchy(String name, String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateCyclicRedirectingFactoryConstructors =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Cyclic definition of factory '#name'.""",
+        withArguments: _withArgumentsCyclicRedirectingFactoryConstructors);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeCyclicRedirectingFactoryConstructors =
+    const Code<Message Function(String name)>(
+        "CyclicRedirectingFactoryConstructors",
+        templateCyclicRedirectingFactoryConstructors,
+        analyzerCode: "RECURSIVE_FACTORY_REDIRECT",
+        dart2jsCode: "*fatal*",
+        severity: Severity.error);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCyclicRedirectingFactoryConstructors(String name) {
+  return new Message(codeCyclicRedirectingFactoryConstructors,
+      message: """Cyclic definition of factory '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateCyclicTypedef =
     const Template<Message Function(String name)>(
         messageTemplate: r"""The typedef '#name' has a reference to itself.""",
