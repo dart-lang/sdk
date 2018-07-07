@@ -46,6 +46,9 @@ unconditional_dartio_import_test: RuntimeError # Uses dart:io
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
 consistent_index_error_string_test: Pass, Slow # Issue 25940
 
+[ $compiler == dart2js && $runtime == ff && $strong ]
+bound_closure_interceptor_type_test: RuntimeError
+
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
@@ -100,9 +103,6 @@ runtime_type_test: Fail, OK # Tests extected output of Type.toString().
 to_string_test: Fail # Issue 7179.
 typevariable_typedef_test: Fail, OK # Tests expected output of Type.toString().
 
-[ $compiler == dart2js && $strong ]
-bound_closure_interceptor_type_test: RuntimeError
-
 [ $compiler == dart2js && !$strong ]
 extract_type_arguments_1_test: RuntimeError # Uses function type variables
 extract_type_arguments_2_test: RuntimeError # Uses function type variables
@@ -117,6 +117,9 @@ switch_test/00: MissingCompileTimeError
 
 [ $compiler == dart2js && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == ff || $runtime == safari) ]
 isolate2_test/01: Fail # Issue 14458.
+
+[ $compiler == dart2js && ($runtime == chrome || $runtime == d8 || $runtime == drt) ]
+bound_closure_interceptor_type_test: Fail, Pass # v8 issue 3084. https://code.google.com/p/v8/issues/detail?id=3084
 
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff || $runtime == jsshell || $runtime == safari) ]
 code_motion_exception_test: Skip # Required V8 specific format of JavaScript errors.

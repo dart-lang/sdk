@@ -74,6 +74,7 @@ html/worker_test/functional: Pass, Fail # Issues 20659.
 html/xhr_test/json: Fail # IE10 returns string, not JSON object
 
 [ $runtime == safari ]
+convert/json_test: Fail # https://bugs.webkit.org/show_bug.cgi?id=134920
 html/audiobuffersourcenode_test/functional: RuntimeError
 html/canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
 html/canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari does not support drawImage w/ video element
@@ -93,6 +94,7 @@ html/input_element_time_test: RuntimeError
 html/input_element_week_test: RuntimeError
 html/media_stream_test: Pass, Fail
 html/mediasource_test: Pass, Fail # MediaSource only available on Safari 8 desktop, we can't express that.
+html/notification_test: Fail # Safari doesn't let us access the fields of the Notification to verify them.
 html/rtc_test: Fail
 html/shadow_dom_test: Fail
 html/speechrecognition_test: Fail
