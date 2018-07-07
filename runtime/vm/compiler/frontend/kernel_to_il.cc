@@ -631,7 +631,6 @@ Fragment BaseFlowGraphBuilder::ThrowException(TokenPosition position) {
 }
 
 Fragment BaseFlowGraphBuilder::TailCall(const Code& code) {
-  Fragment instructions;
   Value* arg_desc = Pop();
   return Fragment(new (Z) TailCallInstr(code, arg_desc));
 }

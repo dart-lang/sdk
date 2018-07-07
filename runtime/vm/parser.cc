@@ -253,7 +253,7 @@ void ParsedFunction::Bailout(const char* origin, const char* reason) const {
 
 kernel::ScopeBuildingResult* ParsedFunction::EnsureKernelScopes() {
   if (kernel_scopes_ == NULL) {
-    kernel::StreamingScopeBuilder builder(this);
+    kernel::ScopeBuilder builder(this);
     kernel_scopes_ = builder.BuildScopes();
   }
   return kernel_scopes_;

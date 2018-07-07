@@ -14,8 +14,6 @@
 
 namespace dart {
 
-class FlowGraphBuilder;
-class ValueInliningContext;
 class VariableLivenessAnalysis;
 
 class BlockIterator : public ValueObject {

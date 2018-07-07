@@ -6,10 +6,10 @@
 #define RUNTIME_VM_KERNEL_LOADER_H_
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-#include <map>
 
 #include "vm/compiler/frontend/kernel_binary_flowgraph.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
+#include "vm/hash_map.h"
 #include "vm/kernel.h"
 #include "vm/object.h"
 

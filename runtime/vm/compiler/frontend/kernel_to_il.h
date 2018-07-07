@@ -17,6 +17,7 @@
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
+#include "vm/compiler/frontend/scope_builder.h"
 
 namespace dart {
 namespace kernel {
@@ -55,53 +56,6 @@ class KernelConstMapKeyEqualsTraits {
   }
 };
 typedef UnorderedHashMap<KernelConstMapKeyEqualsTraits> KernelConstantsMap;
-
-template <typename V>
-class IntKeyRawPointerValueTrait {
- public:
-  typedef intptr_t Key;
-  typedef V Value;
-
-  struct Pair {
-    Key key;
-    Value value;
-    Pair() : key(NULL), value() {}
-    Pair(const Key key, const Value& value) : key(key), value(value) {}
-    Pair(const Pair& other) : key(other.key), value(other.value) {}
-  };
-
-  static Key KeyOf(Pair kv) { return kv.key; }
-  static Value ValueOf(Pair kv) { return kv.value; }
-  static intptr_t Hashcode(Key key) { return key; }
-  static bool IsKeyEqual(Pair kv, Key key) { return kv.key == key; }
-};
-
-template <typename V>
-class IntMap : public DirectChainedHashMap<IntKeyRawPointerValueTrait<V> > {
- public:
-  typedef typename IntKeyRawPointerValueTrait<V>::Key Key;
-  typedef typename IntKeyRawPointerValueTrait<V>::Value Value;
-  typedef typename IntKeyRawPointerValueTrait<V>::Pair Pair;
-
-  inline void Insert(const Key& key, const Value& value) {
-    Pair pair(key, value);
-    DirectChainedHashMap<IntKeyRawPointerValueTrait<V> >::Insert(pair);
-  }
-
-  inline V Lookup(const Key& key) {
-    Pair* pair =
-        DirectChainedHashMap<IntKeyRawPointerValueTrait<V> >::Lookup(key);
-    if (pair == NULL) {
-      return V();
-    } else {
-      return pair->value;
-    }
-  }
-
-  inline Pair* LookupPair(const Key& key) {
-    return DirectChainedHashMap<IntKeyRawPointerValueTrait<V> >::Lookup(key);
-  }
-};
 
 class BreakableBlock;
 class CatchBlock;
@@ -144,68 +98,6 @@ Fragment operator+(const Fragment& first, const Fragment& second);
 Fragment operator<<(const Fragment& fragment, Instruction* next);
 
 typedef ZoneGrowableArray<PushArgumentInstr*>* ArgumentArray;
-
-struct FunctionScope {
-  intptr_t kernel_offset;
-  LocalScope* scope;
-};
-
-class ScopeBuildingResult : public ZoneAllocated {
- public:
-  ScopeBuildingResult()
-      : this_variable(NULL),
-        type_arguments_variable(NULL),
-        switch_variable(NULL),
-        finally_return_variable(NULL),
-        setter_value(NULL),
-        yield_jump_variable(NULL),
-        yield_context_variable(NULL),
-        raw_variable_counter_(0) {}
-
-  IntMap<LocalVariable*> locals;
-  IntMap<LocalScope*> scopes;
-  GrowableArray<FunctionScope> function_scopes;
-
-  // Only non-NULL for instance functions.
-  LocalVariable* this_variable;
-
-  // Only non-NULL for factory constructor functions.
-  LocalVariable* type_arguments_variable;
-
-  // Non-NULL when the function contains a switch statement.
-  LocalVariable* switch_variable;
-
-  // Non-NULL when the function contains a return inside a finally block.
-  LocalVariable* finally_return_variable;
-
-  // Non-NULL when the function is a setter.
-  LocalVariable* setter_value;
-
-  // Non-NULL if the function contains yield statement.
-  // TODO(27590) actual variable is called :await_jump_var, we should rename
-  // it to reflect the fact that it is used for both await and yield.
-  LocalVariable* yield_jump_variable;
-
-  // Non-NULL if the function contains yield statement.
-  // TODO(27590) actual variable is called :await_ctx_var, we should rename
-  // it to reflect the fact that it is used for both await and yield.
-  LocalVariable* yield_context_variable;
-
-  // Variables used in exception handlers, one per exception handler nesting
-  // level.
-  GrowableArray<LocalVariable*> exception_variables;
-  GrowableArray<LocalVariable*> stack_trace_variables;
-  GrowableArray<LocalVariable*> catch_context_variables;
-
-  // These are used to access the raw exception/stacktrace variables (and are
-  // used to put them into the captured variables in the context).
-  GrowableArray<LocalVariable*> raw_exception_variables;
-  GrowableArray<LocalVariable*> raw_stack_trace_variables;
-  intptr_t raw_variable_counter_;
-
-  // For-in iterators, one per for-in nesting level.
-  GrowableArray<LocalVariable*> iterator_variables;
-};
 
 struct YieldContinuation {
   Instruction* entry;
@@ -358,7 +250,6 @@ class BaseFlowGraphBuilder {
   intptr_t pending_argument_count_;
 
   friend class TryCatchBlock;
-  friend class KernelReaderHelper;
   friend class StreamingFlowGraphBuilder;
   friend class FlowGraphBuilder;
   friend class PrologueBuilder;
@@ -581,7 +472,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   friend class BreakableBlock;
   friend class CatchBlock;
-  friend class KernelReaderHelper;
   friend class StreamingFlowGraphBuilder;
   friend class SwitchBlock;
   friend class TryCatchBlock;

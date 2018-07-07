@@ -974,7 +974,7 @@ class KernelReaderHelper {
   friend class ProcedureHelper;
   friend class SimpleExpressionConverter;
   friend class StreamingConstantEvaluator;
-  friend class StreamingScopeBuilder;
+  friend class ScopeBuilder;
   friend class TypeParameterHelper;
   friend class TypeTranslator;
   friend class VariableDeclarationHelper;
@@ -1159,7 +1159,7 @@ class TypeTranslator {
   AbstractType& result_;
   bool finalize_;
 
-  friend class StreamingScopeBuilder;
+  friend class ScopeBuilder;
   friend class KernelLoader;
 };
 

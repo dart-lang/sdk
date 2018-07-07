@@ -10,156 +10,13 @@
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
+#include "vm/compiler/frontend/scope_builder.h"
 #include "vm/kernel.h"
 #include "vm/kernel_binary.h"
 #include "vm/object.h"
 
 namespace dart {
 namespace kernel {
-
-class StreamingScopeBuilder {
- public:
-  explicit StreamingScopeBuilder(ParsedFunction* parsed_function);
-
-  virtual ~StreamingScopeBuilder() = default;
-
-  ScopeBuildingResult* BuildScopes();
-
- private:
-  void VisitField();
-
-  void VisitProcedure();
-
-  void VisitConstructor();
-
-  void VisitFunctionNode();
-  void VisitNode();
-  void VisitInitializer();
-  void VisitExpression();
-  void VisitStatement();
-  void VisitArguments();
-  void VisitVariableDeclaration();
-  void VisitDartType();
-  void VisitInterfaceType(bool simple);
-  void VisitFunctionType(bool simple);
-  void VisitTypeParameterType();
-  void HandleLocalFunction(intptr_t parent_kernel_offset);
-
-  AbstractType& BuildAndVisitVariableType();
-
-  void EnterScope(intptr_t kernel_offset);
-  void ExitScope(TokenPosition start_position, TokenPosition end_position);
-
-  virtual void ReportUnexpectedTag(const char* variant, Tag tag);
-
-  // This enum controls which parameters would be marked as requring type
-  // check on the callee side.
-  enum ParameterTypeCheckMode {
-    // All parameters will be checked.
-    kTypeCheckAllParameters,
-
-    // Only parameters marked as covariant or generic-covariant-impl will be
-    // checked.
-    kTypeCheckForNonDynamicallyInvokedMethod,
-
-    // Only parameters *not* marked as covariant or generic-covariant-impl will
-    // be checked. The rest would be checked in the method itself.
-    // Inverse of kTypeCheckForNonDynamicallyInvokedMethod.
-    kTypeCheckEverythingNotCheckedInNonDynamicallyInvokedMethod,
-
-    // No parameters will be checked.
-    kTypeCheckForStaticFunction,
-  };
-
-  // This assumes that the reader is at a FunctionNode,
-  // about to read the positional parameters.
-  void AddPositionalAndNamedParameters(
-      intptr_t pos,
-      ParameterTypeCheckMode type_check_mode,
-      const ProcedureAttributesMetadata& attrs);
-
-  // This assumes that the reader is at a FunctionNode,
-  // about to read a parameter (i.e. VariableDeclaration).
-  void AddVariableDeclarationParameter(
-      intptr_t pos,
-      ParameterTypeCheckMode type_check_mode,
-      const ProcedureAttributesMetadata& attrs);
-
-  LocalVariable* MakeVariable(TokenPosition declaration_pos,
-                              TokenPosition token_pos,
-                              const String& name,
-                              const AbstractType& type,
-                              const InferredTypeMetadata* param_type_md = NULL);
-
-  void AddExceptionVariable(GrowableArray<LocalVariable*>* variables,
-                            const char* prefix,
-                            intptr_t nesting_depth);
-
-  void FinalizeExceptionVariable(GrowableArray<LocalVariable*>* variables,
-                                 GrowableArray<LocalVariable*>* raw_variables,
-                                 const String& symbol,
-                                 intptr_t nesting_depth);
-
-  void AddTryVariables();
-  void AddCatchVariables();
-  void FinalizeCatchVariables();
-  void AddIteratorVariable();
-  void AddSwitchVariable();
-
-  // Record an assignment or reference to a variable.  If the occurrence is
-  // in a nested function, ensure that the variable is handled properly as a
-  // captured variable.
-  void LookupVariable(intptr_t declaration_binary_offset);
-
-  StringIndex GetNameFromVariableDeclaration(intptr_t kernel_offset,
-                                             const Function& function);
-
-  const String& GenerateName(const char* prefix, intptr_t suffix);
-
-  void HandleSpecialLoad(LocalVariable** variable, const String& symbol);
-  void LookupCapturedVariableByName(LocalVariable** variable,
-                                    const String& name);
-
-  struct DepthState {
-    explicit DepthState(intptr_t function)
-        : loop_(0),
-          function_(function),
-          try_(0),
-          catch_(0),
-          finally_(0),
-          for_in_(0) {}
-
-    intptr_t loop_;
-    intptr_t function_;
-    intptr_t try_;
-    intptr_t catch_;
-    intptr_t finally_;
-    intptr_t for_in_;
-  };
-
-  ScopeBuildingResult* result_;
-  ParsedFunction* parsed_function_;
-
-  ActiveClass active_class_;
-
-  TranslationHelper translation_helper_;
-  Zone* zone_;
-
-  FunctionNodeHelper::AsyncMarker current_function_async_marker_;
-  LocalScope* current_function_scope_;
-  LocalScope* scope_;
-  DepthState depth_;
-
-  intptr_t name_index_;
-
-  bool needs_expr_temp_;
-  TokenPosition first_body_token_position_;
-
-  KernelReaderHelper helper_;
-  InferredTypeMetadataHelper inferred_type_metadata_helper_;
-  ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper_;
-  TypeTranslator type_translator_;
-};
 
 // There are several cases when we are compiling constant expressions:
 //
@@ -728,12 +585,10 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
   ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper_;
 
-  friend class ClassHelper;
   friend class ConstantHelper;
   friend class KernelLoader;
   friend class SimpleExpressionConverter;
   friend class StreamingConstantEvaluator;
-  friend class StreamingScopeBuilder;
 };
 
 // Helper class that reads a kernel Constant from binary.
