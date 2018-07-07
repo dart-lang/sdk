@@ -37,10 +37,3 @@ io/raw_secure_server_socket_argument_test: CompileTimeError
 io/secure_socket_argument_test: CompileTimeError
 io/stdout_bad_argument_test: CompileTimeError
 package/package_isolate_test: CompileTimeError
-
-[ $compiler == dart2analyzer && !$strong ]
-io/directory_invalid_arguments_test: StaticWarning
-io/process_invalid_arguments_test: StaticWarning
-io/raw_secure_server_socket_argument_test: StaticWarning
-io/secure_socket_argument_test: StaticWarning
-io/stdout_bad_argument_test: StaticWarning
