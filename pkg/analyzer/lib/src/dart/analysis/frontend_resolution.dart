@@ -477,23 +477,25 @@ class _FileSystemEntityAdaptor implements front_end.FileSystemEntity {
 
   @override
   Future<bool> exists() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     return file.exists;
   }
 
   @override
   Future<List<int>> readAsBytes() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
+    _throwIfDoesNotExist();
     // TODO(scheglov) Optimize.
     return utf8.encode(file.content);
   }
 
   @override
   Future<String> readAsString() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
+    _throwIfDoesNotExist();
     return file.content;
+  }
+
+  void _throwIfDoesNotExist() {
+    if (!file.exists) {
+      throw new front_end.FileSystemException(uri, 'File not found');
+    }
   }
 }

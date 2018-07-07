@@ -80,30 +80,30 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
     await super.test_const_implicitSuperConstructorInvocation();
   }
 
-  @failingTest
-  @potentialAnalyzerProblem
   @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33719')
   test_errors_uriDoesNotExist_export() async {
     await super.test_errors_uriDoesNotExist_export();
   }
 
-  @failingTest
-  @potentialAnalyzerProblem
   @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33719')
   test_errors_uriDoesNotExist_import() async {
     await super.test_errors_uriDoesNotExist_import();
   }
 
-  @failingTest
-  @potentialAnalyzerProblem
   @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33719')
   test_errors_uriDoesNotExist_import_deferred() async {
     await super.test_errors_uriDoesNotExist_import_deferred();
   }
 
-  @failingTest
-  @potentialAnalyzerProblem
   @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33719')
   test_errors_uriDoesNotExist_part() async {
     await super.test_errors_uriDoesNotExist_part();
   }
@@ -123,6 +123,13 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @override
   test_getErrors() async {
     await super.test_getErrors();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33719')
+  test_getResult_doesNotExist() async {
+    await super.test_getResult_doesNotExist();
   }
 
   @failingTest
