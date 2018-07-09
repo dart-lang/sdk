@@ -344,6 +344,28 @@ const a = 1;
     assertType(aRef, 'int');
   }
 
+  test_annotation_onFormalParameter_redirectingFactory() async {
+    addTestFile(r'''
+class C {
+  factory C(@a p) = C.named;
+  C.named(p);
+}
+
+const a = 1;
+''');
+    await resolveTestFile();
+
+    var parameter = findNode.simpleParameter('p) = C.');
+
+    expect(parameter.metadata, hasLength(1));
+    Annotation annotation = parameter.metadata[0];
+    expect(annotation.element, findElement.topGet('a'));
+
+    SimpleIdentifier aRef = annotation.name;
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
   test_annotation_onVariableList_constructor() async {
     String content = r'''
 class C {
@@ -7873,6 +7895,10 @@ class FindNode {
 
   SimpleIdentifier simple(String search) {
     return _node(search);
+  }
+
+  SimpleFormalParameter simpleParameter(String search) {
+    return _node(search).getAncestor((n) => n is SimpleFormalParameter);
   }
 
   VariableDeclaration variableDeclaration(String search) {

@@ -177,7 +177,7 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33799')
   test_functionTypeAlias_scope_signature() async {
     // Caused by Bad state: Found 1 annotation nodes and 0 element annotations
     return super.test_functionTypeAlias_scope_signature();
