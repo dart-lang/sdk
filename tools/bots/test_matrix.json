@@ -1854,21 +1854,6 @@
           "arguments": ["create_sdk"]
         },
         {
-          "name": "analyze tests",
-          "arguments": [
-            "--compiler=dart2analyzer",
-            "--use-sdk"
-          ]
-        },
-        {
-          "name": "analyze pkg tests",
-          "arguments": [
-            "--compiler=dart2analyzer",
-            "--use-sdk",
-            "pkg"
-          ]
-        },
-        {
           "name": "analyze tests enable-asserts",
           "arguments": [
             "--compiler=dart2analyzer",
@@ -1945,9 +1930,19 @@
           "arguments": ["--no-hints","pkg/analyzer"]
         },
         {
-          "name": "Analyze pkg/analyzer_plugin",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": ["--no-hints","pkg/analyzer_plugin"]
+          "name": "analyze tests",
+          "arguments": [
+            "--compiler=dart2analyzer",
+            "--use-sdk"
+          ]
+        },
+        {
+          "name": "analyze pkg tests",
+          "arguments": [
+            "--compiler=dart2analyzer",
+            "--use-sdk",
+            "pkg"
+          ]
         }
       ]
     },
