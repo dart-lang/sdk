@@ -811,6 +811,7 @@ InvalidUnicodeEscape:
 UnexpectedDollarInString:
   template: "A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({})."
   tip: "Try adding a backslash (\\) to escape the '$'."
+  analyzerCode: UNEXPECTED_DOLLAR_IN_STRING
   dart2jsCode: MALFORMED_STRING_LITERAL
   script:
     - >

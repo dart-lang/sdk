@@ -357,7 +357,6 @@ TypeVariableInStaticContext/example: Fail
 TypeVariableSameNameAsEnclosing/analyzerCode: Fail
 TypeVariableSameNameAsEnclosing/example: Fail
 TypedefNotFunction/example: Fail
-UnexpectedDollarInString/analyzerCode: Fail
 UnexpectedDollarInString/script1: Fail
 UnexpectedDollarInString/script2: Fail
 UnexpectedDollarInString/script3: Fail

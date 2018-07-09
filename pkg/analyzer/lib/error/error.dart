@@ -514,6 +514,7 @@ const List<ErrorCode> errorCodeValues = const [
   ScannerErrorCode.MISSING_IDENTIFIER,
   ScannerErrorCode.MISSING_QUOTE,
   ScannerErrorCode.UNABLE_GET_CONTENT,
+  ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING,
   ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT,
   ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
   StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS,

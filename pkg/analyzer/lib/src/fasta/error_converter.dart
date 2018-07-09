@@ -592,6 +592,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             StaticTypeWarningCode.UNDEFINED_SETTER, offset, length);
         return;
+      case "UNEXPECTED_DOLLAR_IN_STRING":
+        errorReporter?.reportErrorForOffset(
+            ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING, offset, length);
+        return;
       case "UNEXPECTED_TOKEN":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.UNEXPECTED_TOKEN, offset, length, [lexeme()]);

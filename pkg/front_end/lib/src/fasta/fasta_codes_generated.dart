@@ -6487,6 +6487,7 @@ const Code<Null> codeUnexpectedDollarInString = messageUnexpectedDollarInString;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageUnexpectedDollarInString = const MessageCode(
     "UnexpectedDollarInString",
+    analyzerCode: "UNEXPECTED_DOLLAR_IN_STRING",
     dart2jsCode: "MALFORMED_STRING_LITERAL",
     message:
         r"""A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).""",

@@ -312,12 +312,12 @@ class AstValidator extends UnifyingAstVisitor<Object> {
       int parentStart = parent.offset;
       int parentEnd = parentStart + parent.length;
       if (nodeStart < parentStart) {
-        _errors.add(
-            "Invalid source start ($nodeStart) for ${node.runtimeType} inside ${parent.runtimeType} ($parentStart)");
+        _errors.add("Invalid source start ($nodeStart) for ${node
+            .runtimeType} inside ${parent.runtimeType} ($parentStart)");
       }
       if (nodeEnd > parentEnd) {
-        _errors.add(
-            "Invalid source end ($nodeEnd) for ${node.runtimeType} inside ${parent.runtimeType} ($parentStart)");
+        _errors.add("Invalid source end ($nodeEnd) for ${node
+            .runtimeType} inside ${parent.runtimeType} ($parentStart)");
       }
     }
   }
@@ -3201,7 +3201,10 @@ class Foo {
   void test_expectedInterpolationIdentifier() {
     StringLiteral literal = parseExpression("'\$x\$'", errors: [
       fe.Scanner.useFasta
-          ? expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 4, 1)
+          ? (usingFastaParser
+              ? expectedError(
+                  ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING, 4, 1)
+              : expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 4, 1))
           : expectedError(ParserErrorCode.MISSING_IDENTIFIER, 3, 1)
     ]);
     expectNotNullIfNoErrors(literal);
@@ -3212,11 +3215,13 @@ class Foo {
     // make sure that the MISSING_IDENTIFIER error that is generated has a
     // nonzero width so that it will show up in the editor UI.
     StringLiteral literal = parseExpression("'\$\$foo'",
-//        codes: fe.Scanner.useFasta
-//            ? [ScannerErrorCode.MISSING_IDENTIFIER]
-//            : [ParserErrorCode.MISSING_IDENTIFIER],
         errors: fe.Scanner.useFasta
-            ? [expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 2, 1)]
+            ? [
+                (usingFastaParser
+                    ? expectedError(
+                        ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING, 2, 1)
+                    : expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 2, 1))
+              ]
             : [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 2, 1)]);
     expectNotNullIfNoErrors(literal);
   }
@@ -4081,7 +4086,10 @@ class Wrong<T> {
   void test_invalidInterpolationIdentifier_startWithDigit() {
     StringLiteral literal = parseExpression("'\$1'", errors: [
       fe.Scanner.useFasta
-          ? expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 2, 1)
+          ? (usingFastaParser
+              ? expectedError(
+                  ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING, 2, 1)
+              : expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 2, 1))
           : expectedError(ParserErrorCode.MISSING_IDENTIFIER, 2, 1)
     ]);
     expectNotNullIfNoErrors(literal);
@@ -6750,17 +6758,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal.typeArguments, isNotNull);
   }
 
-  void test_parseConstExpression_mapLiteral_typed_missingGt() {
-    Expression expression = parseExpression('const <A, B {}',
-        errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 1)]);
-    expect(expression, isNotNull);
-    var literal = expression as MapLiteral;
-    expect(literal.leftBracket, isNotNull);
-    expect(literal.entries, hasLength(0));
-    expect(literal.rightBracket, isNotNull);
-    expect(literal.typeArguments, isNotNull);
-  }
-
   void test_parseConstExpression_mapLiteral_typed_genericComment() {
     enableGenericMethodComments = true;
     Expression expression = parseConstExpression('const /*<A, B>*/ {}');
@@ -6770,6 +6767,17 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     } else {
       assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
     }
+    var literal = expression as MapLiteral;
+    expect(literal.leftBracket, isNotNull);
+    expect(literal.entries, hasLength(0));
+    expect(literal.rightBracket, isNotNull);
+    expect(literal.typeArguments, isNotNull);
+  }
+
+  void test_parseConstExpression_mapLiteral_typed_missingGt() {
+    Expression expression = parseExpression('const <A, B {}',
+        errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 1)]);
+    expect(expression, isNotNull);
     var literal = expression as MapLiteral;
     expect(literal.leftBracket, isNotNull);
     expect(literal.entries, hasLength(0));
@@ -7036,25 +7044,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect((expression.body as ExpressionFunctionBody).semicolon, isNull);
   }
 
-  void test_parseFunctionExpression_functionInPlaceOfTypeName() {
-    Expression expression = parseExpression('<test(' ', (){});>[0, 1, 2]',
-        codes: usingFastaParser
-            ? [
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.UNEXPECTED_TOKEN,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.MISSING_FUNCTION_BODY,
-              ]
-            : [
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL,
-              ]);
-    expect(expression, isNotNull);
-  }
-
   void test_parseFunctionExpression_constAndTypeParameters2() {
     FunctionExpression expression =
         parseFunctionExpression('const <E>(E i) => i++');
@@ -7074,6 +7063,25 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
       expect(expression.parameters, isNotNull);
       expect((expression.body as ExpressionFunctionBody).semicolon, isNull);
     }
+  }
+
+  void test_parseFunctionExpression_functionInPlaceOfTypeName() {
+    Expression expression = parseExpression('<test(' ', (){});>[0, 1, 2]',
+        codes: usingFastaParser
+            ? [
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_FUNCTION_BODY,
+              ]
+            : [
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL,
+              ]);
+    expect(expression, isNotNull);
   }
 
   void test_parseFunctionExpression_typeParameterComments() {
@@ -7965,6 +7973,19 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(invocation.period, isNull);
   }
 
+  void test_parseRelationalExpression_as_chained() {
+    AsExpression asExpression = parseExpression('x as Y as Z',
+        errors: usingFastaParser
+            ? [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 2)]
+            : []);
+    expect(asExpression, isNotNull);
+    SimpleIdentifier identifier = asExpression.expression;
+    expect(identifier.name, 'x');
+    expect(asExpression.asOperator, isNotNull);
+    TypeName typeName = asExpression.type;
+    expect(typeName.name.name, 'Y');
+  }
+
   void test_parseRelationalExpression_as_functionType_noReturnType() {
     Expression expression = parseRelationalExpression('x as Function(int)');
     expect(expression, isNotNull);
@@ -8004,19 +8025,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(asExpression.expression, isNotNull);
     expect(asExpression.asOperator, isNotNull);
     expect(asExpression.type, new TypeMatcher<TypeName>());
-  }
-
-  void test_parseRelationalExpression_as_chained() {
-    AsExpression asExpression = parseExpression('x as Y as Z',
-        errors: usingFastaParser
-            ? [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 2)]
-            : []);
-    expect(asExpression, isNotNull);
-    SimpleIdentifier identifier = asExpression.expression;
-    expect(identifier.name, 'x');
-    expect(asExpression.asOperator, isNotNull);
-    TypeName typeName = asExpression.type;
-    expect(typeName.name.name, 'Y');
   }
 
   void test_parseRelationalExpression_as_simple_function() {
