@@ -13883,6 +13883,20 @@ class C {}
     expect(declaration.metadata, isEmpty);
   }
 
+  void test_parseCommentReferences_33738() {
+    CompilationUnit unit =
+        parseCompilationUnit('/** [String] */ abstract class Foo {}');
+    ClassDeclaration clazz = unit.declarations[0];
+    Comment comment = clazz.documentationComment;
+    expect(clazz.isAbstract, isTrue);
+    List<CommentReference> references = comment.references;
+    expect(references, hasLength(1));
+    CommentReference reference = references[0];
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 5);
+  }
+
   void test_parseConfiguration_noOperator_dottedIdentifier() {
     createParser("if (a.b) 'c.dart'");
     Configuration configuration = parser.parseConfiguration();

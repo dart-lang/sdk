@@ -1800,7 +1800,7 @@ class AstBuilder extends StackListener {
     SimpleIdentifier name = pop();
     Token abstractKeyword = modifiers?.abstractKeyword;
     List<Annotation> metadata = pop();
-    Comment comment = _findComment(metadata, classKeyword);
+    Comment comment = _findComment(metadata, begin);
     // leftBracket, members, and rightBracket are set in [endClassBody].
     classDeclaration = ast.classDeclaration(
       comment,
