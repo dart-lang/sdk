@@ -181,8 +181,12 @@ class ExpressionLifter extends Transformer {
 
     // 4. If the expression was named then the variables used for children are
     // no longer live but the variable used for the expression is.
+    // On the other hand, a sibling to the left (yet to be processed) cannot
+    // reuse any of the variables used here, as the assignments in the children
+    // (here) would overwrite assignments in the siblings to the left,
+    // possibly before the use of the overwritten values.
     if (shouldName) {
-      nameIndex = index + 1;
+      if (index + 1 > nameIndex) nameIndex = index + 1;
       seenAwait = true;
     }
     return result;
@@ -443,7 +447,7 @@ class ExpressionLifter extends Transformer {
     var index = nameIndex;
     arguments.positional[0] = expr.operand.accept(this)..parent = arguments;
 
-    if (shouldName) nameIndex = index + 1;
+    if (shouldName && index + 1 > nameIndex) nameIndex = index + 1;
     seenAwait = true;
     return result;
   }
@@ -479,7 +483,7 @@ class ExpressionLifter extends Transformer {
         ..parent = variable;
       // Temporaries used in the initializer or the body are not live but the
       // temporary used for the body is.
-      nameIndex = index + 1;
+      if (index + 1 > nameIndex) nameIndex = index + 1;
       seenAwait = true;
       return body;
     } else {
