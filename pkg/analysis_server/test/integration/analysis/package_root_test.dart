@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:path/path.dart' as path;
@@ -41,6 +43,8 @@ f() {}
     writeFile(mainPath, mainText);
     String normalizedFooBarPath = writeFile(fooBarPath, fooBarText);
     sendServerSetSubscriptions([ServerService.STATUS]);
+    Future<AnalysisNavigationParams> navigationParamsFuture =
+        onAnalysisNavigation.first;
     sendAnalysisSetSubscriptions({
       AnalysisService.NAVIGATION: [mainPath]
     });
@@ -48,39 +52,38 @@ f() {}
     List<NavigationTarget> navigationTargets;
     List<String> navigationTargetFiles;
 
-    onAnalysisNavigation.listen((AnalysisNavigationParams params) {
-      expect(params.file, equals(mainPath));
-      navigationRegions = params.regions;
-      navigationTargets = params.targets;
-      navigationTargetFiles = params.files;
-    });
-
     sendAnalysisSetAnalysisRoots([projPath], [],
         packageRoots: {projPath: packagesPath});
     sendAnalysisSetPriorityFiles([mainPath]);
 
-    await onAnalysisNavigation.first;
+    AnalysisNavigationParams params = await navigationParamsFuture;
 
-    return analysisFinished.then((_) {
-      // Verify that fooBarPath was properly resolved by checking that f()
-      // refers to it.
-      bool found = false;
-      for (NavigationRegion region in navigationRegions) {
-        String navigationSource =
-            mainText.substring(region.offset, region.offset + region.length);
-        if (navigationSource == 'f') {
-          found = true;
-          expect(region.targets, hasLength(1));
-          int navigationTargetIndex = region.targets[0];
-          NavigationTarget navigationTarget =
-              navigationTargets[navigationTargetIndex];
-          String navigationFile =
-              navigationTargetFiles[navigationTarget.fileIndex];
-          expect(navigationFile, equals(normalizedFooBarPath));
-        }
+    expect(params.file, equals(mainPath));
+    navigationRegions = params.regions;
+    navigationTargets = params.targets;
+    navigationTargetFiles = params.files;
+
+    await analysisFinished;
+
+    // Verify that fooBarPath was properly resolved by checking that f()
+    // refers to it.
+    bool found = false;
+    for (NavigationRegion region in navigationRegions) {
+      String navigationSource =
+          mainText.substring(region.offset, region.offset + region.length);
+      if (navigationSource == 'f') {
+        found = true;
+        expect(region.targets, hasLength(1));
+        int navigationTargetIndex = region.targets[0];
+        NavigationTarget navigationTarget =
+            navigationTargets[navigationTargetIndex];
+        String navigationFile =
+            navigationTargetFiles[navigationTarget.fileIndex];
+        expect(navigationFile, equals(normalizedFooBarPath));
       }
-      expect(found, isTrue);
-    });
+    }
+
+    expect(found, isTrue);
   }
 }
 
