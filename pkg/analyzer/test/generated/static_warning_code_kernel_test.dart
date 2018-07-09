@@ -1463,14 +1463,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_typeParameterReferencedByStatic_simpleIdentifier() {
-    // UnimplementedError: TODO(paulberry): InvalidType
-    return super.test_typeParameterReferencedByStatic_simpleIdentifier();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_typeTestNonType() async {
     return super.test_typeTestNonType();
   }
