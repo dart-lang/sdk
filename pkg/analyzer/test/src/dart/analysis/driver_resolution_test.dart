@@ -236,6 +236,114 @@ void topLevelFunction() {}
     }
   }
 
+  test_annotation_onDirective_export() async {
+    addTestFile(r'''
+@a
+export 'dart:math';
+
+const a = 1;
+''');
+    await resolveTestFile();
+
+    var directive = findNode.export('dart:math');
+
+    expect(directive.metadata, hasLength(1));
+    Annotation annotation = directive.metadata[0];
+    expect(annotation.element, findElement.topGet('a'));
+
+    SimpleIdentifier aRef = annotation.name;
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_annotation_onDirective_import() async {
+    addTestFile(r'''
+@a
+import 'dart:math';
+
+const a = 1;
+''');
+    await resolveTestFile();
+
+    var directive = findNode.import('dart:math');
+
+    expect(directive.metadata, hasLength(1));
+    Annotation annotation = directive.metadata[0];
+    expect(annotation.element, findElement.topGet('a'));
+
+    SimpleIdentifier aRef = annotation.name;
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_annotation_onDirective_library() async {
+    addTestFile(r'''
+@a
+library test;
+
+const a = 1;
+''');
+    await resolveTestFile();
+
+    var directive = findNode.libraryDirective;
+
+    expect(directive.metadata, hasLength(1));
+    Annotation annotation = directive.metadata[0];
+    expect(annotation.element, findElement.topGet('a'));
+
+    SimpleIdentifier aRef = annotation.name;
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_annotation_onDirective_part() async {
+    provider.newFile(_p('/test/lib/a.dart'), r'''
+part of 'test.dart';
+''');
+    addTestFile(r'''
+@a
+part 'a.dart';
+
+const a = 1;
+''');
+    await resolveTestFile();
+
+    var directive = findNode.part('a.dart');
+
+    expect(directive.metadata, hasLength(1));
+    Annotation annotation = directive.metadata[0];
+    expect(annotation.element, findElement.topGet('a'));
+
+    SimpleIdentifier aRef = annotation.name;
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_annotation_onDirective_partOf() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+part 'test.dart';
+''');
+    addTestFile(r'''
+@a
+part of 'a.dart';
+
+const a = 1;
+''');
+    driver.addFile(a);
+    await resolveTestFile();
+
+    var directive = findNode.partOf('a.dart');
+
+    expect(directive.metadata, hasLength(1));
+    Annotation annotation = directive.metadata[0];
+    expect(annotation.element, findElement.topGet('a'));
+
+    SimpleIdentifier aRef = annotation.name;
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
   test_annotation_onVariableList_constructor() async {
     String content = r'''
 class C {
@@ -7715,6 +7823,10 @@ class FindNode {
 
   FindNode(this.result);
 
+  LibraryDirective get libraryDirective {
+    return result.unit.directives.singleWhere((d) => d is LibraryDirective);
+  }
+
   AssignmentExpression assignment(String search) {
     return _node(search).getAncestor((n) => n is AssignmentExpression);
   }
@@ -7723,8 +7835,16 @@ class FindNode {
     return _node(search).getAncestor((n) => n is CascadeExpression);
   }
 
+  ExportDirective export(String search) {
+    return _node(search).getAncestor((n) => n is ExportDirective);
+  }
+
   FunctionExpression functionExpression(String search) {
     return _node(search).getAncestor((n) => n is FunctionExpression);
+  }
+
+  ImportDirective import(String search) {
+    return _node(search).getAncestor((n) => n is ImportDirective);
   }
 
   InstanceCreationExpression instanceCreation(String search) {
@@ -7733,6 +7853,14 @@ class FindNode {
 
   MethodInvocation methodInvocation(String search) {
     return _node(search).getAncestor((n) => n is MethodInvocation);
+  }
+
+  PartDirective part(String search) {
+    return _node(search).getAncestor((n) => n is PartDirective);
+  }
+
+  PartOfDirective partOf(String search) {
+    return _node(search).getAncestor((n) => n is PartOfDirective);
   }
 
   PostfixExpression postfix(String search) {
