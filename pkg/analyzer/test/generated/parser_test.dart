@@ -14223,6 +14223,37 @@ void main() {final c = C<int, int Function(String)>();}
     expect(creation.typeArguments.toSource(), '<int, int Function(String)>');
   }
 
+  void test_parseInstanceCreation_keyword_33647() {
+    enableOptionalNewAndConst = true;
+    CompilationUnit unit = parseCompilationUnit('''
+var c = new Future<int>.sync(() => 3).then<int>((e) => e);
+''');
+    expect(unit, isNotNull);
+    TopLevelVariableDeclaration v = unit.declarations[0];
+    MethodInvocation init = v.variables.variables[0].initializer;
+    expect(init.methodName.name, 'then');
+    NodeList<TypeAnnotation> typeArg = init.typeArguments.arguments;
+    expect(typeArg, hasLength(1));
+    expect(typeArg[0].beginToken.lexeme, 'int');
+  }
+
+  void test_parseInstanceCreation_noKeyword_33647() {
+    enableOptionalNewAndConst = true;
+    // Old parser produces errors
+    if (usingFastaParser) {
+      CompilationUnit unit = parseCompilationUnit('''
+var c = Future<int>.sync(() => 3).then<int>((e) => e);
+''');
+      expect(unit, isNotNull);
+      TopLevelVariableDeclaration v = unit.declarations[0];
+      MethodInvocation init = v.variables.variables[0].initializer;
+      expect(init.methodName.name, 'then');
+      NodeList<TypeAnnotation> typeArg = init.typeArguments.arguments;
+      expect(typeArg, hasLength(1));
+      expect(typeArg[0].beginToken.lexeme, 'int');
+    }
+  }
+
   void test_parseLibraryIdentifier_builtin() {
     String name = "deferred";
     LibraryIdentifier identifier = parseLibraryIdentifier(name);
