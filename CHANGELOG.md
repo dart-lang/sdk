@@ -12,6 +12,8 @@
 
 #### dartfmt
 
+* Do not split long strings inside their string interpolations.
+
 #### Pub
 
 #### Dart2js
