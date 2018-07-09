@@ -86,11 +86,11 @@ class MemoryFileSystemEntity implements FileSystemEntity {
 
   @override
   Future<List<int>> readAsBytes() async {
-    List<int> contents = _fileSystem._files[uri];
+    Uint8List contents = _fileSystem._files[uri];
     if (contents == null) {
       throw new FileSystemException(uri, 'File $uri does not exist.');
     }
-    return contents.toList();
+    return new Uint8List.fromList(contents);
   }
 
   @override
