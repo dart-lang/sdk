@@ -19,7 +19,7 @@ main() {
 
 @reflectiveTest
 class SetAnalysisRootsTest extends AbstractAnalysisServerIntegrationTest {
-  test_package_root() {
+  test_package_root() async {
     String projPath = sourcePath('project');
     String mainPath = path.join(projPath, 'main.dart');
     String packagesPath = sourcePath('packages');
@@ -47,15 +47,20 @@ f() {}
     List<NavigationRegion> navigationRegions;
     List<NavigationTarget> navigationTargets;
     List<String> navigationTargetFiles;
+
     onAnalysisNavigation.listen((AnalysisNavigationParams params) {
       expect(params.file, equals(mainPath));
       navigationRegions = params.regions;
       navigationTargets = params.targets;
       navigationTargetFiles = params.files;
     });
+
     sendAnalysisSetAnalysisRoots([projPath], [],
         packageRoots: {projPath: packagesPath});
     sendAnalysisSetPriorityFiles([mainPath]);
+
+    await onAnalysisNavigation.first;
+
     return analysisFinished.then((_) {
       // Verify that fooBarPath was properly resolved by checking that f()
       // refers to it.
