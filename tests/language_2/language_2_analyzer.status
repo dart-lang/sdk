@@ -8,55 +8,6 @@
 error_stacktrace_test/00: MissingCompileTimeError
 vm/lazy_deopt_with_exception_test: CompileTimeError
 
-[ $compiler == dart2analyzer && $analyzer_use_fasta_parser ]
-assignable_expression_test/50: MissingCompileTimeError
-async_await_syntax_test/b00a: MissingCompileTimeError
-async_await_syntax_test/b00b: MissingCompileTimeError
-async_await_syntax_test/b00c: MissingCompileTimeError
-async_await_syntax_test/e4: MissingCompileTimeError
-async_await_syntax_test/e5: MissingCompileTimeError
-async_await_syntax_test/e6: MissingCompileTimeError
-constructor_with_type_parameters_test/05: MissingCompileTimeError
-constructor_with_type_parameters_test/09: MissingCompileTimeError
-constructor_with_type_parameters_test/11: MissingCompileTimeError
-constructor_with_type_parameters_test/15: MissingCompileTimeError
-constructor_with_type_parameters_test/17: MissingCompileTimeError
-external_test/30: MissingCompileTimeError
-external_test/31: MissingCompileTimeError
-factory_with_type_parameters_test/01: MissingCompileTimeError
-factory_with_type_parameters_test/02: MissingCompileTimeError
-factory_with_type_parameters_test/05: MissingCompileTimeError
-factory_with_type_parameters_test/06: MissingCompileTimeError
-generic_metadata_test/02: MissingCompileTimeError
-generic_metadata_test/03: MissingCompileTimeError
-illegal_initializer_test/01: MissingCompileTimeError
-illegal_initializer_test/03: MissingCompileTimeError
-multiline_newline_test/01: Pass
-multiline_newline_test/01r: Pass
-multiline_newline_test/02: Pass
-multiline_newline_test/02r: Pass
-multiline_newline_test/04: Pass
-multiline_newline_test/04r: Pass
-multiline_newline_test/05: Pass
-multiline_newline_test/05r: Pass
-regress_29349_test: Pass
-this_test/01: MissingCompileTimeError
-this_test/02: MissingCompileTimeError
-this_test/03: MissingCompileTimeError
-this_test/04: MissingCompileTimeError
-this_test/05: MissingCompileTimeError
-this_test/06: MissingCompileTimeError
-this_test/07: MissingCompileTimeError
-this_test/08: MissingCompileTimeError
-unsupported_operators_test/01: MissingCompileTimeError
-unsupported_operators_test/02: MissingCompileTimeError
-unsupported_operators_test/03: MissingCompileTimeError
-unsupported_operators_test/04: MissingCompileTimeError
-void_type_function_types_test/04: MissingCompileTimeError
-void_type_function_types_test/06: MissingCompileTimeError
-void_type_function_types_test/08: MissingCompileTimeError
-void_type_function_types_test/none: Pass
-
 [ $compiler == dart2analyzer && !$fasta ]
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
@@ -78,6 +29,7 @@ deep_nesting1_negative_test: CompileTimeError # Issue 25558
 deep_nesting2_negative_test: CompileTimeError # Issue 25558
 duplicate_export_negative_test: CompileTimeError
 duplicate_interface_negative_test: CompileTimeError
+dynamic_prefix_core_test/01: MissingCompileTimeError
 emit_const_fields_test: CompileTimeError
 enum_syntax_test/05: Fail # Issue 21649
 enum_syntax_test/06: Fail # Issue 21649
@@ -99,7 +51,6 @@ implicit_creation/implicit_const_context_constructor_generic_named_test: Compile
 implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError
 implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: CompileTimeError
 implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError
-import_core_prefix_test: StaticWarning
 index_assign_operator_infer_return_type_test: StaticWarning
 initializing_formal_final_test: MissingCompileTimeError
 inst_field_initializer1_negative_test: CompileTimeError
@@ -363,7 +314,6 @@ forwarding_stub_tearoff_test: CompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30207
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
-import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.
 interceptor6_test: CompileTimeError
 issue13673_test: StaticWarning # Issue 31925
 issue15606_test/none: CompileTimeError # invalid use of void for dart 2

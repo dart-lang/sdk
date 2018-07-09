@@ -2811,6 +2811,8 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
   @override
   DynamicTypeImpl type;
 
+  LibraryElement _library;
+
   /**
    * Initialize a newly created instance of this class. Instances of this class
    * should <b>not</b> be created except as part of creating the type associated
@@ -2823,6 +2825,14 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
 
   @override
   ElementKind get kind => ElementKind.DYNAMIC;
+
+  @override
+  LibraryElement get library => _library;
+
+  set library(LibraryElement library) {
+    assert(library.name == 'dart.core');
+    _library = library;
+  }
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => null;
