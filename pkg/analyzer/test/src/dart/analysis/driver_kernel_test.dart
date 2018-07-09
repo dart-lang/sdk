@@ -52,6 +52,30 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
 //    await super.test_asyncChangesDuringAnalysis_getErrors();
   }
 
+  test_componentMetadata_incremental_merge() async {
+    var a = _p('/a.dart');
+    var b = _p('/b.dart');
+    provider.newFile(a, r'''
+class A {
+  A.a();
+}
+''');
+    provider.newFile(b, r'''
+class B {
+  B.b();
+}
+''');
+    await driver.getResult(a);
+    await driver.getResult(b);
+
+    // This will fail if compilation of 'b' removed metadata for 'a'.
+    // We use metadata to get constructor name offsets.
+    await driver.getResult(a);
+
+    // And check that 'b' still has its metadata as well.
+    await driver.getResult(b);
+  }
+
   @override
   @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/33642')
@@ -247,6 +271,8 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   test_removeFile_invalidate_importers() async {
     await super.test_removeFile_invalidate_importers();
   }
+
+  String _p(String path) => provider.convertPath(path);
 }
 
 /// Tests marked with this annotation fail because of an Analyzer problem.

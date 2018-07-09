@@ -222,10 +222,14 @@ class FrontEndCompiler {
 
         // Compile the entry point into the new component.
         _component = await _logger.runAsync('Compile', () async {
-          // TODO(brianwilkerson) Determine whether this await is necessary.
-          await null;
           await kernelTarget.buildOutlines(nameRoot: _component.root);
-          return await kernelTarget.buildComponent() ?? _component;
+          Component newComponent = await kernelTarget.buildComponent();
+          if (newComponent != null) {
+            AnalyzerMetadataRepository.merge(newComponent, _component);
+            return newComponent;
+          } else {
+            return _component;
+          }
         });
 
         // TODO(scheglov) Only for new libraries?
