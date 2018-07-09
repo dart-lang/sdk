@@ -117,6 +117,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE,
   CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT,
   CompileTimeErrorCode.DUPLICATE_PART,
+  CompileTimeErrorCode.ENUM_CONSTANT_WITH_ENUM_NAME,
   CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY,
   CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
   CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS,

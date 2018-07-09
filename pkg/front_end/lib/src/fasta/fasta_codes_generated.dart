@@ -2069,10 +2069,9 @@ const Template<
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeEnumConstantSameNameAsEnclosing =
-    const Code<Message Function(String name)>(
-  "EnumConstantSameNameAsEnclosing",
-  templateEnumConstantSameNameAsEnclosing,
-);
+    const Code<Message Function(String name)>("EnumConstantSameNameAsEnclosing",
+        templateEnumConstantSameNameAsEnclosing,
+        analyzerCode: "ENUM_CONSTANT_WITH_ENUM_NAME", dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsEnumConstantSameNameAsEnclosing(String name) {
@@ -3001,9 +3000,8 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeIllegalMixinDueToConstructors =
     const Code<Message Function(String name)>(
-  "IllegalMixinDueToConstructors",
-  templateIllegalMixinDueToConstructors,
-);
+        "IllegalMixinDueToConstructors", templateIllegalMixinDueToConstructors,
+        analyzerCode: "MIXIN_DECLARES_CONSTRUCTOR", dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIllegalMixinDueToConstructors(String name) {
@@ -4789,6 +4787,8 @@ const Code<Null> codeNonInstanceTypeVariableUse =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNonInstanceTypeVariableUse = const MessageCode(
     "NonInstanceTypeVariableUse",
+    analyzerCode: "TYPE_PARAMETER_REFERENCED_BY_STATIC",
+    dart2jsCode: "*fatal*",
     severity: Severity.errorLegacyWarning,
     message: r"""Can only use type variables in instance methods.""");
 
@@ -5052,6 +5052,8 @@ const Code<Message Function(String name, String name2)>
     codeOverrideFewerNamedArguments =
     const Code<Message Function(String name, String name2)>(
         "OverrideFewerNamedArguments", templateOverrideFewerNamedArguments,
+        analyzerCode: "INVALID_OVERRIDE_NAMED",
+        dart2jsCode: "*fatal*",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5110,6 +5112,8 @@ const Code<Message Function(String name, String name2, String name3)>
     const Code<Message Function(String name, String name2, String name3)>(
         "OverrideMismatchNamedParameter",
         templateOverrideMismatchNamedParameter,
+        analyzerCode: "INVALID_OVERRIDE_NAMED",
+        dart2jsCode: "*fatal*",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5564,6 +5568,7 @@ const Code<Null> codePrivateNamedParameter = messagePrivateNamedParameter;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePrivateNamedParameter = const MessageCode(
     "PrivateNamedParameter",
+    analyzerCode: "PRIVATE_OPTIONAL_PARAMETER",
     dart2jsCode: "*ignored*",
     message: r"""An optional named parameter can't start with '_'.""");
 
@@ -6007,7 +6012,7 @@ const Template<Message Function(String name)> templateSuperclassHasNoSetter =
 const Code<Message Function(String name)> codeSuperclassHasNoSetter =
     const Code<Message Function(String name)>(
         "SuperclassHasNoSetter", templateSuperclassHasNoSetter,
-        analyzerCode: "ABSTRACT_SUPER_MEMBER_REFERENCE",
+        analyzerCode: "UNDEFINED_SUPER_SETTER",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6291,6 +6296,8 @@ const Template<Message Function(String name)> templateTypeNotFound =
 const Code<Message Function(String name)> codeTypeNotFound =
     const Code<Message Function(String name)>(
         "TypeNotFound", templateTypeNotFound,
+        analyzerCode: "UNDEFINED_CLASS",
+        dart2jsCode: "*fatal*",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6306,6 +6313,8 @@ const Code<Null> codeTypeVariableDuplicatedName =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypeVariableDuplicatedName = const MessageCode(
     "TypeVariableDuplicatedName",
+    analyzerCode: "DUPLICATE_DEFINITION",
+    dart2jsCode: "*fatal*",
     message: r"""A type variable can't have the same name as another.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6335,6 +6344,8 @@ const Code<Null> codeTypeVariableInStaticContext =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypeVariableInStaticContext = const MessageCode(
     "TypeVariableInStaticContext",
+    analyzerCode: "TYPE_PARAMETER_REFERENCED_BY_STATIC",
+    dart2jsCode: "*fatal*",
     severity: Severity.errorLegacyWarning,
     message: r"""Type variables can't be used in static members.""");
 

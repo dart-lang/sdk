@@ -64,8 +64,4 @@ Future f;
 class GetFixesTest_UseCFE extends GetFixesTest {
   @override
   bool get useCFE => true;
-
-  @override
-  @failingTest
-  test_has_fixes() => super.test_has_fixes();
 }

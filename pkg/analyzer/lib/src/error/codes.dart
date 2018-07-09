@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.error.codes;
-
 import 'package:analyzer/error/error.dart';
 
 export 'package:analyzer/src/analysis_options/error/option_codes.dart';
@@ -888,6 +886,9 @@ class CompileTimeErrorCode extends ErrorCode {
           "The argument for the named parameter '{0}' was already specified.",
           correction: "Try removing one of the named arguments, or "
               "correcting one of the names to reference a different named parameter.");
+
+  static const CompileTimeErrorCode ENUM_CONSTANT_WITH_ENUM_NAME =
+      const CompileTimeErrorCode.fromFasta('ENUM_CONSTANT_WITH_ENUM_NAME');
 
   /**
    * SDK implementation libraries can be exported only by other SDK libraries.

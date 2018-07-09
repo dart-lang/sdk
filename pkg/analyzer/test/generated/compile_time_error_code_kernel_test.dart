@@ -677,13 +677,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_duplicateDefinition_typeParameters() async {
-    // Expected 1 errors of type CompileTimeErrorCode.DUPLICATE_DEFINITION, found 0
-    await super.test_duplicateDefinition_typeParameters();
-  }
-
-  @override
-  @failingTest
   test_duplicateDefinitionInheritance_instanceGetter_staticGetter() async {
     // Expected 1 errors of type CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE, found 0
     await super
@@ -1600,20 +1593,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_mixinDeclaresConstructor_classDeclaration() async {
-    // Expected 1 errors of type CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, found 0
-    await super.test_mixinDeclaresConstructor_classDeclaration();
-  }
-
-  @override
-  @failingTest
-  test_mixinDeclaresConstructor_typeAlias() async {
-    // Expected 1 errors of type CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, found 0
-    await super.test_mixinDeclaresConstructor_typeAlias();
-  }
-
-  @override
-  @failingTest
   test_mixinDeferredClass() async {
     // Expected 1 errors of type CompileTimeErrorCode.MIXIN_DEFERRED_CLASS, found 0;
     //          0 errors of type HintCode.UNUSED_IMPORT, found 1 (21)
@@ -2376,25 +2355,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_privateOptionalParameter() async {
-    // Expected 1 errors of type CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, found 0
-    await super.test_privateOptionalParameter();
-  }
-
-  @override
-  @failingTest
-  test_privateOptionalParameter_fieldFormal() async {
-    // Expected 1 errors of type CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, found 0
-    await super.test_privateOptionalParameter_fieldFormal();
-  }
-
-  @override
-  @failingTest
-  test_privateOptionalParameter_withDefaultValue() async {
-    // Expected 1 errors of type CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, found 0
-    await super.test_privateOptionalParameter_withDefaultValue();
-  }
-
   @override
   @failingTest
   test_recursiveCompileTimeConstant() async {

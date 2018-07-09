@@ -1013,6 +1013,7 @@ FunctionTypeDefaultValue:
 
 PrivateNamedParameter:
   template: "An optional named parameter can't start with '_'."
+  analyzerCode: PRIVATE_OPTIONAL_PARAMETER
   dart2jsCode: "*ignored*"
 
 NoFormals:
@@ -1130,10 +1131,14 @@ CyclicTypedef:
 TypeNotFound:
   template: "Type '#name' not found."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: UNDEFINED_CLASS
+  dart2jsCode: "*fatal*"
 
 NonInstanceTypeVariableUse:
   template: "Can only use type variables in instance methods."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: TYPE_PARAMETER_REFERENCED_BY_STATIC
+  dart2jsCode: "*fatal*"
 
 GetterNotFound:
   template: "Getter not found: '#name'."
@@ -1507,6 +1512,8 @@ NoUnnamedConstructorInObject:
 
 IllegalMixinDueToConstructors:
   template: "Can't use '#name' as a mixin because it has constructors."
+  analyzerCode: MIXIN_DECLARES_CONSTRUCTOR
+  dart2jsCode: "*fatal*"
 
 IllegalMixinDueToConstructorsCause:
   template: "This constructor prevents using '#name' as a mixin."
@@ -1632,10 +1639,14 @@ OverriddenMethodCause:
 OverrideMismatchNamedParameter:
   template: "The method '#name' doesn't have the named parameter '#name2' of overriden method '#name3'."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: INVALID_OVERRIDE_NAMED
+  dart2jsCode: "*fatal*"
 
 OverrideFewerNamedArguments:
   template: "The method '#name' has fewer named arguments than those of overridden method '#name2'."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: INVALID_OVERRIDE_NAMED
+  dart2jsCode: "*fatal*"
 
 OverrideFewerPositionalArguments:
   template: "The method '#name' has fewer positional arguments than those of overridden method '#name2'."
@@ -1669,6 +1680,8 @@ PartOfSelf:
 
 TypeVariableDuplicatedName:
   template: "A type variable can't have the same name as another."
+  analyzerCode: DUPLICATE_DEFINITION
+  dart2jsCode: "*fatal*"
 
 TypeVariableDuplicatedNameCause:
   template: "The other type variable named '#name'."
@@ -1926,6 +1939,8 @@ MemberWithSameNameAsClass:
 
 EnumConstantSameNameAsEnclosing:
   template: "Name of enum constant '#name' can't be the same as the enum's own name."
+  analyzerCode: ENUM_CONSTANT_WITH_ENUM_NAME
+  dart2jsCode: "*fatal*"
 
 MissingOperatorKeyword:
   template: "Operator declarations must be preceeded by the keyword 'operator'."
@@ -2052,6 +2067,8 @@ FinalInstanceVariableAlreadyInitializedCause:
 TypeVariableInStaticContext:
   template: "Type variables can't be used in static members."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: TYPE_PARAMETER_REFERENCED_BY_STATIC
+  dart2jsCode: "*fatal*"
 
 SuperclassMethodArgumentMismatch:
   template: "Superclass doesn't have a method named '#name' with matching arguments."
@@ -2064,7 +2081,7 @@ SuperclassHasNoGetter:
 
 SuperclassHasNoSetter:
   template: "Superclass has no setter named '#name'."
-  analyzerCode: ABSTRACT_SUPER_MEMBER_REFERENCE
+  analyzerCode: UNDEFINED_SUPER_SETTER
   severity: ERROR_LEGACY_WARNING
 
 SuperclassHasNoMethod:

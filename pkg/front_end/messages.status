@@ -117,7 +117,6 @@ DuplicatedModifier/script1: Fail
 DuplicatedName/example: Fail
 DuplicatedParameterName/example: Fail
 Encoding/analyzerCode: Fail
-EnumConstantSameNameAsEnclosing/analyzerCode: Fail
 EnumConstantSameNameAsEnclosing/example: Fail
 EqualityCannotBeEqualityOperand/script1: Fail
 EqualityCannotBeEqualityOperand/script2: Fail
@@ -191,7 +190,6 @@ GetterWithFormals/example: Fail
 IllegalAssignmentToNonAssignable/script1: Fail
 IllegalMixin/analyzerCode: Fail
 IllegalMixin/example: Fail
-IllegalMixinDueToConstructors/analyzerCode: Fail
 IllegalMixinDueToConstructors/example: Fail
 ImplementsBeforeExtends/script: Fail
 ImplementsBeforeWith/script: Fail
@@ -252,7 +250,6 @@ NoSuchNamedParameter/example: Fail
 NoUnnamedConstructorInObject/analyzerCode: Fail
 NoUnnamedConstructorInObject/example: Fail
 NonAsciiIdentifier/expression: Fail
-NonInstanceTypeVariableUse/analyzerCode: Fail
 NonInstanceTypeVariableUse/example: Fail
 NonPartOfDirectiveInPart/script1: Fail
 NotAPrefixInTypeAnnotation/example: Fail
@@ -266,10 +263,8 @@ OperatorParameterMismatch1/example: Fail
 OperatorParameterMismatch2/example: Fail
 OperatorWithOptionalFormals/analyzerCode: Fail
 OperatorWithOptionalFormals/example: Fail
-OverrideFewerNamedArguments/analyzerCode: Fail
 OverrideFewerNamedArguments/example: Fail
 OverrideFewerPositionalArguments/example: Fail
-OverrideMismatchNamedParameter/analyzerCode: Fail
 OverrideMismatchNamedParameter/example: Fail
 OverrideMoreRequiredArguments/example: Fail
 OverrideTypeMismatchParameter/example: Fail
@@ -301,7 +296,6 @@ PositionalAfterNamedArgument/example: Fail
 PrefixAfterCombinator/example: Fail
 PreviousUseOfName/analyzerCode: Fail
 PreviousUseOfName/example: Fail
-PrivateNamedParameter/analyzerCode: Fail
 PrivateNamedParameter/example: Fail
 RedirectingConstructorWithBody/script1: Fail
 RedirectionInNonFactory/script1: Fail
@@ -357,11 +351,8 @@ TopLevelOperator/script3: Fail
 TypeAfterVar/example: Fail
 TypeArgumentMismatch/example: Fail
 TypeArgumentsOnTypeVariable/script1: Fail
-TypeNotFound/analyzerCode: Fail
 TypeNotFound/example: Fail
-TypeVariableDuplicatedName/analyzerCode: Fail
 TypeVariableDuplicatedName/example: Fail
-TypeVariableInStaticContext/analyzerCode: Fail
 TypeVariableInStaticContext/example: Fail
 TypeVariableSameNameAsEnclosing/analyzerCode: Fail
 TypeVariableSameNameAsEnclosing/example: Fail

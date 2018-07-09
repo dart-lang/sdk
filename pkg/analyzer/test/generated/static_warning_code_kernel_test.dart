@@ -1449,36 +1449,8 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_typeParameterReferencedByStatic_field() async {
-    return super.test_typeParameterReferencedByStatic_field();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typeParameterReferencedByStatic_getter() async {
-    return super.test_typeParameterReferencedByStatic_getter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typeParameterReferencedByStatic_methodBodyReference() async {
-    return super.test_typeParameterReferencedByStatic_methodBodyReference();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_typeParameterReferencedByStatic_methodParameter() async {
     return super.test_typeParameterReferencedByStatic_methodParameter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typeParameterReferencedByStatic_methodReturn() async {
-    return super.test_typeParameterReferencedByStatic_methodReturn();
   }
 
   @override

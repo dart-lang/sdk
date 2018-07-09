@@ -28,7 +28,8 @@ Future<Uri> computeGeneratedFile() {
 
 Future<String> generateMessagesFile() async {
   Uri messagesFile = Platform.script.resolve("../../messages.yaml");
-  Map yaml = loadYaml(await new File.fromUri(messagesFile).readAsStringSync());
+  Map<dynamic, dynamic> yaml =
+      loadYaml(await new File.fromUri(messagesFile).readAsStringSync());
   StringBuffer sb = new StringBuffer();
 
   sb.writeln("""
@@ -50,7 +51,7 @@ part of fasta.codes;
     while (description is String) {
       description = yaml[description];
     }
-    Map map = description;
+    Map<dynamic, dynamic> map = description;
     if (map == null) {
       throw "No 'template:' in key $name.";
     }

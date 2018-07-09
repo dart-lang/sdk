@@ -247,13 +247,6 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   test_removeFile_invalidate_importers() async {
     await super.test_removeFile_invalidate_importers();
   }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_results_order() async {
-    await super.test_results_order();
-  }
 }
 
 /// Tests marked with this annotation fail because of an Analyzer problem.
