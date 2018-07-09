@@ -574,10 +574,12 @@ void ScopeBuilder::VisitInitializer() {
       VisitExpression();                     // read value.
       return;
     case kSuperInitializer:
+      helper_.ReadPosition();                // read position.
       helper_.SkipCanonicalNameReference();  // read target_reference.
       VisitArguments();                      // read arguments.
       return;
     case kRedirectingInitializer:
+      helper_.ReadPosition();                // read position.
       helper_.SkipCanonicalNameReference();  // read target_reference.
       VisitArguments();                      // read arguments.
       return;

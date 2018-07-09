@@ -917,6 +917,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitSuperInitializer(SuperInitializer node) {
     writeByte(Tag.SuperInitializer);
     writeByte(node.isSynthetic ? 1 : 0);
+    writeOffset(node.fileOffset);
     writeReference(node.targetReference);
     writeNode(node.arguments);
   }
@@ -925,6 +926,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitRedirectingInitializer(RedirectingInitializer node) {
     writeByte(Tag.RedirectingInitializer);
     writeByte(node.isSynthetic ? 1 : 0);
+    writeOffset(node.fileOffset);
     writeReference(node.targetReference);
     writeNode(node.arguments);
   }

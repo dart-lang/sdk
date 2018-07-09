@@ -1166,13 +1166,17 @@ class BinaryBuilder {
         return new FieldInitializer.byReference(reference, value)
           ..isSynthetic = isSynthetic;
       case Tag.SuperInitializer:
+        int offset = readOffset();
         var reference = readMemberReference();
         var arguments = readArguments();
         return new SuperInitializer.byReference(reference, arguments)
-          ..isSynthetic = isSynthetic;
+          ..isSynthetic = isSynthetic
+          ..fileOffset = offset;
       case Tag.RedirectingInitializer:
+        int offset = readOffset();
         return new RedirectingInitializer.byReference(
-            readMemberReference(), readArguments());
+            readMemberReference(), readArguments())
+          ..fileOffset = offset;
       case Tag.LocalInitializer:
         return new LocalInitializer(readAndPushVariableDeclaration());
       case Tag.AssertInitializer:

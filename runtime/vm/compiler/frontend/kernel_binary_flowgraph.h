@@ -86,16 +86,19 @@ class StreamingConstantEvaluator {
   void EvaluateGetStringLength(intptr_t expression_offset,
                                TokenPosition position);
 
-  const Object& RunFunction(const Function& function,
+  const Object& RunFunction(const TokenPosition position,
+                            const Function& function,
                             intptr_t argument_count,
                             const Instance* receiver,
                             const TypeArguments* type_args);
 
-  const Object& RunFunction(const Function& function,
+  const Object& RunFunction(const TokenPosition position,
+                            const Function& function,
                             const Array& arguments,
                             const Array& names);
 
-  const Object& RunMethodCall(const Function& function,
+  const Object& RunMethodCall(const TokenPosition position,
+                              const Function& function,
                               const Instance* receiver);
 
   RawObject* EvaluateConstConstructorCall(const Class& type_class,

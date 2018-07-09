@@ -361,7 +361,7 @@ void StreamingConstantEvaluator::EvaluateStaticGet() {
 }
 
 void StreamingConstantEvaluator::EvaluateMethodInvocation() {
-  builder_->ReadPosition();  // read position.
+  TokenPosition position = builder_->ReadPosition();  // read position.
   // This method call wasn't cached, so receiver et al. isn't cached either.
   const Instance& receiver = Instance::Handle(
       Z,
@@ -380,7 +380,7 @@ void StreamingConstantEvaluator::EvaluateMethodInvocation() {
   ASSERT(!function.IsNull());
 
   // Read arguments, run the method and canonicalize the result.
-  const Object& result = RunMethodCall(function, &receiver);
+  const Object& result = RunMethodCall(position, function, &receiver);
   result_ ^= result.raw();
   result_ = H.Canonicalize(result_);
 
@@ -388,7 +388,7 @@ void StreamingConstantEvaluator::EvaluateMethodInvocation() {
 }
 
 void StreamingConstantEvaluator::EvaluateDirectMethodInvocation() {
-  builder_->ReadPosition();  // read position.
+  TokenPosition position = builder_->ReadPosition();  // read position.
 
   const Instance& receiver = Instance::Handle(
       Z,
@@ -401,7 +401,7 @@ void StreamingConstantEvaluator::EvaluateDirectMethodInvocation() {
       Z, H.LookupMethodByMember(kernel_name, H.DartProcedureName(kernel_name)));
 
   // Read arguments, run the method and canonicalize the result.
-  const Object& result = RunMethodCall(function, &receiver);
+  const Object& result = RunMethodCall(position, function, &receiver);
   result_ ^= result.raw();
   result_ = H.Canonicalize(result_);
 }
@@ -415,7 +415,7 @@ Class& StreamingFlowGraphBuilder::GetSuperOrDie() {
 }
 
 void StreamingConstantEvaluator::EvaluateSuperMethodInvocation() {
-  builder_->ReadPosition();  // read position.
+  TokenPosition position = builder_->ReadPosition();  // read position.
 
   const LocalVariable* this_variable = builder_->scopes()->this_variable;
   ASSERT(this_variable->IsConst());
@@ -434,7 +434,7 @@ void StreamingConstantEvaluator::EvaluateSuperMethodInvocation() {
   ASSERT(!function.IsNull());
 
   // Read arguments, run the method and canonicalize the result.
-  const Object& result = RunMethodCall(function, &receiver);
+  const Object& result = RunMethodCall(position, function, &receiver);
   result_ ^= result.raw();
   result_ = H.Canonicalize(result_);
 
@@ -442,7 +442,7 @@ void StreamingConstantEvaluator::EvaluateSuperMethodInvocation() {
 }
 
 void StreamingConstantEvaluator::EvaluateStaticInvocation() {
-  builder_->ReadPosition();  // read position.
+  TokenPosition position = builder_->ReadPosition();  // read position.
   NameIndex procedure_reference =
       builder_->ReadCanonicalNameReference();  // read procedure reference.
 
@@ -459,13 +459,13 @@ void StreamingConstantEvaluator::EvaluateStaticInvocation() {
 
   // read positional and named parameters.
   const Object& result =
-      RunFunction(function, argument_count, NULL, type_arguments);
+      RunFunction(position, function, argument_count, NULL, type_arguments);
   result_ ^= result.raw();
   result_ = H.Canonicalize(result_);
 }
 
 void StreamingConstantEvaluator::EvaluateConstructorInvocationInternal() {
-  builder_->ReadPosition();  // read position.
+  TokenPosition position = builder_->ReadPosition();  // read position.
 
   NameIndex target = builder_->ReadCanonicalNameReference();  // read target.
   const Function& constructor =
@@ -506,8 +506,8 @@ void StreamingConstantEvaluator::EvaluateConstructorInvocationInternal() {
   }
 
   // read positional and named parameters.
-  const Object& result = RunFunction(constructor, argument_count, receiver,
-                                     type_arguments_argument);
+  const Object& result = RunFunction(position, constructor, argument_count,
+                                     receiver, type_arguments_argument);
 
   if (constructor.IsFactory()) {
     // Factories return the new object.
@@ -547,14 +547,14 @@ void StreamingConstantEvaluator::EvaluateLogicalExpression() {
 }
 
 void StreamingConstantEvaluator::EvaluateAsExpression() {
-  builder_->ReadPosition();
+  TokenPosition position = builder_->ReadPosition();
   const uint8_t flags = builder_->ReadFlags();
   const bool is_type_error = (flags & (1 << 0)) != 0;
 
   // Check that this AsExpression was inserted by the front-end.
   if (!is_type_error) {
     H.ReportError(
-        script_, TokenPosition::kNoSource,
+        script_, position,
         "explicit as operator is not permitted in constant expression");
   }
 
@@ -564,7 +564,7 @@ void StreamingConstantEvaluator::EvaluateAsExpression() {
   if (!type.IsInstantiated() || type.IsMalformed()) {
     const String& type_str = String::Handle(type.UserVisibleName());
     H.ReportError(
-        script_, TokenPosition::kNoSource,
+        script_, position,
         "Not a constant expression: right hand side of an implicit "
         "as-expression is expected to be an instantiated type, got %s",
         type_str.ToCString());
@@ -579,9 +579,10 @@ void StreamingConstantEvaluator::EvaluateAsExpression() {
         AbstractType::Handle(result_.GetType(Heap::kNew));
     const String& result_str = String::Handle(rtype.UserVisibleName());
     const String& type_str = String::Handle(type.UserVisibleName());
-    H.ReportError(script_, TokenPosition::kNoSource,
-                  "Not a constant expression: %s is not an instance of %s",
-                  result_str.ToCString(), type_str.ToCString());
+    H.ReportError(
+        script_, position,
+        "Not a constant expression: Type '%s' is not a subtype of type '%s'",
+        result_str.ToCString(), type_str.ToCString());
   }
 }
 
@@ -598,7 +599,7 @@ void StreamingConstantEvaluator::EvaluateConditionalExpression() {
 }
 
 void StreamingConstantEvaluator::EvaluateStringConcatenation() {
-  builder_->ReadPosition();                      // read position.
+  TokenPosition position = builder_->ReadPosition();  // read position.
   intptr_t length = builder_->ReadListLength();  // read list length.
 
   bool all_string = true;
@@ -629,7 +630,7 @@ void StreamingConstantEvaluator::EvaluateStringConcatenation() {
 
     // Run and canonicalize.
     const Object& result =
-        RunFunction(func, interpolate_arg, Array::null_array());
+        RunFunction(position, func, interpolate_arg, Array::null_array());
     result_ = H.Canonicalize(String::Cast(result));
   }
 }
@@ -808,6 +809,7 @@ void StreamingConstantEvaluator::EvaluateConstantExpression() {
 
 // This depends on being about to read the list of positionals on arguments.
 const Object& StreamingConstantEvaluator::RunFunction(
+    TokenPosition position,
     const Function& function,
     intptr_t argument_count,
     const Instance* receiver,
@@ -856,12 +858,14 @@ const Object& StreamingConstantEvaluator::RunFunction(
     arguments.SetAt(pos++, result_);
   }
 
-  return RunFunction(function, arguments, names);
+  return RunFunction(position, function, arguments, names);
 }
 
-const Object& StreamingConstantEvaluator::RunFunction(const Function& function,
-                                                      const Array& arguments,
-                                                      const Array& names) {
+const Object& StreamingConstantEvaluator::RunFunction(
+    const TokenPosition position,
+    const Function& function,
+    const Array& arguments,
+    const Array& names) {
   // We do not support generic methods yet.
   const int kTypeArgsLen = 0;
   const Array& args_descriptor = Array::Handle(
@@ -869,12 +873,14 @@ const Object& StreamingConstantEvaluator::RunFunction(const Function& function,
   const Object& result = Object::Handle(
       Z, DartEntry::InvokeFunction(function, arguments, args_descriptor));
   if (result.IsError()) {
-    H.ReportError(Error::Cast(result), "error evaluating constant constructor");
+    H.ReportError(Error::Cast(result), script_, position,
+                  "error evaluating constant constructor");
   }
   return result;
 }
 
 const Object& StreamingConstantEvaluator::RunMethodCall(
+    const TokenPosition position,
     const Function& function,
     const Instance* receiver) {
   intptr_t argument_count = builder_->ReadUInt();  // read arguments count.
@@ -884,7 +890,7 @@ const Object& StreamingConstantEvaluator::RunMethodCall(
   builder_->SkipListOfDartTypes();  // read list of types.
 
   // Run the method.
-  return RunFunction(function, argument_count, receiver, NULL);
+  return RunFunction(position, function, argument_count, receiver, NULL);
 }
 
 RawObject* StreamingConstantEvaluator::EvaluateConstConstructorCall(
@@ -1151,10 +1157,12 @@ void KernelFingerprintHelper::CalculateInitializerFingerprint() {
       CalculateExpressionFingerprint();  // read value.
       return;
     case kSuperInitializer:
+      ReadPosition();                       // read position.
       CalculateCanonicalNameFingerprint();  // read target_reference
       CalculateArgumentsFingerprint();      // read arguments.
       return;
     case kRedirectingInitializer:
+      ReadPosition();                       // read position.
       CalculateCanonicalNameFingerprint();  // read target_reference
       CalculateArgumentsFingerprint();      // read arguments.
       return;
@@ -1976,7 +1984,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
     intptr_t list_length = ReadListLength();  // read initializers list length.
     for (intptr_t i = 0; i < list_length; ++i) {
       Tag tag = ReadTag();
-      ReadByte();  // read isSynthetic flag.
+      bool isSynthetic = ReadBool();  // read isSynthetic flag.
       switch (tag) {
         case kInvalidInitializer:
           UNIMPLEMENTED();
@@ -1992,6 +2000,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
           break;
         }
         case kSuperInitializer: {
+          TokenPosition position = ReadPosition();  // read position.
           NameIndex canonical_target =
               ReadCanonicalNameReference();  // read target_reference.
 
@@ -2011,13 +2020,14 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
           const Function& target = Function::ZoneHandle(
               Z, H.LookupConstructorByKernelConstructor(
                      parent_klass, H.CanonicalNameString(canonical_target)));
-          instructions +=
-              StaticCall(TokenPosition::kNoSource, target, argument_count,
-                         argument_names, ICData::kStatic);
+          instructions += StaticCall(
+              isSynthetic ? TokenPosition::kNoSource : position, target,
+              argument_count, argument_names, ICData::kStatic);
           instructions += Drop();
           break;
         }
         case kRedirectingInitializer: {
+          TokenPosition position = ReadPosition();  // read position.
           NameIndex canonical_target =
               ReadCanonicalNameReference();  // read target_reference.
 
@@ -2034,9 +2044,9 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
 
           const Function& target = Function::ZoneHandle(
               Z, H.LookupConstructorByKernelConstructor(canonical_target));
-          instructions +=
-              StaticCall(TokenPosition::kNoSource, target, argument_count,
-                         argument_names, ICData::kStatic);
+          instructions += StaticCall(
+              isSynthetic ? TokenPosition::kNoSource : position, target,
+              argument_count, argument_names, ICData::kStatic);
           instructions += Drop();
           break;
         }

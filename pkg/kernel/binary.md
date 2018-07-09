@@ -131,7 +131,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 8;
+  UInt32 formatVersion = 9;
   Library[] libraries;
   UriSource sourceMap;
   List<CanonicalName> canonicalNames;
@@ -406,6 +406,7 @@ type FieldInitializer extends Initializer {
 type SuperInitializer extends Initializer {
   Byte tag = 9;
   Byte isSynthetic;
+  FileOffset fileOffset;
   ConstructorReference target;
   Arguments arguments;
 }
@@ -413,6 +414,7 @@ type SuperInitializer extends Initializer {
 type RedirectingInitializer extends Initializer {
   Byte tag = 10;
   Byte isSynthetic;
+  FileOffset fileOffset;
   ConstructorReference target;
   Arguments arguments;
 }

@@ -1932,10 +1932,12 @@ void KernelReaderHelper::SkipInitializer() {
       SkipExpression();              // read value.
       return;
     case kSuperInitializer:
+      ReadPosition();                // read position.
       SkipCanonicalNameReference();  // read target_reference.
       SkipArguments();               // read arguments.
       return;
     case kRedirectingInitializer:
+      ReadPosition();                // read position.
       SkipCanonicalNameReference();  // read target_reference.
       SkipArguments();               // read arguments.
       return;
