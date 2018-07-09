@@ -6,6 +6,8 @@
 # Kernel ASTs directly, that is, code in pkg/fasta/lib/src/kernel/ with
 # strong-mode enabled.
 
+async_nested: RuntimeError # Issue 33660
+
 DeltaBlue: Fail
 accessors: Fail
 argument_mismatch: Fail # Test assumes Dart 1.0 semantics

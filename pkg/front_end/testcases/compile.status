@@ -6,6 +6,8 @@
 # testing generating Kernel ASTs directly, that is, code in
 # pkg/fasta/lib/src/kernel/.
 
+async_nested: RuntimeError # Issue 33660
+
 rasta/unsupported_platform_library: RuntimeError # OK, this must report an error at runtime.
 
 DeltaBlue: Fail # Fasta and dartk disagree on static initializers

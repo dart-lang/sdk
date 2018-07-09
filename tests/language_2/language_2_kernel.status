@@ -697,6 +697,47 @@ type_error_test: RuntimeError # Issue 31402 (Variable declaration)
 # ===== dartk + vm status lines =====
 [ $compiler == dartk && $runtime == vm && $strong ]
 arithmetic2_test: RuntimeError # Throws CastError instead of TypeError
+async_nested_01_test: RuntimeError # Issue 33660
+async_nested_02_test: RuntimeError # Issue 33660
+async_nested_03_test: RuntimeError # Issue 33660
+async_nested_04_test: RuntimeError # Issue 33660
+async_nested_05_test: RuntimeError # Issue 33660
+async_nested_06_test: RuntimeError # Issue 33660
+async_nested_07_test: RuntimeError # Issue 33660
+async_nested_08_test: RuntimeError # Issue 33660
+async_nested_09_test: RuntimeError # Issue 33660
+async_nested_10_test: RuntimeError # Issue 33660
+async_nested_11_test: RuntimeError # Issue 33660
+async_nested_12_test: RuntimeError # Issue 33660
+async_nested_13_test: RuntimeError # Issue 33660
+async_nested_14_test: RuntimeError # Issue 33660
+async_nested_15_test: RuntimeError # Issue 33660
+async_nested_16_test: RuntimeError # Issue 33660
+async_nested_17_test: RuntimeError # Issue 33660
+async_nested_18_test: RuntimeError # Issue 33660
+async_nested_19_test: RuntimeError # Issue 33660
+async_nested_20_test: RuntimeError # Issue 33660
+async_nested_21_test: RuntimeError # Issue 33660
+async_nested_22_test: RuntimeError # Issue 33660
+async_nested_23_test: RuntimeError # Issue 33660
+async_nested_24_test: RuntimeError # Issue 33660
+async_nested_25_test: RuntimeError # Issue 33660
+async_nested_26_test: RuntimeError # Issue 33660
+async_nested_27_test: RuntimeError # Issue 33660
+async_nested_28_test: RuntimeError # Issue 33660
+async_nested_29_test: RuntimeError # Issue 33660
+async_nested_30_test: RuntimeError # Issue 33660
+async_nested_31_test: RuntimeError # Issue 33660
+async_nested_32_test: RuntimeError # Issue 33660
+async_nested_33_test: RuntimeError # Issue 33660
+async_nested_34_test: RuntimeError # Issue 33660
+async_nested_35_test: RuntimeError # Issue 33660
+async_nested_36_test: RuntimeError # Issue 33660
+async_nested_37_test: RuntimeError # Issue 33660
+async_nested_38_test: RuntimeError # Issue 33660
+async_nested_39_test: RuntimeError # Issue 33660
+async_nested_40_test: RuntimeError # Issue 33660
+async_nested_41_test: RuntimeError # Issue 33660
 async_star_cancel_while_paused_test: RuntimeError
 async_star_pause_test: Fail, OK
 async_star_test/02: RuntimeError # Issue 31402 (Invocation arguments)
