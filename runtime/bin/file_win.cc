@@ -282,7 +282,13 @@ File* File::Open(Namespace* namespc, const char* path, FileOpenMode mode) {
 }
 
 File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
-  Utf8ToWideScope uri_w(uri);
+  UriDecoder uri_decoder(uri);
+  if (uri_decoder.decoded() == NULL) {
+    SetLastError(ERROR_INVALID_NAME);
+    return NULL;
+  }
+
+  Utf8ToWideScope uri_w(uri_decoder.decoded());
   if (!UrlIsFileUrlW(uri_w.wide())) {
     return FileOpenW(uri_w.wide(), mode);
   }
