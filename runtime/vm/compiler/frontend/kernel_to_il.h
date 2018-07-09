@@ -690,7 +690,8 @@ class CatchBlock {
   intptr_t catch_try_index_;
 };
 
-RawObject* EvaluateMetadata(const Field& metadata_field);
+RawObject* EvaluateMetadata(const Field& metadata_field,
+                            bool is_annotations_offset);
 RawObject* BuildParameterDescriptor(const Function& function);
 void CollectTokenPositionsFor(const Script& script);
 

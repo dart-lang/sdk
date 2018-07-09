@@ -10626,8 +10626,9 @@ void Library::AddTypeParameterMetadata(const TypeParameter& param,
 }
 
 void Library::AddLibraryMetadata(const Object& tl_owner,
-                                 TokenPosition token_pos) const {
-  AddMetadata(tl_owner, Symbols::TopLevel(), token_pos);
+                                 TokenPosition token_pos,
+                                 intptr_t kernel_offset) const {
+  AddMetadata(tl_owner, Symbols::TopLevel(), token_pos, kernel_offset);
 }
 
 RawString* Library::MakeMetadataName(const Object& obj) const {
@@ -10695,7 +10696,8 @@ RawObject* Library::GetMetadata(const Object& obj) const {
   metadata = field.StaticValue();
   if (field.StaticValue() == Object::empty_array().raw()) {
     if (field.kernel_offset() > 0) {
-      metadata = kernel::EvaluateMetadata(field);
+      metadata = kernel::EvaluateMetadata(
+          field, /* is_annotations_offset = */ obj.IsLibrary());
     } else {
       metadata = Parser::ParseMetadata(field);
     }
@@ -12287,7 +12289,9 @@ void Namespace::set_metadata_field(const Field& value) const {
   StorePointer(&raw_ptr()->metadata_field_, value.raw());
 }
 
-void Namespace::AddMetadata(const Object& owner, TokenPosition token_pos) {
+void Namespace::AddMetadata(const Object& owner,
+                            TokenPosition token_pos,
+                            intptr_t kernel_offset) {
   ASSERT(Field::Handle(metadata_field()).IsNull());
   Field& field = Field::Handle(Field::NewTopLevel(Symbols::TopLevel(),
                                                   false,  // is_final
@@ -12296,6 +12300,7 @@ void Namespace::AddMetadata(const Object& owner, TokenPosition token_pos) {
   field.set_is_reflectable(false);
   field.SetFieldType(Object::dynamic_type());
   field.SetStaticValue(Array::empty_array(), true);
+  field.set_kernel_offset(kernel_offset);
   set_metadata_field(field);
 }
 
@@ -12311,7 +12316,12 @@ RawObject* Namespace::GetMetadata() const {
   Object& metadata = Object::Handle();
   metadata = field.StaticValue();
   if (field.StaticValue() == Object::empty_array().raw()) {
-    metadata = Parser::ParseMetadata(field);
+    if (field.kernel_offset() > 0) {
+      metadata =
+          kernel::EvaluateMetadata(field, /* is_annotations_offset = */ true);
+    } else {
+      metadata = Parser::ParseMetadata(field);
+    }
     if (metadata.IsArray()) {
       ASSERT(Array::Cast(metadata).raw() != Object::empty_array().raw());
       field.SetStaticValue(Array::Cast(metadata), true);

@@ -249,7 +249,8 @@ class KernelLoader : public ValueObject {
                                   const Function& function,
                                   const AbstractType& field_type);
 
-  void LoadLibraryImportsAndExports(Library* library);
+  void LoadLibraryImportsAndExports(Library* library,
+                                    const Class& toplevel_class);
 
   Library& LookupLibraryOrNull(NameIndex library);
   Library& LookupLibrary(NameIndex library);

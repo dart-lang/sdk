@@ -3849,7 +3849,8 @@ class Library : public Object {
                            TokenPosition token_pos,
                            intptr_t kernel_offset = 0) const;
   void AddLibraryMetadata(const Object& tl_owner,
-                          TokenPosition token_pos) const;
+                          TokenPosition token_pos,
+                          intptr_t kernel_offset = 0) const;
   void AddTypeParameterMetadata(const TypeParameter& param,
                                 TokenPosition token_pos) const;
   void CloneMetadataFrom(const Library& from_library,
@@ -4065,7 +4066,9 @@ class Namespace : public Object {
   RawArray* show_names() const { return raw_ptr()->show_names_; }
   RawArray* hide_names() const { return raw_ptr()->hide_names_; }
 
-  void AddMetadata(const Object& owner, TokenPosition token_pos);
+  void AddMetadata(const Object& owner,
+                   TokenPosition token_pos,
+                   intptr_t kernel_offset = 0);
   RawObject* GetMetadata() const;
 
   static intptr_t InstanceSize() {

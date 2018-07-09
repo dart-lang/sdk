@@ -2058,7 +2058,8 @@ JoinEntryInstr* BaseFlowGraphBuilder::BuildThrowNoSuchMethod() {
   return nsm;
 }
 
-RawObject* EvaluateMetadata(const Field& metadata_field) {
+RawObject* EvaluateMetadata(const Field& metadata_field,
+                            bool is_annotations_offset) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* thread = Thread::Current();
@@ -2076,7 +2077,7 @@ RawObject* EvaluateMetadata(const Field& metadata_field) {
         ExternalTypedData::Handle(Z, metadata_field.KernelData()),
         metadata_field.KernelDataProgramOffset(), &active_class);
     return streaming_flow_graph_builder.EvaluateMetadata(
-        metadata_field.kernel_offset());
+        metadata_field.kernel_offset(), is_annotations_offset);
   } else {
     Thread* thread = Thread::Current();
     Error& error = Error::Handle();

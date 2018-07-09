@@ -7283,26 +7283,34 @@ RawObject* StreamingFlowGraphBuilder::BuildAnnotations() {
   return metadata_values.raw();
 }
 
-RawObject* StreamingFlowGraphBuilder::EvaluateMetadata(intptr_t kernel_offset) {
+RawObject* StreamingFlowGraphBuilder::EvaluateMetadata(
+    intptr_t kernel_offset,
+    bool is_annotations_offset) {
   SetOffset(kernel_offset);
-  const Tag tag = PeekTag();
 
   ASSERT(active_class() != NULL);
 
-  if (tag == kClass) {
-    ClassHelper class_helper(this);
-    class_helper.ReadUntilExcluding(ClassHelper::kAnnotations);
-  } else if (tag == kProcedure) {
-    ProcedureHelper procedure_helper(this);
-    procedure_helper.ReadUntilExcluding(ProcedureHelper::kAnnotations);
-  } else if (tag == kField) {
-    FieldHelper field_helper(this);
-    field_helper.ReadUntilExcluding(FieldHelper::kAnnotations);
-  } else if (tag == kConstructor) {
-    ConstructorHelper constructor_helper(this);
-    constructor_helper.ReadUntilExcluding(ConstructorHelper::kAnnotations);
-  } else {
-    FATAL("No support for metadata on this type of kernel node\n");
+  // Library and LibraryDependency objects do not have a tag in kernel binary.
+  // Synthetic metadata fields corresponding to these objects keep kernel
+  // offset of annotations list instead of annotated object.
+  if (!is_annotations_offset) {
+    const Tag tag = PeekTag();
+
+    if (tag == kClass) {
+      ClassHelper class_helper(this);
+      class_helper.ReadUntilExcluding(ClassHelper::kAnnotations);
+    } else if (tag == kProcedure) {
+      ProcedureHelper procedure_helper(this);
+      procedure_helper.ReadUntilExcluding(ProcedureHelper::kAnnotations);
+    } else if (tag == kField) {
+      FieldHelper field_helper(this);
+      field_helper.ReadUntilExcluding(FieldHelper::kAnnotations);
+    } else if (tag == kConstructor) {
+      ConstructorHelper constructor_helper(this);
+      constructor_helper.ReadUntilExcluding(ConstructorHelper::kAnnotations);
+    } else {
+      FATAL("No support for metadata on this type of kernel node\n");
+    }
   }
 
   return BuildAnnotations();

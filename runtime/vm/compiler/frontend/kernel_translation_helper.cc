@@ -1304,7 +1304,10 @@ void LibraryDependencyHelper::ReadUntilExcluding(Field field) {
     }
       /* Falls through */
     case kAnnotations: {
-      helper_->SkipListOfExpressions();
+      annotation_count_ = helper_->ReadListLength();
+      for (intptr_t i = 0; i < annotation_count_; ++i) {
+        helper_->SkipExpression();  // read ith expression.
+      }
       if (++next_read_ == field) return;
     }
       /* Falls through */

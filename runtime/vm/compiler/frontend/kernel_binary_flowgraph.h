@@ -275,7 +275,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildStatementAt(intptr_t kernel_offset);
   RawObject* BuildParameterDescriptor(intptr_t kernel_offset);
   RawObject* BuildAnnotations();
-  RawObject* EvaluateMetadata(intptr_t kernel_offset);
+  RawObject* EvaluateMetadata(intptr_t kernel_offset,
+                              bool is_annotations_offset);
   void CollectTokenPositionsFor(
       intptr_t script_index,
       intptr_t initial_script_index,
