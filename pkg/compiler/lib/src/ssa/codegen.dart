@@ -2208,6 +2208,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     generateConstant(node.constant, node.sourceInformation);
 
     _registry.registerConstantUse(new ConstantUse.literal(node.constant));
+    if (node.constant.isType) {
+      TypeConstantValue typeConstant = node.constant;
+      _registry.registerTypeUse(
+          new TypeUse.constTypeLiteral(typeConstant.representedType));
+    }
   }
 
   visitNot(HNot node) {

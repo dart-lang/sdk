@@ -250,6 +250,7 @@ class TrivialRuntimeTypesChecksBuilder implements RuntimeTypesChecksBuilder {
         ..checkedInstance = true
         ..typeArgument = true
         ..checkedTypeArgument = true
+        ..typeLiteral = true
         ..functionType = _computeFunctionType(_elementEnvironment, cls,
             strongMode: options.strongMode);
       classUseMap[cls] = classUse;
@@ -340,10 +341,12 @@ abstract class RuntimeTypesSubstitutionsMixin
 
       bool isNativeClass = _closedWorld.nativeData.isNativeClass(cls);
       if (classUse.typeArgument ||
+          classUse.typeLiteral ||
           (isNativeClass && classUse.checkedInstance)) {
         Substitution substitution = computeSubstitution(cls, cls);
         // We need [cls] at runtime - even if [cls] is not instantiated. Either
-        // as a type argument or for an is-test if [cls] is native.
+        // as a type argument, for a type literal or for an is-test if [cls] is
+        // native.
         checks.add(new TypeCheck(cls, substitution, needsIs: isNativeClass));
       }
 
@@ -492,7 +495,7 @@ abstract class RuntimeTypesSubstitutionsMixin
 
     for (ClassEntity cls in classUseMap.keys) {
       ClassUse classUse = classUseMap[cls] ?? emptyUse;
-      if (classUse.instance || classUse.typeArgument) {
+      if (classUse.instance || classUse.typeArgument || classUse.typeLiteral) {
         // Add checks only for classes that are live either as instantiated
         // classes or type arguments passed at runtime.
         computeChecks(cls);
@@ -1935,54 +1938,69 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
     Set<FunctionType> checkedFunctionTypes = new Set<FunctionType>();
 
     TypeVisitor liveTypeVisitor =
-        new TypeVisitor(onClass: (ClassEntity cls, {bool inTypeArgument}) {
+        new TypeVisitor(onClass: (ClassEntity cls, {TypeVisitorState state}) {
       ClassUse classUse = classUseMap.putIfAbsent(cls, () => new ClassUse());
-      if (inTypeArgument) {
-        classUse.typeArgument = true;
+      switch (state) {
+        case TypeVisitorState.typeArgument:
+          classUse.typeArgument = true;
+          break;
+        case TypeVisitorState.typeLiteral:
+          classUse.typeLiteral = true;
+          break;
+        case TypeVisitorState.direct:
+          break;
       }
     });
 
     TypeVisitor testedTypeVisitor =
-        new TypeVisitor(onClass: (ClassEntity cls, {bool inTypeArgument}) {
+        new TypeVisitor(onClass: (ClassEntity cls, {TypeVisitorState state}) {
       ClassUse classUse = classUseMap.putIfAbsent(cls, () => new ClassUse());
-      if (inTypeArgument) {
-        classUse.typeArgument = true;
-        classUse.checkedTypeArgument = true;
-      } else {
-        classUse.checkedInstance = true;
+      switch (state) {
+        case TypeVisitorState.typeArgument:
+          classUse.typeArgument = true;
+          classUse.checkedTypeArgument = true;
+          break;
+        case TypeVisitorState.typeLiteral:
+          break;
+        case TypeVisitorState.direct:
+          classUse.checkedInstance = true;
+          break;
       }
     });
 
     codegenWorldBuilder.instantiatedTypes.forEach((InterfaceType type) {
-      liveTypeVisitor.visitType(type, false);
+      liveTypeVisitor.visitType(type, TypeVisitorState.direct);
       ClassUse classUse =
           classUseMap.putIfAbsent(type.element, () => new ClassUse());
       classUse.instance = true;
       FunctionType callType = _types.getCallType(type);
       if (callType != null) {
-        testedTypeVisitor.visitType(callType, false);
+        testedTypeVisitor.visitType(callType, TypeVisitorState.direct);
       }
     });
 
     for (FunctionEntity element
         in codegenWorldBuilder.staticFunctionsNeedingGetter) {
       FunctionType functionType = _elementEnvironment.getFunctionType(element);
-      testedTypeVisitor.visitType(functionType, false);
+      testedTypeVisitor.visitType(functionType, TypeVisitorState.direct);
     }
 
     for (FunctionEntity element in codegenWorldBuilder.closurizedMembers) {
       FunctionType functionType = _elementEnvironment.getFunctionType(element);
-      testedTypeVisitor.visitType(functionType, false);
+      testedTypeVisitor.visitType(functionType, TypeVisitorState.direct);
     }
 
     void processMethodTypeArguments(_, Set<DartType> typeArguments) {
       for (DartType typeArgument in typeArguments) {
-        liveTypeVisitor.visit(typeArgument, true);
+        liveTypeVisitor.visit(typeArgument, TypeVisitorState.typeArgument);
       }
     }
 
     codegenWorldBuilder.forEachStaticTypeArgument(processMethodTypeArguments);
     codegenWorldBuilder.forEachDynamicTypeArgument(processMethodTypeArguments);
+    codegenWorldBuilder.constTypeLiterals.forEach((DartType type) {
+      liveTypeVisitor.visitType(type, TypeVisitorState.typeLiteral);
+    });
 
     bool isFunctionChecked = false;
 
@@ -1993,7 +2011,7 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
         isFunctionChecked =
             isFunctionChecked || t.element == _commonElements.functionClass;
       }
-      testedTypeVisitor.visitType(t, false);
+      testedTypeVisitor.visitType(t, TypeVisitorState.direct);
     }
 
     explicitIsChecks.forEach(processCheckedType);
@@ -2057,7 +2075,7 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
             DartType bound =
                 _elementEnvironment.getTypeVariableBound(typeVariable.element);
             processCheckedType(bound);
-            liveTypeVisitor.visit(bound, true);
+            liveTypeVisitor.visit(bound, TypeVisitorState.typeArgument);
           }
         }
       }
@@ -2334,6 +2352,7 @@ class TypeRepresentationGenerator
   final NativeBasicData _nativeData;
   // If true, compile using strong mode.
   final bool _strongMode;
+
   OnVariableCallback onVariable;
   ShouldEncodeTypedefCallback shouldEncodeTypedef;
   Map<TypeVariableType, jsAst.Expression> typedefBindings;
@@ -2413,7 +2432,7 @@ class TypeRepresentationGenerator
   jsAst.Expression visitInterfaceType(InterfaceType type, Emitter emitter) {
     jsAst.Expression name = getJavaScriptClassName(type.element, emitter);
     jsAst.Expression result;
-    if (type.treatAsRaw) {
+    if ((!_strongMode && type.treatAsRaw) || type.typeArguments.isEmpty) {
       result = name;
     } else {
       // Visit all type arguments. This is done even for jsinterop classes to
@@ -2770,64 +2789,73 @@ class TypeCheck {
       'TypeCheck(cls=$cls,needsIs=$needsIs,substitution=$substitution)';
 }
 
-class TypeVisitor extends DartTypeVisitor<void, bool> {
+enum TypeVisitorState { direct, typeArgument, typeLiteral }
+
+class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
   Set<FunctionTypeVariable> _visitedFunctionTypeVariables =
       new Set<FunctionTypeVariable>();
 
-  final void Function(ClassEntity entity, {bool inTypeArgument}) onClass;
-  final void Function(TypeVariableEntity entity, {bool inTypeArgument})
+  final void Function(ClassEntity entity, {TypeVisitorState state}) onClass;
+  final void Function(TypeVariableEntity entity, {TypeVisitorState state})
       onTypeVariable;
-  final void Function(FunctionType type, {bool inTypeArgument}) onFunctionType;
+  final void Function(FunctionType type, {TypeVisitorState state})
+      onFunctionType;
 
   TypeVisitor({this.onClass, this.onTypeVariable, this.onFunctionType});
 
-  visitType(DartType type, bool inTypeArgument) =>
-      type.accept(this, inTypeArgument);
+  visitType(DartType type, TypeVisitorState state) => type.accept(this, state);
 
-  visitTypes(List<DartType> types, bool inTypeArgument) {
+  visitTypes(List<DartType> types, TypeVisitorState state) {
     for (DartType type in types) {
-      visitType(type, inTypeArgument);
+      visitType(type, state);
     }
   }
 
   @override
-  void visitTypeVariableType(TypeVariableType type, bool inTypeArgument) {
+  void visitTypeVariableType(TypeVariableType type, TypeVisitorState state) {
     if (onTypeVariable != null) {
-      onTypeVariable(type.element, inTypeArgument: inTypeArgument);
+      onTypeVariable(type.element, state: state);
     }
   }
 
   @override
-  visitInterfaceType(InterfaceType type, bool inTypeArgument) {
+  visitInterfaceType(InterfaceType type, TypeVisitorState state) {
     if (onClass != null) {
-      onClass(type.element, inTypeArgument: inTypeArgument);
+      onClass(type.element, state: state);
     }
-    visitTypes(type.typeArguments, true);
+    visitTypes(
+        type.typeArguments,
+        state == TypeVisitorState.typeLiteral
+            ? state
+            : TypeVisitorState.typeArgument);
   }
 
   @override
-  visitFunctionType(FunctionType type, bool inTypeArgument) {
+  visitFunctionType(FunctionType type, TypeVisitorState state) {
     if (onFunctionType != null) {
-      onFunctionType(type, inTypeArgument: inTypeArgument);
+      onFunctionType(type, state: state);
     }
     // Visit all nested types as type arguments; these types are not runtime
     // instances but runtime type representations.
-    visitType(type.returnType, true);
-    visitTypes(type.parameterTypes, true);
-    visitTypes(type.optionalParameterTypes, true);
-    visitTypes(type.namedParameterTypes, true);
+    state = state == TypeVisitorState.typeLiteral
+        ? state
+        : TypeVisitorState.typeArgument;
+    visitType(type.returnType, state);
+    visitTypes(type.parameterTypes, state);
+    visitTypes(type.optionalParameterTypes, state);
+    visitTypes(type.namedParameterTypes, state);
     _visitedFunctionTypeVariables.removeAll(type.typeVariables);
   }
 
   @override
-  visitTypedefType(TypedefType type, bool inTypeArgument) {
-    visitType(type.unaliased, inTypeArgument);
+  visitTypedefType(TypedefType type, TypeVisitorState state) {
+    visitType(type.unaliased, state);
   }
 
   @override
-  visitFunctionTypeVariable(FunctionTypeVariable type, bool inTypeArgument) {
+  visitFunctionTypeVariable(FunctionTypeVariable type, TypeVisitorState state) {
     if (_visitedFunctionTypeVariables.add(type)) {
-      visitType(type.bound, inTypeArgument);
+      visitType(type.bound, state);
     }
   }
 }
@@ -2914,6 +2942,17 @@ class ClassUse {
   ///
   bool checkedTypeArgument = false;
 
+  /// Whether the class is used in a constant type literal.
+  ///
+  /// For instance `A`, `B` and `C` in:
+  ///
+  ///     class A {}
+  ///     class B<T> {}
+  ///     class C {}
+  ///     main() => A == B<C>;
+  ///
+  bool typeLiteral = false;
+
   /// The function type of the class, if any.
   ///
   /// This is only set if the function type is needed at runtime. For instance,
@@ -2941,6 +2980,9 @@ class ClassUse {
     }
     if (checkedTypeArgument) {
       properties.add('checkedTypeArgument');
+    }
+    if (typeLiteral) {
+      properties.add('rtiValue');
     }
     if (functionType != null) {
       properties.add('functionType');

@@ -983,7 +983,8 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
     TypedefType typedefType = new TypedefType(
         typedef,
         new List<DartType>.filled(
-            node.typeParameters.length, const DynamicType()));
+            node.typeParameters.length, const DynamicType()),
+        getDartType(node.type));
     return _typedefs.register(
         typedef, new TypedefData(node, typedef, typedefType));
   }
@@ -1820,6 +1821,11 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
             elementMap.getTypeVariable(node.parameter));
       }
     }
+    if (node.parameter.parent is ir.Typedef) {
+      // Typedefs are only used in type literals so we never need their type
+      // variables.
+      return const DynamicType();
+    }
     return new TypeVariableType(elementMap.getTypeVariable(node.parameter));
   }
 
@@ -2319,7 +2325,8 @@ class JsKernelToElementMap extends KernelToElementMapBase
               new TypedefType(
                   newTypedef,
                   new List<DartType>.filled(
-                      data.node.typeParameters.length, const DynamicType()))));
+                      data.node.typeParameters.length, const DynamicType()),
+                  getDartType(data.node.type))));
       assert(newTypedef.typedefIndex == oldTypedef.typedefIndex);
     }
     for (int memberIndex = 0;

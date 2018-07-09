@@ -14,7 +14,7 @@ main() {
     // `true` if non-minified.
     // The signature of `id` is not otherwise needed so the instantiation
     // wrapper doesn't have a function type.
-    Expect.equals("Instantiation1", toString);
+    Expect.equals("Instantiation1<dynamic>", toString);
   }
   print(toString);
 }

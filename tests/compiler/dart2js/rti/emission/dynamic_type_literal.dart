@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-main() {
-  /*strong.checks=[],functionType,instance*/
-  /*omit.checks=[],instance*/
-  T id<T>(T t) => t;
-  int Function(int) x = id;
-  print("${x.runtimeType}");
+/*class: global#Type:checks=[],instance,typeLiteral*/
+
+import "package:expect/expect.dart";
+
+void main() {
+  Expect.isTrue(dynamic is Type);
+  Expect.isFalse(dynamic == Type);
 }

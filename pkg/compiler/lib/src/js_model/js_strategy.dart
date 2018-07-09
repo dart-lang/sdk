@@ -827,7 +827,8 @@ class TypeConverter extends DartTypeVisitor<DartType, Null> {
   DartType visitTypedefType(TypedefType type, _) {
     var element = toBackendEntity(type.element);
     var args = _visitList(type.typeArguments);
-    return new TypedefType(element, args);
+    var unaliased = convert(type.unaliased);
+    return new TypedefType(element, args, unaliased);
   }
 
   List<DartType> _visitList(List<DartType> list) =>

@@ -27,6 +27,7 @@ main(List<String> args) {
       dataDir,
       const RtiEmissionDataComputer(),
       args: args,
+      testOmit: true,
       skipForStrong: [
         // Dart 1 semantics:
         'call.dart',
@@ -50,6 +51,7 @@ class Tags {
   static const String checkedInstance = 'checkedInstance';
   static const String typeArgument = 'typeArgument';
   static const String checkedTypeArgument = 'checkedTypeArgument';
+  static const String typeLiteral = 'typeLiteral';
   static const String functionType = 'functionType';
 }
 
@@ -86,6 +88,9 @@ abstract class ComputeValueMixin {
       }
       if (classUse.checkedTypeArgument) {
         features.add(Tags.checkedTypeArgument);
+      }
+      if (classUse.typeLiteral) {
+        features.add(Tags.typeLiteral);
       }
     }
     return features.getText();

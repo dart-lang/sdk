@@ -10,6 +10,8 @@ test(o) => o is Function;
 main() {
   test(
       /*kernel.checks=[],functionType,instance*/
-      /*strong.checks=[],instance*/ () {});
+      /*strong.checks=[],instance*/
+      /*omit.checks=[],instance*/
+      () {});
   test(null);
 }

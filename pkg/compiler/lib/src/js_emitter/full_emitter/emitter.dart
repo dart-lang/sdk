@@ -167,7 +167,6 @@ class Emitter extends js_emitter.EmitterBase {
         _closedWorld.rtiNeed,
         compiler.backend.rtiEncoder,
         _closedWorld.allocatorAnalysis,
-        namer,
         task,
         this.constantReference,
         constantListGenerator);

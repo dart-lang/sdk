@@ -448,7 +448,6 @@ class BackendImpacts {
     return _typeVariableExpression ??= new BackendImpact(staticUses: [
       _commonElements.setRuntimeTypeInfo,
       _commonElements.getRuntimeTypeInfo,
-      _commonElements.runtimeTypeToString,
       _commonElements.createRuntimeType
     ], otherImpacts: [
       listValues,

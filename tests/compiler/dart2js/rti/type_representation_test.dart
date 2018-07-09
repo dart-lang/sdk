@@ -187,9 +187,11 @@ main() {
   // List<E>
   expect(elementEnvironment.getThisType(List_), '[$List_rep, $List_E_rep]');
   // List
-  expect(elementEnvironment.getRawType(List_), '$List_rep');
+  expect(elementEnvironment.getRawType(List_),
+      strongMode ? '[$List_rep,,]' : '$List_rep');
   // List<dynamic>
-  expect(instantiate(List_, [dynamic_]), '$List_rep');
+  expect(instantiate(List_, [dynamic_]),
+      strongMode ? '[$List_rep,,]' : '$List_rep');
   // List<int>
   expect(instantiate(List_, [int_]), '[$List_rep, $int_rep]');
   // List<Typedef1>
@@ -263,9 +265,11 @@ main() {
   expect(elementEnvironment.getThisType(Map_),
       '[$Map_rep, $Map_K_rep, $Map_V_rep]');
   // Map
-  expect(elementEnvironment.getRawType(Map_), '$Map_rep');
+  expect(elementEnvironment.getRawType(Map_),
+      strongMode ? '[$Map_rep,,,]' : '$Map_rep');
   // Map<dynamic,dynamic>
-  expect(instantiate(Map_, [dynamic_, dynamic_]), '$Map_rep');
+  expect(instantiate(Map_, [dynamic_, dynamic_]),
+      strongMode ? '[$Map_rep,,,]' : '$Map_rep');
   // Map<int,String>
   expect(
       instantiate(Map_, [int_, String_]), '[$Map_rep, $int_rep, $String_rep]');

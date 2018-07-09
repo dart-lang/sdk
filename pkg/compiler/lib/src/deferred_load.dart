@@ -361,6 +361,9 @@ abstract class DeferredLoadTask extends CompilerTask {
                 _collectTypeDependencies(type, dependencies);
               }
               break;
+            case TypeUseKind.RTI_VALUE:
+              failedAt(element, "Unexpected type use: $typeUse.");
+              break;
           }
         }, visitDynamicUse: (DynamicUse dynamicUse) {
           // TODO(johnniwinther): Use rti need data to skip unneeded type

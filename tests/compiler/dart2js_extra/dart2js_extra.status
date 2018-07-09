@@ -101,6 +101,7 @@ generic_method_dynamic_type_test: Fail, OK # Tests expected output of Type.toStr
 mirrors_used_warning_test/minif: Fail, OK # Tests warning that minified code will be broken.
 runtime_type_test: Fail, OK # Tests extected output of Type.toString().
 to_string_test: Fail # Issue 7179.
+type_literal_test: Fail, OK # Tests expected output of Type.toString().
 typevariable_typedef_test: Fail, OK # Tests expected output of Type.toString().
 
 [ $compiler == dart2js && !$strong ]

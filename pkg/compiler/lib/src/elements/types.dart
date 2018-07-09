@@ -264,8 +264,9 @@ class InterfaceType extends DartType {
 class TypedefType extends DartType {
   final TypedefEntity element;
   final List<DartType> typeArguments;
+  final FunctionType unaliased;
 
-  TypedefType(this.element, this.typeArguments);
+  TypedefType(this.element, this.typeArguments, this.unaliased);
 
   bool get isTypedef => true;
 
@@ -291,9 +292,11 @@ class TypedefType extends DartType {
     }
     List<DartType> newTypeArguments =
         _substTypes(typeArguments, arguments, parameters);
-    if (!identical(typeArguments, newTypeArguments)) {
+    FunctionType newUnaliased = unaliased.subst(arguments, parameters);
+    if (!identical(typeArguments, newTypeArguments) ||
+        !identical(unaliased, newUnaliased)) {
       // Create a new type only if necessary.
-      return new TypedefType(element, newTypeArguments);
+      return new TypedefType(element, newTypeArguments, newUnaliased);
     }
     return this;
   }

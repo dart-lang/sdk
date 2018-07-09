@@ -2853,14 +2853,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         dartType, sourceElement,
         sourceInformation: sourceInformation);
     _pushStaticInvocation(
-        _commonElements.runtimeTypeToString,
-        <HInstruction>[value],
-        abstractValueDomain.stringType,
-        const <DartType>[],
-        sourceInformation: sourceInformation);
-    _pushStaticInvocation(
         _commonElements.createRuntimeType,
-        <HInstruction>[pop()],
+        <HInstruction>[value],
         _typeInferenceMap.getReturnTypeOf(_commonElements.createRuntimeType),
         const <DartType>[],
         sourceInformation: sourceInformation);

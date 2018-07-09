@@ -380,6 +380,9 @@ class ResolutionEnqueuer extends EnqueuerImpl {
           _worldBuilder.registerTypeVariableTypeLiteral(type);
         }
         break;
+      case TypeUseKind.RTI_VALUE:
+        failedAt(CURRENT_ELEMENT_SPANNABLE, "Unexpected type use: $typeUse.");
+        break;
     }
   }
 

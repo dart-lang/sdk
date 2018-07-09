@@ -77,6 +77,9 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
   /// an ordering that is less sensitive to perturbations in the source code.
   List<ConstantValue> getConstantsForEmission(
       [Comparator<ConstantValue> preSortCompare]);
+
+  /// Returns the types that are live as constant type literals.
+  Iterable<DartType> get constTypeLiterals;
 }
 
 class CodegenWorldBuilderImpl extends WorldBuilderBase
@@ -161,6 +164,8 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
 
   final KernelToWorldBuilder _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
+
+  final Set<DartType> _liveTypeArguments = new Set<DartType>();
 
   CodegenWorldBuilderImpl(
       this._elementMap,
@@ -688,4 +693,10 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
       f(member);
     });
   }
+
+  void registerTypeArgument(DartType type) {
+    _liveTypeArguments.add(type);
+  }
+
+  Iterable<DartType> get constTypeLiterals => _liveTypeArguments;
 }

@@ -25,12 +25,16 @@ main() {
       C<String, String> x = (new C<C<int, String>, String>()) as dynamic;
     } catch (e) {
       String nameOfC = (C).toString();
+      if (nameOfC.contains('<')) {
+        nameOfC = nameOfC.substring(0, nameOfC.indexOf('<'));
+      }
       String nameOfInt = (int).toString();
       String nameOfString = (String).toString();
       String expected =
-          '$nameOfC<$nameOfC<$nameOfInt, $nameOfString>, $nameOfString>';
+          "'$nameOfC<$nameOfC<$nameOfInt, $nameOfString>, $nameOfString>'";
       Expect.isTrue(e.toString().contains(expected),
-          'Expected "$expected" in the message');
+          'Expected "$expected" in the message: $e');
+      print(e);
       caught = true;
     }
     Expect.isTrue(caught);

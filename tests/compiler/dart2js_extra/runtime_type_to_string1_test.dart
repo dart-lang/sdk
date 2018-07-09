@@ -11,6 +11,11 @@ class Class<T> {
 }
 
 main() {
-  Expect.equals((Class).toString(), new Class().runtimeType.toString());
-  Expect.equals((Class).toString(), new Class<int>().runtimeType.toString());
+  // Since the type argument of `Class` is only needed for
+  // `.runtimeType.toString()`, it is not reified, and the toString is therefore
+  // only 'Class'.
+  String className = (Class).toString();
+  className = className.substring(0, className.indexOf('<'));
+  Expect.equals(className, new Class().runtimeType.toString());
+  Expect.equals(className, new Class<int>().runtimeType.toString());
 }

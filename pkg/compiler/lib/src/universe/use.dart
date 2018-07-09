@@ -582,6 +582,7 @@ enum TypeUseKind {
   NATIVE_INSTANTIATION,
   IMPLICIT_CAST,
   PARAMETER_CHECK,
+  RTI_VALUE,
 }
 
 /// Use of a [DartType].
@@ -628,6 +629,9 @@ class TypeUse {
         break;
       case TypeUseKind.PARAMETER_CHECK:
         sb.write('param:');
+        break;
+      case TypeUseKind.RTI_VALUE:
+        sb.write('typeArg:');
         break;
     }
     sb.write(type);
@@ -690,6 +694,11 @@ class TypeUse {
   /// [type] used in a native instantiation.
   factory TypeUse.nativeInstantiation(InterfaceType type) {
     return new TypeUse.internal(type, TypeUseKind.NATIVE_INSTANTIATION);
+  }
+
+  /// [type] used as a direct RTI value.
+  factory TypeUse.constTypeLiteral(DartType type) {
+    return new TypeUse.internal(type, TypeUseKind.RTI_VALUE);
   }
 
   bool operator ==(other) {

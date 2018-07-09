@@ -16,7 +16,6 @@ import '../universe/world_builder.dart';
 import 'allocator_analysis.dart' show JAllocatorAnalysis;
 import 'constant_system_javascript.dart';
 import 'js_backend.dart';
-import 'namer.dart';
 import 'runtime_types.dart';
 
 typedef jsAst.Expression _ConstantReferenceGenerator(ConstantValue constant);
@@ -42,7 +41,6 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   final RuntimeTypesNeed _rtiNeed;
   final RuntimeTypesEncoder _rtiEncoder;
   final JAllocatorAnalysis _allocatorAnalysis;
-  final Namer _namer;
   final CodeEmitterTask _task;
   final _ConstantReferenceGenerator constantReferenceGenerator;
   final _ConstantListGenerator makeConstantList;
@@ -59,7 +57,6 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
       this._rtiNeed,
       this._rtiEncoder,
       this._allocatorAnalysis,
-      this._namer,
       this._task,
       this.constantReferenceGenerator,
       this.makeConstantList);
@@ -280,19 +277,21 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
 
   @override
   jsAst.Expression visitType(TypeConstantValue constant, [_]) {
-    DartType type = constant.representedType;
-    jsAst.Name typeName;
-    Entity element;
-    if (type is InterfaceType) {
-      element = type.element;
-    } else if (type is TypedefType) {
-      element = type.element;
-    } else {
-      assert(type is DynamicType);
+    DartType type = constant.representedType.unaliased;
+
+    jsAst.Expression unexpected(TypeVariableType _variable) {
+      TypeVariableType variable = _variable;
+      throw failedAt(
+          NO_LOCATION_SPANNABLE,
+          "Unexpected type variable '${variable}'"
+          " in constant '${constant.toDartText()}'");
     }
-    typeName = _namer.runtimeTypeName(element);
-    return new jsAst.Call(getHelperProperty(_commonElements.createRuntimeType),
-        [js.quoteName(typeName)]);
+
+    jsAst.Expression rti =
+        _rtiEncoder.getTypeRepresentation(_emitter, type, unexpected);
+
+    return new jsAst.Call(
+        getHelperProperty(_commonElements.createRuntimeType), [rti]);
   }
 
   @override
