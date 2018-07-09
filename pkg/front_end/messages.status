@@ -13,6 +13,7 @@ AccessError/example: Fail
 AmbiguousSupertypes/analyzerCode: Fail
 AmbiguousSupertypes/example: Fail
 AnnotationOnEnumConstant/example: Fail
+ArgumentTypeNotAssignable/example: Fail
 AssertAsExpression/analyzerCode: Fail
 AssertAsExpression/example: Fail
 AssertExtraneousArgument/analyzerCode: Fail

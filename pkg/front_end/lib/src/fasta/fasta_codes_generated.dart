@@ -133,6 +133,46 @@ Message _withArgumentsAmbiguousSupertypes(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        DartType _type,
+        DartType
+            _type2)> templateArgumentTypeNotAssignable = const Template<
+        Message Function(DartType _type,
+            DartType _type2)>(
+    messageTemplate:
+        r"""The argument type '#type' can't be assigned to the parameter type '#type2'.""",
+    tipTemplate:
+        r"""Try changing the type of the parameter, or casting the argument to '#type2'.""",
+    withArguments: _withArgumentsArgumentTypeNotAssignable);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeArgumentTypeNotAssignable =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+        "ArgumentTypeNotAssignable", templateArgumentTypeNotAssignable,
+        analyzerCode: "ARGUMENT_TYPE_NOT_ASSIGNABLE", dart2jsCode: "*ignored*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsArgumentTypeNotAssignable(
+    DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeArgumentTypeNotAssignable,
+      message:
+          """The argument type '${type}' can't be assigned to the parameter type '${type2}'.""",
+      tip: """Try changing the type of the parameter, or casting the argument to '${type2}'.""",
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
         int
             codePoint)> templateAsciiControlCharacter = const Template<
         Message Function(int codePoint)>(

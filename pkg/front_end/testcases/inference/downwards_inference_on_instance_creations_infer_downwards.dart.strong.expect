@@ -65,18 +65,18 @@ Change the type of the object being constructed or the context in which it is us
                                                  ^" in let final dynamic #t4 = new self::A::named<dynamic, dynamic>(3, "hello") in null;
   }
   {
-    self::A<core::int, core::String> a0 = new self::A::•<core::int, core::String>(let dynamic _ = null in let final dynamic #t5 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:53:48: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
-Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+    self::A<core::int, core::String> a0 = new self::A::•<core::int, core::String>(let dynamic _ = null in let final dynamic #t5 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:53:48: Error: The argument type 'dart.core::String' can't be assigned to the parameter type 'dart.core::int'.
+Try changing the type of the parameter, or casting the argument to 'dart.core::int'.
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\",
-                                               ^" in let final dynamic #t6 = "hello" in null, let dynamic _ = null in let final dynamic #t7 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:54:48: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
-Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+                                               ^" in let final dynamic #t6 = "hello" in null, let dynamic _ = null in let final dynamic #t7 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:54:48: Error: The argument type 'dart.core::int' can't be assigned to the parameter type 'dart.core::String'.
+Try changing the type of the parameter, or casting the argument to 'dart.core::String'.
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 3);
                                                ^" in let final dynamic #t8 = 3 in null);
-    self::A<core::int, core::String> a1 = new self::A::named<core::int, core::String>(let dynamic _ = null in let final dynamic #t9 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:56:48: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
-Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+    self::A<core::int, core::String> a1 = new self::A::named<core::int, core::String>(let dynamic _ = null in let final dynamic #t9 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:56:48: Error: The argument type 'dart.core::String' can't be assigned to the parameter type 'dart.core::int'.
+Try changing the type of the parameter, or casting the argument to 'dart.core::int'.
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\",
-                                               ^" in let final dynamic #t10 = "hello" in null, let dynamic _ = null in let final dynamic #t11 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:57:48: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
-Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+                                               ^" in let final dynamic #t10 = "hello" in null, let dynamic _ = null in let final dynamic #t11 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:57:48: Error: The argument type 'dart.core::int' can't be assigned to the parameter type 'dart.core::String'.
+Try changing the type of the parameter, or casting the argument to 'dart.core::String'.
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 3);
                                                ^" in let final dynamic #t12 = 3 in null);
   }
@@ -95,18 +95,18 @@ Try changing the type of the left hand side, or casting the right hand side to '
                                               ^" in let final dynamic #t16 = new self::B::named<dynamic, dynamic>("hello", 3) in null;
   }
   {
-    self::A<core::int, core::String> a0 = new self::B::•<core::String, core::int>(let dynamic _ = null in let final dynamic #t17 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:72:48: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
-Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+    self::A<core::int, core::String> a0 = new self::B::•<core::String, core::int>(let dynamic _ = null in let final dynamic #t17 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:72:48: Error: The argument type 'dart.core::int' can't be assigned to the parameter type 'dart.core::String'.
+Try changing the type of the parameter, or casting the argument to 'dart.core::String'.
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 3,
-                                               ^" in let final dynamic #t18 = 3 in null, let dynamic _ = null in let final dynamic #t19 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:73:48: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
-Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+                                               ^" in let final dynamic #t18 = 3 in null, let dynamic _ = null in let final dynamic #t19 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:73:48: Error: The argument type 'dart.core::String' can't be assigned to the parameter type 'dart.core::int'.
+Try changing the type of the parameter, or casting the argument to 'dart.core::int'.
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\");
                                                ^" in let final dynamic #t20 = "hello" in null);
-    self::A<core::int, core::String> a1 = new self::B::named<core::String, core::int>(let dynamic _ = null in let final dynamic #t21 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:75:48: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
-Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+    self::A<core::int, core::String> a1 = new self::B::named<core::String, core::int>(let dynamic _ = null in let final dynamic #t21 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:75:48: Error: The argument type 'dart.core::int' can't be assigned to the parameter type 'dart.core::String'.
+Try changing the type of the parameter, or casting the argument to 'dart.core::String'.
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 3,
-                                               ^" in let final dynamic #t22 = 3 in null, let dynamic _ = null in let final dynamic #t23 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:76:48: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
-Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+                                               ^" in let final dynamic #t22 = 3 in null, let dynamic _ = null in let final dynamic #t23 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:76:48: Error: The argument type 'dart.core::String' can't be assigned to the parameter type 'dart.core::int'.
+Try changing the type of the parameter, or casting the argument to 'dart.core::int'.
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\");
                                                ^" in let final dynamic #t24 = "hello" in null);
   }
@@ -125,12 +125,12 @@ Try changing the type of the left hand side, or casting the right hand side to '
                                                       ^" in let final dynamic #t28 = new self::C::named<dynamic>(3) in null;
   }
   {
-    self::A<core::int, core::int> a0 = new self::C::•<core::int>(let dynamic _ = null in let final dynamic #t29 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:88:48: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
-Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+    self::A<core::int, core::int> a0 = new self::C::•<core::int>(let dynamic _ = null in let final dynamic #t29 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:88:48: Error: The argument type 'dart.core::String' can't be assigned to the parameter type 'dart.core::int'.
+Try changing the type of the parameter, or casting the argument to 'dart.core::int'.
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\");
                                                ^" in let final dynamic #t30 = "hello" in null);
-    self::A<core::int, core::int> a1 = new self::C::named<core::int>(let dynamic _ = null in let final dynamic #t31 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:90:48: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
-Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+    self::A<core::int, core::int> a1 = new self::C::named<core::int>(let dynamic _ = null in let final dynamic #t31 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:90:48: Error: The argument type 'dart.core::String' can't be assigned to the parameter type 'dart.core::int'.
+Try changing the type of the parameter, or casting the argument to 'dart.core::int'.
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\");
                                                ^" in let final dynamic #t32 = "hello" in null);
   }
@@ -149,12 +149,12 @@ Try changing the type of the left hand side, or casting the right hand side to '
                                               ^" in let final dynamic #t36 = new self::D::named<dynamic, dynamic>("hello") in null;
   }
   {
-    self::A<core::int, core::String> a0 = new self::D::•<dynamic, core::String>(let dynamic _ = null in let final dynamic #t37 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:105:48: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
-Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+    self::A<core::int, core::String> a0 = new self::D::•<dynamic, core::String>(let dynamic _ = null in let final dynamic #t37 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:105:48: Error: The argument type 'dart.core::int' can't be assigned to the parameter type 'dart.core::String'.
+Try changing the type of the parameter, or casting the argument to 'dart.core::String'.
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 3);
                                                ^" in let final dynamic #t38 = 3 in null);
-    self::A<core::int, core::String> a1 = new self::D::named<dynamic, core::String>(let dynamic _ = null in let final dynamic #t39 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:107:48: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
-Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+    self::A<core::int, core::String> a1 = new self::D::named<dynamic, core::String>(let dynamic _ = null in let final dynamic #t39 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:107:48: Error: The argument type 'dart.core::int' can't be assigned to the parameter type 'dart.core::String'.
+Try changing the type of the parameter, or casting the argument to 'dart.core::String'.
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 3);
                                                ^" in let final dynamic #t40 = 3 in null);
   }
@@ -172,15 +172,15 @@ Try changing the type of the left hand side, or casting the right hand side to '
                                                      ^" in let final dynamic #t44 = 3 in null]);
     self::A<core::int, core::String> a2 = new self::F::named<core::int, core::String>(3, "hello", 3, "hello");
     self::A<core::int, core::String> a3 = new self::F::named<core::int, core::String>(3, "hello");
-    self::A<core::int, core::String> a4 = new self::F::named<core::int, core::String>(3, "hello", let dynamic _ = null in let final dynamic #t45 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:129:48: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
-Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+    self::A<core::int, core::String> a4 = new self::F::named<core::int, core::String>(3, "hello", let dynamic _ = null in let final dynamic #t45 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:129:48: Error: The argument type 'dart.core::String' can't be assigned to the parameter type 'dart.core::int'.
+Try changing the type of the parameter, or casting the argument to 'dart.core::int'.
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\",
-                                               ^" in let final dynamic #t46 = "hello" in null, let dynamic _ = null in let final dynamic #t47 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:130:48: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
-Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+                                               ^" in let final dynamic #t46 = "hello" in null, let dynamic _ = null in let final dynamic #t47 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:130:48: Error: The argument type 'dart.core::int' can't be assigned to the parameter type 'dart.core::String'.
+Try changing the type of the parameter, or casting the argument to 'dart.core::String'.
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 3);
                                                ^" in let final dynamic #t48 = 3 in null);
-    self::A<core::int, core::String> a5 = new self::F::named<core::int, core::String>(3, "hello", let dynamic _ = null in let final dynamic #t49 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:134:48: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
-Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+    self::A<core::int, core::String> a5 = new self::F::named<core::int, core::String>(3, "hello", let dynamic _ = null in let final dynamic #t49 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_instance_creations_infer_downwards.dart:134:48: Error: The argument type 'dart.core::String' can't be assigned to the parameter type 'dart.core::int'.
+Try changing the type of the parameter, or casting the argument to 'dart.core::int'.
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\");
                                                ^" in let final dynamic #t50 = "hello" in null);
   }
