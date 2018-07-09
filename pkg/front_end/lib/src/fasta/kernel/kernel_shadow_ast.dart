@@ -2819,19 +2819,22 @@ class InvalidConstructorInvocationJudgment extends SyntheticExpressionJudgment {
       kernel.Expression desugared, this.constructor, this.arguments)
       : super(desugared);
 
+  ArgumentsJudgment get argumentJudgments => arguments;
+
   @override
   Expression infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    for (var argument in arguments.positional) {
-      inferrer.inferExpression(factory, argument, const UnknownType(), true);
-    }
-    for (var argument in arguments.named) {
-      inferrer.inferExpression(
-          factory, argument.value, const UnknownType(), true);
-    }
-    inferredType = constructor.enclosingClass.rawType;
+    var calleeType = constructor.function.functionType;
+    var inferenceResult = inferrer.inferInvocation(
+        factory,
+        typeContext,
+        fileOffset,
+        calleeType,
+        computeConstructorReturnType(constructor),
+        argumentJudgments);
+    this.inferredType = inferenceResult.type;
     inferrer.listener.constructorInvocation(
         this, arguments.fileOffset, constructor, inferredType);
     return super.infer(inferrer, factory, typeContext);

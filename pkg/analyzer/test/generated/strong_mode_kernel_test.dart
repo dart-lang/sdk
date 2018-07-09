@@ -37,20 +37,6 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
 
   @override
   @failingTest
-  test_async_star_method_propagation() async {
-    // Bad state: No type information for Stream at 124
-    await super.test_async_star_method_propagation();
-  }
-
-  @override
-  @failingTest
-  test_async_star_propagation() async {
-    // Bad state: No type information for Stream at 105
-    await super.test_async_star_propagation();
-  }
-
-  @override
-  @failingTest
   test_constrainedByBounds2() async {
     // Expected: InterfaceTypeImpl:<int>
     await super.test_constrainedByBounds2();

@@ -2971,6 +2971,74 @@ const bool b = a;
     assertType(aRef, 'int');
   }
 
+  test_invalid_instanceCreation_abstract() async {
+    addTestFile(r'''
+abstract class C<T> {
+  C(T a);
+  C.named(T a);
+  C.named2();
+}
+var a = 0;
+var b = true;
+main() {
+  new C(a);
+  new C.named(b);
+  new C<double>.named2();
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var c = findElement.class_('C');
+
+    {
+      var creation = findNode.instanceCreation('new C(a)');
+      assertType(creation, 'C<int>');
+
+      ConstructorName constructorName = creation.constructorName;
+      expect(constructorName.name, isNull);
+
+      TypeName type = constructorName.type;
+      expect(type.typeArguments, isNull);
+      assertElement(type.name, c);
+      assertType(type.name, useCFE ? 'C<int>' : 'C<dynamic>');
+
+      SimpleIdentifier aRef = creation.argumentList.arguments[0];
+      assertElement(aRef, findElement.topGet('a'));
+      assertType(aRef, 'int');
+    }
+
+    {
+      var creation = findNode.instanceCreation('new C.named(b)');
+      assertType(creation, 'C<bool>');
+
+      ConstructorName constructorName = creation.constructorName;
+      expect(constructorName.name.name, 'named');
+
+      TypeName type = constructorName.type;
+      expect(type.typeArguments, isNull);
+      assertElement(type.name, c);
+      assertType(type.name, useCFE ? 'C<bool>' : 'C<dynamic>');
+
+      SimpleIdentifier bRef = creation.argumentList.arguments[0];
+      assertElement(bRef, findElement.topGet('b'));
+      assertType(bRef, 'bool');
+    }
+
+    {
+      var creation = findNode.instanceCreation('new C<double>.named2()');
+      assertType(creation, 'C<double>');
+
+      ConstructorName constructorName = creation.constructorName;
+      expect(constructorName.name.name, 'named2');
+
+      TypeName type = constructorName.type;
+      assertTypeArguments(type.typeArguments, [doubleType]);
+      assertElement(type.name, c);
+      assertType(type.name, 'C<double>');
+    }
+  }
+
   test_invalid_methodInvocation_simpleIdentifier() async {
     addTestFile(r'''
 int foo = 0;
@@ -7551,6 +7619,15 @@ class FindElement {
   FindElement(this.result);
 
   CompilationUnitElement get unitElement => result.unit.element;
+
+  ClassElement class_(String name) {
+    for (var class_ in unitElement.types) {
+      if (class_.name == name) {
+        return class_;
+      }
+    }
+    fail('Not found class: $name');
+  }
 
   FieldElement field(String name) {
     for (var type in unitElement.types) {

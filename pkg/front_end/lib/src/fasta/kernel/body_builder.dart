@@ -2966,13 +2966,17 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         // Not found. Reported below.
       } else if (b.isConstructor) {
         if (type.isAbstract) {
-          return new SyntheticExpressionJudgment(evaluateArgumentsBefore(
-              arguments,
-              buildAbstractClassInstantiationError(
-                  fasta.templateAbstractClassInstantiation
-                      .withArguments(type.name),
-                  type.name,
-                  nameToken.charOffset)));
+          return new InvalidConstructorInvocationJudgment(
+              evaluateArgumentsBefore(
+                  arguments,
+                  buildAbstractClassInstantiationError(
+                      fasta.templateAbstractClassInstantiation
+                          .withArguments(type.name),
+                      type.name,
+                      nameToken.charOffset)),
+              target,
+              arguments)
+            ..fileOffset = charOffset;
         }
       }
       if (target is Constructor ||
