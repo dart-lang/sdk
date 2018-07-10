@@ -252,7 +252,7 @@ class _ConstantEvaluator extends ConstantEvaluator {
         if (value != null) return canonicalize(StringConstant(value));
         return defaultArg ?? nullConstant;
       } else if (targetClass == coreTypes.intClass) {
-        var intValue = int.parse(value ?? '', onError: (_) => null);
+        var intValue = int.tryParse(value ?? '');
         if (intValue != null) return canonicalize(IntConstant(intValue));
         return defaultArg ?? nullConstant;
       } else if (targetClass == coreTypes.boolClass) {

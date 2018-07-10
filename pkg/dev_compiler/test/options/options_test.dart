@@ -37,7 +37,7 @@ main() {
     var compiler = ModuleCompiler(options, analysisRoot: optionsDir);
     var context = compiler.context;
     var sdk = context.sourceFactory.dartSdk;
-    expect(sdk, isInstanceOf<SummaryBasedDartSdk>());
+    expect(sdk, const TypeMatcher<SummaryBasedDartSdk>());
     var processors = context.analysisOptions.errorProcessors;
     expect(processors, hasLength(1));
     expect(processors[0].code, CompileTimeErrorCode.UNDEFINED_CLASS.name);

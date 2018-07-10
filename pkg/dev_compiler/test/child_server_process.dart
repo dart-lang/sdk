@@ -52,8 +52,7 @@ class ChildServerProcess {
     var lastError;
     for (int port = fromPort; port <= toPort; port++) {
       try {
-        await (await ServerSocket.bind(InternetAddress.ANY_IP_V4, port))
-            .close();
+        await (await ServerSocket.bind(InternetAddress.anyIPv4, port)).close();
         return port;
       } catch (e) {
         lastError = e;
