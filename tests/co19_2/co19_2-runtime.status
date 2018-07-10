@@ -5,7 +5,7 @@
 [ $runtime != none && !$checked ]
 LibTest/async/Future/catchError_A03_t05: RuntimeError
 
-[ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm || $compiler == fasta]
+[ $compiler == fasta || $runtime == dart_precompiled || $runtime == flutter || $runtime == vm ]
 LayoutTests/fast/*: SkipByDesign # DOM not supported on VM.
 LibTest/html/*: SkipByDesign # dart:html not supported on VM.
 WebPlatformTest/*: SkipByDesign # dart:html not supported on VM.
