@@ -597,11 +597,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   Iterable<E> followedBy(Iterable<E> other) =>
       FollowedByIterable<E>.firstEfficient(this, other);
 
-  // TODO(leafp): Restore this functionality once generic methods are enabled
-  // in the VM and dart2js.
-  // https://github.com/dart-lang/sdk/issues/32463
-  Iterable<T> whereType<T>() =>
-      throw UnimplementedError("whereType is not yet supported");
+  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
 
   List<E> operator +(List<E> other) {
     int totalLength = this.length + other.length;

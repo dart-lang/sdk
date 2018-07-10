@@ -1,7 +1,6 @@
 # Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
-iterable_where_type_test: RuntimeError # Disabled.  Issue 32463
 maps_test: Skip # Maps class no longer exists
 
 [ $compiler == app_jitk ]
@@ -23,7 +22,6 @@ num_sign_test: Crash, Pass # Issue 31768
 [ $compiler == dart2js ]
 bigint_from_test: RuntimeError # Issue 32589
 date_time11_test: RuntimeError, Pass # Fails when US is on winter time, issue 31285.
-iterable_where_type_test: RuntimeError # issue 31718
 list_unmodifiable_test: Pass, RuntimeError # Issue 28712
 
 [ $compiler != dartdevc ]
@@ -122,6 +120,7 @@ symbol_test/03: MissingCompileTimeError
 
 [ !$strong ]
 cast_test: SkipByDesign # Uses generic method parameters.
+iterable_where_type_test: SkipByDesign
 regress_33166_test: SkipByDesign # Not a Dart 1 test
 
 [ $arch == simarmv5te && ($runtime == dart_precompiled || $runtime == vm) ]

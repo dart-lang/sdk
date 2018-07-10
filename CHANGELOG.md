@@ -30,6 +30,10 @@
 #### Other Tools
 
 ### Core library changes
+* `dart:collection`, `dart:core`:
+  * Re-enable `Iterable.whereType`. The method was disabled because code
+    was still being compiled in Dart 1 mode, and the function was
+    error-prone when used in that code.
 
 ## 2.0.0-dev.67.0
 
