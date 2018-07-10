@@ -99,6 +99,7 @@ kernel/test/*: RuntimeError, OK # Issue 26103. Timers are not supported.
 analysis_server/test/benchmarks_test: Pass, Slow
 analysis_server/test/completion_test: Pass, Slow
 analysis_server/test/domain_completion_test: Pass, Slow
+analysis_server/test/edit/refactoring_test: Pass, Slow
 analysis_server/test/integration/*: Pass, Slow
 analysis_server/test/integration/search/find_top_level_declarations_test: Pass, RuntimeError # 31571
 analysis_server/test/services/completion/dart/imported_reference_contributor_test: Pass, Slow
@@ -115,7 +116,10 @@ analysis_server/test/src/plugin/plugin_manager_test: Pass, Slow
 analyzer/test/file_system/physical_resource_provider_test: Pass, Fail # Issue 25472
 analyzer/test/generated/hint_code_driver_test: Pass, Slow
 analyzer/test/generated/non_error_resolver_kernel_test: Pass, Slow
+analyzer/test/generated/strong_mode_driver_test: Pass, Slow
 analyzer/test/src/dart/analysis/driver_resolution_kernel_test: Pass, Slow
+analyzer/test/src/dart/analysis/driver_resolution_test: Pass, Slow
+analyzer/test/src/dart/analysis/driver_test: Pass, Slow
 analyzer/test/src/summary/resynthesize_ast_test: Pass, Slow
 analyzer/test/src/task/strong/front_end_inference_test: Pass, Slow
 analyzer/test/src/task/strong/inferred_type_test: Pass, Slow
