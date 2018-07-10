@@ -29,8 +29,7 @@ main() {
 @reflectiveTest
 class NonErrorResolverTest extends ResolverTestCase {
   @override
-  AnalysisOptions get defaultAnalysisOptions =>
-      new AnalysisOptionsImpl()..strongMode = true;
+  AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
 
   fail_undefinedEnumConstant() async {
     Source source = addSource(r'''
@@ -315,10 +314,7 @@ process(Object x) {}''');
   }
 
   test_argumentTypeNotAssignable_optionalNew() async {
-    resetWith(
-        options: new AnalysisOptionsImpl()
-          ..previewDart2 = true
-          ..strongMode = true);
+    resetWith(options: new AnalysisOptionsImpl()..previewDart2 = true);
     Source source = addSource(r'''
 class Widget { }
 
@@ -1100,8 +1096,7 @@ typedef Foo<T> = Function<S>(int p);
     CompilationUnit unit = analysisResult.unit;
 
     Element getElement(String search) {
-      return EngineTestCase
-          .findSimpleIdentifier(unit, code, search)
+      return EngineTestCase.findSimpleIdentifier(unit, code, search)
           .staticElement;
     }
 
@@ -1295,7 +1290,6 @@ const Type d = dynamic;
   }
 
   test_const_imported_defaultParameterValue_withImportPrefix() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     Source source = addNamedSource("/a.dart", r'''
 import 'b.dart';
 const b = const B();
@@ -2702,7 +2696,6 @@ class C implements A, B {
   test_infer_mixin() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
-    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -2727,7 +2720,6 @@ class C extends A<B> with M {}
   test_infer_mixin_multiplyConstrained() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
-    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -2758,7 +2750,6 @@ class F extends E with M {}
   test_infer_mixin_with_substitution() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
-    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -2783,7 +2774,6 @@ class C extends A<List<B>> with M {}
   test_infer_mixin_with_substitution_functionType() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
-    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -4777,10 +4767,7 @@ main() {
   }
 
   test_optionalNew_rewrite() async {
-    resetWith(
-        options: new AnalysisOptionsImpl()
-          ..previewDart2 = true
-          ..strongMode = true);
+    resetWith(options: new AnalysisOptionsImpl()..previewDart2 = true);
     Source source = addSource(r'''
 import 'b.dart';
 main() {
@@ -4820,10 +4807,7 @@ class B {
   }
 
   test_optionalNew_rewrite_instantiatesToBounds() async {
-    resetWith(
-        options: new AnalysisOptionsImpl()
-          ..previewDart2 = true
-          ..strongMode = true);
+    resetWith(options: new AnalysisOptionsImpl()..previewDart2 = true);
     Source source = addSource(r'''
 import 'b.dart';
 
@@ -6429,7 +6413,6 @@ class A {
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
-    reset();
   }
 
   Future<Null> _check_wrongNumberOfParametersForOperator1(String name) async {

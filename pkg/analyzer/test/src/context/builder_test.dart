@@ -629,24 +629,8 @@ b:${pathContext.toUri(packageB)}
     expect(sdk, isNotNull);
   }
 
-  void test_findSdk_noPackageMap_html_spec() {
-    DartSdk sdk = builder.findSdk(
-        null,
-        new AnalysisOptionsImpl()
-          ..previewDart2 = false
-          ..strongMode = false);
-    expect(sdk, isNotNull);
-    Source htmlSource = sdk.mapDartUri('dart:html');
-    expect(
-        htmlSource.fullName,
-        resourceProvider
-            .convertPath('/sdk/lib/html/dartium/html_dartium.dart'));
-    expect(htmlSource.exists(), isTrue);
-  }
-
   void test_findSdk_noPackageMap_html_strong() {
-    DartSdk sdk =
-        builder.findSdk(null, new AnalysisOptionsImpl()..strongMode = true);
+    DartSdk sdk = builder.findSdk(null, new AnalysisOptionsImpl());
     expect(sdk, isNotNull);
     Source htmlSource = sdk.mapDartUri('dart:html');
     expect(

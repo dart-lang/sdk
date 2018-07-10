@@ -140,7 +140,7 @@ class _IsTestGroup {
         new ContextRoot(resourceProvider.convertPath('/project'), [],
             pathContext: resourceProvider.pathContext),
         sourceFactory,
-        new AnalysisOptionsImpl()..strongMode = true);
+        new AnalysisOptionsImpl());
     scheduler.start();
     AnalysisEngine.instance.logger = PrintLogger.instance;
   }

@@ -586,7 +586,7 @@ class CommandLineOptions {
         }
       }
 
-      if (results.wasParsed(strongModeFlag)) {
+      if (results.wasParsed('strong')) {
         errorSink.writeln(
             'Note: the --strong flag is deprecated and will be removed in an '
             'future release.\n');

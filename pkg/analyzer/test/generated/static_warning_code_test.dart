@@ -370,7 +370,6 @@ f(A a) {
   }
 
   test_argumentTypeNotAssignable_call() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     Source source = addSource(r'''
 typedef bool Predicate<T>(T object);
 
@@ -3243,7 +3242,6 @@ class C implements I {
   }
 
   test_nonAbstractClassInheritsAbstractMemberOne_method_fromInterface_abstractNSM() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     Source source = addSource(r'''
 class I {
   m(p) {}
@@ -3258,7 +3256,6 @@ class C implements I {
   }
 
   test_nonAbstractClassInheritsAbstractMemberOne_method_fromInterface_abstractOverrideNSM() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     Source source = addSource(r'''
 class I {
   m(p) {}
@@ -3275,7 +3272,6 @@ class C extends B implements I {
   }
 
   test_nonAbstractClassInheritsAbstractMemberOne_method_fromInterface_ifcNSM() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     Source source = addSource(r'''
 class I {
   m(p) {}

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.constant_test;
+library analyzer.test.evaluation_test;
 
 import 'dart:async';
 
@@ -1705,6 +1705,6 @@ const b = 3;''');
 class StrongConstantValueComputerTest extends ConstantValueComputerTest {
   void setUp() {
     super.setUp();
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    reset();
   }
 }

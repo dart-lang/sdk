@@ -148,8 +148,7 @@ class AnalysisContextImplTest extends AbstractContextTest {
 
   void test_applyChanges_addNewImport_invalidateLibraryCycle() {
     context.analysisOptions =
-        new AnalysisOptionsImpl.from(context.analysisOptions)
-          ..strongMode = true;
+        new AnalysisOptionsImpl.from(context.analysisOptions);
     Source embedder = addSource('/a.dart', r'''
 library a;
 import 'b.dart';
@@ -2386,7 +2385,7 @@ import 'package:crypto/crypto.dart';
 
   @failingTest // TODO(paulberry): Remove the annotation when dartbug.com/28515 is fixed.
   void test_resolveCompilationUnit_existingElementModel() {
-    prepareAnalysisContext(new AnalysisOptionsImpl()..strongMode = true);
+    prepareAnalysisContext(new AnalysisOptionsImpl());
     Source source = addSource('/test.dart', r'''
 library test;
 
@@ -2793,7 +2792,7 @@ int aa = 0;''';
 
   void _checkFlushSingleResolvedUnit(String code,
       void validate(CompilationUnitElement unitElement, String reason)) {
-    prepareAnalysisContext(new AnalysisOptionsImpl()..strongMode = true);
+    prepareAnalysisContext(new AnalysisOptionsImpl());
     String path = resourceProvider.convertPath('/test.dart');
     Source source = resourceProvider.newFile(path, code).createSource();
     context.applyChanges(new ChangeSet()..addedSource(source));

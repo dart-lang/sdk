@@ -665,7 +665,6 @@ class _OptionsProcessor {
 
   void _applyStrongOptions(AnalysisOptionsImpl options, YamlNode config) {
     if (config is YamlMap) {
-      options.strongMode = true;
       config.nodes.forEach((k, v) {
         if (k is YamlScalar && v is YamlScalar) {
           _applyStrongModeOption(options, k.value?.toString(), v.value);

@@ -32,7 +32,6 @@ const String packagesOption = 'packages';
 const String sdkPathOption = 'dart-sdk';
 
 const String sdkSummaryPathOption = 'dart-sdk-summary';
-const String strongModeFlag = 'strong';
 
 /**
  * Update [options] with the value of each analysis option command line flag.
@@ -64,8 +63,6 @@ void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args,
     options.implicitDynamic = !args[noImplicitDynamicFlag];
     verbose('$noImplicitDynamicFlag = ${options.implicitDynamic}');
   }
-  options.strongMode = args[strongModeFlag];
-  verbose('$strongModeFlag = ${options.strongMode}');
   try {
     if (args.wasParsed(lintsFlag)) {
       options.lint = args[lintsFlag];
@@ -81,7 +78,7 @@ void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args,
  * create a context builder.
  */
 ContextBuilderOptions createContextBuilderOptions(ArgResults args,
-    {bool strongMode, bool trackCacheDependencies}) {
+    {bool trackCacheDependencies}) {
   ContextBuilderOptions builderOptions = new ContextBuilderOptions();
   builderOptions.argResults = args;
   //
@@ -97,9 +94,6 @@ ContextBuilderOptions createContextBuilderOptions(ArgResults args,
   //
   AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
   applyAnalysisOptionFlags(defaultOptions, args);
-  if (strongMode != null) {
-    defaultOptions.strongMode = strongMode;
-  }
   if (trackCacheDependencies != null) {
     defaultOptions.trackCacheDependencies = trackCacheDependencies;
   }
@@ -168,7 +162,7 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
       help: 'The path to a package root directory (deprecated). '
           'This option cannot be used with --packages.',
       hide: ddc && hide);
-  parser.addFlag(strongModeFlag,
+  parser.addFlag('strong',
       help: 'Enable strong mode (deprecated); this option is now ignored.',
       defaultsTo: true,
       hide: true,

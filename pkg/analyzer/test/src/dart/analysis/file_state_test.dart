@@ -57,8 +57,7 @@ class FileSystemStateTest {
       }),
       new ResourceUriResolver(provider)
     ], null, provider);
-    AnalysisOptions analysisOptions = new AnalysisOptionsImpl()
-      ..strongMode = true;
+    AnalysisOptions analysisOptions = new AnalysisOptionsImpl();
     fileSystemState = new FileSystemState(logger, byteStore, contentOverlay,
         provider, sourceFactory, analysisOptions, new Uint32List(0));
   }

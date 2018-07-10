@@ -815,7 +815,7 @@ part 'foo.bar';
 class StrongModeDeclarationResolverTest extends ResolverTestCase {
   @override
   void setUp() {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    reset();
   }
 
   test_genericFunction_typeParameter() async {

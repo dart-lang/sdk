@@ -83,24 +83,18 @@ final isBuildDirectiveElementsTask =
     new TypeMatcher<BuildDirectiveElementsTask>();
 final isBuildEnumMemberElementsTask =
     new TypeMatcher<BuildEnumMemberElementsTask>();
-final isBuildExportNamespaceTask =
-    new TypeMatcher<BuildExportNamespaceTask>();
-final isBuildLibraryElementTask =
-    new TypeMatcher<BuildLibraryElementTask>();
-final isBuildPublicNamespaceTask =
-    new TypeMatcher<BuildPublicNamespaceTask>();
+final isBuildExportNamespaceTask = new TypeMatcher<BuildExportNamespaceTask>();
+final isBuildLibraryElementTask = new TypeMatcher<BuildLibraryElementTask>();
+final isBuildPublicNamespaceTask = new TypeMatcher<BuildPublicNamespaceTask>();
 final isBuildSourceExportClosureTask =
     new TypeMatcher<BuildSourceExportClosureTask>();
-final isBuildTypeProviderTask =
-    new TypeMatcher<BuildTypeProviderTask>();
+final isBuildTypeProviderTask = new TypeMatcher<BuildTypeProviderTask>();
 final isComputeConstantDependenciesTask =
     new TypeMatcher<ComputeConstantDependenciesTask>();
-final isComputeConstantValueTask =
-    new TypeMatcher<ComputeConstantValueTask>();
+final isComputeConstantValueTask = new TypeMatcher<ComputeConstantValueTask>();
 final isComputeInferableStaticVariableDependenciesTask =
     new TypeMatcher<ComputeInferableStaticVariableDependenciesTask>();
-final isContainingLibrariesTask =
-    new TypeMatcher<ContainingLibrariesTask>();
+final isContainingLibrariesTask = new TypeMatcher<ContainingLibrariesTask>();
 final isDartErrorsTask = new TypeMatcher<DartErrorsTask>();
 final isEvaluateUnitConstantsTask =
     new TypeMatcher<EvaluateUnitConstantsTask>();
@@ -116,10 +110,8 @@ final isInferStaticVariableTypesInUnitTask =
     new TypeMatcher<InferStaticVariableTypesInUnitTask>();
 final isInferStaticVariableTypeTask =
     new TypeMatcher<InferStaticVariableTypeTask>();
-final isLibraryErrorsReadyTask =
-    new TypeMatcher<LibraryErrorsReadyTask>();
-final isLibraryUnitErrorsTask =
-    new TypeMatcher<LibraryUnitErrorsTask>();
+final isLibraryErrorsReadyTask = new TypeMatcher<LibraryErrorsReadyTask>();
+final isLibraryUnitErrorsTask = new TypeMatcher<LibraryUnitErrorsTask>();
 final isParseDartTask = new TypeMatcher<ParseDartTask>();
 final isPartiallyResolveUnitReferencesTask =
     new TypeMatcher<PartiallyResolveUnitReferencesTask>();
@@ -133,13 +125,11 @@ final isResolveLibraryTypeNamesTask =
 final isResolveTopLevelUnitTypeBoundsTask =
     new TypeMatcher<ResolveTopLevelUnitTypeBoundsTask>();
 final isResolveUnitTask = new TypeMatcher<ResolveUnitTask>();
-final isResolveUnitTypeNamesTask =
-    new TypeMatcher<ResolveUnitTypeNamesTask>();
+final isResolveUnitTypeNamesTask = new TypeMatcher<ResolveUnitTypeNamesTask>();
 final isResolveVariableReferencesTask =
     new TypeMatcher<ResolveVariableReferencesTask>();
 final isScanDartTask = new TypeMatcher<ScanDartTask>();
-final isStrongModeVerifyUnitTask =
-    new TypeMatcher<StrongModeVerifyUnitTask>();
+final isStrongModeVerifyUnitTask = new TypeMatcher<StrongModeVerifyUnitTask>();
 final isVerifyUnitTask = new TypeMatcher<VerifyUnitTask>();
 
 final LintCode _testLintCode = new LintCode('test lint', 'test lint code');
@@ -1455,7 +1445,6 @@ class ComputeInferableStaticVariableDependenciesTaskTest
   void setUp() {
     super.setUp();
     // Variable dependencies are only available in strong mode.
-    enableStrongMode();
   }
 
   test_created_resolved_unit() {
@@ -1510,14 +1499,7 @@ class ComputeLibraryCycleTaskTest extends _AbstractDartTaskTest {
     return outputs[LIBRARY_CYCLE_UNITS] as List<LibrarySpecificUnit>;
   }
 
-  @override
-  void setUp() {
-    super.setUp();
-    enableStrongMode();
-  }
-
   void test_library_cycle_incremental() {
-    enableStrongMode();
     Source a = newSource('/a.dart', '''
 library a;
 ''');
@@ -1561,7 +1543,6 @@ library a;
   }
 
   void test_library_cycle_incremental_partial() {
-    enableStrongMode();
     Source a = newSource('/a.dart', r'''
 library a;
 ''');
@@ -1595,7 +1576,6 @@ import 'c.dart';
   }
 
   void test_library_cycle_incremental_partial2() {
-    enableStrongMode();
     Source a = newSource('/a.dart', r'''
 library a;
 import 'b.dart';
@@ -1695,7 +1675,6 @@ import 'a.dart';
   }
 
   void test_library_cycle_override_inference_incremental() {
-    enableStrongMode();
     Source lib1Source = newSource('/my_lib1.dart', '''
 library my_lib1;
 import 'my_lib3.dart';
@@ -2465,6 +2444,7 @@ class a { }
 
 class GenerateLintsTaskTest_AstVisitor extends SimpleAstVisitor {
   Linter linter;
+
   GenerateLintsTaskTest_AstVisitor(this.linter);
 
   @override
@@ -2498,7 +2478,6 @@ class A {}
   }
 
   void test_perform() {
-    enableStrongMode();
     AnalysisTarget source = newSource('/test.dart', '''
 class A {
   X f;
@@ -2540,7 +2519,6 @@ class Z {}
   }
 
   void test_perform_cross_library_const() {
-    enableStrongMode();
     AnalysisTarget firstSource = newSource('/first.dart', '''
 library first;
 
@@ -2581,7 +2559,6 @@ class M {
   }
 
   void test_perform_reresolution() {
-    enableStrongMode();
     AnalysisTarget source = newSource('/test.dart', '''
 const topLevel = '';
 class C {
@@ -2606,12 +2583,6 @@ class C {
 
 @reflectiveTest
 class InferStaticVariableTypesInUnitTaskTest extends _AbstractDartTaskTest {
-  @override
-  void setUp() {
-    super.setUp();
-    enableStrongMode();
-  }
-
   test_created_resolved_unit() {
     Source source = newSource('/test.dart', r'''
 library lib;
@@ -2624,7 +2595,6 @@ class A {}
   }
 
   void test_perform_const_field() {
-    enableStrongMode();
     AnalysisTarget source = newSource('/test.dart', '''
 class M {
   static const X = "";
@@ -2650,7 +2620,6 @@ class M {
   }
 
   void test_perform_nestedDeclarations() {
-    enableStrongMode();
     AnalysisTarget source = newSource('/test.dart', '''
 var f = (int x) {
   int squared(int value) => value * value;
@@ -2663,7 +2632,6 @@ var f = (int x) {
   }
 
   void test_perform_recursive() {
-    enableStrongMode();
     AnalysisTarget firstSource = newSource('/first.dart', '''
 import 'second.dart';
 
@@ -2705,7 +2673,6 @@ class M {}
   }
 
   void test_perform_simple() {
-    enableStrongMode();
     AnalysisTarget source = newSource('/test.dart', '''
 var X = 1;
 var Y = () => 1 + X;
@@ -2775,7 +2742,6 @@ var topLevel = '';
   }
 
   void test_perform() {
-    enableStrongMode();
     AnalysisTarget source = newSource('/test3.dart', '''
 var topLevel3 = '';
 class C {
@@ -2800,7 +2766,6 @@ class C {
   }
 
   void test_perform_const() {
-    enableStrongMode();
     AnalysisTarget source = newSource('/test.dart', '''
 const topLevel = "hello";
 class C {
@@ -2822,7 +2787,6 @@ class C {
   }
 
   void test_perform_cycle() {
-    enableStrongMode();
     AnalysisTarget source = newSource('/test.dart', '''
 var piFirst = true;
 var pi = piFirst ? 3.14 : tau / 2;
@@ -2845,7 +2809,6 @@ var tau = piFirst ? pi * 2 : 6.28;
   }
 
   void test_perform_error() {
-    enableStrongMode();
     AnalysisTarget source = newSource('/test.dart', '''
 var a = '' / null;
 ''');
@@ -2860,7 +2823,6 @@ var a = '' / null;
   }
 
   void test_perform_null() {
-    enableStrongMode();
     AnalysisTarget source = newSource('/test.dart', '''
 var a = null;
 ''');
@@ -3251,7 +3213,6 @@ main() {
   }
 
   test_perform_strong_inferable() {
-    enableStrongMode();
     Source source = newSource('/test.dart', '''
 int a = b;
 int b = c;
@@ -3282,7 +3243,6 @@ class C {
   }
 
   test_perform_strong_notResolved() {
-    enableStrongMode();
     Source source = newSource('/test.dart', '''
 int A;
 f1() {
@@ -3399,12 +3359,6 @@ library libC;
 
 @reflectiveTest
 class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
-  @override
-  void setUp() {
-    super.setUp();
-    enableStrongMode();
-  }
-
   test_created_resolved_unit() {
     Source source = newSource('/test.dart', r'''
 library lib;
@@ -4179,12 +4133,6 @@ class A {''');
 
 @reflectiveTest
 class StrongModeInferenceTest extends _AbstractDartTaskTest {
-  @override
-  void setUp() {
-    super.setUp();
-    enableStrongMode();
-  }
-
   // Check that even within a static variable cycle, inferred
   // types get propagated to the members of the cycle.
   void test_perform_cycle() {
@@ -4201,8 +4149,7 @@ var tau = piFirst ? pi * 2 : 6.28;
         AstFinder.getTopLevelVariable(unit, 'pi').name.staticElement;
     VariableElement tau =
         AstFinder.getTopLevelVariable(unit, 'tau').name.staticElement;
-    Expression piFirstUse = (AstFinder
-            .getTopLevelVariable(unit, 'tau')
+    Expression piFirstUse = (AstFinder.getTopLevelVariable(unit, 'tau')
             .initializer as ConditionalExpression)
         .condition;
 
@@ -4653,12 +4600,6 @@ var tau = piFirst ? pi * 2 : 6.28;
 
 @reflectiveTest
 class StrongModeVerifyUnitTaskTest extends _AbstractDartTaskTest {
-  @override
-  void setUp() {
-    super.setUp();
-    enableStrongMode();
-  }
-
   test_created_resolved_unit() {
     Source source = newSource('/test.dart', r'''
 library lib;
@@ -4671,7 +4612,6 @@ class A {}
   }
 
   void test_perform_recordDynamicInvoke() {
-    enableStrongMode();
     AnalysisTarget source = newSource('/test.dart', '''
 void main() {
   dynamic a = [];
@@ -4693,7 +4633,6 @@ void main() {
   }
 
   void test_perform_verifyError() {
-    enableStrongMode();
     AnalysisTarget source = newSource('/test.dart', '''
 class A {}
 class B extends A {}
@@ -4831,7 +4770,6 @@ import 'no-such-file.dart';
   }
 
   void test_perform_reresolution() {
-    enableStrongMode();
     AnalysisTarget source = newSource('/test.dart', '''
 const topLevel = 3;
 class C {
@@ -4949,15 +4887,6 @@ class _AbstractDartTaskTest extends AbstractContextTest {
     Source source = newSource('/test.html', htmlContent);
     return new DartScript(
         source, [new ScriptFragment(97, 5, 36, scriptContent)]);
-  }
-
-  /**
-   * Enable strong mode in the current analysis context.
-   */
-  void enableStrongMode() {
-    AnalysisOptionsImpl options = context.analysisOptions;
-    options.strongMode = true;
-    context.analysisOptions = options;
   }
 
   void setUp() {

@@ -26,8 +26,7 @@ main() {
 @reflectiveTest
 class InvalidCodeTest extends ResolverTestCase {
   @override
-  AnalysisOptions get defaultAnalysisOptions =>
-      new AnalysisOptionsImpl()..strongMode = true;
+  AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
 
   /**
    * This code results in a method with the empty name, and the default

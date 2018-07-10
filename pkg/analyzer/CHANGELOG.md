@@ -1,3 +1,7 @@
+## unreleased
+* Deprecate the `AnalysisOptions.strongMode` flag. This is now hard-coded to
+  always return true.
+
 ## 0.32.3
 * Pull fix in kernel package where non-executable util.dart was moved out of bin/.
 

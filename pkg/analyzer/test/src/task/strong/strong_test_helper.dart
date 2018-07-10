@@ -289,7 +289,6 @@ class AbstractStrongTest {
     expect(mainFile.exists, true, reason: '`/main.dart` is missing');
 
     AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
-    analysisOptions.strongMode = true;
     analysisOptions.strongModeHints = true;
     analysisOptions.declarationCasts = declarationCasts;
     analysisOptions.implicitCasts = implicitCasts;

@@ -316,7 +316,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (this._options.strongMode != options.strongMode) {
       _typeSystem = null;
     }
-    this._options.strongMode = options.strongMode;
     this._options.useFastaParser = options.useFastaParser;
     this._options.previewDart2 = options.previewDart2;
     this._options.trackCacheDependencies = options.trackCacheDependencies;

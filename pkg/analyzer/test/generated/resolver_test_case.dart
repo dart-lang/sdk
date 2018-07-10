@@ -674,9 +674,7 @@ class ResolverTestCase extends EngineTestCase {
     options ??= defaultAnalysisOptions;
     if (enableNewAnalysisDriver) {
       if (useCFE) {
-        (options as AnalysisOptionsImpl)
-          ..strongMode = true
-          ..useFastaParser = true;
+        (options as AnalysisOptionsImpl)..useFastaParser = true;
       }
       DartSdk sdk = new MockSdk(resourceProvider: resourceProvider)
         ..context.analysisOptions = options;
@@ -958,5 +956,6 @@ class TestAnalysisResult {
   final Source source;
   final CompilationUnit unit;
   final List<AnalysisError> errors;
+
   TestAnalysisResult(this.source, this.unit, this.errors);
 }

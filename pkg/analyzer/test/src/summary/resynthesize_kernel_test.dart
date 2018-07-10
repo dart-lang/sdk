@@ -277,7 +277,7 @@ class C {
   Future<KernelResynthesizer> _createResynthesizer(Uri testUri) async {
     var logger = new PerformanceLog(null);
     var byteStore = new MemoryByteStore();
-    var analysisOptions = new AnalysisOptionsImpl()..strongMode = true;
+    var analysisOptions = new AnalysisOptionsImpl();
 
     var fsState = new FileSystemState(
         logger,

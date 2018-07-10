@@ -48,7 +48,6 @@ void printAndFail(String message, {int exitCode: 15}) {
 
 AnalysisOptions _buildAnalyzerOptions(LinterOptions options) {
   AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
-  analysisOptions.strongMode = options.strongMode;
   analysisOptions.hint = false;
   analysisOptions.previewDart2 = options.previewDart2;
   analysisOptions.lint = options.enableLints;

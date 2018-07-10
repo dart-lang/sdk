@@ -34,7 +34,6 @@ void main(List<String> args) {
     AnalysisEngine.instance.clearCaches();
 
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.strongMode = true;
     options.strongModeHints = true;
 
     PhysicalResourceProvider resourceProvider =

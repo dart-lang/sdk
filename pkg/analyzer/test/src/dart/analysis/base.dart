@@ -109,9 +109,8 @@ class BaseAnalysisDriverTest {
         enableKernelDriver: useCFE);
   }
 
-  AnalysisOptionsImpl createAnalysisOptions() => new AnalysisOptionsImpl()
-    ..strongMode = true
-    ..useFastaParser = useCFE;
+  AnalysisOptionsImpl createAnalysisOptions() =>
+      new AnalysisOptionsImpl()..useFastaParser = useCFE;
 
   int findOffset(String search) {
     int offset = testCode.indexOf(search);

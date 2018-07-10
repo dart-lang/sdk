@@ -73,8 +73,10 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
 
   /**
    * Return `true` if resynthesizing should be done in strong mode.
+   *
+   * Deprecated - remove this getter.
    */
-  bool get isStrongMode;
+  bool get isStrongMode => true;
 
   void addLibrary(String uri) {
     otherLibrarySources.add(context.sourceFactory.forUri(uri));
