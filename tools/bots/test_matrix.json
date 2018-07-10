@@ -315,6 +315,22 @@
             "--runtime=none",
             "--strong"
           ]
+        },
+        {
+          "name": "fasta co19_2 tests",
+          "arguments": [
+            "--compiler=fasta",
+            "--runtime=none",
+            "co19_2"
+          ]
+        },
+        {
+          "name": "fasta legacy mode sdk tests",
+          "arguments": [
+            "--compiler=fasta",
+            "--no-preview-dart-2",
+            "--runtime=none"
+          ]
         }
       ]
     },
@@ -1904,6 +1920,14 @@
             "--enable-asserts",
             "--use-sdk",
             "pkg/analyzer_plugin"
+          ]
+        },
+        {
+          "name": "analyze tests co19_2",
+          "arguments": [
+            "--compiler=dart2analyzer",
+            "--use-sdk",
+            "co19_2"
           ]
         }
       ]
