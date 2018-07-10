@@ -237,9 +237,9 @@ class FrontEndCompiler {
 
         _logger.run('Compute dependencies', _computeDependencies);
 
-        // TODO(scheglov) Can we keep the same instance?
+        // Reuse CoreTypes and ClassHierarchy.
         var types = new TypeEnvironment(
-            new CoreTypes(_component), new ClassHierarchy(_component));
+            kernelTarget.loader.coreTypes, kernelTarget.loader.hierarchy);
 
         // Add results for new libraries.
         for (var library in _component.libraries) {
