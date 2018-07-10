@@ -46,7 +46,7 @@ testIterators() async {
       class E extends C {}
       class F extends C {}
       class G extends C {}
-      """, mainSource: r"""
+
       main() {
         new A();
         new C();
@@ -374,7 +374,7 @@ testForEach() async {
       class H extends F {}
       class I extends F {}
       class X {}
-      """, mainSource: r"""
+
       main() {
         new A();
         new C();
@@ -593,8 +593,7 @@ testClosures({bool strongMode}) async {
       class A {
         call() => null;
       }
-      """,
-      mainSource: r"""
+
       main() {
         new A();
         () {};

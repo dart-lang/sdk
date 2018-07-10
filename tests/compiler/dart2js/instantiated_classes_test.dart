@@ -16,13 +16,13 @@ void main() {
     Future test(String source, List<String> directlyInstantiatedClasses,
         [List<String> newClasses = const <String>["Class"]]) async {
       StringBuffer mainSource = new StringBuffer();
+      mainSource.writeln(source);
       mainSource.write('main() {\n');
       for (String newClass in newClasses) {
         mainSource.write('  new $newClass();\n');
       }
       mainSource.write('}');
-      dynamic env = await TypeEnvironment.create(source,
-          mainSource: mainSource.toString());
+      dynamic env = await TypeEnvironment.create(mainSource.toString());
       LibraryEntity mainLibrary =
           env.compiler.frontendStrategy.elementEnvironment.mainLibrary;
       Iterable<ClassEntity> expectedClasses =

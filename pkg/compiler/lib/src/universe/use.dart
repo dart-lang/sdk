@@ -141,7 +141,6 @@ enum StaticUseKind {
   CONST_CONSTRUCTOR_INVOKE,
   REDIRECTION,
   DIRECT_INVOKE,
-  DIRECT_USE,
   INLINING,
   INVOKE,
   GET,
@@ -515,11 +514,6 @@ class StaticUse {
   /// backend.
   factory StaticUse.implicitInvoke(FunctionEntity element) {
     return new StaticUse.internal(element, StaticUseKind.INVOKE);
-  }
-
-  /// Direct use of [element] as done with `--analyze-all` and `--analyze-main`.
-  factory StaticUse.directUse(MemberEntity element) {
-    return new StaticUse.internal(element, StaticUseKind.DIRECT_USE);
   }
 
   /// Inlining of [element].

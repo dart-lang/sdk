@@ -42,7 +42,7 @@ runTests({bool strongMode: false}) async {
       class G extends C {}
       abstract class H implements C {}
       abstract class I implements H {}
-      """, mainSource: r"""
+
       main() {
         new A().call;
         new C();

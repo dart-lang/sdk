@@ -83,7 +83,6 @@ fe.InitializedCompilerState strongKernelInitializedCompilerState;
 Future<CompilationResult> runCompiler(
     {Map<String, dynamic> memorySourceFiles: const <String, dynamic>{},
     Uri entryPoint,
-    List<Uri> entryPoints,
     CompilerDiagnostics diagnosticHandler,
     CompilerOutput outputProvider,
     List<String> options: const <String>[],
@@ -107,7 +106,6 @@ Future<CompilationResult> runCompiler(
       packageRoot: packageRoot,
       packageConfig: packageConfig,
       packagesDiscoveryProvider: packagesDiscoveryProvider);
-  compiler.librariesToAnalyzeWhenRun = entryPoints;
   if (beforeRun != null) {
     beforeRun(compiler);
   }

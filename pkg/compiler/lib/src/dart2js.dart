@@ -121,7 +121,6 @@ Future<api.CompilationResult> compile(List<String> argv,
   List<String> options = new List<String>();
   bool wantHelp = false;
   bool wantVersion = false;
-  bool analyzeOnly = false;
   bool trustTypeAnnotations = false;
   bool checkedMode = false;
   bool strongMode = true;
@@ -194,11 +193,6 @@ Future<api.CompilationResult> compile(List<String> argv,
     var filenames = sourceFiles.map((uri) => '$uri').toList();
     filenames.sort();
     return filenames.join("\n");
-  }
-
-  void setAnalyzeOnly(String argument) {
-    analyzeOnly = true;
-    passThrough(argument);
   }
 
   void setAllowNativeExtensions(String argument) {
@@ -342,13 +336,10 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(r'--help|/\?|/h', (_) => wantHelp = true),
     new OptionHandler('--packages=.+', setPackageConfig),
     new OptionHandler('--package-root=.+|-p.+', setPackageRoot),
-    new OptionHandler(Flags.analyzeAll, passThrough),
-    new OptionHandler(Flags.analyzeOnly, setAnalyzeOnly),
     new OptionHandler(Flags.noSourceMaps, passThrough),
     new OptionHandler(Option.resolutionInput, ignoreOption),
     new OptionHandler(Option.bazelPaths, setBazelPaths),
     new OptionHandler(Flags.resolveOnly, ignoreOption),
-    new OptionHandler(Flags.analyzeSignaturesOnly, setAnalyzeOnly),
     new OptionHandler(Flags.disableNativeLiveTypeAnalysis, passThrough),
     new OptionHandler('--categories=.*', setCategories),
     new OptionHandler(Flags.disableInlining, passThrough),
@@ -480,7 +471,6 @@ Future<api.CompilationResult> compile(List<String> argv,
           onInfo: diagnosticHandler.info, onFailure: fail);
 
   api.CompilationResult compilationDone(api.CompilationResult result) {
-    if (analyzeOnly) return result;
     if (!result.isSuccess) {
       fail('Compilation failed.');
     }

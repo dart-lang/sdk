@@ -43,7 +43,6 @@ Future<String> compile(String code,
     String methodName,
     bool enableTypeAssertions: false,
     bool minify: false,
-    bool analyzeAll: false,
     bool disableInlining: true,
     bool trustJSInteropTypeAnnotations: false,
     void check(String generatedEntry),
@@ -59,9 +58,6 @@ Future<String> compile(String code,
   }
   if (minify) {
     options.add(Flags.minify);
-  }
-  if (analyzeAll) {
-    options.add(Flags.analyzeAll);
   }
   if (trustJSInteropTypeAnnotations) {
     options.add(Flags.trustJSInteropTypeAnnotations);

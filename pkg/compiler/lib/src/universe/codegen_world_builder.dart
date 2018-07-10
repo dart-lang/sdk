@@ -369,7 +369,6 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
         break;
       case StaticUseKind.SUPER_FIELD_SET:
       case StaticUseKind.FIELD_SET:
-      case StaticUseKind.DIRECT_USE:
       case StaticUseKind.CLOSURE:
       case StaticUseKind.CLOSURE_CALL:
       case StaticUseKind.CALL_METHOD:
@@ -426,7 +425,6 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
       case StaticUseKind.SET:
       case StaticUseKind.INIT:
       case StaticUseKind.REFLECT:
-      case StaticUseKind.DIRECT_USE:
         useSet.addAll(usage.normalUse());
         break;
       case StaticUseKind.CONSTRUCTOR_INVOKE:

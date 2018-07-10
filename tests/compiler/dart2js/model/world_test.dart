@@ -30,6 +30,8 @@ void main() {
 
 testClassSets() async {
   var env = await TypeEnvironment.create(r"""
+      import 'dart:html' as html;
+
       class A implements X {}
       class B {}
       class C_Super extends A {}
@@ -39,8 +41,7 @@ testClassSets() async {
       class F extends Object with A implements B {}
       class G extends Object with B, A {}
       class X {}
-      """, mainSource: r"""
-      import 'dart:html' as html;
+
       main() {
         new A();
         new B();
@@ -232,7 +233,7 @@ testProperties() async {
       class H2 extends H1 {}
       class H3 extends H2 implements H {}
       class H4 extends H2 with H {}
-      """, mainSource: r"""
+
       main() {
         new B();
         new C1();
@@ -315,8 +316,7 @@ testProperties() async {
 }
 
 testNativeClasses() async {
-  var env = await TypeEnvironment.create('',
-      mainSource: r"""
+  var env = await TypeEnvironment.create(r"""
       import 'dart:html' as html;
       main() {
         html.window; // Creates 'Window'.
@@ -324,8 +324,7 @@ testNativeClasses() async {
         new html.CanvasElement() // Creates CanvasElement
             ..getContext(''); // Creates CanvasRenderingContext2D
       }
-      """,
-      testBackendWorld: true);
+      """, testBackendWorld: true);
   JClosedWorld closedWorld = env.jClosedWorld;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   LibraryEntity dart_html = elementEnvironment.lookupLibrary(Uris.dart_html);
@@ -530,8 +529,7 @@ testNativeClasses() async {
 }
 
 testCommonSubclasses() async {
-  var env = await TypeEnvironment.create('',
-      mainSource: r"""
+  var env = await TypeEnvironment.create(r"""
       class A {}
       class B {}
       class C extends A {}
@@ -554,8 +552,7 @@ testCommonSubclasses() async {
         new I();
         new J();
       }
-      """,
-      testBackendWorld: true);
+      """, testBackendWorld: true);
   JClosedWorld closedWorld = env.jClosedWorld;
 
   ClassEntity A = env.getElement("A");

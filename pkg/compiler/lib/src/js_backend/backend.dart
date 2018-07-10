@@ -18,12 +18,7 @@ import '../dump_info.dart' show DumpInfoTask;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart'
-    show
-        DirectEnqueuerStrategy,
-        Enqueuer,
-        EnqueueTask,
-        ResolutionEnqueuer,
-        TreeShakingEnqueuerStrategy;
+    show Enqueuer, EnqueueTask, ResolutionEnqueuer, TreeShakingEnqueuerStrategy;
 import '../frontend_strategy.dart';
 import '../io/source_information.dart'
     show SourceInformation, SourceInformationStrategy;
@@ -598,9 +593,7 @@ class JavaScriptBackend {
         task,
         compiler.options,
         compiler.reporter,
-        compiler.options.analyzeOnly && compiler.options.analyzeMain
-            ? const DirectEnqueuerStrategy()
-            : const TreeShakingEnqueuerStrategy(),
+        const TreeShakingEnqueuerStrategy(),
         new ResolutionEnqueuerListener(
             compiler.options,
             elementEnvironment,

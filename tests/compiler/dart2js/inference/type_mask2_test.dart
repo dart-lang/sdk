@@ -97,7 +97,7 @@ Future testUnionTypeMaskFlatten() async {
       class C extends A {}
       class D implements A {}
       class E extends B implements A {}
-      """, mainSource: r"""
+
       main() {
         new A();
         new B();
@@ -209,13 +209,11 @@ Future testUnionTypeMaskFlatten() async {
 }
 
 Future testStringSubtypes() async {
-  TypeEnvironment env = await TypeEnvironment.create('',
-      mainSource: r"""
+  TypeEnvironment env = await TypeEnvironment.create(r"""
       main() {
         '' is String;
       }
-      """,
-      testBackendWorld: true);
+      """, testBackendWorld: true);
   JClosedWorld closedWorld = env.jClosedWorld;
 
   ClassEntity Object_ = env.getElement("Object");

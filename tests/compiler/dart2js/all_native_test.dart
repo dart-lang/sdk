@@ -16,15 +16,24 @@ main() {
 
 test(List<String> options) async {
   DiagnosticCollector collector = new DiagnosticCollector();
+  String fileName = 'sdk/tests/compiler/dart2js_native/main.dart';
+  Uri entryPoint = Uri.parse('memory:$fileName');
   await runCompiler(
+      entryPoint: entryPoint,
       memorySourceFiles: {
-        'main.dart': '''
+        fileName: '''
         import 'dart:html';
-        main() => document;
+        import 'dart:_js_helper';
+        
+        method(o) native;
+        
+        main() {
+          method(document);
+        }
         '''
       },
       diagnosticHandler: collector,
-      options: [Flags.analyzeAll, Flags.verbose]..addAll(options));
+      options: [Flags.verbose]..addAll(options));
   int allNativeUsedCount =
       collector.verboseInfos.where((CollectedMessage message) {
     return message.text.startsWith('All native types marked as used due to ');

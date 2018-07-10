@@ -26,6 +26,11 @@ testMixinSupertypes() async {
 
       class C1<C1_T> extends S<C1_T> with M1<C1_T>, M2<C1_T>, M3<C1_T> {}
       class C2<C2_T> = S<C2_T> with M1<C2_T>, M2<C2_T>, M3<C2_T>;
+
+      main() {
+        new C1();
+        new C2();
+      }
       """, expectNoWarningsOrErrors: true);
   ClassEntity Object = env.getElement('Object');
   ClassEntity S = env.getClass('S');
@@ -89,6 +94,17 @@ testNonTrivialSubstitutions() async {
 
       class F1<F1_T> extends A<_> with B<_, B<F1_T, _>> {}
       class F2<F2_T> = A<_> with B<_, B<F2_T, _>>;
+
+      main() {
+        new C1();
+        new C2();
+        new D1();
+        new D2();
+        new E1();
+        new E2();
+        new F1();
+        new F2();
+      }
       """, expectNoWarningsOrErrors: true);
   DartType _dynamic = env['dynamic'];
   DartType _ = env['_'];

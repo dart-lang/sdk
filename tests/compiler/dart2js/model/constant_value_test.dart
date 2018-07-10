@@ -16,14 +16,16 @@ void main() {
   enableDebugMode();
 
   asyncTest(() async {
-    TypeEnvironment env = await TypeEnvironment.create('''
+    TypeEnvironment env = await TypeEnvironment.create("""
     class C {
       final field1;
       final field2;
 
       C(this.field1, this.field2);
     }
-    ''');
+
+    main() => new C(null, null);
+    """);
     ClassEntity C = env.getClass('C');
     InterfaceType C_raw = env.elementEnvironment.getRawType(C);
     FieldEntity field1 = env.elementEnvironment.lookupClassMember(C, 'field1');

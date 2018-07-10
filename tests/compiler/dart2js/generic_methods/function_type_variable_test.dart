@@ -39,7 +39,21 @@ main() {
     }
     void F11<Q extends C3<Q>>(Q q) {}
     void F12<P extends C3<P>>(P p) {}
-  """),
+
+    main() {
+      ${createUses(existentialTypeData)}
+      
+      new C1();
+      new C2();
+      new C3.fact();
+      new C4();
+      
+      F9(null, null);
+      F10();
+      F11(null);
+      F12(null);
+    }
+    """),
         options: [Flags.strongMode]);
 
     testToString(FunctionType type, String expectedToString) {

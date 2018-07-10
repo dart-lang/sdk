@@ -18,7 +18,6 @@ deferred_loading/deferred_loading_test: Slow, Pass
 equivalence/id_equivalence1_test: Pass, Slow
 equivalence/id_equivalence2_test: Pass, Slow
 generate_code_with_compile_time_errors_test: RuntimeError # not supported yet with the new FE.
-in_user_code_test: RuntimeError # analyze-only with CFE is not complete (Issues 32512, 32513)
 inference/inference0_test: Slow, Pass
 inference/inference1_test: Slow, Pass
 inference/simple_inferrer_const_closure2_test: Fail # Issue 16507

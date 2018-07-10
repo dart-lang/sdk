@@ -41,6 +41,7 @@ testClassSets() async {
 
   Future run(List<String> instantiated) async {
     StringBuffer main = new StringBuffer();
+    main.writeln(CLASSES);
     main.write('main() {');
     for (String cls in instantiated) {
       main.write('new $cls();');
@@ -48,10 +49,8 @@ testClassSets() async {
     main.write('}');
     testMode = '$instantiated';
 
-    var env = await TypeEnvironment.create(CLASSES,
-        mainSource: main.toString(),
-        testBackendWorld: true,
-        options: [Flags.noPreviewDart2]);
+    var env = await TypeEnvironment.create(main.toString(),
+        testBackendWorld: true, options: [Flags.noPreviewDart2]);
     foo = new Selector.call(const PublicName('foo'), CallStructure.NO_ARGS);
     bar = new Selector.call(const PublicName('bar'), CallStructure.NO_ARGS);
     baz = new Selector.call(const PublicName('baz'), CallStructure.NO_ARGS);

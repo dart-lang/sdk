@@ -28,7 +28,7 @@ Future runTest() async {
     class C extends B {
       call() {}
     }
-    """, mainSource: """
+
     main() {
       (new A())();
       new B();

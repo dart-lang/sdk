@@ -501,16 +501,6 @@ class EnqueuerStrategy {
   }
 }
 
-/// Strategy that only enqueues directly used elements.
-class DirectEnqueuerStrategy extends EnqueuerStrategy {
-  const DirectEnqueuerStrategy();
-  void processStaticUse(EnqueuerImpl enqueuer, StaticUse staticUse) {
-    if (staticUse.kind == StaticUseKind.DIRECT_USE) {
-      enqueuer.processStaticUse(staticUse);
-    }
-  }
-}
-
 /// Strategy used for tree-shaking.
 class TreeShakingEnqueuerStrategy extends EnqueuerStrategy {
   const TreeShakingEnqueuerStrategy();
