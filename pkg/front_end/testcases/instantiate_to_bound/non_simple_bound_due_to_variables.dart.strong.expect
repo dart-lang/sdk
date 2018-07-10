@@ -1,3 +1,10 @@
+// Errors:
+//
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_bound_due_to_variables.dart:11:9: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'A' here.
+// class B<TypeU extends A> {}
+//         ^^^^^
+
 library;
 import self as self;
 import "dart:core" as core;
@@ -13,8 +20,4 @@ class B<TypeU extends self::A<dynamic, dynamic> = dynamic> extends core::Object 
     ;
 }
 static field self::B<dynamic> b;
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/instantiate_to_bound/non_simple_bound_due_to_variables.dart:11:9: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
-Try providing type arguments to 'A' here.
-class B<TypeU extends A> {}
-        ^^^^^"]/* from null */;
 static method main() → dynamic {}

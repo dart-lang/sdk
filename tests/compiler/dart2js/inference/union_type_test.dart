@@ -13,7 +13,7 @@ main() {
     TypeEnvironment env = await TypeEnvironment.create(r"""
       class A {}
       class B {}
-      """, mainSource: r"""
+
       main() {
         new A();
         new B();

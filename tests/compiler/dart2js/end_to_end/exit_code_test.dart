@@ -24,6 +24,7 @@ import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/null_compiler_output.dart';
 import 'package:compiler/src/options.dart' show CompilerOptions;
+import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/world.dart';
 import 'diagnostic_reporter_helper.dart';
@@ -113,9 +114,10 @@ class TestBackend extends JavaScriptBackend {
             useNewSourceInfo: compiler.options.useNewSourceInfo);
 
   @override
-  WorldImpact codegen(CodegenWorkItem work, JClosedWorld closedWorld) {
+  WorldImpact codegen(CodegenWorkItem work, JClosedWorld closedWorld,
+      GlobalTypeInferenceResults results) {
     compiler.test('Compiler.codegen');
-    return super.codegen(work, closedWorld);
+    return super.codegen(work, closedWorld, results);
   }
 }
 

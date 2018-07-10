@@ -151,8 +151,6 @@ class PageSpaceController {
   // (e.g., promotion), as it does not change the state of the controller.
   bool NeedsGarbageCollection(SpaceUsage after) const;
 
-  bool NeedsExternalCollection(SpaceUsage after) const;
-
   // Returns whether an idle GC is worthwhile.
   bool NeedsIdleGarbageCollection(SpaceUsage current) const;
 

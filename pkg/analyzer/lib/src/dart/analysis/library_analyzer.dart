@@ -750,6 +750,14 @@ class LibraryAnalyzer {
 //          file.source, _typeProvider, AnalysisErrorListener.NULL_LISTENER));
 //    }
 
+    for (var directive in unit.directives) {
+      if (directive.metadata.isNotEmpty) {
+        var resolution = resolutions.next();
+        var applier =
+            _createResolutionApplier(null, resolution, unit.localDeclarations);
+        applier.applyToAnnotations(directive);
+      }
+    }
     for (var declaration in unit.declarations) {
       if (declaration is ClassDeclaration) {
         if (declaration.metadata.isNotEmpty) {
@@ -1179,6 +1187,8 @@ class _ResolutionApplierContext implements TypeContext {
           resynthesizer.getTypeParameter(context, referencedNode.parameter);
       assert(element != null);
     } else if (referencedNode is kernel.DynamicType) {
+      element = DynamicElementImpl.instance;
+    } else if (referencedNode is kernel.InvalidType) {
       element = DynamicElementImpl.instance;
     } else {
       throw new UnimplementedError(

@@ -9,8 +9,9 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/universe/call_structure.dart';
+import 'package:compiler/src/universe/class_hierarchy.dart';
 import 'package:compiler/src/universe/selector.dart';
-import 'package:compiler/src/world.dart' show JClosedWorld, ClassQuery;
+import 'package:compiler/src/world.dart' show JClosedWorld;
 import 'type_test_helper.dart';
 
 void main() {
@@ -40,6 +41,7 @@ testClassSets() async {
 
   Future run(List<String> instantiated) async {
     StringBuffer main = new StringBuffer();
+    main.writeln(CLASSES);
     main.write('main() {');
     for (String cls in instantiated) {
       main.write('new $cls();');
@@ -47,10 +49,8 @@ testClassSets() async {
     main.write('}');
     testMode = '$instantiated';
 
-    var env = await TypeEnvironment.create(CLASSES,
-        mainSource: main.toString(),
-        testBackendWorld: true,
-        options: [Flags.noPreviewDart2]);
+    var env = await TypeEnvironment.create(main.toString(),
+        testBackendWorld: true, options: [Flags.noPreviewDart2]);
     foo = new Selector.call(const PublicName('foo'), CallStructure.NO_ARGS);
     bar = new Selector.call(const PublicName('bar'), CallStructure.NO_ARGS);
     baz = new Selector.call(const PublicName('baz'), CallStructure.NO_ARGS);
@@ -64,7 +64,7 @@ testClassSets() async {
   void check(ClassEntity cls, ClassQuery query, Selector selector,
       bool expectedResult) {
     bool result;
-    if (closedWorld.getClassSet(cls) == null) {
+    if (closedWorld.classHierarchy.getClassSet(cls) == null) {
       // The class isn't live, so it can't need a noSuchMethod for [selector].
       result = false;
     } else {
@@ -79,16 +79,17 @@ testClassSets() async {
 
   await run([]);
 
-  Expect.isFalse(closedWorld.isDirectlyInstantiated(superclass));
-  Expect.isFalse(closedWorld.isIndirectlyInstantiated(superclass));
+  Expect.isFalse(closedWorld.classHierarchy.isDirectlyInstantiated(superclass));
+  Expect.isFalse(
+      closedWorld.classHierarchy.isIndirectlyInstantiated(superclass));
   Expect.isFalse(closedWorld.isImplemented(superclass));
 
-  Expect.isFalse(closedWorld.isDirectlyInstantiated(subclass));
-  Expect.isFalse(closedWorld.isIndirectlyInstantiated(subclass));
+  Expect.isFalse(closedWorld.classHierarchy.isDirectlyInstantiated(subclass));
+  Expect.isFalse(closedWorld.classHierarchy.isIndirectlyInstantiated(subclass));
   Expect.isFalse(closedWorld.isImplemented(subclass));
 
-  Expect.isFalse(closedWorld.isDirectlyInstantiated(subtype));
-  Expect.isFalse(closedWorld.isIndirectlyInstantiated(subtype));
+  Expect.isFalse(closedWorld.classHierarchy.isDirectlyInstantiated(subtype));
+  Expect.isFalse(closedWorld.classHierarchy.isIndirectlyInstantiated(subtype));
   Expect.isFalse(closedWorld.isImplemented(subtype));
 
   check(superclass, ClassQuery.EXACT, foo, false);
@@ -123,16 +124,17 @@ testClassSets() async {
 
   await run(['Superclass']);
 
-  Expect.isTrue(closedWorld.isDirectlyInstantiated(superclass));
-  Expect.isFalse(closedWorld.isIndirectlyInstantiated(superclass));
+  Expect.isTrue(closedWorld.classHierarchy.isDirectlyInstantiated(superclass));
+  Expect.isFalse(
+      closedWorld.classHierarchy.isIndirectlyInstantiated(superclass));
   Expect.isTrue(closedWorld.isImplemented(superclass));
 
-  Expect.isFalse(closedWorld.isDirectlyInstantiated(subclass));
-  Expect.isFalse(closedWorld.isIndirectlyInstantiated(subclass));
+  Expect.isFalse(closedWorld.classHierarchy.isDirectlyInstantiated(subclass));
+  Expect.isFalse(closedWorld.classHierarchy.isIndirectlyInstantiated(subclass));
   Expect.isFalse(closedWorld.isImplemented(subclass));
 
-  Expect.isFalse(closedWorld.isDirectlyInstantiated(subtype));
-  Expect.isFalse(closedWorld.isIndirectlyInstantiated(subtype));
+  Expect.isFalse(closedWorld.classHierarchy.isDirectlyInstantiated(subtype));
+  Expect.isFalse(closedWorld.classHierarchy.isIndirectlyInstantiated(subtype));
   Expect.isFalse(closedWorld.isImplemented(subtype));
 
   check(superclass, ClassQuery.EXACT, foo, false);
@@ -167,16 +169,17 @@ testClassSets() async {
 
   await run(['Subclass']);
 
-  Expect.isFalse(closedWorld.isDirectlyInstantiated(superclass));
-  Expect.isTrue(closedWorld.isIndirectlyInstantiated(superclass));
+  Expect.isFalse(closedWorld.classHierarchy.isDirectlyInstantiated(superclass));
+  Expect.isTrue(
+      closedWorld.classHierarchy.isIndirectlyInstantiated(superclass));
   Expect.isTrue(closedWorld.isImplemented(superclass));
 
-  Expect.isTrue(closedWorld.isDirectlyInstantiated(subclass));
-  Expect.isFalse(closedWorld.isIndirectlyInstantiated(subclass));
+  Expect.isTrue(closedWorld.classHierarchy.isDirectlyInstantiated(subclass));
+  Expect.isFalse(closedWorld.classHierarchy.isIndirectlyInstantiated(subclass));
   Expect.isTrue(closedWorld.isImplemented(subclass));
 
-  Expect.isFalse(closedWorld.isDirectlyInstantiated(subtype));
-  Expect.isFalse(closedWorld.isIndirectlyInstantiated(subtype));
+  Expect.isFalse(closedWorld.classHierarchy.isDirectlyInstantiated(subtype));
+  Expect.isFalse(closedWorld.classHierarchy.isIndirectlyInstantiated(subtype));
   Expect.isFalse(closedWorld.isImplemented(subtype));
 
   check(superclass, ClassQuery.EXACT, foo, false);
@@ -211,16 +214,17 @@ testClassSets() async {
 
   await run(['Subtype']);
 
-  Expect.isFalse(closedWorld.isDirectlyInstantiated(superclass));
-  Expect.isFalse(closedWorld.isIndirectlyInstantiated(superclass));
+  Expect.isFalse(closedWorld.classHierarchy.isDirectlyInstantiated(superclass));
+  Expect.isFalse(
+      closedWorld.classHierarchy.isIndirectlyInstantiated(superclass));
   Expect.isTrue(closedWorld.isImplemented(superclass));
 
-  Expect.isFalse(closedWorld.isDirectlyInstantiated(subclass));
-  Expect.isFalse(closedWorld.isIndirectlyInstantiated(subclass));
+  Expect.isFalse(closedWorld.classHierarchy.isDirectlyInstantiated(subclass));
+  Expect.isFalse(closedWorld.classHierarchy.isIndirectlyInstantiated(subclass));
   Expect.isFalse(closedWorld.isImplemented(subclass));
 
-  Expect.isTrue(closedWorld.isDirectlyInstantiated(subtype));
-  Expect.isFalse(closedWorld.isIndirectlyInstantiated(subtype));
+  Expect.isTrue(closedWorld.classHierarchy.isDirectlyInstantiated(subtype));
+  Expect.isFalse(closedWorld.classHierarchy.isIndirectlyInstantiated(subtype));
   Expect.isTrue(closedWorld.isImplemented(subtype));
 
   check(superclass, ClassQuery.EXACT, foo, false);
@@ -255,16 +259,17 @@ testClassSets() async {
 
   await run(['Subclass', 'Subtype']);
 
-  Expect.isFalse(closedWorld.isDirectlyInstantiated(superclass));
-  Expect.isTrue(closedWorld.isIndirectlyInstantiated(superclass));
+  Expect.isFalse(closedWorld.classHierarchy.isDirectlyInstantiated(superclass));
+  Expect.isTrue(
+      closedWorld.classHierarchy.isIndirectlyInstantiated(superclass));
   Expect.isTrue(closedWorld.isImplemented(superclass));
 
-  Expect.isTrue(closedWorld.isDirectlyInstantiated(subclass));
-  Expect.isFalse(closedWorld.isIndirectlyInstantiated(subclass));
+  Expect.isTrue(closedWorld.classHierarchy.isDirectlyInstantiated(subclass));
+  Expect.isFalse(closedWorld.classHierarchy.isIndirectlyInstantiated(subclass));
   Expect.isTrue(closedWorld.isImplemented(subclass));
 
-  Expect.isTrue(closedWorld.isDirectlyInstantiated(subtype));
-  Expect.isFalse(closedWorld.isIndirectlyInstantiated(subtype));
+  Expect.isTrue(closedWorld.classHierarchy.isDirectlyInstantiated(subtype));
+  Expect.isFalse(closedWorld.classHierarchy.isIndirectlyInstantiated(subtype));
   Expect.isTrue(closedWorld.isImplemented(subtype));
 
   check(superclass, ClassQuery.EXACT, foo, false);

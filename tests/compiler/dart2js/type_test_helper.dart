@@ -27,41 +27,22 @@ class TypeEnvironment {
   static Future<TypeEnvironment> create(String source,
       {bool expectNoErrors: false,
       bool expectNoWarningsOrErrors: false,
-      bool stopAfterTypeInference: false,
-      String mainSource,
       bool testBackendWorld: false,
       List<String> options: const <String>[],
       Map<String, String> fieldTypeMap: const <String, String>{}}) async {
     Uri uri;
     Compiler compiler;
-    if (mainSource != null) {
-      stopAfterTypeInference = true;
-    }
-    if (testBackendWorld) {
-      stopAfterTypeInference = true;
-      assert(mainSource != null);
-    }
-    if (mainSource == null) {
-      source = '''import 'dart:async';
-                  main() {}
-                  $source''';
-    } else {
-      source = '$mainSource\n$source';
-    }
     memory.DiagnosticCollector collector;
     collector = new memory.DiagnosticCollector();
     uri = Uri.parse('memory:main.dart');
     memory.CompilationResult result = await memory.runCompiler(
         entryPoint: uri,
         memorySourceFiles: {'main.dart': source},
-        options: stopAfterTypeInference
-            ? ([Flags.disableTypeInference]..addAll(options))
-            : ([Flags.disableTypeInference, Flags.analyzeAll, Flags.analyzeOnly]
-              ..addAll(options)),
+        options: [Flags.disableTypeInference]..addAll(options),
         diagnosticHandler: collector,
         beforeRun: (compiler) {
           ImpactCacheDeleter.retainCachesForTesting = true;
-          compiler.stopAfterTypeInference = stopAfterTypeInference;
+          compiler.stopAfterTypeInference = true;
         });
     compiler = result.compiler;
     if (expectNoErrors || expectNoWarningsOrErrors) {

@@ -37,7 +37,7 @@ vars = {
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
   "co19_rev": "9858ee7d79cf09b50d6b5bc13fb950ae5f357954",
-  "co19_2_rev": "c64be2141d1e4e9a883389d709ef6bf0477c1fcf",
+  "co19_2_rev": "bafb589613379dc1f2e3511566661a5c6250486a",
 
   # As Flutter does, we pull buildtools, including the clang toolchain, from
   # Fuchsia. This revision should be kept up to date with the revision pulled
@@ -78,7 +78,7 @@ vars = {
   #     minutes later.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_tag": "1.1.1",  # Please see the note above before updating.
+  "dart_style_tag": "1.1.2",  # Please see the note above before updating.
 
   "dartdoc_tag" : "v0.20.1",
   "fixnum_tag": "0.10.5",
@@ -89,7 +89,7 @@ vars = {
   "http_multi_server_tag" : "2.0.4",
   "http_parser_tag" : "3.1.1",
   "http_retry_tag": "0.1.1",
-  "http_tag" : "0.11.3+16",
+  "http_tag" : "0.11.3+17",
   "http_throttle_tag" : "1.0.2",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "0.15.2",

@@ -95,7 +95,6 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
   void setUp() {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.strongMode = true;
     resetWith(options: options);
   }
 
@@ -2810,7 +2809,6 @@ class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
   void setUp() {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.strongMode = true;
     resetWith(options: options);
   }
 
@@ -4357,7 +4355,6 @@ class StrongModeTypePropagationTest extends ResolverTestCase {
   void setUp() {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.strongMode = true;
     resetWith(options: options);
   }
 

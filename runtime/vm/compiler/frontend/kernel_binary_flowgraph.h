@@ -7,331 +7,16 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
+#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
+#include "vm/compiler/frontend/scope_builder.h"
 #include "vm/kernel.h"
 #include "vm/kernel_binary.h"
 #include "vm/object.h"
 
 namespace dart {
 namespace kernel {
-
-class TypeTranslator;
-
-struct DirectCallMetadata {
-  DirectCallMetadata(const Function& target, bool check_receiver_for_null)
-      : target_(target), check_receiver_for_null_(check_receiver_for_null) {}
-
-  const Function& target_;
-  const bool check_receiver_for_null_;
-};
-
-// Helper class which provides access to direct call metadata.
-class DirectCallMetadataHelper : public MetadataHelper {
- public:
-  static const char* tag() { return "vm.direct-call.metadata"; }
-
-  explicit DirectCallMetadataHelper(KernelReaderHelper* helper);
-
-  DirectCallMetadata GetDirectTargetForPropertyGet(intptr_t node_offset);
-  DirectCallMetadata GetDirectTargetForPropertySet(intptr_t node_offset);
-  DirectCallMetadata GetDirectTargetForMethodInvocation(intptr_t node_offset);
-
- private:
-  bool ReadMetadata(intptr_t node_offset,
-                    NameIndex* target_name,
-                    bool* check_receiver_for_null);
-};
-
-struct InferredTypeMetadata {
-  InferredTypeMetadata(intptr_t cid_, bool nullable_)
-      : cid(cid_), nullable(nullable_) {}
-
-  const intptr_t cid;
-  const bool nullable;
-
-  bool IsTrivial() const { return (cid == kDynamicCid) && nullable; }
-};
-
-// Helper class which provides access to inferred type metadata.
-class InferredTypeMetadataHelper : public MetadataHelper {
- public:
-  static const char* tag() { return "vm.inferred-type.metadata"; }
-
-  explicit InferredTypeMetadataHelper(KernelReaderHelper* helper);
-
-  InferredTypeMetadata GetInferredType(intptr_t node_offset);
-};
-
-struct ProcedureAttributesMetadata {
-  ProcedureAttributesMetadata(bool has_dynamic_invocations = true,
-                              bool has_non_this_uses = true,
-                              bool has_tearoff_uses = true)
-      : has_dynamic_invocations(has_dynamic_invocations),
-        has_non_this_uses(has_non_this_uses),
-        has_tearoff_uses(has_tearoff_uses) {}
-  bool has_dynamic_invocations;
-  bool has_non_this_uses;
-  bool has_tearoff_uses;
-};
-
-// Helper class which provides access to direct call metadata.
-class ProcedureAttributesMetadataHelper : public MetadataHelper {
- public:
-  static const char* tag() { return "vm.procedure-attributes.metadata"; }
-
-  explicit ProcedureAttributesMetadataHelper(KernelReaderHelper* helper);
-
-  ProcedureAttributesMetadata GetProcedureAttributes(intptr_t node_offset);
-
- private:
-  bool ReadMetadata(intptr_t node_offset,
-                    ProcedureAttributesMetadata* metadata);
-};
-
-#if defined(DART_USE_INTERPRETER)
-
-// Helper class which provides access to bytecode metadata.
-class BytecodeMetadataHelper : public MetadataHelper {
- public:
-  static const char* tag() { return "vm.bytecode"; }
-
-  explicit BytecodeMetadataHelper(KernelReaderHelper* helper,
-                                  TypeTranslator* type_translator,
-                                  ActiveClass* active_class);
-
-  void ReadMetadata(const Function& function);
-
- private:
-  // Returns the index of the last read pool entry.
-  intptr_t ReadPoolEntries(const Function& function,
-                           const Function& inner_function,
-                           const ObjectPool& pool,
-                           intptr_t from_index);
-  RawCode* ReadBytecode(const ObjectPool& pool);
-  void ReadExceptionsTable(const Code& bytecode);
-  RawTypedData* NativeEntry(const Function& function,
-                            const String& external_name);
-
-  TypeTranslator& type_translator_;
-  ActiveClass* const active_class_;
-};
-
-#endif  // defined(DART_USE_INTERPRETER)
-
-class TypeTranslator {
- public:
-  TypeTranslator(KernelReaderHelper* helper,
-                 ActiveClass* active_class,
-                 bool finalize = false);
-
-  // Can return a malformed type.
-  AbstractType& BuildType();
-  // Can return a malformed type.
-  AbstractType& BuildTypeWithoutFinalization();
-  // Is guaranteed to be not malformed.
-  AbstractType& BuildVariableType();
-
-  // Will return `TypeArguments::null()` in case any of the arguments are
-  // malformed.
-  const TypeArguments& BuildTypeArguments(intptr_t length);
-
-  // Will return `TypeArguments::null()` in case any of the arguments are
-  // malformed.
-  const TypeArguments& BuildInstantiatedTypeArguments(
-      const Class& receiver_class,
-      intptr_t length);
-
-  void LoadAndSetupTypeParameters(ActiveClass* active_class,
-                                  const Object& set_on,
-                                  intptr_t type_parameter_count,
-                                  const Function& parameterized_function);
-
-  const Type& ReceiverType(const Class& klass);
-
- private:
-  // Can build a malformed type.
-  void BuildTypeInternal(bool invalid_as_dynamic = false);
-  void BuildInterfaceType(bool simple);
-  void BuildFunctionType(bool simple);
-  void BuildTypeParameterType();
-
-  class TypeParameterScope {
-   public:
-    TypeParameterScope(TypeTranslator* translator, intptr_t parameter_count)
-        : parameter_count_(parameter_count),
-          outer_(translator->type_parameter_scope_),
-          translator_(translator) {
-      outer_parameter_count_ = 0;
-      if (outer_ != NULL) {
-        outer_parameter_count_ =
-            outer_->outer_parameter_count_ + outer_->parameter_count_;
-      }
-      translator_->type_parameter_scope_ = this;
-    }
-    ~TypeParameterScope() { translator_->type_parameter_scope_ = outer_; }
-
-    TypeParameterScope* outer() const { return outer_; }
-    intptr_t parameter_count() const { return parameter_count_; }
-    intptr_t outer_parameter_count() const { return outer_parameter_count_; }
-
-   private:
-    intptr_t parameter_count_;
-    intptr_t outer_parameter_count_;
-    TypeParameterScope* outer_;
-    TypeTranslator* translator_;
-  };
-
-  KernelReaderHelper* helper_;
-  TranslationHelper& translation_helper_;
-  ActiveClass* const active_class_;
-  TypeParameterScope* type_parameter_scope_;
-  Zone* zone_;
-  AbstractType& result_;
-  bool finalize_;
-
-  friend class StreamingScopeBuilder;
-  friend class KernelLoader;
-};
-
-class StreamingScopeBuilder {
- public:
-  explicit StreamingScopeBuilder(ParsedFunction* parsed_function);
-
-  virtual ~StreamingScopeBuilder();
-
-  ScopeBuildingResult* BuildScopes();
-
- private:
-  void VisitField();
-
-  void VisitProcedure();
-
-  void VisitConstructor();
-
-  void VisitFunctionNode();
-  void VisitNode();
-  void VisitInitializer();
-  void VisitExpression();
-  void VisitStatement();
-  void VisitArguments();
-  void VisitVariableDeclaration();
-  void VisitDartType();
-  void VisitInterfaceType(bool simple);
-  void VisitFunctionType(bool simple);
-  void VisitTypeParameterType();
-  void HandleLocalFunction(intptr_t parent_kernel_offset);
-
-  AbstractType& BuildAndVisitVariableType();
-
-  void EnterScope(intptr_t kernel_offset);
-  void ExitScope(TokenPosition start_position, TokenPosition end_position);
-
-  virtual void ReportUnexpectedTag(const char* variant, Tag tag);
-
-  // This enum controls which parameters would be marked as requring type
-  // check on the callee side.
-  enum ParameterTypeCheckMode {
-    // All parameters will be checked.
-    kTypeCheckAllParameters,
-
-    // Only parameters marked as covariant or generic-covariant-impl will be
-    // checked.
-    kTypeCheckForNonDynamicallyInvokedMethod,
-
-    // Only parameters *not* marked as covariant or generic-covariant-impl will
-    // be checked. The rest would be checked in the method itself.
-    // Inverse of kTypeCheckForNonDynamicallyInvokedMethod.
-    kTypeCheckEverythingNotCheckedInNonDynamicallyInvokedMethod,
-
-    // No parameters will be checked.
-    kTypeCheckForStaticFunction,
-  };
-
-  // This assumes that the reader is at a FunctionNode,
-  // about to read the positional parameters.
-  void AddPositionalAndNamedParameters(
-      intptr_t pos,
-      ParameterTypeCheckMode type_check_mode,
-      const ProcedureAttributesMetadata& attrs);
-
-  // This assumes that the reader is at a FunctionNode,
-  // about to read a parameter (i.e. VariableDeclaration).
-  void AddVariableDeclarationParameter(
-      intptr_t pos,
-      ParameterTypeCheckMode type_check_mode,
-      const ProcedureAttributesMetadata& attrs);
-
-  LocalVariable* MakeVariable(TokenPosition declaration_pos,
-                              TokenPosition token_pos,
-                              const String& name,
-                              const AbstractType& type,
-                              const InferredTypeMetadata* param_type_md = NULL);
-
-  void AddExceptionVariable(GrowableArray<LocalVariable*>* variables,
-                            const char* prefix,
-                            intptr_t nesting_depth);
-
-  void FinalizeExceptionVariable(GrowableArray<LocalVariable*>* variables,
-                                 GrowableArray<LocalVariable*>* raw_variables,
-                                 const String& symbol,
-                                 intptr_t nesting_depth);
-
-  void AddTryVariables();
-  void AddCatchVariables();
-  void FinalizeCatchVariables();
-  void AddIteratorVariable();
-  void AddSwitchVariable();
-
-  // Record an assignment or reference to a variable.  If the occurrence is
-  // in a nested function, ensure that the variable is handled properly as a
-  // captured variable.
-  void LookupVariable(intptr_t declaration_binary_offset);
-
-  const String& GenerateName(const char* prefix, intptr_t suffix);
-
-  void HandleSpecialLoad(LocalVariable** variable, const String& symbol);
-  void LookupCapturedVariableByName(LocalVariable** variable,
-                                    const String& name);
-
-  struct DepthState {
-    explicit DepthState(intptr_t function)
-        : loop_(0),
-          function_(function),
-          try_(0),
-          catch_(0),
-          finally_(0),
-          for_in_(0) {}
-
-    intptr_t loop_;
-    intptr_t function_;
-    intptr_t try_;
-    intptr_t catch_;
-    intptr_t finally_;
-    intptr_t for_in_;
-  };
-
-  ScopeBuildingResult* result_;
-  ParsedFunction* parsed_function_;
-
-  ActiveClass active_class_;
-
-  TranslationHelper translation_helper_;
-  Zone* zone_;
-
-  FunctionNodeHelper::AsyncMarker current_function_async_marker_;
-  LocalScope* current_function_scope_;
-  LocalScope* scope_;
-  DepthState depth_;
-
-  intptr_t name_index_;
-
-  bool needs_expr_temp_;
-  TokenPosition first_body_token_position_;
-
-  StreamingFlowGraphBuilder* builder_;
-  TypeTranslator type_translator_;
-};
 
 // There are several cases when we are compiling constant expressions:
 //
@@ -401,16 +86,19 @@ class StreamingConstantEvaluator {
   void EvaluateGetStringLength(intptr_t expression_offset,
                                TokenPosition position);
 
-  const Object& RunFunction(const Function& function,
+  const Object& RunFunction(const TokenPosition position,
+                            const Function& function,
                             intptr_t argument_count,
                             const Instance* receiver,
                             const TypeArguments* type_args);
 
-  const Object& RunFunction(const Function& function,
+  const Object& RunFunction(const TokenPosition position,
+                            const Function& function,
                             const Array& arguments,
                             const Array& names);
 
-  const Object& RunMethodCall(const Function& function,
+  const Object& RunMethodCall(const TokenPosition position,
+                              const Function& function,
                               const Instance* receiver);
 
   RawObject* EvaluateConstConstructorCall(const Class& type_class,
@@ -586,7 +274,9 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
 
   Fragment BuildStatementAt(intptr_t kernel_offset);
   RawObject* BuildParameterDescriptor(intptr_t kernel_offset);
-  RawObject* EvaluateMetadata(intptr_t kernel_offset);
+  RawObject* BuildAnnotations();
+  RawObject* EvaluateMetadata(intptr_t kernel_offset,
+                              bool is_annotations_offset);
   void CollectTokenPositionsFor(
       intptr_t script_index,
       intptr_t initial_script_index,
@@ -598,19 +288,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   String& GetSourceFor(intptr_t index);
   RawTypedData* GetLineStartsFor(intptr_t index);
 
-  // If a 'ParsedFunction' is provided for 'set_forwarding_stub', this method
-  // will attach the forwarding stub target reference to the parsed function if
-  // it crosses a procedure node for a concrete forwarding stub.
-  void ReadUntilFunctionNode(ParsedFunction* set_forwarding_stub = NULL);
-
  private:
-  void DiscoverEnclosingElements(Zone* zone,
-                                 const Function& function,
-                                 Function* outermost_function);
-
-  StringIndex GetNameFromVariableDeclaration(intptr_t kernel_offset,
-                                             const Function& function);
-
   bool optimizing();
 
   FlowGraph* BuildGraphOfFieldInitializer();
@@ -911,30 +589,10 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
   ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper_;
 
-  friend class ClassHelper;
   friend class ConstantHelper;
   friend class KernelLoader;
   friend class SimpleExpressionConverter;
   friend class StreamingConstantEvaluator;
-  friend class StreamingScopeBuilder;
-};
-
-class AlternativeScriptScope {
- public:
-  AlternativeScriptScope(TranslationHelper* helper,
-                         const Script& new_script,
-                         const Script& old_script)
-      : helper_(helper), old_script_(old_script) {
-    helper_->Reset();
-    helper_->InitFromScript(new_script);
-  }
-  ~AlternativeScriptScope() {
-    helper_->Reset();
-    helper_->InitFromScript(old_script_);
-  }
-
-  TranslationHelper* helper_;
-  const Script& old_script_;
 };
 
 // Helper class that reads a kernel Constant from binary.

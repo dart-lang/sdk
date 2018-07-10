@@ -17,10 +17,9 @@ import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 
 main(List<String> args) {
-  ImpactCacheDeleter.retainCachesForTesting = true;
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(dataDir, computeMemberImpact,
+    await checkTests(dataDir, const ImpactDataComputer(),
         args: args, skipForStrong: ['fallthrough.dart'], testFrontend: true);
   });
 }
@@ -33,45 +32,52 @@ class Tags {
   static const String runtimeTypeUse = 'runtimeType';
 }
 
-/// Compute type inference data for [member] from kernel based inference.
-///
-/// Fills [actualMap] with the data.
-void computeMemberImpact(
-    Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
-    {bool verbose: false}) {
-  KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
-  WorldImpact impact = compiler.impactCache[member];
-  MemberDefinition definition =
-      frontendStrategy.elementMap.getMemberDefinition(member);
-  Features features = new Features();
-  if (impact.typeUses.length > 50) {
-    features.addElement(Tags.typeUse, '*');
-  } else {
-    for (TypeUse use in impact.typeUses) {
-      features.addElement(Tags.typeUse, use.shortText);
+class ImpactDataComputer extends DataComputer {
+  const ImpactDataComputer();
+
+  @override
+  void setup() {
+    ImpactCacheDeleter.retainCachesForTesting = true;
+  }
+
+  @override
+  void computeMemberData(
+      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+      {bool verbose: false}) {
+    KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
+    WorldImpact impact = compiler.impactCache[member];
+    MemberDefinition definition =
+        frontendStrategy.elementMap.getMemberDefinition(member);
+    Features features = new Features();
+    if (impact.typeUses.length > 50) {
+      features.addElement(Tags.typeUse, '*');
+    } else {
+      for (TypeUse use in impact.typeUses) {
+        features.addElement(Tags.typeUse, use.shortText);
+      }
     }
-  }
-  if (impact.staticUses.length > 50) {
-    features.addElement(Tags.staticUse, '*');
-  } else {
-    for (StaticUse use in impact.staticUses) {
-      features.addElement(Tags.staticUse, use.shortText);
+    if (impact.staticUses.length > 50) {
+      features.addElement(Tags.staticUse, '*');
+    } else {
+      for (StaticUse use in impact.staticUses) {
+        features.addElement(Tags.staticUse, use.shortText);
+      }
     }
-  }
-  for (DynamicUse use in impact.dynamicUses) {
-    features.addElement(Tags.dynamicUse, use.shortText);
-  }
-  for (ConstantUse use in impact.constantUses) {
-    features.addElement(Tags.constantUse, use.shortText);
-  }
-  if (impact is TransformedWorldImpact &&
-      impact.worldImpact is ResolutionImpact) {
-    ResolutionImpact resolutionImpact = impact.worldImpact;
-    for (RuntimeTypeUse use in resolutionImpact.runtimeTypeUses) {
-      features.addElement(Tags.runtimeTypeUse, use.shortText);
+    for (DynamicUse use in impact.dynamicUses) {
+      features.addElement(Tags.dynamicUse, use.shortText);
     }
+    for (ConstantUse use in impact.constantUses) {
+      features.addElement(Tags.constantUse, use.shortText);
+    }
+    if (impact is TransformedWorldImpact &&
+        impact.worldImpact is ResolutionImpact) {
+      ResolutionImpact resolutionImpact = impact.worldImpact;
+      for (RuntimeTypeUse use in resolutionImpact.runtimeTypeUses) {
+        features.addElement(Tags.runtimeTypeUse, use.shortText);
+      }
+    }
+    Id id = computeEntityId(definition.node);
+    actualMap[id] = new ActualData(new IdValue(id, features.getText()),
+        computeSourceSpanFromTreeNode(definition.node), member);
   }
-  Id id = computeEntityId(definition.node);
-  actualMap[id] = new ActualData(new IdValue(id, features.getText()),
-      computeSourceSpanFromTreeNode(definition.node), member);
 }

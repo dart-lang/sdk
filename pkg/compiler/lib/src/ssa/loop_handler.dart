@@ -15,7 +15,7 @@ import 'locals_handler.dart';
 import 'nodes.dart';
 
 /// Builds the SSA graph for loop nodes.
-abstract class LoopHandler<T> {
+abstract class LoopHandler {
   final GraphBuilder builder;
 
   LoopHandler(this.builder);
@@ -26,7 +26,7 @@ abstract class LoopHandler<T> {
   /// The [condition] function must return a boolean result.
   /// None of the functions must leave anything on the stack.
   void handleLoop(
-      T loop,
+      ir.Node loop,
       CapturedLoopScope loopClosureInfo,
       JumpTarget jumpTarget,
       void initialize(),
@@ -201,7 +201,7 @@ abstract class LoopHandler<T> {
       // if block.
       if (jumpHandler.hasAnyBreak()) {
         LabelDefinition label =
-            jumpTarget.addLabel(null, 'loop', isBreakTarget: true);
+            jumpTarget.addLabel('loop', isBreakTarget: true);
         SubGraph labelGraph = new SubGraph(conditionBlock, builder.current);
         HLabeledBlockInformation labelInfo = new HLabeledBlockInformation(
             new HSubGraphBlockInformation(labelGraph),
@@ -224,7 +224,7 @@ abstract class LoopHandler<T> {
   /// Creates a new loop-header block. The previous [current] block
   /// is closed with an [HGoto] and replaced by the newly created block.
   /// Also notifies the locals handler that we're entering a loop.
-  JumpHandler beginLoopHeader(T node, JumpTarget jumpTarget) {
+  JumpHandler beginLoopHeader(ir.TreeNode node, JumpTarget jumpTarget) {
     assert(!builder.isAborted());
     HBasicBlock previousBlock =
         builder.close(new HGoto(builder.abstractValueDomain));
@@ -297,7 +297,7 @@ abstract class LoopHandler<T> {
   /// Determine what kind of loop [node] represents.
   ///
   /// The result is one of the kinds defined in [HLoopBlockInformation].
-  int loopKind(T node);
+  int loopKind(ir.TreeNode node);
 
   /// Creates a [JumpHandler] for a statement. The node must be a jump
   /// target. If there are no breaks or continues targeting the statement,
@@ -306,13 +306,13 @@ abstract class LoopHandler<T> {
   /// [isLoopJump] is [:true:] when the jump handler is for a loop. This is used
   /// to distinguish the synthesized loop created for a switch statement with
   /// continue statements from simple switch statements.
-  JumpHandler createJumpHandler(T node, JumpTarget jumpTarget,
+  JumpHandler createJumpHandler(ir.TreeNode node, JumpTarget jumpTarget,
       {bool isLoopJump});
 }
 
 // TODO(het): Since kernel simplifies loop breaks and continues, we should
 // rewrite the loop handler from scratch to account for the simplified structure
-class KernelLoopHandler extends LoopHandler<ir.TreeNode> {
+class KernelLoopHandler extends LoopHandler {
   final KernelSsaGraphBuilder builder;
 
   KernelLoopHandler(KernelSsaGraphBuilder builder)

@@ -1,3 +1,14 @@
+// Errors:
+//
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_class_typedef_cycle.dart:10:14: Error: Generic type 'Fisk' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through 'Hest'.
+// Try providing type arguments to 'Hest' here or to some other raw types in the bounds along the reference chain.
+// typedef void Fisk<TypeY extends Hest>();
+//              ^^^^
+//
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_class_typedef_cycle.dart:10:14: Error: The typedef 'Fisk' has a reference to itself.
+// typedef void Fisk<TypeY extends Hest>();
+//              ^
+
 library;
 import self as self;
 import "dart:core" as core;
@@ -8,10 +19,4 @@ class Hest<TypeX extends () → void = () → void> extends core::Object {
     : super core::Object::•()
     ;
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/instantiate_to_bound/non_simple_class_typedef_cycle.dart:10:14: Error: Generic type 'Fisk' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through 'Hest'.
-Try providing type arguments to 'Hest' here or to some other raw types in the bounds along the reference chain.
-typedef void Fisk<TypeY extends Hest>();
-             ^^^^", "pkg/front_end/testcases/instantiate_to_bound/non_simple_class_typedef_cycle.dart:10:14: Error: The typedef 'Fisk' has a reference to itself.
-typedef void Fisk<TypeY extends Hest>();
-             ^"]/* from null */;
 static method main() → dynamic {}

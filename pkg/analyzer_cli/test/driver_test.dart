@@ -245,7 +245,6 @@ var b = a;
       await new Driver(isTesting: true).start([
         '--dart-sdk',
         _findSdkDirForSummaries(),
-        '--strong',
         '--build-mode',
         '--build-summary-unlinked-input=$aUnlinked,$bUnlinked',
         '--build-summary-output=$abLinked'
@@ -372,7 +371,6 @@ var b = new B();
 
       await _doDrive(testDart,
           additionalArgs: [
-            '--strong',
             '--build-summary-only',
             '--build-summary-output=$testSum'
           ],
@@ -959,7 +957,7 @@ class OptionsTest extends BaseTest {
 
   test_strongSdk() async {
     String testDir = path.join(testDirectory, 'data', 'strong_sdk');
-    await drive(path.join(testDir, 'main.dart'), args: ['--strong']);
+    await drive(path.join(testDir, 'main.dart'));
     expect(analysisOptions.strongMode, isTrue);
     expect(outSink.toString(), contains('No issues found'));
   }

@@ -52,14 +52,12 @@ class ContextConfigurationTest extends AbstractContextTest {
       optionsProvider.getOptionsFromString(source);
 
   test_configure_bad_options_contents() {
-    (analysisOptions as AnalysisOptionsImpl)
-      ..previewDart2 = false
-      ..strongMode = false;
     configureContext('''
 analyzer:
-  strong-mode:true # misformatted
+  language:
+    enableSuperMixins true; # misformatted
 ''');
-    expect(analysisOptions.strongMode, false);
+    expect(analysisOptions.enableSuperMixins, false);
   }
 
   test_configure_enableSuperMixins() {
@@ -158,14 +156,12 @@ analyzer:
   }
 
   test_configure_strong_mode_bad_value() {
-    (analysisOptions as AnalysisOptionsImpl)
-      ..previewDart2 = false
-      ..strongMode = false;
     configureContext('''
 analyzer:
-  strong-mode: foo
+  language:
+    enableSuperMixins: true;
 ''');
-    expect(analysisOptions.strongMode, false);
+    expect(analysisOptions.enableSuperMixins, false);
   }
 }
 
@@ -292,9 +288,8 @@ class ErrorProcessorMatcher extends Matcher {
   ErrorProcessorMatcher(this.required);
 
   @override
-  Description describe(Description desc) =>
-      desc..add("an ErrorProcessor setting ${required.code} to ${required
-            .severity}");
+  Description describe(Description desc) => desc
+    ..add("an ErrorProcessor setting ${required.code} to ${required.severity}");
 
   @override
   bool matches(dynamic o, Map<dynamic, dynamic> options) {

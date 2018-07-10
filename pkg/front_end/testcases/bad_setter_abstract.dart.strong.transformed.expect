@@ -1,3 +1,19 @@
+// Errors:
+//
+// pkg/front_end/testcases/bad_setter_abstract.dart:5:8: Error: Expected a function body or '=>'.
+// Try adding {}.
+// set b();
+//        ^
+//
+// pkg/front_end/testcases/bad_setter_abstract.dart:7:12: Error: Expected a function body or '=>'.
+// Try adding {}.
+// set c(x, y);
+//            ^
+//
+// pkg/front_end/testcases/bad_setter_abstract.dart:66:9: Error: The class 'B' is abstract and can't be instantiated.
+//     new B();
+//         ^
+
 library;
 import self as self;
 import "dart:core" as core;
@@ -28,15 +44,6 @@ abstract class B extends core::Object {
   set d(x, y);
        ^";
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/bad_setter_abstract.dart:5:8: Error: Expected a function body or '=>'.
-Try adding {}.
-set b();
-       ^", "pkg/front_end/testcases/bad_setter_abstract.dart:7:12: Error: Expected a function body or '=>'.
-Try adding {}.
-set c(x, y);
-           ^", "pkg/front_end/testcases/bad_setter_abstract.dart:66:9: Error: The class 'B' is abstract and can't be instantiated.
-    new B();
-        ^"]/* from null */;
 static set b(dynamic #synthetic) → void
   let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/bad_setter_abstract.dart:5:6: Error: A setter should have exactly one formal parameter.
 set b();

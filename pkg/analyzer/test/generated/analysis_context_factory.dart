@@ -99,8 +99,6 @@ class AnalysisContextFactory {
     SourceFactory sourceFactory = new SourceFactory(resolvers);
     context.sourceFactory = sourceFactory;
     AnalysisContext coreContext = sdk.context;
-    (coreContext.analysisOptions as AnalysisOptionsImpl).strongMode =
-        context.analysisOptions.strongMode;
     //
     // dart:core
     //

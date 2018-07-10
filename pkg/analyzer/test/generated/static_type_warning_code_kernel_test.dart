@@ -854,13 +854,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_undefinedSuperSetter() async {
-    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_SUPER_SETTER, found 0
-    await super.test_undefinedSuperSetter();
-  }
-
-  @override
-  @failingTest
   test_unqualifiedReferenceToNonLocalStaticMember_getter() async {
     // Expected 1 errors of type StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER, found 0
     await super.test_unqualifiedReferenceToNonLocalStaticMember_getter();

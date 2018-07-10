@@ -63,9 +63,7 @@ class AnalyzerOptions {
       String dartSdkSummaryPath,
       List<String> summaryPaths}) {
     var contextBuilderOptions = ContextBuilderOptions()
-      ..defaultOptions = (AnalysisOptionsImpl()
-        ..strongMode = true
-        ..previewDart2 = true)
+      ..defaultOptions = (AnalysisOptionsImpl()..previewDart2 = true)
       ..dartSdkSummaryPath = dartSdkSummaryPath;
 
     return AnalyzerOptions._(
@@ -76,8 +74,8 @@ class AnalyzerOptions {
 
   factory AnalyzerOptions.fromArguments(ArgResults args,
       {String dartSdkSummaryPath, List<String> summaryPaths}) {
-    var contextBuilderOptions = createContextBuilderOptions(args,
-        strongMode: true, trackCacheDependencies: false);
+    var contextBuilderOptions =
+        createContextBuilderOptions(args, trackCacheDependencies: false);
     (contextBuilderOptions.defaultOptions as AnalysisOptionsImpl).previewDart2 =
         true;
 

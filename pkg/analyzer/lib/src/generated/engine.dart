@@ -1303,7 +1303,11 @@ abstract class AnalysisOptions {
 
   /**
    * Return `true` if strong mode analysis should be used.
+   *
+   * This field is deprecated, and is hard-coded to always return true.
    */
+  @Deprecated(
+      'This field is deprecated and is hard-coded to always return true.')
   bool get strongMode;
 
   /**
@@ -1440,7 +1444,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool preserveComments = true;
 
-  bool _strongMode = true;
+  @override
+  bool get strongMode => true;
+
+  @Deprecated(
+      "The strongMode field is deprecated, and shouldn't be assigned to")
+  set strongMode(bool value) {}
 
   /**
    * A flag indicating whether strong-mode inference hints should be
@@ -1513,7 +1522,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     lint = options.lint;
     lintRules = options.lintRules;
     preserveComments = options.preserveComments;
-    strongMode = options.strongMode;
     useFastaParser = options.useFastaParser;
     previewDart2 = options.previewDart2;
     if (options is AnalysisOptionsImpl) {
@@ -1653,9 +1661,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addBool(enableSuperMixins);
       buffer.addBool(implicitCasts);
       buffer.addBool(implicitDynamic);
-      buffer.addBool(strongMode);
       buffer.addBool(strongModeHints);
       buffer.addBool(useFastaParser);
+      buffer.addBool(previewDart2);
 
       // Append error processors.
       buffer.addInt(errorProcessors.length);
@@ -1683,13 +1691,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   }
 
   @override
-  bool get strongMode => _strongMode || previewDart2;
-
-  void set strongMode(bool value) {
-    _strongMode = value;
-  }
-
-  @override
   void resetToDefaults() {
     declarationCasts = true;
     dart2jsHint = false;
@@ -1710,7 +1711,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     nonnullableTypes = NONNULLABLE_TYPES;
     patchPaths = {};
     preserveComments = true;
-    strongMode = false;
     strongModeHints = false;
     trackCacheDependencies = true;
     useFastaParser = false;
@@ -1720,7 +1720,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   void setCrossContextOptionsFrom(AnalysisOptions options) {
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
     enableSuperMixins = options.enableSuperMixins;
-    strongMode = options.strongMode;
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
     }
@@ -2568,9 +2567,8 @@ class ObsoleteSourceAnalysisException extends AnalysisException {
    * Initialize a newly created exception to represent the removal of the given
    * [source].
    */
-  ObsoleteSourceAnalysisException(Source source)
-      : super(
-            "The source '${source.fullName}' was removed while it was being analyzed") {
+  ObsoleteSourceAnalysisException(Source source) : super("The source '${source
+            .fullName}' was removed while it was being analyzed") {
     this._source = source;
   }
 

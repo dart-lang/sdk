@@ -286,6 +286,22 @@ class File : public ReferenceCounted<File> {
   DISALLOW_COPY_AND_ASSIGN(File);
 };
 
+class UriDecoder {
+ public:
+  explicit UriDecoder(const char* uri);
+  ~UriDecoder();
+
+  const char* decoded() const { return decoded_; }
+
+ private:
+  bool HexCharPairToByte(const char* pch, char* dest);
+
+  char* decoded_;
+  const char* uri_;
+
+  DISALLOW_COPY_AND_ASSIGN(UriDecoder);
+};
+
 }  // namespace bin
 }  // namespace dart
 

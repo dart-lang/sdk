@@ -9,12 +9,13 @@ import '../../common_elements.dart' show CommonElements;
 import '../../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../../elements/entities.dart';
 import '../../types/abstract_value_domain.dart';
+import '../../universe/class_hierarchy.dart';
 import '../../universe/selector.dart' show Selector;
 import '../../universe/use.dart' show DynamicUse;
 import '../../universe/world_builder.dart'
     show UniverseSelectorConstraints, SelectorConstraintsStrategy;
 import '../../util/util.dart';
-import '../../world.dart' show ClassQuery, JClosedWorld;
+import '../../world.dart' show JClosedWorld;
 import '../type_graph_inferrer.dart' show TypeGraphInferrer;
 import 'constants.dart';
 
@@ -197,7 +198,7 @@ class CommonMasks implements AbstractValueDomain {
     // interface `JavaScriptIndexingBehavior`.
     ClassEntity typedDataClass = _closedWorld.commonElements.typedDataClass;
     return typedDataClass != null &&
-        _closedWorld.isInstantiated(typedDataClass) &&
+        _closedWorld.classHierarchy.isInstantiated(typedDataClass) &&
         mask.satisfies(typedDataClass, _closedWorld) &&
         mask.satisfies(_closedWorld.commonElements.jsIndexingBehaviorInterface,
             _closedWorld);
@@ -211,7 +212,7 @@ class CommonMasks implements AbstractValueDomain {
     //               jsIndexingBehaviourInterface.
     ClassEntity typedDataClass = _closedWorld.commonElements.typedDataClass;
     return typedDataClass != null &&
-        _closedWorld.isInstantiated(typedDataClass) &&
+        _closedWorld.classHierarchy.isInstantiated(typedDataClass) &&
         intersects(mask, new TypeMask.subtype(typedDataClass, _closedWorld)) &&
         intersects(
             mask,
@@ -253,13 +254,14 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   bool containsType(TypeMask typeMask, ClassEntity cls) {
-    return _closedWorld.isInstantiated(cls) &&
+    return _closedWorld.classHierarchy.isInstantiated(cls) &&
         typeMask.contains(cls, _closedWorld);
   }
 
   @override
   bool containsOnlyType(TypeMask typeMask, ClassEntity cls) {
-    return _closedWorld.isInstantiated(cls) && typeMask.containsOnly(cls);
+    return _closedWorld.classHierarchy.isInstantiated(cls) &&
+        typeMask.containsOnly(cls);
   }
 
   @override
@@ -549,7 +551,7 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   AbstractValue computeReceiver(Iterable<MemberEntity> members) {
-    assert(_closedWorld
+    assert(_closedWorld.classHierarchy
         .hasAnyStrictSubclass(_closedWorld.commonElements.objectClass));
     return new TypeMask.unionOf(
         members.expand((MemberEntity element) {
@@ -558,7 +560,7 @@ class CommonMasks implements AbstractValueDomain {
         }).map((cls) {
           if (_closedWorld.commonElements.jsNullClass == cls) {
             return const TypeMask.empty();
-          } else if (_closedWorld.isInstantiated(cls)) {
+          } else if (_closedWorld.classHierarchy.isInstantiated(cls)) {
             return new TypeMask.nonNullSubclass(cls, _closedWorld);
           } else {
             // TODO(johnniwinther): Avoid the need for this case.

@@ -1051,9 +1051,6 @@ class CommonElements {
   FunctionEntity get getRuntimeTypeArgumentIntercepted =>
       _findHelperFunction('getRuntimeTypeArgumentIntercepted');
 
-  FunctionEntity get runtimeTypeToString =>
-      _findHelperFunction('runtimeTypeToString');
-
   FunctionEntity get assertIsSubtype => _findHelperFunction('assertIsSubtype');
 
   FunctionEntity get checkSubtype => _findHelperFunction('checkSubtype');

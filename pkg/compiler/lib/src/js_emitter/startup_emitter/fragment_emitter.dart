@@ -1564,8 +1564,8 @@ class FragmentEmitter {
 
     // The isolate-affinity tag must only be initialized once per program.
     if (fragment.isMainFragment &&
-        NativeGenerator
-            .needsIsolateAffinityTagInitialization(_closedWorld.backendUsage)) {
+        NativeGenerator.needsIsolateAffinityTagInitialization(
+            _closedWorld.backendUsage)) {
       statements.add(NativeGenerator.generateIsolateAffinityTagInitialization(
           _closedWorld.backendUsage, generateEmbeddedGlobalAccess, js.js("""
         // On V8, the 'intern' function converts a string to a symbol, which

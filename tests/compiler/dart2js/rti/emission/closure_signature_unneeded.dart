@@ -13,6 +13,7 @@ class A<T> {
     return
         /*kernel.checks=[$signature],instance*/
         /*strong.checks=[],instance*/
+        /*omit.checks=[],instance*/
         (T t, String s) {};
   }
 }

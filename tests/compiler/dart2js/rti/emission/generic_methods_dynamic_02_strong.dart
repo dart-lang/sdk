@@ -6,10 +6,12 @@
 
 library generic_methods_dynamic_test;
 
-/*class: A:checkedInstance,checks=[],typeArgument*/
+/*strong.class: A:checkedInstance,checks=[],typeArgument*/
+/*omit.class: A:*/
 class A {}
 
-/*class: B:checks=[],instance*/
+/*strong.class: B:checks=[],instance*/
+/*omit.class: B:*/
 class B {}
 
 /*class: C:*/

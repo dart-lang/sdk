@@ -762,6 +762,8 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
       Z, ScriptAt(library_helper.source_uri_index_, import_uri_index));
 
   library_helper.ReadUntilExcluding(LibraryHelper::kAnnotations);
+  intptr_t annotations_kernel_offset =
+      builder_.ReaderOffset() - correction_offset_;
   intptr_t annotation_count = builder_.ReadListLength();  // read list length.
   if (annotation_count > 0) {
     EnsurePotentialExtensionLibraries();
@@ -772,16 +774,16 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   }
   library_helper.SetJustRead(LibraryHelper::kAnnotations);
 
-  library_helper.ReadUntilExcluding(LibraryHelper::kDependencies);
-  LoadLibraryImportsAndExports(&library);
-  library_helper.SetJustRead(LibraryHelper::kDependencies);
-
   // Setup toplevel class (which contains library fields/procedures).
   Class& toplevel_class =
       Class::Handle(Z, Class::New(library, Symbols::TopLevel(), script,
                                   TokenPosition::kNoSource));
   toplevel_class.set_is_cycle_free();
   library.set_toplevel_class(toplevel_class);
+
+  library_helper.ReadUntilExcluding(LibraryHelper::kDependencies);
+  LoadLibraryImportsAndExports(&library, toplevel_class);
+  library_helper.SetJustRead(LibraryHelper::kDependencies);
 
   const GrowableObjectArray& classes =
       GrowableObjectArray::Handle(Z, I->object_store()->pending_classes());
@@ -851,6 +853,12 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
     LoadProcedure(library, toplevel_class, false, next_procedure_offset);
   }
 
+  if (FLAG_enable_mirrors && annotation_count > 0) {
+    ASSERT(annotations_kernel_offset > 0);
+    library.AddLibraryMetadata(toplevel_class, TokenPosition::kNoSource,
+                               annotations_kernel_offset);
+  }
+
   toplevel_class.SetFunctions(Array::Handle(MakeFunctionsArray()));
   classes.Add(toplevel_class, Heap::kOld);
   if (!library.Loaded()) library.SetLoaded();
@@ -858,7 +866,8 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   return library.raw();
 }
 
-void KernelLoader::LoadLibraryImportsAndExports(Library* library) {
+void KernelLoader::LoadLibraryImportsAndExports(Library* library,
+                                                const Class& toplevel_class) {
   GrowableObjectArray& show_list = GrowableObjectArray::Handle(Z);
   GrowableObjectArray& hide_list = GrowableObjectArray::Handle(Z);
   Array& show_names = Array::Handle(Z);
@@ -869,6 +878,11 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library) {
   const intptr_t deps_count = builder_.ReadListLength();
   for (intptr_t dep = 0; dep < deps_count; ++dep) {
     LibraryDependencyHelper dependency_helper(&builder_);
+
+    dependency_helper.ReadUntilExcluding(LibraryDependencyHelper::kAnnotations);
+    intptr_t annotations_kernel_offset =
+        builder_.ReaderOffset() - correction_offset_;
+
     dependency_helper.ReadUntilExcluding(LibraryDependencyHelper::kCombinators);
 
     // Ignore the dependency if the target library is invalid.
@@ -936,6 +950,11 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library) {
           library->AddObject(library_prefix, prefix);
         }
       }
+    }
+    if (FLAG_enable_mirrors && dependency_helper.annotation_count_ > 0) {
+      ASSERT(annotations_kernel_offset > 0);
+      ns.AddMetadata(toplevel_class, TokenPosition::kNoSource,
+                     annotations_kernel_offset);
     }
   }
 }

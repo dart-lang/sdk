@@ -751,26 +751,7 @@ class ConstructorInvocationJudgment extends ConstructorInvocation
     implements ExpressionJudgment {
   DartType inferredType;
 
-  final Member _initialTarget;
-
-  /// If the constructor invocation points to a redirected constructor, the type
-  /// arguments to be supplied to redirected constructor, in terms of those
-  /// supplied to the original constructor.
-  ///
-  /// For example, in the code below:
-  ///
-  ///     class C<T> {
-  ///       C() = D<List<T>>;
-  ///     }
-  ///     main() {
-  ///       new C<int>();
-  ///     }
-  ///
-  /// [targetTypeArguments] is a list containing the type `List<T>`.
-  final List<DartType> targetTypeArguments;
-
-  ConstructorInvocationJudgment(Constructor target, this.targetTypeArguments,
-      this._initialTarget, ArgumentsJudgment arguments,
+  ConstructorInvocationJudgment(Constructor target, ArgumentsJudgment arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
 
@@ -815,8 +796,8 @@ class ConstructorInvocationJudgment extends ConstructorInvocation
         factory,
         typeContext,
         fileOffset,
-        _initialTarget.function.functionType,
-        computeConstructorReturnType(_initialTarget),
+        target.function.functionType,
+        computeConstructorReturnType(target),
         argumentJudgments,
         isConst: isConst);
     var inferredType = inferenceResult.type;
@@ -833,40 +814,7 @@ class ConstructorInvocationJudgment extends ConstructorInvocation
     inferrer.listener.constructorInvocation(
         this, argumentJudgments.fileOffset, target, inferredType);
 
-    if (isRedirected(this)) {
-      InterfaceType returnType = inferredType;
-      List<DartType> initialTypeArguments;
-      if (inferrer.strongMode) {
-        initialTypeArguments = returnType.typeArguments;
-      } else {
-        int requiredTypeArgumentsCount = returnType.typeArguments.length;
-        int suppliedTypeArgumentsCount = arguments.types.length;
-        initialTypeArguments = arguments.types.toList(growable: true)
-          ..length = requiredTypeArgumentsCount;
-        for (int i = suppliedTypeArgumentsCount;
-            i < requiredTypeArgumentsCount;
-            i++) {
-          initialTypeArguments[i] = const DynamicType();
-        }
-      }
-      Substitution substitution = Substitution.fromPairs(
-          _initialTarget.function.typeParameters, initialTypeArguments);
-      arguments.types.clear();
-      for (DartType argument in targetTypeArguments) {
-        arguments.types.add(substitution.substituteType(argument));
-      }
-    }
-
     return null;
-  }
-
-  /// Determines whether the given [ConstructorInvocationJudgment] represents an
-  /// invocation of a redirected factory constructor.
-  ///
-  /// This is static to avoid introducing a method that would be visible to the
-  /// kernel.
-  static bool isRedirected(ConstructorInvocationJudgment expression) {
-    return !identical(expression._initialTarget, expression.target);
   }
 }
 
@@ -1029,29 +977,8 @@ class FactoryConstructorInvocationJudgment extends StaticInvocation
     implements ExpressionJudgment {
   DartType inferredType;
 
-  final Member _initialTarget;
-
-  /// If the factory invocation points to a redirected factory, the type
-  /// arguments to be supplied to redirected constructor, in terms of those
-  /// supplied to the original constructor.
-  ///
-  /// For example, in the code below:
-  ///
-  ///     class C<T> {
-  ///       C() = D<List<T>>;
-  ///     }
-  ///     main() {
-  ///       new C<int>();
-  ///     }
-  ///
-  /// [targetTypeArguments] is a list containing the type `List<T>`.
-  final List<DartType> targetTypeArguments;
-
   FactoryConstructorInvocationJudgment(
-      Procedure target,
-      this.targetTypeArguments,
-      this._initialTarget,
-      ArgumentsJudgment arguments,
+      Procedure target, ArgumentsJudgment arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
 
@@ -1066,48 +993,15 @@ class FactoryConstructorInvocationJudgment extends StaticInvocation
         factory,
         typeContext,
         fileOffset,
-        _initialTarget.function.functionType,
-        computeConstructorReturnType(_initialTarget),
+        target.function.functionType,
+        computeConstructorReturnType(target),
         argumentJudgments);
     var inferredType = inferenceResult.type;
     this.inferredType = inferredType;
     inferrer.listener.constructorInvocation(
         this, argumentJudgments.fileOffset, target, inferredType);
 
-    if (isRedirected(this)) {
-      InterfaceType returnType = inferredType;
-      List<DartType> initialTypeArguments;
-      if (inferrer.strongMode) {
-        initialTypeArguments = returnType.typeArguments;
-      } else {
-        int requiredTypeArgumentsCount = returnType.typeArguments.length;
-        int suppliedTypeArgumentsCount = arguments.types.length;
-        initialTypeArguments = arguments.types.toList(growable: true)
-          ..length = requiredTypeArgumentsCount;
-        for (int i = suppliedTypeArgumentsCount;
-            i < requiredTypeArgumentsCount;
-            i++) {
-          initialTypeArguments[i] = const DynamicType();
-        }
-      }
-      Substitution substitution = Substitution.fromPairs(
-          _initialTarget.function.typeParameters, initialTypeArguments);
-      arguments.types.clear();
-      for (DartType argument in targetTypeArguments) {
-        arguments.types.add(substitution.substituteType(argument));
-      }
-    }
-
     return null;
-  }
-
-  /// Determines whether the given [ConstructorInvocationJudgment] represents an
-  /// invocation of a redirected factory constructor.
-  ///
-  /// This is static to avoid introducing a method that would be visible to the
-  /// kernel.
-  static bool isRedirected(FactoryConstructorInvocationJudgment expression) {
-    return !identical(expression._initialTarget, expression.target);
   }
 }
 
@@ -2915,6 +2809,38 @@ class SymbolLiteralJudgment extends SymbolLiteral
   }
 }
 
+/// Synthetic judgment class representing an attempt to invoke a constructor
+/// that cannot be invoked.
+class InvalidConstructorInvocationJudgment extends SyntheticExpressionJudgment {
+  final Constructor constructor;
+  final Arguments arguments;
+
+  InvalidConstructorInvocationJudgment(
+      kernel.Expression desugared, this.constructor, this.arguments)
+      : super(desugared);
+
+  ArgumentsJudgment get argumentJudgments => arguments;
+
+  @override
+  Expression infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory,
+      DartType typeContext) {
+    var calleeType = constructor.function.functionType;
+    var inferenceResult = inferrer.inferInvocation(
+        factory,
+        typeContext,
+        fileOffset,
+        calleeType,
+        computeConstructorReturnType(constructor),
+        argumentJudgments);
+    this.inferredType = inferenceResult.type;
+    inferrer.listener.constructorInvocation(
+        this, arguments.fileOffset, constructor, inferredType);
+    return super.infer(inferrer, factory, typeContext);
+  }
+}
+
 /// Synthetic judgment class representing an attempt to write to a read-only
 /// local variable.
 class InvalidVariableWriteJudgment extends SyntheticExpressionJudgment {
@@ -3552,7 +3478,10 @@ class VariableDeclarationJudgment extends VariableDeclaration
 /// Synthetic judgment class representing an attempt to invoke an unresolved
 /// target.
 class UnresolvedTargetInvocationJudgment extends SyntheticExpressionJudgment {
-  UnresolvedTargetInvocationJudgment(kernel.Expression desugared)
+  final ArgumentsJudgment argumentsJudgment;
+
+  UnresolvedTargetInvocationJudgment(
+      kernel.Expression desugared, this.argumentsJudgment)
       : super(desugared);
 
   @override
@@ -3561,8 +3490,15 @@ class UnresolvedTargetInvocationJudgment extends SyntheticExpressionJudgment {
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     var result = super.infer(inferrer, factory, typeContext);
-    inferrer.listener.staticInvocation(
-        this, fileOffset, null, null, null, null, inferredType);
+    inferrer.inferInvocation(
+        factory,
+        typeContext,
+        fileOffset,
+        TypeInferrerImpl.unknownFunction,
+        const DynamicType(),
+        argumentsJudgment);
+    inferrer.listener.staticInvocation(this, fileOffset, null,
+        argumentsJudgment.types, null, null, inferredType);
     return result;
   }
 }

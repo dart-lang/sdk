@@ -44,7 +44,7 @@ main(List<String> args) {
 runTests(List<String> args, [int shardIndex]) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(dataDir, computeMemberIrTypeMasks,
+    await checkTests(dataDir, const TypeMaskDataComputer(),
         libDirectory: new Directory.fromUri(Platform.script.resolve('libs')),
         forUserLibrariesOnly: true,
         args: args,
@@ -58,11 +58,53 @@ runTests(List<String> args, [int shardIndex]) {
   });
 }
 
-abstract class ComputeValueMixin<T> {
-  GlobalTypeInferenceResults<T> get results;
+class TypeMaskDataComputer extends DataComputer {
+  const TypeMaskDataComputer();
+
+  /// Compute type inference data for [member] from kernel based inference.
+  ///
+  /// Fills [actualMap] with the data.
+  @override
+  void computeMemberData(
+      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+      {bool verbose: false}) {
+    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
+    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    GlobalLocalsMap localsMap = backendStrategy.globalLocalsMapForTesting;
+    MemberDefinition definition = elementMap.getMemberDefinition(member);
+    new TypeMaskIrComputer(
+            compiler.reporter,
+            actualMap,
+            elementMap,
+            member,
+            localsMap.getLocalsMap(member),
+            compiler.globalInference.resultsForTesting,
+            backendStrategy.closureDataLookup)
+        .run(definition.node);
+  }
+}
+
+/// IR visitor for computing inference data for a member.
+class TypeMaskIrComputer extends IrDataExtractor {
+  final GlobalTypeInferenceResults results;
+  GlobalTypeInferenceElementResult result;
+  final KernelToElementMapForBuilding _elementMap;
+  final KernelToLocalsMap _localsMap;
+  final ClosureDataLookup _closureDataLookup;
+
+  TypeMaskIrComputer(
+      DiagnosticReporter reporter,
+      Map<Id, ActualData> actualMap,
+      this._elementMap,
+      MemberEntity member,
+      this._localsMap,
+      this.results,
+      this._closureDataLookup)
+      : result = results.resultOfMember(member),
+        super(reporter, actualMap);
 
   String getMemberValue(MemberEntity member) {
-    GlobalTypeInferenceMemberResult<T> memberResult =
+    GlobalTypeInferenceMemberResult memberResult =
         results.resultOfMember(member);
     if (member.isFunction || member.isConstructor || member.isGetter) {
       return getTypeMaskValue(memberResult.returnType);
@@ -78,7 +120,7 @@ abstract class ComputeValueMixin<T> {
   }
 
   String getParameterValue(Local parameter) {
-    GlobalTypeInferenceParameterResult<T> elementResult =
+    GlobalTypeInferenceParameterResult elementResult =
         results.resultOfParameter(parameter);
     return getTypeMaskValue(elementResult.type);
   }
@@ -86,52 +128,10 @@ abstract class ComputeValueMixin<T> {
   String getTypeMaskValue(TypeMask typeMask) {
     return typeMask != null ? '$typeMask' : null;
   }
-}
-
-/// Compute type inference data for [member] from kernel based inference.
-///
-/// Fills [actualMap] with the data.
-void computeMemberIrTypeMasks(
-    Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
-    {bool verbose: false}) {
-  KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-  KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
-  GlobalLocalsMap localsMap = backendStrategy.globalLocalsMapForTesting;
-  MemberDefinition definition = elementMap.getMemberDefinition(member);
-  new TypeMaskIrComputer(
-          compiler.reporter,
-          actualMap,
-          elementMap,
-          member,
-          localsMap.getLocalsMap(member),
-          compiler.globalInference.results,
-          backendStrategy.closureDataLookup as ClosureDataLookup<ir.Node>)
-      .run(definition.node);
-}
-
-/// IR visitor for computing inference data for a member.
-class TypeMaskIrComputer extends IrDataExtractor
-    with ComputeValueMixin<ir.Node> {
-  final GlobalTypeInferenceResults<ir.Node> results;
-  GlobalTypeInferenceElementResult<ir.Node> result;
-  final KernelToElementMapForBuilding _elementMap;
-  final KernelToLocalsMap _localsMap;
-  final ClosureDataLookup<ir.Node> _closureDataLookup;
-
-  TypeMaskIrComputer(
-      DiagnosticReporter reporter,
-      Map<Id, ActualData> actualMap,
-      this._elementMap,
-      MemberEntity member,
-      this._localsMap,
-      this.results,
-      this._closureDataLookup)
-      : result = results.resultOfMember(member),
-        super(reporter, actualMap);
 
   @override
   visitFunctionExpression(ir.FunctionExpression node) {
-    GlobalTypeInferenceElementResult<ir.Node> oldResult = result;
+    GlobalTypeInferenceElementResult oldResult = result;
     ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
     result = results.resultOfMember(info.callMethod);
     super.visitFunctionExpression(node);
@@ -140,7 +140,7 @@ class TypeMaskIrComputer extends IrDataExtractor
 
   @override
   visitFunctionDeclaration(ir.FunctionDeclaration node) {
-    GlobalTypeInferenceElementResult<ir.Node> oldResult = result;
+    GlobalTypeInferenceElementResult oldResult = result;
     ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
     result = results.resultOfMember(info.callMethod);
     super.visitFunctionDeclaration(node);

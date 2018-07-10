@@ -20,8 +20,7 @@ main() {
 @reflectiveTest
 class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
   @override
-  AnalysisOptions get defaultAnalysisOptions =>
-      new AnalysisOptionsImpl()..strongMode = true;
+  AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
 
   test_assertion_throws() async {
     Source source = addSource(r'''
@@ -493,7 +492,6 @@ var v = const A(null);''');
   }
 
   test_listLiteral_inferredElementType() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     Source source = addSource('''
 const Object x = [1];
 const List<String> y = x;
@@ -515,7 +513,6 @@ const List<String> y = x;
   }
 
   test_mapLiteral_inferredKeyType() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     Source source = addSource('''
 const Object x = {1: 1};
 const Map<String, dynamic> y = x;
@@ -527,7 +524,6 @@ const Map<String, dynamic> y = x;
   }
 
   test_mapLiteral_inferredValueType() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     Source source = addSource('''
 const Object x = {1: 1};
 const Map<dynamic, String> y = x;

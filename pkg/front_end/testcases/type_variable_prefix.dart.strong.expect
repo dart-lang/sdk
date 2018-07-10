@@ -1,3 +1,9 @@
+// Errors:
+//
+// pkg/front_end/testcases/type_variable_prefix.dart:8:3: Error: Type 'T.String' not found.
+//   T.String method() => "Hello, World!";
+//   ^
+
 library;
 import self as self;
 import "dart:core" as core;
@@ -12,9 +18,6 @@ Try changing the type of the left hand side, or casting the right hand side to '
   T.String method() => \"Hello, World!\";
                        ^" in let final dynamic #t2 = "Hello, World!" in null;
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/type_variable_prefix.dart:8:3: Error: Type 'T.String' not found.
-  T.String method() => \"Hello, World!\";
-  ^"]/* from null */;
 static method main() → dynamic {
   core::String s = let dynamic _ = null in let final dynamic #t3 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/type_variable_prefix.dart:12:24: Error: A value of type 'invalid-type' can't be assigned to a variable of type 'dart.core::String'.
 Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.

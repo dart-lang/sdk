@@ -39,7 +39,7 @@ class DebugLogger {
    */
   static void init(Path path, {bool append: false}) {
     if (path != null) {
-      var mode = append ? FileMode.APPEND : FileMode.WRITE;
+      var mode = append ? FileMode.append : FileMode.write;
       _sink = new File(path.toNativePath()).openWrite(mode: mode);
     }
   }

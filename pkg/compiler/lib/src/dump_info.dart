@@ -22,7 +22,10 @@ import 'js/js.dart' as jsAst;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'types/abstract_value_domain.dart';
 import 'types/types.dart'
-    show GlobalTypeInferenceElementResult, GlobalTypeInferenceMemberResult;
+    show
+        GlobalTypeInferenceElementResult,
+        GlobalTypeInferenceMemberResult,
+        GlobalTypeInferenceResults;
 import 'universe/world_builder.dart' show CodegenWorldBuilder;
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
@@ -31,6 +34,7 @@ import 'world.dart' show JClosedWorld;
 class ElementInfoCollector {
   final Compiler compiler;
   final JClosedWorld closedWorld;
+  final GlobalTypeInferenceResults _globalInferenceResults;
 
   ElementEnvironment get environment => closedWorld.elementEnvironment;
   CodegenWorldBuilder get codegenWorldBuilder => compiler.codegenWorldBuilder;
@@ -40,7 +44,8 @@ class ElementInfoCollector {
   final Map<ConstantValue, Info> _constantToInfo = <ConstantValue, Info>{};
   final Map<OutputUnit, OutputUnitInfo> _outputToInfo = {};
 
-  ElementInfoCollector(this.compiler, this.closedWorld);
+  ElementInfoCollector(
+      this.compiler, this.closedWorld, this._globalInferenceResults);
 
   void run() {
     compiler.dumpInfoTask._constantToNode.forEach((constant, node) {
@@ -105,15 +110,16 @@ class ElementInfoCollector {
   }
 
   GlobalTypeInferenceMemberResult _resultOfMember(MemberEntity e) =>
-      compiler.globalInference.results.resultOfMember(e);
+      _globalInferenceResults.resultOfMember(e);
 
   GlobalTypeInferenceElementResult _resultOfParameter(Local e) =>
-      compiler.globalInference.results.resultOfParameter(e);
+      _globalInferenceResults.resultOfParameter(e);
 
   FieldInfo visitField(FieldEntity field, {ClassEntity containingClass}) {
     var isInInstantiatedClass = false;
     if (containingClass != null) {
-      isInInstantiatedClass = closedWorld.isInstantiated(containingClass);
+      isInInstantiatedClass =
+          closedWorld.classHierarchy.isInstantiated(containingClass);
     }
     if (!isInInstantiatedClass && !_hasBeenResolved(field)) {
       return null;
@@ -286,8 +292,9 @@ class ElementInfoCollector {
     String returnType = '${functionType.returnType}';
 
     String inferredReturnType = '${_resultOfMember(function).returnType}';
-    String sideEffects =
-        '${compiler.globalInference.inferredData.getSideEffectsOfElement(function)}';
+    String sideEffects = '${compiler
+        .globalInference.resultsForTesting.inferredData
+        .getSideEffectsOfElement(function)}';
 
     int inlinedCount = compiler.dumpInfoTask.inlineCount[function];
     if (inlinedCount == null) inlinedCount = 0;
@@ -541,9 +548,12 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     return sb.toString();
   }
 
-  void dumpInfo(JClosedWorld closedWorld) {
+  void dumpInfo(JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults) {
     measure(() {
-      infoCollector = new ElementInfoCollector(compiler, closedWorld)..run();
+      infoCollector = new ElementInfoCollector(
+          compiler, closedWorld, globalInferenceResults)
+        ..run();
       StringBuffer jsonBuffer = new StringBuffer();
       dumpInfoJson(jsonBuffer, closedWorld);
       compiler.outputProvider.createOutputSink(

@@ -616,7 +616,6 @@ LayoutTests/fast/dom/Range/range-detached-exceptions_t01: RuntimeError # Please 
 LayoutTests/fast/dom/Range/range-expand_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/range-insertNode-separate-endContainer_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/range-insertNode-splittext_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/SelectorAPI/dumpNodeList-2_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-medialist-item_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/detached-parent-rule-without-wrapper_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/detached-stylesheet-without-wrapper_t01: RuntimeError # Please triage this failure
@@ -662,7 +661,6 @@ LayoutTests/fast/dom/partial-layout-overlay-scrollbars_t01: RuntimeError # Pleas
 LayoutTests/fast/dom/set-innerHTML_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/shadow/distribution-crash_t01: RuntimeError
 LayoutTests/fast/dom/shadow/distribution-update-recalcs-style_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/shadow/event-path_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/shadow/insertion-point-list-menu-crash_t01: RuntimeError
 LayoutTests/fast/dom/shadow/insertion-point-shadow-crash_t01: RuntimeError
 LayoutTests/fast/dom/shadow/insertion-point-video-crash_t01: RuntimeError
@@ -1744,7 +1742,6 @@ LayoutTests/fast/dom/Range/range-constructor_t01: RuntimeError # Please triage t
 LayoutTests/fast/dom/Range/range-detached-exceptions_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/range-insertNode-separate-endContainer_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/range-insertNode-splittext_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/SelectorAPI/dumpNodeList-2_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-medialist-item_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/detached-stylesheet-without-wrapper_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Window/getMatchedCSSRules-with-pseudo-elements-complex_t01: Pass, RuntimeError # Issue 29634
@@ -1771,7 +1768,6 @@ LayoutTests/fast/dom/offset-position-writing-modes_t01: Pass, RuntimeError # Iss
 LayoutTests/fast/dom/partial-layout-overlay-scrollbars_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/set-innerHTML_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/shadow/content-pseudo-element-css-text_t01: Pass, RuntimeError # Issue 29634
-LayoutTests/fast/dom/shadow/event-path_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/shadow/host-context-pseudo-class-css-text_t01: Pass, RuntimeError # Issue 29634
 LayoutTests/fast/dom/shadow/host-pseudo-class-css-text_t01: Pass, RuntimeError # Issue 29634
 LayoutTests/fast/dom/shadow/pseudoclass-update-checked-option_t01: RuntimeError # Please triage this failure
@@ -2713,7 +2709,6 @@ LayoutTests/fast/dom/Range/range-insertNode-assertion_t01: RuntimeError # Please
 LayoutTests/fast/dom/Range/range-insertNode-separate-endContainer_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/range-insertNode-splittext_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/caseTagX_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/SelectorAPI/dumpNodeList-2_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-insert-import-rule-to-shadow-stylesheets_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-medialist-item_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/detached-parent-rule-without-wrapper_t01: RuntimeError # Please triage this failure
@@ -2810,7 +2805,6 @@ LayoutTests/fast/dom/shadow/distribution-update-recalcs-style_t01: RuntimeError 
 LayoutTests/fast/dom/shadow/elementfrompoint_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/shadow/elements-in-frameless-document_t01: RuntimeError # Issue 28983
 LayoutTests/fast/dom/shadow/event-path-not-in-document_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/shadow/event-path_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/shadow/form-in-shadow_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/shadow/get-distributed-nodes-orphan_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/shadow/get-element-by-id-in-shadow-mutation_t01: RuntimeError # Please triage this failure
@@ -3623,13 +3617,12 @@ LayoutTests/fast/canvas/webgl/tex-input-validation_t01: RuntimeError # Please tr
 LayoutTests/fast/canvas/webgl/tex-sub-image-2d-bad-args_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/texture-complete_t01: Skip # Times out sometimes
 LayoutTests/fast/canvas/webgl/texture-npot_t01: Skip # Times out sometimes
-LayoutTests/fast/css/counters/counter-cssText_t01: RuntimeError
-LayoutTests/fast/css/parsing-unexpected-eof_t01: RuntimeError
 LayoutTests/fast/forms/submit-form-attributes_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/sub-pixel/computedstylemargin_t01: RuntimeError
 LayoutTests/fast/text/whitespace/nowrap-line-break-after-white-space_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JSInterop failure
+LibTest/core/Uri/Uri_A06_t03: Pass, Slow
+LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Slow
 
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
 Language/Classes/Abstract_Instance_Members/override_no_named_parameters_t06: Pass, Slow # Issue 25940
@@ -4311,7 +4304,6 @@ LayoutTests/fast/dom/Range/range-processing-instructions_t01: RuntimeError # Ple
 LayoutTests/fast/dom/Selection/getRangeAt_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/caseID_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/SelectorAPI/caseTagX_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/SelectorAPI/dumpNodeList-2_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-insert-import-rule-to-shadow-stylesheets_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-medialist-item_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/detached-parent-rule-without-wrapper_t01: RuntimeError # Please triage this failure
@@ -5885,7 +5877,6 @@ LayoutTests/fast/dom/Range/range-insertNode-splittext_t01: RuntimeError # Please
 LayoutTests/fast/dom/Range/range-isPointInRange_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/range-on-detached-node_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Range/surroundContents-for-detached-node_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/SelectorAPI/dumpNodeList-2_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-insert-import-rule-to-shadow-stylesheets_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/css-medialist-item_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/StyleSheet/detached-shadow-style_t01: RuntimeError # Please triage this failure

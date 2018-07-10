@@ -236,6 +236,136 @@ void topLevelFunction() {}
     }
   }
 
+  test_annotation_onDirective_export() async {
+    addTestFile(r'''
+@a
+export 'dart:math';
+
+const a = 1;
+''');
+    await resolveTestFile();
+
+    var directive = findNode.export('dart:math');
+
+    expect(directive.metadata, hasLength(1));
+    Annotation annotation = directive.metadata[0];
+    expect(annotation.element, findElement.topGet('a'));
+
+    SimpleIdentifier aRef = annotation.name;
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_annotation_onDirective_import() async {
+    addTestFile(r'''
+@a
+import 'dart:math';
+
+const a = 1;
+''');
+    await resolveTestFile();
+
+    var directive = findNode.import('dart:math');
+
+    expect(directive.metadata, hasLength(1));
+    Annotation annotation = directive.metadata[0];
+    expect(annotation.element, findElement.topGet('a'));
+
+    SimpleIdentifier aRef = annotation.name;
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_annotation_onDirective_library() async {
+    addTestFile(r'''
+@a
+library test;
+
+const a = 1;
+''');
+    await resolveTestFile();
+
+    var directive = findNode.libraryDirective;
+
+    expect(directive.metadata, hasLength(1));
+    Annotation annotation = directive.metadata[0];
+    expect(annotation.element, findElement.topGet('a'));
+
+    SimpleIdentifier aRef = annotation.name;
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_annotation_onDirective_part() async {
+    provider.newFile(_p('/test/lib/a.dart'), r'''
+part of 'test.dart';
+''');
+    addTestFile(r'''
+@a
+part 'a.dart';
+
+const a = 1;
+''');
+    await resolveTestFile();
+
+    var directive = findNode.part('a.dart');
+
+    expect(directive.metadata, hasLength(1));
+    Annotation annotation = directive.metadata[0];
+    expect(annotation.element, findElement.topGet('a'));
+
+    SimpleIdentifier aRef = annotation.name;
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_annotation_onDirective_partOf() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+part 'test.dart';
+''');
+    addTestFile(r'''
+@a
+part of 'a.dart';
+
+const a = 1;
+''');
+    driver.addFile(a);
+    await resolveTestFile();
+
+    var directive = findNode.partOf('a.dart');
+
+    expect(directive.metadata, hasLength(1));
+    Annotation annotation = directive.metadata[0];
+    expect(annotation.element, findElement.topGet('a'));
+
+    SimpleIdentifier aRef = annotation.name;
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_annotation_onFormalParameter_redirectingFactory() async {
+    addTestFile(r'''
+class C {
+  factory C(@a p) = C.named;
+  C.named(p);
+}
+
+const a = 1;
+''');
+    await resolveTestFile();
+
+    var parameter = findNode.simpleParameter('p) = C.');
+
+    expect(parameter.metadata, hasLength(1));
+    Annotation annotation = parameter.metadata[0];
+    expect(annotation.element, findElement.topGet('a'));
+
+    SimpleIdentifier aRef = annotation.name;
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
   test_annotation_onVariableList_constructor() async {
     String content = r'''
 class C {
@@ -2969,6 +3099,74 @@ const bool b = a;
     SimpleIdentifier aRef = bDeclaration.initializer;
     assertElement(aRef, findElement.topGet('a'));
     assertType(aRef, 'int');
+  }
+
+  test_invalid_instanceCreation_abstract() async {
+    addTestFile(r'''
+abstract class C<T> {
+  C(T a);
+  C.named(T a);
+  C.named2();
+}
+var a = 0;
+var b = true;
+main() {
+  new C(a);
+  new C.named(b);
+  new C<double>.named2();
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var c = findElement.class_('C');
+
+    {
+      var creation = findNode.instanceCreation('new C(a)');
+      assertType(creation, 'C<int>');
+
+      ConstructorName constructorName = creation.constructorName;
+      expect(constructorName.name, isNull);
+
+      TypeName type = constructorName.type;
+      expect(type.typeArguments, isNull);
+      assertElement(type.name, c);
+      assertType(type.name, useCFE ? 'C<int>' : 'C<dynamic>');
+
+      SimpleIdentifier aRef = creation.argumentList.arguments[0];
+      assertElement(aRef, findElement.topGet('a'));
+      assertType(aRef, 'int');
+    }
+
+    {
+      var creation = findNode.instanceCreation('new C.named(b)');
+      assertType(creation, 'C<bool>');
+
+      ConstructorName constructorName = creation.constructorName;
+      expect(constructorName.name.name, 'named');
+
+      TypeName type = constructorName.type;
+      expect(type.typeArguments, isNull);
+      assertElement(type.name, c);
+      assertType(type.name, useCFE ? 'C<bool>' : 'C<dynamic>');
+
+      SimpleIdentifier bRef = creation.argumentList.arguments[0];
+      assertElement(bRef, findElement.topGet('b'));
+      assertType(bRef, 'bool');
+    }
+
+    {
+      var creation = findNode.instanceCreation('new C<double>.named2()');
+      assertType(creation, 'C<double>');
+
+      ConstructorName constructorName = creation.constructorName;
+      expect(constructorName.name.name, 'named2');
+
+      TypeName type = constructorName.type;
+      assertTypeArguments(type.typeArguments, [doubleType]);
+      assertElement(type.name, c);
+      assertType(type.name, 'C<double>');
+    }
   }
 
   test_invalid_methodInvocation_simpleIdentifier() async {
@@ -7368,6 +7566,21 @@ class C {
     expect(invocation.staticInvokeType, isDynamicType);
   }
 
+  test_unresolved_static_call_arguments() async {
+    addTestFile('''
+int x;
+class C {
+  static f() => C.g(x);
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var x = findNode.simple('x)');
+    assertElement(x, findElement.topGet('x'));
+    assertType(x, 'int');
+  }
+
   test_unresolved_static_call_same_name_as_type_param() async {
     addTestFile('''
 class C<T> {
@@ -7383,6 +7596,20 @@ class C<T> {
     var invocation = t.parent as MethodInvocation;
     assertTypeDynamic(invocation);
     expect(invocation.staticInvokeType, isDynamicType);
+  }
+
+  test_unresolved_static_call_type_arguments() async {
+    addTestFile('''
+class C {
+  static f() => C.g<int>();
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var intRef = findNode.simple('int>');
+    assertElement(intRef, intType.element);
+    assertType(intRef, 'int');
   }
 
   /// Assert that the [argument] is associated with the [expectedParameter],
@@ -7523,6 +7750,15 @@ class FindElement {
 
   CompilationUnitElement get unitElement => result.unit.element;
 
+  ClassElement class_(String name) {
+    for (var class_ in unitElement.types) {
+      if (class_.name == name) {
+        return class_;
+      }
+    }
+    fail('Not found class: $name');
+  }
+
   FieldElement field(String name) {
     for (var type in unitElement.types) {
       for (var field in type.fields) {
@@ -7609,6 +7845,10 @@ class FindNode {
 
   FindNode(this.result);
 
+  LibraryDirective get libraryDirective {
+    return result.unit.directives.singleWhere((d) => d is LibraryDirective);
+  }
+
   AssignmentExpression assignment(String search) {
     return _node(search).getAncestor((n) => n is AssignmentExpression);
   }
@@ -7617,8 +7857,16 @@ class FindNode {
     return _node(search).getAncestor((n) => n is CascadeExpression);
   }
 
+  ExportDirective export(String search) {
+    return _node(search).getAncestor((n) => n is ExportDirective);
+  }
+
   FunctionExpression functionExpression(String search) {
     return _node(search).getAncestor((n) => n is FunctionExpression);
+  }
+
+  ImportDirective import(String search) {
+    return _node(search).getAncestor((n) => n is ImportDirective);
   }
 
   InstanceCreationExpression instanceCreation(String search) {
@@ -7627,6 +7875,14 @@ class FindNode {
 
   MethodInvocation methodInvocation(String search) {
     return _node(search).getAncestor((n) => n is MethodInvocation);
+  }
+
+  PartDirective part(String search) {
+    return _node(search).getAncestor((n) => n is PartDirective);
+  }
+
+  PartOfDirective partOf(String search) {
+    return _node(search).getAncestor((n) => n is PartOfDirective);
   }
 
   PostfixExpression postfix(String search) {
@@ -7639,6 +7895,10 @@ class FindNode {
 
   SimpleIdentifier simple(String search) {
     return _node(search);
+  }
+
+  SimpleFormalParameter simpleParameter(String search) {
+    return _node(search).getAncestor((n) => n is SimpleFormalParameter);
   }
 
   VariableDeclaration variableDeclaration(String search) {

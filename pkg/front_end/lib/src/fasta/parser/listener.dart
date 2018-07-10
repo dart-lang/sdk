@@ -4,7 +4,7 @@
 
 library fasta.parser.listener;
 
-import '../../scanner/token.dart' show Token, TokenType;
+import '../../scanner/token.dart' show Token;
 
 import '../fasta_codes.dart' show Message;
 
@@ -17,8 +17,6 @@ import 'formal_parameter_kind.dart' show FormalParameterKind;
 import 'identifier_context.dart' show IdentifierContext;
 
 import 'member_kind.dart' show MemberKind;
-
-import 'parser_error.dart' show ParserError;
 
 /// A parser event listener that does nothing except throw exceptions
 /// on parser errors.
@@ -1210,22 +1208,6 @@ class Listener implements UnescapeErrorListener {
     logEvent("YieldStatement");
   }
 
-  /// An unrecoverable error is an error that the parser can't recover from
-  /// itself, and recovery is left to the listener. If the listener can
-  /// recover, it should return a non-null continuation token whose `next`
-  /// pointer is the token the parser should continue from. Error recovery
-  /// is tightly coupled to the parser implementation, so to recover from an
-  /// error, one must carefully examine the code in the parser that generates
-  /// the error.
-  ///
-  /// If the listener can't recover, it can throw an exception or return
-  /// `null`. In the latter case, the parser simply skips to EOF which will
-  /// often result in additional parser errors as the parser returns from its
-  /// recursive state.
-  Token handleUnrecoverableError(Token token, Message message) {
-    throw new ParserError.fromTokens(token, token, message);
-  }
-
   /// The parser noticed a syntax error, but was able to recover from it. The
   /// error should be reported using the [message], and the code between the
   /// beginning of the [startToken] and the end of the [endToken] should be
@@ -1255,12 +1237,4 @@ class Listener implements UnescapeErrorListener {
   /// has a type substitution comment /*=T*. So, the type that has been just
   /// parsed should be discarded, and a new type should be parsed instead.
   void discardTypeReplacedWithCommentTypeAssign() {}
-
-  /// Creates a new synthetic token whose `next` pointer points to [next].
-  ///
-  /// If [next] is `null`, `null` is returned.
-  Token newSyntheticToken(Token next) {
-    if (next == null) return null;
-    return new Token(TokenType.RECOVERY, next.charOffset)..next = next;
-  }
 }

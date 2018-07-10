@@ -137,7 +137,6 @@ class Required {
     PerformanceLog log = new PerformanceLog(_logBuffer);
     AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
     AnalysisOptionsImpl options = new AnalysisOptionsImpl()
-      ..strongMode = enableStrongMode
       ..previewDart2 = enablePreviewDart2;
     _driver = new AnalysisDriver(
         scheduler,

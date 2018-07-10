@@ -53,7 +53,6 @@ class AnalysisOptionsImplTest {
       'dart:core': ['/dart_core.patch.dart']
     };
     modifiedOptions.preserveComments = false;
-    modifiedOptions.strongMode = true;
     modifiedOptions.trackCacheDependencies = false;
 
     modifiedOptions.resetToDefaults();
@@ -76,7 +75,6 @@ class AnalysisOptionsImplTest {
     expect(modifiedOptions.lintRules, defaultOptions.lintRules);
     expect(modifiedOptions.patchPaths, defaultOptions.patchPaths);
     expect(modifiedOptions.preserveComments, defaultOptions.preserveComments);
-    expect(modifiedOptions.strongMode, defaultOptions.strongMode);
     expect(modifiedOptions.trackCacheDependencies,
         defaultOptions.trackCacheDependencies);
   }

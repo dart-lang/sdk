@@ -11,6 +11,7 @@ import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart' show ClassEntity;
 import 'package:compiler/src/elements/names.dart';
+import 'package:compiler/src/universe/class_hierarchy.dart';
 import 'package:compiler/src/universe/selector.dart';
 import 'package:compiler/src/world.dart';
 import '../helpers/element_lookup.dart';
@@ -149,16 +150,16 @@ $mainSource
       if (directlyInstantiated.contains(name)) {
         isInstantiated = true;
         Expect.isTrue(
-            world.isDirectlyInstantiated(cls),
+            world.classHierarchy.isDirectlyInstantiated(cls),
             "Expected $name to be directly instantiated in `${mainSource}`:"
-            "\n${world.dump(cls)}");
+            "\n${world.classHierarchy.dump(cls)}");
       }
       if (abstractlyInstantiated.contains(name)) {
         isInstantiated = true;
         Expect.isTrue(
-            world.isAbstractlyInstantiated(cls),
+            world.classHierarchy.isAbstractlyInstantiated(cls),
             "Expected $name to be abstractly instantiated in `${mainSource}`:"
-            "\n${world.dump(cls)}");
+            "\n${world.classHierarchy.dump(cls)}");
         Expect.isTrue(
             world.needsNoSuchMethod(cls, nonExisting, ClassQuery.EXACT),
             "Expected $name to need noSuchMethod for $nonExisting.");
@@ -172,15 +173,15 @@ $mainSource
       if (indirectlyInstantiated.contains(name)) {
         isInstantiated = true;
         Expect.isTrue(
-            world.isIndirectlyInstantiated(cls),
+            world.classHierarchy.isIndirectlyInstantiated(cls),
             "Expected $name to be indirectly instantiated in `${mainSource}`:"
-            "\n${world.dump(cls)}");
+            "\n${world.classHierarchy.dump(cls)}");
       }
       if (!isInstantiated && (name != 'Object' && name != 'Interceptor')) {
         Expect.isFalse(
-            world.isInstantiated(cls),
+            world.classHierarchy.isInstantiated(cls),
             "Expected $name to be uninstantiated in `${mainSource}`:"
-            "\n${world.dump(cls)}");
+            "\n${world.classHierarchy.dump(cls)}");
       }
     }
   }

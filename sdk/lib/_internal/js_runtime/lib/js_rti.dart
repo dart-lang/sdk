@@ -42,26 +42,28 @@
 
 part of _js_helper;
 
-Type createRuntimeType(String name) {
-  // Use a 'JS' cast to String.  Since this is registered as used by the
-  // backend, type inference assumes the worst (name is dynamic).
-  return new TypeImpl(JS('String', '#', name));
+/// Called from generated code.
+Type createRuntimeType(rti) {
+  return new TypeImpl(rti);
 }
 
 class TypeImpl implements Type {
-  final String _typeName;
+  final dynamic _rti;
+  String __typeName;
   String _unmangledName;
+  int _hashCode;
 
-  TypeImpl(this._typeName);
+  TypeImpl(this._rti);
+
+  String get _typeName => __typeName ??= runtimeTypeToString(_rti);
 
   String toString() {
-    if (_unmangledName != null) return _unmangledName;
-    String unmangledName = unmangleAllIdentifiersIfPreservedAnyways(_typeName);
-    return _unmangledName = unmangledName;
+    return _unmangledName ??=
+        unmangleAllIdentifiersIfPreservedAnyways(_typeName);
   }
 
   // TODO(ahe): This is a poor hashCode as it collides with its name.
-  int get hashCode => _typeName.hashCode;
+  int get hashCode => _hashCode ??= _typeName.hashCode;
 
   bool operator ==(other) {
     return (other is TypeImpl) && _typeName == other._typeName;
@@ -171,10 +173,10 @@ String getClassName(var object) {
  * of type 4, the JavaScript array, where the first element represents the class
  * and the remaining elements represent the type arguments.
  */
-String _getRuntimeTypeAsStringV1(var rti, {String onTypeVariable(int i)}) {
+String _getRuntimeTypeAsStringV1(var rti) {
   assert(isJsArray(rti));
   String className = rawRtiToJsConstructorName(getIndex(rti, 0));
-  return '$className${joinArgumentsV1(rti, 1, onTypeVariable: onTypeVariable)}';
+  return '$className${joinArgumentsV1(rti, 1)}';
 }
 
 String _getRuntimeTypeAsStringV2(var rti, List<String> genericContext) {
@@ -186,29 +188,27 @@ String _getRuntimeTypeAsStringV2(var rti, List<String> genericContext) {
 /// Returns a human-readable representation of the type representation [rti].
 ///
 /// Called from generated code.
-///
-/// [onTypeVariable] is used only from dart:mirrors.
 @NoInline()
-String runtimeTypeToString(var rti, {String onTypeVariable(int i)}) {
+String runtimeTypeToString(var rti) {
   return JS_GET_FLAG('STRONG_MODE')
       ? runtimeTypeToStringV2(rti, null)
-      : runtimeTypeToStringV1(rti, onTypeVariable: onTypeVariable);
+      : runtimeTypeToStringV1(rti);
 }
 
-String runtimeTypeToStringV1(var rti, {String onTypeVariable(int i)}) {
+String runtimeTypeToStringV1(var rti) {
   if (rti == null) {
     return 'dynamic';
   }
   if (isJsArray(rti)) {
     // A list representing a type with arguments.
-    return _getRuntimeTypeAsStringV1(rti, onTypeVariable: onTypeVariable);
+    return _getRuntimeTypeAsStringV1(rti);
   }
   if (isJsFunction(rti)) {
     // A reference to the constructor.
     return rawRtiToJsConstructorName(rti);
   }
   if (rti is int) {
-    return '${onTypeVariable == null ? rti : onTypeVariable(rti)}';
+    return '${rti}';
   }
   String functionPropertyName = JS_GET_NAME(JsGetName.FUNCTION_TYPE_TAG);
   if (JS('bool', 'typeof #[#] != "undefined"', rti, functionPropertyName)) {
@@ -218,9 +218,9 @@ String runtimeTypeToStringV1(var rti, {String onTypeVariable(int i)}) {
     String typedefPropertyName = JS_GET_NAME(JsGetName.TYPEDEF_TAG);
     var typedefInfo = JS('', '#[#]', rti, typedefPropertyName);
     if (typedefInfo != null) {
-      return runtimeTypeToStringV1(typedefInfo, onTypeVariable: onTypeVariable);
+      return runtimeTypeToStringV1(typedefInfo);
     }
-    return _functionRtiToStringV1(rti, onTypeVariable);
+    return _functionRtiToStringV1(rti);
   }
   // We should not get here.
   return 'unknown-reified-type';
@@ -263,7 +263,7 @@ String runtimeTypeToStringV2(var rti, List<String> genericContext) {
   return 'unknown-reified-type';
 }
 
-String _functionRtiToStringV1(var rti, String onTypeVariable(int i)) {
+String _functionRtiToStringV1(var rti) {
   String returnTypeText;
   String voidTag = JS_GET_NAME(JsGetName.FUNCTION_TYPE_VOID_RETURN_TAG);
   if (JS('bool', '!!#[#]', rti, voidTag)) {
@@ -271,8 +271,7 @@ String _functionRtiToStringV1(var rti, String onTypeVariable(int i)) {
   } else {
     String returnTypeTag = JS_GET_NAME(JsGetName.FUNCTION_TYPE_RETURN_TYPE_TAG);
     var returnRti = JS('', '#[#]', rti, returnTypeTag);
-    returnTypeText =
-        runtimeTypeToStringV1(returnRti, onTypeVariable: onTypeVariable);
+    returnTypeText = runtimeTypeToStringV1(returnRti);
   }
 
   String argumentsText = '';
@@ -285,8 +284,7 @@ String _functionRtiToStringV1(var rti, String onTypeVariable(int i)) {
     List arguments = JS('JSFixedArray', '#[#]', rti, requiredParamsTag);
     for (var argument in arguments) {
       argumentsText += sep;
-      argumentsText +=
-          runtimeTypeToStringV1(argument, onTypeVariable: onTypeVariable);
+      argumentsText += runtimeTypeToStringV1(argument);
       sep = ', ';
     }
   }
@@ -300,8 +298,7 @@ String _functionRtiToStringV1(var rti, String onTypeVariable(int i)) {
     sep = '';
     for (var argument in optionalArguments) {
       argumentsText += sep;
-      argumentsText +=
-          runtimeTypeToStringV1(argument, onTypeVariable: onTypeVariable);
+      argumentsText += runtimeTypeToStringV1(argument);
       sep = ', ';
     }
     argumentsText += ']';
@@ -316,9 +313,8 @@ String _functionRtiToStringV1(var rti, String onTypeVariable(int i)) {
     sep = '';
     for (String name in extractKeys(namedArguments)) {
       argumentsText += sep;
-      argumentsText += runtimeTypeToStringV1(
-          JS('', '#[#]', namedArguments, name),
-          onTypeVariable: onTypeVariable);
+      argumentsText +=
+          runtimeTypeToStringV1(JS('', '#[#]', namedArguments, name));
       argumentsText += ' $name';
       sep = ', ';
     }
@@ -454,8 +450,7 @@ String joinArguments(var types, int startIndex) {
       : joinArgumentsV1(types, startIndex);
 }
 
-String joinArgumentsV1(var types, int startIndex,
-    {String onTypeVariable(int i)}) {
+String joinArgumentsV1(var types, int startIndex) {
   if (types == null) return '';
   assert(isJsArray(types));
   bool firstArgument = true;
@@ -471,8 +466,7 @@ String joinArgumentsV1(var types, int startIndex,
     if (argument != null) {
       allDynamic = false;
     }
-    buffer
-        .write(runtimeTypeToStringV1(argument, onTypeVariable: onTypeVariable));
+    buffer.write(runtimeTypeToStringV1(argument));
   }
   return allDynamic ? '' : '<$buffer>';
 }
@@ -480,22 +474,19 @@ String joinArgumentsV1(var types, int startIndex,
 String joinArgumentsV2(var types, int startIndex, List<String> genericContext) {
   if (types == null) return '';
   assert(isJsArray(types));
-  bool firstArgument = true;
+  var separator = '';
   bool allDynamic = true;
   StringBuffer buffer = new StringBuffer('');
   for (int index = startIndex; index < getLength(types); index++) {
-    if (firstArgument) {
-      firstArgument = false;
-    } else {
-      buffer.write(', ');
-    }
+    buffer.write(separator);
+    separator = ', ';
     var argument = getIndex(types, index);
     if (argument != null) {
       allDynamic = false;
     }
     buffer.write(runtimeTypeToStringV2(argument, genericContext));
   }
-  return allDynamic ? '' : '<$buffer>';
+  return (!JS_GET_FLAG('STRONG_MODE') && allDynamic) ? '' : '<$buffer>';
 }
 
 /**
@@ -519,9 +510,32 @@ String getRuntimeTypeString(var object) {
   return "$className${joinArguments(rti, 0)}";
 }
 
+/// Returns the full type of [o] in the runtime type representation.
+getRti(o) {
+  if (o is Closure) {
+    // This excludes classes that implement Function via a `call` method, but
+    // includes classes generated to represent closures in closure conversion.
+    var functionRti = extractFunctionTypeObjectFrom(o);
+    if (functionRti != null) return functionRti;
+  }
+  var interceptor = getInterceptor(o);
+  var type = getRawRuntimeType(interceptor);
+  if (o == null) return type;
+  if (JS('bool', 'typeof # != "object"', o)) return type;
+  var rti = getRuntimeTypeInfo(o);
+  if (rti != null) {
+    // If the type has type variables (that is, `rti != null`), make a copy of
+    // the type arguments and insert [o] in the first position to create a
+    // compound type representation.
+    rti = JS('JSExtendableArray', '#.slice()', rti); // Make a copy.
+    JS('', '#.splice(0, 0, #)', rti, type); // Insert type at position 0.
+    type = rti;
+  }
+  return type;
+}
+
 Type getRuntimeType(var object) {
-  String type = getRuntimeTypeString(object);
-  return new TypeImpl(type);
+  return new TypeImpl(getRti(object));
 }
 
 /**

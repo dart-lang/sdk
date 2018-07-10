@@ -721,7 +721,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
       case StaticUseKind.SET:
         useSet.addAll(usage.write());
         break;
-      case StaticUseKind.DIRECT_USE:
       case StaticUseKind.REFLECT:
         useSet.addAll(usage.fullyUse());
         break;
@@ -912,11 +911,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
       if (!info.hasInstantiation) {
         return;
       }
-      assert(_classQueries.checkClass(cls));
-      if (!_classQueries.validateClass(cls)) {
-        failedAt(cls, 'Class "${cls.name}" is not resolved.');
-      }
-
       _classHierarchyBuilder.updateClassHierarchyNodeForClass(cls,
           directlyInstantiated: info.isDirectlyInstantiated,
           abstractlyInstantiated: info.isAbstractlyInstantiated);

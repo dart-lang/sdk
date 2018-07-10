@@ -7,15 +7,13 @@ library fasta.diet_listener;
 import 'package:kernel/ast.dart'
     show
         AsyncMarker,
-        Class,
         Expression,
-        Field,
         InterfaceType,
         Library,
         LibraryDependency,
         LibraryPart,
         Node,
-        Typedef;
+        TreeNode;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -218,13 +216,7 @@ class DietListener extends StackListener {
     Token metadata = pop();
 
     Declaration typedefBuilder = lookupBuilder(typedefKeyword, null, name);
-    Typedef target = typedefBuilder.target;
-    var metadataConstants = parseMetadata(typedefBuilder, metadata);
-    if (metadataConstants != null) {
-      for (var metadataConstant in metadataConstants) {
-        target.addAnnotation(metadataConstant);
-      }
-    }
+    parseMetadata(typedefBuilder, metadata, typedefBuilder.target);
 
     checkEmpty(typedefKeyword.charOffset);
   }
@@ -293,13 +285,7 @@ class DietListener extends StackListener {
     pop(); // name
 
     Token metadata = pop();
-    Library target = library.target;
-    var metadataConstants = parseMetadata(library, metadata);
-    if (metadataConstants != null) {
-      for (var metadataConstant in metadataConstants) {
-        target.addAnnotation(metadataConstant);
-      }
-    }
+    parseMetadata(library, metadata, library.target);
   }
 
   @override
@@ -404,12 +390,7 @@ class DietListener extends StackListener {
     Library libraryNode = library.target;
     LibraryDependency dependency =
         libraryNode.dependencies[importExportDirectiveIndex++];
-    var metadataConstants = parseMetadata(library, metadata);
-    if (metadataConstants != null) {
-      for (var metadataConstant in metadataConstants) {
-        dependency.addAnnotation(metadataConstant);
-      }
-    }
+    parseMetadata(library, metadata, dependency);
   }
 
   @override
@@ -425,12 +406,7 @@ class DietListener extends StackListener {
     Library libraryNode = library.target;
     LibraryDependency dependency =
         libraryNode.dependencies[importExportDirectiveIndex++];
-    var metadataConstants = parseMetadata(library, metadata);
-    if (metadataConstants != null) {
-      for (var metadataConstant in metadataConstants) {
-        dependency.addAnnotation(metadataConstant);
-      }
-    }
+    parseMetadata(library, metadata, dependency);
   }
 
   @override
@@ -440,12 +416,7 @@ class DietListener extends StackListener {
     Token metadata = pop();
     Library libraryNode = library.target;
     LibraryPart part = libraryNode.parts[partDirectiveIndex++];
-    var metadataConstants = parseMetadata(library, metadata);
-    if (metadataConstants != null) {
-      for (var metadataConstant in metadataConstants) {
-        part.addAnnotation(metadataConstant);
-      }
-    }
+    parseMetadata(library, metadata, part);
   }
 
   @override
@@ -508,7 +479,8 @@ class DietListener extends StackListener {
   void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
     debugEvent("NativeFunctionBodySkipped");
     if (!enableNative) {
-      super.handleUnrecoverableError(nativeToken, messageExpectedBlockToSkip);
+      super.handleRecoverableError(
+          messageExpectedBlockToSkip, nativeToken, nativeToken);
     }
   }
 
@@ -623,13 +595,7 @@ class DietListener extends StackListener {
     assert(memberScope == library.scope);
 
     Declaration classBuilder = lookupBuilder(token, null, name);
-    Class target = classBuilder.target;
-    var metadataConstants = parseMetadata(classBuilder, metadata);
-    if (metadataConstants != null) {
-      for (var metadataConstant in metadataConstants) {
-        target.addAnnotation(metadataConstant);
-      }
-    }
+    parseMetadata(classBuilder, metadata, classBuilder.target);
 
     currentClass = classBuilder;
     memberScope = currentClass.scope;
@@ -659,22 +625,13 @@ class DietListener extends StackListener {
     Token metadata = pop();
 
     ClassBuilder enumBuilder = lookupBuilder(enumKeyword, null, name);
-    Class target = enumBuilder.target;
-    var metadataConstants = parseMetadata(enumBuilder, metadata);
-    if (metadataConstants != null) {
-      for (var metadataConstant in metadataConstants) {
-        target.addAnnotation(metadataConstant);
-      }
-    }
+    parseMetadata(enumBuilder, metadata, enumBuilder.target);
     for (int i = 0; i < metadataAndValues.length; i += 2) {
       Token metadata = metadataAndValues[i];
       String valueName = metadataAndValues[i + 1];
       Declaration declaration = enumBuilder.scope.local[valueName];
       if (metadata != null) {
-        Field field = declaration.target;
-        for (var annotation in parseMetadata(declaration, metadata)) {
-          field.addAnnotation(annotation);
-        }
+        parseMetadata(declaration, metadata, declaration.target);
       }
     }
 
@@ -690,13 +647,7 @@ class DietListener extends StackListener {
     Token metadata = pop();
 
     Declaration classBuilder = lookupBuilder(classKeyword, null, name);
-    Class target = classBuilder.target;
-    var metadataConstants = parseMetadata(classBuilder, metadata);
-    if (metadataConstants != null) {
-      for (var metadataConstant in metadataConstants) {
-        target.addAnnotation(metadataConstant);
-      }
-    }
+    parseMetadata(classBuilder, metadata, classBuilder.target);
 
     checkEmpty(beginToken.charOffset);
   }
@@ -844,12 +795,13 @@ class DietListener extends StackListener {
 
   /// If the [metadata] is not `null`, return the parsed metadata [Expression]s.
   /// Otherwise, return `null`.
-  List<Expression> parseMetadata(ModifierBuilder builder, Token metadata) {
+  List<Expression> parseMetadata(
+      ModifierBuilder builder, Token metadata, TreeNode parent) {
     if (metadata != null) {
       var listener = createListener(builder, memberScope, false);
       var parser = new Parser(listener);
       parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
-      return listener.finishMetadata();
+      return listener.finishMetadata(parent);
     }
     return null;
   }

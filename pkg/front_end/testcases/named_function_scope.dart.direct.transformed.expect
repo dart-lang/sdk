@@ -1,3 +1,17 @@
+// Errors:
+//
+// pkg/front_end/testcases/named_function_scope.dart:28:48: Error: A function expression can't have a name.
+//     var x = /*@error=NamedFunctionExpression*/ T() {};
+//                                                ^
+//
+// pkg/front_end/testcases/named_function_scope.dart:48:9: Error: A function expression can't have a name.
+//         T() {};
+//         ^
+//
+// pkg/front_end/testcases/named_function_scope.dart:62:9: Error: A function expression can't have a name.
+//         T< /*@context=DuplicatedNameCause*/ T>() {};
+//         ^
+
 library;
 import self as self;
 import "dart:core" as core;
@@ -12,13 +26,6 @@ class V extends core::Object {
     : super core::Object::•()
     ;
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/named_function_scope.dart:28:48: Error: A function expression can't have a name.
-    var x = /*@error=NamedFunctionExpression*/ T() {};
-                                               ^", "pkg/front_end/testcases/named_function_scope.dart:48:9: Error: A function expression can't have a name.
-        T() {};
-        ^", "pkg/front_end/testcases/named_function_scope.dart:62:9: Error: A function expression can't have a name.
-        T< /*@context=DuplicatedNameCause*/ T>() {};
-        ^"]/* from null */;
 static method test() → dynamic {
   self::T t;
   self::V v;

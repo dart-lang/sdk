@@ -320,9 +320,20 @@ const ICData* Instruction::GetICData(
     const ICData* result = ic_data_array[deopt_id_];
 #if defined(TAG_IC_DATA)
     if (result != NULL) {
-      if (result->tag() == -1) {
-        result->set_tag(tag());
-      } else if (result->tag() != tag()) {
+      ICData::Tag ic_data_tag = ICData::Tag::kUnknown;
+      switch (tag()) {
+        case kInstanceCall:
+          ic_data_tag = ICData::Tag::kInstanceCall;
+          break;
+        case kStaticCall:
+          ic_data_tag = ICData::Tag::kStaticCall;
+          break;
+        default:
+          UNREACHABLE();
+      }
+      if (result->tag() == ICData::Tag::kUnknown) {
+        result->set_tag(ic_data_tag);
+      } else if (result->tag() != ic_data_tag) {
         FATAL("ICData tag mismatch");
       }
     }

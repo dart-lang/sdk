@@ -98,16 +98,34 @@ kernel/test/*: RuntimeError, OK # Issue 26103. Timers are not supported.
 [ $runtime == vm ]
 analysis_server/test/benchmarks_test: Pass, Slow
 analysis_server/test/completion_test: Pass, Slow
-analysis_server/test/integration/analysis/error_test: Pass, Slow
-analysis_server/test/integration/analysis/lint_test: Pass, Slow
-analysis_server/test/integration/completion: Pass, Slow
-analysis_server/test/integration/edit/format_test: Pass, Slow
-analysis_server/test/integration/edit/import_elements_test: Pass, Slow
-analysis_server/test/integration/edit/organize_directives_test: Pass, Slow
+analysis_server/test/domain_completion_test: Pass, Slow
+analysis_server/test/edit/refactoring_test: Pass, Slow
+analysis_server/test/integration/*: Pass, Slow
 analysis_server/test/integration/search/find_top_level_declarations_test: Pass, RuntimeError # 31571
+analysis_server/test/services/completion/dart/imported_reference_contributor_test: Pass, Slow
+analysis_server/test/services/completion/dart/keyword_contributor_test: Pass, Slow
+analysis_server/test/services/completion/dart/local_constructor_contributor_test: Pass, Slow
+analysis_server/test/services/completion/dart/local_reference_contributor_test: Pass, Slow
+analysis_server/test/services/completion/dart/type_member_contributor_test: Pass, Slow
+analysis_server/test/services/correction/assist_test: Pass, Slow
+analysis_server/test/services/correction/fix_test: Pass, Slow
+analysis_server/test/services/refactoring/extract_method_test: Pass, Slow
+analysis_server/test/services/refactoring/inline_method_test: Pass, Slow
+analysis_server/test/socket_server_test: Skip # Pass, Slow
+analysis_server/test/src/plugin/plugin_manager_test: Pass, Slow
 analyzer/test/file_system/physical_resource_provider_test: Pass, Fail # Issue 25472
+analyzer/test/generated/hint_code_driver_test: Pass, Slow
+analyzer/test/generated/non_error_resolver_kernel_test: Pass, Slow
+analyzer/test/generated/strong_mode_driver_test: Pass, Slow
+analyzer/test/src/dart/analysis/driver_resolution_kernel_test: Pass, Slow
+analyzer/test/src/dart/analysis/driver_resolution_test: Pass, Slow
+analyzer/test/src/dart/analysis/driver_test: Pass, Slow
+analyzer/test/src/summary/resynthesize_ast_test: Pass, Slow
+analyzer/test/src/task/strong/front_end_inference_test: Pass, Slow
 analyzer/test/src/task/strong/inferred_type_test: Pass, Slow
 analyzer_cli/test/driver_test: Pass, Slow, Timeout
+analyzer_plugin/test/src/utilities/change_builder/change_builder_dart_test: Pass, Slow
+analyzer_plugin/test/src/utilities/completion/optype_test: Pass, Slow
 mutation_observer: Skip # Skip tests on the VM if the package depends on dart:html
 
 [ $runtime != vm ]
@@ -188,23 +206,6 @@ analyzer_plugin/test/utilities/completion/completion_target_test: Fail
 analysis_server/test/*: Skip # Issue 26813
 analyzer/test/*: Skip # Issue 26813
 analyzer/tool/*: Skip # Issue 26813
-
-# ILLEGAL_ASYNC_RETURN_TYPE warnings appear on some subset of Linux configurations,
-# but do not always fail.
-[ $compiler == dart2analyzer && $system == linux && !$preview_dart_2 && !$strong ]
-analyzer/test/src/dart/ast/ast_test: StaticWarning, Pass
-analyzer/test/src/summary/expr_builder_test: StaticWarning, Pass
-analyzer/test/src/summary/resynthesize_ast_test: StaticWarning, Pass
-analyzer/test/src/summary/resynthesize_kernel_test: StaticWarning, Pass
-front_end/test/incremental_dart2js_load_from_dill_test: StaticWarning, Pass
-
-# ILLEGAL_ASYNC_RETURN_TYPE warnings
-[ $compiler == dart2analyzer && !$preview_dart_2 && !$strong && ($system == macos || $system == windows) ]
-analyzer/test/src/dart/ast/ast_test: StaticWarning
-analyzer/test/src/summary/expr_builder_test: StaticWarning
-analyzer/test/src/summary/resynthesize_ast_test: StaticWarning
-analyzer/test/src/summary/resynthesize_kernel_test: StaticWarning
-front_end/test/incremental_dart2js_load_from_dill_test: StaticWarning
 
 # Analyze dev_compiler but only run its tests on the vm
 [ $compiler != dart2analyzer && $runtime != vm ]

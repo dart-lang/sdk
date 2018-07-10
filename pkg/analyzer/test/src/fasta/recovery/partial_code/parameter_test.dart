@@ -24,6 +24,21 @@ class ParameterTest extends PartialCodeTest {
           'f(Function(void) _s_) {}',
           failing: ['eof'],
         ),
+        new TestDescriptor(
+          'typeArgument_noGt',
+          '''
+          class C<E> {}
+          f(C<int Function(int, int) c) {}
+          ''',
+          [
+            ScannerErrorCode.EXPECTED_TOKEN,
+          ],
+          '''
+          class C<E> {}
+          f(C<int Function(int, int)> c) {}
+          ''',
+          failing: ['eof'],
+        ),
       ],
       [],
     );

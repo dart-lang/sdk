@@ -101,22 +101,41 @@ void main() {
   }
 
   // Also count the Fasta '-DuseFastaParser=true' tests.
-  print('\nuseFastaParser=true failures from pkg/pkg.status');
+  print('\n--use-fasta-parser excusions from status files');
 
-  io.File file = new io.File('pkg/pkg.status');
+  int testExclusions = 0;
+
+  // pkg/pkg.status:
+  //   [ $builder_tag == analyzer_use_fasta && $runtime == vm ]
+  testExclusions += countExclusions('pkg/pkg.status',
+      r'[ $builder_tag == analyzer_use_fasta && $runtime == vm ]');
+
+  // tests/language_2/language_2_analyzer.status:
+  //   [ $compiler == dart2analyzer && $analyzer_use_fasta_parser ]
+  testExclusions += countExclusions(
+      'tests/language_2/language_2_analyzer.status',
+      r'[ $compiler == dart2analyzer && $analyzer_use_fasta_parser ]');
+
+  print('  $testExclusions failing tests');
+}
+
+int countExclusions(String filePath, String exclusionHeader) {
+  io.File file = new io.File(filePath);
   List<String> lines = file.readAsLinesSync();
   lines = lines
       .where((line) => line.trim().isNotEmpty && !line.trim().startsWith('#'))
       .toList();
 
-  int index = lines
-      .indexOf(r'[ $builder_tag == analyzer_use_fasta && $runtime == vm ]');
+  int index = lines.indexOf(exclusionHeader);
   if (index == -1) {
     print('error parsing ${file.path}');
   }
 
   lines = lines.sublist(index + 1);
-  lines = lines.sublist(0, lines.indexWhere((line) => line.startsWith('[')));
+  int endIndex = lines.indexWhere((line) => line.startsWith('['));
+  if (endIndex >= 0) {
+    lines = lines.sublist(0, endIndex);
+  }
 
-  print('  ${lines.length} failing tests');
+  return lines.length;
 }

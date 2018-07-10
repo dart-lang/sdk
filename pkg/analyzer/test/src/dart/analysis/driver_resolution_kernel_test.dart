@@ -21,6 +21,20 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   @override
   bool get useCFE => true;
 
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33795')
+  test_annotation_onDirective_partOf() async {
+    await super.test_annotation_onDirective_partOf();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33800')
+  test_annotation_onFormalParameter_redirectingFactory() async {
+    await super.test_annotation_onFormalParameter_redirectingFactory();
+  }
+
   @failingTest
   @override
   test_annotation_onVariableList_topLevelVariable() =>

@@ -18,12 +18,7 @@ import '../dump_info.dart' show DumpInfoTask;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart'
-    show
-        DirectEnqueuerStrategy,
-        Enqueuer,
-        EnqueueTask,
-        ResolutionEnqueuer,
-        TreeShakingEnqueuerStrategy;
+    show Enqueuer, EnqueueTask, ResolutionEnqueuer, TreeShakingEnqueuerStrategy;
 import '../frontend_strategy.dart';
 import '../io/source_information.dart'
     show SourceInformation, SourceInformationStrategy;
@@ -37,8 +32,9 @@ import '../library_loader.dart' show LoadedLibraries;
 import '../native/native.dart' as native;
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
 import '../tracer.dart';
+import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
-import '../universe/class_hierarchy_builder.dart'
+import '../universe/class_hierarchy.dart'
     show ClassHierarchyBuilder, ClassQueries;
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show StaticUse;
@@ -72,7 +68,8 @@ abstract class FunctionCompiler {
   void onCodegenStart();
 
   /// Generates JavaScript code for `work.element`.
-  jsAst.Fun compile(CodegenWorkItem work, JClosedWorld closedWorld);
+  jsAst.Fun compile(CodegenWorkItem work, JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults);
 
   Iterable get tasks;
 }
@@ -596,9 +593,7 @@ class JavaScriptBackend {
         task,
         compiler.options,
         compiler.reporter,
-        compiler.options.analyzeOnly && compiler.options.analyzeMain
-            ? const DirectEnqueuerStrategy()
-            : const TreeShakingEnqueuerStrategy(),
+        const TreeShakingEnqueuerStrategy(),
         new ResolutionEnqueuerListener(
             compiler.options,
             elementEnvironment,
@@ -635,7 +630,10 @@ class JavaScriptBackend {
 
   /// Creates an [Enqueuer] for code generation specific to this backend.
   CodegenEnqueuer createCodegenEnqueuer(
-      CompilerTask task, Compiler compiler, JClosedWorld closedWorld) {
+      CompilerTask task,
+      Compiler compiler,
+      JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults) {
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     CommonElements commonElements = closedWorld.commonElements;
     BackendImpacts impacts =
@@ -661,7 +659,8 @@ class JavaScriptBackend {
             closedWorld.nativeData,
             closedWorld,
             compiler.abstractValueStrategy.createSelectorStrategy()),
-        compiler.backendStrategy.createCodegenWorkItemBuilder(closedWorld),
+        compiler.backendStrategy
+            .createCodegenWorkItemBuilder(closedWorld, globalInferenceResults),
         new CodegenEnqueuerListener(
             elementEnvironment,
             commonElements,
@@ -675,7 +674,8 @@ class JavaScriptBackend {
   static bool cacheCodegenImpactForTesting = false;
   Map<MemberEntity, WorldImpact> codegenImpactsForTesting;
 
-  WorldImpact codegen(CodegenWorkItem work, JClosedWorld closedWorld) {
+  WorldImpact codegen(CodegenWorkItem work, JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults) {
     MemberEntity element = work.element;
     if (compiler.elementHasCompileTimeError(element)) {
       DiagnosticMessage message =
@@ -696,7 +696,8 @@ class JavaScriptBackend {
       return const WorldImpact();
     }
 
-    jsAst.Fun function = functionCompiler.compile(work, closedWorld);
+    jsAst.Fun function =
+        functionCompiler.compile(work, closedWorld, globalInferenceResults);
     if (function != null) {
       if (function.sourceInformation == null) {
         function = function.withSourceInformation(
@@ -730,8 +731,8 @@ class JavaScriptBackend {
   }
 
   /// Generates the output and returns the total size of the generated code.
-  int assembleProgram(JClosedWorld closedWorld) {
-    int programSize = emitter.assembleProgram(namer, closedWorld);
+  int assembleProgram(JClosedWorld closedWorld, InferredData inferredData) {
+    int programSize = emitter.assembleProgram(namer, closedWorld, inferredData);
     closedWorld.noSuchMethodData.emitDiagnostic(reporter);
     return programSize;
   }

@@ -2004,8 +2004,9 @@ class ICData : public Object {
   enum { kCachedICDataArrayCount = 4 };
 
 #if defined(TAG_IC_DATA)
-  void set_tag(intptr_t value) const;
-  intptr_t tag() const { return raw_ptr()->tag_; }
+  using Tag = RawICData::Tag;
+  void set_tag(Tag value) const;
+  Tag tag() const { return raw_ptr()->tag_; }
 #endif
 
   bool is_static_call() const;
@@ -2285,6 +2286,9 @@ class Function : public Object {
 
   // Enclosing function of this local function.
   RawFunction* parent_function() const;
+
+  // Enclosing outermost function of this local function.
+  RawFunction* GetOutermostFunction() const;
 
   void set_extracted_method_closure(const Function& function) const;
   RawFunction* extracted_method_closure() const;
@@ -3845,7 +3849,8 @@ class Library : public Object {
                            TokenPosition token_pos,
                            intptr_t kernel_offset = 0) const;
   void AddLibraryMetadata(const Object& tl_owner,
-                          TokenPosition token_pos) const;
+                          TokenPosition token_pos,
+                          intptr_t kernel_offset = 0) const;
   void AddTypeParameterMetadata(const TypeParameter& param,
                                 TokenPosition token_pos) const;
   void CloneMetadataFrom(const Library& from_library,
@@ -4061,7 +4066,9 @@ class Namespace : public Object {
   RawArray* show_names() const { return raw_ptr()->show_names_; }
   RawArray* hide_names() const { return raw_ptr()->hide_names_; }
 
-  void AddMetadata(const Object& owner, TokenPosition token_pos);
+  void AddMetadata(const Object& owner,
+                   TokenPosition token_pos,
+                   intptr_t kernel_offset = 0);
   RawObject* GetMetadata() const;
 
   static intptr_t InstanceSize() {

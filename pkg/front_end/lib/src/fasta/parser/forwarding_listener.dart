@@ -1305,11 +1305,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  Token handleUnrecoverableError(Token token, Message message) {
-    return listener?.handleUnrecoverableError(token, message);
-  }
-
-  @override
   void beginFormalParameterDefaultValueExpression() {
     listener?.beginFormalParameterDefaultValueExpression();
   }
@@ -1332,11 +1327,6 @@ class ForwardingListener implements Listener {
   @override
   void logEvent(String name) {
     listener?.logEvent(name);
-  }
-
-  @override
-  Token newSyntheticToken(Token next) {
-    return listener?.newSyntheticToken(next);
   }
 
   @override

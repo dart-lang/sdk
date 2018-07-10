@@ -7,8 +7,7 @@ import 'dart:io';
 
 import 'package:kernel/kernel.dart';
 import 'package:kernel/interpreter/interpreter.dart';
-
-import 'util.dart';
+import 'package:kernel/src/tool/command_line_util.dart';
 
 void usage() {
   print("Interpreter for a dill file.");

@@ -49,8 +49,8 @@ checkIndexReferences(
       //
       // Expect.isTrue(entry.column < target[line.line].length);
       Expect.isTrue(entry.column >= 0);
-      Expect
-          .isTrue(urlIndex == null || (urlIndex >= 0 && urlIndex < urlsLength));
+      Expect.isTrue(
+          urlIndex == null || (urlIndex >= 0 && urlIndex < urlsLength));
       Expect.isTrue(entry.sourceLine == null ||
           (entry.sourceLine >= 0 &&
               entry.sourceLine < sources[urlIndex].length));

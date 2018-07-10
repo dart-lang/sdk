@@ -109,7 +109,7 @@ class PubspecValidator {
   Map<dynamic, YamlNode> _getDeclaredDependencies(
       ErrorReporter reporter, Map<dynamic, YamlNode> contents, String key) {
     YamlNode field = contents[key];
-    if (field == null) {
+    if (field == null || (field is YamlScalar && field.value == null)) {
       return <String, YamlNode>{};
     } else if (field is YamlMap) {
       return field.nodes;

@@ -7,8 +7,7 @@ import 'dart:io';
 
 import 'package:kernel/error_formatter.dart';
 import 'package:kernel/naive_type_checker.dart';
-
-import 'util.dart';
+import 'package:kernel/src/tool/command_line_util.dart';
 
 void usage() {
   print("Type checker that can be used to find strong mode");

@@ -950,8 +950,8 @@ class CallSiteInliner : public ValueObject {
         FlowGraph* callee_graph;
         if (UseKernelFrontEndFor(parsed_function)) {
           kernel::FlowGraphBuilder builder(
-              parsed_function->function().kernel_offset(), parsed_function,
-              *ic_data_array, /* not building var desc */ NULL, exit_collector,
+              parsed_function, *ic_data_array, /* not building var desc */ NULL,
+              exit_collector,
               /* optimized = */ true, Compiler::kNoOSRDeoptId,
               caller_graph_->max_block_id() + 1);
           {
@@ -2258,8 +2258,7 @@ static bool CanUnboxDouble() {
 }
 
 static bool ShouldInlineInt64ArrayOps() {
-  // TODO(ajcbik): look into doing this even for 32-bit targets.
-  return (kBitsPerWord == 64) && FlowGraphCompiler::SupportsUnboxedInt64();
+  return FlowGraphCompiler::SupportsUnboxedInt64();
 }
 
 static bool CanUnboxInt32() {

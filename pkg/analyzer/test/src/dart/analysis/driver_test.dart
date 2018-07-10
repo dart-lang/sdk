@@ -82,7 +82,7 @@ class AnalysisDriverSchedulerTest {
             [new DartUriResolver(sdk), new ResourceUriResolver(provider)],
             null,
             provider),
-        new AnalysisOptionsImpl()..strongMode = true);
+        new AnalysisOptionsImpl());
     driver.results.forEach(allResults.add);
     return driver;
   }

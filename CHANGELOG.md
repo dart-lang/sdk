@@ -16,9 +16,28 @@
 
 #### Dart2js
 
+#### Analyzer
+
 #### Other Tools
 
 ### Core library changes
+
+## 2.0.0-dev.68.0
+
+### Tool Changes
+
+#### dartfmt
+
+* Do not split long strings inside their string interpolations.
+
+#### Analyzer
+
+  * The analysis server will now only analyze code in Dart 2 mode ('strong
+    mode'). It will emit warnings for analysis options files that have
+    `strong-mode: false` set (and will emit a hint for `strong-mode: true`,
+    which is no longer necessary).
+  * The dartanalyzer `--strong` flag is now deprecated and ignored; the
+    command-line analyzer now only analyzes code in strong mode.
 
 ## 2.0.0-dev.67.0
 
@@ -81,12 +100,18 @@ unless the return type of the function is `void` or `dynamic`.
 * Mixed return statements of the form `return;` and `return exp;` are now
 allowed when `exp` has type `void`.
 
+* A compile time error is emitted for any literal which cannot be exactly
+  represented on the target platform. As a result, dart2js and DDC will
+  report errors if an integer literal cannot be represented exactly in
+  JavaScript. Issue [33282][issue 33282].
+
 [issue 31887]: https://github.com/dart-lang/sdk/issues/31887
 [issue 30638]: https://github.com/dart-lang/sdk/issues/30638
 [issue 32233]: https://github.com/dart-lang/sdk/issues/32233
 [issue 32881]: https://github.com/dart-lang/sdk/issues/32881
 [issue 33218]: https://github.com/dart-lang/sdk/issues/33218
 [issue 31278]: https://github.com/dart-lang/sdk/issues/31278
+[issue 33282]: https://github.com/dart-lang/sdk/issues/33282
 
 ### Dart VM
 

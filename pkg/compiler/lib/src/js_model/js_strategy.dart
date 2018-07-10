@@ -181,7 +181,7 @@ class JsBackendStrategy implements KernelBackendStrategy {
   @override
   SourceInformationStrategy get sourceInformationStrategy {
     if (!_compiler.options.generateSourceMap) {
-      return const JavaScriptSourceInformationStrategy<ir.Node>();
+      return const JavaScriptSourceInformationStrategy();
     }
     return new KernelSourceInformationStrategy(this);
   }
@@ -194,8 +194,10 @@ class JsBackendStrategy implements KernelBackendStrategy {
   }
 
   @override
-  WorkItemBuilder createCodegenWorkItemBuilder(JClosedWorld closedWorld) {
-    return new KernelCodegenWorkItemBuilder(_compiler.backend, closedWorld);
+  WorkItemBuilder createCodegenWorkItemBuilder(JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults) {
+    return new KernelCodegenWorkItemBuilder(
+        _compiler.backend, closedWorld, globalInferenceResults);
   }
 
   @override
@@ -230,7 +232,7 @@ class JsBackendStrategy implements KernelBackendStrategy {
 class JsClosedWorldBuilder {
   final JsKernelToElementMap _elementMap;
   final Map<ClassEntity, ClassHierarchyNode> _classHierarchyNodes =
-      <ClassEntity, ClassHierarchyNode>{};
+      new ClassHierarchyNodesMap();
   final Map<ClassEntity, ClassSet> _classSets = <ClassEntity, ClassSet>{};
   final KernelClosureConversionTask _closureConversionTask;
   final CompilerOptions _options;
@@ -289,10 +291,10 @@ class JsClosedWorldBuilder {
       });
     }
 
-    closedWorld
+    closedWorld.classHierarchy
         .getClassHierarchyNode(closedWorld.commonElements.objectClass)
         .forEachSubclass((ClassEntity cls) {
-      convertClassSet(closedWorld.getClassSet(cls));
+      convertClassSet(closedWorld.classHierarchy.getClassSet(cls));
     }, ClassHierarchyNode.ALL);
 
     Set<MemberEntity> liveInstanceMembers =
@@ -674,11 +676,6 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
   AbstractValueDomain get abstractValueDomain {
     return _abstractValueDomain;
   }
-
-  @override
-  void registerClosureClass(ClassEntity cls) {
-    throw new UnsupportedError('JsClosedWorld.registerClosureClass');
-  }
 }
 
 class ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
@@ -830,7 +827,8 @@ class TypeConverter extends DartTypeVisitor<DartType, Null> {
   DartType visitTypedefType(TypedefType type, _) {
     var element = toBackendEntity(type.element);
     var args = _visitList(type.typeArguments);
-    return new TypedefType(element, args);
+    var unaliased = convert(type.unaliased);
+    return new TypedefType(element, args, unaliased);
   }
 
   List<DartType> _visitList(List<DartType> list) =>

@@ -1,3 +1,15 @@
+// Errors:
+//
+// pkg/front_end/testcases/bad_setter_abstract.dart:5:8: Error: Expected a function body or '=>'.
+// Try adding {}.
+// set b();
+//        ^
+//
+// pkg/front_end/testcases/bad_setter_abstract.dart:7:12: Error: Expected a function body or '=>'.
+// Try adding {}.
+// set c(x, y);
+//            ^
+
 library;
 import self as self;
 import "dart:core" as core;
@@ -28,13 +40,6 @@ abstract class B extends core::Object {
   set d(x, y);
        ^";
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/bad_setter_abstract.dart:5:8: Error: Expected a function body or '=>'.
-Try adding {}.
-set b();
-       ^", "pkg/front_end/testcases/bad_setter_abstract.dart:7:12: Error: Expected a function body or '=>'.
-Try adding {}.
-set c(x, y);
-           ^"]/* from null */;
 static set b(dynamic #synthetic) → dynamic
   let dynamic _ = null in invalid-expression "pkg/front_end/testcases/bad_setter_abstract.dart:5:6: Error: A setter should have exactly one formal parameter.
 set b();

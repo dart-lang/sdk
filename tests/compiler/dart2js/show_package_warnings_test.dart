@@ -78,7 +78,7 @@ Future test(Uri entryPoint,
     int warnings: 0,
     int hints: 0,
     int infos: 0}) async {
-  var options = [Flags.analyzeOnly];
+  List<String> options = <String>[];
   if (showPackageWarnings != null) {
     if (showPackageWarnings.isEmpty) {
       options.add(Flags.showPackageWarnings);

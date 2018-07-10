@@ -84,7 +84,6 @@ class ModelEmitter {
         _closedWorld.rtiNeed,
         compiler.backend.rtiEncoder,
         _closedWorld.allocatorAnalysis,
-        namer,
         task,
         this.generateConstantReference,
         constantListGenerator);

@@ -4,6 +4,7 @@
 
 library analyzer.test.generated.static_warning_code_test;
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -369,7 +370,6 @@ f(A a) {
   }
 
   test_argumentTypeNotAssignable_call() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     Source source = addSource(r'''
 typedef bool Predicate<T>(T object);
 
@@ -1222,6 +1222,27 @@ void f() {
     await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.CONST_WITH_ABSTRACT_CLASS]);
     verify([source]);
+  }
+
+  test_constWithAbstractClass_generic() async {
+    Source source = addSource(r'''
+abstract class A<E> {
+  const A();
+}
+void f() {
+  var a = const A<int>();
+}''');
+    TestAnalysisResult result = await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.CONST_WITH_ABSTRACT_CLASS]);
+    verify([source]);
+
+    ClassDeclaration classA = result.unit.declarations[0];
+    FunctionDeclaration f = result.unit.declarations[1];
+    BlockFunctionBody body = f.functionExpression.body;
+    VariableDeclarationStatement a = body.block.statements[0];
+    InstanceCreationExpression init = a.variables.variables[0].initializer;
+    expect(init.staticType,
+        classA.element.type.instantiate([typeProvider.intType]));
   }
 
   test_equalKeysInMap() async {
@@ -2980,6 +3001,25 @@ void f() {
     verify([source]);
   }
 
+  test_newWithAbstractClass_generic() async {
+    Source source = addSource(r'''
+abstract class A<E> {}
+void f() {
+  var a = new A<int>();
+}''');
+    TestAnalysisResult result = await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.NEW_WITH_ABSTRACT_CLASS]);
+    verify([source]);
+
+    ClassDeclaration classA = result.unit.declarations[0];
+    FunctionDeclaration f = result.unit.declarations[1];
+    BlockFunctionBody body = f.functionExpression.body;
+    VariableDeclarationStatement a = body.block.statements[0];
+    InstanceCreationExpression init = a.variables.variables[0].initializer;
+    expect(init.staticType,
+        classA.element.type.instantiate([typeProvider.intType]));
+  }
+
   test_newWithInvalidTypeParameters() async {
     Source source = addSource(r'''
 class A {}
@@ -3202,7 +3242,6 @@ class C implements I {
   }
 
   test_nonAbstractClassInheritsAbstractMemberOne_method_fromInterface_abstractNSM() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     Source source = addSource(r'''
 class I {
   m(p) {}
@@ -3217,7 +3256,6 @@ class C implements I {
   }
 
   test_nonAbstractClassInheritsAbstractMemberOne_method_fromInterface_abstractOverrideNSM() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     Source source = addSource(r'''
 class I {
   m(p) {}
@@ -3234,7 +3272,6 @@ class C extends B implements I {
   }
 
   test_nonAbstractClassInheritsAbstractMemberOne_method_fromInterface_ifcNSM() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     Source source = addSource(r'''
 class I {
   m(p) {}
@@ -4057,6 +4094,20 @@ class A<K> {
 class A<K> {
   static set s(K k) {}
 }''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);
+    verify([source]);
+  }
+
+  test_typeParameterReferencedByStatic_simpleIdentifier() async {
+    Source source = addSource('''
+class A<T> {
+  static foo() {
+    T;
+  }
+}
+''');
     await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC]);

@@ -672,13 +672,15 @@ class Assembler : public ValueObject {
                                            intptr_t cid,
                                            intptr_t index_scale,
                                            Register array,
-                                           intptr_t index);
+                                           intptr_t index,
+                                           intptr_t extra_disp = 0);
 
   static Address ElementAddressForRegIndex(bool is_external,
                                            intptr_t cid,
                                            intptr_t index_scale,
                                            Register array,
-                                           Register index);
+                                           Register index,
+                                           intptr_t extra_disp = 0);
 
   static Address VMTagAddress() {
     return Address(THR, Thread::vm_tag_offset());

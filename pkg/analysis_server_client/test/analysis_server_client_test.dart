@@ -25,7 +25,7 @@ void main() {
     serverWrapper.listenToOutput();
 
     final response = await future;
-    expect(response, new isInstanceOf<Map>());
+    expect(response, const TypeMatcher<Map>());
     final responseAsMap = response as Map;
     expect(responseAsMap['foo'], 'bar');
   });
@@ -34,7 +34,7 @@ void main() {
     process.stdout = _badMessage();
     final future = serverWrapper.send('blahMethod', null);
     future.catchError((e) {
-      expect(e, new isInstanceOf<ServerErrorMessage>());
+      expect(e, const TypeMatcher<ServerErrorMessage>());
       final e2 = e as ServerErrorMessage;
       expect(e2.code, 'someErrorCode');
       expect(e2.message, 'something went wrong');

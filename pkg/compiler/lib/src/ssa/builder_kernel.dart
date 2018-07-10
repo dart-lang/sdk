@@ -62,7 +62,7 @@ class StackFrame {
   final AsyncMarker asyncMarker;
   final KernelToLocalsMap localsMap;
   final KernelToTypeInferenceMap typeInferenceMap;
-  final SourceInformationBuilder<ir.Node> sourceInformationBuilder;
+  final SourceInformationBuilder sourceInformationBuilder;
 
   StackFrame(this.parent, this.member, this.asyncMarker, this.localsMap,
       this.typeInferenceMap, this.sourceInformationBuilder);
@@ -98,11 +98,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
   @override
   JavaScriptBackend get backend => compiler.backend;
 
-  final SourceInformationStrategy<ir.Node> _sourceInformationStrategy;
+  final SourceInformationStrategy _sourceInformationStrategy;
   final KernelToElementMapForBuilding _elementMap;
-  final GlobalTypeInferenceResults _globalInferenceResults;
+  final GlobalTypeInferenceResults globalInferenceResults;
   final GlobalLocalsMap _globalLocalsMap;
-  LoopHandler<ir.Node> loopHandler;
+  LoopHandler loopHandler;
   TypeBuilder typeBuilder;
 
   final NativeEmitter nativeEmitter;
@@ -123,19 +123,19 @@ class KernelSsaGraphBuilder extends ir.Visitor
   StackFrame _currentFrame;
 
   KernelSsaGraphBuilder(
-      this.initialTargetElement,
-      InterfaceType instanceType,
-      this.compiler,
-      this._elementMap,
-      this._globalInferenceResults,
-      this._globalLocalsMap,
-      this.closedWorld,
-      this._worldBuilder,
-      this.registry,
-      this.closureDataLookup,
-      this.nativeEmitter,
-      this._sourceInformationStrategy)
-      : this.targetElement = _effectiveTargetElementFor(initialTargetElement),
+    this.initialTargetElement,
+    InterfaceType instanceType,
+    this.compiler,
+    this._elementMap,
+    this.globalInferenceResults,
+    this._globalLocalsMap,
+    this.closedWorld,
+    this._worldBuilder,
+    this.registry,
+    this.closureDataLookup,
+    this.nativeEmitter,
+    this._sourceInformationStrategy,
+  )   : this.targetElement = _effectiveTargetElementFor(initialTargetElement),
         _infoReporter = compiler.dumpInfoTask,
         _allocatorAnalysis = closedWorld.allocatorAnalysis {
     _enterFrame(targetElement);
@@ -174,7 +174,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         member,
         asyncMarker,
         _globalLocalsMap.getLocalsMap(member),
-        new KernelToTypeInferenceMapImpl(member, _globalInferenceResults),
+        new KernelToTypeInferenceMapImpl(member, globalInferenceResults),
         _currentFrame != null
             ? _currentFrame.sourceInformationBuilder.forContext(member)
             : _sourceInformationStrategy.createBuilderForContext(member));
@@ -2009,8 +2009,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         // to the body.
         SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
         JumpTarget target = localsMap.getJumpTargetForDo(node);
-        LabelDefinition label =
-            target.addLabel(null, 'loop', isBreakTarget: true);
+        LabelDefinition label = target.addLabel('loop', isBreakTarget: true);
         HLabeledBlockInformation info = new HLabeledBlockInformation(
             new HSubGraphBlockInformation(bodyGraph), <LabelDefinition>[label]);
         loopEntryBlock.setBlockFlow(info, current);
@@ -2854,14 +2853,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         dartType, sourceElement,
         sourceInformation: sourceInformation);
     _pushStaticInvocation(
-        _commonElements.runtimeTypeToString,
-        <HInstruction>[value],
-        abstractValueDomain.stringType,
-        const <DartType>[],
-        sourceInformation: sourceInformation);
-    _pushStaticInvocation(
         _commonElements.createRuntimeType,
-        <HInstruction>[pop()],
+        <HInstruction>[value],
         _typeInferenceMap.getReturnTypeOf(_commonElements.createRuntimeType),
         const <DartType>[],
         sourceInformation: sourceInformation);
@@ -4144,10 +4137,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
         Selector selector, MemberEntity element) {
       bool isLength = selector.isGetter && selector.name == "length";
       if (isLength || selector.isIndex) {
-        return closedWorld.isSubtypeOf(
+        return closedWorld.classHierarchy.isSubtypeOf(
             element.enclosingClass, commonElements.jsIndexableClass);
       } else if (selector.isIndexSet) {
-        return closedWorld.isSubtypeOf(
+        return closedWorld.classHierarchy.isSubtypeOf(
             element.enclosingClass, commonElements.jsMutableIndexableClass);
       } else {
         return false;
@@ -4830,11 +4823,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
       js.Name operator = namer.operatorIs(element);
       HInstruction isFieldName =
           graph.addConstantStringFromName(operator, closedWorld);
-      HInstruction asFieldName = closedWorld.hasAnyStrictSubtype(element) ||
-              closedWorld.nativeData.isJsInteropClass(element)
-          ? graph.addConstantStringFromName(
-              namer.substitutionName(element), closedWorld)
-          : graph.addConstantNull(closedWorld);
+      HInstruction asFieldName =
+          closedWorld.classHierarchy.hasAnyStrictSubtype(element) ||
+                  closedWorld.nativeData.isJsInteropClass(element)
+              ? graph.addConstantStringFromName(
+                  namer.substitutionName(element), closedWorld)
+              : graph.addConstantNull(closedWorld);
       List<HInstruction> inputs = <HInstruction>[
         expression,
         isFieldName,
@@ -5581,8 +5575,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // constructor's factory.  A simplified version is to check this is a
       // constructor body for a leaf class.
       ClassEntity class_ = element.enclosingClass;
-      if (closedWorld.isDirectlyInstantiated(class_)) {
-        return !closedWorld.isIndirectlyInstantiated(class_);
+      if (closedWorld.classHierarchy.isDirectlyInstantiated(class_)) {
+        return !closedWorld.classHierarchy.isIndirectlyInstantiated(class_);
       }
       return false;
     }

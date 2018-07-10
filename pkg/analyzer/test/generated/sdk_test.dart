@@ -89,11 +89,9 @@ class SdkDescriptionTest extends EngineTestCase {
   void test_equals_samePaths_differentOptions() {
     String path = '/a/b/c';
     AnalysisOptionsImpl leftOptions = new AnalysisOptionsImpl()
-      ..previewDart2 = false
-      ..strongMode = false;
+      ..previewDart2 = false;
     AnalysisOptionsImpl rightOptions = new AnalysisOptionsImpl()
-      ..previewDart2 = true
-      ..strongMode = true;
+      ..previewDart2 = true;
     SdkDescription left = new SdkDescription(<String>[path], leftOptions);
     SdkDescription right = new SdkDescription(<String>[path], rightOptions);
     expect(left == right, isFalse);

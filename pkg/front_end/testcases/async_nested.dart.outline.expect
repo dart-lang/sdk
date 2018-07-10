@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Node extends core::Object {
+  final field core::List<self::Node> nested;
+  final field core::String name;
+  constructor •(core::String name, [core::List<self::Node> nested]) → void
+    ;
+  method toString() → core::String
+    ;
+  method toSimpleString() → dynamic
+    ;
+}
+static method main() → void
+  ;

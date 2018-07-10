@@ -40,7 +40,6 @@ class ArgumentsTest {
       '--options=$defaultAnalysisOptionsFilePath',
       '--packages=$defaultPackageFilePath',
       '--package-root=$defaultPackagesDirectoryPath',
-      '--strong',
       '--supermixin',
     ];
     ArgResults result = parse(provider, parser, args);

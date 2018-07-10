@@ -59,8 +59,8 @@ main() {
   Expect.isTrue(({Object m, Object l, Object g}) {} is genericsFunc);
 
   Expect.isTrue(({A x, G y, mixFunc z, var v}) {} is dynamicFunc);
-  Expect
-      .isTrue(({int x, bool y, List<Map> z, classesFunc v}) {} is dynamicFunc);
+  Expect.isTrue(
+      ({int x, bool y, List<Map> z, classesFunc v}) {} is dynamicFunc);
 
   Expect.isTrue((
       {okWithClassesFunc_1 f1,

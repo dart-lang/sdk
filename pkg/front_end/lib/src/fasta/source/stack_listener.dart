@@ -4,9 +4,8 @@
 
 library fasta.stack_listener;
 
-import 'package:kernel/ast.dart' show AsyncMarker, Expression, FunctionNode;
-
-import '../deprecated_problems.dart' show deprecated_inputErrorFromMessage;
+import 'package:kernel/ast.dart'
+    show AsyncMarker, Expression, FunctionNode, TreeNode;
 
 import '../fasta_codes.dart'
     show
@@ -15,13 +14,7 @@ import '../fasta_codes.dart'
         templateInternalProblemStackNotEmpty;
 
 import '../parser.dart'
-    show
-        Listener,
-        MemberKind,
-        Parser,
-        lengthForToken,
-        lengthOfSpan,
-        offsetForToken;
+    show Listener, MemberKind, Parser, lengthOfSpan, offsetForToken;
 
 import '../parser/identifier_context.dart' show IdentifierContext;
 
@@ -95,7 +88,7 @@ abstract class StackListener extends Listener {
 
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
   // and ast_builder.dart.
-  List<Expression> finishMetadata() {
+  List<Expression> finishMetadata(TreeNode parent) {
     return unsupported("finishMetadata", -1, uri);
   }
 
@@ -351,12 +344,6 @@ abstract class StackListener extends Listener {
     debugEvent("Error: ${message.message}");
     addCompileTimeError(message, offsetForToken(startToken),
         lengthOfSpan(startToken, endToken));
-  }
-
-  @override
-  Token handleUnrecoverableError(Token token, Message message) {
-    return deprecated_inputErrorFromMessage(message.withLocation(
-        uri, offsetForToken(token), lengthForToken(token)));
   }
 
   @override

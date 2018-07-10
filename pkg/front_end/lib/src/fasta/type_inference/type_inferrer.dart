@@ -76,7 +76,6 @@ import '../kernel/kernel_expression_generator.dart' show buildIsNull;
 import '../kernel/kernel_shadow_ast.dart'
     show
         ArgumentsJudgment,
-        ConstructorInvocationJudgment,
         ExpressionJudgment,
         NullJudgment,
         ShadowClass,
@@ -517,7 +516,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// [expectedType], and inserts an implicit downcast if appropriate.
   Expression ensureAssignable(DartType expectedType, DartType actualType,
       Expression expression, int fileOffset,
-      {bool isReturnFromAsync = false}) {
+      {bool isReturnFromAsync = false,
+      Template<Message Function(DartType, DartType)> template}) {
     assert(expectedType != null);
     expectedType = greatestClosure(coreTypes, expectedType);
 
@@ -580,8 +580,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (!typeSchemaEnvironment.isSubtypeOf(expectedType, actualType)) {
       // Error: not assignable.  Perform error recovery.
       var parent = expression.parent;
-      var errorNode = helper.wrapInCompileTimeError(expression,
-          templateInvalidAssignment.withArguments(actualType, expectedType));
+      var errorNode = helper.wrapInCompileTimeError(
+          expression,
+          (template ?? templateInvalidAssignment)
+              .withArguments(actualType, expectedType));
       parent?.replaceChild(expression, errorNode);
       return errorNode;
     } else {
@@ -1204,7 +1206,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
               ? arguments.positional[i]
               : arguments.named[i - numPositionalArgs].value;
           ensureAssignable(
-              expectedType, actualType, expression, expression.fileOffset);
+              expectedType, actualType, expression, expression.fileOffset,
+              template: templateArgumentTypeNotAssignable);
         }
       }
     }
@@ -1782,11 +1785,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       return templateInvalidCastFunctionExpr;
     }
     if (expression is ConstructorInvocation) {
-      if (ConstructorInvocationJudgment.isRedirected(expression)) {
-        return null;
-      } else {
-        return templateInvalidCastNewExpr;
-      }
+      return templateInvalidCastNewExpr;
     }
     if (expression is StaticGet) {
       var target = expression.target;

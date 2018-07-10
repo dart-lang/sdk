@@ -1131,6 +1131,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
 
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
       return CompileType::Int();
 
     default:
@@ -1159,6 +1161,9 @@ Representation LoadIndexedInstr::representation() const {
       return kUnboxedInt32;
     case kTypedDataUint32ArrayCid:
       return kUnboxedUint32;
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
+      return kUnboxedInt64;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
@@ -1213,9 +1218,12 @@ static bool CanBeImmediateIndex(Value* value,
 
 LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
+  const bool directly_addressable =
+      aligned() && representation() != kUnboxedInt64;
   const intptr_t kNumInputs = 2;
   intptr_t kNumTemps = 0;
-  if (!aligned()) {
+
+  if (!directly_addressable) {
     kNumTemps += 1;
     if (representation() == kUnboxedDouble) {
       kNumTemps += 1;
@@ -1251,11 +1259,16 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
   } else if (representation() == kUnboxedInt32) {
     ASSERT(class_id() == kTypedDataInt32ArrayCid);
     locs->set_out(0, Location::RequiresRegister());
+  } else if (representation() == kUnboxedInt64) {
+    ASSERT(class_id() == kTypedDataInt64ArrayCid ||
+           class_id() == kTypedDataUint64ArrayCid);
+    locs->set_out(0, Location::Pair(Location::RequiresRegister(),
+                                    Location::RequiresRegister()));
   } else {
     ASSERT(representation() == kTagged);
     locs->set_out(0, Location::RequiresRegister());
   }
-  if (!aligned()) {
+  if (!directly_addressable) {
     locs->set_temp(0, Location::RequiresRegister());
     if (representation() == kUnboxedDouble) {
       locs->set_temp(1, Location::RequiresRegister());
@@ -1265,13 +1278,16 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
 }
 
 void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const bool directly_addressable =
+      aligned() && representation() != kUnboxedInt64;
   // The array register points to the backing store for external arrays.
   const Register array = locs()->in(0).reg();
   const Location index = locs()->in(1);
-  const Register address = aligned() ? kNoRegister : locs()->temp(0).reg();
+  const Register address =
+      directly_addressable ? kNoRegister : locs()->temp(0).reg();
 
   Address element_address(kNoRegister);
-  if (aligned()) {
+  if (directly_addressable) {
     element_address = index.IsRegister()
                           ? __ ElementAddressForRegIndex(
                                 true,  // Load.
@@ -1368,6 +1384,25 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
+  if (representation() == kUnboxedInt64) {
+    ASSERT(!directly_addressable);  // need to add to register
+    ASSERT(class_id() == kTypedDataInt64ArrayCid ||
+           class_id() == kTypedDataUint64ArrayCid);
+    ASSERT(locs()->out(0).IsPairLocation());
+    PairLocation* result_pair = locs()->out(0).AsPairLocation();
+    Register result_lo = result_pair->At(0).reg();
+    Register result_hi = result_pair->At(1).reg();
+    if (aligned()) {
+      __ ldr(result_lo, Address(address));
+      __ ldr(result_hi, Address(address, kWordSize));
+    } else {
+      __ LoadWordUnaligned(result_lo, address, TMP);
+      __ AddImmediate(address, address, kWordSize);
+      __ LoadWordUnaligned(result_hi, address, TMP);
+    }
+    return;
+  }
+
   ASSERT(representation() == kTagged);
 
   const Register result = locs()->out(0).reg();
@@ -1435,6 +1470,9 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
       return kUnboxedInt32;
     case kTypedDataUint32ArrayCid:
       return kUnboxedUint32;
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
+      return kUnboxedInt64;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
@@ -1452,6 +1490,9 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
 
 LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
+  const bool directly_addressable = aligned() &&
+                                    class_id() != kTypedDataInt64ArrayCid &&
+                                    class_id() != kTypedDataUint64ArrayCid;
   const intptr_t kNumInputs = 3;
   LocationSummary* locs;
 
@@ -1460,7 +1501,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
   if (CanBeImmediateIndex(index(), class_id(), IsExternal(),
                           false,  // Store.
                           &needs_base)) {
-    if (!aligned()) {
+    if (!directly_addressable) {
       kNumTemps += 2;
     } else if (needs_base) {
       kNumTemps += 1;
@@ -1472,7 +1513,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
     // CanBeImmediateIndex must return false for unsafe smis.
     locs->set_in(1, Location::Constant(index()->definition()->AsConstant()));
   } else {
-    if (!aligned()) {
+    if (!directly_addressable) {
       kNumTemps += 2;
     }
 
@@ -1504,6 +1545,11 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
     case kTypedDataUint32ArrayCid:
       locs->set_in(2, Location::RequiresRegister());
       break;
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
+      locs->set_in(2, Location::Pair(Location::RequiresRegister(),
+                                     Location::RequiresRegister()));
+      break;
     case kTypedDataFloat32ArrayCid:
       // Need low register (<= Q7).
       locs->set_in(2, Location::FpuRegisterLocation(Q7));
@@ -1522,6 +1568,9 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
 }
 
 void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const bool directly_addressable = aligned() &&
+                                    class_id() != kTypedDataInt64ArrayCid &&
+                                    class_id() != kTypedDataUint64ArrayCid;
   // The array register points to the backing store for external arrays.
   const Register array = locs()->in(0).reg();
   const Location index = locs()->in(1);
@@ -1531,7 +1580,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       (locs()->temp_count() > 1) ? locs()->temp(1).reg() : kNoRegister;
 
   Address element_address(kNoRegister);
-  if (aligned()) {
+  if (directly_addressable) {
     element_address = index.IsRegister()
                           ? __ ElementAddressForRegIndex(
                                 false,  // Store.
@@ -1627,6 +1676,23 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ str(value, element_address);
       } else {
         __ StoreWordUnaligned(value, temp, temp2);
+      }
+      break;
+    }
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid: {
+      ASSERT(!directly_addressable);  // need to add to register
+      ASSERT(locs()->in(2).IsPairLocation());
+      PairLocation* value_pair = locs()->in(2).AsPairLocation();
+      Register value_lo = value_pair->At(0).reg();
+      Register value_hi = value_pair->At(1).reg();
+      if (aligned()) {
+        __ str(value_lo, Address(temp));
+        __ str(value_hi, Address(temp, kWordSize));
+      } else {
+        __ StoreWordUnaligned(value_lo, temp, temp2);
+        __ AddImmediate(temp, temp, kWordSize);
+        __ StoreWordUnaligned(value_hi, temp, temp2);
       }
       break;
     }

@@ -436,7 +436,6 @@ int f() async* {}
   }
 
   test_illegalAsyncGeneratorReturnType_function_subtypeOfStream() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     await assertErrorsInCode('''
 import 'dart:async';
 abstract class SubStream<T> implements Stream<T> {}
@@ -453,7 +452,6 @@ class C {
   }
 
   test_illegalAsyncGeneratorReturnType_method_subtypeOfStream() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     await assertErrorsInCode('''
 import 'dart:async';
 abstract class SubStream<T> implements Stream<T> {}
@@ -473,7 +471,6 @@ int f() async {}
   }
 
   test_illegalAsyncReturnType_function_subtypeOfFuture() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     await assertErrorsInCode('''
 import 'dart:async';
 abstract class SubFuture<T> implements Future<T> {}
@@ -495,7 +492,6 @@ class C {
   }
 
   test_illegalAsyncReturnType_method_subtypeOfFuture() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     await assertErrorsInCode('''
 import 'dart:async';
 abstract class SubFuture<T> implements Future<T> {}
@@ -514,7 +510,6 @@ int f() sync* {}
   }
 
   test_illegalSyncGeneratorReturnType_function_subclassOfIterator() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     await assertErrorsInCode('''
 abstract class SubIterator<T> implements Iterator<T> {}
 SubIterator<int> f() sync* {}
@@ -530,7 +525,6 @@ class C {
   }
 
   test_illegalSyncGeneratorReturnType_method_subclassOfIterator() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     await assertErrorsInCode('''
 abstract class SubIterator<T> implements Iterator<T> {}
 class C {
@@ -1114,7 +1108,6 @@ var b = 1 is G<B>;
   }
 
   test_typeArgumentNotMatchingBounds_methodInvocation_localFunction() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     await assertErrorsInCode(r'''
 class Point<T extends num> {
   Point(T x, T y);
@@ -1130,7 +1123,6 @@ main() {
   }
 
   test_typeArgumentNotMatchingBounds_methodInvocation_method() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     await assertErrorsInCode(r'''
 class Point<T extends num> {
   Point(T x, T y);
@@ -1149,7 +1141,6 @@ f(PointFactory factory) {
   }
 
   test_typeArgumentNotMatchingBounds_methodInvocation_topLevelFunction() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     await assertErrorsInCode(r'''
 class Point<T extends num> {
   Point(T x, T y);
@@ -2044,7 +2035,6 @@ class StrongModeStaticTypeWarningCodeTest extends ResolverTestCase {
   void setUp() {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.strongMode = true;
     resetWith(options: options);
   }
 

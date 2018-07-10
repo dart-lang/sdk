@@ -31,8 +31,7 @@ runTests(List<String> args, [int shardIndex]) {
   cacheRtiDataForTesting = true;
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    await checkTests(dataDir, computeKernelRtiMemberNeed,
-        computeClassDataFromKernel: computeKernelRtiClassNeed,
+    await checkTests(dataDir, const RtiNeedDataComputer(),
         options: [],
         skipForKernel: [
           'runtime_type_closure_equals2.dart',
@@ -63,7 +62,7 @@ class Tags {
   static const String instantiationsNeedTypeArguments = 'needsInst';
 }
 
-abstract class ComputeValueMixin<T> {
+abstract class ComputeValueMixin {
   Compiler get compiler;
 
   ResolutionWorldBuilder get resolutionWorldBuilder =>
@@ -239,38 +238,47 @@ class FindTypeVisitor extends BaseDartTypeVisitor<bool, Null> {
   }
 }
 
-/// Compute RTI need data for [member] from the new frontend.
-///
-/// Fills [actualMap] with the data.
-void computeKernelRtiMemberNeed(
-    Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
-    {bool verbose: false}) {
-  KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-  KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
-  MemberDefinition definition = elementMap.getMemberDefinition(member);
-  new RtiMemberNeedIrComputer(
-          compiler.reporter,
-          actualMap,
-          elementMap,
-          member,
-          compiler,
-          backendStrategy.closureDataLookup as ClosureDataLookup<ir.Node>)
-      .run(definition.node);
+class RtiNeedDataComputer extends DataComputer {
+  const RtiNeedDataComputer();
+
+  @override
+  void setup() {
+    cacheRtiDataForTesting = true;
+  }
+
+  @override
+  bool get computesClassData => true;
+
+  /// Compute RTI need data for [member] from the new frontend.
+  ///
+  /// Fills [actualMap] with the data.
+  @override
+  void computeMemberData(
+      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+      {bool verbose: false}) {
+    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
+    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    MemberDefinition definition = elementMap.getMemberDefinition(member);
+    new RtiMemberNeedIrComputer(compiler.reporter, actualMap, elementMap,
+            member, compiler, backendStrategy.closureDataLookup)
+        .run(definition.node);
+  }
+
+  /// Compute RTI need data for [cls] from the new frontend.
+  ///
+  /// Fills [actualMap] with the data.
+  @override
+  void computeClassData(
+      Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
+      {bool verbose: false}) {
+    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
+    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    new RtiClassNeedIrComputer(compiler, elementMap, actualMap)
+        .computeClassValue(cls);
+  }
 }
 
-/// Compute RTI need data for [cls] from the new frontend.
-///
-/// Fills [actualMap] with the data.
-void computeKernelRtiClassNeed(
-    Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
-    {bool verbose: false}) {
-  KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-  KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
-  new RtiClassNeedIrComputer(compiler, elementMap, actualMap)
-      .computeClassValue(cls);
-}
-
-abstract class IrMixin implements ComputeValueMixin<ir.Node> {
+abstract class IrMixin implements ComputeValueMixin {
   @override
   MemberEntity getFrontendMember(MemberEntity backendMember) {
     ElementEnvironment elementEnvironment = compiler
@@ -320,7 +328,7 @@ abstract class IrMixin implements ComputeValueMixin<ir.Node> {
 }
 
 class RtiClassNeedIrComputer extends DataRegistry
-    with ComputeValueMixin<ir.Node>, IrMixin {
+    with ComputeValueMixin, IrMixin {
   final Compiler compiler;
   final KernelToElementMapForBuilding _elementMap;
   final Map<Id, ActualData> actualMap;
@@ -339,9 +347,9 @@ class RtiClassNeedIrComputer extends DataRegistry
 
 /// AST visitor for computing inference data for a member.
 class RtiMemberNeedIrComputer extends IrDataExtractor
-    with ComputeValueMixin<ir.Node>, IrMixin {
+    with ComputeValueMixin, IrMixin {
   final KernelToElementMapForBuilding _elementMap;
-  final ClosureDataLookup<ir.Node> _closureDataLookup;
+  final ClosureDataLookup _closureDataLookup;
   final Compiler compiler;
 
   RtiMemberNeedIrComputer(

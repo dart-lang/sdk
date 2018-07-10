@@ -16,14 +16,13 @@ import 'source_information.dart';
 import 'position_information.dart';
 
 class KernelSourceInformationStrategy
-    extends AbstractPositionSourceInformationStrategy<ir.Node> {
+    extends AbstractPositionSourceInformationStrategy {
   final JsBackendStrategy _backendStrategy;
 
   const KernelSourceInformationStrategy(this._backendStrategy);
 
   @override
-  SourceInformationBuilder<ir.Node> createBuilderForContext(
-      MemberEntity member) {
+  SourceInformationBuilder createBuilderForContext(MemberEntity member) {
     return new KernelSourceInformationBuilder(
         _backendStrategy.elementMap, member);
   }
@@ -70,8 +69,7 @@ String computeKernelElementNameForSourceMaps(
 
 /// [SourceInformationBuilder] that generates [PositionSourceInformation] from
 /// Kernel nodes.
-class KernelSourceInformationBuilder
-    implements SourceInformationBuilder<ir.Node> {
+class KernelSourceInformationBuilder implements SourceInformationBuilder {
   final KernelToElementMapForBuilding _elementMap;
   final MemberEntity _member;
   final String _name;

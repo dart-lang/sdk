@@ -228,6 +228,13 @@ class C {
     await super.test_parameter_checked_inherited();
   }
 
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33719')
+  test_parts_invalidUri() async {
+    await super.test_parts_invalidUri();
+  }
+
   @failingTest
   @potentialAnalyzerProblem
   test_setter_inferred_type_conflictingInheritance() async {
@@ -246,10 +253,31 @@ class C {
     await super.test_unresolved_annotation_instanceCreation_argument_super();
   }
 
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33719')
+  test_unresolved_export() async {
+    await super.test_unresolved_export();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33719')
+  test_unresolved_import() async {
+    await super.test_unresolved_import();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33719')
+  test_unresolved_part() async {
+    await super.test_unresolved_part();
+  }
+
   Future<KernelResynthesizer> _createResynthesizer(Uri testUri) async {
     var logger = new PerformanceLog(null);
     var byteStore = new MemoryByteStore();
-    var analysisOptions = new AnalysisOptionsImpl()..strongMode = true;
+    var analysisOptions = new AnalysisOptionsImpl();
 
     var fsState = new FileSystemState(
         logger,

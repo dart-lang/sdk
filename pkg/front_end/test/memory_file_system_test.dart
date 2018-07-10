@@ -7,6 +7,7 @@ library front_end.test.memory_file_system_test;
 
 import 'dart:convert';
 import 'dart:io' as io;
+import 'dart:typed_data';
 
 import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystemException;
@@ -127,12 +128,24 @@ class FileTest extends _BaseTestNative {
   }
 
   test_writeAsBytesSync_modifyAfterRead() async {
+    // For effeciency we do not make defensive copies.
     file.writeAsBytesSync([1]);
     (await file.readAsBytes())[0] = 2;
-    expect(await file.readAsBytes(), [1]);
+    expect(await file.readAsBytes(), [2]);
+  }
+
+  test_writeAsBytesSync_modifyAfterWrite_Uint8List() async {
+    // For effeciency we do not make defensive copies.
+    var bytes = new Uint8List.fromList([1]);
+    file.writeAsBytesSync(bytes);
+    bytes[0] = 2;
+    expect(await file.readAsBytes(), [2]);
   }
 
   test_writeAsBytesSync_modifyAfterWrite() async {
+    // For effeciency we generally do not make defensive copies, but on the
+    // other hrand we keep everything as `Uint8List`s internally, so in this
+    // case a copy is actually made.
     var bytes = [1];
     file.writeAsBytesSync(bytes);
     bytes[0] = 2;

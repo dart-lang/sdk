@@ -110,8 +110,7 @@ class C = A with String, num;''');
 @reflectiveTest
 class CompileTimeErrorCodeTest extends ResolverTestCase {
   @override
-  AnalysisOptions get defaultAnalysisOptions =>
-      new AnalysisOptionsImpl()..strongMode = true;
+  AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
 
   disabled_test_conflictingGenericInterfaces_hierarchyLoop_infinite() async {
     // There is an interface conflict here due to a loop in the class
@@ -4380,7 +4379,6 @@ class C extends B with M {
   test_mixinInference_conflictingSubstitution() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
-    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -4398,7 +4396,6 @@ class C extends A<Map<int, String>> with M {}
   test_mixinInference_doNotIgnorePreviousExplicitMixins() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
-    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 class A extends Object with B<String>, C {}
@@ -4415,7 +4412,6 @@ class C<T> extends B<T> {}
   test_mixinInference_impossibleSubstitution() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
-    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -4432,7 +4428,6 @@ class C extends A<List<int>> with M {}
   test_mixinInference_matchingClass() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
-    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -4447,7 +4442,6 @@ class C extends A<int> with M {}
   test_mixinInference_matchingClass_inPreviousMixin() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
-    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -4463,7 +4457,6 @@ class C extends Object with M1, M2 {}
   test_mixinInference_noMatchingClass() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
-    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -4480,7 +4473,6 @@ class C extends Object with M {}
   test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
-    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -4498,7 +4490,6 @@ class C extends Object with M implements A<B> {}
   test_mixinInference_noMatchingClass_namedMixinApplication() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
-    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -4514,7 +4505,6 @@ class C = Object with M;
   test_mixinInference_noMatchingClass_noSuperclassConstraint() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
-    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -4529,7 +4519,6 @@ class C extends Object with M {}
   test_mixinInference_noMatchingClass_typeParametersSupplied() async {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
-    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 abstract class A<T> {}
@@ -4546,7 +4535,6 @@ class C extends Object with M<int> {}
     // See dartbug.com/32353 for a detailed explanation.
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableSuperMixins = true;
-    options.strongMode = true;
     resetWith(options: options);
     Source source = addSource('''
 class ioDirectory implements ioFileSystemEntity {}
@@ -5634,7 +5622,6 @@ var b = const B();''');
   }
 
   test_nonConstValueInInitializer_instanceCreation_inDifferentFile() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     Source sourceA = addNamedSource('/a.dart', r'''
 import 'b.dart';
 const v = const MyClass();
@@ -7384,7 +7371,6 @@ class A {
     assertErrors(source,
         [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS]);
     verify([source]);
-    reset();
   }
 
   test_wrongNumberOfParametersForOperator_tilde() async {
@@ -7565,7 +7551,6 @@ f() {
       assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
       // no verify(), 'null x' is not resolved
     }
-    reset();
   }
 
   Future<Null> _check_constEvalTypeBool_withParameter_binary(
@@ -7581,7 +7566,6 @@ class A {
       StaticTypeWarningCode.NON_BOOL_OPERAND
     ]);
     verify([source]);
-    reset();
   }
 
   Future<Null> _check_constEvalTypeInt_withParameter_binary(String expr) async {
@@ -7596,7 +7580,6 @@ class A {
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ]);
     verify([source]);
-    reset();
   }
 
   Future<Null> _check_constEvalTypeNum_withParameter_binary(String expr) async {
@@ -7611,7 +7594,6 @@ class A {
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ]);
     verify([source]);
-    reset();
   }
 
   Future<Null> _check_wrongNumberOfParametersForOperator(
@@ -7624,7 +7606,6 @@ class A {
     assertErrors(
         source, [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR]);
     verify([source]);
-    reset();
   }
 
   Future<Null> _check_wrongNumberOfParametersForOperator1(String name) async {
@@ -7633,7 +7614,6 @@ class A {
   }
 
   Future<Null> _privateCollisionInMixinApplicationTest(String testCode) async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
     addNamedSource('/lib1.dart', '''
 class A {
   int _x;

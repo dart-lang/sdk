@@ -225,7 +225,7 @@ class Printer extends Visitor<Null> {
   final NameSystem syntheticNames;
   final StringSink sink;
   final Annotator annotator;
-  final Map<String, MetadataRepository<dynamic>> metadata;
+  final Map<String, MetadataRepository<Object>> metadata;
   ImportTable importTable;
   int indentation = 0;
   int column = 0;
@@ -248,13 +248,17 @@ class Printer extends Visitor<Null> {
       this.metadata})
       : this.syntheticNames = syntheticNames ?? new NameSystem();
 
-  Printer._inner(Printer parent, this.importTable, this.metadata)
-      : sink = parent.sink,
-        syntheticNames = parent.syntheticNames,
-        annotator = parent.annotator,
-        showExternal = parent.showExternal,
-        showOffsets = parent.showOffsets,
-        showMetadata = parent.showMetadata;
+  Printer createInner(ImportTable importTable,
+      Map<String, MetadataRepository<Object>> metadata) {
+    return new Printer(sink,
+        importTable: importTable,
+        metadata: metadata,
+        syntheticNames: syntheticNames,
+        annotator: annotator,
+        showExternal: showExternal,
+        showOffsets: showOffsets,
+        showMetadata: showMetadata);
+  }
 
   bool shouldHighlight(Node node) {
     return false;
@@ -395,8 +399,7 @@ class Printer extends Visitor<Null> {
     }
 
     endLine();
-    var inner =
-        new Printer._inner(this, imports, library.enclosingComponent?.metadata);
+    var inner = createInner(imports, library.enclosingComponent?.metadata);
     library.typedefs.forEach(inner.writeNode);
     library.classes.forEach(inner.writeNode);
     library.fields.forEach(inner.writeNode);
@@ -405,7 +408,7 @@ class Printer extends Visitor<Null> {
 
   void writeComponentFile(Component component) {
     ImportTable imports = new ComponentImportTable(component);
-    var inner = new Printer._inner(this, imports, component.metadata);
+    var inner = createInner(imports, component.metadata);
     writeWord('main');
     writeSpaced('=');
     inner.writeMemberReferenceFromReference(component.mainMethodName);
@@ -553,7 +556,7 @@ class Printer extends Visitor<Null> {
 
   void writeType(DartType type) {
     if (type == null) {
-      print('<No DartType>');
+      write('<No DartType>');
     } else {
       type.accept(this);
     }
@@ -567,7 +570,7 @@ class Printer extends Visitor<Null> {
 
   visitSupertype(Supertype type) {
     if (type == null) {
-      print('<No Supertype>');
+      write('<No Supertype>');
     } else {
       writeClassReferenceFromReference(type.className);
       if (type.typeArguments.isNotEmpty) {

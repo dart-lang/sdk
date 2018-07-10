@@ -38,13 +38,6 @@ class CheckedModeCompileTimeErrorCodeTest_Kernel
 
   @failingTest
   @override
-  test_fieldFormalParameterAssignableToField_typedef() async {
-    // Expected 1 errors of type StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0
-    await super.test_fieldFormalParameterAssignableToField_typedef();
-  }
-
-  @failingTest
-  @override
   test_fieldFormalParameterNotAssignableToField() async {
     // Expected 1 errors of type CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, found 0;
     //          1 errors of type StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0

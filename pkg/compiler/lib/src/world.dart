@@ -23,6 +23,7 @@ import 'js_backend/runtime_types.dart'
 import 'ordered_typeset.dart';
 import 'options.dart';
 import 'types/abstract_value_domain.dart';
+import 'universe/class_hierarchy.dart';
 import 'universe/class_set.dart';
 import 'universe/function_set.dart' show FunctionSet;
 import 'universe/selector.dart' show Selector;
@@ -68,96 +69,10 @@ abstract class JClosedWorld implements World {
 
   Iterable<MemberEntity> get processedMembers;
 
-  /// Returns `true` if [cls] is either directly or indirectly instantiated.
-  bool isInstantiated(ClassEntity cls);
-
-  /// Returns `true` if [cls] is directly instantiated. This means that at
-  /// runtime instances of exactly [cls] are assumed to exist.
-  bool isDirectlyInstantiated(ClassEntity cls);
-
-  /// Returns `true` if [cls] is abstractly instantiated. This means that at
-  /// runtime instances of [cls] or unknown subclasses of [cls] are assumed to
-  /// exist.
-  ///
-  /// This is used to mark native and/or reflectable classes as instantiated.
-  /// For native classes we do not know the exact class that instantiates [cls]
-  /// so [cls] here represents the root of the subclasses. For reflectable
-  /// classes we need event abstract classes to be 'live' even though they
-  /// cannot themselves be instantiated.
-  bool isAbstractlyInstantiated(ClassEntity cls);
-
-  /// Returns `true` if [cls] is either directly or abstractly instantiated.
-  ///
-  /// See [isDirectlyInstantiated] and [isAbstractlyInstantiated].
-  bool isExplicitlyInstantiated(ClassEntity cls);
-
-  /// Returns `true` if [cls] is indirectly instantiated, that is through a
-  /// subclass.
-  bool isIndirectlyInstantiated(ClassEntity cls);
+  ClassHierarchy get classHierarchy;
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassEntity cls);
-
-  /// Return `true` if [x] is a subclass of [y].
-  bool isSubclassOf(ClassEntity x, ClassEntity y);
-
-  /// Returns `true` if [x] is a subtype of [y], that is, if [x] implements an
-  /// instance of [y].
-  bool isSubtypeOf(ClassEntity x, ClassEntity y);
-
-  /// Returns an iterable over the live classes that extend [cls] including
-  /// [cls] itself.
-  Iterable<ClassEntity> subclassesOf(ClassEntity cls);
-
-  /// Returns an iterable over the live classes that extend [cls] _not_
-  /// including [cls] itself.
-  Iterable<ClassEntity> strictSubclassesOf(ClassEntity cls);
-
-  /// Returns the number of live classes that extend [cls] _not_
-  /// including [cls] itself.
-  int strictSubclassCount(ClassEntity cls);
-
-  /// Applies [f] to each live class that extend [cls] _not_ including [cls]
-  /// itself.
-  void forEachStrictSubclassOf(
-      ClassEntity cls, IterationStep f(ClassEntity cls));
-
-  /// Returns `true` if [predicate] applies to any live class that extend [cls]
-  /// _not_ including [cls] itself.
-  bool anyStrictSubclassOf(ClassEntity cls, bool predicate(ClassEntity cls));
-
-  /// Returns an iterable over the directly instantiated that implement [cls]
-  /// possibly including [cls] itself, if it is live.
-  Iterable<ClassEntity> subtypesOf(ClassEntity cls);
-
-  /// Returns an iterable over the live classes that implement [cls] _not_
-  /// including [cls] if it is live.
-  Iterable<ClassEntity> strictSubtypesOf(ClassEntity cls);
-
-  /// Returns the number of live classes that implement [cls] _not_
-  /// including [cls] itself.
-  int strictSubtypeCount(ClassEntity cls);
-
-  /// Applies [f] to each live class that implements [cls] _not_ including [cls]
-  /// itself.
-  void forEachStrictSubtypeOf(
-      ClassEntity cls, IterationStep f(ClassEntity cls));
-
-  /// Returns `true` if [predicate] applies to any live class that implements
-  /// [cls] _not_ including [cls] itself.
-  bool anyStrictSubtypeOf(ClassEntity cls, bool predicate(ClassEntity cls));
-
-  /// Returns `true` if [a] and [b] have any known common subtypes.
-  bool haveAnyCommonSubtypes(ClassEntity a, ClassEntity b);
-
-  /// Returns `true` if any live class other than [cls] extends [cls].
-  bool hasAnyStrictSubclass(ClassEntity cls);
-
-  /// Returns `true` if any live class other than [cls] implements [cls].
-  bool hasAnyStrictSubtype(ClassEntity cls);
-
-  /// Returns `true` if all live classes that implement [cls] extend it.
-  bool hasOnlySubclasses(ClassEntity cls);
 
   /// Returns the most specific subclass of [cls] (including [cls]) that is
   /// directly instantiated or a superclass of all directly instantiated
@@ -171,27 +86,6 @@ abstract class JClosedWorld implements World {
 
   /// Returns an iterable over the common supertypes of the [classes].
   Iterable<ClassEntity> commonSupertypesOf(Iterable<ClassEntity> classes);
-
-  /// Returns an iterable of the classes that are contained in the
-  /// strict subclass/subtype sets of both [cls1] and [cls2].
-  ///
-  /// Classes that are implied by included superclasses/supertypes are not
-  /// returned.
-  ///
-  /// For instance for this hierarchy
-  ///
-  ///     class A {}
-  ///     class B {}
-  ///     class C implements A, B {}
-  ///     class D extends C {}
-  ///
-  /// the query
-  ///
-  ///     commonSubclasses(A, ClassQuery.SUBTYPE, B, ClassQuery.SUBTYPE)
-  ///
-  /// return the set {C} because [D] is implied by [C].
-  Iterable<ClassEntity> commonSubclasses(
-      ClassEntity cls1, ClassQuery query1, ClassEntity cls2, ClassQuery query2);
 
   /// Returns an iterable over the live mixin applications that mixin [cls].
   Iterable<ClassEntity> mixinUsesOf(ClassEntity cls);
@@ -264,20 +158,6 @@ abstract class JClosedWorld implements World {
   bool hasElementIn(
       covariant ClassEntity cls, Selector selector, covariant Entity element);
 
-  /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
-  /// of known classes.
-  ///
-  /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [JClosedWorld].
-  ClassHierarchyNode getClassHierarchyNode(ClassEntity cls);
-
-  /// Returns [ClassSet] for [cls] used to model the extends and implements
-  /// relations of known classes.
-  ///
-  /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [JClosedWorld].
-  ClassSet getClassSet(ClassEntity cls);
-
   /// Returns `true` if the field [element] is known to be effectively final.
   bool fieldNeverChanges(MemberEntity element);
 
@@ -318,17 +198,6 @@ abstract class JClosedWorld implements World {
   /// [receiver]. If multiple targets exist or the single target is not a field,
   /// `null` is returned.
   FieldEntity locateSingleField(Selector selector, AbstractValue receiver);
-
-  /// Returns a string representation of the closed world.
-  ///
-  /// If [cls] is provided, the dump will contain only classes related to [cls].
-  String dump([ClassEntity cls]);
-
-  /// Adds the closure class [cls] to the inference world. The class is
-  /// considered directly instantiated. If [fromInstanceMember] is true, this
-  /// closure class represents a closure that is inside an instance member, thus
-  /// has access to `this`.
-  void registerClosureClass(ClassEntity cls);
 }
 
 abstract class OpenWorld implements World {
@@ -353,19 +222,6 @@ abstract class OpenWorld implements World {
   /// `C` implement `I`, `isInheritedInSubtypeOf(A.M, I)` is true, but
   /// `isInheritedInSubtypeOf(A.M, J)` is false.
   bool isInheritedInSubtypeOf(MemberEntity member, ClassEntity type);
-}
-
-/// Enum values defining subset of classes included in queries.
-enum ClassQuery {
-  /// Only the class itself is included.
-  EXACT,
-
-  /// The class and all subclasses (transitively) are included.
-  SUBCLASS,
-
-  /// The class and all classes that implement or subclass it (transitively)
-  /// are included.
-  SUBTYPE,
 }
 
 abstract class ClosedWorldBase implements JClosedWorld {
@@ -404,6 +260,8 @@ abstract class ClosedWorldBase implements JClosedWorld {
 
   final Iterable<MemberEntity> processedMembers;
 
+  final ClassHierarchy classHierarchy;
+
   ClosedWorldBase(
       this.elementEnvironment,
       this.dartTypes,
@@ -425,12 +283,9 @@ abstract class ClosedWorldBase implements JClosedWorld {
       AbstractValueStrategy abstractValueStrategy)
       : this._implementedClasses = implementedClasses,
         this._classHierarchyNodes = classHierarchyNodes,
-        this._classSets = classSets {}
-
-  bool checkEntity(covariant Entity element);
-
-  bool checkInvariants(covariant ClassEntity cls,
-      {bool mustBeInstantiated: true});
+        this._classSets = classSets,
+        classHierarchy = new ClassHierarchyImpl(
+            commonElements, classHierarchyNodes, classSets) {}
 
   OrderedTypeSet getOrderedTypeSet(covariant ClassEntity cls);
 
@@ -444,205 +299,9 @@ abstract class ClosedWorldBase implements JClosedWorld {
 
   bool isNamedMixinApplication(covariant ClassEntity cls);
 
-  @override
-  bool isInstantiated(ClassEntity cls) {
-    ClassHierarchyNode node = _classHierarchyNodes[cls];
-    return node != null && node.isInstantiated;
-  }
-
-  @override
-  bool isDirectlyInstantiated(ClassEntity cls) {
-    ClassHierarchyNode node = _classHierarchyNodes[cls];
-    return node != null && node.isDirectlyInstantiated;
-  }
-
-  @override
-  bool isAbstractlyInstantiated(ClassEntity cls) {
-    ClassHierarchyNode node = _classHierarchyNodes[cls];
-    return node != null && node.isAbstractlyInstantiated;
-  }
-
-  @override
-  bool isExplicitlyInstantiated(ClassEntity cls) {
-    ClassHierarchyNode node = _classHierarchyNodes[cls];
-    return node != null && node.isExplicitlyInstantiated;
-  }
-
-  @override
-  bool isIndirectlyInstantiated(ClassEntity cls) {
-    ClassHierarchyNode node = _classHierarchyNodes[cls];
-    return node != null && node.isIndirectlyInstantiated;
-  }
-
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassEntity cls) {
     return _implementedClasses.contains(cls);
-  }
-
-  /// Returns `true` if [x] is a subtype of [y], that is, if [x] implements an
-  /// instance of [y].
-  bool isSubtypeOf(ClassEntity x, ClassEntity y) {
-    assert(checkInvariants(x));
-    assert(checkInvariants(y, mustBeInstantiated: false));
-    ClassSet classSet = _classSets[y];
-    assert(
-        classSet != null,
-        failedAt(
-            y,
-            "No ClassSet for $y (${y.runtimeType}): "
-            "${dump(y)} : ${_classSets}"));
-    ClassHierarchyNode classHierarchyNode = _classHierarchyNodes[x];
-    assert(classHierarchyNode != null,
-        failedAt(x, "No ClassHierarchyNode for $x: ${dump(x)}"));
-    return classSet.hasSubtype(classHierarchyNode);
-  }
-
-  /// Return `true` if [x] is a (non-strict) subclass of [y].
-  bool isSubclassOf(ClassEntity x, ClassEntity y) {
-    assert(checkInvariants(x));
-    assert(checkInvariants(y));
-    return _classHierarchyNodes[y].hasSubclass(_classHierarchyNodes[x]);
-  }
-
-  /// Returns an iterable over the directly instantiated classes that extend
-  /// [cls] possibly including [cls] itself, if it is live.
-  Iterable<ClassEntity> subclassesOf(ClassEntity cls) {
-    ClassHierarchyNode hierarchy = _classHierarchyNodes[cls];
-    if (hierarchy == null) return const <ClassEntity>[];
-    return hierarchy
-        .subclassesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED);
-  }
-
-  /// Returns an iterable over the directly instantiated classes that extend
-  /// [cls] _not_ including [cls] itself.
-  Iterable<ClassEntity> strictSubclassesOf(ClassEntity cls) {
-    ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
-    if (subclasses == null) return const <ClassEntity>[];
-    return subclasses.subclassesByMask(
-        ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
-        strict: true);
-  }
-
-  /// Returns the number of live classes that extend [cls] _not_
-  /// including [cls] itself.
-  int strictSubclassCount(ClassEntity cls) {
-    ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
-    if (subclasses == null) return 0;
-    return subclasses.instantiatedSubclassCount;
-  }
-
-  /// Applies [f] to each live class that extend [cls] _not_ including [cls]
-  /// itself.
-  void forEachStrictSubclassOf(
-      ClassEntity cls, IterationStep f(ClassEntity cls)) {
-    ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
-    if (subclasses == null) return;
-    subclasses.forEachSubclass(f, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
-        strict: true);
-  }
-
-  /// Returns `true` if [predicate] applies to any live class that extend [cls]
-  /// _not_ including [cls] itself.
-  bool anyStrictSubclassOf(ClassEntity cls, bool predicate(ClassEntity cls)) {
-    ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
-    if (subclasses == null) return false;
-    return subclasses.anySubclass(
-        predicate, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
-        strict: true);
-  }
-
-  /// Returns an iterable over the directly instantiated that implement [cls]
-  /// possibly including [cls] itself, if it is live.
-  Iterable<ClassEntity> subtypesOf(ClassEntity cls) {
-    ClassSet classSet = _classSets[cls];
-    if (classSet == null) {
-      return const <ClassEntity>[];
-    } else {
-      return classSet
-          .subtypesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED);
-    }
-  }
-
-  /// Returns an iterable over the directly instantiated that implement [cls]
-  /// _not_ including [cls].
-  Iterable<ClassEntity> strictSubtypesOf(ClassEntity cls) {
-    ClassSet classSet = _classSets[cls];
-    if (classSet == null) {
-      return const <ClassEntity>[];
-    } else {
-      return classSet.subtypesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
-          strict: true);
-    }
-  }
-
-  /// Returns the number of live classes that implement [cls] _not_
-  /// including [cls] itself.
-  int strictSubtypeCount(ClassEntity cls) {
-    ClassSet classSet = _classSets[cls];
-    if (classSet == null) return 0;
-    return classSet.instantiatedSubtypeCount;
-  }
-
-  /// Applies [f] to each live class that implements [cls] _not_ including [cls]
-  /// itself.
-  void forEachStrictSubtypeOf(
-      ClassEntity cls, IterationStep f(ClassEntity cls)) {
-    ClassSet classSet = _classSets[cls];
-    if (classSet == null) return;
-    classSet.forEachSubtype(f, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
-        strict: true);
-  }
-
-  /// Returns `true` if [predicate] applies to any live class that extend [cls]
-  /// _not_ including [cls] itself.
-  bool anyStrictSubtypeOf(ClassEntity cls, bool predicate(ClassEntity cls)) {
-    ClassSet classSet = _classSets[cls];
-    if (classSet == null) return false;
-    return classSet.anySubtype(
-        predicate, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
-        strict: true);
-  }
-
-  /// Returns `true` if [a] and [b] have any known common subtypes.
-  bool haveAnyCommonSubtypes(ClassEntity a, ClassEntity b) {
-    ClassSet classSetA = _classSets[a];
-    ClassSet classSetB = _classSets[b];
-    if (classSetA == null || classSetB == null) return false;
-    // TODO(johnniwinther): Implement an optimized query on [ClassSet].
-    Set<ClassEntity> subtypesOfB = classSetB.subtypes().toSet();
-    for (ClassEntity subtypeOfA in classSetA.subtypes()) {
-      if (subtypesOfB.contains(subtypeOfA)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /// Returns `true` if any directly instantiated class other than [cls] extends
-  /// [cls].
-  bool hasAnyStrictSubclass(ClassEntity cls) {
-    ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
-    if (subclasses == null) return false;
-    return subclasses.isIndirectlyInstantiated;
-  }
-
-  /// Returns `true` if any directly instantiated class other than [cls]
-  /// implements [cls].
-  bool hasAnyStrictSubtype(ClassEntity cls) {
-    return strictSubtypeCount(cls) > 0;
-  }
-
-  /// Returns `true` if all directly instantiated classes that implement [cls]
-  /// extend it.
-  bool hasOnlySubclasses(ClassEntity cls) {
-    // TODO(johnniwinther): move this to ClassSet?
-    if (cls == commonElements.objectClass) return true;
-    ClassSet classSet = _classSets[cls];
-    if (classSet == null) {
-      // Vacuously true.
-      return true;
-    }
-    return classSet.hasOnlyInstantiatedSubclasses;
   }
 
   @override
@@ -665,27 +324,6 @@ abstract class ClosedWorldBase implements JClosedWorld {
     return classSet != null ? classSet.getLubOfInstantiatedSubtypes() : null;
   }
 
-  Set<ClassEntity> _commonContainedClasses(ClassEntity cls1, ClassQuery query1,
-      ClassEntity cls2, ClassQuery query2) {
-    Iterable<ClassEntity> xSubset = _containedSubset(cls1, query1);
-    if (xSubset == null) return null;
-    Iterable<ClassEntity> ySubset = _containedSubset(cls2, query2);
-    if (ySubset == null) return null;
-    return xSubset.toSet().intersection(ySubset.toSet());
-  }
-
-  Iterable<ClassEntity> _containedSubset(ClassEntity cls, ClassQuery query) {
-    switch (query) {
-      case ClassQuery.EXACT:
-        return null;
-      case ClassQuery.SUBCLASS:
-        return strictSubclassesOf(cls);
-      case ClassQuery.SUBTYPE:
-        return strictSubtypesOf(cls);
-    }
-    throw new ArgumentError('Unexpected query: $query.');
-  }
-
   /// Returns `true` if [cls] is mixed into a live class.
   bool isUsedAsMixin(ClassEntity cls) {
     return !mixinUsesOf(cls).isEmpty;
@@ -703,8 +341,10 @@ abstract class ClosedWorldBase implements JClosedWorld {
   bool everySubtypeIsSubclassOfOrMixinUseOf(ClassEntity x, ClassEntity y) {
     Map<ClassEntity, bool> secondMap =
         _subtypeCoveredByCache[x] ??= <ClassEntity, bool>{};
-    return secondMap[y] ??= subtypesOf(x).every((ClassEntity cls) =>
-        isSubclassOf(cls, y) || isSubclassOfMixinUseOf(cls, y));
+    return secondMap[y] ??= classHierarchy.subtypesOf(x).every(
+        (ClassEntity cls) =>
+            classHierarchy.isSubclassOf(cls, y) ||
+            isSubclassOfMixinUseOf(cls, y));
   }
 
   /// Returns `true` if any subclass of [superclass] implements [type].
@@ -774,7 +414,6 @@ abstract class ClosedWorldBase implements JClosedWorld {
     if (!iterator.moveNext()) return const <ClassEntity>[];
 
     ClassEntity cls = iterator.current;
-    assert(checkInvariants(cls));
     OrderedTypeSet typeSet = getOrderedTypeSet(cls);
     if (!iterator.moveNext()) return typeSet.types.map((type) => type.element);
 
@@ -782,7 +421,6 @@ abstract class ClosedWorldBase implements JClosedWorld {
     Link<OrderedTypeSet> otherTypeSets = const Link<OrderedTypeSet>();
     do {
       ClassEntity otherClass = iterator.current;
-      assert(checkInvariants(otherClass));
       OrderedTypeSet otherTypeSet = getOrderedTypeSet(otherClass);
       otherTypeSets = otherTypeSets.prepend(otherTypeSet);
       if (otherTypeSet.maxDepth < depth) {
@@ -809,38 +447,6 @@ abstract class ClosedWorldBase implements JClosedWorld {
     return commonSupertypes;
   }
 
-  Iterable<ClassEntity> commonSubclasses(ClassEntity cls1, ClassQuery query1,
-      ClassEntity cls2, ClassQuery query2) {
-    // TODO(johnniwinther): Use [ClassSet] to compute this.
-    // Compute the set of classes that are contained in both class subsets.
-    Set<ClassEntity> common =
-        _commonContainedClasses(cls1, query1, cls2, query2);
-    if (common == null || common.isEmpty) return const <ClassEntity>[];
-    // Narrow down the candidates by only looking at common classes
-    // that do not have a superclass or supertype that will be a
-    // better candidate.
-    return common.where((ClassEntity each) {
-      bool containsSuperclass = common.contains(getSuperClass(each));
-      // If the superclass is also a candidate, then we don't want to
-      // deal with this class. If we're only looking for a subclass we
-      // know we don't have to look at the list of interfaces because
-      // they can never be in the common set.
-      if (containsSuperclass ||
-          query1 == ClassQuery.SUBCLASS ||
-          query2 == ClassQuery.SUBCLASS) {
-        return !containsSuperclass;
-      }
-      // Run through the direct supertypes of the class. If the common
-      // set contains the direct supertype of the class, we ignore the
-      // the class because the supertype is a better candidate.
-
-      for (ClassEntity interface in getInterfaces(each)) {
-        if (common.contains(interface)) return false;
-      }
-      return true;
-    });
-  }
-
   /// Returns an iterable over the live mixin applications that mixin [cls].
   Iterable<ClassEntity> mixinUsesOf(ClassEntity cls) {
     if (_liveMixinUses == null) {
@@ -849,7 +455,7 @@ abstract class ClosedWorldBase implements JClosedWorld {
         List<ClassEntity> uses = <ClassEntity>[];
 
         void addLiveUse(ClassEntity mixinApplication) {
-          if (isInstantiated(mixinApplication)) {
+          if (classHierarchy.isInstantiated(mixinApplication)) {
             uses.add(mixinApplication);
           } else if (isNamedMixinApplication(mixinApplication)) {
             Set<ClassEntity> next = mixinUses[mixinApplication];
@@ -873,7 +479,7 @@ abstract class ClosedWorldBase implements JClosedWorld {
   /// of [superclass].
   bool hasAnySubclassThatMixes(ClassEntity superclass, ClassEntity mixin) {
     return mixinUsesOf(mixin).any((ClassEntity each) {
-      return isSubclassOf(each, superclass);
+      return classHierarchy.isSubclassOf(each, superclass);
     });
   }
 
@@ -993,19 +599,6 @@ abstract class ClosedWorldBase implements JClosedWorld {
     return false;
   }
 
-  @override
-  String dump([ClassEntity cls]) {
-    StringBuffer sb = new StringBuffer();
-    if (cls != null) {
-      sb.write("Classes in the closed world related to $cls:\n");
-    } else {
-      sb.write("Instantiated classes in the closed world:\n");
-    }
-    getClassHierarchyNode(commonElements.objectClass)
-        .printOn(sb, ' ', instantiatedOnly: cls == null, withRespectTo: cls);
-    return sb.toString();
-  }
-
   /// Should only be called by subclasses.
   void addClassHierarchyNode(ClassEntity cls, ClassHierarchyNode node) {
     _classHierarchyNodes[cls] = node;
@@ -1037,23 +630,11 @@ abstract class KClosedWorld {
   InterceptorData get interceptorData;
   ElementEnvironment get elementEnvironment;
   CommonElements get commonElements;
+  ClassHierarchy get classHierarchy;
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassEntity cls);
 
-  /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
-  /// of known classes.
-  ///
-  /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [JClosedWorld].
-  ClassHierarchyNode getClassHierarchyNode(ClassEntity cls);
-
-  /// Returns [ClassSet] for [cls] used to model the extends and implements
-  /// relations of known classes.
-  ///
-  /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [JClosedWorld].
-  ClassSet getClassSet(ClassEntity cls);
   Iterable<MemberEntity> get liveInstanceMembers;
   Map<ClassEntity, Set<ClassEntity>> get mixinUses;
   Map<ClassEntity, Set<ClassEntity>> get typesImplementedBySubclasses;
@@ -1065,42 +646,4 @@ abstract class KClosedWorld {
   Iterable<MemberEntity> get processedMembers;
   RuntimeTypesNeed get rtiNeed;
   NoSuchMethodData get noSuchMethodData;
-
-  /// Returns `true` if [x] is a subtype of [y], that is, if [x] implements an
-  /// instance of [y].
-  bool isSubtypeOf(ClassEntity x, ClassEntity y);
-
-  /// Returns an iterable of the classes that are contained in the
-  /// strict subclass/subtype sets of both [cls1] and [cls2].
-  ///
-  /// Classes that are implied by included superclasses/supertypes are not
-  /// returned.
-  ///
-  /// For instance for this hierarchy
-  ///
-  ///     class A {}
-  ///     class B {}
-  ///     class C implements A, B {}
-  ///     class D extends C {}
-  ///
-  /// the query
-  ///
-  ///     commonSubclasses(A, ClassQuery.SUBTYPE, B, ClassQuery.SUBTYPE)
-  ///
-  /// return the set {C} because [D] is implied by [C].
-  Iterable<ClassEntity> commonSubclasses(
-      ClassEntity cls1, ClassQuery query1, ClassEntity cls2, ClassQuery query2);
-
-  /// Returns an iterable over the directly instantiated that implement [cls]
-  /// possibly including [cls] itself, if it is live.
-  Iterable<ClassEntity> subtypesOf(ClassEntity cls);
-
-  /// Returns an iterable over the live classes that extend [cls] including
-  /// [cls] itself.
-  Iterable<ClassEntity> subclassesOf(ClassEntity cls);
-
-  /// Applies [f] to each live class that implements [cls] _not_ including [cls]
-  /// itself.
-  void forEachStrictSubtypeOf(
-      ClassEntity cls, IterationStep f(ClassEntity cls));
 }

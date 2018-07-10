@@ -25,6 +25,11 @@ main() {
     TypeEnvironment env = await TypeEnvironment.create("""
       ${createTypedefs(signatures, prefix: 't')}
       ${createMethods(signatures, prefix: 'm')}
+
+    main() {
+      ${createUses(signatures, prefix: 't')}
+      ${createUses(signatures, prefix: 'm')}
+    }
     """, options: [Flags.strongMode]);
 
     for (FunctionTypeData data in signatures) {

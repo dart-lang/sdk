@@ -811,6 +811,7 @@ InvalidUnicodeEscape:
 UnexpectedDollarInString:
   template: "A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({})."
   tip: "Try adding a backslash (\\) to escape the '$'."
+  analyzerCode: UNEXPECTED_DOLLAR_IN_STRING
   dart2jsCode: MALFORMED_STRING_LITERAL
   script:
     - >
@@ -1013,6 +1014,7 @@ FunctionTypeDefaultValue:
 
 PrivateNamedParameter:
   template: "An optional named parameter can't start with '_'."
+  analyzerCode: PRIVATE_OPTIONAL_PARAMETER
   dart2jsCode: "*ignored*"
 
 NoFormals:
@@ -1130,10 +1132,14 @@ CyclicTypedef:
 TypeNotFound:
   template: "Type '#name' not found."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: UNDEFINED_CLASS
+  dart2jsCode: "*fatal*"
 
 NonInstanceTypeVariableUse:
   template: "Can only use type variables in instance methods."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: TYPE_PARAMETER_REFERENCED_BY_STATIC
+  dart2jsCode: "*fatal*"
 
 GetterNotFound:
   template: "Getter not found: '#name'."
@@ -1179,6 +1185,8 @@ NoSuchNamedParameter:
 AbstractClassInstantiation:
   template: "The class '#name' is abstract and can't be instantiated."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: NEW_WITH_ABSTRACT_CLASS
+  dart2jsCode: "*fatal*"
 
 AbstractRedirectedClassInstantiation:
   template: "Factory redirects to class '#name', which is abstract and can't be instantiated."
@@ -1505,6 +1513,8 @@ NoUnnamedConstructorInObject:
 
 IllegalMixinDueToConstructors:
   template: "Can't use '#name' as a mixin because it has constructors."
+  analyzerCode: MIXIN_DECLARES_CONSTRUCTOR
+  dart2jsCode: "*fatal*"
 
 IllegalMixinDueToConstructorsCause:
   template: "This constructor prevents using '#name' as a mixin."
@@ -1630,10 +1640,14 @@ OverriddenMethodCause:
 OverrideMismatchNamedParameter:
   template: "The method '#name' doesn't have the named parameter '#name2' of overriden method '#name3'."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: INVALID_OVERRIDE_NAMED
+  dart2jsCode: "*fatal*"
 
 OverrideFewerNamedArguments:
   template: "The method '#name' has fewer named arguments than those of overridden method '#name2'."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: INVALID_OVERRIDE_NAMED
+  dart2jsCode: "*fatal*"
 
 OverrideFewerPositionalArguments:
   template: "The method '#name' has fewer positional arguments than those of overridden method '#name2'."
@@ -1667,6 +1681,8 @@ PartOfSelf:
 
 TypeVariableDuplicatedName:
   template: "A type variable can't have the same name as another."
+  analyzerCode: DUPLICATE_DEFINITION
+  dart2jsCode: "*fatal*"
 
 TypeVariableDuplicatedNameCause:
   template: "The other type variable named '#name'."
@@ -1924,6 +1940,8 @@ MemberWithSameNameAsClass:
 
 EnumConstantSameNameAsEnclosing:
   template: "Name of enum constant '#name' can't be the same as the enum's own name."
+  analyzerCode: ENUM_CONSTANT_WITH_ENUM_NAME
+  dart2jsCode: "*fatal*"
 
 MissingOperatorKeyword:
   template: "Operator declarations must be preceeded by the keyword 'operator'."
@@ -2050,6 +2068,8 @@ FinalInstanceVariableAlreadyInitializedCause:
 TypeVariableInStaticContext:
   template: "Type variables can't be used in static members."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: TYPE_PARAMETER_REFERENCED_BY_STATIC
+  dart2jsCode: "*fatal*"
 
 SuperclassMethodArgumentMismatch:
   template: "Superclass doesn't have a method named '#name' with matching arguments."
@@ -2062,7 +2082,7 @@ SuperclassHasNoGetter:
 
 SuperclassHasNoSetter:
   template: "Superclass has no setter named '#name'."
-  analyzerCode: ABSTRACT_SUPER_MEMBER_REFERENCE
+  analyzerCode: UNDEFINED_SUPER_SETTER
   severity: ERROR_LEGACY_WARNING
 
 SuperclassHasNoMethod:
@@ -2179,6 +2199,12 @@ ExternalFactoryRedirection:
   template: "A redirecting factory can't be external."
   tip: "Try removing the 'external' modifier."
   analyzerCode: EXTERNAL_CONSTRUCTOR_WITH_BODY
+  dart2jsCode: "*ignored*"
+
+ArgumentTypeNotAssignable:
+  template: "The argument type '#type' can't be assigned to the parameter type '#type2'."
+  tip: "Try changing the type of the parameter, or casting the argument to '#type2'."
+  analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
   dart2jsCode: "*ignored*"
 
 InvalidAssignment:
@@ -2479,3 +2505,15 @@ CantUseDeferredPrefixAsConstant:
     main() {
       const prefix.Object();
     }
+
+CyclicRedirectingFactoryConstructors:
+  template: "Cyclic definition of factory '#name'."
+  analyzerCode: RECURSIVE_FACTORY_REDIRECT
+  dart2jsCode: "*fatal*"
+  severity: ERROR
+  script: |
+    class Foo {
+      factory Foo.foo() = Foo.bar;
+      factory Foo.bar() = Foo.foo;
+    }
+    main() { var foo = new Foo.foo(); }

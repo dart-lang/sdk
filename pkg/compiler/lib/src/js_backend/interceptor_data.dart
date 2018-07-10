@@ -182,7 +182,8 @@ class InterceptorDataImpl implements InterceptorData {
     Iterable<ClassEntity> uses = closedWorld.mixinUsesOf(mixin);
     Set<ClassEntity> result = null;
     for (ClassEntity use in uses) {
-      closedWorld.forEachStrictSubclassOf(use, (ClassEntity subclass) {
+      closedWorld.classHierarchy.forEachStrictSubclassOf(use,
+          (ClassEntity subclass) {
         if (_nativeData.isNativeOrExtendsNative(subclass)) {
           if (result == null) result = new Set<ClassEntity>();
           result.add(subclass);
@@ -212,7 +213,7 @@ class InterceptorDataImpl implements InterceptorData {
     InterfaceType interfaceType = type;
     ClassEntity classElement = interfaceType.element;
     if (isInterceptedClass(classElement)) return false;
-    return closedWorld.hasOnlySubclasses(classElement);
+    return closedWorld.classHierarchy.hasOnlySubclasses(classElement);
   }
 }
 

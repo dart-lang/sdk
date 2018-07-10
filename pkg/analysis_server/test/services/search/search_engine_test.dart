@@ -468,6 +468,6 @@ class B extends A {}
         contentOverlay,
         null,
         new SourceFactory(resolvers, null, resourceProvider),
-        new AnalysisOptionsImpl()..strongMode = true);
+        new AnalysisOptionsImpl());
   }
 }

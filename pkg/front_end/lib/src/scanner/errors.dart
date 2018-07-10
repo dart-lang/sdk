@@ -45,6 +45,13 @@ class ScannerErrorCode extends ErrorCode {
   static const ScannerErrorCode UNABLE_GET_CONTENT = const ScannerErrorCode(
       'UNABLE_GET_CONTENT', "Unable to get content of '{0}'.");
 
+  static const ScannerErrorCode UNEXPECTED_DOLLAR_IN_STRING =
+      const ScannerErrorCode(
+          'UNEXPECTED_DOLLAR_IN_STRING',
+          "A '\$' has special meaning inside a string, and must be followed by "
+          "an identifier or an expression in curly braces ({}).",
+          correction: "Try adding a backslash (\\) to escape the '\$'.");
+
   static const ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT =
       const ScannerErrorCode(
           'UNTERMINATED_MULTI_LINE_COMMENT', "Unterminated multi-line comment.",

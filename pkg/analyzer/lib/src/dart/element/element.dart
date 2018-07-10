@@ -1213,8 +1213,9 @@ class ClassElementImpl extends AbstractClassElementImpl
         visitedClasses.add(this);
       }
       try {
-        ClassElementImpl superElement = AbstractClassElementImpl
-            .getImpl(supertype.element) as ClassElementImpl;
+        ClassElementImpl superElement =
+            AbstractClassElementImpl.getImpl(supertype.element)
+                as ClassElementImpl;
         constructorsToForward =
             superElement._computeMixinAppConstructors(visitedClasses);
       } finally {
@@ -2827,6 +2828,7 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
 
   @override
   LibraryElement get library => _library;
+
   set library(LibraryElement library) {
     assert(library.name == 'dart.core');
     _library = library;
@@ -4601,8 +4603,8 @@ class ExportElementImpl extends UriReferencedElementImpl
             ImportElementImpl._buildCombinatorsForKernel(_kernel.combinators);
       }
       if (_unlinkedExportPublic != null) {
-        _combinators = ImportElementImpl
-            ._buildCombinators(_unlinkedExportPublic.combinators);
+        _combinators = ImportElementImpl._buildCombinators(
+            _unlinkedExportPublic.combinators);
       }
     }
     return _combinators ?? const <NamespaceCombinator>[];
@@ -5154,8 +5156,9 @@ class FunctionElementImpl_forLUB extends FunctionElementImpl {
 
   @override
   List<ParameterElement> get parameters {
-    return _parameters ??= ParameterElementImpl
-        .resynthesizeList(_entityRef.syntheticParams, this, synthetic: true);
+    return _parameters ??= ParameterElementImpl.resynthesizeList(
+        _entityRef.syntheticParams, this,
+        synthetic: true);
   }
 
   @override

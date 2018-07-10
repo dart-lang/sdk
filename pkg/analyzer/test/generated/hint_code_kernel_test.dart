@@ -57,20 +57,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @failingTest
   @override
-  test_argumentTypeNotAssignable_functionType() async {
-    // Expected 1 errors of type HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0
-    return super.test_argumentTypeNotAssignable_functionType();
-  }
-
-  @failingTest
-  @override
-  test_argumentTypeNotAssignable_type() async {
-    // Expected 1 errors of type HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0
-    return super.test_argumentTypeNotAssignable_type();
-  }
-
-  @failingTest
-  @override
   test_deprecatedAnnotationUse_call() async {
     // Expected 1 errors of type HintCode.DEPRECATED_MEMBER_USE, found 0
     return super.test_deprecatedAnnotationUse_call();

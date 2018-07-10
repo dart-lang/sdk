@@ -48,13 +48,12 @@ class SsaOptimizerTask extends CompilerTask {
 
   Compiler get _compiler => _backend.compiler;
 
-  GlobalTypeInferenceResults get _results => _compiler.globalInference.results;
-
   CompilerOptions get _options => _compiler.options;
 
   RuntimeTypesSubstitutions get _rtiSubstitutions => _backend.rtiSubstitutions;
 
-  void optimize(CodegenWorkItem work, HGraph graph, JClosedWorld closedWorld) {
+  void optimize(CodegenWorkItem work, HGraph graph, JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults) {
     void runPhase(OptimizationPhase phase) {
       measureSubtask(phase.name, () => phase.visitGraph(graph));
       _backend.tracer.traceGraph(phase.name, graph);
@@ -70,31 +69,31 @@ class SsaOptimizerTask extends CompilerTask {
       List<OptimizationPhase> phases = <OptimizationPhase>[
         // Run trivial instruction simplification first to optimize
         // some patterns useful for type conversion.
-        new SsaInstructionSimplifier(
-            _results, _options, _rtiSubstitutions, closedWorld, registry),
+        new SsaInstructionSimplifier(globalInferenceResults, _options,
+            _rtiSubstitutions, closedWorld, registry),
         new SsaTypeConversionInserter(closedWorld),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
-        new SsaTypePropagator(
-            _results, _options, closedWorld.commonElements, closedWorld),
+        new SsaTypePropagator(globalInferenceResults, _options,
+            closedWorld.commonElements, closedWorld),
         // After type propagation, more instructions can be
         // simplified.
-        new SsaInstructionSimplifier(
-            _results, _options, _rtiSubstitutions, closedWorld, registry),
+        new SsaInstructionSimplifier(globalInferenceResults, _options,
+            _rtiSubstitutions, closedWorld, registry),
         new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
-        new SsaInstructionSimplifier(
-            _results, _options, _rtiSubstitutions, closedWorld, registry),
+        new SsaInstructionSimplifier(globalInferenceResults, _options,
+            _rtiSubstitutions, closedWorld, registry),
         new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
-        new SsaTypePropagator(
-            _results, _options, closedWorld.commonElements, closedWorld),
+        new SsaTypePropagator(globalInferenceResults, _options,
+            closedWorld.commonElements, closedWorld),
         // Run a dead code eliminator before LICM because dead
         // interceptors are often in the way of LICM'able instructions.
         new SsaDeadCodeEliminator(closedWorld, this),
         new SsaGlobalValueNumberer(closedWorld.abstractValueDomain),
         // After GVN, some instructions might need their type to be
         // updated because they now have different inputs.
-        new SsaTypePropagator(
-            _results, _options, closedWorld.commonElements, closedWorld),
+        new SsaTypePropagator(globalInferenceResults, _options,
+            closedWorld.commonElements, closedWorld),
         codeMotion = new SsaCodeMotion(closedWorld.abstractValueDomain),
         loadElimination = new SsaLoadElimination(_compiler, closedWorld),
         new SsaRedundantPhiEliminator(),
@@ -103,13 +102,13 @@ class SsaOptimizerTask extends CompilerTask {
         // controlled by a test on the value, so redo 'conversion insertion' to
         // learn from the refined type.
         new SsaTypeConversionInserter(closedWorld),
-        new SsaTypePropagator(
-            _results, _options, closedWorld.commonElements, closedWorld),
+        new SsaTypePropagator(globalInferenceResults, _options,
+            closedWorld.commonElements, closedWorld),
         new SsaValueRangeAnalyzer(closedWorld, this),
         // Previous optimizations may have generated new
         // opportunities for instruction simplification.
-        new SsaInstructionSimplifier(
-            _results, _options, _rtiSubstitutions, closedWorld, registry),
+        new SsaInstructionSimplifier(globalInferenceResults, _options,
+            _rtiSubstitutions, closedWorld, registry),
         new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
       ];
       phases.forEach(runPhase);
@@ -126,25 +125,25 @@ class SsaOptimizerTask extends CompilerTask {
           dce.eliminatedSideEffects ||
           loadElimination.newGvnCandidates) {
         phases = <OptimizationPhase>[
-          new SsaTypePropagator(
-              _results, _options, closedWorld.commonElements, closedWorld),
+          new SsaTypePropagator(globalInferenceResults, _options,
+              closedWorld.commonElements, closedWorld),
           new SsaGlobalValueNumberer(closedWorld.abstractValueDomain),
           new SsaCodeMotion(closedWorld.abstractValueDomain),
           new SsaValueRangeAnalyzer(closedWorld, this),
-          new SsaInstructionSimplifier(
-              _results, _options, _rtiSubstitutions, closedWorld, registry),
+          new SsaInstructionSimplifier(globalInferenceResults, _options,
+              _rtiSubstitutions, closedWorld, registry),
           new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
           new SsaSimplifyInterceptors(closedWorld, work.element.enclosingClass),
           new SsaDeadCodeEliminator(closedWorld, this),
         ];
       } else {
         phases = <OptimizationPhase>[
-          new SsaTypePropagator(
-              _results, _options, closedWorld.commonElements, closedWorld),
+          new SsaTypePropagator(globalInferenceResults, _options,
+              closedWorld.commonElements, closedWorld),
           // Run the simplifier to remove unneeded type checks inserted by
           // type propagation.
-          new SsaInstructionSimplifier(
-              _results, _options, _rtiSubstitutions, closedWorld, registry),
+          new SsaInstructionSimplifier(globalInferenceResults, _options,
+              _rtiSubstitutions, closedWorld, registry),
         ];
       }
       phases.forEach(runPhase);
@@ -1326,7 +1325,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
   bool needsSubstitutionForTypeVariableAccess(ClassEntity cls) {
     if (_closedWorld.isUsedAsMixin(cls)) return true;
 
-    return _closedWorld.anyStrictSubclassOf(cls, (ClassEntity subclass) {
+    return _closedWorld.classHierarchy.anyStrictSubclassOf(cls,
+        (ClassEntity subclass) {
       return !_rtiSubstitutions.isTrivialSubstitution(subclass, cls);
     });
   }

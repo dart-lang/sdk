@@ -5,7 +5,6 @@
 /// Helper program that shows the closure data on a dart program.
 
 import 'package:args/args.dart';
-import '../equivalence/id_equivalence_helper.dart';
 import '../equivalence/show_helper.dart';
 import 'closure_test.dart';
 
@@ -16,6 +15,5 @@ main(List<String> args) async {
   argParser.addFlag('callers', defaultsTo: false);
   ArgResults results = argParser.parse(args);
 
-  ComputeMemberDataFunction kernelFunction = computeKernelClosureData;
-  await show(results, kernelFunction);
+  await show(results, const ClosureDataComputer());
 }

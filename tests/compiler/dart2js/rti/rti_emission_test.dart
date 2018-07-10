@@ -25,9 +25,9 @@ main(List<String> args) {
         new Directory.fromUri(Platform.script.resolve('emission'));
     await checkTests(
       dataDir,
-      computeKernelRtiMemberEmission,
-      computeClassDataFromKernel: computeKernelRtiClassEmission,
+      const RtiEmissionDataComputer(),
       args: args,
+      testOmit: true,
       skipForStrong: [
         // Dart 1 semantics:
         'call.dart',
@@ -51,10 +51,11 @@ class Tags {
   static const String checkedInstance = 'checkedInstance';
   static const String typeArgument = 'typeArgument';
   static const String checkedTypeArgument = 'checkedTypeArgument';
+  static const String typeLiteral = 'typeLiteral';
   static const String functionType = 'functionType';
 }
 
-abstract class ComputeValueMixin<T> {
+abstract class ComputeValueMixin {
   Compiler get compiler;
   ProgramLookup lookup;
 
@@ -88,6 +89,9 @@ abstract class ComputeValueMixin<T> {
       if (classUse.checkedTypeArgument) {
         features.add(Tags.checkedTypeArgument);
       }
+      if (classUse.typeLiteral) {
+        features.add(Tags.typeLiteral);
+      }
     }
     return features.getText();
   }
@@ -100,33 +104,41 @@ abstract class ComputeValueMixin<T> {
   }
 }
 
-void computeKernelRtiMemberEmission(
-    Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
-    {bool verbose: false}) {
-  KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-  KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
-  MemberDefinition definition = elementMap.getMemberDefinition(member);
-  new RtiMemberEmissionIrComputer(
-          compiler.reporter,
-          actualMap,
-          elementMap,
-          member,
-          compiler,
-          backendStrategy.closureDataLookup as ClosureDataLookup<ir.Node>)
-      .run(definition.node);
+class RtiEmissionDataComputer extends DataComputer {
+  const RtiEmissionDataComputer();
+
+  @override
+  void setup() {
+    cacheRtiDataForTesting = true;
+  }
+
+  @override
+  bool get computesClassData => true;
+
+  @override
+  void computeMemberData(
+      Compiler compiler, MemberEntity member, Map<Id, ActualData> actualMap,
+      {bool verbose: false}) {
+    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
+    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    MemberDefinition definition = elementMap.getMemberDefinition(member);
+    new RtiMemberEmissionIrComputer(compiler.reporter, actualMap, elementMap,
+            member, compiler, backendStrategy.closureDataLookup)
+        .run(definition.node);
+  }
+
+  @override
+  void computeClassData(
+      Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
+      {bool verbose: false}) {
+    KernelBackendStrategy backendStrategy = compiler.backendStrategy;
+    KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
+    new RtiClassEmissionIrComputer(compiler, elementMap, actualMap)
+        .computeClassValue(cls);
+  }
 }
 
-void computeKernelRtiClassEmission(
-    Compiler compiler, ClassEntity cls, Map<Id, ActualData> actualMap,
-    {bool verbose: false}) {
-  KernelBackendStrategy backendStrategy = compiler.backendStrategy;
-  KernelToElementMapForBuilding elementMap = backendStrategy.elementMap;
-  new RtiClassEmissionIrComputer(compiler, elementMap, actualMap)
-      .computeClassValue(cls);
-}
-
-class RtiClassEmissionIrComputer extends DataRegistry
-    with ComputeValueMixin<ir.Node> {
+class RtiClassEmissionIrComputer extends DataRegistry with ComputeValueMixin {
   final Compiler compiler;
   final KernelToElementMapForBuilding _elementMap;
   final Map<Id, ActualData> actualMap;
@@ -144,9 +156,9 @@ class RtiClassEmissionIrComputer extends DataRegistry
 }
 
 class RtiMemberEmissionIrComputer extends IrDataExtractor
-    with ComputeValueMixin<ir.Node> {
+    with ComputeValueMixin {
   final KernelToElementMapForBuilding _elementMap;
-  final ClosureDataLookup<ir.Node> _closureDataLookup;
+  final ClosureDataLookup _closureDataLookup;
   final Compiler compiler;
 
   RtiMemberEmissionIrComputer(

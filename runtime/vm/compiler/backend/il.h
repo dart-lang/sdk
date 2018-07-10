@@ -27,7 +27,6 @@ class ComparisonInstr;
 class Definition;
 class Environment;
 class FlowGraph;
-class FlowGraphBuilder;
 class FlowGraphCompiler;
 class FlowGraphVisitor;
 class Instruction;

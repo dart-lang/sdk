@@ -16,6 +16,7 @@ import 'options.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
 import 'js_backend/enqueuer.dart';
+import 'types/types.dart';
 import 'universe/world_builder.dart';
 import 'universe/use.dart'
     show
@@ -60,10 +61,11 @@ class EnqueueTask extends CompilerTask {
           ..onEmptyForTesting = compiler.onResolutionQueueEmptyForTesting;
   }
 
-  Enqueuer createCodegenEnqueuer(JClosedWorld closedWorld) {
-    return codegenEnqueuerForTesting = compiler.backend
-        .createCodegenEnqueuer(this, compiler, closedWorld)
-          ..onEmptyForTesting = compiler.onCodegenQueueEmptyForTesting;
+  Enqueuer createCodegenEnqueuer(JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults) {
+    return codegenEnqueuerForTesting = compiler.backend.createCodegenEnqueuer(
+        this, compiler, closedWorld, globalInferenceResults)
+      ..onEmptyForTesting = compiler.onCodegenQueueEmptyForTesting;
   }
 }
 
@@ -378,6 +380,9 @@ class ResolutionEnqueuer extends EnqueuerImpl {
           _worldBuilder.registerTypeVariableTypeLiteral(type);
         }
         break;
+      case TypeUseKind.RTI_VALUE:
+        failedAt(CURRENT_ELEMENT_SPANNABLE, "Unexpected type use: $typeUse.");
+        break;
     }
   }
 
@@ -493,16 +498,6 @@ class EnqueuerStrategy {
   /// Process [work] using [f].
   void processWorkItem(void f(WorkItem work), WorkItem work) {
     f(work);
-  }
-}
-
-/// Strategy that only enqueues directly used elements.
-class DirectEnqueuerStrategy extends EnqueuerStrategy {
-  const DirectEnqueuerStrategy();
-  void processStaticUse(EnqueuerImpl enqueuer, StaticUse staticUse) {
-    if (staticUse.kind == StaticUseKind.DIRECT_USE) {
-      enqueuer.processStaticUse(staticUse);
-    }
   }
 }
 

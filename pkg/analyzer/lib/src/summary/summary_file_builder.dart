@@ -45,7 +45,7 @@ class SummaryBuilder {
     FolderBasedDartSdk sdk = new FolderBasedDartSdk(
         resourceProvider, resourceProvider.getFolder(sdkPath), strong);
     sdk.useSummary = false;
-    sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = strong;
+    sdk.analysisOptions = new AnalysisOptionsImpl();
 
     //
     // Prepare 'dart:' URIs to serialize.

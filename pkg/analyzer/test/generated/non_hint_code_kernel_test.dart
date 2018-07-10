@@ -36,15 +36,6 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
   @override
   bool get useCFE => true;
 
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_deprecatedMemberUse_inDeprecatedLibrary() async {
-    // LibraryAnalyzer is not applying resolution data to annotations on
-    // directives.
-    await super.test_deprecatedMemberUse_inDeprecatedLibrary();
-  }
-
   @override
   @failingTest
   test_overrideOnNonOverridingField_inInterface() {
@@ -111,13 +102,6 @@ void g(bool c) {
   test_unusedImport_annotationOnDirective() async {
     // Expected 0 errors of type HintCode.UNUSED_IMPORT, found 1 (23)
     await super.test_unusedImport_annotationOnDirective();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_unusedImport_metadata() async {
-    await super.test_unusedImport_metadata();
   }
 
   @override

@@ -194,9 +194,9 @@ class JumpVisitor extends ir.Visitor {
     });
   }
 
-  JLabelDefinition _getOrCreateLabel(JJumpTarget target, ir.Node node) {
+  JLabelDefinition _getOrCreateLabel(JJumpTarget target) {
     if (target.labels.isEmpty) {
-      return target.addLabel(node, 'label${labelIndex++}');
+      return target.addLabel('label${labelIndex++}');
     } else {
       return target.labels.single;
     }
@@ -268,7 +268,7 @@ class JumpVisitor extends ir.Visitor {
         search = search.parent;
       }
       if (needsLabel) {
-        JLabelDefinition label = _getOrCreateLabel(target, node.target);
+        JLabelDefinition label = _getOrCreateLabel(target);
         label.isBreakTarget = true;
       }
     } else if (canBeContinueTarget(parent)) {
@@ -292,7 +292,7 @@ class JumpVisitor extends ir.Visitor {
         search = search.parent;
       }
       if (needsLabel) {
-        JLabelDefinition label = _getOrCreateLabel(target, node.target);
+        JLabelDefinition label = _getOrCreateLabel(target);
         label.isContinueTarget = true;
       }
     } else {
@@ -305,7 +305,7 @@ class JumpVisitor extends ir.Visitor {
       // and label is therefore always needed.
       target = _getJumpTarget(node.target);
       target.isBreakTarget = true;
-      JLabelDefinition label = _getOrCreateLabel(target, node.target);
+      JLabelDefinition label = _getOrCreateLabel(target);
       label.isBreakTarget = true;
     }
     jumpTargetMap[node] = target;
@@ -317,7 +317,7 @@ class JumpVisitor extends ir.Visitor {
     JJumpTarget target = _getJumpTarget(node.target);
     target.isContinueTarget = true;
     jumpTargetMap[node] = target;
-    JLabelDefinition label = _getOrCreateLabel(target, node.target);
+    JLabelDefinition label = _getOrCreateLabel(target);
     label.isContinueTarget = true;
     super.visitContinueSwitchStatement(node);
   }
@@ -335,10 +335,10 @@ class JumpVisitor extends ir.Visitor {
   }
 }
 
-class JJumpTarget extends JumpTarget<ir.Node> {
+class JJumpTarget extends JumpTarget {
   final MemberEntity memberContext;
   final int nestingLevel;
-  List<LabelDefinition<ir.Node>> _labels;
+  List<LabelDefinition> _labels;
   final bool isSwitch;
   final bool isSwitchCase;
 
@@ -349,24 +349,18 @@ class JJumpTarget extends JumpTarget<ir.Node> {
   bool isContinueTarget = false;
 
   @override
-  LabelDefinition<ir.Node> addLabel(ir.Node label, String labelName,
+  LabelDefinition addLabel(String labelName,
       {bool isBreakTarget: false, bool isContinueTarget: false}) {
-    _labels ??= <LabelDefinition<ir.Node>>[];
-    LabelDefinition<ir.Node> labelDefinition = new JLabelDefinition(
-        this, labelName,
+    _labels ??= <LabelDefinition>[];
+    LabelDefinition labelDefinition = new JLabelDefinition(this, labelName,
         isBreakTarget: isBreakTarget, isContinueTarget: isContinueTarget);
     _labels.add(labelDefinition);
     return labelDefinition;
   }
 
   @override
-  List<LabelDefinition<ir.Node>> get labels {
-    return _labels ?? const <LabelDefinition<ir.Node>>[];
-  }
-
-  @override
-  ir.Node get statement {
-    throw new UnimplementedError('JJumpTarget.statement');
+  List<LabelDefinition> get labels {
+    return _labels ?? const <LabelDefinition>[];
   }
 
   String toString() {
@@ -389,8 +383,8 @@ class JJumpTarget extends JumpTarget<ir.Node> {
   }
 }
 
-class JLabelDefinition extends LabelDefinition<ir.Node> {
-  final JumpTarget<ir.Node> target;
+class JLabelDefinition extends LabelDefinition {
+  final JumpTarget target;
   final String labelName;
   bool isBreakTarget;
   bool isContinueTarget;

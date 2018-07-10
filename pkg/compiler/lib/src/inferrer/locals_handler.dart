@@ -21,14 +21,14 @@ import 'type_system.dart';
  * The inferrer makes sure updates get merged into the parent scope,
  * once the control flow block has been visited.
  */
-class VariableScope<T> {
+class VariableScope {
   Map<Local, TypeInformation> variables;
 
   /// The parent of this scope. Null for the root scope.
   final VariableScope parent;
 
-  /// The [Node] that created this scope.
-  final T block;
+  /// The [ir.Node] that created this scope.
+  final ir.Node block;
 
   /// `true` if this scope is for a try block.
   final bool isTry;
@@ -40,7 +40,7 @@ class VariableScope<T> {
         "Unexpected block $block for isTry=$isTry");
   }
 
-  VariableScope.deepCopyOf(VariableScope<T> other)
+  VariableScope.deepCopyOf(VariableScope other)
       : variables = other.variables == null
             ? null
             : new Map<Local, TypeInformation>.from(other.variables),
@@ -50,7 +50,7 @@ class VariableScope<T> {
             ? null
             : new VariableScope.deepCopyOf(other.parent);
 
-  VariableScope.topLevelCopyOf(VariableScope<T> other)
+  VariableScope.topLevelCopyOf(VariableScope other)
       : variables = other.variables == null
             ? null
             : new Map<Local, TypeInformation>.from(other.variables),
@@ -80,7 +80,7 @@ class VariableScope<T> {
   }
 
   void forEachLocalUntilNode(
-      T node, void f(Local variable, TypeInformation type),
+      ir.Node node, void f(Local variable, TypeInformation type),
       [Setlet<Local> seenLocals]) {
     if (seenLocals == null) seenLocals = new Setlet<Local>();
     if (variables != null) {
@@ -110,8 +110,8 @@ class VariableScope<T> {
 }
 
 /// Tracks initializers via initializations and assignments.
-class FieldInitializationScope<T> {
-  final TypeSystem<T> types;
+class FieldInitializationScope {
+  final TypeSystem types;
   Map<FieldEntity, TypeInformation> fields;
   bool isThisExposed;
 
@@ -123,14 +123,14 @@ class FieldInitializationScope<T> {
       : isThisExposed = false,
         isIndefinite = false;
 
-  FieldInitializationScope.internalFrom(FieldInitializationScope<T> other)
+  FieldInitializationScope.internalFrom(FieldInitializationScope other)
       : types = other.types,
         isThisExposed = other.isThisExposed,
         isIndefinite = other.isIndefinite;
 
-  factory FieldInitializationScope.from(FieldInitializationScope<T> other) {
+  factory FieldInitializationScope.from(FieldInitializationScope other) {
     if (other == null) return null;
-    return new FieldInitializationScope<T>.internalFrom(other);
+    return new FieldInitializationScope.internalFrom(other);
   }
 
   void updateField(FieldEntity field, TypeInformation type) {
@@ -148,14 +148,14 @@ class FieldInitializationScope<T> {
     fields?.forEach(f);
   }
 
-  void mergeDiamondFlow(FieldInitializationScope<T> thenScope,
-      FieldInitializationScope<T> elseScope) {
+  void mergeDiamondFlow(
+      FieldInitializationScope thenScope, FieldInitializationScope elseScope) {
     // Quick bailout check. If [isThisExposed] or [isIndefinite] is true, we
     // know the code following won'TypeInformation do anything.
     if (isThisExposed) return;
     if (isIndefinite) return;
 
-    FieldInitializationScope<T> otherScope =
+    FieldInitializationScope otherScope =
         (elseScope == null || elseScope.fields == null) ? this : elseScope;
 
     thenScope.forEach((FieldEntity field, TypeInformation type) {
@@ -248,14 +248,14 @@ class ArgumentsTypesIterator implements Iterator<TypeInformation> {
 /**
  * Placeholder for inferred types of local variables.
  */
-class LocalsHandler<T> {
+class LocalsHandler {
   final CompilerOptions options;
-  final TypeSystem<T> types;
-  final InferrerEngine<T> inferrer;
-  final VariableScope<T> locals;
+  final TypeSystem types;
+  final InferrerEngine inferrer;
+  final VariableScope locals;
   final Map<Local, FieldEntity> _capturedAndBoxed;
-  final FieldInitializationScope<T> fieldScope;
-  LocalsHandler<T> tryBlock;
+  final FieldInitializationScope fieldScope;
+  LocalsHandler tryBlock;
   bool seenReturnOrThrow = false;
   bool seenBreakOrContinue = false;
 
@@ -265,17 +265,16 @@ class LocalsHandler<T> {
 
   bool get inTryBlock => tryBlock != null;
 
-  LocalsHandler(this.inferrer, this.types, this.options, T block,
+  LocalsHandler(this.inferrer, this.types, this.options, ir.Node block,
       [this.fieldScope])
-      : locals = new VariableScope<T>(block, isTry: false),
+      : locals = new VariableScope(block, isTry: false),
         _capturedAndBoxed = new Map<Local, FieldEntity>(),
         tryBlock = null;
 
-  LocalsHandler.from(LocalsHandler<T> other, T block,
+  LocalsHandler.from(LocalsHandler other, ir.Node block,
       {bool isTry: false, bool useOtherTryBlock: true})
-      : locals =
-            new VariableScope<T>(block, isTry: isTry, parent: other.locals),
-        fieldScope = new FieldInitializationScope<T>.from(other.fieldScope),
+      : locals = new VariableScope(block, isTry: isTry, parent: other.locals),
+        fieldScope = new FieldInitializationScope.from(other.fieldScope),
         _capturedAndBoxed = other._capturedAndBoxed,
         types = other.types,
         inferrer = other.inferrer,
@@ -283,18 +282,18 @@ class LocalsHandler<T> {
     tryBlock = useOtherTryBlock ? other.tryBlock : this;
   }
 
-  LocalsHandler.deepCopyOf(LocalsHandler<T> other)
-      : locals = new VariableScope<T>.deepCopyOf(other.locals),
-        fieldScope = new FieldInitializationScope<T>.from(other.fieldScope),
+  LocalsHandler.deepCopyOf(LocalsHandler other)
+      : locals = new VariableScope.deepCopyOf(other.locals),
+        fieldScope = new FieldInitializationScope.from(other.fieldScope),
         _capturedAndBoxed = other._capturedAndBoxed,
         tryBlock = other.tryBlock,
         types = other.types,
         inferrer = other.inferrer,
         options = other.options;
 
-  LocalsHandler.topLevelCopyOf(LocalsHandler<T> other)
-      : locals = new VariableScope<T>.topLevelCopyOf(other.locals),
-        fieldScope = new FieldInitializationScope<T>.from(other.fieldScope),
+  LocalsHandler.topLevelCopyOf(LocalsHandler other)
+      : locals = new VariableScope.topLevelCopyOf(other.locals),
+        fieldScope = new FieldInitializationScope.from(other.fieldScope),
         _capturedAndBoxed = other._capturedAndBoxed,
         tryBlock = other.tryBlock,
         types = other.types,
@@ -310,7 +309,8 @@ class LocalsHandler<T> {
     }
   }
 
-  void update(Local local, TypeInformation type, T node, DartType staticType,
+  void update(
+      Local local, TypeInformation type, ir.Node node, DartType staticType,
       {bool isSetIfNull: false}) {
     assert(type != null);
     if (!options.assignmentCheckPolicy.isIgnored) {
@@ -356,7 +356,8 @@ class LocalsHandler<T> {
     }
   }
 
-  void narrow(Local local, DartType type, T node, {bool isSetIfNull: false}) {
+  void narrow(Local local, DartType type, ir.Node node,
+      {bool isSetIfNull: false}) {
     TypeInformation existing = use(local);
     TypeInformation newType =
         types.narrowType(existing, type, isNullable: false);
@@ -367,8 +368,7 @@ class LocalsHandler<T> {
     _capturedAndBoxed[local] = field;
   }
 
-  void mergeDiamondFlow(
-      LocalsHandler<T> thenBranch, LocalsHandler<T> elseBranch) {
+  void mergeDiamondFlow(LocalsHandler thenBranch, LocalsHandler elseBranch) {
     if (fieldScope != null && elseBranch != null) {
       fieldScope.mergeDiamondFlow(thenBranch.fieldScope, elseBranch.fieldScope);
     }
@@ -380,7 +380,7 @@ class LocalsHandler<T> {
         elseBranch.seenBreakOrContinue;
     if (aborts) return;
 
-    void mergeOneBranch(LocalsHandler<T> other) {
+    void mergeOneBranch(LocalsHandler other) {
       other.locals.forEachOwnLocal((Local local, TypeInformation type) {
         TypeInformation myType = locals[local];
         if (myType == null) return; // Variable is only defined in [other].
@@ -389,7 +389,7 @@ class LocalsHandler<T> {
       });
     }
 
-    void inPlaceUpdateOneBranch(LocalsHandler<T> other) {
+    void inPlaceUpdateOneBranch(LocalsHandler other) {
       other.locals.forEachOwnLocal((Local local, TypeInformation type) {
         TypeInformation myType = locals[local];
         if (myType == null) return; // Variable is only defined in [other].
@@ -459,18 +459,18 @@ class LocalsHandler<T> {
    * where [:this:] is the [LocalsHandler] for the paths through the
    * labeled statement that do not break out.
    */
-  void mergeAfterBreaks(List<LocalsHandler<T>> handlers,
+  void mergeAfterBreaks(List<LocalsHandler> handlers,
       {bool keepOwnLocals: true}) {
-    T level = locals.block;
+    ir.Node level = locals.block;
     // Use a separate locals handler to perform the merge in, so that Phi
     // creation does not invalidate previous type knowledge while we might
     // still look it up.
-    LocalsHandler<T> merged =
-        new LocalsHandler<T>.from(this, level, isTry: locals.isTry);
+    LocalsHandler merged =
+        new LocalsHandler.from(this, level, isTry: locals.isTry);
     Set<Local> seenLocals = new Setlet<Local>();
     bool allBranchesAbort = true;
     // Merge all other handlers.
-    for (LocalsHandler<T> handler in handlers) {
+    for (LocalsHandler handler in handlers) {
       allBranchesAbort = allBranchesAbort && handler.seenReturnOrThrow;
       merged.mergeHandler(handler, seenLocals);
     }
@@ -500,7 +500,7 @@ class LocalsHandler<T> {
    * unless the local is already present in the set [seen]. This effectively
    * overwrites the current type knowledge in this handler.
    */
-  bool mergeHandler(LocalsHandler<T> other, [Set<Local> seen]) {
+  bool mergeHandler(LocalsHandler other, [Set<Local> seen]) {
     if (other.seenReturnOrThrow) return false;
     bool changed = false;
     other.locals.forEachLocalUntilNode(locals.block, (local, otherType) {
@@ -535,7 +535,7 @@ class LocalsHandler<T> {
     return changed;
   }
 
-  void startLoop(T loop) {
+  void startLoop(ir.Node loop) {
     locals.forEachLocal((Local variable, TypeInformation type) {
       TypeInformation newType =
           types.allocateLoopPhi(loop, variable, type, isTry: false);
@@ -545,7 +545,7 @@ class LocalsHandler<T> {
     });
   }
 
-  void endLoop(T loop) {
+  void endLoop(ir.Node loop) {
     locals.forEachLocal((Local variable, TypeInformation type) {
       TypeInformation newType = types.simplifyPhi(loop, variable, type);
       if (newType != type) {

@@ -27,8 +27,7 @@ void main() {
 @reflectiveTest
 class Dart2InferenceTest extends ResolverTestCase {
   @override
-  AnalysisOptions get defaultAnalysisOptions =>
-      new AnalysisOptionsImpl()..strongMode = true;
+  AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
 
   @override
   bool get enableNewAnalysisDriver => true;

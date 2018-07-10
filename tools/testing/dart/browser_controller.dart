@@ -142,7 +142,7 @@ abstract class Browser {
   Future close() {
     _logEvent("Close called on browser");
     if (process != null) {
-      if (process.kill(ProcessSignal.SIGKILL)) {
+      if (process.kill(ProcessSignal.sigkill)) {
         _logEvent("Successfully sent kill signal to process.");
       } else {
         _logEvent("Sending kill signal failed.");
@@ -370,7 +370,7 @@ class Safari extends Browser {
 
   Future<Null> _createLaunchHTML(String path, String url) async {
     var file = new File("$path/launch.html");
-    var randomFile = await file.open(mode: FileMode.WRITE);
+    var randomFile = await file.open(mode: FileMode.write);
     var content = '<script language="JavaScript">location = "$url"</script>';
     await randomFile.writeString(content);
     await randomFile.close();
@@ -713,7 +713,7 @@ class Firefox extends Browser {
 
   void _createPreferenceFile(String path) {
     var file = new File("$path/user.js");
-    var randomFile = file.openSync(mode: FileMode.WRITE);
+    var randomFile = file.openSync(mode: FileMode.write);
     randomFile.writeStringSync(enablePopUp);
     randomFile.writeStringSync(disableDefaultCheck);
     randomFile.writeStringSync(disableScriptTimeLimit);

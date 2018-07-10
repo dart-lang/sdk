@@ -126,48 +126,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_ambiguousClassName() async {
-    return super.test_argumentTypeNotAssignable_ambiguousClassName();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_annotation_namedConstructor() async {
-    return super.test_argumentTypeNotAssignable_annotation_namedConstructor();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_annotation_unnamedConstructor() async {
-    return super.test_argumentTypeNotAssignable_annotation_unnamedConstructor();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_binary() async {
-    return super.test_argumentTypeNotAssignable_binary();
-  }
-
-  @override
-  @failingTest
-  test_argumentTypeNotAssignable_call() {
-    // UnimplementedError: TODO(paulberry): resynthesize generic typedef
-    return super.test_argumentTypeNotAssignable_call();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_cascadeSecond() async {
-    return super.test_argumentTypeNotAssignable_cascadeSecond();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_argumentTypeNotAssignable_const() async {
     return super.test_argumentTypeNotAssignable_const();
   }
@@ -177,120 +135,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @potentialAnalyzerProblem
   test_argumentTypeNotAssignable_const_super() async {
     return super.test_argumentTypeNotAssignable_const_super();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_functionExpressionInvocation_required() async {
-    return super
-        .test_argumentTypeNotAssignable_functionExpressionInvocation_required();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_index() async {
-    return super.test_argumentTypeNotAssignable_index();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_invocation_callParameter() async {
-    return super.test_argumentTypeNotAssignable_invocation_callParameter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_invocation_callVariable() async {
-    return super.test_argumentTypeNotAssignable_invocation_callVariable();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_invocation_functionParameter() async {
-    return super.test_argumentTypeNotAssignable_invocation_functionParameter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_invocation_functionParameter_generic() async {
-    return super
-        .test_argumentTypeNotAssignable_invocation_functionParameter_generic();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_invocation_generic() async {
-    return super.test_argumentTypeNotAssignable_invocation_generic();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_invocation_named() async {
-    return super.test_argumentTypeNotAssignable_invocation_named();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_invocation_optional() async {
-    return super.test_argumentTypeNotAssignable_invocation_optional();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_invocation_required() async {
-    return super.test_argumentTypeNotAssignable_invocation_required();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_invocation_typedef_generic() async {
-    return super.test_argumentTypeNotAssignable_invocation_typedef_generic();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_invocation_typedef_local() async {
-    return super.test_argumentTypeNotAssignable_invocation_typedef_local();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_invocation_typedef_parameter() async {
-    return super.test_argumentTypeNotAssignable_invocation_typedef_parameter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_new_generic() async {
-    return super.test_argumentTypeNotAssignable_new_generic();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_new_optional() async {
-    return super.test_argumentTypeNotAssignable_new_optional();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_new_required() async {
-    return super.test_argumentTypeNotAssignable_new_required();
   }
 
   @override
@@ -608,6 +452,13 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @potentialAnalyzerProblem
   test_constWithAbstractClass() async {
     return super.test_constWithAbstractClass();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_constWithAbstractClass_generic() async {
+    return super.test_constWithAbstractClass_generic();
   }
 
   @override
@@ -1120,13 +971,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_newWithAbstractClass() async {
-    return super.test_newWithAbstractClass();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_newWithInvalidTypeParameters() async {
     return super.test_newWithInvalidTypeParameters();
   }
@@ -1591,36 +1435,8 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_typeParameterReferencedByStatic_field() async {
-    return super.test_typeParameterReferencedByStatic_field();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typeParameterReferencedByStatic_getter() async {
-    return super.test_typeParameterReferencedByStatic_getter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typeParameterReferencedByStatic_methodBodyReference() async {
-    return super.test_typeParameterReferencedByStatic_methodBodyReference();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_typeParameterReferencedByStatic_methodParameter() async {
     return super.test_typeParameterReferencedByStatic_methodParameter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typeParameterReferencedByStatic_methodReturn() async {
-    return super.test_typeParameterReferencedByStatic_methodReturn();
   }
 
   @override

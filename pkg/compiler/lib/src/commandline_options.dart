@@ -8,10 +8,6 @@ library dart2js.cmdline.options;
 class Flags {
   static const String allowMockCompilation = '--allow-mock-compilation';
   static const String allowNativeExtensions = '--allow-native-extensions';
-  static const String analyzeAll = '--analyze-all';
-  static const String analyzeMain = '--analyze-main';
-  static const String analyzeOnly = '--analyze-only';
-  static const String analyzeSignaturesOnly = '--analyze-signatures-only';
   static const String disableInlining = '--disable-inlining';
   static const String disableProgramSplit = '--disable-program-split';
   static const String disableDiagnosticColors = '--disable-diagnostic-colors';

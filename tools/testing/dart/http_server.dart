@@ -290,7 +290,7 @@ class TestingServers {
         if (data == 'close-with-error') {
           // Note: according to the web-sockets spec, a reason longer than 123
           // bytes will produce a SyntaxError on the client.
-          websocket.close(WebSocketStatus.UNSUPPORTED_DATA, 'X' * 124);
+          websocket.close(WebSocketStatus.unsupportedData, 'X' * 124);
         } else {
           websocket.close();
         }
@@ -442,14 +442,14 @@ class TestingServers {
           '"${request.uri.path}"');
     }
     var response = request.response;
-    response.statusCode = HttpStatus.NOT_FOUND;
+    response.statusCode = HttpStatus.notFound;
 
     // Send a nice HTML page detailing the error message.  Most browsers expect
     // this, for example, Chrome will simply display a blank page if you don't
     // provide any information.  A nice side effect of this is to work around
     // Firefox bug 1016313
     // (https://bugzilla.mozilla.org/show_bug.cgi?id=1016313).
-    response.headers.set(HttpHeaders.CONTENT_TYPE, 'text/html');
+    response.headers.set(HttpHeaders.contentTypeHeader, 'text/html');
     String escapedPath = const HtmlEscape().convert(request.uri.path);
     response.write("""
 <!DOCTYPE html>

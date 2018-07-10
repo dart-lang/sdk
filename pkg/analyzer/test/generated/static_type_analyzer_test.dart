@@ -1624,7 +1624,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     InternalAnalysisContext context;
     if (strongMode) {
       AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-      options.strongMode = true;
       context = AnalysisContextFactory.contextWithCoreAndOptions(options,
           resourceProvider: resourceProvider);
     } else {

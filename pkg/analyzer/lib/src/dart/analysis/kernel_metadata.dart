@@ -127,4 +127,17 @@ class AnalyzerMetadataRepository
       sink.writeByte(0);
     }
   }
+
+  /// Merge metadata from the [source] into the [destination].
+  static void merge(kernel.Component destination, kernel.Component source) {
+    kernel.MetadataRepository destinationRepo = destination.metadata[TAG];
+    kernel.MetadataRepository sourceRepo = source.metadata[TAG];
+    if (sourceRepo != null) {
+      if (destinationRepo != null) {
+        destinationRepo.mapping.addAll(sourceRepo.mapping);
+      } else {
+        destination.metadata[TAG] = sourceRepo;
+      }
+    }
+  }
 }

@@ -28,67 +28,6 @@ namespace kernel {
 #define T (type_translator_)
 #define I Isolate::Current()
 
-ActiveTypeParametersScope::ActiveTypeParametersScope(ActiveClass* active_class,
-                                                     const Function& innermost,
-                                                     Zone* Z)
-    : active_class_(active_class), saved_(*active_class) {
-  active_class_->enclosing = &innermost;
-
-  intptr_t num_params = 0;
-
-  Function& f = Function::Handle(Z);
-  TypeArguments& f_params = TypeArguments::Handle(Z);
-  for (f = innermost.raw(); f.parent_function() != Object::null();
-       f = f.parent_function()) {
-    f_params = f.type_parameters();
-    num_params += f_params.Length();
-  }
-  if (num_params == 0) return;
-
-  TypeArguments& params =
-      TypeArguments::Handle(Z, TypeArguments::New(num_params));
-
-  intptr_t index = num_params;
-  for (f = innermost.raw(); f.parent_function() != Object::null();
-       f = f.parent_function()) {
-    f_params = f.type_parameters();
-    for (intptr_t j = f_params.Length() - 1; j >= 0; --j) {
-      params.SetTypeAt(--index, AbstractType::Handle(Z, f_params.TypeAt(j)));
-    }
-  }
-
-  active_class_->local_type_parameters = &params;
-}
-
-ActiveTypeParametersScope::ActiveTypeParametersScope(
-    ActiveClass* active_class,
-    const Function* function,
-    const TypeArguments& new_params,
-    Zone* Z)
-    : active_class_(active_class), saved_(*active_class) {
-  active_class_->enclosing = function;
-
-  if (new_params.IsNull()) return;
-
-  const TypeArguments* old_params = active_class->local_type_parameters;
-  const intptr_t old_param_count =
-      old_params == NULL ? 0 : old_params->Length();
-  const TypeArguments& extended_params = TypeArguments::Handle(
-      Z, TypeArguments::New(old_param_count + new_params.Length()));
-
-  intptr_t index = 0;
-  for (intptr_t i = 0; i < old_param_count; ++i) {
-    extended_params.SetTypeAt(
-        index++, AbstractType::ZoneHandle(Z, old_params->TypeAt(i)));
-  }
-  for (intptr_t i = 0; i < new_params.Length(); ++i) {
-    extended_params.SetTypeAt(
-        index++, AbstractType::ZoneHandle(Z, new_params.TypeAt(i)));
-  }
-
-  active_class_->local_type_parameters = &extended_params;
-}
-
 Fragment& Fragment::operator+=(const Fragment& other) {
   if (entry == NULL) {
     entry = other.entry;
@@ -136,27 +75,7 @@ Fragment operator<<(const Fragment& fragment, Instruction* next) {
   return result;
 }
 
-intptr_t ActiveClass::MemberTypeParameterCount(Zone* zone) {
-  ASSERT(member != NULL);
-  if (member->IsFactory()) {
-    TypeArguments& class_types =
-        TypeArguments::Handle(zone, klass->type_parameters());
-    return class_types.Length();
-  } else if (member->IsMethodExtractor()) {
-    Function& extracted =
-        Function::Handle(zone, member->extracted_method_closure());
-    TypeArguments& function_types =
-        TypeArguments::Handle(zone, extracted.type_parameters());
-    return function_types.Length();
-  } else {
-    TypeArguments& function_types =
-        TypeArguments::Handle(zone, member->type_parameters());
-    return function_types.Length();
-  }
-}
-
 FlowGraphBuilder::FlowGraphBuilder(
-    intptr_t kernel_offset,
     ParsedFunction* parsed_function,
     const ZoneGrowableArray<const ICData*>& ic_data_array,
     ZoneGrowableArray<intptr_t>* context_level_array,
@@ -170,7 +89,6 @@ FlowGraphBuilder::FlowGraphBuilder(
       translation_helper_(Thread::Current()),
       thread_(translation_helper_.thread()),
       zone_(translation_helper_.zone()),
-      kernel_offset_(kernel_offset),
       parsed_function_(parsed_function),
       optimizing_(optimizing),
       osr_id_(osr_id),
@@ -713,7 +631,6 @@ Fragment BaseFlowGraphBuilder::ThrowException(TokenPosition position) {
 }
 
 Fragment BaseFlowGraphBuilder::TailCall(const Code& code) {
-  Fragment instructions;
   Value* arg_desc = Pop();
   return Fragment(new (Z) TailCallInstr(code, arg_desc));
 }
@@ -2141,7 +2058,8 @@ JoinEntryInstr* BaseFlowGraphBuilder::BuildThrowNoSuchMethod() {
   return nsm;
 }
 
-RawObject* EvaluateMetadata(const Field& metadata_field) {
+RawObject* EvaluateMetadata(const Field& metadata_field,
+                            bool is_annotations_offset) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* thread = Thread::Current();
@@ -2159,7 +2077,7 @@ RawObject* EvaluateMetadata(const Field& metadata_field) {
         ExternalTypedData::Handle(Z, metadata_field.KernelData()),
         metadata_field.KernelDataProgramOffset(), &active_class);
     return streaming_flow_graph_builder.EvaluateMetadata(
-        metadata_field.kernel_offset());
+        metadata_field.kernel_offset(), is_annotations_offset);
   } else {
     Thread* thread = Thread::Current();
     Error& error = Error::Handle();
@@ -2178,10 +2096,14 @@ RawObject* BuildParameterDescriptor(const Function& function) {
     Script& script = Script::Handle(Z, function.script());
     helper.InitFromScript(script);
 
+    const Class& owner_class = Class::Handle(Z, function.Owner());
+    ActiveClass active_class;
+    ActiveClassScope active_class_scope(&active_class, &owner_class);
+
     StreamingFlowGraphBuilder streaming_flow_graph_builder(
         &helper, Script::Handle(Z, function.script()), Z,
         ExternalTypedData::Handle(Z, function.KernelData()),
-        function.KernelDataProgramOffset(), /* active_class = */ NULL);
+        function.KernelDataProgramOffset(), &active_class);
     return streaming_flow_graph_builder.BuildParameterDescriptor(
         function.kernel_offset());
   } else {

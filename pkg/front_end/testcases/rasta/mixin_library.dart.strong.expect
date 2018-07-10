@@ -1,3 +1,9 @@
+// Errors:
+//
+// pkg/front_end/testcases/rasta/mixin_library.dart:16:18: Error: Superclass has no method named 'foo'.
+//   foo() => super.foo() + f();
+//                  ^^^
+
 library test.mixin_library;
 import self as self;
 import "dart:core" as core;
@@ -23,9 +29,6 @@ class Mixin<T extends core::Object = dynamic> extends core::Object {
   method publicMethod() → dynamic
     return this.{self::Mixin::_privateMethod}();
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/rasta/mixin_library.dart:16:18: Error: Superclass has no method named 'foo'.
-  foo() => super.foo() + f();
-                 ^^^"]/* from null */;
 static method f() → dynamic
   return 2;
 static method V() → dynamic

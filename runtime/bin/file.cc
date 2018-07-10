@@ -1511,5 +1511,67 @@ CObject* File::LockRequest(const CObjectArray& request) {
              : CObject::NewOSError();
 }
 
+// Inspired by sdk/lib/core/uri.dart
+UriDecoder::UriDecoder(const char* uri) : uri_(uri) {
+  const char* ch = uri;
+  while ((*ch != 0) && (*ch != '%')) {
+    ch++;
+  }
+  if (*ch == 0) {
+    // if there are no '%', nothing to decode, refer to original as decoded.
+    decoded_ = const_cast<char*>(uri);
+    return;
+  }
+  const intptr_t len = strlen(uri);
+  // Decoded string should be shorter than original because of
+  // percent-encoding.
+  char* dest = reinterpret_cast<char*>(malloc(len + 1));
+  int i = ch - uri;
+  // Copy all characters up to first '%' at index i.
+  strncpy(dest, uri, i);
+  decoded_ = dest;
+  dest += i;
+  while (*ch) {
+    if (*ch != '%') {
+      *(dest++) = *(ch++);
+      continue;
+    }
+    if ((i + 3 > len) || !HexCharPairToByte(ch + 1, dest)) {
+      free(decoded_);
+      decoded_ = NULL;
+      return;
+    }
+    ++dest;
+    ch += 3;
+  }
+  *dest = 0;
+}
+
+UriDecoder::~UriDecoder() {
+  if (uri_ != decoded_ && decoded_ != NULL) {
+    free(decoded_);
+  }
+}
+
+bool UriDecoder::HexCharPairToByte(const char* pch, char* const dest) {
+  int byte = 0;
+  for (int i = 0; i < 2; i++) {
+    char char_code = *(pch + i);
+    if (0x30 <= char_code && char_code <= 0x39) {
+      byte = byte * 16 + char_code - 0x30;
+    } else {
+      // Check ranges A-F (0x41-0x46) and a-f (0x61-0x66).
+      char_code |= 0x20;
+      if (0x61 <= char_code && char_code <= 0x66) {
+        byte = byte * 16 + char_code - 0x57;
+      } else {
+        return false;
+      }
+    }
+  }
+  *dest = byte;
+  return true;
+}
+
 }  // namespace bin
 }  // namespace dart

@@ -26,10 +26,7 @@ ErrorSeverity computeSeverity(
     }
   }
 
-  if (!commandLineOptions.enableTypeChecks &&
-      error.errorCode.type == ErrorType.CHECKED_MODE_COMPILE_TIME_ERROR) {
-    return ErrorSeverity.INFO;
-  } else if (commandLineOptions.lintsAreFatal && error.errorCode is LintCode) {
+  if (commandLineOptions.lintsAreFatal && error.errorCode is LintCode) {
     return ErrorSeverity.ERROR;
   }
 

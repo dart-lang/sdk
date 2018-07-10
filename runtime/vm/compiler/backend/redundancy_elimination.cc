@@ -2473,7 +2473,7 @@ class StoreOptimizer : public LivenessAnalysis {
 
         // Handle side effects, deoptimization and function return.
         if (instr->HasUnknownSideEffects() || instr->CanDeoptimize() ||
-            instr->IsThrow() || instr->IsReThrow() || instr->IsReturn()) {
+            instr->MayThrow() || instr->IsReturn()) {
           // Instructions that return from the function, instructions with side
           // effects and instructions that can deoptimize are considered as
           // loads from all places.

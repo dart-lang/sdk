@@ -646,7 +646,7 @@ class Parser {
   /// the import keyword.
   Token parseImportRecovery(Token token) {
     final primaryListener = listener;
-    final recoveryListener = new ImportRecoveryListener(primaryListener);
+    final recoveryListener = new ImportRecoveryListener();
 
     // Reparse to determine which clauses have already been parsed
     // but intercept the events so they are not sent to the primary listener
@@ -1705,7 +1705,7 @@ class Parser {
   /// Recover given out-of-order clauses in a class header.
   Token parseClassHeaderRecovery(Token token, Token begin, Token classKeyword) {
     final primaryListener = listener;
-    final recoveryListener = new ClassHeaderRecoveryListener(primaryListener);
+    final recoveryListener = new ClassHeaderRecoveryListener();
 
     // Reparse to determine which clauses have already been parsed
     // but intercept the events so they are not sent to the primary listener.

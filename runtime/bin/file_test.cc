@@ -34,6 +34,73 @@ TEST_CASE(Read) {
   file->Release();
 }
 
+TEST_CASE(OpenUri) {
+  const char* kFilename = GetFileName("runtime/bin/file_test.cc");
+  char* encoded = reinterpret_cast<char*>(malloc(strlen(kFilename) * 3 + 1));
+  char* t = encoded;
+  // percent-encode all characters 'c'
+  for (const char* p = kFilename; *p; p++) {
+    if (*p == 'c') {
+      *t++ = '%';
+      *t++ = '6';
+      *t++ = '3';
+    } else {
+      *t++ = *p;
+    }
+  }
+  *t = 0;
+  File* file = File::OpenUri(NULL, encoded, File::kRead);
+  free(encoded);
+  EXPECT(file != NULL);
+  char buffer[16];
+  buffer[0] = '\0';
+  EXPECT(file->ReadFully(buffer, 13));  // ReadFully returns true.
+  buffer[13] = '\0';
+  EXPECT_STREQ("// Copyright ", buffer);
+  EXPECT(!file->WriteByte(1));  // Cannot write to a read-only file.
+  file->Release();
+}
+
+TEST_CASE(OpenUri_InvalidUriPercentEncoding) {
+  const char* kFilename = GetFileName("runtime/bin/file_test.cc");
+  char* encoded = reinterpret_cast<char*>(malloc(strlen(kFilename) * 3 + 1));
+  char* t = encoded;
+  // percent-encode all characters 'c'
+  for (const char* p = kFilename; *p; p++) {
+    if (*p == 'c') {
+      *t++ = '%';
+      *t++ = 'f';
+      *t++ = 'o';
+    } else {
+      *t++ = *p;
+    }
+  }
+  *t = 0;
+  File* file = File::OpenUri(NULL, encoded, File::kRead);
+  free(encoded);
+  EXPECT(file == NULL);
+}
+
+TEST_CASE(OpenUri_TruncatedUriPercentEncoding) {
+  const char* kFilename = GetFileName("runtime/bin/file_test.cc");
+  char* encoded = reinterpret_cast<char*>(malloc(strlen(kFilename) * 3 + 1));
+  char* t = encoded;
+  // percent-encode all characters 'c'
+  for (const char* p = kFilename; *p; p++) {
+    if (*p == 'c') {
+      *t++ = '%';
+      *t++ = 'f';
+      *t++ = 'o';
+    } else {
+      *t++ = *p;
+    }
+  }
+  *(t - 1) = 0;  // truncate last uri encoding
+  File* file = File::OpenUri(NULL, encoded, File::kRead);
+  free(encoded);
+  EXPECT(file == NULL);
+}
+
 TEST_CASE(FileLength) {
   const char* kFilename =
       GetFileName("runtime/tests/vm/data/fixed_length_file");

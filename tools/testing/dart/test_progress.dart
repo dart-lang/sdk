@@ -105,7 +105,7 @@ class FlakyLogWriter extends EventListener {
 
   void _appendToFlakyFile(String msg) {
     var file = new File(TestUtils.flakyFileName);
-    var fd = file.openSync(mode: FileMode.APPEND);
+    var fd = file.openSync(mode: FileMode.append);
     fd.writeStringSync(msg);
     fd.closeSync();
   }
@@ -184,7 +184,7 @@ class TestOutcomeLogWriter extends EventListener {
     // if the current location is not used.
     if (_sink == null) {
       _sink = new File(TestUtils.testOutcomeFileName)
-          .openWrite(mode: FileMode.APPEND);
+          .openWrite(mode: FileMode.append);
     }
     _sink.write("${jsonEncode(record)}\n");
   }
@@ -224,7 +224,7 @@ class UnexpectedCrashLogger extends EventListener {
         RandomAccessFile unexpectedCrashesFile;
         try {
           unexpectedCrashesFile =
-              new File('unexpected-crashes').openSync(mode: FileMode.APPEND);
+              new File('unexpected-crashes').openSync(mode: FileMode.append);
           unexpectedCrashesFile.writeStringSync(
               "${test.displayName},${pid},${archivedBinaries[binName]}\n");
         } catch (e) {

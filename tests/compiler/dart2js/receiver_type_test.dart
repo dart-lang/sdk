@@ -28,7 +28,7 @@ Future runTest() async {
     class C extends B {
       call() {}
     }
-    """, mainSource: """
+
     main() {
       (new A())();
       new B();
@@ -47,8 +47,8 @@ Future runTest() async {
   JClosedWorld closedWorld = env.jClosedWorld;
   int closureCount = 0;
   Selector callSelector = new Selector.callClosure(0);
-  closedWorld.forEachStrictSubclassOf(closedWorld.commonElements.objectClass,
-      (ClassEntity cls) {
+  closedWorld.classHierarchy.forEachStrictSubclassOf(
+      closedWorld.commonElements.objectClass, (ClassEntity cls) {
     if (cls.library.canonicalUri.scheme != 'memory') return;
 
     TypeMask mask = new TypeMask.nonNullSubclass(cls, closedWorld);

@@ -722,7 +722,7 @@ class StandardTestSuite extends TestSuite {
       String pattern = regex.pattern;
       if (pattern.contains("/")) {
         String lastPart = pattern.substring(pattern.lastIndexOf("/") + 1);
-        if (int.parse(lastPart, onError: (_) => -1) >= 0 ||
+        if (int.tryParse(lastPart) != null ||
             lastPart.toLowerCase() == "none") {
           pattern = pattern.substring(0, pattern.lastIndexOf("/"));
         }
@@ -1297,11 +1297,6 @@ class StandardTestSuite extends TestSuite {
       if (filePath.filename.contains("dart2js") ||
           filePath.directoryPath.segments().last.contains('html_common')) {
         args.add("--use-dart2js-libraries");
-      }
-      if (configuration.noPreviewDart2) {
-        args.add("--no-preview-dart-2");
-      } else {
-        args.add("--preview-dart-2");
       }
     }
 

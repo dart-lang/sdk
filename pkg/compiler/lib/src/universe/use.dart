@@ -141,7 +141,6 @@ enum StaticUseKind {
   CONST_CONSTRUCTOR_INVOKE,
   REDIRECTION,
   DIRECT_INVOKE,
-  DIRECT_USE,
   INLINING,
   INVOKE,
   GET,
@@ -517,11 +516,6 @@ class StaticUse {
     return new StaticUse.internal(element, StaticUseKind.INVOKE);
   }
 
-  /// Direct use of [element] as done with `--analyze-all` and `--analyze-main`.
-  factory StaticUse.directUse(MemberEntity element) {
-    return new StaticUse.internal(element, StaticUseKind.DIRECT_USE);
-  }
-
   /// Inlining of [element].
   factory StaticUse.constructorInlining(
       ConstructorEntity element, InterfaceType instanceType) {
@@ -582,6 +576,7 @@ enum TypeUseKind {
   NATIVE_INSTANTIATION,
   IMPLICIT_CAST,
   PARAMETER_CHECK,
+  RTI_VALUE,
 }
 
 /// Use of a [DartType].
@@ -628,6 +623,9 @@ class TypeUse {
         break;
       case TypeUseKind.PARAMETER_CHECK:
         sb.write('param:');
+        break;
+      case TypeUseKind.RTI_VALUE:
+        sb.write('typeArg:');
         break;
     }
     sb.write(type);
@@ -690,6 +688,11 @@ class TypeUse {
   /// [type] used in a native instantiation.
   factory TypeUse.nativeInstantiation(InterfaceType type) {
     return new TypeUse.internal(type, TypeUseKind.NATIVE_INSTANTIATION);
+  }
+
+  /// [type] used as a direct RTI value.
+  factory TypeUse.constTypeLiteral(DartType type) {
+    return new TypeUse.internal(type, TypeUseKind.RTI_VALUE);
   }
 
   bool operator ==(other) {

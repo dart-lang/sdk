@@ -67,8 +67,7 @@ abstract class GraphBuilder {
 
   CodeEmitterTask get emitter => backend.emitter;
 
-  GlobalTypeInferenceResults get globalInferenceResults =>
-      compiler.globalInference.results;
+  GlobalTypeInferenceResults get globalInferenceResults;
 
   ClosureDataLookup get closureDataLookup =>
       compiler.backendStrategy.closureDataLookup;
@@ -93,7 +92,7 @@ abstract class GraphBuilder {
 
   JsInteropAnalysis get jsInteropAnalysis => backend.jsInteropAnalysis;
 
-  InferredData get inferredData => compiler.globalInference.inferredData;
+  InferredData get inferredData => globalInferenceResults.inferredData;
 
   DeferredLoadTask get deferredLoadTask => compiler.deferredLoadTask;
 

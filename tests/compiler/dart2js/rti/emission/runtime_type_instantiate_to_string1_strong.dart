@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  /*checks=[],functionType,instance*/
+  /*strong.checks=[],functionType,instance*/
+  /*omit.checks=[],instance*/
   T id<T>(T t) => t;
   int Function(int) x = id;
   print("${x.runtimeType}");

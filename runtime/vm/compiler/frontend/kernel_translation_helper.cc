@@ -7,6 +7,8 @@
 #include "vm/class_finalizer.h"
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/log.h"
+#include "vm/object_store.h"
+#include "vm/parser.h"  // for ParsedFunction
 #include "vm/symbols.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -799,7 +801,10 @@ void VariableDeclarationHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
       /* Falls through */
     case kAnnotations:
-      helper_->SkipListOfExpressions();  // read annotations.
+      annotation_count_ = helper_->ReadListLength();  // read list length.
+      for (intptr_t i = 0; i < annotation_count_; ++i) {
+        helper_->SkipExpression();  // read ith expression.
+      }
       if (++next_read_ == field) return;
       /* Falls through */
     case kFlags:
@@ -1299,7 +1304,10 @@ void LibraryDependencyHelper::ReadUntilExcluding(Field field) {
     }
       /* Falls through */
     case kAnnotations: {
-      helper_->SkipListOfExpressions();
+      annotation_count_ = helper_->ReadListLength();
+      for (intptr_t i = 0; i < annotation_count_; ++i) {
+        helper_->SkipExpression();  // read ith expression.
+      }
       if (++next_read_ == field) return;
     }
       /* Falls through */
@@ -1499,6 +1507,153 @@ intptr_t MetadataHelper::GetNextMetadataPayloadOffset(intptr_t node_offset) {
   }
 }
 
+DirectCallMetadataHelper::DirectCallMetadataHelper(KernelReaderHelper* helper)
+    : MetadataHelper(helper, tag(), /* precompiler_only = */ true) {}
+
+bool DirectCallMetadataHelper::ReadMetadata(intptr_t node_offset,
+                                            NameIndex* target_name,
+                                            bool* check_receiver_for_null) {
+  intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
+  if (md_offset < 0) {
+    return false;
+  }
+
+  AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
+                              md_offset);
+
+  *target_name = helper_->ReadCanonicalNameReference();
+  *check_receiver_for_null = helper_->ReadBool();
+  return true;
+}
+
+DirectCallMetadata DirectCallMetadataHelper::GetDirectTargetForPropertyGet(
+    intptr_t node_offset) {
+  NameIndex kernel_name;
+  bool check_receiver_for_null = false;
+  if (!ReadMetadata(node_offset, &kernel_name, &check_receiver_for_null)) {
+    return DirectCallMetadata(Function::null_function(), false);
+  }
+
+  if (H.IsProcedure(kernel_name) && !H.IsGetter(kernel_name)) {
+    // Tear-off. Use method extractor as direct call target.
+    const String& method_name = H.DartMethodName(kernel_name);
+    const Function& target_method = Function::ZoneHandle(
+        helper_->zone_, H.LookupMethodByMember(kernel_name, method_name));
+    const String& getter_name = H.DartGetterName(kernel_name);
+    return DirectCallMetadata(
+        Function::ZoneHandle(helper_->zone_,
+                             target_method.GetMethodExtractor(getter_name)),
+        check_receiver_for_null);
+  } else {
+    const String& getter_name = H.DartGetterName(kernel_name);
+    const Function& target = Function::ZoneHandle(
+        helper_->zone_, H.LookupMethodByMember(kernel_name, getter_name));
+    ASSERT(target.IsGetterFunction() || target.IsImplicitGetterFunction());
+    return DirectCallMetadata(target, check_receiver_for_null);
+  }
+}
+
+DirectCallMetadata DirectCallMetadataHelper::GetDirectTargetForPropertySet(
+    intptr_t node_offset) {
+  NameIndex kernel_name;
+  bool check_receiver_for_null = false;
+  if (!ReadMetadata(node_offset, &kernel_name, &check_receiver_for_null)) {
+    return DirectCallMetadata(Function::null_function(), false);
+  }
+
+  const String& method_name = H.DartSetterName(kernel_name);
+  const Function& target = Function::ZoneHandle(
+      helper_->zone_, H.LookupMethodByMember(kernel_name, method_name));
+  ASSERT(target.IsSetterFunction() || target.IsImplicitSetterFunction());
+
+  return DirectCallMetadata(target, check_receiver_for_null);
+}
+
+DirectCallMetadata DirectCallMetadataHelper::GetDirectTargetForMethodInvocation(
+    intptr_t node_offset) {
+  NameIndex kernel_name;
+  bool check_receiver_for_null = false;
+  if (!ReadMetadata(node_offset, &kernel_name, &check_receiver_for_null)) {
+    return DirectCallMetadata(Function::null_function(), false);
+  }
+
+  const String& method_name = H.DartProcedureName(kernel_name);
+  const Function& target = Function::ZoneHandle(
+      helper_->zone_, H.LookupMethodByMember(kernel_name, method_name));
+
+  return DirectCallMetadata(target, check_receiver_for_null);
+}
+
+InferredTypeMetadataHelper::InferredTypeMetadataHelper(
+    KernelReaderHelper* helper)
+    : MetadataHelper(helper, tag(), /* precompiler_only = */ true) {}
+
+InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
+    intptr_t node_offset) {
+  const intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
+  if (md_offset < 0) {
+    return InferredTypeMetadata(kDynamicCid, true);
+  }
+
+  AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
+                              md_offset);
+
+  const NameIndex kernel_name = helper_->ReadCanonicalNameReference();
+  const bool nullable = helper_->ReadBool();
+
+  if (H.IsRoot(kernel_name)) {
+    return InferredTypeMetadata(kDynamicCid, nullable);
+  }
+
+  const Class& klass =
+      Class::Handle(helper_->zone_, H.LookupClassByKernelClass(kernel_name));
+  ASSERT(!klass.IsNull());
+
+  intptr_t cid = klass.id();
+  if (cid == kClosureCid) {
+    // VM uses more specific function types and doesn't expect instances of
+    // _Closure class, so inferred _Closure class doesn't make sense for the VM.
+    cid = kDynamicCid;
+  }
+
+  return InferredTypeMetadata(cid, nullable);
+}
+
+ProcedureAttributesMetadataHelper::ProcedureAttributesMetadataHelper(
+    KernelReaderHelper* helper)
+    : MetadataHelper(helper, tag(), /* precompiler_only = */ true) {}
+
+bool ProcedureAttributesMetadataHelper::ReadMetadata(
+    intptr_t node_offset,
+    ProcedureAttributesMetadata* metadata) {
+  intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
+  if (md_offset < 0) {
+    return false;
+  }
+
+  AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
+                              md_offset);
+
+  const int kDynamicUsesBit = 1 << 0;
+  const int kNonThisUsesBit = 1 << 1;
+  const int kTearOffUsesBit = 1 << 2;
+
+  const uint8_t flags = helper_->ReadByte();
+  metadata->has_dynamic_invocations =
+      (flags & kDynamicUsesBit) == kDynamicUsesBit;
+  metadata->has_non_this_uses = (flags & kNonThisUsesBit) == kNonThisUsesBit;
+  metadata->has_tearoff_uses = (flags & kTearOffUsesBit) == kTearOffUsesBit;
+  return true;
+}
+
+ProcedureAttributesMetadata
+ProcedureAttributesMetadataHelper::GetProcedureAttributes(
+    intptr_t node_offset) {
+  ProcedureAttributesMetadata metadata;
+  ReadMetadata(node_offset, &metadata);
+  return metadata;
+}
+
 intptr_t KernelReaderHelper::ReaderOffset() const {
   return reader_.offset();
 }
@@ -1625,6 +1780,29 @@ void KernelReaderHelper::ReportUnexpectedTag(const char* variant, Tag tag) {
   H.ReportError(script_, TokenPosition::kNoSource,
                 "Unexpected tag %d (%s) in ?, expected %s", tag,
                 Reader::TagName(tag), variant);
+}
+
+void KernelReaderHelper::ReadUntilFunctionNode() {
+  const Tag tag = PeekTag();
+  if (tag == kProcedure) {
+    ProcedureHelper procedure_helper(this);
+    procedure_helper.ReadUntilExcluding(ProcedureHelper::kFunction);
+    if (ReadTag() == kNothing) {  // read function node tag.
+      // Running a procedure without a function node doesn't make sense.
+      UNREACHABLE();
+    }
+    // Now at start of FunctionNode.
+  } else if (tag == kConstructor) {
+    ConstructorHelper constructor_helper(this);
+    constructor_helper.ReadUntilExcluding(ConstructorHelper::kFunction);
+    // Now at start of FunctionNode.
+    // Notice that we also have a list of initializers after that!
+  } else if (tag == kFunctionNode) {
+    // Already at start of FunctionNode.
+  } else {
+    ReportUnexpectedTag("a procedure, a constructor or a function node", tag);
+    UNREACHABLE();
+  }
 }
 
 void KernelReaderHelper::SkipDartType() {
@@ -1757,10 +1935,12 @@ void KernelReaderHelper::SkipInitializer() {
       SkipExpression();              // read value.
       return;
     case kSuperInitializer:
+      ReadPosition();                // read position.
       SkipCanonicalNameReference();  // read target_reference.
       SkipArguments();               // read arguments.
       return;
     case kRedirectingInitializer:
+      ReadPosition();                // read position.
       SkipCanonicalNameReference();  // read target_reference.
       SkipArguments();               // read arguments.
       return;
@@ -2197,6 +2377,536 @@ TokenPosition KernelReaderHelper::ReadPosition(bool record) {
     RecordTokenPosition(position);
   }
   return position;
+}
+
+intptr_t ActiveClass::MemberTypeParameterCount(Zone* zone) {
+  ASSERT(member != NULL);
+  if (member->IsFactory()) {
+    TypeArguments& class_types =
+        TypeArguments::Handle(zone, klass->type_parameters());
+    return class_types.Length();
+  } else if (member->IsMethodExtractor()) {
+    Function& extracted =
+        Function::Handle(zone, member->extracted_method_closure());
+    TypeArguments& function_types =
+        TypeArguments::Handle(zone, extracted.type_parameters());
+    return function_types.Length();
+  } else {
+    TypeArguments& function_types =
+        TypeArguments::Handle(zone, member->type_parameters());
+    return function_types.Length();
+  }
+}
+
+ActiveTypeParametersScope::ActiveTypeParametersScope(ActiveClass* active_class,
+                                                     const Function& innermost,
+                                                     Zone* Z)
+    : active_class_(active_class), saved_(*active_class) {
+  active_class_->enclosing = &innermost;
+
+  intptr_t num_params = 0;
+
+  Function& f = Function::Handle(Z);
+  TypeArguments& f_params = TypeArguments::Handle(Z);
+  for (f = innermost.raw(); f.parent_function() != Object::null();
+       f = f.parent_function()) {
+    f_params = f.type_parameters();
+    num_params += f_params.Length();
+  }
+  if (num_params == 0) return;
+
+  TypeArguments& params =
+      TypeArguments::Handle(Z, TypeArguments::New(num_params));
+
+  intptr_t index = num_params;
+  for (f = innermost.raw(); f.parent_function() != Object::null();
+       f = f.parent_function()) {
+    f_params = f.type_parameters();
+    for (intptr_t j = f_params.Length() - 1; j >= 0; --j) {
+      params.SetTypeAt(--index, AbstractType::Handle(Z, f_params.TypeAt(j)));
+    }
+  }
+
+  active_class_->local_type_parameters = &params;
+}
+
+ActiveTypeParametersScope::ActiveTypeParametersScope(
+    ActiveClass* active_class,
+    const Function* function,
+    const TypeArguments& new_params,
+    Zone* Z)
+    : active_class_(active_class), saved_(*active_class) {
+  active_class_->enclosing = function;
+
+  if (new_params.IsNull()) return;
+
+  const TypeArguments* old_params = active_class->local_type_parameters;
+  const intptr_t old_param_count =
+      old_params == NULL ? 0 : old_params->Length();
+  const TypeArguments& extended_params = TypeArguments::Handle(
+      Z, TypeArguments::New(old_param_count + new_params.Length()));
+
+  intptr_t index = 0;
+  for (intptr_t i = 0; i < old_param_count; ++i) {
+    extended_params.SetTypeAt(
+        index++, AbstractType::ZoneHandle(Z, old_params->TypeAt(i)));
+  }
+  for (intptr_t i = 0; i < new_params.Length(); ++i) {
+    extended_params.SetTypeAt(
+        index++, AbstractType::ZoneHandle(Z, new_params.TypeAt(i)));
+  }
+
+  active_class_->local_type_parameters = &extended_params;
+}
+
+TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
+                               ActiveClass* active_class,
+                               bool finalize)
+    : helper_(helper),
+      translation_helper_(helper->translation_helper_),
+      active_class_(active_class),
+      type_parameter_scope_(NULL),
+      zone_(translation_helper_.zone()),
+      result_(AbstractType::Handle(translation_helper_.zone())),
+      finalize_(finalize) {}
+
+AbstractType& TypeTranslator::BuildType() {
+  BuildTypeInternal();
+
+  // We return a new `ZoneHandle` here on purpose: The intermediate language
+  // instructions do not make a copy of the handle, so we do it.
+  return AbstractType::ZoneHandle(Z, result_.raw());
+}
+
+AbstractType& TypeTranslator::BuildTypeWithoutFinalization() {
+  bool saved_finalize = finalize_;
+  finalize_ = false;
+  BuildTypeInternal();
+  finalize_ = saved_finalize;
+
+  // We return a new `ZoneHandle` here on purpose: The intermediate language
+  // instructions do not make a copy of the handle, so we do it.
+  return AbstractType::ZoneHandle(Z, result_.raw());
+}
+
+AbstractType& TypeTranslator::BuildVariableType() {
+  AbstractType& abstract_type = BuildType();
+
+  // We return a new `ZoneHandle` here on purpose: The intermediate language
+  // instructions do not make a copy of the handle, so we do it.
+  AbstractType& type = Type::ZoneHandle(Z);
+
+  if (abstract_type.IsMalformed()) {
+    type = AbstractType::dynamic_type().raw();
+  } else {
+    type = result_.raw();
+  }
+
+  return type;
+}
+
+void TypeTranslator::BuildTypeInternal(bool invalid_as_dynamic) {
+  Tag tag = helper_->ReadTag();
+  switch (tag) {
+    case kInvalidType:
+      if (invalid_as_dynamic) {
+        result_ = Object::dynamic_type().raw();
+      } else {
+        result_ = ClassFinalizer::NewFinalizedMalformedType(
+            Error::Handle(Z),  // No previous error.
+            Script::Handle(Z, Script::null()), TokenPosition::kNoSource,
+            "[InvalidType] in Kernel IR.");
+      }
+      break;
+    case kDynamicType:
+      result_ = Object::dynamic_type().raw();
+      break;
+    case kVoidType:
+      result_ = Object::void_type().raw();
+      break;
+    case kBottomType:
+      result_ =
+          Class::Handle(Z, I->object_store()->null_class()).CanonicalType();
+      break;
+    case kInterfaceType:
+      BuildInterfaceType(false);
+      break;
+    case kSimpleInterfaceType:
+      BuildInterfaceType(true);
+      break;
+    case kFunctionType:
+      BuildFunctionType(false);
+      break;
+    case kSimpleFunctionType:
+      BuildFunctionType(true);
+      break;
+    case kTypeParameterType:
+      BuildTypeParameterType();
+      break;
+    default:
+      helper_->ReportUnexpectedTag("type", tag);
+      UNREACHABLE();
+  }
+}
+
+void TypeTranslator::BuildInterfaceType(bool simple) {
+  // NOTE: That an interface type like `T<A, B>` is considered to be
+  // malformed iff `T` is malformed.
+  //   => We therefore ignore errors in `A` or `B`.
+
+  NameIndex klass_name =
+      helper_->ReadCanonicalNameReference();  // read klass_name.
+
+  intptr_t length;
+  if (simple) {
+    length = 0;
+  } else {
+    length = helper_->ReadListLength();  // read type_arguments list length.
+  }
+  const TypeArguments& type_arguments =
+      BuildTypeArguments(length);  // read type arguments.
+
+  Object& klass = Object::Handle(Z, H.LookupClassByKernelClass(klass_name));
+  result_ = Type::New(klass, type_arguments, TokenPosition::kNoSource);
+  if (finalize_) {
+    ASSERT(active_class_->klass != NULL);
+    result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
+  }
+}
+
+void TypeTranslator::BuildFunctionType(bool simple) {
+  Function& signature_function = Function::ZoneHandle(
+      Z, Function::NewSignatureFunction(*active_class_->klass,
+                                        active_class_->enclosing != NULL
+                                            ? *active_class_->enclosing
+                                            : Function::Handle(Z),
+                                        TokenPosition::kNoSource));
+
+  // Suspend finalization of types inside this one. They will be finalized after
+  // the whole function type is constructed.
+  //
+  // TODO(31213): Test further when nested generic function types
+  // are supported by fasta.
+  bool finalize = finalize_;
+  finalize_ = false;
+
+  if (!simple) {
+    LoadAndSetupTypeParameters(active_class_, signature_function,
+                               helper_->ReadListLength(), signature_function);
+  }
+
+  ActiveTypeParametersScope scope(
+      active_class_, &signature_function,
+      TypeArguments::Handle(Z, signature_function.type_parameters()), Z);
+
+  intptr_t required_count;
+  intptr_t all_count;
+  intptr_t positional_count;
+  if (!simple) {
+    required_count = helper_->ReadUInt();  // read required parameter count.
+    all_count = helper_->ReadUInt();       // read total parameter count.
+    positional_count =
+        helper_->ReadListLength();  // read positional_parameters list length.
+  } else {
+    positional_count =
+        helper_->ReadListLength();  // read positional_parameters list length.
+    required_count = positional_count;
+    all_count = positional_count;
+  }
+
+  const Array& parameter_types =
+      Array::Handle(Z, Array::New(1 + all_count, Heap::kOld));
+  signature_function.set_parameter_types(parameter_types);
+  const Array& parameter_names =
+      Array::Handle(Z, Array::New(1 + all_count, Heap::kOld));
+  signature_function.set_parameter_names(parameter_names);
+
+  intptr_t pos = 0;
+  parameter_types.SetAt(pos, AbstractType::dynamic_type());
+  parameter_names.SetAt(pos, H.DartSymbolPlain("_receiver_"));
+  ++pos;
+  for (intptr_t i = 0; i < positional_count; ++i, ++pos) {
+    BuildTypeInternal();  // read ith positional parameter.
+    if (result_.IsMalformed()) {
+      result_ = AbstractType::dynamic_type().raw();
+    }
+    parameter_types.SetAt(pos, result_);
+    parameter_names.SetAt(pos, H.DartSymbolPlain("noname"));
+  }
+
+  // The additional first parameter is the receiver type (set to dynamic).
+  signature_function.set_num_fixed_parameters(1 + required_count);
+  signature_function.SetNumOptionalParameters(
+      all_count - required_count, positional_count > required_count);
+
+  if (!simple) {
+    const intptr_t named_count =
+        helper_->ReadListLength();  // read named_parameters list length.
+    for (intptr_t i = 0; i < named_count; ++i, ++pos) {
+      // read string reference (i.e. named_parameters[i].name).
+      String& name = H.DartSymbolObfuscate(helper_->ReadStringReference());
+      BuildTypeInternal();  // read named_parameters[i].type.
+      if (result_.IsMalformed()) {
+        result_ = AbstractType::dynamic_type().raw();
+      }
+      parameter_types.SetAt(pos, result_);
+      parameter_names.SetAt(pos, name);
+    }
+  }
+
+  helper_->SkipListOfStrings();  // read positional parameter names.
+
+  if (!simple) {
+    helper_->SkipCanonicalNameReference();  // read typedef reference.
+  }
+
+  BuildTypeInternal();  // read return type.
+  if (result_.IsMalformed()) {
+    result_ = AbstractType::dynamic_type().raw();
+  }
+  signature_function.set_result_type(result_);
+
+  finalize_ = finalize;
+
+  Type& signature_type =
+      Type::ZoneHandle(Z, signature_function.SignatureType());
+
+  if (finalize_) {
+    signature_type ^=
+        ClassFinalizer::FinalizeType(*active_class_->klass, signature_type);
+    // Do not refer to signature_function anymore, since it may have been
+    // replaced during canonicalization.
+    signature_function = Function::null();
+  }
+
+  result_ = signature_type.raw();
+}
+
+void TypeTranslator::BuildTypeParameterType() {
+  intptr_t parameter_index = helper_->ReadUInt();  // read parameter index.
+  helper_->SkipOptionalDartType();                 // read bound.
+
+  const TypeArguments& class_types =
+      TypeArguments::Handle(Z, active_class_->klass->type_parameters());
+  if (parameter_index < class_types.Length()) {
+    // The index of the type parameter in [parameters] is
+    // the same index into the `klass->type_parameters()` array.
+    result_ ^= class_types.TypeAt(parameter_index);
+    return;
+  }
+  parameter_index -= class_types.Length();
+
+  if (active_class_->HasMember()) {
+    if (active_class_->MemberIsFactoryProcedure()) {
+      //
+      // WARNING: This is a little hackish:
+      //
+      // We have a static factory constructor. The kernel IR gives the factory
+      // constructor function its own type parameters (which are equal in name
+      // and number to the ones of the enclosing class). I.e.,
+      //
+      //   class A<T> {
+      //     factory A.x() { return new B<T>(); }
+      //   }
+      //
+      //  is basically translated to this:
+      //
+      //   class A<T> {
+      //     static A.x<T'>() { return new B<T'>(); }
+      //   }
+      //
+      if (class_types.Length() > parameter_index) {
+        result_ ^= class_types.TypeAt(parameter_index);
+        return;
+      }
+      parameter_index -= class_types.Length();
+    }
+
+    intptr_t procedure_type_parameter_count =
+        active_class_->MemberIsProcedure()
+            ? active_class_->MemberTypeParameterCount(Z)
+            : 0;
+    if (procedure_type_parameter_count > 0) {
+      if (procedure_type_parameter_count > parameter_index) {
+        if (I->reify_generic_functions()) {
+          result_ ^=
+              TypeArguments::Handle(Z, active_class_->member->type_parameters())
+                  .TypeAt(parameter_index);
+        } else {
+          result_ ^= Type::DynamicType();
+        }
+        return;
+      }
+      parameter_index -= procedure_type_parameter_count;
+    }
+  }
+
+  if (active_class_->local_type_parameters != NULL) {
+    if (parameter_index < active_class_->local_type_parameters->Length()) {
+      if (I->reify_generic_functions()) {
+        result_ ^=
+            active_class_->local_type_parameters->TypeAt(parameter_index);
+      } else {
+        result_ ^= Type::DynamicType();
+      }
+      return;
+    }
+    parameter_index -= active_class_->local_type_parameters->Length();
+  }
+
+  if (type_parameter_scope_ != NULL &&
+      parameter_index < type_parameter_scope_->outer_parameter_count() +
+                            type_parameter_scope_->parameter_count()) {
+    result_ ^= Type::DynamicType();
+    return;
+  }
+
+  H.ReportError(
+      helper_->script(), TokenPosition::kNoSource,
+      "Unbound type parameter found in %s.  Please report this at dartbug.com.",
+      active_class_->ToCString());
+}
+
+const TypeArguments& TypeTranslator::BuildTypeArguments(intptr_t length) {
+  bool only_dynamic = true;
+  intptr_t offset = helper_->ReaderOffset();
+  for (intptr_t i = 0; i < length; ++i) {
+    if (helper_->ReadTag() != kDynamicType) {  // Read the ith types tag.
+      only_dynamic = false;
+      helper_->SetOffset(offset);
+      break;
+    }
+  }
+  TypeArguments& type_arguments = TypeArguments::ZoneHandle(Z);
+  if (!only_dynamic) {
+    type_arguments = TypeArguments::New(length);
+    for (intptr_t i = 0; i < length; ++i) {
+      BuildTypeInternal(true);  // read ith type.
+      type_arguments.SetTypeAt(i, result_);
+    }
+
+    if (finalize_) {
+      type_arguments = type_arguments.Canonicalize();
+    }
+  }
+  return type_arguments;
+}
+
+const TypeArguments& TypeTranslator::BuildInstantiatedTypeArguments(
+    const Class& receiver_class,
+    intptr_t length) {
+  const TypeArguments& type_arguments = BuildTypeArguments(length);
+
+  // If type_arguments is null all arguments are dynamic.
+  // If, however, this class doesn't specify all the type arguments directly we
+  // still need to finalize the type below in order to get any non-dynamic types
+  // from any super. See http://www.dartbug.com/29537.
+  if (type_arguments.IsNull() && receiver_class.NumTypeArguments() == length) {
+    return type_arguments;
+  }
+
+  // We make a temporary [Type] object and use `ClassFinalizer::FinalizeType` to
+  // finalize the argument types.
+  // (This can for example make the [type_arguments] vector larger)
+  Type& type = Type::Handle(
+      Z, Type::New(receiver_class, type_arguments, TokenPosition::kNoSource));
+  if (finalize_) {
+    type ^= ClassFinalizer::FinalizeType(*active_class_->klass, type);
+  }
+
+  const TypeArguments& instantiated_type_arguments =
+      TypeArguments::ZoneHandle(Z, type.arguments());
+  return instantiated_type_arguments;
+}
+
+void TypeTranslator::LoadAndSetupTypeParameters(
+    ActiveClass* active_class,
+    const Object& set_on,
+    intptr_t type_parameter_count,
+    const Function& parameterized_function) {
+  ASSERT(type_parameter_count >= 0);
+  if (type_parameter_count == 0) {
+    return;
+  }
+  ASSERT(set_on.IsClass() || set_on.IsFunction());
+  bool set_on_class = set_on.IsClass();
+  ASSERT(set_on_class == parameterized_function.IsNull());
+
+  // First setup the type parameters, so if any of the following code uses it
+  // (in a recursive way) we're fine.
+  TypeArguments& type_parameters = TypeArguments::Handle(Z);
+  TypeParameter& parameter = TypeParameter::Handle(Z);
+  const Type& null_bound = Type::Handle(Z);
+
+  // Step a) Create array of [TypeParameter] objects (without bound).
+  type_parameters = TypeArguments::New(type_parameter_count);
+  const Library& lib = Library::Handle(Z, active_class->klass->library());
+  {
+    AlternativeReadingScope alt(&helper_->reader_);
+    for (intptr_t i = 0; i < type_parameter_count; i++) {
+      TypeParameterHelper helper(helper_);
+      helper.Finish();
+      parameter = TypeParameter::New(
+          set_on_class ? *active_class->klass : Class::Handle(Z),
+          parameterized_function, i,
+          H.DartIdentifier(lib, helper.name_index_),  // read ith name index.
+          null_bound, TokenPosition::kNoSource);
+      type_parameters.SetTypeAt(i, parameter);
+    }
+  }
+
+  if (set_on.IsClass()) {
+    Class::Cast(set_on).set_type_parameters(type_parameters);
+  } else {
+    Function::Cast(set_on).set_type_parameters(type_parameters);
+  }
+
+  const Function* enclosing = NULL;
+  if (!parameterized_function.IsNull()) {
+    enclosing = &parameterized_function;
+  }
+  ActiveTypeParametersScope scope(active_class, enclosing, type_parameters, Z);
+
+  // Step b) Fill in the bounds of all [TypeParameter]s.
+  for (intptr_t i = 0; i < type_parameter_count; i++) {
+    TypeParameterHelper helper(helper_);
+    helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kBound);
+
+    // TODO(github.com/dart-lang/kernel/issues/42): This should be handled
+    // by the frontend.
+    parameter ^= type_parameters.TypeAt(i);
+    const Tag tag = helper_->PeekTag();  // peek ith bound type.
+    if (tag == kDynamicType) {
+      helper_->SkipDartType();  // read ith bound.
+      parameter.set_bound(Type::Handle(Z, I->object_store()->object_type()));
+    } else {
+      AbstractType& bound = BuildTypeWithoutFinalization();  // read ith bound.
+      if (bound.IsMalformedOrMalbounded()) {
+        bound = I->object_store()->object_type();
+      }
+      parameter.set_bound(bound);
+    }
+
+    helper.Finish();
+  }
+}
+
+const Type& TypeTranslator::ReceiverType(const Class& klass) {
+  ASSERT(!klass.IsNull());
+  ASSERT(!klass.IsTypedefClass());
+  // Note that if klass is _Closure, the returned type will be _Closure,
+  // and not the signature type.
+  Type& type = Type::ZoneHandle(Z, klass.CanonicalType());
+  if (!type.IsNull()) {
+    return type;
+  }
+  type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
+                   klass.token_pos());
+  if (klass.is_type_finalized()) {
+    type ^= ClassFinalizer::FinalizeType(klass, type);
+    klass.SetCanonicalType(type);
+  }
+  return type;
 }
 
 }  // namespace kernel

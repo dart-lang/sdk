@@ -348,8 +348,7 @@ class JSInvocationMirror implements Invocation {
     int start = _arguments.length - _typeArgumentCount;
     var list = <Type>[];
     for (int index = 0; index < _typeArgumentCount; index++) {
-      list.add(
-          createRuntimeType(runtimeTypeToString(_arguments[start + index])));
+      list.add(createRuntimeType(_arguments[start + index]));
     }
     return list;
   }
@@ -3027,7 +3026,8 @@ class BoundClosure extends TearOffClosure {
 
   toString() {
     var receiver = _receiver == null ? _self : _receiver;
-    return "Closure '$_name' of ${Primitives.objectToHumanReadableString(receiver)}";
+    return "Closure '$_name' of "
+        "${Primitives.objectToHumanReadableString(receiver)}";
   }
 
   @NoInline()
@@ -3062,8 +3062,8 @@ class BoundClosure extends TearOffClosure {
   @NoSideEffects()
   static String computeFieldNamed(String fieldName) {
     var template = new BoundClosure('self', 'target', 'receiver', 'name');
-    var names = JSArray
-        .markFixedList(JS('', 'Object.getOwnPropertyNames(#)', template));
+    var names = JSArray.markFixedList(
+        JS('', 'Object.getOwnPropertyNames(#)', template));
     for (int i = 0; i < names.length; i++) {
       var name = names[i];
       if (JS('bool', '#[#] === #', template, name, fieldName)) {
@@ -3556,8 +3556,8 @@ class TypeErrorImplementation extends Error implements TypeError {
 
   /// Normal type error caused by a failed subtype test.
   TypeErrorImplementation(Object value, String type)
-      : message = "TypeError: ${Error.safeToString(value)}: "
-            "type '${_typeDescription(value)}' is not a subtype of type '$type'";
+      : message = "TypeError: ${Error.safeToString(value)}: type "
+            "'${_typeDescription(value)}' is not a subtype of type '$type'";
 
   TypeErrorImplementation.fromMessage(String this.message);
 
@@ -3571,8 +3571,8 @@ class CastErrorImplementation extends Error implements CastError {
 
   /// Normal cast error caused by a failed type cast.
   CastErrorImplementation(Object value, Object type)
-      : message = "CastError: ${Error.safeToString(value)}: "
-            "type '${_typeDescription(value)}' is not a subtype of type '$type'";
+      : message = "CastError: ${Error.safeToString(value)}: type "
+            "'${_typeDescription(value)}' is not a subtype of type '$type'";
 
   String toString() => message;
 }

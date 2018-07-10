@@ -70,26 +70,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// dart:html for unit testing purposes.
   bool allowMockCompilation = false;
 
-  /// Whether to resolve all functions in the program, not just those reachable
-  /// from main. This implies [analyzeOnly] is true as well.
-  bool analyzeAll = false;
-
-  /// Whether to disable tree-shaking for the main script. This marks all
-  /// functions in the main script as reachable (not just a function named
-  /// `main`).
-  // TODO(sigmund): rename. The current name seems to indicate that only the
-  // main function is retained, which is the opposite of what this does.
-  bool analyzeMain = false;
-
-  /// Whether to run the compiler just for the purpose of analysis. That is, to
-  /// run resolution and type-checking alone, but otherwise do not generate any
-  /// code.
-  bool analyzeOnly = false;
-
-  /// Whether to skip analysis of method bodies and field initializers. Implies
-  /// [analyzeOnly].
-  bool analyzeSignaturesOnly = false;
-
   /// Sets a combination of flags for benchmarking 'production' mode.
   bool benchmarkingProduction = false;
 
@@ -282,10 +262,6 @@ class CompilerOptions implements DiagnosticOptions {
     return new CompilerOptions()
       ..libraryRoot = libraryRoot
       ..allowMockCompilation = _hasOption(options, Flags.allowMockCompilation)
-      ..analyzeAll = _hasOption(options, Flags.analyzeAll)
-      ..analyzeMain = _hasOption(options, Flags.analyzeMain)
-      ..analyzeOnly = _hasOption(options, Flags.analyzeOnly)
-      ..analyzeSignaturesOnly = _hasOption(options, Flags.analyzeSignaturesOnly)
       ..benchmarkingProduction =
           _hasOption(options, Flags.benchmarkingProduction)
       ..buildId =
@@ -370,7 +346,6 @@ class CompilerOptions implements DiagnosticOptions {
   }
 
   void deriveOptions() {
-    if (analyzeSignaturesOnly || analyzeAll) analyzeOnly = true;
     if (benchmarkingProduction) {
       useStartupEmitter = true;
       trustPrimitives = true;

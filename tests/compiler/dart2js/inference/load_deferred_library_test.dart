@@ -60,7 +60,7 @@ runTest(List<String> options, {bool trust: true}) async {
   MemberDefinition definition =
       backendStrategy.elementMap.getMemberDefinition(loadDeferredLibrary);
   ir.Procedure procedure = definition.node;
-  typeMask = compiler.globalInference.results
+  typeMask = compiler.globalInference.resultsForTesting
       .resultOfParameter(localsMap
           .getLocalVariable(procedure.function.positionalParameters.first))
       .type;

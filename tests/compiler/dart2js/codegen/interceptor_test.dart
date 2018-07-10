@@ -38,8 +38,8 @@ main() {
     // access.
     await compile(TEST_TWO, entry: 'foo', check: (String generated) {
       Expect.isFalse(generated.contains(r'a.get$length()'));
-      Expect
-          .isTrue(generated.contains(new RegExp(r'[$A-Z]+\.A\$\(\)\.length')));
+      Expect.isTrue(
+          generated.contains(new RegExp(r'[$A-Z]+\.A\$\(\)\.length')));
       Expect.isTrue(
           generated.contains(new RegExp(r'[$A-Z]+\.get\$length\$as\(a\)')));
     });

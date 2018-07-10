@@ -67,22 +67,6 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
     expect(sdk.getLinkedBundle(), isNull);
   }
 
-  void test_getLinkedBundle_spec() {
-    pathTranslator.newFileWithBytes('$foxPath/spec.sum',
-        new PackageBundleAssembler().assemble().toBuffer());
-    EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': <Folder>[pathTranslator.getResource(foxLib)]
-    });
-    EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
-    sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = false;
-    sdk.useSummary = true;
-    if (sdk.analysisOptions.previewDart2) {
-      expect(sdk.getLinkedBundle(), isNull);
-    } else {
-      expect(sdk.getLinkedBundle(), isNotNull);
-    }
-  }
-
   void test_getLinkedBundle_strong() {
     pathTranslator.newFileWithBytes('$foxPath/strong.sum',
         new PackageBundleAssembler().assemble().toBuffer());
@@ -90,7 +74,7 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
-    sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = true;
+    sdk.analysisOptions = new AnalysisOptionsImpl();
     sdk.useSummary = true;
     expect(sdk.getLinkedBundle(), isNotNull);
   }

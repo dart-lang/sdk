@@ -1054,7 +1054,7 @@ int _bar;
 
   void _createSdk() {
     sdk = new FolderBasedDartSdk(provider, sdkFolder);
-    sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = true;
+    sdk.analysisOptions = new AnalysisOptionsImpl();
   }
 
   CompilationUnit _doTopLevelPatching(String baseCode, String patchCode) {

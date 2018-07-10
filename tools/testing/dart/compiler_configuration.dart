@@ -689,7 +689,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   ///
   /// Warning: this command removes temporary file and violates tracking of
   /// dependencies between commands, which may cause problems if multiple
-  /// almost identical configurations are tested simultaneosly.
+  /// almost identical configurations are tested simultaneously.
   Command computeRemoveKernelFileCommand(String tempDir, List arguments,
       Map<String, String> environmentOverrides) {
     String exec;
@@ -819,7 +819,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   /// tests by 60%.
   /// Warning: this command removes temporary file and violates tracking of
   /// dependencies between commands, which may cause problems if multiple
-  /// almost identical configurations are tested simultaneosly.
+  /// almost identical configurations are tested simultaneously.
   Command computeRemoveAssemblyCommand(String tempDir, List arguments,
       Map<String, String> environmentOverrides) {
     var exec = 'rm';
@@ -999,12 +999,8 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
     arguments = arguments.toList();
-    if (_isChecked || previewDart2) {
-      arguments.add('--enable_type_checks');
-    }
     if (!previewDart2) {
-      arguments.add('--no-preview-dart-2');
-      arguments.add('--no-strong');
+      throw new ArgumentError('--no-preview-dart-2 not supported');
     }
     if (_configuration.useAnalyzerCfe) {
       arguments.add('--use-cfe');
