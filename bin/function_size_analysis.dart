@@ -52,7 +52,7 @@ showCodeDistribution(AllInfo info,
     }
   }
   print('scc sizes: min: $minS, max: $maxS, '
-      'avg ${totalCount/components.length}');
+      'avg ${totalCount / components.length}');
 
   // Compute a dominator tree and calculate the size dominated by each element.
   // TODO(sigmund): we need a more reliable way to fetch main.
