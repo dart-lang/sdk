@@ -823,7 +823,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileEndOffset);
     writeByte(node.kind.index);
     writeByte(node.flags);
-    writeName(node.name ?? '');
+    writeName(node.name ?? _emptyName);
     writeAnnotationList(node.annotations);
     writeOptionalReference(node.forwardingStubSuperTargetReference);
     writeOptionalReference(node.forwardingStubInterfaceTargetReference);
