@@ -90,7 +90,7 @@ class MemoryFileSystemEntity implements FileSystemEntity {
     if (contents == null) {
       throw new FileSystemException(uri, 'File $uri does not exist.');
     }
-    return new Uint8List.fromList(contents);
+    return contents;
   }
 
   @override
@@ -108,7 +108,11 @@ class MemoryFileSystemEntity implements FileSystemEntity {
   /// If no file exists, one is created.  If a file exists already, it is
   /// overwritten.
   void writeAsBytesSync(List<int> bytes) {
-    _update(uri, new Uint8List.fromList(bytes));
+    if (bytes is Uint8List) {
+      _update(uri, bytes);
+    } else {
+      _update(uri, new Uint8List.fromList(bytes));
+    }
   }
 
   /// Writes the given string to this file system entity.
