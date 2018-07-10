@@ -169,7 +169,8 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
       negatable: true);
   parser.addFlag(declarationCastsFlag,
       negatable: true,
-      help: 'Disable declaration casts in strong mode (https://goo.gl/cTLz40).',
+      help: 'Disable declaration casts in strong mode (https://goo.gl/cTLz40)\n'
+          'This option is deprecated and will be removed in a future release.',
       hide: ddc && hide);
   parser.addFlag(implicitCastsFlag,
       negatable: true,
