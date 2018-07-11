@@ -3877,9 +3877,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   Expression deprecated_buildCompileTimeError(String error,
-      [int charOffset = -1]) {
-    return new SyntheticExpressionJudgment(buildCompileTimeError(
-        fasta.templateUnspecified.withArguments(error), charOffset, noLength));
+      [int charOffset = -1, fasta.Message message]) {
+    message ??= fasta.templateUnspecified.withArguments(error);
+    return new SyntheticExpressionJudgment(
+        buildCompileTimeError(message, charOffset, noLength));
   }
 
   @override
@@ -3953,9 +3954,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   Statement deprecated_buildCompileTimeErrorStatement(error,
-      [int charOffset = -1]) {
+      [int charOffset = -1, fasta.Message message]) {
     return new ExpressionStatementJudgment(
-        deprecated_buildCompileTimeError(error, charOffset), null);
+        deprecated_buildCompileTimeError(error, charOffset, message), null);
   }
 
   Statement buildCompileTimeErrorStatement(Message message, int charOffset,
@@ -4143,8 +4144,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       push(forest.block(
           token,
           <Statement>[
-            deprecated_buildCompileTimeErrorStatement(
-                "Expected '{'.", token.charOffset)
+            deprecated_buildCompileTimeErrorStatement(null, token.charOffset,
+                fasta.templateExpectedFunctionBody.withArguments(token))
           ],
           null));
     }
