@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:kernel/ast.dart' show Catch, DartType, FunctionType, Node;
+import 'package:kernel/ast.dart'
+    show Catch, DartType, FunctionType, Node, TypeParameter;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
@@ -14,6 +15,9 @@ import '../kernel/kernel_shadow_ast.dart'
         InitializerJudgment,
         StatementJudgment,
         SwitchCaseJudgment;
+
+import '../kernel/kernel_type_variable_builder.dart'
+    show KernelTypeVariableBuilder;
 
 /// Callback interface used by [TypeInferrer] to report the results of type
 /// inference to a client.
@@ -68,6 +72,9 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
 
   Object binderForSwitchLabel(
       SwitchCaseJudgment judgment, int fileOffset, String name);
+
+  Object binderForTypeVariable(
+      KernelTypeVariableBuilder builder, int fileOffset, String name);
 
   Object binderForVariableDeclaration(
       StatementJudgment judgment, int fileOffset, String name);
@@ -425,6 +432,9 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   void typeLiteral(ExpressionJudgment judgment, Location location,
       Reference expressionType, DartType inferredType);
 
+  void typeVariableDeclaration(
+      covariant Object binder, TypeParameter typeParameter);
+
   void variableAssign(
       ExpressionJudgment judgment,
       Location location,
@@ -499,6 +509,10 @@ class KernelTypeInferenceListener
   @override
   void binderForSwitchLabel(
       SwitchCaseJudgment judgment, int fileOffset, String name) {}
+
+  @override
+  void binderForTypeVariable(
+      KernelTypeVariableBuilder builder, int fileOffset, String name) {}
 
   @override
   void binderForVariableDeclaration(
@@ -889,6 +903,10 @@ class KernelTypeInferenceListener
   @override
   void typeLiteral(ExpressionJudgment judgment, location, expressionType,
       DartType inferredType) {}
+
+  @override
+  void typeVariableDeclaration(
+      covariant void binder, TypeParameter typeParameter) {}
 
   @override
   void variableAssign(

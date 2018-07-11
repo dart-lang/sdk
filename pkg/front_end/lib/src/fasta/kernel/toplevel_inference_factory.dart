@@ -4,7 +4,8 @@
 
 import 'package:front_end/src/scanner/token.dart' show Token;
 
-import 'package:kernel/ast.dart' show Catch, DartType, FunctionType, Node;
+import 'package:kernel/ast.dart'
+    show Catch, DartType, FunctionType, Node, TypeParameter;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
@@ -16,6 +17,8 @@ import 'kernel_shadow_ast.dart'
         InitializerJudgment,
         StatementJudgment,
         SwitchCaseJudgment;
+
+import 'kernel_type_variable_builder.dart' show KernelTypeVariableBuilder;
 
 const toplevelInferenceFactory = const ToplevelInferenceFactory();
 
@@ -72,6 +75,10 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
   @override
   void binderForSwitchLabel(
       SwitchCaseJudgment judgment, int fileOffset, String name) {}
+
+  @override
+  void binderForTypeVariable(
+      KernelTypeVariableBuilder builder, int fileOffset, String name) {}
 
   @override
   void binderForVariableDeclaration(
@@ -485,6 +492,10 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
   @override
   void typeLiteral(ExpressionJudgment judgment, int fileOffset,
       Node expressionType, DartType inferredType) {}
+
+  @override
+  void typeVariableDeclaration(
+      covariant void binder, TypeParameter typeParameter) {}
 
   @override
   void variableAssign(

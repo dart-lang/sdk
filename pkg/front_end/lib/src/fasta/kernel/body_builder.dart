@@ -2221,6 +2221,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       ScopeBuilder scopeBuilder = new ScopeBuilder(scope);
       for (KernelTypeVariableBuilder builder in typeVariables) {
         String name = builder.name;
+        builder.binder = _typeInferrer.binderForTypeVariable(
+            builder, builder.charOffset, name);
         KernelTypeVariableBuilder existing = scopeBuilder[name];
         if (existing == null) {
           scopeBuilder.addMember(name, builder);
@@ -3776,6 +3778,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       // Assume an error is reported elsewhere.
       variable = new KernelTypeVariableBuilder(
           name.name, library, offsetForToken(name.token), null);
+      variable.binder = _typeInferrer.binderForTypeVariable(
+          variable, variable.charOffset, variable.name);
     }
     storeTypeUse(offsetForToken(token), variable.target);
     if (annotations != null) {
@@ -3858,7 +3862,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         growable: true);
     int i = 0;
     for (KernelTypeVariableBuilder builder in typeVariableBuilders) {
-      typeParameters[i++] = builder.target;
+      var typeParameter = builder.target;
+      _typeInferrer.typeVariableDeclaration(builder.binder, typeParameter);
+      typeParameters[i++] = typeParameter;
     }
     return typeParameters;
   }

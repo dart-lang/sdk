@@ -5,6 +5,7 @@
 import 'package:analyzer/src/fasta/resolution_applier.dart';
 import 'package:front_end/src/fasta/kernel/factory.dart';
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
+import 'package:front_end/src/fasta/kernel/kernel_type_variable_builder.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:kernel/ast.dart';
@@ -47,8 +48,12 @@ class ResolutionStorer
         Factory<void, void, void, void> {
   final Map<int, ResolutionData<DartType, int, Node, int>> _data;
 
-  ResolutionStorer(Map<int, ResolutionData<DartType, int, Node, int>> data)
-      : _data = data;
+  final Map<TypeParameter, int> _typeVariableDeclarations;
+
+  ResolutionStorer(Map<int, ResolutionData<DartType, int, Node, int>> data,
+      Map<TypeParameter, int> typeVariableDeclarations)
+      : _data = data,
+        _typeVariableDeclarations = typeVariableDeclarations;
 
   void asExpression(ExpressionJudgment judgment, int location, void expression,
       Token asOperator, void literalType, DartType inferredType) {
@@ -90,6 +95,11 @@ class ResolutionStorer
 
   void binderForSwitchLabel(
       SwitchCaseJudgment judgment, int fileOffset, String name) {}
+
+  TypeVariableBinder binderForTypeVariable(
+      KernelTypeVariableBuilder builder, int fileOffset, String name) {
+    return new TypeVariableBinder(fileOffset);
+  }
 
   Object binderForVariableDeclaration(
       StatementJudgment judgment, int fileOffset, String name) {
@@ -571,6 +581,11 @@ class ResolutionStorer
     _store(location, reference: expressionType, inferredType: inferredType);
   }
 
+  void typeVariableDeclaration(
+      covariant TypeVariableBinder binder, TypeParameter typeParameter) {
+    _storeTypeVariableDeclaration(binder.fileOffset, typeParameter);
+  }
+
   void variableAssign(
       ExpressionJudgment judgment,
       int location,
@@ -650,6 +665,15 @@ class ResolutionStorer
         writeContext: writeContext);
   }
 
+  void _storeTypeVariableDeclaration(
+      int fileOffset, TypeParameter typeParameter) {
+    if (_typeVariableDeclarations.containsKey(fileOffset)) {
+      throw new StateError(
+          'Type declaration already stored for offset $fileOffset');
+    }
+    _typeVariableDeclarations[typeParameter] = fileOffset;
+  }
+
   void _unstore(int location) {
     _data.remove(location) == null;
   }
@@ -673,6 +697,13 @@ class TypeArgumentsDartType implements DartType {
   String toString() {
     return '<${types.join(', ')}>';
   }
+}
+
+/// TODO(paulberry): eventually just use the element directly.
+class TypeVariableBinder {
+  final int fileOffset;
+
+  TypeVariableBinder(this.fileOffset);
 }
 
 /// TODO(paulberry): eventually just use the element directly.

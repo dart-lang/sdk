@@ -27,6 +27,8 @@ class KernelTypeVariableBuilder
 
   KernelTypeVariableBuilder actualOrigin;
 
+  Object binder;
+
   KernelTypeVariableBuilder(
       String name, KernelLibraryBuilder compilationUnit, int charOffset,
       [KernelTypeBuilder bound, TypeParameter actual])

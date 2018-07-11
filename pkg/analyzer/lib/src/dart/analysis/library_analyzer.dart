@@ -1139,7 +1139,19 @@ class _ResolutionApplierContext implements TypeContext {
       }
       return new TypeArgumentsDartType(types);
     } else {
-      return resynthesizer.getType(context, kernelType);
+      return resynthesizer.getType(context, kernelType,
+          getLocalTypeParameter: _getLocalTypeParameter);
+    }
+  }
+
+  TypeParameterElement _getLocalTypeParameter(
+      kernel.TypeParameter typeParameter) {
+    var declarationOffset = resolution.typeVariableDeclarations[typeParameter];
+    if (declarationOffset != null) {
+      TypeParameter typeParameter = localDeclarations[declarationOffset];
+      return typeParameter.element;
+    } else {
+      return null;
     }
   }
 
@@ -1183,8 +1195,9 @@ class _ResolutionApplierContext implements TypeContext {
           .getElementFromCanonicalName(referencedNode.classNode.canonicalName);
       assert(element != null);
     } else if (referencedNode is kernel.TypeParameterType) {
-      element =
-          resynthesizer.getTypeParameter(context, referencedNode.parameter);
+      element = resynthesizer.getTypeParameter(
+          context, referencedNode.parameter,
+          getLocalTypeParameter: _getLocalTypeParameter);
       assert(element != null);
     } else if (referencedNode is kernel.DynamicType) {
       element = DynamicElementImpl.instance;

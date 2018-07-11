@@ -2172,7 +2172,9 @@ class AstBuilder extends StackListener {
     List<Annotation> metadata = pop();
 
     Comment comment = _findComment(metadata, name.beginToken);
-    push(ast.typeParameter(comment, metadata, name, null, null));
+    var typeParameter = ast.typeParameter(comment, metadata, name, null, null);
+    localDeclarations[name.offset] = typeParameter;
+    push(typeParameter);
   }
 
   @override

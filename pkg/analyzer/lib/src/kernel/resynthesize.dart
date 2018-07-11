@@ -217,7 +217,9 @@ class KernelResynthesizer implements ElementResynthesizer {
     });
   }
 
-  DartType getType(ElementImpl context, kernel.DartType kernelType) {
+  DartType getType(ElementImpl context, kernel.DartType kernelType,
+      {TypeParameterElement Function(kernel.TypeParameter)
+          getLocalTypeParameter}) {
     if (kernelType is kernel.DynamicType) return DynamicTypeImpl.instance;
     if (kernelType is kernel.InvalidType) return UndefinedTypeImpl.instance;
     if (kernelType is kernel.BottomType) return BottomTypeImpl.instance;
@@ -230,16 +232,20 @@ class KernelResynthesizer implements ElementResynthesizer {
           name.parent.name == 'dart:async') {
         return DynamicTypeImpl.instance;
       }
-      return _getInterfaceType(context, name, kernelType.typeArguments);
+      return _getInterfaceType(context, name, kernelType.typeArguments,
+          getLocalTypeParameter: getLocalTypeParameter);
     }
 
     if (kernelType is kernel.TypeParameterType) {
       kernel.TypeParameter kTypeParameter = kernelType.parameter;
-      return getTypeParameter(context, kTypeParameter).type;
+      return getTypeParameter(context, kTypeParameter,
+              getLocalTypeParameter: getLocalTypeParameter)
+          .type;
     }
 
     if (kernelType is kernel.FunctionType) {
-      return _getFunctionType(context, kernelType);
+      return _getFunctionType(context, kernelType,
+          getLocalTypeParameter: getLocalTypeParameter);
     }
 
     // TODO(scheglov) Support other kernel types.
@@ -248,7 +254,13 @@ class KernelResynthesizer implements ElementResynthesizer {
 
   /// Return the [TypeParameterElement] for the given [kernelTypeParameter].
   TypeParameterElement getTypeParameter(
-      ElementImpl context, kernel.TypeParameter kernelTypeParameter) {
+      ElementImpl context, kernel.TypeParameter kernelTypeParameter,
+      {TypeParameterElement Function(kernel.TypeParameter)
+          getLocalTypeParameter}) {
+    if (getLocalTypeParameter != null) {
+      var translatedElement = getLocalTypeParameter(kernelTypeParameter);
+      if (translatedElement != null) return translatedElement;
+    }
     String name = kernelTypeParameter.name;
     for (var ctx = context; ctx != null; ctx = ctx.enclosingElement) {
       if (ctx is TypeParameterizedElementMixin) {
@@ -275,9 +287,12 @@ class KernelResynthesizer implements ElementResynthesizer {
 
   /// Return the [FunctionType] that corresponds to the given [kernelType].
   FunctionType _getFunctionType(
-      ElementImpl context, kernel.FunctionType kernelType) {
+      ElementImpl context, kernel.FunctionType kernelType,
+      {TypeParameterElement Function(kernel.TypeParameter)
+          getLocalTypeParameter}) {
     if (kernelType.typedef != null) {
-      var translatedType = _getTypedefType(context, kernelType);
+      var translatedType = _getTypedefType(context, kernelType,
+          getLocalTypeParameter: getLocalTypeParameter);
       if (translatedType != null) return translatedType;
     }
 
@@ -307,13 +322,16 @@ class KernelResynthesizer implements ElementResynthesizer {
         namedParameters);
     element.parameters = astParameters;
 
-    element.returnType = getType(element, kernelType.returnType);
+    element.returnType = getType(element, kernelType.returnType,
+        getLocalTypeParameter: getLocalTypeParameter);
 
     return new FunctionTypeImpl(element);
   }
 
   InterfaceType _getInterfaceType(ElementImpl context,
-      kernel.CanonicalName className, List<kernel.DartType> kernelArguments) {
+      kernel.CanonicalName className, List<kernel.DartType> kernelArguments,
+      {TypeParameterElement Function(kernel.TypeParameter)
+          getLocalTypeParameter}) {
     var libraryName = className.parent;
     var libraryElement = getLibrary(libraryName.name);
     ClassElement classElement = libraryElement.getType(className.name);
@@ -326,7 +344,8 @@ class KernelResynthesizer implements ElementResynthesizer {
     return new InterfaceTypeImpl.elementWithNameAndArgs(
         classElement, classElement.name, () {
       List<DartType> arguments = kernelArguments
-          .map((kernel.DartType k) => getType(context, k))
+          .map((kernel.DartType k) =>
+              getType(context, k, getLocalTypeParameter: getLocalTypeParameter))
           .toList(growable: false);
       return arguments;
     });
@@ -342,7 +361,9 @@ class KernelResynthesizer implements ElementResynthesizer {
 
   /// Return the [FunctionType] for the given typedef based [kernelType].
   FunctionType _getTypedefType(
-      ElementImpl context, kernel.FunctionType kernelType) {
+      ElementImpl context, kernel.FunctionType kernelType,
+      {TypeParameterElement Function(kernel.TypeParameter)
+          getLocalTypeParameter}) {
     kernel.Typedef typedef = kernelType.typedef;
 
     GenericTypeAliasElementImpl typedefElement =
@@ -372,7 +393,8 @@ class KernelResynthesizer implements ElementResynthesizer {
     // Convert kernel type arguments into Analyzer types.
     var typeArguments = typedef.typeParameters
         .map((t) => substitution.containsKey(t)
-            ? getType(context, substitution[t])
+            ? getType(context, substitution[t],
+                getLocalTypeParameter: getLocalTypeParameter)
             : _typeProvider.nullType)
         .toList();
     return typedefElement.instantiate(typeArguments);

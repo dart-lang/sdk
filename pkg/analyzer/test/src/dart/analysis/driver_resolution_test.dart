@@ -3775,6 +3775,341 @@ void main() {
     expect(bNode.staticType, typeProvider.doubleType);
   }
 
+  test_local_type_parameter_reference_as_expression() async {
+    addTestFile('''
+void main() {
+  void f<T>(T x) {
+    T;
+  }
+  f(1);
+}
+''');
+    await resolveTestFile();
+
+    var mainStatements = _getMainStatements(result);
+    var fDeclaration = mainStatements[0] as FunctionDeclarationStatement;
+    var fElement = fDeclaration.functionDeclaration.element;
+    var tElement = fElement.typeParameters[0];
+    var body = fDeclaration.functionDeclaration.functionExpression.body
+        as BlockFunctionBody;
+    var bodyStatement = body.block.statements[0] as ExpressionStatement;
+    var tReference = bodyStatement.expression as SimpleIdentifier;
+    assertElement(tReference, tElement);
+    assertType(tReference, 'Type');
+  }
+
+  test_local_type_parameter_reference_function_named_parameter_type() async {
+    addTestFile('''
+void main() {
+  void f<T>(T x) {
+    void Function({T t}) g = null;
+  }
+  f(1);
+}
+''');
+    await resolveTestFile();
+
+    var mainStatements = _getMainStatements(result);
+    var fDeclaration = mainStatements[0] as FunctionDeclarationStatement;
+    var fElement = fDeclaration.functionDeclaration.element;
+    var tElement = fElement.typeParameters[0];
+    var body = fDeclaration.functionDeclaration.functionExpression.body
+        as BlockFunctionBody;
+    var gDeclaration = body.block.statements[0] as VariableDeclarationStatement;
+    var gType = gDeclaration.variables.type as GenericFunctionType;
+    var gTypeType = gType.type as FunctionType;
+    var gTypeParameterType =
+        gTypeType.namedParameterTypes['t'] as TypeParameterType;
+    expect(gTypeParameterType.element, same(tElement));
+    var gParameterType =
+        ((gType.parameters.parameters[0] as DefaultFormalParameter).parameter
+                as SimpleFormalParameter)
+            .type as TypeName;
+    var tReference = gParameterType.name;
+    assertElement(tReference, tElement);
+    var tReferenceType = tReference.staticType as TypeParameterType;
+    expect(tReferenceType.element, same(tElement));
+  }
+
+  test_local_type_parameter_reference_function_normal_parameter_type() async {
+    addTestFile('''
+void main() {
+  void f<T>(T x) {
+    void Function(T) g = null;
+  }
+  f(1);
+}
+''');
+    await resolveTestFile();
+
+    var mainStatements = _getMainStatements(result);
+    var fDeclaration = mainStatements[0] as FunctionDeclarationStatement;
+    var fElement = fDeclaration.functionDeclaration.element;
+    var tElement = fElement.typeParameters[0];
+    var body = fDeclaration.functionDeclaration.functionExpression.body
+        as BlockFunctionBody;
+    var gDeclaration = body.block.statements[0] as VariableDeclarationStatement;
+    var gType = gDeclaration.variables.type as GenericFunctionType;
+    var gTypeType = gType.type as FunctionType;
+    var gTypeParameterType =
+        gTypeType.normalParameterTypes[0] as TypeParameterType;
+    expect(gTypeParameterType.element, same(tElement));
+    var gParameterType =
+        (gType.parameters.parameters[0] as SimpleFormalParameter).type
+            as TypeName;
+    var tReference = gParameterType.name;
+    assertElement(tReference, tElement);
+    var tReferenceType = tReference.staticType as TypeParameterType;
+    expect(tReferenceType.element, same(tElement));
+  }
+
+  test_local_type_parameter_reference_function_optional_parameter_type() async {
+    addTestFile('''
+void main() {
+  void f<T>(T x) {
+    void Function([T]) g = null;
+  }
+  f(1);
+}
+''');
+    await resolveTestFile();
+
+    var mainStatements = _getMainStatements(result);
+    var fDeclaration = mainStatements[0] as FunctionDeclarationStatement;
+    var fElement = fDeclaration.functionDeclaration.element;
+    var tElement = fElement.typeParameters[0];
+    var body = fDeclaration.functionDeclaration.functionExpression.body
+        as BlockFunctionBody;
+    var gDeclaration = body.block.statements[0] as VariableDeclarationStatement;
+    var gType = gDeclaration.variables.type as GenericFunctionType;
+    var gTypeType = gType.type as FunctionType;
+    var gTypeParameterType =
+        gTypeType.optionalParameterTypes[0] as TypeParameterType;
+    expect(gTypeParameterType.element, same(tElement));
+    var gParameterType =
+        ((gType.parameters.parameters[0] as DefaultFormalParameter).parameter
+                as SimpleFormalParameter)
+            .type as TypeName;
+    var tReference = gParameterType.name;
+    assertElement(tReference, tElement);
+    var tReferenceType = tReference.staticType as TypeParameterType;
+    expect(tReferenceType.element, same(tElement));
+  }
+
+  test_local_type_parameter_reference_function_return_type() async {
+    addTestFile('''
+void main() {
+  void f<T>(T x) {
+    T Function() g = () => x;
+  }
+  f(1);
+}
+''');
+    await resolveTestFile();
+
+    var mainStatements = _getMainStatements(result);
+    var fDeclaration = mainStatements[0] as FunctionDeclarationStatement;
+    var fElement = fDeclaration.functionDeclaration.element;
+    var tElement = fElement.typeParameters[0];
+    var body = fDeclaration.functionDeclaration.functionExpression.body
+        as BlockFunctionBody;
+    var gDeclaration = body.block.statements[0] as VariableDeclarationStatement;
+    var gType = gDeclaration.variables.type as GenericFunctionType;
+    var gTypeType = gType.type as FunctionType;
+    var gTypeReturnType = gTypeType.returnType as TypeParameterType;
+    expect(gTypeReturnType.element, same(tElement));
+    var gReturnType = gType.returnType as TypeName;
+    var tReference = gReturnType.name;
+    assertElement(tReference, tElement);
+    var tReferenceType = tReference.staticType as TypeParameterType;
+    expect(tReferenceType.element, same(tElement));
+  }
+
+  test_local_type_parameter_reference_interface_type_parameter() async {
+    addTestFile('''
+void main() {
+  void f<T>(T x) {
+    List<T> y = [x];
+  }
+  f(1);
+}
+''');
+    await resolveTestFile();
+
+    var mainStatements = _getMainStatements(result);
+    var fDeclaration = mainStatements[0] as FunctionDeclarationStatement;
+    var fElement = fDeclaration.functionDeclaration.element;
+    var tElement = fElement.typeParameters[0];
+    var body = fDeclaration.functionDeclaration.functionExpression.body
+        as BlockFunctionBody;
+    var yDeclaration = body.block.statements[0] as VariableDeclarationStatement;
+    var yType = yDeclaration.variables.type as TypeName;
+    var yTypeType = yType.type as InterfaceType;
+    var yTypeTypeArgument = yTypeType.typeArguments[0] as TypeParameterType;
+    expect(yTypeTypeArgument.element, same(tElement));
+    var yElementType = yType.typeArguments.arguments[0] as TypeName;
+    var tReference = yElementType.name;
+    assertElement(tReference, tElement);
+    var tReferenceType = tReference.staticType as TypeParameterType;
+    expect(tReferenceType.element, same(tElement));
+  }
+
+  test_local_type_parameter_reference_simple() async {
+    addTestFile('''
+void main() {
+  void f<T>(T x) {
+    T y = x;
+  }
+  f(1);
+}
+''');
+    await resolveTestFile();
+
+    var mainStatements = _getMainStatements(result);
+    var fDeclaration = mainStatements[0] as FunctionDeclarationStatement;
+    var fElement = fDeclaration.functionDeclaration.element;
+    var tElement = fElement.typeParameters[0];
+    var body = fDeclaration.functionDeclaration.functionExpression.body
+        as BlockFunctionBody;
+    var yDeclaration = body.block.statements[0] as VariableDeclarationStatement;
+    var yType = yDeclaration.variables.type as TypeName;
+    var tReference = yType.name;
+    assertElement(tReference, tElement);
+    var tReferenceType = tReference.staticType as TypeParameterType;
+    expect(tReferenceType.element, same(tElement));
+  }
+
+  test_local_type_parameter_reference_typedef_named_parameter_type() async {
+    addTestFile('''
+typedef void Consumer<U>({U u});
+void main() {
+  void f<T>(T x) {
+    Consumer<T> g = null;
+  }
+  f(1);
+}
+''');
+    await resolveTestFile();
+
+    var mainStatements = _getMainStatements(result);
+    var fDeclaration = mainStatements[0] as FunctionDeclarationStatement;
+    var fElement = fDeclaration.functionDeclaration.element;
+    var tElement = fElement.typeParameters[0];
+    var body = fDeclaration.functionDeclaration.functionExpression.body
+        as BlockFunctionBody;
+    var gDeclaration = body.block.statements[0] as VariableDeclarationStatement;
+    var gType = gDeclaration.variables.type as TypeName;
+    var gTypeType = gType.type as FunctionType;
+    var gTypeTypeArgument = gTypeType.typeArguments[0] as TypeParameterType;
+    expect(gTypeTypeArgument.element, same(tElement));
+    var gTypeParameterType =
+        gTypeType.namedParameterTypes['u'] as TypeParameterType;
+    expect(gTypeParameterType.element, same(tElement));
+    var gArgumentType = gType.typeArguments.arguments[0] as TypeName;
+    var tReference = gArgumentType.name;
+    assertElement(tReference, tElement);
+    var tReferenceType = tReference.staticType as TypeParameterType;
+    expect(tReferenceType.element, same(tElement));
+  }
+
+  test_local_type_parameter_reference_typedef_normal_parameter_type() async {
+    addTestFile('''
+typedef void Consumer<U>(U u);
+void main() {
+  void f<T>(T x) {
+    Consumer<T> g = null;
+  }
+  f(1);
+}
+''');
+    await resolveTestFile();
+
+    var mainStatements = _getMainStatements(result);
+    var fDeclaration = mainStatements[0] as FunctionDeclarationStatement;
+    var fElement = fDeclaration.functionDeclaration.element;
+    var tElement = fElement.typeParameters[0];
+    var body = fDeclaration.functionDeclaration.functionExpression.body
+        as BlockFunctionBody;
+    var gDeclaration = body.block.statements[0] as VariableDeclarationStatement;
+    var gType = gDeclaration.variables.type as TypeName;
+    var gTypeType = gType.type as FunctionType;
+    var gTypeTypeArgument = gTypeType.typeArguments[0] as TypeParameterType;
+    expect(gTypeTypeArgument.element, same(tElement));
+    var gTypeParameterType =
+        gTypeType.normalParameterTypes[0] as TypeParameterType;
+    expect(gTypeParameterType.element, same(tElement));
+    var gArgumentType = gType.typeArguments.arguments[0] as TypeName;
+    var tReference = gArgumentType.name;
+    assertElement(tReference, tElement);
+    var tReferenceType = tReference.staticType as TypeParameterType;
+    expect(tReferenceType.element, same(tElement));
+  }
+
+  test_local_type_parameter_reference_typedef_optional_parameter_type() async {
+    addTestFile('''
+typedef void Consumer<U>([U u]);
+void main() {
+  void f<T>(T x) {
+    Consumer<T> g = null;
+  }
+  f(1);
+}
+''');
+    await resolveTestFile();
+
+    var mainStatements = _getMainStatements(result);
+    var fDeclaration = mainStatements[0] as FunctionDeclarationStatement;
+    var fElement = fDeclaration.functionDeclaration.element;
+    var tElement = fElement.typeParameters[0];
+    var body = fDeclaration.functionDeclaration.functionExpression.body
+        as BlockFunctionBody;
+    var gDeclaration = body.block.statements[0] as VariableDeclarationStatement;
+    var gType = gDeclaration.variables.type as TypeName;
+    var gTypeType = gType.type as FunctionType;
+    var gTypeTypeArgument = gTypeType.typeArguments[0] as TypeParameterType;
+    expect(gTypeTypeArgument.element, same(tElement));
+    var gTypeParameterType =
+        gTypeType.optionalParameterTypes[0] as TypeParameterType;
+    expect(gTypeParameterType.element, same(tElement));
+    var gArgumentType = gType.typeArguments.arguments[0] as TypeName;
+    var tReference = gArgumentType.name;
+    assertElement(tReference, tElement);
+    var tReferenceType = tReference.staticType as TypeParameterType;
+    expect(tReferenceType.element, same(tElement));
+  }
+
+  test_local_type_parameter_reference_typedef_return_type() async {
+    addTestFile('''
+typedef U Producer<U>();
+void main() {
+  void f<T>(T x) {
+    Producer<T> g = () => x;
+  }
+  f(1);
+}
+''');
+    await resolveTestFile();
+
+    var mainStatements = _getMainStatements(result);
+    var fDeclaration = mainStatements[0] as FunctionDeclarationStatement;
+    var fElement = fDeclaration.functionDeclaration.element;
+    var tElement = fElement.typeParameters[0];
+    var body = fDeclaration.functionDeclaration.functionExpression.body
+        as BlockFunctionBody;
+    var gDeclaration = body.block.statements[0] as VariableDeclarationStatement;
+    var gType = gDeclaration.variables.type as TypeName;
+    var gTypeType = gType.type as FunctionType;
+    var gTypeTypeArgument = gTypeType.typeArguments[0] as TypeParameterType;
+    expect(gTypeTypeArgument.element, same(tElement));
+    var gTypeReturnType = gTypeType.returnType as TypeParameterType;
+    expect(gTypeReturnType.element, same(tElement));
+    var gArgumentType = gType.typeArguments.arguments[0] as TypeName;
+    var tReference = gArgumentType.name;
+    assertElement(tReference, tElement);
+    var tReferenceType = tReference.staticType as TypeParameterType;
+    expect(tReferenceType.element, same(tElement));
+  }
+
   test_local_variable() async {
     addTestFile(r'''
 void main() {

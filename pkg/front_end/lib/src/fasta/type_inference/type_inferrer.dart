@@ -85,6 +85,9 @@ import '../kernel/kernel_shadow_ast.dart'
         VariableDeclarationJudgment,
         getExplicitTypeArguments;
 
+import '../kernel/kernel_type_variable_builder.dart'
+    show KernelTypeVariableBuilder;
+
 import '../names.dart' show callName;
 
 import '../problems.dart' show unexpected, unhandled;
@@ -335,6 +338,9 @@ abstract class TypeInferrer {
   /// performed--this is used for testing.
   Uri get uri;
 
+  Object binderForTypeVariable(
+      KernelTypeVariableBuilder builder, int fileOffset, String name);
+
   /// Performs full type inference on the given field initializer.
   void inferFieldInitializer<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
@@ -379,6 +385,8 @@ abstract class TypeInferrer {
   void storePrefix(Token token, PrefixBuilder prefix);
 
   void storeTypeUse(int offset, Node node);
+
+  void typeVariableDeclaration(Object binder, TypeParameter typeParameter);
 }
 
 /// Implementation of [TypeInferrer] which doesn't do any type inference.
@@ -396,6 +404,10 @@ class TypeInferrerDisabled extends TypeInferrer {
 
   @override
   Uri get uri => null;
+
+  @override
+  void binderForTypeVariable(
+      KernelTypeVariableBuilder builder, int fileOffset, String name) {}
 
   @override
   void inferFieldInitializer<Expression, Statement, Initializer, Type>(
@@ -441,6 +453,9 @@ class TypeInferrerDisabled extends TypeInferrer {
 
   @override
   void storeTypeUse(int offset, Node node) {}
+
+  @override
+  void typeVariableDeclaration(Object binder, TypeParameter typeParameter) {}
 }
 
 /// Derived class containing generic implementations of [TypeInferrer].
@@ -506,6 +521,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Gets the type promoter that should be used to promote types during
   /// inference.
   TypePromoter get typePromoter;
+
+  Object binderForTypeVariable(
+      KernelTypeVariableBuilder builder, int fileOffset, String name) {
+    return listener.binderForTypeVariable(builder, fileOffset, name);
+  }
 
   bool isAssignable(DartType expectedType, DartType actualType) {
     return typeSchemaEnvironment.isSubtypeOf(expectedType, actualType) ||
@@ -1714,6 +1734,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       // TODO(paulberry): handle this case.
       return unhandled("${node.runtimeType}", "storeTypeUse", offset, uri);
     }
+  }
+
+  @override
+  void typeVariableDeclaration(Object binder, TypeParameter typeParameter) {
+    return listener.typeVariableDeclaration(binder, typeParameter);
   }
 
   DartType wrapFutureOrType(DartType type) {

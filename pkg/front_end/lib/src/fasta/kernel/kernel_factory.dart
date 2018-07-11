@@ -15,6 +15,7 @@ import 'package:kernel/ast.dart'
         Node,
         Statement,
         SwitchCase,
+        TypeParameter,
         VariableDeclaration;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
@@ -27,6 +28,8 @@ import 'kernel_shadow_ast.dart'
         InitializerJudgment,
         StatementJudgment,
         SwitchCaseJudgment;
+
+import 'kernel_type_variable_builder.dart' show KernelTypeVariableBuilder;
 
 /// Implementation of [Factory] that builds source code into a kernel
 /// representation.
@@ -92,6 +95,12 @@ class KernelFactory
   SwitchCase binderForSwitchLabel(
       SwitchCaseJudgment judgment, int fileOffset, String name) {
     return judgment;
+  }
+
+  @override
+  KernelTypeVariableBuilder binderForTypeVariable(
+      KernelTypeVariableBuilder builder, int fileOffset, String name) {
+    return builder;
   }
 
   @override
@@ -639,6 +648,12 @@ class KernelFactory
   Expression typeLiteral(ExpressionJudgment judgment, int fileOffset,
       Node expressionType, DartType inferredType) {
     return judgment;
+  }
+
+  @override
+  TypeParameter typeVariableDeclaration(
+      covariant KernelTypeVariableBuilder binder, TypeParameter typeParameter) {
+    return typeParameter;
   }
 
   @override

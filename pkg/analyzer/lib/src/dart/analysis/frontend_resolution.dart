@@ -42,6 +42,9 @@ import 'package:path/path.dart' as pathos;
 /// Resolution information in a single function body.
 class CollectedResolution {
   final Map<int, ResolutionData<DartType, int, Node, int>> kernelData = {};
+
+  final Map<TypeParameter, int> typeVariableDeclarations =
+      new Map<TypeParameter, int>.identity();
 }
 
 /// The compilation result for a single file.
@@ -400,7 +403,8 @@ class _AnalyzerDietListener extends DietListener {
     }
     var resolution = new CollectedResolution();
     fileResolutions.add(resolution);
-    storer = new ResolutionStorer(resolution.kernelData);
+    storer = new ResolutionStorer(
+        resolution.kernelData, resolution.typeVariableDeclarations);
     return super.createListener(
         builder, memberScope, isInstanceMember, formalParameterScope, storer);
   }

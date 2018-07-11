@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart' show Catch, DartType, FunctionType, Node;
+import 'package:kernel/ast.dart'
+    show Catch, DartType, FunctionType, Node, TypeParameter;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
@@ -14,6 +15,8 @@ import 'kernel_shadow_ast.dart'
         InitializerJudgment,
         StatementJudgment,
         SwitchCaseJudgment;
+
+import 'kernel_type_variable_builder.dart' show KernelTypeVariableBuilder;
 
 /// Abstract base class for factories that can construct trees of expressions,
 /// statements, initializers, and literal types based on tokens, inferred types,
@@ -59,6 +62,9 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
 
   Object binderForSwitchLabel(
       SwitchCaseJudgment judgment, int fileOffset, String name);
+
+  Object binderForTypeVariable(
+      KernelTypeVariableBuilder builder, int fileOffset, String name);
 
   Object binderForVariableDeclaration(
       StatementJudgment judgment, int fileOffset, String name);
@@ -427,6 +433,9 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
 
   Expression typeLiteral(ExpressionJudgment judgment, int fileOffset,
       Node expressionType, DartType inferredType);
+
+  Object typeVariableDeclaration(
+      covariant Object binder, TypeParameter typeParameter);
 
   Expression variableAssign(
       ExpressionJudgment judgment,
