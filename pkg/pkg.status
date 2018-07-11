@@ -23,6 +23,7 @@ analyzer/test/generated/strong_mode_kernel_test: Slow, Pass
 analyzer/test/src/dart/analysis/driver_kernel_test: Slow, Pass
 analyzer/test/src/summary/resynthesize_kernel_test: Slow, Pass
 analyzer/test/src/task/strong/checker_test: Slow, Pass
+analyzer_cli/test/build_mode_test: Fail # Issue 33814
 analyzer_plugin/test/plugin/folding_mixin_test: Slow, Pass
 analyzer_plugin/tool/spec/check_all_test: Skip # Issue 29133
 dart_messages/test/dart_messages_test: Skip # Requires a package root.

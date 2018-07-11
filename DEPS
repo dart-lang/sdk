@@ -85,14 +85,14 @@ vars = {
   "func_rev": "25eec48146a58967d75330075ab376b3838b18a8",
   "glob_tag": "1.1.5",
   "html_tag" : "0.13.3",
-  "http_io_tag": "265e90afbffacb7b2988385d4a6aa2f14e970d44",
+  "http_io_rev": "265e90afbffacb7b2988385d4a6aa2f14e970d44",
   "http_multi_server_tag" : "2.0.4",
   "http_parser_tag" : "3.1.1",
   "http_retry_tag": "0.1.1",
   "http_tag" : "0.11.3+17",
   "http_throttle_tag" : "1.0.2",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
-  "intl_tag": "0.15.2",
+  "intl_tag": "0.15.6",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.6",
   "linter_tag": "0.1.56",
@@ -110,11 +110,11 @@ vars = {
   "plugin_tag": "0.2.0+2",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.4",
-  "protobuf_tag": "0.7.1",
+  "protobuf_tag": "0.9.0",
   "pub_rev": "58fe996eab8d54f28f5109c407ff0ab62fbd835d",
   "pub_semver_tag": "1.4.1",
   "quiver_tag": "0.29.0",
-  "resource_rev":"af5a5bf65511943398146cf146e466e5f0b95cb9",
+  "resource_tag": "2.1.4",
   "root_certificates_rev": "16ef64be64c7dfdff2b9f4b910726e635ccc519e",
   "shelf_static_rev": "v0.2.7",
   "shelf_packages_handler_tag": "1.0.3",
@@ -122,7 +122,7 @@ vars = {
   "shelf_web_socket_tag": "0.2.2",
   "source_map_stack_trace_tag": "1.1.4",
   "source_maps-0.9.4_rev": "38524",
-  "source_maps_tag": "0.10.4",
+  "source_maps_tag": "0.10.6",
   "source_span_tag": "1.4.0",
   "stack_trace_tag": "1.9.2",
   "stream_channel_tag": "1.6.4",
@@ -141,7 +141,7 @@ vars = {
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_tag": "1.0.7",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
-  "yaml_tag": "2.1.13",
+  "yaml_tag": "2.1.14",
   "zlib_rev": "c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
 }
 
@@ -241,7 +241,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/http":
       Var("dart_git") + "http.git" + "@" + Var("http_tag"),
   Var("dart_root") + "/third_party/pkg_tested/http_io":
-    Var("dart_git") + "http_io.git" + "@" + Var("http_io_tag"),
+    Var("dart_git") + "http_io.git" + "@" + Var("http_io_rev"),
   Var("dart_root") + "/third_party/pkg/http_multi_server":
       Var("dart_git") + "http_multi_server.git" +
       "@" + Var("http_multi_server_tag"),
@@ -301,7 +301,7 @@ deps = {
       + "/external/github.com/google/quiver-dart.git"
       + "@" + Var("quiver_tag"),
   Var("dart_root") + "/third_party/pkg/resource":
-      Var("dart_git") + "resource.git" + "@" + Var("resource_rev"),
+      Var("dart_git") + "resource.git" + "@" + Var("resource_tag"),
   Var("dart_root") + "/third_party/pkg/shelf":
       Var("dart_git") + "shelf.git" + "@" + Var("shelf_tag"),
   Var("dart_root") + "/third_party/pkg/shelf_packages_handler":
