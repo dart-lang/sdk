@@ -51,6 +51,18 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Expression awaitExpression(ExpressionJudgment judgment, int fileOffset,
       Token awaitKeyword, Expression expression, DartType inferredType);
 
+  Object binderForFunctionDeclaration(
+      StatementJudgment judgment, int fileOffset, String name);
+
+  Object binderForStatementLabel(
+      StatementJudgment judgment, int fileOffset, String name);
+
+  Object binderForSwitchLabel(
+      SwitchCaseJudgment judgment, int fileOffset, String name);
+
+  Object binderForVariableDeclaration(
+      StatementJudgment judgment, int fileOffset, String name);
+
   Statement block(StatementJudgment judgment, int fileOffset, Token leftBracket,
       List<Statement> statements, Token rightBracket);
 
@@ -183,9 +195,6 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Statement functionDeclaration(
       covariant Object binder, FunctionType inferredType);
 
-  Object binderForFunctionDeclaration(
-      StatementJudgment judgment, int fileOffset, String name);
-
   Expression functionExpression(
       ExpressionJudgment judgment, int fileOffset, DartType inferredType);
 
@@ -236,11 +245,6 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       DartType inferredType);
 
   Statement labeledStatement(List<Object> labels, Statement statement);
-
-  Object statementLabel(covariant Object binder, Token label, Token colon);
-
-  Object binderForStatementLabel(
-      StatementJudgment judgment, int fileOffset, String name);
 
   Expression listLiteral(
       ExpressionJudgment judgment,
@@ -333,6 +337,8 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Statement returnStatement(StatementJudgment judgment, int fileOffset,
       Token returnKeyword, Expression expression, Token semicolon);
 
+  Object statementLabel(covariant Object binder, Token label, Token colon);
+
   Expression staticAssign(
       ExpressionJudgment judgment,
       int fileOffset,
@@ -352,6 +358,12 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       FunctionType calleeType,
       Substitution substitution,
       DartType inferredType);
+
+  /// TODO(paulberry): this isn't really shaped properly for a factory class.
+  void storeClassReference(int fileOffset, Node reference, DartType rawType);
+
+  /// TODO(paulberry): this isn't really shaped properly for a factory class.
+  void storePrefixInfo(int fileOffset, int prefixImportIndex);
 
   Expression stringConcatenation(
       ExpressionJudgment judgment, int fileOffset, DartType inferredType);
@@ -376,9 +388,6 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       List<Statement> statements);
 
   Object switchLabel(covariant Object binder, Token label, Token colon);
-
-  Object binderForSwitchLabel(
-      SwitchCaseJudgment judgment, int fileOffset, String name);
 
   Statement switchStatement(
       StatementJudgment judgment,
@@ -430,9 +439,6 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Statement variableDeclaration(
       covariant Object binder, DartType statementType, DartType inferredType);
 
-  Object binderForVariableDeclaration(
-      StatementJudgment judgment, int fileOffset, String name);
-
   Expression variableGet(ExpressionJudgment judgment, int fileOffset,
       bool isInCascade, covariant Object variableBinder, DartType inferredType);
 
@@ -447,10 +453,4 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
 
   Statement yieldStatement(StatementJudgment judgment, int fileOffset,
       Token yieldKeyword, Token star, Expression expression, Token semicolon);
-
-  /// TODO(paulberry): this isn't really shaped properly for a factory class.
-  void storePrefixInfo(int fileOffset, int prefixImportIndex);
-
-  /// TODO(paulberry): this isn't really shaped properly for a factory class.
-  void storeClassReference(int fileOffset, Node reference, DartType rawType);
 }

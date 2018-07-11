@@ -77,6 +77,30 @@ class KernelFactory
   }
 
   @override
+  Object binderForFunctionDeclaration(
+      StatementJudgment judgment, int fileOffset, String name) {
+    return judgment;
+  }
+
+  @override
+  Object binderForStatementLabel(
+      StatementJudgment judgment, int fileOffset, String name) {
+    return judgment;
+  }
+
+  @override
+  SwitchCase binderForSwitchLabel(
+      SwitchCaseJudgment judgment, int fileOffset, String name) {
+    return judgment;
+  }
+
+  @override
+  Object binderForVariableDeclaration(
+      StatementJudgment judgment, int fileOffset, String name) {
+    return judgment;
+  }
+
+  @override
   Statement block(StatementJudgment judgment, int fileOffset, Token leftBracket,
       List<Statement> statements, Token rightBracket) {
     return judgment;
@@ -263,12 +287,6 @@ class KernelFactory
   }
 
   @override
-  Object binderForFunctionDeclaration(
-      StatementJudgment judgment, int fileOffset, String name) {
-    return judgment;
-  }
-
-  @override
   Expression functionExpression(
       ExpressionJudgment judgment, int fileOffset, DartType inferredType) {
     return judgment;
@@ -344,17 +362,6 @@ class KernelFactory
   @override
   Statement labeledStatement(List<Object> labels, Statement statement) {
     return labels[0];
-  }
-
-  Object statementLabel(
-      covariant StatementJudgment binder, Token label, Token colon) {
-    return binder;
-  }
-
-  @override
-  Object binderForStatementLabel(
-      StatementJudgment judgment, int fileOffset, String name) {
-    return judgment;
   }
 
   @override
@@ -496,6 +503,11 @@ class KernelFactory
     return judgment;
   }
 
+  Object statementLabel(
+      covariant StatementJudgment binder, Token label, Token colon) {
+    return binder;
+  }
+
   @override
   Expression staticAssign(
       ExpressionJudgment judgment,
@@ -567,11 +579,6 @@ class KernelFactory
   SwitchCase switchLabel(
       covariant SwitchCase binder, Token label, Token colon) {
     return binder;
-  }
-
-  SwitchCase binderForSwitchLabel(
-      SwitchCaseJudgment judgment, int fileOffset, String name) {
-    return judgment;
   }
 
   @override
@@ -649,12 +656,6 @@ class KernelFactory
   Statement variableDeclaration(covariant VariableDeclaration binder,
       DartType statementType, DartType inferredType) {
     return binder;
-  }
-
-  @override
-  Object binderForVariableDeclaration(
-      StatementJudgment judgment, int fileOffset, String name) {
-    return judgment;
   }
 
   @override

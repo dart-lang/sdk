@@ -60,6 +60,18 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   void awaitExpression(ExpressionJudgment judgment, Location location,
       Token awaitKeyword, void expression, DartType inferredType);
 
+  Object binderForFunctionDeclaration(
+      StatementJudgment judgment, Location location, String name);
+
+  Object binderForStatementLabel(
+      StatementJudgment judgment, int fileOffset, String name);
+
+  Object binderForSwitchLabel(
+      SwitchCaseJudgment judgment, int fileOffset, String name);
+
+  Object binderForVariableDeclaration(
+      StatementJudgment judgment, int fileOffset, String name);
+
   void block(StatementJudgment judgment, Location location, Token leftBracket,
       List<void> statements, Token rightBracket);
 
@@ -191,9 +203,6 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
 
   void functionDeclaration(covariant Object binder, FunctionType inferredType);
 
-  Object binderForFunctionDeclaration(
-      StatementJudgment judgment, Location location, String name);
-
   void functionExpression(
       ExpressionJudgment judgment, Location location, DartType inferredType);
 
@@ -239,11 +248,6 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
       DartType inferredType);
 
   void labeledStatement(List<Object> labels, void statement);
-
-  Object statementLabel(covariant Object binder, Token label, Token colon);
-
-  Object binderForStatementLabel(
-      StatementJudgment judgment, int fileOffset, String name);
 
   void listLiteral(
       ExpressionJudgment judgment,
@@ -336,6 +340,8 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   void returnStatement(StatementJudgment judgment, Location location,
       Token returnKeyword, void expression, Token semicolon);
 
+  Object statementLabel(covariant Object binder, Token label, Token colon);
+
   void staticAssign(
       ExpressionJudgment judgment,
       Location location,
@@ -356,6 +362,11 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
       Substitution substitution,
       DartType inferredType);
 
+  void storeClassReference(
+      Location location, Reference reference, DartType rawType);
+
+  void storePrefixInfo(Location location, PrefixInfo prefixInfo);
+
   void stringConcatenation(
       ExpressionJudgment judgment, Location location, DartType inferredType);
 
@@ -374,9 +385,6 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
       Token keyword, void expression, Token colon, List<void> statements);
 
   Object switchLabel(covariant Object binder, Token label, Token colon);
-
-  Object binderForSwitchLabel(
-      SwitchCaseJudgment judgment, int fileOffset, String name);
 
   void switchStatement(
       StatementJudgment judgment,
@@ -428,9 +436,6 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   void variableDeclaration(
       covariant Object binder, DartType statementType, DartType inferredType);
 
-  Object binderForVariableDeclaration(
-      StatementJudgment judgment, int fileOffset, String name);
-
   void variableGet(ExpressionJudgment judgment, Location location,
       bool isInCascade, covariant Object variableBinder, DartType inferredType);
 
@@ -445,11 +450,6 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
 
   void yieldStatement(StatementJudgment judgment, Location location,
       Token yieldKeyword, Token star, void expression, Token semicolon);
-
-  void storePrefixInfo(Location location, PrefixInfo prefixInfo);
-
-  void storeClassReference(
-      Location location, Reference reference, DartType rawType);
 }
 
 /// Kernel implementation of TypeInferenceListener; does nothing.
@@ -487,6 +487,22 @@ class KernelTypeInferenceListener
   @override
   void awaitExpression(ExpressionJudgment judgment, location,
       Token awaitKeyword, void expression, DartType inferredType) {}
+
+  @override
+  void binderForFunctionDeclaration(
+      StatementJudgment judgment, location, String name) {}
+
+  @override
+  void binderForStatementLabel(
+      StatementJudgment judgment, int fileOffset, String name) {}
+
+  @override
+  void binderForSwitchLabel(
+      SwitchCaseJudgment judgment, int fileOffset, String name) {}
+
+  @override
+  void binderForVariableDeclaration(
+      StatementJudgment judgment, int fileOffset, String name) {}
 
   @override
   void block(StatementJudgment judgment, location, Token leftBracket,
@@ -633,10 +649,6 @@ class KernelTypeInferenceListener
   void functionDeclaration(covariant void binder, FunctionType inferredType) {}
 
   @override
-  void binderForFunctionDeclaration(
-      StatementJudgment judgment, location, String name) {}
-
-  @override
   void functionExpression(
       ExpressionJudgment judgment, location, DartType inferredType) {}
 
@@ -690,13 +702,6 @@ class KernelTypeInferenceListener
 
   @override
   void labeledStatement(List<Object> labels, void statement) {}
-
-  @override
-  void statementLabel(covariant void binder, Token label, Token colon) {}
-
-  @override
-  void binderForStatementLabel(
-      StatementJudgment judgment, int fileOffset, String name) {}
 
   @override
   void listLiteral(
@@ -800,6 +805,9 @@ class KernelTypeInferenceListener
       Token returnKeyword, void expression, Token semicolon) {}
 
   @override
+  void statementLabel(covariant void binder, Token label, Token colon) {}
+
+  @override
   void staticAssign(ExpressionJudgment judgment, location, writeMember,
       DartType writeContext, combiner, DartType inferredType) {}
 
@@ -848,10 +856,6 @@ class KernelTypeInferenceListener
   void switchLabel(covariant void binder, Token label, Token colon) {}
 
   @override
-  void binderForSwitchLabel(
-      SwitchCaseJudgment judgment, int fileOffset, String name) {}
-
-  @override
   void switchStatement(
       StatementJudgment judgment,
       location,
@@ -898,10 +902,6 @@ class KernelTypeInferenceListener
   @override
   void variableDeclaration(
       covariant void binder, DartType statementType, DartType inferredType) {}
-
-  @override
-  void binderForVariableDeclaration(
-      StatementJudgment judgment, int fileOffset, String name) {}
 
   @override
   void variableGet(ExpressionJudgment judgment, location, bool isInCascade,
