@@ -232,9 +232,23 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       if (entity is ConstructorInitializer) {
         _addSuggestion(Keyword.ASSERT);
       }
-      if (node.initializers.last == entity) {
-        _addSuggestion(Keyword.SUPER);
-        _addSuggestion(Keyword.THIS);
+      var last = node.initializers.last;
+      if (last == entity) {
+        Token previous = node.findPrevious(last.beginToken);
+        if (previous != null && previous.end <= request.offset) {
+          _addSuggestion(Keyword.SUPER);
+          _addSuggestion(Keyword.THIS);
+        }
+      }
+    } else {
+      Token separator = node.separator;
+      if (separator != null) {
+        var offset = request.offset;
+        if (separator.end <= offset && offset <= separator.next.offset) {
+          _addSuggestion(Keyword.ASSERT);
+          _addSuggestion(Keyword.SUPER);
+          _addSuggestion(Keyword.THIS);
+        }
       }
     }
   }
@@ -363,9 +377,18 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   @override
   visitIfStatement(IfStatement node) {
     if (_isPreviousTokenSynthetic(entity, TokenType.CLOSE_PAREN)) {
+      // analyzer parser
       // Actual: if (x i^)
       // Parsed: if (x) i^
       _addSuggestion(Keyword.IS, DART_RELEVANCE_HIGH);
+    } else if (entity == node.rightParenthesis) {
+      if (node.condition.endToken.next == droppedToken) {
+        // fasta parser
+        // Actual: if (x i^)
+        // Parsed: if (x)
+        //    where "i" is in the token stream but not part of the AST
+        _addSuggestion(Keyword.IS, DART_RELEVANCE_HIGH);
+      }
     } else if (entity == node.thenStatement || entity == node.elseStatement) {
       _addStatementKeywords(node);
     } else if (entity == node.condition) {
