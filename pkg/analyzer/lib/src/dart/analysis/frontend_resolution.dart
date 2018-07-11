@@ -99,6 +99,10 @@ class FrontEndCompiler {
   /// we remove the file, its library, and everything affected from [_component].
   Component _component = new Component();
 
+  /// The [DillTarget] that is filled with [_component] libraries before
+  /// compilation of a new library.
+  DillTarget _dillTarget;
+
   /// Each key is the file system URI of a library.
   /// Each value is the libraries that directly depend on the key library.
   final Map<Uri, Set<Uri>> _directLibraryDependencies = {};
@@ -204,22 +208,22 @@ class FrontEndCompiler {
     }
 
     return _runWithFrontEndContext('Compile', () async {
-      // TODO(brianwilkerson) Determine whether this await is necessary.
-      await null;
       try {
-        var dillTarget =
-            new DillTarget(_options.ticker, uriTranslator, _options.target);
+        // Initialize the dill target once.
+        if (_dillTarget == null) {
+          _dillTarget =
+              new DillTarget(_options.ticker, uriTranslator, _options.target);
+        }
 
-        // Append all libraries what we still have in the current component.
+        // Append new libraries from the current component.
         await _logger.runAsync('Load dill libraries', () async {
-          // TODO(brianwilkerson) Determine whether this await is necessary.
-          await null;
-          dillTarget.loader.appendLibraries(_component);
-          await dillTarget.buildOutlines();
+          _dillTarget.loader.appendLibraries(_component,
+              filter: (uri) => !_dillTarget.loader.builders.containsKey(uri));
+          await _dillTarget.buildOutlines();
         });
 
         // Create the target to compile the library.
-        var kernelTarget = new _AnalyzerKernelTarget(_fileSystem, dillTarget,
+        var kernelTarget = new _AnalyzerKernelTarget(_fileSystem, _dillTarget,
             uriTranslator, new AnalyzerMetadataCollector());
         kernelTarget.read(uri);
 
@@ -294,6 +298,9 @@ class FrontEndCompiler {
       _component.libraries.remove(library);
       _component.root.removeChild('${library.importUri}');
       _component.uriToSource.remove(libraryUri);
+      _dillTarget.loader.builders.remove(library.importUri);
+      _dillTarget.loader.libraries.remove(library);
+      _dillTarget.loader.uriToSource.remove(libraryUri);
       _results.remove(library.importUri);
 
       // Recursively invalidate dependencies.
@@ -338,8 +345,6 @@ class FrontEndCompiler {
   }
 
   Future<T> _runWithFrontEndContext<T>(String msg, Future<T> f()) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     return await CompilerContext.runWithOptions(_options, (context) {
       context.disableColors();
       return _logger.runAsync(msg, f);
