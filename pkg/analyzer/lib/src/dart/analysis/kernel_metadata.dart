@@ -66,6 +66,58 @@ class AnalyzerMetadataFactory implements MetadataFactory {
   }
 }
 
+/// Index of metadata.
+class AnalyzerMetadataIndex {
+  final Map<kernel.Library, List<kernel.TreeNode>> libraryNodes = {};
+  AnalyzerMetadataRepository repository;
+
+  /// The [library] was invalidated, flush its metadata.
+  void invalidate(kernel.Library library) {
+    var nodes = libraryNodes.remove(library);
+    nodes?.forEach(repository.mapping.remove);
+  }
+
+  /// A [newComponent] has been compiled, with new, and only new, metadata.
+  /// Merge the existing [repository] into the new one, and replace it.
+  void replaceComponent(kernel.Component newComponent) {
+    AnalyzerMetadataRepository newRepository =
+        newComponent.metadata[AnalyzerMetadataRepository.TAG];
+    if (newRepository != null) {
+      _indexNewMetadata(newRepository);
+      if (repository != null) {
+        newRepository.mapping.addAll(repository.mapping);
+      }
+      repository = newRepository;
+    } else {
+      newComponent.metadata[AnalyzerMetadataRepository.TAG] = repository;
+    }
+  }
+
+  void _indexNewMetadata(AnalyzerMetadataRepository newRepository) {
+    for (var node in newRepository.mapping.keys) {
+      var library = _enclosingLibrary(node);
+      assert(library != null);
+
+      var nodes = libraryNodes[library];
+      if (nodes == null) {
+        nodes = <kernel.TreeNode>[];
+        libraryNodes[library] = nodes;
+      }
+
+      nodes.add(node);
+    }
+  }
+
+  static kernel.Library _enclosingLibrary(kernel.TreeNode node) {
+    for (; node != null; node = node.parent) {
+      if (node is kernel.Library) {
+        return node;
+      }
+    }
+    return null;
+  }
+}
+
 /// Analyzer specific implementation of [kernel.MetadataRepository].
 class AnalyzerMetadataRepository
     implements kernel.MetadataRepository<AnalyzerMetadata> {
@@ -125,19 +177,6 @@ class AnalyzerMetadataRepository
       sink.writeByteList(bytes);
     } else {
       sink.writeByte(0);
-    }
-  }
-
-  /// Merge metadata from the [source] into the [destination].
-  static void merge(kernel.Component destination, kernel.Component source) {
-    kernel.MetadataRepository destinationRepo = destination.metadata[TAG];
-    kernel.MetadataRepository sourceRepo = source.metadata[TAG];
-    if (sourceRepo != null) {
-      if (destinationRepo != null) {
-        destinationRepo.mapping.addAll(sourceRepo.mapping);
-      } else {
-        destination.metadata[TAG] = sourceRepo;
-      }
     }
   }
 }

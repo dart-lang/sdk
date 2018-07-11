@@ -92,6 +92,9 @@ class FrontEndCompiler {
   /// Each value is the compilation result of the key library.
   final Map<Uri, LibraryCompilationResult> _results = {};
 
+  /// Index of metadata in [_component].
+  final AnalyzerMetadataIndex _metadataIndex = new AnalyzerMetadataIndex();
+
   /// The [Component] with currently valid libraries. When a file is invalidated,
   /// we remove the file, its library, and everything affected from [_component].
   Component _component = new Component();
@@ -225,7 +228,7 @@ class FrontEndCompiler {
           await kernelTarget.buildOutlines(nameRoot: _component.root);
           Component newComponent = await kernelTarget.buildComponent();
           if (newComponent != null) {
-            AnalyzerMetadataRepository.merge(newComponent, _component);
+            _metadataIndex.replaceComponent(newComponent);
             return newComponent;
           } else {
             return _component;
@@ -287,6 +290,7 @@ class FrontEndCompiler {
       if (library == null) return;
 
       // Invalidate the library.
+      _metadataIndex.invalidate(library);
       _component.libraries.remove(library);
       _component.root.removeChild('${library.importUri}');
       _component.uriToSource.remove(libraryUri);
