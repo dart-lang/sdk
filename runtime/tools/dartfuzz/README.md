@@ -40,9 +40,18 @@ where
     --true_divergence : only report true divergences
     --mode1           : m1
     --mode2           : m2, and values one of
-        jit = Dart JIT
-        aot = Dart AOT
-        js  = dart2js + JS
+        jit-ia32  = Dart JIT (ia32)
+        jit-x64   = Dart JIT (x64)
+        jit-arm32 = Dart JIT (simarm)
+        jit-arm64 = Dart JIT (simarm64)
+        aot-x64   = Dart AOT (x64)
+        aot-arm64 = Dart AOT (simarm64)
+        js        = dart2js + JS
+
+This fuzzer tool assumes the environment variable 'DART_TOP' points to
+the top of the Dart SDK development tree in which all proper binaries
+have been built already (e.g. testing jit-ia32 will invoke the binary
+${DART_TOP}/out/ReleaseIA32/dart to start the Dart VM).
 
 Background
 ==========
