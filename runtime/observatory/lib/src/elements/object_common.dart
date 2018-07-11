@@ -58,7 +58,7 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
     assert(retainingPaths != null);
     assert(objects != null);
     ObjectCommonElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<ObjectCommonElement>(e, queue: queue);
     e._isolate = isolate;
     e._object = object;
     e._retainedSizes = retainedSizes;
@@ -81,7 +81,7 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   RetainingPathElement _path;
@@ -94,19 +94,19 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
     _inbounds = _inbounds ??
         new InboundReferencesElement(_isolate, _object, _references, _objects,
             queue: _r.queue);
-    children = [
+    children = <Element>[
       new DivElement()
         ..classes = ['memberList']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberItem']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'Class ',
               new DivElement()
                 ..classes = ['memberValue']
-                ..children = [
+                ..children = <Element>[
                   _object.clazz == null
                       ? (new SpanElement()..text = '...')
                       : new ClassRefElement(_isolate, _object.clazz,
@@ -116,7 +116,7 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
           new DivElement()
             ..classes = ['memberItem']
             ..title = 'Space for this object in memory'
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'Shallow size ',
@@ -128,7 +128,7 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
             ..classes = ['memberItem']
             ..title = 'Space reachable from this object, '
                 'excluding class references'
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'Reachable size ',
@@ -140,7 +140,7 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
             ..classes = ['memberItem']
             ..title = 'Space that would be reclaimed if references to this '
                 'object were replaced with null'
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'Retained size ',
@@ -150,24 +150,24 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
             ],
           new DivElement()
             ..classes = ['memberItem']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'Retaining path ',
               new DivElement()
                 ..classes = ['memberValue']
-                ..children = [_path]
+                ..children = <Element>[_path]
             ],
           new DivElement()
             ..classes = ['memberItem']
             ..title = 'Objects which directly reference this object'
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'Inbound references ',
               new DivElement()
                 ..classes = ['memberValue']
-                ..children = [_inbounds]
+                ..children = <Element>[_inbounds]
             ]
         ]
     ];

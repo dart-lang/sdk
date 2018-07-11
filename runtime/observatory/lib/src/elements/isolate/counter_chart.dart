@@ -24,7 +24,7 @@ class IsolateCounterChartElement extends HtmlElement implements Renderable {
   factory IsolateCounterChartElement(Map counters, {RenderingQueue queue}) {
     assert(counters != null);
     IsolateCounterChartElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<IsolateCounterChartElement>(e, queue: queue);
     e._counters = counters;
     return e;
   }
@@ -41,7 +41,7 @@ class IsolateCounterChartElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
     _subscription.cancel();
   }
@@ -58,7 +58,7 @@ class IsolateCounterChartElement extends HtmlElement implements Renderable {
     ];
     final areaHost = new DivElement()..classes = ['host'];
     final legendHost = new DivElement()..classes = ['legend'];
-    children = [areaHost, legendHost];
+    children = <Element>[areaHost, legendHost];
     final rect = areaHost.getBoundingClientRect();
     final minSize = new Rect.size(rect.width, rect.height);
     final config = new ChartConfig(_series, const [0])

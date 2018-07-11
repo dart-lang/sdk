@@ -44,7 +44,7 @@ class EvalBoxElement extends HtmlElement implements Renderable {
     assert(multiline != null);
     assert(quickExpressions != null);
     EvalBoxElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<EvalBoxElement>(e, queue: queue);
     e._isolate = isolate;
     e._context = context;
     e._objects = objects;
@@ -66,16 +66,16 @@ class EvalBoxElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
     _results.clear();
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new DivElement()
         ..classes = ['quicks']
         ..children = _quickExpressions
-            .map((q) => new ButtonElement()
+            .map<Element>((q) => new ButtonElement()
               ..text = q
               ..onClick.listen((_) {
                 _expression = q;
@@ -84,14 +84,14 @@ class EvalBoxElement extends HtmlElement implements Renderable {
             .toList(),
       new DivElement()
         ..classes = ['heading']
-        ..children = [
+        ..children = <Element>[
           new FormElement()
             ..autocomplete = 'on'
-            ..children = [
+            ..children = <Element>[
               _multiline ? _createEvalTextArea() : _createEvalTextBox(),
               new SpanElement()
                 ..classes = ['buttons']
-                ..children = [
+                ..children = <Element>[
                   _createEvalButton(),
                   _createMultilineCheckbox(),
                   new SpanElement()..text = 'Multi-line'
@@ -100,11 +100,11 @@ class EvalBoxElement extends HtmlElement implements Renderable {
         ],
       new TableElement()
         ..children = _results.reversed
-            .map((result) => new TableRowElement()
-              ..children = [
+            .map<Element>((result) => new TableRowElement()
+              ..children = <Element>[
                 new TableCellElement()
                   ..classes = ['historyExpr']
-                  ..children = [
+                  ..children = <Element>[
                     new ButtonElement()
                       ..text = result.expression
                       ..onClick.listen((_) {
@@ -114,7 +114,7 @@ class EvalBoxElement extends HtmlElement implements Renderable {
                   ],
                 new TableCellElement()
                   ..classes = ['historyValue']
-                  ..children = [
+                  ..children = <Element>[
                     result.isPending
                         ? (new SpanElement()..text = 'Pending...')
                         : anyRef(_isolate, result.value, _objects,
@@ -122,7 +122,7 @@ class EvalBoxElement extends HtmlElement implements Renderable {
                   ],
                 new TableCellElement()
                   ..classes = ['historyDelete']
-                  ..children = [
+                  ..children = <Element>[
                     new ButtonElement()
                       ..text = '✖ Remove'
                       ..onClick.listen((_) {

@@ -61,7 +61,7 @@ class PortsElement extends HtmlElement implements Renderable {
     assert(ports != null);
     assert(objects != null);
     PortsElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<PortsElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -87,13 +87,13 @@ class PortsElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   void render() {
-    children = [
-      navBar([
+    children = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue),
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
@@ -104,7 +104,7 @@ class PortsElement extends HtmlElement implements Renderable {
       ]),
       new DivElement()
         ..classes = ['content-centered']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h1()..text = 'Ports ($portCount)',
           new HRElement(),
           new BRElement(),
@@ -120,12 +120,12 @@ class PortsElement extends HtmlElement implements Renderable {
     }
     int i = 0;
     return _isolatePorts.elements
-        .map((port) => new DivElement()
+        .map<Element>((port) => new DivElement()
           ..classes = ['memberItem']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['memberName']
-              ..children = [
+              ..children = <Element>[
                 new SpanElement()
                   ..classes = ['port-number']
                   ..text = '[ ${++i} ] ',
@@ -133,7 +133,7 @@ class PortsElement extends HtmlElement implements Renderable {
               ],
             new DivElement()
               ..classes = ['memberValue']
-              ..children = [
+              ..children = <Element>[
                 anyRef(_isolate, port.handler, _objects, queue: _r.queue)
               ]
           ])

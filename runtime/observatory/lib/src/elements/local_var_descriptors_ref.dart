@@ -30,7 +30,8 @@ class LocalVarDescriptorsRefElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(localVar != null);
     LocalVarDescriptorsRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r =
+        new RenderingScheduler<LocalVarDescriptorsRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._localVar = localVar;
     return e;
@@ -48,14 +49,14 @@ class LocalVarDescriptorsRefElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
     final text = (_localVar.name == null || _localVar.name == '')
         ? 'LocalVarDescriptors'
         : _localVar.name;
-    children = [
+    children = <Element>[
       new AnchorElement(href: Uris.inspect(_isolate, object: _localVar))
         ..text = text
     ];

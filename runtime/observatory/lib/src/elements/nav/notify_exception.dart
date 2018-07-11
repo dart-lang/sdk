@@ -38,7 +38,7 @@ class NavNotifyExceptionElement extends HtmlElement implements Renderable {
       {StackTrace stacktrace: null, RenderingQueue queue}) {
     assert(exception != null);
     NavNotifyExceptionElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<NavNotifyExceptionElement>(e, queue: queue);
     e._exception = exception;
     e._stacktrace = stacktrace;
     return e;
@@ -55,7 +55,7 @@ class NavNotifyExceptionElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
@@ -68,9 +68,9 @@ class NavNotifyExceptionElement extends HtmlElement implements Renderable {
   }
 
   void renderConnectionException() {
-    children = [
+    children = <Element>[
       new DivElement()
-        ..children = [
+        ..children = <Element>[
           new SpanElement()
             ..text = 'The request cannot be completed because the '
                 'VM is currently disconnected',
@@ -89,7 +89,7 @@ class NavNotifyExceptionElement extends HtmlElement implements Renderable {
 
   void renderGenericException() {
     List<Node> content;
-    content = [
+    content = <Element>[
       new SpanElement()..text = 'Unexpected exception:',
       new BRElement(),
       new BRElement(),
@@ -114,7 +114,7 @@ class NavNotifyExceptionElement extends HtmlElement implements Renderable {
         ..innerHtml = '&times;'
         ..onClick.map(_toEvent).listen(_delete)
     ]);
-    children = [new DivElement()..children = content];
+    children = <Element>[new DivElement()..children = content];
   }
 
   ExceptionDeleteEvent _toEvent(_) {

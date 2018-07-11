@@ -48,7 +48,7 @@ class SourceInsetElement extends HtmlElement implements Renderable {
     assert(inDebuggerContext != null);
     assert(variables != null);
     SourceInsetElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<SourceInsetElement>(e, queue: queue);
     e._isolate = isolate;
     e._location = location;
     e._scripts = scripts;
@@ -71,12 +71,12 @@ class SourceInsetElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new ScriptInsetElement(
           _isolate, _location.script, _scripts, _objects, _events,
           startPos: _location.tokenPos,

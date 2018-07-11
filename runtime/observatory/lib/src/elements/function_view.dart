@@ -103,7 +103,7 @@ class FunctionViewElement extends HtmlElement implements Renderable {
     assert(scripts != null);
     assert(objects != null);
     FunctionViewElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<FunctionViewElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -136,15 +136,15 @@ class FunctionViewElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    children = [
+    children = <Element>[
       navBar(_createMenu()),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h2()..text = 'Function ${_function.name}',
           new HRElement(),
           new ObjectCommonElement(_isolate, _function, _retainedSizes,
@@ -197,13 +197,13 @@ class FunctionViewElement extends HtmlElement implements Renderable {
     final members = <Element>[
       new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'kind',
           new DivElement()
             ..classes = ['memberName']
-            ..children = [
+            ..children = <Element>[
               new SpanElement()
                 ..text = '${_function.isStatic ? "static ": ""}'
                     '${_function.isConst ? "const ": ""}'
@@ -212,13 +212,13 @@ class FunctionViewElement extends HtmlElement implements Renderable {
         ],
       new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'owner',
           new DivElement()
             ..classes = ['memberName']
-            ..children = [
+            ..children = <Element>[
               _function.dartOwner == null
                   ? (new SpanElement()..text = '...')
                   : anyRef(_isolate, _function.dartOwner, _objects,
@@ -229,13 +229,13 @@ class FunctionViewElement extends HtmlElement implements Renderable {
     if (_function.field != null) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'script',
           new DivElement()
             ..classes = ['memberName']
-            ..children = [
+            ..children = <Element>[
               new FieldRefElement(_isolate, _function.field, _objects,
                   queue: _r.queue)
             ]
@@ -243,13 +243,13 @@ class FunctionViewElement extends HtmlElement implements Renderable {
     }
     members.add(new DivElement()
       ..classes = ['memberItem']
-      ..children = [
+      ..children = <Element>[
         new DivElement()
           ..classes = ['memberName']
           ..text = 'script',
         new DivElement()
           ..classes = ['memberName']
-          ..children = [
+          ..children = <Element>[
             new SourceLinkElement(_isolate, _function.location, _scripts,
                 queue: _r.queue)
           ]
@@ -257,13 +257,13 @@ class FunctionViewElement extends HtmlElement implements Renderable {
     if (_function.code != null) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'current code',
           new DivElement()
             ..classes = ['memberName']
-            ..children = [
+            ..children = <Element>[
               new CodeRefElement(_isolate, _function.code, queue: _r.queue)
             ]
         ]);
@@ -271,13 +271,13 @@ class FunctionViewElement extends HtmlElement implements Renderable {
     if (_function.unoptimizedCode != null) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'unoptimized code',
           new DivElement()
             ..classes = ['memberName']
-            ..children = [
+            ..children = <Element>[
               new CodeRefElement(_isolate, _function.unoptimizedCode,
                   queue: _r.queue),
               new SpanElement()
@@ -295,13 +295,13 @@ class FunctionViewElement extends HtmlElement implements Renderable {
     if (_function.icDataArray != null) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'ic data array',
           new DivElement()
             ..classes = ['memberName']
-            ..children = [
+            ..children = <Element>[
               new InstanceRefElement(_isolate, _function.icDataArray, _objects,
                   queue: _r.queue)
             ]
@@ -311,7 +311,7 @@ class FunctionViewElement extends HtmlElement implements Renderable {
     members.addAll([
       new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'deoptimizations',
@@ -321,7 +321,7 @@ class FunctionViewElement extends HtmlElement implements Renderable {
         ],
       new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'optimizable',
@@ -331,7 +331,7 @@ class FunctionViewElement extends HtmlElement implements Renderable {
         ],
       new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'inlinable',
@@ -341,7 +341,7 @@ class FunctionViewElement extends HtmlElement implements Renderable {
         ],
       new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'intrinsic',
@@ -351,7 +351,7 @@ class FunctionViewElement extends HtmlElement implements Renderable {
         ],
       new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'recognized',
@@ -361,7 +361,7 @@ class FunctionViewElement extends HtmlElement implements Renderable {
         ],
       new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'native',
@@ -371,7 +371,7 @@ class FunctionViewElement extends HtmlElement implements Renderable {
         ],
       new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'vm name',

@@ -27,14 +27,15 @@ class AllocationProfile implements M.AllocationProfile {
     return new DateTime.fromMillisecondsSinceEpoch(int.parse(milliseconds));
   }
 
-  static ClassHeapStats _convertMember(S.ServiceMap map) {
+  static ClassHeapStats _convertMember(/*S.ServiceMap*/ map) {
     assert(map['type'] == 'ClassHeapStats');
     return new ClassHeapStats(map);
   }
 
-  static List<M.ClassHeapStats> _convertMembers(Iterable<S.ServiceMap> raw,
+  static List<M.ClassHeapStats> _convertMembers(/*Iterable<S.ServiceMap>*/ raw,
       {Map<String, List<String>> defaults}) {
-    final List<M.ClassHeapStats> members = raw.map(_convertMember).toList();
+    final List<M.ClassHeapStats> members =
+        raw.map<ClassHeapStats>(_convertMember).toList();
     if (defaults == null) {
       return members;
     }

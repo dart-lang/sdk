@@ -1232,10 +1232,11 @@ class PersistentHandles implements M.PersistentHandles {
   final Iterable<WeakPersistentHandle> weakElements;
 
   PersistentHandles(ServiceMap map)
-      : this.elements =
-            map['persistentHandles'].map((rmap) => new PersistentHandle(rmap)),
+      : this.elements = map['persistentHandles']
+            .map<PersistentHandle>((rmap) => new PersistentHandle(rmap)),
         this.weakElements = map['weakPersistentHandles']
-            .map((rmap) => new WeakPersistentHandle(rmap));
+            .map<WeakPersistentHandle>(
+                (rmap) => new WeakPersistentHandle(rmap));
 }
 
 class PersistentHandle implements M.PersistentHandle {
@@ -1453,7 +1454,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       // Skip over non-class classes.
       if (cls is Class) {
         _classesByCid[cls.vmCid] = cls;
-        futureClasses.add(cls.load());
+        futureClasses.add(cls.load().then<Class>((_) => cls));
       }
     }
     return Future.wait(futureClasses);
@@ -4848,7 +4849,8 @@ class TimelineFlags implements M.TimelineFlags {
 
     assert(response['availableStreams'] != null);
     final List<TimelineStream> streams = response['availableStreams']
-        .map((String name) => new TimelineStream(name, recorded.contains(name)))
+        .map<TimelineStream>((/*String*/ name) =>
+            new TimelineStream(name, recorded.contains(name)))
         .toList();
 
     final List<TimelineProfile> profiles = [

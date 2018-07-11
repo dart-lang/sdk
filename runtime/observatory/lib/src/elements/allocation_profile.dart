@@ -84,7 +84,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
     assert(notifications != null);
     assert(repository != null);
     AllocationProfileElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<AllocationProfileElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -111,13 +111,13 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
     _gcSubscription.cancel();
   }
 
   void render() {
-    children = [
-      navBar([
+    children = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue),
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
@@ -133,7 +133,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
           ..onRefresh.listen((_) => _refresh()),
         new DivElement()
           ..classes = ['nav-option']
-          ..children = [
+          ..children = <Element>[
             new CheckboxInputElement()
               ..id = 'allocation-profile-auto-refresh'
               ..checked = _autoRefresh
@@ -146,7 +146,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h2()..text = 'Allocation Profile',
           new HRElement()
         ]
@@ -155,7 +155,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
       children.addAll([
         new DivElement()
           ..classes = ['content-centered-big']
-          ..children = [new HeadingElement.h2()..text = 'Loading...']
+          ..children = <Element>[new HeadingElement.h2()..text = 'Loading...']
       ]);
     } else {
       final newChartHost = new DivElement()..classes = ['host'];
@@ -170,10 +170,10 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
               : [
                   new DivElement()
                     ..classes = ['memberList']
-                    ..children = [
+                    ..children = <Element>[
                       new DivElement()
                         ..classes = ['memberItem']
-                        ..children = [
+                        ..children = <Element>[
                           new DivElement()
                             ..classes = ['memberName']
                             ..text = 'last forced GC at',
@@ -185,7 +185,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
                         ],
                       new DivElement()
                         ..classes = ['memberItem']
-                        ..children = [
+                        ..children = <Element>[
                           new DivElement()
                             ..classes = ['memberName']
                             ..text = 'last accumulator reset at',
@@ -200,7 +200,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
                 ],
         new DivElement()
           ..classes = ['content-centered-big', 'compactable']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['heap-space', 'left']
               ..children = _isCompacted
@@ -218,7 +218,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
                       new BRElement(),
                       new DivElement()
                         ..classes = ['chart']
-                        ..children = [newChartLegend, newChartHost]
+                        ..children = <Element>[newChartLegend, newChartHost]
                     ],
             new DivElement()
               ..classes = ['heap-space', 'right']
@@ -237,7 +237,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
                       new BRElement(),
                       new DivElement()
                         ..classes = ['chart']
-                        ..children = [oldChartLegend, oldChartHost]
+                        ..children = <Element>[oldChartLegend, oldChartHost]
                     ],
             new ButtonElement()
               ..classes = ['compact']
@@ -250,7 +250,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
           ],
         new DivElement()
           ..classes = _isCompacted ? ['collection', 'expanded'] : ['collection']
-          ..children = [
+          ..children = <Element>[
             new VirtualCollectionElement(
                 _createCollectionLine, _updateCollectionLine,
                 createHeader: _createCollectionHeader,
@@ -309,15 +309,21 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
     }
     switch (_sortingDirection) {
       case _SortingDirection.ascending:
-        return (a, b) => getter(a).compareTo(getter(b));
+        int sort(M.ClassHeapStats a, M.ClassHeapStats b) {
+          return getter(a).compareTo(getter(b));
+        }
+        return sort;
       case _SortingDirection.descending:
-        return (a, b) => getter(b).compareTo(getter(a));
+        int sort(M.ClassHeapStats a, M.ClassHeapStats b) {
+          return getter(b).compareTo(getter(a));
+        }
+        return sort;
     }
   }
 
   static HtmlElement _createCollectionLine() => new DivElement()
     ..classes = ['collection-item']
-    ..children = [
+    ..children = <Element>[
       new SpanElement()
         ..classes = ['bytes']
         ..text = '0B',
@@ -360,7 +366,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
   List<HtmlElement> _createCollectionHeader() => [
         new DivElement()
           ..classes = ['collection-item']
-          ..children = [
+          ..children = <Element>[
             new SpanElement()
               ..classes = ['group']
               ..text = 'Accumulated',
@@ -382,7 +388,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
           ],
         new DivElement()
           ..classes = ['collection-item']
-          ..children = [
+          ..children = <Element>[
             _createHeaderButton(const ['bytes'], 'Size',
                 _SortingField.accumulatedSize, _SortingDirection.descending),
             _createHeaderButton(
@@ -473,7 +479,8 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
       ..classes = ['name'];
   }
 
-  bool _search(Pattern pattern, M.ClassHeapStats item) {
+  bool _search(Pattern pattern, itemDynamic) {
+    M.ClassHeapStats item = itemDynamic;
     return item.clazz.name.contains(pattern);
   }
 
@@ -495,7 +502,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
     return [
       new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'used',
@@ -505,7 +512,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
         ],
       new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'external',
@@ -515,7 +522,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
         ],
       new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'collections',
@@ -525,7 +532,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
         ],
       new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'average collection time',
@@ -535,7 +542,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
         ],
       new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'cumulative collection time',
@@ -545,7 +552,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
         ],
       new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'average time between collections',
@@ -570,7 +577,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
     final config = new ChartConfig(series, [0])
       ..minimumSize = minSize
       ..legend = new ChartLegend(legend, showValues: true);
-    final data = new ChartData(_columns, [
+    final data = new ChartData(_columns, <List>[
       ['Used', space.used],
       ['Free', space.capacity - space.used],
       ['External', space.external]

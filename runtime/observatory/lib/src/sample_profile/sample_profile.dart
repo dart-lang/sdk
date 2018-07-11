@@ -889,13 +889,13 @@ class SampleProfile extends M.SampleProfile {
         }
 
         tries['exclusiveCodeTrie'] =
-            new Uint32List.fromList(profile['exclusiveCodeTrie']);
+            new Uint32List.fromList(profile['exclusiveCodeTrie'].cast<int>());
         tries['inclusiveCodeTrie'] =
-            new Uint32List.fromList(profile['inclusiveCodeTrie']);
-        tries['exclusiveFunctionTrie'] =
-            new Uint32List.fromList(profile['exclusiveFunctionTrie']);
-        tries['inclusiveFunctionTrie'] =
-            new Uint32List.fromList(profile['inclusiveFunctionTrie']);
+            new Uint32List.fromList(profile['inclusiveCodeTrie'].cast<int>());
+        tries['exclusiveFunctionTrie'] = new Uint32List.fromList(
+            profile['exclusiveFunctionTrie'].cast<int>());
+        tries['inclusiveFunctionTrie'] = new Uint32List.fromList(
+            profile['inclusiveFunctionTrie'].cast<int>());
       } finally {
         progress.close();
       }

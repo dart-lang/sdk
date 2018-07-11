@@ -80,7 +80,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
     assert(snapshots != null);
     assert(objects != null);
     HeapSnapshotElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<HeapSnapshotElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -103,12 +103,12 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    final content = [
-      navBar([
+    final content = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue),
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
@@ -165,10 +165,10 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
     return [
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['statusBox', 'shadow', 'center']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['statusMessage']
                 ..text = message,
@@ -191,13 +191,13 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
     var report = <HtmlElement>[
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberList']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'Refreshed ',
@@ -207,7 +207,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
                 ],
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'Objects ',
@@ -217,7 +217,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
                 ],
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'References ',
@@ -227,7 +227,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
                 ],
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'Size ',
@@ -237,7 +237,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
                 ],
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'Roots ',
@@ -247,7 +247,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
                 ],
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'Analysis ',
@@ -329,7 +329,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
   static HtmlElement _createDominator(toggle) {
     return new DivElement()
       ..classes = ['tree-item']
-      ..children = [
+      ..children = <Element>[
         new SpanElement()
           ..classes = ['size']
           ..title = 'retained size',
@@ -347,7 +347,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
   static HtmlElement _createMergedDominator(toggle) {
     return new DivElement()
       ..classes = ['tree-item']
-      ..children = [
+      ..children = <Element>[
         new SpanElement()
           ..classes = ['size']
           ..title = 'retained size',
@@ -365,7 +365,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
   static HtmlElement _createGroup(toggle) {
     return new DivElement()
       ..classes = ['tree-item']
-      ..children = [
+      ..children = <Element>[
         new SpanElement()
           ..classes = ['size']
           ..title = 'shallow size',
@@ -383,7 +383,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
   static HtmlElement _createOwnershipClass(toggle) {
     return new DivElement()
       ..classes = ['tree-item']
-      ..children = [
+      ..children = <Element>[
         new SpanElement()
           ..classes = ['size']
           ..title = 'owned size',
@@ -448,14 +448,14 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
     if (node.isStack) {
       wrapper
         ..text = ''
-        ..children = [
+        ..children = <Element>[
           new AnchorElement(href: Uris.debugger(isolate))..text = 'stack frames'
         ];
     } else {
       node.object.then((object) {
         wrapper
           ..text = ''
-          ..children = [
+          ..children = <Element>[
             anyRef(_isolate, object, _objects,
                 queue: _r.queue, expandable: false)
           ];
@@ -481,14 +481,14 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
     if (node.isStack) {
       wrapper
         ..text = ''
-        ..children = [
+        ..children = <Element>[
           new AnchorElement(href: Uris.debugger(isolate))..text = 'stack frames'
         ];
     } else {
       node.klass.then((klass) {
         wrapper
           ..text = ''
-          ..children = [
+          ..children = <Element>[
             new SpanElement()..text = '${node.instanceCount} instances of ',
             anyRef(_isolate, klass, _objects,
                 queue: _r.queue, expandable: false)
@@ -535,12 +535,12 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
       if (item is M.HeapSnapshotClassInbound) {
         element.children[3].text =
             '${item.count} references from instances of ';
-        element.children[4].children = [
+        element.children[4].children = <Element>[
           new ClassRefElement(_isolate, item.source, queue: _r.queue)
         ];
       } else if (item is M.HeapSnapshotClassOutbound) {
         element.children[3]..text = '${item.count} references to instances of ';
-        element.children[4].children = [
+        element.children[4].children = <Element>[
           new ClassRefElement(_isolate, item.target, queue: _r.queue)
         ];
       }
@@ -554,7 +554,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
         Utils.formatPercentNormalized(item.size * 1.0 / _snapshot.size);
     element.children[2] = new SpanElement()
       ..classes = ['name']
-      ..children = [
+      ..children = <Element>[
         new SpanElement()..text = ' instances of ',
         new ClassRefElement(_isolate, item.clazz, queue: _r.queue)
           ..classes = ['name']

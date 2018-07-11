@@ -43,7 +43,7 @@ class MemorySnapshotElement extends HtmlElement implements Renderable {
     assert(snapshots != null);
     assert(objects != null);
     MemorySnapshotElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<MemorySnapshotElement>(e, queue: queue);
     e._isolate = isolate;
     e._editor = editor;
     e._snapshots = snapshots;
@@ -64,7 +64,7 @@ class MemorySnapshotElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
@@ -116,10 +116,10 @@ class MemorySnapshotElement extends HtmlElement implements Renderable {
     return [
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['statusBox', 'shadow', 'center']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['statusMessage']
                 ..text = message,
@@ -168,7 +168,7 @@ class MemorySnapshotElement extends HtmlElement implements Renderable {
   static HtmlElement _createDominator(toggle) {
     return new DivElement()
       ..classes = ['tree-item']
-      ..children = [
+      ..children = <Element>[
         new SpanElement()
           ..classes = ['size']
           ..title = 'retained size',
@@ -213,14 +213,14 @@ class MemorySnapshotElement extends HtmlElement implements Renderable {
     if (node.isStack) {
       wrapper
         ..text = ''
-        ..children = [
+        ..children = <Element>[
           new AnchorElement(href: Uris.debugger(isolate))..text = 'stack frames'
         ];
     } else {
       node.object.then((object) {
         wrapper
           ..text = ''
-          ..children = [
+          ..children = <Element>[
             anyRef(_isolate, object, _objects,
                 queue: _r.queue, expandable: false)
           ];

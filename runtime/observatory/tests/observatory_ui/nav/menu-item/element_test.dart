@@ -27,7 +27,7 @@ main() {
     test('created', () async {
       final label = 'custom-label';
       final e = new NavMenuItemElement(label);
-      e.content = [document.createElement('content')];
+      e.content = <Element>[document.createElement('content')];
       document.body.append(e);
       await e.onRendered.first;
       expect(e.children.length, isNonZero, reason: 'has elements');

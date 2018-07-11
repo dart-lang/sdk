@@ -79,7 +79,7 @@ class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
     assert(direction != null);
     assert(filter != null);
     StackTraceTreeConfigElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<StackTraceTreeConfigElement>(e, queue: queue);
     e._showMode = showMode;
     e._showDirection = showDirection;
     e._showFilter = showFilter;
@@ -105,15 +105,15 @@ class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h2()..text = 'Tree display',
           new HRElement(),
           new DivElement()
             ..classes = ['row']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberList']
                 ..children = _createMembers()
@@ -127,7 +127,7 @@ class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
     if (_showMode) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'Mode',
@@ -139,7 +139,7 @@ class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
     if (_showDirection) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'Call Tree Direction',
@@ -151,7 +151,7 @@ class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
     if (showFilter) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'Call Tree Filter'

@@ -63,7 +63,7 @@ class NativeMemoryProfileElement extends HtmlElement implements Renderable {
     assert(notifications != null);
     assert(profiles != null);
     NativeMemoryProfileElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<NativeMemoryProfileElement>(e, queue: queue);
     e._vm = vm;
     e._events = events;
     e._notifications = notifications;
@@ -84,12 +84,12 @@ class NativeMemoryProfileElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    var content = [
-      navBar([
+    var content = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue),
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         navMenu('native memory profile', link: Uris.nativeMemory()),

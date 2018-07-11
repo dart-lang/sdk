@@ -72,7 +72,7 @@ class MemoryDashboardElement extends HtmlElement implements Renderable {
     assert(events != null);
     assert(notifications != null);
     MemoryDashboardElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<MemoryDashboardElement>(e, queue: queue);
     e._vm = vm;
     e._vms = vms;
     e._isolates = isolates;
@@ -97,7 +97,7 @@ class MemoryDashboardElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   M.IsolateRef _isolate;
@@ -110,11 +110,11 @@ class MemoryDashboardElement extends HtmlElement implements Renderable {
           new MemoryGraphElement(vm, _vms, _isolates, _events, queue: _r.queue)
             ..onIsolateSelected.listen(_onIsolateSelected);
     }
-    children = [
-      navBar([new NavNotifyElement(_notifications, queue: _r.queue)]),
+    children = <Element>[
+      navBar(<Element>[new NavNotifyElement(_notifications, queue: _r.queue)]),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h2()..text = 'Memory Dashboard',
           new HRElement(),
           _graph,
@@ -124,7 +124,9 @@ class MemoryDashboardElement extends HtmlElement implements Renderable {
     if (_isolate == null) {
       children.add(new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [new HeadingElement.h1()..text = "No isolate selected"]);
+        ..children = <Element>[
+          new HeadingElement.h1()..text = "No isolate selected"
+        ]);
     } else {
       children.add(new MemoryProfileElement(
           _isolate, _editor, _allocations, _snapshots, _objects));

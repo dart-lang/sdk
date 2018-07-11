@@ -2054,17 +2054,17 @@ class DebuggerPageElement extends HtmlElement implements Renderable {
     final stackDiv = new DivElement()..classes = ['stack'];
     final stackElement = new DebuggerStackElement(
         _isolate, _debugger, stackDiv, _objects, _scripts, _events);
-    stackDiv.children = [stackElement];
+    stackDiv.children = <Element>[stackElement];
     final consoleDiv = new DivElement()
       ..classes = ['console']
-      ..children = [consoleElement];
+      ..children = <Element>[consoleElement];
     final commandElement = new DebuggerInputElement(_isolate, _debugger);
     final commandDiv = new DivElement()
       ..classes = ['commandline']
-      ..children = [commandElement];
+      ..children = <Element>[commandElement];
 
-    children = [
-      navBar([
+    children = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: app.queue),
         new NavVMMenuElement(app.vm, app.events, queue: app.queue),
         new NavIsolateMenuElement(_isolate, app.events, queue: app.queue),
@@ -2074,10 +2074,10 @@ class DebuggerPageElement extends HtmlElement implements Renderable {
       ]),
       new DivElement()
         ..classes = ['variable']
-        ..children = [
+        ..children = <Element>[
           stackDiv,
           new DivElement()
-            ..children = [
+            ..children = <Element>[
               new HRElement()..classes = ['splitter']
             ],
           consoleDiv,
@@ -2221,10 +2221,10 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
 
     var btnPause;
     var btnRefresh;
-    e.children = [
+    e.children = <Element>[
       e._isSampled = new DivElement()
         ..classes = ['sampledMessage', 'hidden']
-        ..children = [
+        ..children = <Element>[
           new SpanElement()
             ..text = 'The program is not paused. '
                 'The stack trace below may be out of date.',
@@ -2534,10 +2534,10 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
       content.addAll([
         new DivElement()
           ..classes = ['frameDetails']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['flex-row-wrap']
-              ..children = [
+              ..children = <Element>[
                 new DivElement()
                   ..classes = ['flex-item-script']
                   ..children = _frame.function?.location == null
@@ -2556,7 +2556,7 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
                         ],
                 new DivElement()
                   ..classes = ['flex-item-vars']
-                  ..children = [
+                  ..children = <Element>[
                     _varsDiv = new DivElement()
                       ..classes = ['memberList', 'frameVars']
                       ..children = ([
@@ -2570,22 +2570,22 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
                                     ..text = homeMethodName,
                                   new DivElement()
                                     ..classes = ['memberName']
-                                    ..children = [
+                                    ..children = <Element>[
                                       anyRef(_isolate, homeMethod.dartOwner,
                                           _objects,
                                           queue: _r.queue)
                                     ]
                                 ]
                       ]..addAll(_frame.variables
-                          .map((v) => new DivElement()
+                          .map<Element>((v) => new DivElement()
                             ..classes = ['memberItem']
-                            ..children = [
+                            ..children = <Element>[
                               new DivElement()
                                 ..classes = ['memberName']
                                 ..text = v.name,
                               new DivElement()
                                 ..classes = ['memberName']
-                                ..children = [
+                                ..children = <Element>[
                                   anyRef(_isolate, v['value'], _objects,
                                       queue: _r.queue)
                                 ]
@@ -2595,14 +2595,14 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
               ],
             new DivElement()
               ..classes = ['frameContractor']
-              ..children = [
+              ..children = <Element>[
                 collapseButton = new ButtonElement()
                   ..onClick.listen((e) async {
                     collapseButton.disabled = true;
                     await _toggleExpand();
                     collapseButton.disabled = false;
                   })
-                  ..children = [iconExpandLess.clone(true)]
+                  ..children = <Element>[iconExpandLess.clone(true)]
               ]
           ]
       ]);
@@ -2611,10 +2611,10 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
   }
 
   List<Element> _createMarkerHeader(String marker) {
-    final content = [
+    final content = <Element>[
       new DivElement()
         ..classes = ['frameSummaryText']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['frameId']
             ..text = 'Frame ${_frame.index}',
@@ -2629,10 +2629,10 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
   }
 
   List<Element> _createHeader() {
-    final content = [
+    final content = <Element>[
       new DivElement()
         ..classes = ['frameSummaryText']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['frameId']
             ..text = 'Frame ${_frame.index}',
@@ -2658,7 +2658,7 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
     if (!_expanded) {
       content.add(new DivElement()
         ..classes = ['frameExpander']
-        ..children = [iconExpandMore.clone(true)]);
+        ..children = <Element>[iconExpandMore.clone(true)]);
     }
     return [
       new DivElement()
@@ -2810,7 +2810,7 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
     assert(objects != null);
     assert(events != null);
     final DebuggerMessageElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<DebuggerMessageElement>(e, queue: queue);
     e._isolate = isolate;
     e._message = message;
     e._objects = objects;
@@ -2851,10 +2851,10 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
       content.addAll([
         new DivElement()
           ..classes = ['messageDetails']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['flex-row-wrap']
-              ..children = [
+              ..children = <Element>[
                 new DivElement()
                   ..classes = ['flex-item-script']
                   ..children = _message.handler == null
@@ -2871,10 +2871,10 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
                         ],
                 new DivElement()
                   ..classes = ['flex-item-vars']
-                  ..children = [
+                  ..children = <Element>[
                     new DivElement()
                       ..classes = ['memberItem']
-                      ..children = [
+                      ..children = <Element>[
                         new DivElement()..classes = ['memberName'],
                         new DivElement()
                           ..classes = ['memberValue']
@@ -2895,14 +2895,14 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
               ],
             new DivElement()
               ..classes = ['messageContractor']
-              ..children = [
+              ..children = <Element>[
                 collapseButton = new ButtonElement()
                   ..onClick.listen((e) async {
                     collapseButton.disabled = true;
                     await _toggleExpand();
                     collapseButton.disabled = false;
                   })
-                  ..children = [iconExpandLess.clone(true)]
+                  ..children = <Element>[iconExpandLess.clone(true)]
               ]
           ]
       ]);
@@ -2917,10 +2917,10 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
   }
 
   List<Element> _createHeader() {
-    final content = [
+    final content = <Element>[
       new DivElement()
         ..classes = ['messageSummaryText']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['messageId']
             ..text = 'message ${_message.index}',
@@ -2945,7 +2945,7 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
     if (!_expanded) {
       content.add(new DivElement()
         ..classes = ['messageExpander']
-        ..children = [iconExpandMore.clone(true)]);
+        ..children = <Element>[iconExpandMore.clone(true)]);
     }
     return [
       new DivElement()
@@ -2975,7 +2975,7 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   Future _toggleExpand() async {
@@ -3001,7 +3001,7 @@ class DebuggerConsoleElement extends HtmlElement implements Renderable {
 
   factory DebuggerConsoleElement() {
     final DebuggerConsoleElement e = document.createElement(tag.name);
-    e.children = [new BRElement()];
+    e.children = <Element>[new BRElement()];
     return e;
   }
 
@@ -3133,7 +3133,7 @@ class DebuggerInputElement extends HtmlElement implements Renderable {
   factory DebuggerInputElement(
       S.Isolate isolate, ObservatoryDebugger debugger) {
     final DebuggerInputElement e = document.createElement(tag.name);
-    e.children = [e._modalPromptDiv, e._textBox];
+    e.children = <Element>[e._modalPromptDiv, e._textBox];
     e._textBox.select();
     e._textBox.onKeyDown.listen(e._onKeyDown);
     return e;
@@ -3282,7 +3282,7 @@ class DebuggerInputElement extends HtmlElement implements Renderable {
 final SvgSvgElement iconExpandLess = new SvgSvgElement()
   ..setAttribute('width', '24')
   ..setAttribute('height', '24')
-  ..children = [
+  ..children = <Element>[
     new PolygonElement()
       ..setAttribute('points', '12,8 6,14 7.4,15.4 12,10.8 16.6,15.4 18,14 ')
   ];
@@ -3290,7 +3290,7 @@ final SvgSvgElement iconExpandLess = new SvgSvgElement()
 final SvgSvgElement iconExpandMore = new SvgSvgElement()
   ..setAttribute('width', '24')
   ..setAttribute('height', '24')
-  ..children = [
+  ..children = <Element>[
     new PolygonElement()
       ..setAttribute('points', '16.6,8.6 12,13.2 7.4,8.6 6,10 12,16 18,10 ')
   ];
@@ -3298,7 +3298,7 @@ final SvgSvgElement iconExpandMore = new SvgSvgElement()
 final SvgSvgElement iconChevronRight = new SvgSvgElement()
   ..setAttribute('width', '24')
   ..setAttribute('height', '24')
-  ..children = [
+  ..children = <Element>[
     new PathElement()
       ..setAttribute('d', 'M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z')
   ];
@@ -3306,7 +3306,7 @@ final SvgSvgElement iconChevronRight = new SvgSvgElement()
 final SvgSvgElement iconChevronLeft = new SvgSvgElement()
   ..setAttribute('width', '24')
   ..setAttribute('height', '24')
-  ..children = [
+  ..children = <Element>[
     new PathElement()
       ..setAttribute('d', 'M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z')
   ];
@@ -3314,7 +3314,7 @@ final SvgSvgElement iconChevronLeft = new SvgSvgElement()
 final SvgSvgElement iconHorizontalThreeDot = new SvgSvgElement()
   ..setAttribute('width', '24')
   ..setAttribute('height', '24')
-  ..children = [
+  ..children = <Element>[
     new PathElement()
       ..setAttribute(
           'd',
@@ -3327,7 +3327,7 @@ final SvgSvgElement iconHorizontalThreeDot = new SvgSvgElement()
 final SvgSvgElement iconVerticalThreeDot = new SvgSvgElement()
   ..setAttribute('width', '24')
   ..setAttribute('height', '24')
-  ..children = [
+  ..children = <Element>[
     new PathElement()
       ..setAttribute(
           'd',
@@ -3340,7 +3340,7 @@ final SvgSvgElement iconVerticalThreeDot = new SvgSvgElement()
 final SvgSvgElement iconInfo = new SvgSvgElement()
   ..setAttribute('width', '24')
   ..setAttribute('height', '24')
-  ..children = [
+  ..children = <Element>[
     new PathElement()
       ..setAttribute(
           'd',
@@ -3351,7 +3351,7 @@ final SvgSvgElement iconInfo = new SvgSvgElement()
 final SvgSvgElement iconInfoOutline = new SvgSvgElement()
   ..setAttribute('width', '24')
   ..setAttribute('height', '24')
-  ..children = [
+  ..children = <Element>[
     new PathElement()
       ..setAttribute(
           'd',

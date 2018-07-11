@@ -37,7 +37,7 @@ class ErrorViewElement extends HtmlElement implements Renderable {
     assert(error != null);
     assert(notifications != null);
     ErrorViewElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<ErrorViewElement>(e, queue: queue);
     e._error = error;
     e._notifications = notifications;
     return e;
@@ -54,25 +54,25 @@ class ErrorViewElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   void render() {
-    children = [
-      navBar([
+    children = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue),
         new NavNotifyElement(_notifications, queue: _r.queue)
       ]),
       new DivElement()
         ..classes = ['content-centered']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h1()
             ..text = 'Error: ${_kindToString(_error.kind)}',
           new BRElement(),
           new DivElement()
             ..classes = ['well']
-            ..children = [new PreElement()..text = error.message]
+            ..children = <Element>[new PreElement()..text = error.message]
         ],
       new ViewFooterElement(queue: _r.queue)
     ];

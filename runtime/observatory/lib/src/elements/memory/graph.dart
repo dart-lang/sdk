@@ -60,7 +60,7 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
     assert(isolates != null);
     assert(events != null);
     MemoryGraphElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<MemoryGraphElement>(e, queue: queue);
     e._vm = vm;
     e._vms = vms;
     e._isolates = isolates;
@@ -104,7 +104,7 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
     _onGCSubscription.cancel();
     _onConnectionClosedSubscription.cancel();
     _onResizeSubscription.cancel();
@@ -137,7 +137,7 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
     final legend = new DivElement();
     final host = new DivElement();
     final theme = new MemoryChartTheme(1);
-    children = [theme.style, legend, host];
+    children = <Element>[theme.style, legend, host];
     final rect = host.getBoundingClientRect();
 
     final series =
@@ -340,13 +340,13 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
 
   static HtmlElement _formatNativeOvercard(int currentRSS, int heap) =>
       new DivElement()
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['hovercard-title']
             ..text = 'Native',
           new DivElement()
             ..classes = ['hovercard-measure', 'hovercard-multi']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['hovercard-measure-label']
                 ..text = 'Total Memory Usage',
@@ -358,7 +358,7 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
             ],
           new DivElement()
             ..classes = ['hovercard-measure', 'hovercard-multi']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['hovercard-measure-label']
                 ..text = 'Native Heap',
@@ -371,13 +371,13 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
   static HtmlElement _formatIsolateOvercard(String name, int free, int used) {
     final capacity = free + used;
     return new DivElement()
-      ..children = [
+      ..children = <Element>[
         new DivElement()
           ..classes = ['hovercard-title']
           ..text = name,
         new DivElement()
           ..classes = ['hovercard-measure', 'hovercard-multi']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['hovercard-measure-label']
               ..text = 'Heap Capacity',
@@ -387,7 +387,7 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
           ],
         new DivElement()
           ..classes = ['hovercard-measure', 'hovercard-multi']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['hovercard-measure-label']
               ..text = 'Free Heap',
@@ -397,7 +397,7 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
           ],
         new DivElement()
           ..classes = ['hovercard-measure', 'hovercard-multi']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['hovercard-measure-label']
               ..text = 'Used Heap',

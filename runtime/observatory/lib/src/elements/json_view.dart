@@ -37,7 +37,7 @@ class JSONViewElement extends HtmlElement implements Renderable {
     assert(notifications != null);
     assert(map != null);
     JSONViewElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<JSONViewElement>(e, queue: queue);
     e._notifications = notifications;
     e._map = map;
     return e;
@@ -55,18 +55,18 @@ class JSONViewElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    children = [
-      navBar([
+    children = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue),
         new NavNotifyElement(_notifications, queue: _r.queue)
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h2()..text = 'Object',
           new HRElement(),
           new PreElement()..text = JSONPretty.stringify(_map),

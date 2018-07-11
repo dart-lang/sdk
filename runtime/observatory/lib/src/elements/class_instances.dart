@@ -60,7 +60,7 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
     assert(topRetainingInstances != null);
     assert(objects != null);
     ClassInstancesElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<ClassInstancesElement>(e, queue: queue);
     e._isolate = isolate;
     e._cls = cls;
     e._retainedSizes = retainedSizes;
@@ -83,7 +83,7 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   StronglyReachableInstancesElement _strong;
@@ -102,13 +102,13 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
         _cls.newSpace.current.instances + _cls.oldSpace.current.instances;
     final size = Utils
         .formatSize(_cls.newSpace.current.bytes + _cls.oldSpace.current.bytes);
-    children = [
+    children = <Element>[
       new DivElement()
         ..classes = ['memberList']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = const ['memberItem']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = const ['memberName']
                 ..text = 'currently allocated',
@@ -118,19 +118,19 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
             ],
           new DivElement()
             ..classes = ['memberItem']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'strongly reachable ',
               new DivElement()
                 ..classes = ['memberValue']
-                ..children = [_strong]
+                ..children = <Element>[_strong]
             ],
           new DivElement()
             ..classes = ['memberItem']
             ..title = 'Space reachable from this object, '
                 'excluding class references'
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'Reachable size ',
@@ -142,7 +142,7 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
             ..classes = ['memberItem']
             ..title = 'Space that would be reclaimed if references to this '
                 'object were replaced with null'
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'Retained size ',
@@ -152,13 +152,13 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
             ],
           new DivElement()
             ..classes = ['memberItem']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'toplist by retained memory ',
               new DivElement()
                 ..classes = ['memberValue']
-                ..children = [_topRetainig]
+                ..children = <Element>[_topRetainig]
             ]
         ]
     ];

@@ -57,7 +57,7 @@ class VirtualTreeElement extends HtmlElement implements Renderable {
     assert(children != null);
     assert(items != null);
     VirtualTreeElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<VirtualTreeElement>(e, queue: queue);
     e._children = children;
     e._collection = new VirtualCollectionElement(() {
       var element;
@@ -151,7 +151,7 @@ class VirtualTreeElement extends HtmlElement implements Renderable {
 
   void render() {
     if (children.length == 0) {
-      children = [_collection];
+      children = <Element>[_collection];
     }
 
     final items = [];

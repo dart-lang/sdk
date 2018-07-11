@@ -58,7 +58,7 @@ class SampleBufferControlElement extends HtmlElement implements Renderable {
     assert(selectedTag != null);
     assert(showTag != null);
     SampleBufferControlElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<SampleBufferControlElement>(e, queue: queue);
     e._vm = vm;
     e._progress = progress;
     e._progressStream = progressStream;
@@ -107,7 +107,7 @@ class SampleBufferControlElement extends HtmlElement implements Renderable {
         content.addAll(_createStatusReport());
         break;
     }
-    children = [
+    children = <Element>[
       new DivElement()
         ..classes = ['content-centered-big']
         ..children = content
@@ -119,7 +119,7 @@ class SampleBufferControlElement extends HtmlElement implements Renderable {
     return [
       new DivElement()
         ..classes = ['statusBox', 'shadow', 'center']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['statusMessage']
             ..text = message,
@@ -136,9 +136,9 @@ class SampleBufferControlElement extends HtmlElement implements Renderable {
     return [
       new DivElement()
         ..classes = ['statusBox' 'shadow' 'center']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
-            ..children = [
+            ..children = <Element>[
               new HeadingElement.h1()..text = 'Profiling is disabled',
               new BRElement(),
               new DivElement()
@@ -169,7 +169,7 @@ class SampleBufferControlElement extends HtmlElement implements Renderable {
     var content = <Element>[
       new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'Refreshed at',
@@ -179,7 +179,7 @@ class SampleBufferControlElement extends HtmlElement implements Renderable {
         ],
       new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'Profile contains ',
@@ -189,7 +189,7 @@ class SampleBufferControlElement extends HtmlElement implements Renderable {
         ],
       new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'Sampling',
@@ -201,7 +201,7 @@ class SampleBufferControlElement extends HtmlElement implements Renderable {
     if (_showTag) {
       content.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'Tag Order',

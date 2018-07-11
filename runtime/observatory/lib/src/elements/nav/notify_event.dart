@@ -32,7 +32,7 @@ class NavNotifyEventElement extends HtmlElement implements Renderable {
   factory NavNotifyEventElement(M.Event event, {RenderingQueue queue}) {
     assert(event != null);
     NavNotifyEventElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<NavNotifyEventElement>(e, queue: queue);
     e._event = event;
     return e;
   }
@@ -48,12 +48,12 @@ class NavNotifyEventElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   void render() {
-    children = [];
+    children = <Element>[];
     List<Element> content;
     if (event is M.PauseStartEvent) {
       content = _managePauseStartEvent(event as M.PauseStartEvent);
@@ -76,9 +76,9 @@ class NavNotifyEventElement extends HtmlElement implements Renderable {
     } else {
       return;
     }
-    children = [
+    children = <Element>[
       new DivElement()
-        ..children = []
+        ..children = <Element>[]
         ..children.addAll(content)
         ..children.add(new ButtonElement()
           ..innerHtml = '&times;'

@@ -118,7 +118,7 @@ class InstanceViewElement extends HtmlElement implements Renderable {
     assert(breakpoints != null);
     assert(functions != null);
     InstanceViewElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<InstanceViewElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -151,11 +151,11 @@ class InstanceViewElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    final content = [
+    final content = <Element>[
       new HeadingElement.h2()
         ..text = M.isAbstractType(_instance.kind)
             ? 'type ${_instance.name}'
@@ -181,7 +181,7 @@ class InstanceViewElement extends HtmlElement implements Renderable {
       ]);
     }
     content.addAll([new HRElement(), new ViewFooterElement(queue: _r.queue)]);
-    children = [
+    children = <Element>[
       navBar(_createMenu()),
       new DivElement()
         ..classes = ['content-centered-big']
@@ -216,7 +216,7 @@ class InstanceViewElement extends HtmlElement implements Renderable {
     if (_instance.valueAsString != null) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = _instance.kind == M.InstanceKind.string
@@ -233,13 +233,13 @@ class InstanceViewElement extends HtmlElement implements Renderable {
     if (_instance.typeClass != null) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'type class',
           new DivElement()
             ..classes = ['memberValue']
-            ..children = [
+            ..children = <Element>[
               new ClassRefElement(_isolate, _instance.typeClass,
                   queue: _r.queue)
             ]
@@ -248,7 +248,7 @@ class InstanceViewElement extends HtmlElement implements Renderable {
     if (_typeArguments != null && _typeArguments.types.isNotEmpty) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'type arguments',
@@ -267,13 +267,13 @@ class InstanceViewElement extends HtmlElement implements Renderable {
     if (_instance.parameterizedClass != null) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'parameterized class',
           new DivElement()
             ..classes = ['memberValue']
-            ..children = [
+            ..children = <Element>[
               new ClassRefElement(_isolate, _instance.parameterizedClass,
                   queue: _r.queue)
             ]
@@ -282,7 +282,7 @@ class InstanceViewElement extends HtmlElement implements Renderable {
     if (_instance.parameterIndex != null) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'parameter index',
@@ -294,13 +294,13 @@ class InstanceViewElement extends HtmlElement implements Renderable {
     if (_instance.targetType != null) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'target type',
           new DivElement()
             ..classes = ['memberValue']
-            ..children = [
+            ..children = <Element>[
               new InstanceRefElement(_isolate, _instance.targetType, _objects,
                   queue: _r.queue)
             ]
@@ -309,13 +309,13 @@ class InstanceViewElement extends HtmlElement implements Renderable {
     if (_instance.bound != null) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'bound',
           new DivElement()
             ..classes = ['memberValue']
-            ..children = [
+            ..children = <Element>[
               new InstanceRefElement(_isolate, _instance.bound, _objects,
                   queue: _r.queue)
             ]
@@ -324,13 +324,13 @@ class InstanceViewElement extends HtmlElement implements Renderable {
     if (_instance.closureFunction != null) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'closure function',
           new DivElement()
             ..classes = ['memberValue']
-            ..children = [
+            ..children = <Element>[
               new FunctionRefElement(_isolate, _instance.closureFunction,
                   queue: _r.queue)
             ]
@@ -339,13 +339,13 @@ class InstanceViewElement extends HtmlElement implements Renderable {
     if (_instance.closureContext != null) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'closure context',
           new DivElement()
             ..classes = ['memberValue']
-            ..children = [
+            ..children = <Element>[
               new ContextRefElement(
                   _isolate, _instance.closureContext, _objects,
                   queue: _r.queue)
@@ -356,13 +356,13 @@ class InstanceViewElement extends HtmlElement implements Renderable {
       ButtonElement btn;
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'closure breakpoint',
           new DivElement()
             ..classes = ['memberValue']
-            ..children = [
+            ..children = <Element>[
               btn = new ButtonElement()
                 ..text = _instance.activationBreakpoint == null
                     ? 'break on activation'
@@ -379,23 +379,23 @@ class InstanceViewElement extends HtmlElement implements Renderable {
       int i = 0;
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'native fields (${_instance.nativeFields.length})',
           new DivElement()
             ..classes = ['memberName']
-            ..children = [
+            ..children = <Element>[
               new CurlyBlockElement(
                   expanded: _instance.nativeFields.length <= 100,
                   queue: _r.queue)
-                ..content = [
+                ..content = <Element>[
                   new DivElement()
                     ..classes = ['memberList']
                     ..children = _instance.nativeFields
-                        .map((f) => new DivElement()
+                        .map<Element>((f) => new DivElement()
                           ..classes = ['memberItem']
-                          ..children = [
+                          ..children = <Element>[
                             new DivElement()
                               ..classes = ['memberName']
                               ..text = '[ ${i++} ]',
@@ -413,31 +413,31 @@ class InstanceViewElement extends HtmlElement implements Renderable {
       final fields = _instance.fields.toList();
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'fields (${fields.length})',
           new DivElement()
             ..classes = ['memberName']
-            ..children = [
+            ..children = <Element>[
               new CurlyBlockElement(
                   expanded: fields.length <= 100, queue: _r.queue)
-                ..content = [
+                ..content = <Element>[
                   new DivElement()
                     ..classes = ['memberList']
                     ..children = fields
-                        .map((f) => new DivElement()
+                        .map<Element>((f) => new DivElement()
                           ..classes = ['memberItem']
-                          ..children = [
+                          ..children = <Element>[
                             new DivElement()
                               ..classes = ['memberName']
-                              ..children = [
+                              ..children = <Element>[
                                 new FieldRefElement(_isolate, f.decl, _objects,
                                     queue: _r.queue)
                               ],
                             new DivElement()
                               ..classes = ['memberValue']
-                              ..children = [
+                              ..children = <Element>[
                                 new SpanElement()..text = ' = ',
                                 anyRef(_isolate, f.value, _objects,
                                     queue: _r.queue)
@@ -454,28 +454,28 @@ class InstanceViewElement extends HtmlElement implements Renderable {
       int i = 0;
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'elements (${_instance.length})',
           new DivElement()
             ..classes = ['memberValue']
-            ..children = [
+            ..children = <Element>[
               new CurlyBlockElement(
                   expanded: elements.length <= 100, queue: _r.queue)
-                ..content = [
+                ..content = <Element>[
                   new DivElement()
                     ..classes = ['memberList']
                     ..children = elements
-                        .map((element) => new DivElement()
+                        .map<Element>((element) => new DivElement()
                           ..classes = ['memberItem']
-                          ..children = [
+                          ..children = <Element>[
                             new DivElement()
                               ..classes = ['memberName']
                               ..text = '[ ${i++} ]',
                             new DivElement()
                               ..classes = ['memberValue']
-                              ..children = [
+                              ..children = <Element>[
                                 anyRef(_isolate, element, _objects,
                                     queue: _r.queue)
                               ]
@@ -487,7 +487,7 @@ class InstanceViewElement extends HtmlElement implements Renderable {
       if (_instance.length != elements.length) {
         members.add(new DivElement()
           ..classes = ['memberItem']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['memberName']
               ..text = '...',
@@ -502,25 +502,25 @@ class InstanceViewElement extends HtmlElement implements Renderable {
       final associations = _instance.associations.toList();
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'associations (${_instance.length})',
           new DivElement()
             ..classes = ['memberName']
-            ..children = [
+            ..children = <Element>[
               new CurlyBlockElement(
                   expanded: associations.length <= 100, queue: _r.queue)
-                ..content = [
+                ..content = <Element>[
                   new DivElement()
                     ..classes = ['memberList']
                     ..children = associations
-                        .map((a) => new DivElement()
+                        .map<Element>((a) => new DivElement()
                           ..classes = ['memberItem']
-                          ..children = [
+                          ..children = <Element>[
                             new DivElement()
                               ..classes = ['memberName']
-                              ..children = [
+                              ..children = <Element>[
                                 new SpanElement()..text = '[ ',
                                 anyRef(_isolate, a.key, _objects,
                                     queue: _r.queue),
@@ -528,7 +528,7 @@ class InstanceViewElement extends HtmlElement implements Renderable {
                               ],
                             new DivElement()
                               ..classes = ['memberValue']
-                              ..children = [
+                              ..children = <Element>[
                                 anyRef(_isolate, a.value, _objects,
                                     queue: _r.queue)
                               ]
@@ -540,7 +540,7 @@ class InstanceViewElement extends HtmlElement implements Renderable {
       if (_instance.length != associations.length) {
         members.add(new DivElement()
           ..classes = ['memberItem']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['memberName']
               ..text = '...',
@@ -557,22 +557,22 @@ class InstanceViewElement extends HtmlElement implements Renderable {
       int i = 0;
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'elements (${_instance.length})',
           new DivElement()
             ..classes = ['memberValue']
-            ..children = [
+            ..children = <Element>[
               new CurlyBlockElement(
                   expanded: typedElements.length <= 100, queue: _r.queue)
-                ..content = [
+                ..content = <Element>[
                   new DivElement()
                     ..classes = ['memberList']
                     ..children = typedElements
-                        .map((e) => new DivElement()
+                        .map<Element>((e) => new DivElement()
                           ..classes = ['memberItem']
-                          ..children = [
+                          ..children = <Element>[
                             new DivElement()
                               ..classes = ['memberName']
                               ..text = '[ ${i++} ]',
@@ -587,7 +587,7 @@ class InstanceViewElement extends HtmlElement implements Renderable {
       if (_instance.length != typedElements.length) {
         members.add(new DivElement()
           ..classes = ['memberItem']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['memberName']
               ..text = '...',
@@ -603,19 +603,19 @@ class InstanceViewElement extends HtmlElement implements Renderable {
       members.addAll([
         new DivElement()
           ..classes = ['memberItem']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['memberName']
               ..text = 'pattern',
             new DivElement()
               ..classes = ['memberValue']
-              ..children = [
+              ..children = <Element>[
                 anyRef(_isolate, _instance.pattern, _objects, queue: _r.queue)
               ]
           ],
         new DivElement()
           ..classes = ['memberItem']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['memberName']
               ..text = 'isCaseSensitive',
@@ -625,7 +625,7 @@ class InstanceViewElement extends HtmlElement implements Renderable {
           ],
         new DivElement()
           ..classes = ['memberItem']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['memberName']
               ..text = 'isMultiLine',
@@ -635,39 +635,39 @@ class InstanceViewElement extends HtmlElement implements Renderable {
           ],
         new DivElement()
           ..classes = ['memberItem']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['memberName']
               ..text = 'oneByteFunction',
             new DivElement()
               ..classes = ['memberValue']
-              ..children = [
+              ..children = <Element>[
                 new FunctionRefElement(_isolate, _instance.oneByteFunction,
                     queue: _r.queue)
               ]
           ],
         new DivElement()
           ..classes = ['memberItem']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['memberName']
               ..text = 'twoByteFunction',
             new DivElement()
               ..classes = ['memberValue']
-              ..children = [
+              ..children = <Element>[
                 new FunctionRefElement(_isolate, _instance.twoByteFunction,
                     queue: _r.queue)
               ]
           ],
         new DivElement()
           ..classes = ['memberItem']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['memberName']
               ..text = 'externalOneByteFunction',
             new DivElement()
               ..classes = ['memberValue']
-              ..children = [
+              ..children = <Element>[
                 new FunctionRefElement(
                     _isolate, _instance.externalOneByteFunction,
                     queue: _r.queue)
@@ -675,13 +675,13 @@ class InstanceViewElement extends HtmlElement implements Renderable {
           ],
         new DivElement()
           ..classes = ['memberItem']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['memberName']
               ..text = 'externalTwoByteFunction',
             new DivElement()
               ..classes = ['memberValue']
-              ..children = [
+              ..children = <Element>[
                 new FunctionRefElement(
                     _isolate, _instance.externalTwoByteFunction,
                     queue: _r.queue)
@@ -689,13 +689,13 @@ class InstanceViewElement extends HtmlElement implements Renderable {
           ],
         new DivElement()
           ..classes = ['memberItem']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['memberName']
               ..text = 'oneByteBytecode',
             new DivElement()
               ..classes = ['memberValue']
-              ..children = [
+              ..children = <Element>[
                 new InstanceRefElement(
                     _isolate, _instance.oneByteBytecode, _objects,
                     queue: _r.queue)
@@ -703,13 +703,13 @@ class InstanceViewElement extends HtmlElement implements Renderable {
           ],
         new DivElement()
           ..classes = ['memberItem']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['memberName']
               ..text = 'twoByteBytecode',
             new DivElement()
               ..classes = ['memberValue']
-              ..children = [
+              ..children = <Element>[
                 new InstanceRefElement(
                     _isolate, _instance.twoByteBytecode, _objects,
                     queue: _r.queue)
@@ -721,13 +721,13 @@ class InstanceViewElement extends HtmlElement implements Renderable {
     if (_instance.kind == M.InstanceKind.mirrorReference) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'referent',
           new DivElement()
             ..classes = ['memberValue']
-            ..children = [
+            ..children = <Element>[
               anyRef(_isolate, _instance.referent, _objects, queue: _r.queue)
             ]
         ]);
@@ -736,26 +736,26 @@ class InstanceViewElement extends HtmlElement implements Renderable {
       members.addAll([
         new DivElement()
           ..classes = ['memberItem']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['memberName']
               ..text = 'key',
             new DivElement()
               ..classes = ['memberValue']
-              ..children = [
+              ..children = <Element>[
                 new InstanceRefElement(_isolate, _instance.key, _objects,
                     queue: _r.queue),
               ]
           ],
         new DivElement()
           ..classes = ['memberItem']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['memberName']
               ..text = 'value',
             new DivElement()
               ..classes = ['memberValue']
-              ..children = [
+              ..children = <Element>[
                 new InstanceRefElement(_isolate, _instance.value, _objects,
                     queue: _r.queue),
               ]

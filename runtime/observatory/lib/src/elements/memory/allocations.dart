@@ -55,7 +55,7 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
     assert(editor != null);
     assert(repository != null);
     MemoryAllocationsElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<MemoryAllocationsElement>(e, queue: queue);
     e._isolate = isolate;
     e._editor = editor;
     e._repository = repository;
@@ -75,7 +75,7 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   Future reload({bool gc = false, bool reset = false}) async {
@@ -84,13 +84,13 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
 
   void render() {
     if (_profile == null) {
-      children = [
+      children = <Element>[
         new DivElement()
           ..classes = ['content-centered-big']
-          ..children = [new HeadingElement.h2()..text = 'Loading...']
+          ..children = <Element>[new HeadingElement.h2()..text = 'Loading...']
       ];
     } else {
-      children = [
+      children = <Element>[
         new VirtualCollectionElement(
             _createCollectionLine, _updateCollectionLine,
             createHeader: _createCollectionHeader,
@@ -137,7 +137,7 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
 
   static HtmlElement _createCollectionLine() => new DivElement()
     ..classes = ['collection-item']
-    ..children = [
+    ..children = <Element>[
       new SpanElement()
         ..classes = ['bytes']
         ..text = '0B',
@@ -158,7 +158,7 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
     return [
       new DivElement()
         ..classes = ['collection-item']
-        ..children = [
+        ..children = <Element>[
           new SpanElement()
             ..classes = ['group']
             ..nodes = [
@@ -178,7 +178,7 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
         ],
       new DivElement()
         ..classes = ['collection-item']
-        ..children = [
+        ..children = <Element>[
           _createHeaderButton(const ['bytes'], 'Size',
               _SortingField.accumulatedSize, _SortingDirection.descending),
           _createHeaderButton(const ['instances'], 'Instances',

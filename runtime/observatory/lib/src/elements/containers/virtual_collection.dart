@@ -54,7 +54,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
     assert(update != null);
     assert(items != null);
     VirtualCollectionElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<VirtualCollectionElement>(e, queue: queue);
     e._create = create;
     e._createHeader = createHeader;
     e._update = update;
@@ -126,12 +126,12 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
 
   void render() {
     if (children.isEmpty) {
-      children = [
+      children = <Element>[
         _viewport
-          ..children = [
+          ..children = <Element>[
             _spacer
-              ..children = [
-                _buffer..children = [_create()]
+              ..children = <Element>[
+                _buffer..children = <Element>[_create()]
               ],
           ]
       ];
@@ -216,7 +216,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
     _updateHeader();
   }
 
-  double _foldWidth(double value, HtmlElement child) {
+  double _foldWidth(double value, Element child) {
     return math.max(value, child.getBoundingClientRect().width);
   }
 

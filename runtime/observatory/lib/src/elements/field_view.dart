@@ -97,7 +97,7 @@ class FieldViewElement extends HtmlElement implements Renderable {
     assert(scripts != null);
     assert(objects != null);
     FieldViewElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<FieldViewElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -130,7 +130,7 @@ class FieldViewElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
@@ -152,11 +152,11 @@ class FieldViewElement extends HtmlElement implements Renderable {
     } else {
       header += _field.declaredType.name;
     }
-    children = [
+    children = <Element>[
       navBar(_createMenu()),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h2()..text = '$header ${field.name}',
           new HRElement(),
           new ObjectCommonElement(_isolate, _field, _retainedSizes,
@@ -211,13 +211,13 @@ class FieldViewElement extends HtmlElement implements Renderable {
     final members = <Element>[
       new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'owner',
           new DivElement()
             ..classes = ['memberName']
-            ..children = [
+            ..children = <Element>[
               _field.dartOwner == null
                   ? (new SpanElement()..text = '...')
                   : anyRef(_isolate, _field.dartOwner, _objects,
@@ -226,13 +226,13 @@ class FieldViewElement extends HtmlElement implements Renderable {
         ],
       new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'script',
           new DivElement()
             ..classes = ['memberName']
-            ..children = [
+            ..children = <Element>[
               new SourceLinkElement(_isolate, field.location, _scripts,
                   queue: _r.queue)
             ]
@@ -244,7 +244,7 @@ class FieldViewElement extends HtmlElement implements Renderable {
         ..title = 'The types observed for this field at runtime. '
             'Fields that are observed to have a single type at runtime '
             'or to never be null may allow for additional optimization.'
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'observed types',
@@ -256,13 +256,13 @@ class FieldViewElement extends HtmlElement implements Renderable {
     if (_field.staticValue != null) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'static value',
           new DivElement()
             ..classes = ['memberName']
-            ..children = [
+            ..children = <Element>[
               anyRef(_isolate, _field.staticValue, _objects, queue: _r.queue)
             ]
         ]);

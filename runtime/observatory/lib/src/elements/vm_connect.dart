@@ -46,7 +46,7 @@ class VMConnectElement extends HtmlElement implements Renderable {
     assert(notifications != null);
     assert(targets != null);
     VMConnectElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<VMConnectElement>(e, queue: queue);
     e._address = address;
     e._loadDump = loadDump;
     e._notifications = notifications;
@@ -66,7 +66,7 @@ class VMConnectElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
     _targetsSubscription.cancel();
   }
@@ -74,30 +74,30 @@ class VMConnectElement extends HtmlElement implements Renderable {
   void render() {
     final host = window.location.hostname;
     final port = window.location.port;
-    children = [
-      navBar([
+    children = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue),
         new NavNotifyElement(_notifications, queue: _r.queue)
       ]),
       new DivElement()
         ..classes = ['content-centered']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h1()..text = 'Connect to a Dart VM',
           new HRElement(),
           new BRElement(),
           new DivElement()
             ..classes = ['flex-row']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['flex-item-40-percent']
-                ..children = [
+                ..children = <Element>[
                   new HeadingElement.h2()..text = 'Connect over WebSocket',
                   new BRElement(),
                   new UListElement()
-                    ..children = _targets.list().map((target) {
+                    ..children = _targets.list().map<Element>((target) {
                       final bool current = _targets.isConnectedVMTarget(target);
                       return new LIElement()
-                        ..children = [
+                        ..children = <Element>[
                           new VMConnectTargetElement(target,
                               current: current, queue: _r.queue)
                             ..onConnect.listen(_connect)
@@ -107,7 +107,7 @@ class VMConnectElement extends HtmlElement implements Renderable {
                   new HRElement(),
                   new FormElement()
                     ..autocomplete = 'on'
-                    ..children = [
+                    ..children = <Element>[
                       _createAddressBox(),
                       new SpanElement()..text = ' ',
                       new ButtonElement()
@@ -126,7 +126,7 @@ class VMConnectElement extends HtmlElement implements Renderable {
               new DivElement()..classes = ['flex-item-20-percent'],
               new DivElement()
                 ..classes = ['flex-item-40-percent']
-                ..children = [
+                ..children = <Element>[
                   new HeadingElement.h2()..text = 'View crash dump',
                   new BRElement(),
                   _createCrushDumpLoader(),

@@ -31,7 +31,7 @@ class MegamorphicCacheRefElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(cache != null);
     MegamorphicCacheRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<MegamorphicCacheRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._cache = cache;
     return e;
@@ -49,13 +49,13 @@ class MegamorphicCacheRefElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new AnchorElement(href: Uris.inspect(_isolate, object: _cache))
-        ..children = [
+        ..children = <Element>[
           new SpanElement()
             ..classes = ['emphasize']
             ..text = 'MegarmorphicCache',

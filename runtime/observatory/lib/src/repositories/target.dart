@@ -51,7 +51,7 @@ class TargetRepository implements M.TargetRepository {
     _store();
   }
 
-  Iterable<SC.WebSocketVMTarget> list() => _list;
+  Iterable<M.Target> list() => _list.toList<M.Target>();
 
   void setCurrent(M.Target t) {
     SC.WebSocketVMTarget target = t as SC.WebSocketVMTarget;
@@ -85,7 +85,9 @@ class TargetRepository implements M.TargetRepository {
     if (loaded == null) {
       return;
     }
-    _list.addAll(loaded.map((i) => new SC.WebSocketVMTarget.fromMap(i)));
+    for (var i in loaded) {
+      _list.add(new SC.WebSocketVMTarget.fromMap(i));
+    }
     _list.sort((SC.WebSocketVMTarget a, SC.WebSocketVMTarget b) {
       return b.lastConnectionTime.compareTo(a.lastConnectionTime);
     });

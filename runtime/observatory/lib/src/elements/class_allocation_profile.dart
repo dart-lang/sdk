@@ -46,7 +46,8 @@ class ClassAllocationProfileElement extends HtmlElement implements Renderable {
     assert(cls != null);
     assert(profiles != null);
     ClassAllocationProfileElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r =
+        new RenderingScheduler<ClassAllocationProfileElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._cls = cls;
@@ -66,7 +67,7 @@ class ClassAllocationProfileElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 

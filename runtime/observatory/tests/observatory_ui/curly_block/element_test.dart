@@ -79,7 +79,7 @@ main() {
     CurlyBlockElement e;
     setUp(() async {
       e = new CurlyBlockElement();
-      e.content = [document.createElement('content')];
+      e.content = <Element>[document.createElement('content')];
       document.body.append(e);
       await e.onRendered.first;
     });
