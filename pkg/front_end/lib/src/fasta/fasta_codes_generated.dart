@@ -1998,7 +1998,9 @@ const Template<Message Function(String name)> templateDuplicatedParameterName =
 const Code<Message Function(String name)> codeDuplicatedParameterName =
     const Code<Message Function(String name)>(
         "DuplicatedParameterName", templateDuplicatedParameterName,
-        analyzerCode: "DUPLICATE_DEFINITION", dart2jsCode: "*fatal*");
+        analyzerCode: "DUPLICATE_DEFINITION",
+        dart2jsCode: "*fatal*",
+        severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedParameterName(String name) {

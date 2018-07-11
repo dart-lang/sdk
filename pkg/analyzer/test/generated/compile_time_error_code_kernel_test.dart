@@ -643,13 +643,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_duplicateDefinition_catch() async {
-    // Expected 1 errors of type CompileTimeErrorCode.DUPLICATE_DEFINITION, found 0
-    await super.test_duplicateDefinition_catch();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30857')
   test_duplicateDefinition_classMembers_fields() async {
     return super.test_duplicateDefinition_classMembers_fields();
@@ -674,13 +667,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30857')
   test_duplicateDefinition_inPart() async {
     return super.test_duplicateDefinition_inPart();
-  }
-
-  @override
-  @failingTest
-  test_duplicateDefinition_parameters_inLocalFunction() async {
-    // Expected 1 errors of type CompileTimeErrorCode.DUPLICATE_DEFINITION, found 0
-    await super.test_duplicateDefinition_parameters_inLocalFunction();
   }
 
   @override

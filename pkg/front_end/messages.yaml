@@ -1928,6 +1928,7 @@ DuplicatedNamePreviouslyUsedCause:
 
 DuplicatedParameterName:
   template: "Duplicated parameter name '#name'."
+  severity: ERROR
   analyzerCode: DUPLICATE_DEFINITION
   dart2jsCode: "*fatal*"
 

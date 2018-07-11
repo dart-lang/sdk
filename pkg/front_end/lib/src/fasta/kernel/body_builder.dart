@@ -4565,20 +4565,26 @@ class FormalParameters<Expression, Statement, Arguments> {
     Map<String, Declaration> local = <String, Declaration>{};
 
     for (VariableDeclaration parameter in required) {
-      if (local[parameter.name] != null) {
-        helper.deprecated_addCompileTimeError(
-            parameter.fileOffset, "Duplicated name.");
+      String name = parameter.name;
+      if (local[name] != null) {
+        helper.addProblem(
+            fasta.templateDuplicatedParameterName.withArguments(name),
+            parameter.fileOffset,
+            name.length);
       }
-      local[parameter.name] = new KernelVariableBuilder(
+      local[name] = new KernelVariableBuilder(
           parameter, declaration, declaration.fileUri);
     }
     if (optional != null) {
       for (VariableDeclaration parameter in optional.formals) {
-        if (local[parameter.name] != null) {
-          helper.deprecated_addCompileTimeError(
-              parameter.fileOffset, "Duplicated name.");
+        String name = parameter.name;
+        if (local[name] != null) {
+          helper.addProblem(
+              fasta.templateDuplicatedParameterName.withArguments(name),
+              parameter.fileOffset,
+              name.length);
         }
-        local[parameter.name] = new KernelVariableBuilder(
+        local[name] = new KernelVariableBuilder(
             parameter, declaration, declaration.fileUri);
       }
     }
