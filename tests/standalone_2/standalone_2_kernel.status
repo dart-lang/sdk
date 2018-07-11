@@ -46,6 +46,9 @@ package/scenarios/invalid/same_package_twice_test: CompileTimeError
 package/scenarios/invalid/invalid_utf8_test: CompileTimeError # Issue 32085
 package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError # Issue 32085
 
+[ $arch == simarm64 && $compiler == dartk && $strong ]
+io/http_bind_test: Pass, Slow
+
 [ $builder_tag == optimization_counter_threshold && $compiler == dartk ]
 map_insert_remove_oom_test: Skip # Heap limit too low.
 
@@ -62,7 +65,6 @@ io/socket_info_ipv6_test: Pass, Crash
 io/socket_port_test: Pass, Crash
 
 [ $compiler == dartk && $mode == debug && $hot_reload ]
-io/http_basic_test: Crash
 io/web_socket_ping_test: Crash, Pass
 
 [ $compiler == dartk && $runtime == vm && $strong ]
@@ -93,6 +95,7 @@ io/http_outgoing_size_test: Pass, Crash
 
 [ $compiler == dartk && $hot_reload_rollback ]
 io/directory_chdir_test: Skip # Timeout
+io/echo_server_stream_test: Pass, Slow
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
@@ -121,6 +124,7 @@ io/addlatexhash_test: Skip # Timeout
 io/http_advanced_test: Skip # Timeout
 io/http_auth_digest_test: Crash
 io/http_auth_test: Skip # Timeout
+io/http_basic_test: Pass, Crash # Sporadic crash, issue 33824
 io/http_proxy_advanced_test: Skip # Timeout
 io/http_read_test: Skip # Timeout
 io/non_utf8_directory_test: Pass, Timeout

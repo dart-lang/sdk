@@ -196,12 +196,8 @@ mirrors/typevariable_mirror_metadata_test: RuntimeError
 [ $compiler == dartk && $system == windows ]
 isolate/ping_pause_test: Skip # Issues 32137 and 32138
 
-[ $compiler == dartk && $hot_reload ]
-isolate/message4_test: Pass, Timeout
-
 [ $compiler == dartk && $hot_reload_rollback ]
 isolate/illegal_msg_function_test: Skip # Timeout
-isolate/message4_test: Pass, Timeout
 isolate/pause_test: Skip # Timeout
 
 [ $compiler == dartk && $strong ]
@@ -289,6 +285,7 @@ isolate/isolate_import_test/none: Skip # Timeout
 isolate/issue_21398_parent_isolate1_test: Skip # Timeout
 isolate/mandel_isolate_test: Skip # Timeout
 isolate/message2_test: Skip # Timeout
+isolate/message4_test: Pass, Timeout, Crash # Timeout and sporadic crash (issue 33824)
 isolate/nested_spawn2_test: Skip # Timeout
 isolate/nested_spawn_test: Skip # Timeout
 isolate/raw_port_test: Skip # Timeout
