@@ -546,6 +546,7 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
             in directory.listSync(recursive: true, followLinks: false)) {
           String relative = path.relative(entry.path, from: directory.path);
           if (AnalysisEngine.isDartFileName(entry.path) &&
+              entry is io.File &&
               !pathFilter.ignored(entry.path) &&
               !_isInHiddenDir(relative)) {
             files.add(entry);
