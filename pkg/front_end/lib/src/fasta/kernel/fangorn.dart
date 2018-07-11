@@ -257,8 +257,8 @@ class Fangorn extends Forest {
   DartType getTypeAt(List typeArguments, int index) => typeArguments[index];
 
   @override
-  Expression loadLibrary(LibraryDependency dependency) {
-    return new LoadLibraryJudgment(dependency);
+  Expression loadLibrary(LibraryDependency dependency, Arguments arguments) {
+    return new LoadLibraryJudgment(dependency, arguments);
   }
 
   @override

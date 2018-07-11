@@ -111,10 +111,14 @@ class KernelResynthesizer implements ElementResynthesizer {
     }
 
     String libraryUri = components[--componentPtr];
-    String topKindOrClassName = components[--componentPtr];
-
     LibraryElementImpl library = getLibrary(libraryUri);
     if (library == null) return null;
+
+    if (componentPtr == 0) {
+      return library;
+    }
+
+    String topKindOrClassName = components[--componentPtr];
 
     String takeElementName() {
       String publicNameOrLibraryUri = components[--componentPtr];

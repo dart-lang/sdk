@@ -78,6 +78,7 @@ import 'kernel_ast_api.dart'
         IllegalAssignmentJudgment,
         IndexAssignmentJudgment,
         InvalidVariableWriteJudgment,
+        LoadLibraryTearOffJudgment,
         MethodInvocationJudgment,
         NullAwarePropertyGetJudgment,
         PropertyAssignmentJudgment,
@@ -1148,8 +1149,10 @@ class KernelLoadLibraryGenerator extends KernelGenerator
 
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    var read =
-        helper.makeStaticGet(builder.createTearoffMethod(helper.forest), token);
+    builder.importDependency.targetLibrary;
+    var read = new LoadLibraryTearOffJudgment(
+        builder.importDependency, builder.createTearoffMethod(helper.forest))
+      ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
     return read;
   }
@@ -1161,7 +1164,7 @@ class KernelLoadLibraryGenerator extends KernelGenerator
       helper.addProblemErrorIfConst(
           messageLoadLibraryTakesNoArguments, offset, 'loadLibrary'.length);
     }
-    return builder.createLoadLibrary(offset, forest);
+    return builder.createLoadLibrary(offset, forest, arguments);
   }
 
   @override

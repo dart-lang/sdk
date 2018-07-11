@@ -1716,6 +1716,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     if (_kernelContext != null) {
       _functions ??= _kernelContext.kernelUnit.procedures
           .where((k) => k.kind == kernel.ProcedureKind.Method)
+          .where((k) => !k.name.name.startsWith('__loadLibrary_'))
           .map((k) => new FunctionElementImpl.forKernel(this, k))
           .toList(growable: false);
     }

@@ -5,14 +5,17 @@
 import 'package:kernel/ast.dart'
     show Catch, DartType, FunctionType, Node, TypeParameter;
 
+import 'package:kernel/ast.dart' show Catch, DartType, FunctionType, Node;
+
 import 'package:kernel/type_algebra.dart' show Substitution;
 
 import '../../scanner/token.dart' show Token;
-
 import '../kernel/kernel_shadow_ast.dart'
     show
         ExpressionJudgment,
         InitializerJudgment,
+        LoadLibraryJudgment,
+        LoadLibraryTearOffJudgment,
         StatementJudgment,
         SwitchCaseJudgment;
 
@@ -265,6 +268,12 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
       void elements,
       Token rightBracket,
       DartType inferredType);
+
+  void loadLibrary(LoadLibraryJudgment judgment, Location location,
+      Reference library, FunctionType calleeType, DartType inferredType);
+
+  void loadLibraryTearOff(LoadLibraryTearOffJudgment judgment,
+      Location location, Reference library, DartType inferredType);
 
   void logicalExpression(
       ExpressionJudgment judgment,
@@ -727,6 +736,14 @@ class KernelTypeInferenceListener
       void elements,
       Token rightBracket,
       DartType inferredType) {}
+
+  @override
+  void loadLibrary(LoadLibraryJudgment judgment, location, library,
+      FunctionType calleeType, DartType inferredType) {}
+
+  @override
+  void loadLibraryTearOff(LoadLibraryTearOffJudgment judgment, location,
+      library, DartType inferredType) {}
 
   @override
   void logicalExpression(

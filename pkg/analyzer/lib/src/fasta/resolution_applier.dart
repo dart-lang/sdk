@@ -474,7 +474,10 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
     var data = _get(argumentList);
     Element invokeElement;
-    if (data.isImplicitCall) {
+    if (data.loadLibrary != null) {
+      LibraryElement libraryElement = data.loadLibrary;
+      invokeElement = libraryElement.loadLibraryFunction;
+    } else if (data.isImplicitCall) {
       if (node.methodName != null) {
         node.methodName.accept(this);
         invokeElement = node.methodName.staticElement;
@@ -604,6 +607,9 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       node.staticElement = data.prefixInfo;
     } else if (data.declaration != null) {
       node.staticElement = data.declaration;
+    } else if (data.loadLibrary != null) {
+      LibraryElement library = data.loadLibrary;
+      node.staticElement = library.loadLibraryFunction;
     } else if (data.reference != null) {
       node.staticElement = data.reference;
     } else {

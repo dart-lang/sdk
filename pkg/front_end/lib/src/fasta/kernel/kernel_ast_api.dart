@@ -95,6 +95,7 @@ export 'kernel_shadow_ast.dart'
         InvalidVariableWriteJudgment,
         ShadowInvalidInitializer,
         LabeledStatementJudgment,
+        LoadLibraryTearOffJudgment,
         LogicalJudgment,
         MethodInvocationJudgment,
         NamedFunctionExpressionJudgment,

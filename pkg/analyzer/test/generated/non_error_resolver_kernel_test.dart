@@ -199,13 +199,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_loadLibraryDefined() async {
-    return super.test_loadLibraryDefined();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30609')
   test_metadata_enumConstantDeclaration() {
     // Failed to resolve 2 nodes

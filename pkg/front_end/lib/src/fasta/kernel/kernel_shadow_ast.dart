@@ -3663,9 +3663,11 @@ class YieldJudgment extends YieldStatement implements StatementJudgment {
 
 /// Concrete shadow object representing a deferred load library call.
 class LoadLibraryJudgment extends LoadLibrary implements ExpressionJudgment {
+  final Arguments arguments;
+
   DartType inferredType;
 
-  LoadLibraryJudgment(LibraryDependency import) : super(import);
+  LoadLibraryJudgment(LibraryDependency import, this.arguments) : super(import);
 
   @override
   Expression infer<Expression, Statement, Initializer, Type>(
@@ -3674,6 +3676,36 @@ class LoadLibraryJudgment extends LoadLibrary implements ExpressionJudgment {
       DartType typeContext) {
     inferredType =
         inferrer.typeSchemaEnvironment.futureType(const DynamicType());
+    if (arguments != null) {
+      inferrer.listener.loadLibrary(
+          this,
+          arguments.fileOffset,
+          import.targetLibrary,
+          new FunctionType([], inferredType),
+          inferredType);
+    }
+    return null;
+  }
+}
+
+/// Concrete shadow object representing a tear-off of a `loadLibrary` function.
+class LoadLibraryTearOffJudgment extends StaticGet
+    implements ExpressionJudgment {
+  final LibraryDependency import;
+
+  DartType inferredType;
+
+  LoadLibraryTearOffJudgment(this.import, Procedure target) : super(target);
+
+  @override
+  Expression infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory,
+      DartType typeContext) {
+    inferredType = new FunctionType(
+        [], inferrer.typeSchemaEnvironment.futureType(const DynamicType()));
+    inferrer.listener.loadLibraryTearOff(
+        this, fileOffset, import.targetLibrary, inferredType);
     return null;
   }
 }

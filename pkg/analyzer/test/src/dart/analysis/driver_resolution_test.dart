@@ -60,6 +60,11 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
     expect(actual, isNull);
   }
 
+  void assertInvokeType(InvocationExpression expression, String expected) {
+    DartType actual = expression.staticInvokeType;
+    expect(actual?.toString(), expected);
+  }
+
   void assertMember(
       Expression node, String expectedDefiningType, Element expectedBase) {
     Member actual = getNodeElement(node);
@@ -2241,6 +2246,57 @@ class B<U> {
       expect(constructorName.name.staticElement, same(actualMember));
       expect(constructorName.name.staticType, isNull);
     }
+  }
+
+  test_deferredImport_loadLibrary_invocation() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, '');
+    addTestFile(r'''
+import 'a.dart' deferred as a;
+main() {
+  a.loadLibrary();
+}
+
+''');
+    await resolveTestFile();
+    var import = findElement.import('package:test/a.dart');
+
+    var invocation = findNode.methodInvocation('loadLibrary');
+    assertType(invocation, 'Future<dynamic>');
+    assertInvokeType(invocation, '() → Future<dynamic>');
+
+    SimpleIdentifier target = invocation.target;
+    assertElement(target, import.prefix);
+    assertType(target, null);
+
+    var name = invocation.methodName;
+    assertElement(name, import.importedLibrary.loadLibraryFunction);
+    assertType(name, useCFE ? '() → Future<dynamic>' : null);
+  }
+
+  test_deferredImport_loadLibrary_tearOff() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, '');
+    addTestFile(r'''
+import 'a.dart' deferred as a;
+main() {
+  a.loadLibrary;
+}
+
+''');
+    await resolveTestFile();
+    var import = findElement.import('package:test/a.dart');
+
+    var prefixed = findNode.prefixed('a.loadLibrary');
+    assertType(prefixed, '() → Future<dynamic>');
+
+    var prefix = prefixed.prefix;
+    assertElement(prefix, import.prefix);
+    assertType(prefix, null);
+
+    var identifier = prefixed.identifier;
+    assertElement(identifier, import.importedLibrary.loadLibraryFunction);
+    assertType(identifier, '() → Future<dynamic>');
   }
 
   test_enum_toString() async {
@@ -8125,6 +8181,40 @@ class FindElement {
     fail('Not found class accessor: $name');
   }
 
+  ImportElement import(String targetUri) {
+    ImportElement importElement;
+    for (var import in unitElement.library.imports) {
+      var importedUri = import.importedLibrary.source.uri.toString();
+      if (importedUri == targetUri) {
+        if (importElement != null) {
+          throw new StateError('Not unique $targetUri import.');
+        }
+        importElement = import;
+      }
+    }
+    if (importElement != null) {
+      return importElement;
+    }
+    fail('Not found import: $targetUri');
+  }
+
+  LibraryElement importedLibrary(String targetUri) {
+    LibraryElement libraryElement;
+    for (var import in unitElement.library.imports) {
+      var importedUri = import.importedLibrary.source.uri.toString();
+      if (importedUri == targetUri) {
+        if (libraryElement != null) {
+          throw new StateError('Not unique $targetUri import.');
+        }
+        libraryElement = import.importedLibrary;
+      }
+    }
+    if (libraryElement != null) {
+      return libraryElement;
+    }
+    fail('Not found library: $targetUri');
+  }
+
   MethodElement method(String name) {
     for (var type in unitElement.types) {
       for (var method in type.methods) {
@@ -8226,6 +8316,10 @@ class FindNode {
 
   PrefixExpression prefix(String search) {
     return _node(search).getAncestor((n) => n is PrefixExpression);
+  }
+
+  PrefixedIdentifier prefixed(String search) {
+    return _node(search).getAncestor((n) => n is PrefixedIdentifier);
   }
 
   SimpleIdentifier simple(String search) {

@@ -21,6 +21,7 @@ class ResolutionData<Type, Declaration, Reference, PrefixInfo> {
   final bool isImplicitCall;
   final bool isWriteReference;
   final Type literalType;
+  final Reference loadLibrary;
   final PrefixInfo prefixInfo;
   final Reference reference;
   final Type writeContext;
@@ -35,6 +36,7 @@ class ResolutionData<Type, Declaration, Reference, PrefixInfo> {
       this.isImplicitCall = false,
       this.isWriteReference = false,
       this.literalType,
+      this.loadLibrary,
       this.prefixInfo,
       this.reference,
       this.writeContext});
@@ -355,6 +357,21 @@ class ResolutionStorer
           DartType inferredType) =>
       genericExpression("listLiteral", location, inferredType);
 
+  @override
+  void loadLibrary(LoadLibraryJudgment judgment, int location, Node library,
+      FunctionType calleeType, DartType inferredType) {
+    _store(location,
+        loadLibrary: library,
+        invokeType: calleeType,
+        inferredType: inferredType);
+  }
+
+  @override
+  void loadLibraryTearOff(LoadLibraryTearOffJudgment judgment, int location,
+      Node library, DartType inferredType) {
+    _store(location, loadLibrary: library, inferredType: inferredType);
+  }
+
   void logicalExpression(
           ExpressionJudgment judgment,
           int location,
@@ -642,6 +659,7 @@ class ResolutionStorer
       bool isImplicitCall = false,
       bool isWriteReference = false,
       DartType literalType,
+      Node loadLibrary,
       int prefixInfo,
       Node reference,
       bool replace = false,
@@ -660,6 +678,7 @@ class ResolutionStorer
         isImplicitCall: isImplicitCall,
         isWriteReference: isWriteReference,
         literalType: literalType,
+        loadLibrary: loadLibrary,
         prefixInfo: prefixInfo,
         reference: reference,
         writeContext: writeContext);
