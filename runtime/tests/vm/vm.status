@@ -129,6 +129,14 @@ cc/Profiler_ToggleRecordAllocation: Skip
 cc/Profiler_TrivialRecordAllocation: Skip
 cc/Profiler_TypedArrayAllocation: Skip
 
+[ $arch != simarm && $arch != simarm64 && $arch != simdbc64 && $compiler == dartk && $hot_reload ]
+dart/data_uri_import_test/base64: Crash
+dart/data_uri_import_test/nocharset: Crash
+dart/data_uri_import_test/nomime: Crash
+dart/data_uri_import_test/percentencoded: Crash
+dart/data_uri_import_test/utf16: Crash
+dart/data_uri_import_test/wrongmime: Crash
+
 [ $arch == x64 && $compiler == dartk && $system == windows && $strong ]
 cc/Profiler_BasicSourcePosition: Fail # http://dartbug.com/33224
 cc/Profiler_CodeTicks: Fail # dartbug.com/33337
@@ -212,14 +220,6 @@ cc/Profiler_ToggleRecordAllocation: Fail, Pass
 cc/Profiler_TrivialRecordAllocation: Fail, Pass
 cc/Service_Address: Fail
 cc/Service_Code: Fail
-
-[ $compiler == dartk && $hot_reload ]
-dart/data_uri_import_test/base64: Crash
-dart/data_uri_import_test/nocharset: Crash
-dart/data_uri_import_test/nomime: Crash
-dart/data_uri_import_test/percentencoded: Crash
-dart/data_uri_import_test/utf16: Crash
-dart/data_uri_import_test/wrongmime: Crash
 
 [ $compiler == dartk && $strong ]
 cc/DartGeneratedArrayLiteralMessages: Crash # Issue 32190

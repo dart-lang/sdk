@@ -527,11 +527,12 @@ class ResourceHolder : ValueObject {
 
 static void AcceptCompilation(Thread* thread) {
   TransitionVMToNative transition(thread);
-  if (KernelIsolate::AcceptCompilation().status !=
-      Dart_KernelCompilationStatus_Ok) {
-    FATAL(
+  Dart_KernelCompilationResult result = KernelIsolate::AcceptCompilation();
+  if (result.status != Dart_KernelCompilationStatus_Ok) {
+    FATAL1(
         "An error occurred in the CFE while accepting the most recent"
-        " compilation results.");
+        " compilation results: %s",
+        result.error);
   }
 }
 

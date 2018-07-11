@@ -245,6 +245,8 @@ html/xhr_test/xhr: Skip # Times out.  Issue 21527
 
 [ $hot_reload || $hot_reload_rollback ]
 async/stream_transformer_test: Pass, Fail # Closure identity
+convert/chunked_conversion_utf88_test: SkipSlow
+convert/utf85_test: SkipSlow
 isolate/deferred_in_isolate2_test: Crash # Requires deferred libraries
 isolate/deferred_in_isolate_test: Crash # Requires deferred libraries
 isolate/function_send_test: Pass, Fail # Closure identity

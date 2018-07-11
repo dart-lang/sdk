@@ -1863,8 +1863,31 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     JSONStream js;
     // Maybe adjust the rate of future reloads.
     isolate->MaybeIncreaseReloadEveryNStackOverflowChecks();
+
+    const char* script_uri;
+    {
+      NoReloadScope no_reload(isolate, thread);
+      const Library& lib =
+          Library::Handle(isolate->object_store()->_internal_library());
+      const Class& cls = Class::Handle(
+          lib.LookupClass(String::Handle(String::New("VMLibraryHooks"))));
+      const Function& func = Function::Handle(cls.LookupFunction(
+          String::Handle(String::New("get:platformScript"))));
+      Object& result = Object::Handle(
+          DartEntry::InvokeFunction(func, Object::empty_array()));
+      if (!result.IsInstance()) {
+        FATAL1("Bad script uri hook: %s", result.ToCString());
+      }
+      result = DartLibraryCalls::ToString(Instance::Cast(result));
+      if (!result.IsString()) {
+        FATAL1("Bad script uri hook: %s", result.ToCString());
+      }
+      script_uri = result.ToCString();  // Zone allocated.
+    }
+
     // Issue a reload.
-    bool success = isolate->ReloadSources(&js, true /* force_reload */);
+    bool success =
+        isolate->ReloadSources(&js, true /* force_reload */, script_uri);
     if (!success) {
       FATAL1("*** Isolate reload failed:\n%s\n", js.ToCString());
     }
