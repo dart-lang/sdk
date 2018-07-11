@@ -27,6 +27,12 @@
  * kTypedData. The specific type from dart:typed_data is in the type
  * field of the as_typed_data structure. The length in the
  * as_typed_data structure is always in bytes.
+ *
+ * The data for kTypedData is copied on message send and ownership remains with
+ * the caller. The ownership of data for kExternalTyped is passed to the VM on
+ * message send and returned when the VM invokes the
+ * Dart_WeakPersistentHandleFinalizer callback; a non-NULL callback must be
+ * provided.
  */
 typedef enum {
   Dart_CObject_kNull = 0,

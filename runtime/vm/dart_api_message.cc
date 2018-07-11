@@ -1178,6 +1178,9 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       void* peer = object->value.as_external_typed_data.peer;
       Dart_WeakPersistentHandleFinalizer callback =
           object->value.as_external_typed_data.callback;
+      if (callback == NULL) {
+        return false;
+      }
       WriteSmi(length);
       finalizable_data_->Put(length, reinterpret_cast<void*>(data), peer,
                              callback);
