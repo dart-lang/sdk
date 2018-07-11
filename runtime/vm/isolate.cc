@@ -2606,8 +2606,9 @@ bool Isolate::IsolateCreationEnabled() {
 }
 
 bool Isolate::IsVMInternalIsolate(Isolate* isolate) {
-  return ((isolate == Dart::vm_isolate()) ||
-          ServiceIsolate::IsServiceIsolateDescendant(isolate));
+  return (isolate == Dart::vm_isolate()) ||
+         ServiceIsolate::IsServiceIsolateDescendant(isolate) ||
+         KernelIsolate::IsKernelIsolate(isolate);
 }
 
 void Isolate::KillLocked(LibMsgId msg_id) {

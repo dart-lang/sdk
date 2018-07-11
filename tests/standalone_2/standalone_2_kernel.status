@@ -103,8 +103,6 @@ io/dart_std_io_pipe_test: Timeout, Pass
 io/directory_list_sync_test: Timeout, Pass # Please triage.
 io/file_blocking_lock_test: Pass, Crash # Please triage.
 io/file_lock_test: Slow, Pass
-io/platform_resolved_executable_test/01: Pass, RuntimeError # Issue 32134
-io/platform_resolved_executable_test/05: Pass, RuntimeError # Issue 32134
 io/platform_test: RuntimeError # Please triage.
 io/process_sync_test: Timeout, Pass
 io/test_extension_fail_test: RuntimeError # Please traige.

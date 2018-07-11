@@ -120,6 +120,7 @@ class Dart : public AllStatic {
  private:
   static void WaitForIsolateShutdown();
   static void WaitForApplicationIsolateShutdown();
+  static bool HasApplicationIsolateLocked();
 
   static Isolate* vm_isolate_;
   static int64_t start_time_micros_;
