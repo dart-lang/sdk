@@ -2469,7 +2469,7 @@ The controlling language is in the relevant sections of the specification.
   When we speak of members here, we mean accessible instance or static variables, getters, setters, and methods (\ref{classes}).
 \item You cannot have two members with the same name in the same class - be they declared or inherited (\ref{scoping}, \ref{classes}).
 \item Static members are never inherited.
-\item It is an error if you have an static member named $m$ in your class and an instance member of the same name (\ref{instanceMethods}, \ref{getters}, \ref{setters}).
+\item It is an error if you have an static member named $m$ in your class and an instance member of the same name (\ref{classMemborConflicts}).
 \item It is an error if you have a static setter $v=$, and an instance member $v$ (\ref{setters}).
 \item It is an error if you have a static getter $v$ and an instance setter $v=$ (\ref{getters}).
 \item If you define an instance member named $m$, and your superclass has an instance member of the same name, they override each other.
