@@ -67,7 +67,7 @@ abstract class ServerCommunicationChannel {
    */
   void listen(void onResponse(Response response),
       void onNotification(Notification notification),
-      {Function onError, void onDone()});
+      {void onError(dynamic error), void onDone()});
 
   /**
    * Send the given [request] to the plugin.

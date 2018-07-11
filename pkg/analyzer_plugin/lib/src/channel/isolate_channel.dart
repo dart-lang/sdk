@@ -228,7 +228,7 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
   @override
   Future<Null> listen(void onResponse(Response response),
       void onNotification(Notification notification),
-      {Function onError, void onDone()}) async {
+      {void onError(dynamic error), void onDone()}) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (_isolate != null) {

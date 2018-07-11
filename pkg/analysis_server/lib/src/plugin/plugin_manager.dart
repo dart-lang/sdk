@@ -987,7 +987,8 @@ class PluginSession {
   /**
    * Handle the fact that an unhandled error has occurred in the plugin.
    */
-  void handleOnError(List<String> errorPair) {
+  void handleOnError(dynamic error) {
+    List<String> errorPair = (error as List).cast<String>();
     StackTrace stackTrace = new StackTrace.fromString(errorPair[1]);
     info.exception =
         new CaughtException(new PluginException(errorPair[0]), stackTrace);

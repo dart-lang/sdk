@@ -906,7 +906,7 @@ class TestServerCommunicationChannel implements ServerCommunicationChannel {
   @override
   void listen(void onResponse(Response response),
       void onNotification(Notification notification),
-      {Function onError, void onDone()}) {
+      {void onError(dynamic error), void onDone()}) {
     fail('Unexpected invocation of listen');
   }
 
