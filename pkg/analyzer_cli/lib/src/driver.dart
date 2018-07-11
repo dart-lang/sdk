@@ -347,8 +347,11 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
                   file.createSource(), content, analysisDriver.sourceFactory);
           formatter.formatErrors([new AnalysisErrorInfoImpl(errors, lineInfo)]);
           for (AnalysisError error in errors) {
-            allResult = allResult.max(determineProcessedSeverity(
-                error, options, analysisDriver.analysisOptions));
+            ErrorSeverity severity = determineProcessedSeverity(
+                error, options, analysisDriver.analysisOptions);
+            if (severity != null) {
+              allResult = allResult.max(severity);
+            }
           }
         } else if (shortName == AnalysisEngine.PUBSPEC_YAML_FILE) {
           try {
@@ -363,8 +366,9 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
               formatter
                   .formatErrors([new AnalysisErrorInfoImpl(errors, lineInfo)]);
               for (AnalysisError error in errors) {
-                allResult = allResult.max(determineProcessedSeverity(
-                    error, options, analysisDriver.analysisOptions));
+                ErrorSeverity severity = determineProcessedSeverity(
+                    error, options, analysisDriver.analysisOptions);
+                allResult = allResult.max(severity);
               }
             }
           } catch (exception) {
@@ -701,8 +705,8 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
             'Unable to read package config data from $packageConfigPath: $e');
       }
     } else if (options.packageRootPath != null) {
-      packageMap = _PackageRootPackageMapBuilder
-          .buildPackageMap(options.packageRootPath);
+      packageMap = _PackageRootPackageMapBuilder.buildPackageMap(
+          options.packageRootPath);
     } else {
       file_system.Resource cwd = resourceProvider.getResource('.');
       // Look for .packages.
