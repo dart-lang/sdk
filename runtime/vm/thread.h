@@ -212,11 +212,15 @@ class Thread : public BaseThread {
 
   // The currently executing thread, or NULL if not yet initialized.
   static Thread* Current() {
+#if defined(HAS_C11_THREAD_LOCAL)
+    return OSThread::CurrentVMThread();
+#else
     BaseThread* thread = OSThread::GetCurrentTLS();
     if (thread == NULL || thread->is_os_thread()) {
       return NULL;
     }
     return reinterpret_cast<Thread*>(thread);
+#endif
   }
 
   // Makes the current thread enter 'isolate'.
@@ -902,9 +906,7 @@ class Thread : public BaseThread {
   void ExitSafepointUsingLock();
   void BlockForSafepoint();
 
-  static void SetCurrent(Thread* current) {
-    OSThread::SetCurrentTLS(reinterpret_cast<uword>(current));
-  }
+  static void SetCurrent(Thread* current) { OSThread::SetCurrentTLS(current); }
 
   void DeferOOBMessageInterrupts();
   void RestoreOOBMessageInterrupts();
