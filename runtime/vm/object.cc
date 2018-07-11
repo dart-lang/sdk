@@ -13,8 +13,9 @@
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
-#include "vm/compiler/frontend/kernel_binary_flowgraph.h"
+#include "vm/compiler/frontend/kernel_fingerprints.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
+#include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/intrinsifier.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/compiler_stats.h"
@@ -3809,12 +3810,13 @@ TokenPosition Class::ComputeEndTokenPos() const {
     ASSERT(library_kernel_offset > 0);
     const intptr_t class_offset = kernel_offset();
 
-    kernel::TranslationHelper helper(thread);
-    helper.InitFromScript(scr);
-    kernel::StreamingFlowGraphBuilder builder_(&helper, scr, zone, kernel_data,
-                                               0, /* active_class = */ NULL);
-    builder_.SetOffset(class_offset);
-    kernel::ClassHelper class_helper(&builder_);
+    kernel::TranslationHelper translation_helper(thread);
+    translation_helper.InitFromScript(scr);
+
+    kernel::KernelReaderHelper kernel_reader_helper(zone, &translation_helper,
+                                                    scr, kernel_data, 0);
+    kernel_reader_helper.SetOffset(class_offset);
+    kernel::ClassHelper class_helper(&kernel_reader_helper);
     class_helper.ReadUntilIncluding(kernel::ClassHelper::kEndPosition);
     if (class_helper.end_position_.IsReal()) return class_helper.end_position_;
 
@@ -7423,27 +7425,27 @@ RawFunction* Function::ImplicitClosureFunction() const {
   if (thread->isolate()->strong() && !is_static() && kernel_offset() > 0) {
     const Script& function_script = Script::Handle(zone, script());
     kernel::TranslationHelper translation_helper(thread);
-    kernel::StreamingFlowGraphBuilder builder(
-        &translation_helper, function_script, zone,
-        ExternalTypedData::Handle(zone, KernelData()),
-        KernelDataProgramOffset(),
-        /* active_class = */ NULL);
     translation_helper.InitFromScript(function_script);
-    builder.SetOffset(kernel_offset());
 
-    builder.ReadUntilFunctionNode();
+    kernel::KernelReaderHelper kernel_reader_helper(
+        zone, &translation_helper, function_script,
+        ExternalTypedData::Handle(zone, KernelData()),
+        KernelDataProgramOffset());
 
-    kernel::FunctionNodeHelper fn_helper(&builder);
+    kernel_reader_helper.SetOffset(kernel_offset());
+    kernel_reader_helper.ReadUntilFunctionNode();
+
+    kernel::FunctionNodeHelper fn_helper(&kernel_reader_helper);
 
     // Check the positional parameters, including the optional positional ones.
     fn_helper.ReadUntilExcluding(
         kernel::FunctionNodeHelper::kPositionalParameters);
-    intptr_t num_pos_params = builder.ReadListLength();
+    intptr_t num_pos_params = kernel_reader_helper.ReadListLength();
     ASSERT(num_pos_params ==
            num_fixed_params - 1 + (has_opt_pos_params ? num_opt_params : 0));
     const Type& object_type = Type::Handle(zone, Type::ObjectType());
     for (intptr_t i = 0; i < num_pos_params; ++i) {
-      kernel::VariableDeclarationHelper var_helper(&builder);
+      kernel::VariableDeclarationHelper var_helper(&kernel_reader_helper);
       var_helper.ReadUntilExcluding(kernel::VariableDeclarationHelper::kEnd);
       if (var_helper.IsCovariant() || var_helper.IsGenericCovariantImpl()) {
         closure_function.SetParameterTypeAt(i + 1, object_type);
@@ -7453,10 +7455,10 @@ RawFunction* Function::ImplicitClosureFunction() const {
 
     // Check the optional named parameters.
     fn_helper.ReadUntilExcluding(kernel::FunctionNodeHelper::kNamedParameters);
-    intptr_t num_named_params = builder.ReadListLength();
+    intptr_t num_named_params = kernel_reader_helper.ReadListLength();
     ASSERT(num_named_params == (has_opt_pos_params ? 0 : num_opt_params));
     for (intptr_t i = 0; i < num_named_params; ++i) {
-      kernel::VariableDeclarationHelper var_helper(&builder);
+      kernel::VariableDeclarationHelper var_helper(&kernel_reader_helper);
       var_helper.ReadUntilExcluding(kernel::VariableDeclarationHelper::kEnd);
       if (var_helper.IsCovariant() || var_helper.IsGenericCovariantImpl()) {
         closure_function.SetParameterTypeAt(num_pos_params + 1 + i,

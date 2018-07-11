@@ -585,6 +585,21 @@ RawFunction* TranslationHelper::LookupMethodByMember(
   return function;
 }
 
+RawFunction* TranslationHelper::LookupDynamicFunction(const Class& klass,
+                                                      const String& name) {
+  // Search the superclass chain for the selector.
+  Class& iterate_klass = Class::Handle(Z, klass.raw());
+  while (!iterate_klass.IsNull()) {
+    RawFunction* function =
+        iterate_klass.LookupDynamicFunctionAllowPrivate(name);
+    if (function != Object::null()) {
+      return function;
+    }
+    iterate_klass = iterate_klass.SuperClass();
+  }
+  return Function::null();
+}
+
 Type& TranslationHelper::GetCanonicalType(const Class& klass) {
   ASSERT(!klass.IsNull());
   // Note that if cls is _Closure, the returned type will be _Closure,

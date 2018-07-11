@@ -32,21 +32,21 @@ static const char* const kVMServiceIOLibraryUri = "dart:vmservice_io";
 
 class SimpleExpressionConverter {
  public:
-  SimpleExpressionConverter(TranslationHelper* helper,
-                            StreamingFlowGraphBuilder* builder)
-      : translation_helper_(*helper),
+  SimpleExpressionConverter(TranslationHelper* translation_helper,
+                            KernelReaderHelper* reader_helper)
+      : translation_helper_(*translation_helper),
         zone_(translation_helper_.zone()),
         simple_value_(NULL),
-        builder_(builder) {}
+        helper_(reader_helper) {}
 
   bool IsSimple(intptr_t kernel_offset) {
-    AlternativeReadingScope alt(&builder_->reader_, kernel_offset);
+    AlternativeReadingScope alt(&helper_->reader_, kernel_offset);
     uint8_t payload = 0;
-    Tag tag = builder_->ReadTag(&payload);  // read tag.
+    Tag tag = helper_->ReadTag(&payload);  // read tag.
     switch (tag) {
       case kBigIntLiteral: {
         const String& literal_str =
-            H.DartString(builder_->ReadStringReference(),
+            H.DartString(helper_->ReadStringReference(),
                          Heap::kOld);  // read index into string table.
         simple_value_ = &Integer::ZoneHandle(Z, Integer::New(literal_str));
         if (simple_value_->IsNull()) {
@@ -59,7 +59,7 @@ class SimpleExpressionConverter {
       }
       case kStringLiteral:
         simple_value_ = &H.DartSymbolPlain(
-            builder_->ReadStringReference());  // read index into string table.
+            helper_->ReadStringReference());  // read index into string table.
         return true;
       case kSpecializedIntLiteral:
         simple_value_ =
@@ -70,19 +70,19 @@ class SimpleExpressionConverter {
         return true;
       case kNegativeIntLiteral:
         simple_value_ = &Integer::ZoneHandle(
-            Z, Integer::New(-static_cast<int64_t>(builder_->ReadUInt()),
+            Z, Integer::New(-static_cast<int64_t>(helper_->ReadUInt()),
                             Heap::kOld));  // read value.
         *simple_value_ = H.Canonicalize(*simple_value_);
         return true;
       case kPositiveIntLiteral:
         simple_value_ = &Integer::ZoneHandle(
-            Z, Integer::New(static_cast<int64_t>(builder_->ReadUInt()),
+            Z, Integer::New(static_cast<int64_t>(helper_->ReadUInt()),
                             Heap::kOld));  // read value.
         *simple_value_ = H.Canonicalize(*simple_value_);
         return true;
       case kDoubleLiteral:
         simple_value_ = &Double::ZoneHandle(
-            Z, Double::New(builder_->ReadDouble(), Heap::kOld));  // read value.
+            Z, Double::New(helper_->ReadDouble(), Heap::kOld));  // read value.
         *simple_value_ = H.Canonicalize(*simple_value_);
         return true;
       case kTrueLiteral:
@@ -106,7 +106,9 @@ class SimpleExpressionConverter {
   TranslationHelper& translation_helper_;
   Zone* zone_;
   Instance* simple_value_;
-  StreamingFlowGraphBuilder* builder_;
+  KernelReaderHelper* helper_;
+
+  DISALLOW_COPY_AND_ASSIGN(SimpleExpressionConverter);
 };
 
 RawArray* KernelLoader::MakeFunctionsArray() {
@@ -368,8 +370,8 @@ const Array& KernelLoader::ReadConstantTable() {
                                   true /* finalize */);
   ASSERT(type_translator_.active_class_ == &active_class_);
 
-  ConstantHelper helper(&active_class_, &builder_, &type_translator_,
-                        &translation_helper_, Z, skip_vmservice_library_);
+  ConstantHelper helper(Z, &builder_, &type_translator_, &active_class_,
+                        skip_vmservice_library_);
   return helper.ReadConstantTable();
 }
 

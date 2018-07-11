@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/kernel.h"
-#include "vm/compiler/frontend/kernel_binary_flowgraph.h"
+#include "vm/compiler/frontend/kernel_translation_helper.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-namespace dart {
 
+namespace dart {
 namespace kernel {
 
 bool FieldHasFunctionLiteralInitializer(const Field& field,
@@ -19,106 +19,14 @@ bool FieldHasFunctionLiteralInitializer(const Field& field,
   TranslationHelper translation_helper(Thread::Current());
   translation_helper.InitFromScript(script);
 
-  StreamingFlowGraphBuilder builder(
-      &translation_helper, Script::Handle(zone, field.Script()), zone,
-      ExternalTypedData::Handle(zone, field.KernelData()),
-      field.KernelDataProgramOffset(),
-      /* active_class = */ NULL);
-  builder.SetOffset(field.kernel_offset());
-  kernel::FieldHelper field_helper(&builder);
-  field_helper.ReadUntilExcluding(kernel::FieldHelper::kEnd, true);
-  return field_helper.FieldHasFunctionLiteralInitializer(start, end);
-}
-
-uint32_t KernelSourceFingerprintHelper::CalculateClassFingerprint(
-    const Class& klass) {
-  Zone* zone = Thread::Current()->zone();
-
-  // Handle typedefs.
-  if (klass.IsTypedefClass()) {
-    const Function& func = Function::Handle(zone, klass.signature_function());
-    return CalculateFunctionFingerprint(func);
-  }
-
-  String& name = String::Handle(zone, klass.Name());
-  const Array& fields = Array::Handle(zone, klass.fields());
-  const Array& functions = Array::Handle(zone, klass.functions());
-  const Array& interfaces = Array::Handle(zone, klass.interfaces());
-  AbstractType& type = AbstractType::Handle(zone);
-
-  uint32_t hash = 0;
-  hash = KernelFingerprintHelper::CalculateHash(hash, name.Hash());
-
-  type ^= klass.super_type();
-  if (!type.IsNull()) {
-    name ^= type.Name();
-    hash = KernelFingerprintHelper::CalculateHash(hash, name.Hash());
-  }
-
-  type ^= klass.mixin();
-  if (!type.IsNull()) {
-    name ^= type.Name();
-    hash = KernelFingerprintHelper::CalculateHash(hash, name.Hash());
-  }
-
-  Field& field = Field::Handle(zone);
-  // Calculate fingerprint for the class fields.
-  for (intptr_t i = 0; i < fields.Length(); ++i) {
-    field ^= fields.At(i);
-    uint32_t fingerprint = CalculateFieldFingerprint(field);
-    hash = KernelFingerprintHelper::CalculateHash(hash, fingerprint);
-  }
-
-  // Calculate fingerprint for the class functions.
-  Function& func = Function::Handle(zone);
-  for (intptr_t i = 0; i < functions.Length(); ++i) {
-    func ^= functions.At(i);
-    uint32_t fingerprint = CalculateFunctionFingerprint(func);
-    hash = KernelFingerprintHelper::CalculateHash(hash, fingerprint);
-  }
-
-  // Calculate fingerprint for the interfaces.
-  for (intptr_t i = 0; i < interfaces.Length(); ++i) {
-    type ^= interfaces.At(i);
-    name ^= type.Name();
-    hash = KernelFingerprintHelper::CalculateHash(hash, name.Hash());
-  }
-
-  return hash;
-}
-
-uint32_t KernelSourceFingerprintHelper::CalculateFieldFingerprint(
-    const Field& field) {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  const Script& script = Script::Handle(zone, field.Script());
-
-  TranslationHelper translation_helper(thread);
-  translation_helper.InitFromScript(script);
-
-  KernelFingerprintHelper helper(
-      zone, &translation_helper, script,
+  KernelReaderHelper kernel_reader_helper(
+      zone, &translation_helper, Script::Handle(zone, field.Script()),
       ExternalTypedData::Handle(zone, field.KernelData()),
       field.KernelDataProgramOffset());
-  helper.SetOffset(field.kernel_offset());
-  return helper.CalculateFieldFingerprint();
-}
-
-uint32_t KernelSourceFingerprintHelper::CalculateFunctionFingerprint(
-    const Function& func) {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  const Script& script = Script::Handle(zone, func.script());
-
-  TranslationHelper translation_helper(thread);
-  translation_helper.InitFromScript(script);
-
-  KernelFingerprintHelper helper(
-      zone, &translation_helper, script,
-      ExternalTypedData::Handle(zone, func.KernelData()),
-      func.KernelDataProgramOffset());
-  helper.SetOffset(func.kernel_offset());
-  return helper.CalculateFunctionFingerprint();
+  kernel_reader_helper.SetOffset(field.kernel_offset());
+  kernel::FieldHelper field_helper(&kernel_reader_helper);
+  field_helper.ReadUntilExcluding(kernel::FieldHelper::kEnd, true);
+  return field_helper.FieldHasFunctionLiteralInitializer(start, end);
 }
 
 KernelLineStartsReader::KernelLineStartsReader(

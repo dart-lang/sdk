@@ -38,6 +38,8 @@ class BytecodeMetadataHelper : public MetadataHelper {
 
   TypeTranslator& type_translator_;
   ActiveClass* const active_class_;
+
+  DISALLOW_COPY_AND_ASSIGN(BytecodeMetadataHelper);
 };
 
 }  // namespace kernel

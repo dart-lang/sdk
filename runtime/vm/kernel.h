@@ -114,13 +114,6 @@ class Program {
   DISALLOW_COPY_AND_ASSIGN(Program);
 };
 
-class KernelSourceFingerprintHelper {
- public:
-  static uint32_t CalculateClassFingerprint(const Class& klass);
-  static uint32_t CalculateFieldFingerprint(const Field& field);
-  static uint32_t CalculateFunctionFingerprint(const Function& func);
-};
-
 class KernelLineStartsReader {
  public:
   KernelLineStartsReader(const dart::TypedData& line_starts_data,

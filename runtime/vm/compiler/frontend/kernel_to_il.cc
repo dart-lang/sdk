@@ -104,74 +104,13 @@ FlowGraphBuilder::FlowGraphBuilder(
       breakable_block_(NULL),
       switch_block_(NULL),
       try_finally_block_(NULL),
-      catch_block_(NULL),
-      streaming_flow_graph_builder_(NULL) {
+      catch_block_(NULL) {
   const Script& script =
       Script::Handle(Z, parsed_function->function().script());
   H.InitFromScript(script);
 }
 
 FlowGraphBuilder::~FlowGraphBuilder() {}
-
-Fragment FlowGraphBuilder::TranslateFinallyFinalizers(
-    TryFinallyBlock* outer_finally,
-    intptr_t target_context_depth) {
-  TryFinallyBlock* const saved_block = try_finally_block_;
-  TryCatchBlock* const saved_try_catch_block = try_catch_block_;
-  const intptr_t saved_depth = context_depth_;
-  const intptr_t saved_try_depth = try_depth_;
-
-  Fragment instructions;
-
-  // While translating the body of a finalizer we need to set the try-finally
-  // block which is active when translating the body.
-  while (try_finally_block_ != outer_finally) {
-    // Set correct try depth (in case there are nested try statements).
-    try_depth_ = try_finally_block_->try_depth();
-
-    // Potentially restore the context to what is expected for the finally
-    // block.
-    instructions += AdjustContextTo(try_finally_block_->context_depth());
-
-    // The to-be-translated finalizer has to have the correct try-index (namely
-    // the one outside the try-finally block).
-    bool changed_try_index = false;
-    intptr_t target_try_index = try_finally_block_->try_index();
-    while (CurrentTryIndex() != target_try_index) {
-      try_catch_block_ = try_catch_block_->outer();
-      changed_try_index = true;
-    }
-    if (changed_try_index) {
-      JoinEntryInstr* entry = BuildJoinEntry();
-      instructions += Goto(entry);
-      instructions = Fragment(instructions.entry, entry);
-    }
-
-    intptr_t finalizer_kernel_offset =
-        try_finally_block_->finalizer_kernel_offset();
-    try_finally_block_ = try_finally_block_->outer();
-    instructions += streaming_flow_graph_builder_->BuildStatementAt(
-        finalizer_kernel_offset);
-
-    // We only need to make sure that if the finalizer ended normally, we
-    // continue towards the next outer try-finally.
-    if (!instructions.is_open()) break;
-  }
-
-  if (instructions.is_open() && target_context_depth != -1) {
-    // A target context depth of -1 indicates that the code after this
-    // will not care about the context chain so we can leave it any way we
-    // want after the last finalizer.  That is used when returning.
-    instructions += AdjustContextTo(target_context_depth);
-  }
-
-  try_finally_block_ = saved_block;
-  try_catch_block_ = saved_try_catch_block;
-  context_depth_ = saved_depth;
-  try_depth_ = saved_try_depth;
-
-  return instructions;
-}
 
 Fragment FlowGraphBuilder::EnterScope(intptr_t kernel_offset,
                                       intptr_t* num_context_variables) {
@@ -1333,10 +1272,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   StreamingFlowGraphBuilder streaming_flow_graph_builder(
       this, ExternalTypedData::Handle(Z, function.KernelData()),
       function.KernelDataProgramOffset());
-  streaming_flow_graph_builder_ = &streaming_flow_graph_builder;
-  FlowGraph* result = streaming_flow_graph_builder_->BuildGraph();
-  streaming_flow_graph_builder_ = NULL;
-  return result;
+  return streaming_flow_graph_builder.BuildGraph();
 }
 
 Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
