@@ -900,7 +900,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     if (_kernel != null) {
       _methods ??= _kernel.procedures
           .where((k) =>
-              !k.isForwardingStub &&
+              !k.isSyntheticForwarder &&
               (k.kind == kernel.ProcedureKind.Method ||
                   k.kind == kernel.ProcedureKind.Operator))
           .map((k) => new MethodElementImpl.forKernel(this, k))
