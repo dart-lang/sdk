@@ -46,6 +46,7 @@ import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show NodeEnd, NodeSpan, HoverComment;
 import 'ast_builder.dart';
 import 'element_helpers.dart';
+import 'error_helpers.dart';
 import 'extension_types.dart' show ExtensionTypeSet;
 import 'js_interop.dart';
 import 'js_typeref_codegen.dart' show JSTypeRefCodegen;
@@ -84,6 +85,10 @@ class CodeGenerator extends Object
 
   final CompilerOptions options;
   final StrongTypeSystemImpl rules;
+
+  /// Errors that were produced during compilation, if any.
+  final List<AnalysisError> errors;
+
   JSTypeRep jsTypeRep;
 
   /// The set of libraries we are currently compiling, and the temporaries used
@@ -204,8 +209,8 @@ class CodeGenerator extends Object
 
   final _usedCovariantPrivateMembers = HashSet<ExecutableElement>();
 
-  CodeGenerator(
-      AnalysisContext c, this.summaryData, this.options, this._extensionTypes)
+  CodeGenerator(AnalysisContext c, this.summaryData, this.options,
+      this._extensionTypes, this.errors)
       : context = c,
         rules = StrongTypeSystemImpl(c.typeProvider),
         types = c.typeProvider,
@@ -252,18 +257,53 @@ class CodeGenerator extends Object
   ///
   /// Takes the metadata for the build unit, as well as resolved trees and
   /// errors, and computes the output module code and optionally the source map.
-  JSModuleFile compile(BuildUnit unit, List<CompilationUnit> compilationUnits,
-      List<String> errors) {
+  JSModuleFile compile(BuildUnit unit, List<CompilationUnit> compilationUnits) {
     _buildUnit = unit;
     _libraryRoot = _buildUnit.libraryRoot;
     if (!_libraryRoot.endsWith(path.separator)) {
       _libraryRoot += path.separator;
     }
 
-    var module = _emitModule(compilationUnits, unit.name);
-    var dartApiSummary = _summarizeModule(compilationUnits);
+    invalidModule() =>
+        JSModuleFile.invalid(unit.name, formatErrors(context, errors), options);
 
-    return JSModuleFile(unit.name, errors, options, module, dartApiSummary);
+    if (!options.unsafeForceCompile && errors.any(_isFatalError)) {
+      return invalidModule();
+    }
+
+    try {
+      var module = _emitModule(compilationUnits, unit.name);
+      if (!options.unsafeForceCompile && errors.any(_isFatalError)) {
+        return invalidModule();
+      }
+
+      var dartApiSummary = _summarizeModule(compilationUnits);
+      return JSModuleFile(unit.name, formatErrors(context, errors), options,
+          module, dartApiSummary);
+    } catch (e) {
+      if (errors.any(_isFatalError)) {
+        // Force compilation failed.  Suppress the exception and report
+        // the static errors instead.
+        assert(options.unsafeForceCompile);
+        return invalidModule();
+      }
+      rethrow;
+    }
+  }
+
+  bool _isFatalError(AnalysisError e) {
+    if (errorSeverity(context, e) != ErrorSeverity.ERROR) return false;
+
+    // These errors are not fatal in the REPL compile mode as we
+    // allow access to private members across library boundaries
+    // and those accesses will show up as undefined members unless
+    // additional analyzer changes are made to support them.
+    // TODO(jacobr): consider checking that the identifier name
+    // referenced by the error is private.
+    return !options.replCompile ||
+        (e.errorCode != StaticTypeWarningCode.UNDEFINED_GETTER &&
+            e.errorCode != StaticTypeWarningCode.UNDEFINED_SETTER &&
+            e.errorCode != StaticTypeWarningCode.UNDEFINED_METHOD);
   }
 
   List<int> _summarizeModule(List<CompilationUnit> units) {
@@ -4778,8 +4818,10 @@ class CodeGenerator extends Object
   int _asIntInRange(Expression expr, int low, int high) {
     expr = expr.unParenthesized;
     if (expr is IntegerLiteral) {
-      var value = expr.value;
-      if (value != null && value >= low && value <= high) {
+      var value = _intValueForJS(expr);
+      if (value != null &&
+          value >= BigInt.from(low) &&
+          value <= BigInt.from(high)) {
         return expr.value;
       }
       return null;
@@ -4804,8 +4846,9 @@ class CodeGenerator extends Object
 
   bool _isDefinitelyNonNegative(Expression expr) {
     expr = expr.unParenthesized;
-    if (expr is IntegerLiteral && expr.value != null) {
-      return expr.value >= 0;
+    if (expr is IntegerLiteral) {
+      var value = _intValueForJS(expr);
+      return value != null && value >= BigInt.from(0);
     }
     if (_nodeIsBitwiseOperation(expr)) return true;
     // TODO(sra): Lengths of known list types etc.
@@ -5637,16 +5680,48 @@ class CodeGenerator extends Object
 
   @override
   visitIntegerLiteral(IntegerLiteral node) {
-    // The analyzer is using int.parse and, in the the VM's new
-    // 64-bit mode, it's silently failing if the Literal is out of bounds.
-    // If the value is null, fall back on the string representation.  This
-    // is also fudging the number, but consistent with the old behavior.
-    // Ideally, this is a static error.
-    // TODO(vsm): Remove this hack.
-    if (node.value != null) {
-      return js.number(node.value);
+    // TODO(jmesserly): this behaves differently if Analyzer/DDC are run on
+    // dart4web. In that case we may report an error from the analyzer side
+    // (because `int.tryParse` fails). We could harden this by always parsing
+    // from `node.literal.lexeme`, as done below.
+    var value = _intValueForJS(node);
+    if (value == null) {
+      assert(options.unsafeForceCompile);
+      value = BigInt.parse(node.literal.lexeme).toUnsigned(64);
     }
-    return JS.LiteralNumber('${node.literal}');
+    // Report an error if the integer cannot be represented in a JS double.
+    var valueInJS = BigInt.from(value.toDouble());
+    if (value != valueInJS) {
+      var lexeme = node.literal.lexeme;
+      var nearest = (lexeme.startsWith("0x") || lexeme.startsWith("0X"))
+          ? '0x${valueInJS.toRadixString(16)}'
+          : '$valueInJS';
+      errors.add(AnalysisError(_currentCompilationUnit.source, node.offset,
+          node.length, invalidJSInteger, [lexeme, nearest]));
+    }
+    return JS.LiteralNumber('$valueInJS');
+  }
+
+  /// Returns the integer value for [node].
+  BigInt _intValueForJS(IntegerLiteral node) {
+    // The Dart VM uses signed 64-bit integers, but dart4web supports unsigned
+    // 64-bit integer hex literals if they can be represented in JavaScript.
+    // So we need to reinterpret the value as an unsigned 64-bit integer.
+    //
+    // The current Dart 2.0 rules are:
+    //
+    // - A decimal literal (maybe including a leading minus) is allowed if its
+    //   numerical value is in the signed 64-bit range (-2^63..2^63-1).
+    // - A signed hexadecimal literal is allowed if its numerical value is in
+    //   the signed 64-bit ranged.
+    // - An unsigned hexadecimal literal is allowed if its numerical value is in
+    //   the *unsigned* 64-bit range (0..2^64-1).
+    //
+    // The decimal-vs-hex distinction has already been taken care of by
+    // Analyzer, so we're only concerned with ensuring those unsigned values are
+    // correctly interpreted.
+    var value = node.value;
+    return value != null ? BigInt.from(value).toUnsigned(64) : null;
   }
 
   @override

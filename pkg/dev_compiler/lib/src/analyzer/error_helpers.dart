@@ -2,10 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/analyzer.dart' show AnalysisError, ErrorSeverity;
+import 'package:analyzer/analyzer.dart'
+    show AnalysisError, ErrorSeverity, ErrorType, StrongModeCode;
 import 'package:analyzer/source/error_processor.dart' show ErrorProcessor;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:path/path.dart' as path;
+
+/// Sorts and formats errors, returning the error messages.
+List<String> formatErrors(AnalysisContext context, List<AnalysisError> errors) {
+  sortErrors(context, errors);
+  var result = <String>[];
+  for (var e in errors) {
+    var m = formatError(context, e);
+    if (m != null) result.add(m);
+  }
+  return result;
+}
 
 // TODO(jmesserly): this code was taken from analyzer_cli.
 // It really should be in some common place so we can share it.
@@ -64,3 +76,14 @@ ErrorSeverity errorSeverity(AnalysisContext context, AnalysisError error) {
           ?.severity ??
       error.errorCode.errorSeverity;
 }
+
+const invalidImportDartMirrors = StrongModeCode(
+    ErrorType.COMPILE_TIME_ERROR,
+    'IMPORT_DART_MIRRORS',
+    'Cannot import "dart:mirrors" in web applications (https://goo.gl/R1anEs).');
+
+const invalidJSInteger = StrongModeCode(
+    ErrorType.COMPILE_TIME_ERROR,
+    'INVALID_JS_INTEGER',
+    "The integer literal '{0}' can't be represented exactly in JavaScript. "
+    "The nearest value that can be represented exactly is '{1}'.");

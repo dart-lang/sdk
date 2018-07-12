@@ -284,43 +284,15 @@ void_type_usage_test/paren_literal_map_key_init: MissingCompileTimeError
 void_type_usage_test/paren_literal_map_value_init: MissingCompileTimeError
 void_type_usage_test/paren_return: MissingCompileTimeError
 void_type_usage_test/paren_void_init: MissingCompileTimeError
-web_int_literals_test/01: MissingCompileTimeError
-web_int_literals_test/02: MissingCompileTimeError
-web_int_literals_test/03: MissingCompileTimeError
-web_int_literals_test/10: MissingCompileTimeError
-web_int_literals_test/11: MissingCompileTimeError
-web_int_literals_test/12: MissingCompileTimeError
-web_int_literals_test/13: MissingCompileTimeError
-web_int_literals_test/14: MissingCompileTimeError
-web_int_literals_test/20: MissingCompileTimeError
-web_int_literals_test/21: MissingCompileTimeError
-web_int_literals_test/22: MissingCompileTimeError
-web_int_literals_test/23: MissingCompileTimeError
-web_int_literals_test/24: MissingCompileTimeError
-web_int_literals_test/25: MissingCompileTimeError
-web_int_literals_test/26: MissingCompileTimeError
-web_int_literals_test/27: MissingCompileTimeError
-web_int_literals_test/28: MissingCompileTimeError
-web_int_literals_test/29: MissingCompileTimeError
-web_int_literals_test/61: MissingCompileTimeError
-web_int_literals_test/62: MissingCompileTimeError
-web_int_literals_test/63: MissingCompileTimeError
-web_int_literals_test/64: MissingCompileTimeError
-web_int_literals_test/65: MissingCompileTimeError
-web_int_literals_test/70: MissingCompileTimeError
 
 [ $compiler == dartdevk ]
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
-arithmetic_int64_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
 async_return_types_test/nestedFuture: MissingCompileTimeError
 async_return_types_test/wrongReturnType: MissingCompileTimeError
-bit_operations_test/03: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-bit_operations_test/04: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-bit_operations_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 built_in_identifier_type_annotation_test/dynamic-funarg: RuntimeError # Issue 30450, test name contains hyphen
 built_in_identifier_type_annotation_test/dynamic-funret: RuntimeError # Issue 30450, test name contains hyphen
 built_in_identifier_type_annotation_test/dynamic-list: RuntimeError # Issue 30450, test name contains hyphen
@@ -376,8 +348,6 @@ deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
-deopt_inlined_function_lazy_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-deopt_smi_op_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in ddk
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
@@ -404,8 +374,6 @@ generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Warning: Superclass has no method named 'foo'.
 generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
 generic_test/01: MissingCompileTimeError # front end does not validate `extends`
-guess_cid_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-identical_closure2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 identical_const_test/01: MissingCompileTimeError
 identical_const_test/02: MissingCompileTimeError
 identical_const_test/03: MissingCompileTimeError
@@ -422,7 +390,6 @@ implicit_creation/implicit_const_not_default_values_test/e30: Pass
 implicit_creation/implicit_const_not_default_values_test/e6: Pass
 implicit_creation/implicit_const_not_default_values_test/e9: Pass
 instantiate_tearoff_of_call_test: CompileTimeError
-int2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 issue18628_2_test/01: MissingCompileTimeError
 issue31596_override_test/07: MissingCompileTimeError
 issue31596_override_test/08: MissingCompileTimeError
@@ -431,7 +398,6 @@ issue31596_super_test/02: MissingCompileTimeError
 issue31596_super_test/03: CompileTimeError
 issue31596_super_test/04: MissingCompileTimeError
 issue31596_super_test/05: RuntimeError
-list_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 malbounded_instantiation_test/01: MissingCompileTimeError
 malbounded_instantiation_test/02: MissingCompileTimeError
 malbounded_instantiation_test/03: MissingCompileTimeError
@@ -452,9 +418,6 @@ map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
 method_override_test: CompileTimeError # Issue 31616
-mint_arithmetic_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-mint_compares_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-mint_identical_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
@@ -535,7 +498,6 @@ named_constructor_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 no_such_method_mock_test: RuntimeError # Issue 31426 - Kernel does not introduce nSM for implemented fields.
 null_no_such_method_test: CompileTimeError # Issue 31533
-number_identity_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 override_field_test/02: MissingCompileTimeError
 override_inheritance_field_test/04: CompileTimeError # Issue 31616
 override_inheritance_field_test/06: CompileTimeError # Issue 31616
@@ -616,6 +578,7 @@ assertion_initializer_const_error2_test/*: SkipByDesign # DDC does not support n
 [ $compiler == dartdevc || $compiler == dartdevk ]
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
+arithmetic_int64_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 async_covariant_type_test: RuntimeError # Check too late
 async_star_cancel_while_paused_test: RuntimeError # Issue 29920; Uncaught Expect.listEquals(list length, expected: <4>, actual: <3>) fails: Next element <*3>
 async_star_pause_test: RuntimeError # Uncaught Expect.listEquals(at index 2, expected: <0+>, actual: <0!>) fails
@@ -625,6 +588,9 @@ asyncstar_throw_in_catch_test: Skip # Times out. Issue 29920
 bit_operations_test: RuntimeError # No bigints on web.; Expect.equals(expected: <-25>, actual: <4294967271>) fails.
 bit_operations_test/01: MissingCompileTimeError
 bit_operations_test/02: MissingCompileTimeError
+bit_operations_test/03: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+bit_operations_test/04: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+bit_operations_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 branch_canonicalization_test: RuntimeError # Issue 29920; Expect.equals(expected: <0>, actual: <1>) fails.
 built_in_identifier_prefix_test: CompileTimeError
 canonical_const2_test: RuntimeError # Ints and doubles are unified.; Expect.isFalse(true) fails.
@@ -652,6 +618,8 @@ deferred_load_constants_test/none: RuntimeError # Issue 27394; Expect.throws fai
 deferred_not_loaded_check_test: RuntimeError # Issue 27777; Expect.throws fails: Did not throw
 deferred_redirecting_factory_test: RuntimeError # Issue 27777; Uncaught Expect.throws fails: Did not throw
 deferred_static_seperate_test: RuntimeError # Issue 27777; Expect.throws fails: Did not throw
+deopt_inlined_function_lazy_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+deopt_smi_op_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 double_int_to_string_test: RuntimeError # Issue 29920; Expect.equals(expected: <0.0>, actual: <0>) fails.
 double_to_string_as_fixed2_test/none: RuntimeError # Issue 29920; Expect.throws(ArgumentError) fails: Did not throw
 example_constructor_test: RuntimeError # Expect.equals(expected: <0 1 2 3 4 5 6 >, actual: <0 3 4 1 2 5 6 >) fails.
@@ -671,10 +639,13 @@ generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 
 generic_instanceof2_test: RuntimeError # Issue 29920; ReferenceError: FooOfK$String is not defined
 generic_is_check_test: RuntimeError # Issue 29920; Expect.isTrue(false) fails.
 generic_tearoff_test: CompileTimeError
+guess_cid_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+identical_closure2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 identical_closure2_test: RuntimeError # Issue 29920; Expect.isFalse(true) fails.
 infinite_switch_label_test: RuntimeError # Issue 29920; NoSuchMethodError: method not found: '<Unexpected Null Value>'
 infinity_test: RuntimeError # Issue 29920; Expect.isFalse(true) fails.
 instance_creation_in_function_annotation_test: RuntimeError # Issue 29920; UnimplementedError: JsClosureMirror.function unimplemented
+int2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int64_literal_test/*: Skip # This is testing Dart 2.0 int64 semantics.
 integer_division_by_zero_test: RuntimeError # Issue 29920; Expect.throws: Unexpected 'Unsupported operation: Infinity'
 internal_library_test/02: Crash
@@ -687,10 +658,14 @@ left_shift_test: RuntimeError # Ints and doubles are unified.; Expect.equals(exp
 library_env_test/has_io_support: RuntimeError, OK # Intended to fail, bool.fromEnvironment("dart.library.async") is false
 library_env_test/has_mirror_support: RuntimeError, OK # Intended to fail, bool.fromEnvironment("dart.library.async") is false
 library_env_test/has_no_html_support: RuntimeError, OK # Intended to fail, bool.fromEnvironment("dart.library.async") is false
+list_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 local_function2_test/none: RuntimeError # ReferenceError: TToNull is not defined
 local_function3_test/none: RuntimeError # Expect.equals(expected: <true>, actual: <false>) fails.
 local_function_test/none: RuntimeError # Expect.equals(expected: <true>, actual: <false>) fails.
+mint_arithmetic_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 mint_arithmetic_test: RuntimeError # Issue 29920; Expect.equals(expected: <4294967297>, actual: <1>) fails.
+mint_compares_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+mint_identical_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 modulo_test: RuntimeError # Ints and doubles are unified.; Expect.throws fails: Did not throw
 multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/04r: MissingCompileTimeError
@@ -701,6 +676,7 @@ nan_identical_test: RuntimeError # Issue 29920; Unsupported operation: Uint64 ac
 nested_switch_label_test: RuntimeError # Issue 29920; UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
 null_test/mirrors: RuntimeError # Uses mirrors.; ReferenceError: GenericOfT is not defined
 number_identity2_test: RuntimeError # Issue 29920; Expect.isTrue(false) fails.
+number_identity_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 numbers_test: RuntimeError # Issue 29920; Expect.equals(expected: <false>, actual: <true>) fails.
 override_field_test/03: MissingCompileTimeError
 parser_quirks_test: CompileTimeError

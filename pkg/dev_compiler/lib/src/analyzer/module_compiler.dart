@@ -7,7 +7,7 @@ import 'dart:convert' show json;
 import 'dart:io' show File;
 
 import 'package:analyzer/analyzer.dart'
-    show AnalysisError, CompilationUnit, ErrorSeverity, ErrorType;
+    show AnalysisError, CompilationUnit, ErrorSeverity;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/element/element.dart'
     show LibraryElement, UriReferencedElement;
@@ -16,8 +16,7 @@ import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
 import 'package:analyzer/src/context/builder.dart' show ContextBuilder;
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
-import 'package:analyzer/src/error/codes.dart'
-    show StaticTypeWarningCode, StrongModeCode;
+import 'package:analyzer/src/error/codes.dart' show StaticTypeWarningCode;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
@@ -42,7 +41,7 @@ import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
 import 'code_generator.dart' show CodeGenerator;
 import 'context.dart' show AnalyzerOptions, createSourceFactory;
-import 'error_helpers.dart' show errorSeverity, formatError, sortErrors;
+import 'error_helpers.dart';
 import 'extension_types.dart' show ExtensionTypeSet;
 
 /// Compiles a set of Dart files into a single JavaScript module.
@@ -214,32 +213,9 @@ class ModuleCompiler {
       }
     }
 
-    sortErrors(context, errors);
-
-    var messages = <String>[];
-    for (var e in errors) {
-      var m = formatError(context, e);
-      if (m != null) messages.add(m);
-    }
-
-    if (!options.unsafeForceCompile &&
-        errors.any((e) => _isFatalError(e, options))) {
-      return JSModuleFile.invalid(unit.name, messages, options);
-    }
-
-    try {
-      var codeGenerator =
-          CodeGenerator(context, summaryData, options, _extensionTypes);
-      return codeGenerator.compile(unit, trees, messages);
-    } catch (e) {
-      if (errors.any((e) => _isFatalError(e, options))) {
-        // Force compilation failed.  Suppress the exception and report
-        // the static errors instead.
-        assert(options.unsafeForceCompile);
-        return JSModuleFile.invalid(unit.name, messages, options);
-      }
-      rethrow;
-    }
+    var codeGenerator =
+        CodeGenerator(context, summaryData, options, _extensionTypes, errors);
+    return codeGenerator.compile(unit, trees);
   }
 }
 
@@ -608,8 +584,3 @@ Uri _sourceToUri(String source) {
       return Uri.file(path.absolute(source));
   }
 }
-
-const invalidImportDartMirrors = StrongModeCode(
-    ErrorType.COMPILE_TIME_ERROR,
-    'IMPORT_DART_MIRRORS',
-    'Cannot import "dart:mirrors" in web applications (https://goo.gl/R1anEs).');

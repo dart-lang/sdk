@@ -12,10 +12,7 @@ symbol_test/none: RuntimeError
 unicode_test: RuntimeError
 
 [ $compiler == dart2analyzer ]
-bigint_from_test: CompileTimeError # Issue 32585
-compare_to2_test: CompileTimeError # invalid test
 int_parse_radix_bad_handler_test: MissingCompileTimeError
-int_try_parse_test: CompileTimeError # Issue 32585
 iterable_element_at_test/static: Pass
 num_sign_test: Crash, Pass # Issue 31768
 
@@ -28,38 +25,9 @@ list_unmodifiable_test: Pass, RuntimeError # Issue 28712
 error_stack_trace_test/static: MissingCompileTimeError
 
 [ $compiler == dartdevk ]
-bigint_from_test: RuntimeError # Issue 32589
-bigint_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-bit_twiddling_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 bool_from_environment2_test/03: Crash
-compare_to2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-date_time_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-double_ceil_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-double_floor_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-double_round_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-double_truncate_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-growable_list_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_ceil_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_ceil_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_floor_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_floor_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_from_environment_int64_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_modulo_arith_test/modPow: RuntimeError
 int_modulo_arith_test/none: RuntimeError
-int_parse_radix_int64_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_parse_radix_int64_test/02: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_parse_radix_int64_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_round_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_round_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_to_int_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_truncate_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_truncate_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-integer_arith_vm_test/modPow: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-integer_arith_vm_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-integer_to_string_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-num_parse_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-num_parse_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-num_sign_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 string_from_environment3_test/03: Crash
 
 [ $compiler == precompiler ]
@@ -302,9 +270,7 @@ bool_from_environment2_test/03: MissingCompileTimeError
 string_from_environment3_test/03: MissingCompileTimeError
 
 [ $compiler == dartdevc && $runtime != none ]
-bigint_from_test: CompileTimeError # Issue 32585
 compare_to2_test: CompileTimeError # invalid test
-int_try_parse_test: CompileTimeError # Issue 32585
 symbol_operator_test: RuntimeError # Issue 29921
 
 [ $compiler != dartdevc && $compiler != dartdevk && $checked && !$strong ]
@@ -415,74 +381,6 @@ integer_parsed_div_rem_vm_test: RuntimeError # Issue 29921
 integer_parsed_mul_div_vm_test: RuntimeError # Issue 29921
 regress_r21715_test: RuntimeError # Requires fixed-size int64 support.
 typed_data_with_limited_ints_test: Skip # Requires fixed-size int64 support.
-
-[ $runtime != none && ($compiler == dartdevc || $compiler == dartdevk) ]
-bigint_test: Pass, Slow, Timeout
-compare_to2_test: RuntimeError # Issue 30170
-date_time10_test: RuntimeError # Issue 29921
-error_stack_trace_test/nullThrown: RuntimeError # .stackTrace not present for exception caught from 'throw null;'
-hash_set_test/01: RuntimeError # Issue 29921
-int_modulo_arith_test/none: RuntimeError # Issue 29921
-int_parse_radix_int64_test/02: RuntimeError
-int_parse_radix_test/01: RuntimeError # Issue 29921
-int_parse_with_limited_ints_test: Skip # Requires fixed-size int64 support.
-integer_arith_vm_test/modPow: RuntimeError # Issue 30170
-integer_parsed_arith_vm_test: RuntimeError # Issue 29921
-integer_to_radix_string_test: RuntimeError # Issue 29921
-integer_to_string_test/01: RuntimeError # Issue 29921
-iterable_return_type_test/02: RuntimeError # Issue 29921
-list_concurrent_modify_test: RuntimeError # DDC uses ES6 array iterators so it does not issue this
-list_removeat_test: RuntimeError # Issue 29921
-main_test: RuntimeError # Issue 29921
-nan_infinity_test/01: RuntimeError # Issue 29921
-regexp/alternative-length-miscalculation_test: RuntimeError # Issue 29921
-regexp/ascii-regexp-subject_test: RuntimeError # Issue 29921
-regexp/bol-with-multiline_test: RuntimeError # Issue 29921
-regexp/capture-3_test: RuntimeError # Issue 29921
-regexp/char-insensitive_test: RuntimeError # Issue 29921
-regexp/character-match-out-of-order_test: RuntimeError # Issue 29921
-regexp/compile-crash_test: RuntimeError # Issue 29921
-regexp/default_arguments_test: RuntimeError # Issue 29921
-regexp/early-acid3-86_test: RuntimeError # Issue 29921
-regexp/ecma-regex-examples_test: RuntimeError # Issue 29921
-regexp/extended-characters-match_test: RuntimeError # Issue 29921
-regexp/extended-characters-more_test: RuntimeError # Issue 29921
-regexp/find-first-asserted_test: RuntimeError # Issue 29921
-regexp/invalid-range-in-class_test: RuntimeError # Issue 29921
-regexp/look-ahead_test: RuntimeError # Issue 29921
-regexp/loop-capture_test: RuntimeError # Issue 29921
-regexp/malformed-escapes_test: RuntimeError # Issue 29921
-regexp/many-brackets_test: RuntimeError # Issue 29921
-regexp/negative-special-characters_test: RuntimeError # Issue 29921
-regexp/no-extensions_test: RuntimeError # Issue 29921
-regexp/non-bmp_test: RuntimeError # Issue 29921
-regexp/non-capturing-backtracking_test: RuntimeError # Issue 29921
-regexp/non-capturing-groups_test: RuntimeError # Issue 29921
-regexp/non-character_test: RuntimeError # Issue 29921
-regexp/non-greedy-parentheses_test: RuntimeError # Issue 29921
-regexp/pcre-test-4_test: RuntimeError # Issue 29921
-regexp/quantified-assertions_test: RuntimeError # Issue 29921
-regexp/range-bound-ffff_test: RuntimeError # Issue 29921
-regexp/range-out-of-order_test: RuntimeError # Issue 29921
-regexp/ranges-and-escaped-hyphens_test: RuntimeError # Issue 29921
-regexp/regress-6-9-regexp_test: RuntimeError # Issue 29921
-regexp/regress-regexp-codeflush_test: RuntimeError # Issue 29921
-regexp/regress-regexp-construct-result_test: RuntimeError # Issue 29921
-regexp/repeat-match-waldemar_test: RuntimeError # Issue 29921
-regexp/results-cache_test: RuntimeError # Issue 29921
-regexp/stack-overflow2_test: RuntimeError # Issue 29921
-regexp/stack-overflow_test: RuntimeError # Issue 29921
-regexp/unicode-handling_test: RuntimeError # Issue 29921
-regexp/zero-length-alternatives_test: RuntimeError # Issue 29921
-regress_r21715_test: RuntimeError # Issue 29921
-string_operations_with_null_test: RuntimeError # Issue 29921
-symbol_operator_test/03: RuntimeError # Issue 29921
-symbol_reserved_word_test/06: RuntimeError # Issue 29921
-symbol_reserved_word_test/09: RuntimeError # Issue 29921
-symbol_reserved_word_test/12: RuntimeError # Issue 29921
-symbol_test/none: RuntimeError # Issue 29921
-typed_data_with_limited_ints_test: Skip # Requires fixed-size int64 support.
-uri_parse_test: Pass, Slow
 
 [ $runtime == vm && !$strong ]
 collection_of_test: RuntimeError
@@ -601,6 +499,102 @@ from_environment_const_type_undefined_test/13: MissingCompileTimeError
 from_environment_const_type_undefined_test/14: MissingCompileTimeError
 from_environment_const_type_undefined_test/16: MissingCompileTimeError
 iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
+
+[ $compiler == dartdevc || $compiler == dartdevk ]
+bigint_from_test: RuntimeError # Issue 32589
+bigint_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+bit_twiddling_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+compare_to2_test: RuntimeError # Issue 30170
+compare_to2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+date_time10_test: RuntimeError # Issue 29921
+date_time_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+double_ceil_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+double_floor_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+double_round_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+double_truncate_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+error_stack_trace_test/nullThrown: RuntimeError # .stackTrace not present for exception caught from 'throw null;'
+growable_list_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+hash_set_test/01: RuntimeError # Issue 29921
+int_ceil_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_ceil_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_floor_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_floor_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_from_environment_int64_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_modulo_arith_test/none: RuntimeError # Issue 29921
+int_parse_radix_int64_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_parse_radix_int64_test/02: RuntimeError
+int_parse_radix_int64_test/02: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_parse_radix_int64_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_parse_radix_test/01: RuntimeError # Issue 29921
+int_parse_with_limited_ints_test: Skip # Requires fixed-size int64 support.
+int_round_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_round_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_to_int_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_truncate_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int_truncate_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+integer_arith_vm_test/modPow: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+integer_arith_vm_test/modPow: RuntimeError # Issue 30170
+integer_arith_vm_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+integer_parsed_arith_vm_test: RuntimeError # Issue 29921
+integer_to_radix_string_test: RuntimeError # Issue 29921
+integer_to_string_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+integer_to_string_test/01: RuntimeError # Issue 29921
+iterable_return_type_test/02: RuntimeError # Issue 29921
+list_concurrent_modify_test: RuntimeError # DDC uses ES6 array iterators so it does not issue this
+list_removeat_test: RuntimeError # Issue 29921
+main_test: RuntimeError # Issue 29921
+nan_infinity_test/01: RuntimeError # Issue 29921
+num_parse_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+num_parse_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+num_sign_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+regexp/alternative-length-miscalculation_test: RuntimeError # Issue 29921
+regexp/ascii-regexp-subject_test: RuntimeError # Issue 29921
+regexp/bol-with-multiline_test: RuntimeError # Issue 29921
+regexp/capture-3_test: RuntimeError # Issue 29921
+regexp/char-insensitive_test: RuntimeError # Issue 29921
+regexp/character-match-out-of-order_test: RuntimeError # Issue 29921
+regexp/compile-crash_test: RuntimeError # Issue 29921
+regexp/default_arguments_test: RuntimeError # Issue 29921
+regexp/early-acid3-86_test: RuntimeError # Issue 29921
+regexp/ecma-regex-examples_test: RuntimeError # Issue 29921
+regexp/extended-characters-match_test: RuntimeError # Issue 29921
+regexp/extended-characters-more_test: RuntimeError # Issue 29921
+regexp/find-first-asserted_test: RuntimeError # Issue 29921
+regexp/invalid-range-in-class_test: RuntimeError # Issue 29921
+regexp/look-ahead_test: RuntimeError # Issue 29921
+regexp/loop-capture_test: RuntimeError # Issue 29921
+regexp/malformed-escapes_test: RuntimeError # Issue 29921
+regexp/many-brackets_test: RuntimeError # Issue 29921
+regexp/negative-special-characters_test: RuntimeError # Issue 29921
+regexp/no-extensions_test: RuntimeError # Issue 29921
+regexp/non-bmp_test: RuntimeError # Issue 29921
+regexp/non-capturing-backtracking_test: RuntimeError # Issue 29921
+regexp/non-capturing-groups_test: RuntimeError # Issue 29921
+regexp/non-character_test: RuntimeError # Issue 29921
+regexp/non-greedy-parentheses_test: RuntimeError # Issue 29921
+regexp/pcre-test-4_test: RuntimeError # Issue 29921
+regexp/quantified-assertions_test: RuntimeError # Issue 29921
+regexp/range-bound-ffff_test: RuntimeError # Issue 29921
+regexp/range-out-of-order_test: RuntimeError # Issue 29921
+regexp/ranges-and-escaped-hyphens_test: RuntimeError # Issue 29921
+regexp/regress-6-9-regexp_test: RuntimeError # Issue 29921
+regexp/regress-regexp-codeflush_test: RuntimeError # Issue 29921
+regexp/regress-regexp-construct-result_test: RuntimeError # Issue 29921
+regexp/repeat-match-waldemar_test: RuntimeError # Issue 29921
+regexp/results-cache_test: RuntimeError # Issue 29921
+regexp/stack-overflow2_test: RuntimeError # Issue 29921
+regexp/stack-overflow_test: RuntimeError # Issue 29921
+regexp/unicode-handling_test: RuntimeError # Issue 29921
+regexp/zero-length-alternatives_test: RuntimeError # Issue 29921
+regress_r21715_test: RuntimeError # Issue 29921
+string_operations_with_null_test: RuntimeError # Issue 29921
+symbol_operator_test/03: RuntimeError # Issue 29921
+symbol_reserved_word_test/06: RuntimeError # Issue 29921
+symbol_reserved_word_test/09: RuntimeError # Issue 29921
+symbol_reserved_word_test/12: RuntimeError # Issue 29921
+symbol_test/none: RuntimeError # Issue 29921
+typed_data_with_limited_ints_test: Skip # Requires fixed-size int64 support.
+uri_parse_test: Pass, Slow
 
 [ $compiler == precompiler || $runtime == vm && !$checked && !$strong ]
 int_parse_radix_test/badTypes: RuntimeError # wrong exception returned
