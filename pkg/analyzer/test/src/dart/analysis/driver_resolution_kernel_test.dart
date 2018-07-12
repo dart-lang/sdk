@@ -35,11 +35,6 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
     await super.test_annotation_onFormalParameter_redirectingFactory();
   }
 
-  @failingTest
-  @override
-  test_annotation_onVariableList_topLevelVariable() =>
-      super.test_annotation_onVariableList_topLevelVariable();
-
   @override
   @failingTest
   test_local_type_parameter_reference_function_named_parameter_type() {

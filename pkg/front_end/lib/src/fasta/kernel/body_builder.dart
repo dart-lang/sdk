@@ -1893,16 +1893,24 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
       push(variable);
     } else {
-      List<VariableDeclaration> variables = popList(count,
-          new List<VariableDeclaration>.filled(count, null, growable: true));
+      List<VariableDeclarationJudgment> variables = popList(
+          count,
+          new List<VariableDeclarationJudgment>.filled(count, null,
+              growable: true));
       constantContext = pop();
       currentLocalVariableType = pop();
       currentLocalVariableModifiers = pop();
       List<Expression> annotations = pop();
       if (annotations != null) {
-        for (VariableDeclaration variable in variables) {
+        bool isFirstVariable = true;
+        for (VariableDeclarationJudgment variable in variables) {
           for (Expression annotation in annotations) {
             variable.addAnnotation(annotation);
+          }
+          if (isFirstVariable) {
+            isFirstVariable = false;
+          } else {
+            variable.infersAnnotations = false;
           }
         }
       }

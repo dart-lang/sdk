@@ -3388,6 +3388,12 @@ class VariableDeclarationJudgment extends VariableDeclaration
 
   Object binder;
 
+  /// The same [annotations] list is used for all [VariableDeclarationJudgment]s
+  /// of a variable declaration statement. But we need to perform inference
+  /// only once. So, we set this flag to `false` for the second and subsequent
+  /// judgments.
+  bool infersAnnotations = true;
+
   VariableDeclarationJudgment(String name, this._functionNestingLevel,
       {Expression initializer,
       DartType type,
@@ -3427,7 +3433,9 @@ class VariableDeclarationJudgment extends VariableDeclaration
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory) {
     if (annotationJudgments.isNotEmpty) {
-      inferrer.inferMetadataKeepingHelper(factory, annotationJudgments);
+      if (infersAnnotations) {
+        inferrer.inferMetadataKeepingHelper(factory, annotationJudgments);
+      }
 
       // After the inference was done on the annotations, we may clone them for
       // this instance of VariableDeclaration in order to avoid having the same
