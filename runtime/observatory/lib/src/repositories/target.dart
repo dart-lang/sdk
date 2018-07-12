@@ -51,7 +51,7 @@ class TargetRepository implements M.TargetRepository {
     _store();
   }
 
-  Iterable<M.Target> list() => _list.toList<M.Target>();
+  Iterable<M.Target> list() => _list.toList();
 
   void setCurrent(M.Target t) {
     SC.WebSocketVMTarget target = t as SC.WebSocketVMTarget;

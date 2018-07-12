@@ -1929,30 +1929,145 @@
           "script": "tools/build.py",
           "arguments": ["create_sdk"]
         },
+
         {
-          "name": "Analyze pkg/analysis_server",
+          "name": "analyze pkg/analysis_server",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": ["--no-hints","pkg/analysis_server"]
+          "arguments": ["pkg/analysis_server"]
         },
         {
-          "name": "Analyze pkg/analyzer",
+          "name": "analyze pkg/analysis_server_client",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": ["--no-hints","pkg/analyzer"]
+          "arguments": ["pkg/analysis_server_client"]
         },
         {
-          "name": "analyze tests",
-          "arguments": [
-            "--compiler=dart2analyzer",
-            "--use-sdk"
-          ]
+          "name": "analyze pkg/analyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["pkg/analyzer"]
         },
         {
-          "name": "analyze pkg tests",
-          "arguments": [
-            "--compiler=dart2analyzer",
-            "--use-sdk",
-            "pkg"
-          ]
+          "name": "analyze pkg/analyzer_cli",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["pkg/analyzer_cli"]
+        },
+        {
+          "name": "analyze pkg/analyzer_plugin",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["pkg/analyzer_plugin"]
+        },
+        {
+          "name": "analyze pkg/async_helper",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["pkg/async_helper"]
+        },
+        {
+          "name": "analyze pkg/build_integration",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["pkg/build_integration"]
+        },
+        {
+          "name": "analyze pkg/compiler",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["pkg/compiler"]
+        },
+        {
+          "name": "analyze pkg/dart_internal",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["pkg/dart_internal"]
+        },
+        {
+          "name": "analyze pkg/dart_messages",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["pkg/dart_messages"]
+        },
+        {
+          "name": "analyze pkg/dev_compiler",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["pkg/dev_compiler"]
+        },
+        {
+          "name": "analyze pkg/expect",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["pkg/expect"]
+        },
+        {
+          "name": "analyze pkg/front_end",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["pkg/front_end"]
+        },
+        {
+          "name": "analyze pkg/js",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["pkg/js"]
+        },
+        {
+          "name": "analyze pkg/js_ast",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["pkg/js_ast"]
+        },
+        {
+          "name": "analyze pkg/kernel",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["pkg/kernel"]
+        },
+        {
+          "name": "analyze pkg/meta",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["pkg/meta"]
+        },
+        {
+          "name": "analyze pkg/microlytics",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["pkg/microlytics"]
+        },
+        {
+          "name": "analyze pkg/smith",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["pkg/smith"]
+        },
+        {
+          "name": "analyze pkg/sourcemap_testing",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["pkg/sourcemap_testing"]
+        },
+        {
+          "name": "analyze pkg/status_file",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["pkg/status_file"]
+        },
+        {
+          "name": "analyze pkg/telemetry",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["pkg/telemetry"]
+        },
+        {
+          "name": "analyze pkg/testing",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["pkg/testing"]
+        },
+        {
+          "name": "analyze pkg/vm",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["pkg/vm"]
+        },
+        {
+          "name": "analyze tools/gardening",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["tools/gardening"]
+        },
+        {
+          "name": "analyze tools/testing/dart",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["tools/testing/dart"]
+        },
+
+        {
+          "name": "dartanalyzer --batch tests",
+          "arguments": [ "--compiler=dart2analyzer", "--use-sdk" ]
+        },
+        {
+          "name": "dartanalyzer --batch pkg tests",
+          "arguments": [ "--compiler=dart2analyzer", "--use-sdk", "pkg" ]
         }
       ]
     },
@@ -1971,7 +2086,6 @@
           "name": "analyze pkg/analysis_server",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
-            "--no-hints",
             "--use-fasta-parser",
             "pkg/analysis_server"
           ]
@@ -1980,18 +2094,16 @@
           "name": "analyze pkg/analyzer",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
-            "--no-hints",
             "--use-fasta-parser",
             "pkg/analyzer"
           ]
         },
         {
-          "name": "analyze pkg/analyzer_cli/lib",
+          "name": "analyze pkg/analyzer_cli",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
-            "--no-hints",
             "--use-fasta-parser",
-            "pkg/analyzer_cli/lib"
+            "pkg/analyzer_cli"
           ]
         },
         {
