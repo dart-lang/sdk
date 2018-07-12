@@ -2325,14 +2325,17 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void handleThrowExpression(Token throwToken, Token endToken) {
     debugEvent("ThrowExpression");
     Expression expression = popForValue();
+
+    Expression error;
     if (constantContext != ConstantContext.none) {
-      push(deprecated_buildCompileTimeError(
-          "Not a constant expression.", throwToken.charOffset));
-      // TODO(brianwilkerson): For analyzer, we need to produce the error above
-      // but then we need to produce the AST as in the `else` clause below.
-    } else {
-      push(forest.throwExpression(throwToken, expression));
+      error = buildCompileTimeError(
+          fasta.templateNotConstantExpression.withArguments('Throw'),
+          throwToken.offset,
+          throwToken.length);
     }
+
+    push(new ThrowJudgment(throwToken, expression, desugaredError: error)
+      ..fileOffset = offsetForToken(throwToken));
   }
 
   @override

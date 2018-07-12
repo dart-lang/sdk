@@ -4247,6 +4247,23 @@ const dynamic vThis = #invalidConst;
 ''');
   }
 
+  test_const_topLevel_throw() async {
+    shouldCompareLibraryElements = false;
+    var library = await checkLibrary(r'''
+const c = throw 42;
+''');
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+const dynamic c = #invalidConst;
+''');
+    } else {
+      // This is a bug.
+      checkElementText(library, r'''
+const dynamic c;
+''');
+    }
+  }
+
   test_const_topLevel_typedList() async {
     var library = await checkLibrary(r'''
 const vNull = const <Null>[];

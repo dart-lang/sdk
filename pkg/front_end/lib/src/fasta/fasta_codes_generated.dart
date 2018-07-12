@@ -4923,6 +4923,25 @@ const MessageCode messageNotAnLvalue =
     const MessageCode("NotAnLvalue", message: r"""Can't assign to this.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)> templateNotConstantExpression =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""#string is not a constant expression.""",
+        withArguments: _withArgumentsNotConstantExpression);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeNotConstantExpression =
+    const Code<Message Function(String string)>(
+        "NotConstantExpression", templateNotConstantExpression,
+        analyzerCode: "NOT_CONSTANT_EXPRESSION", dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNotConstantExpression(String string) {
+  return new Message(codeNotConstantExpression,
+      message: """${string} is not a constant expression.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeOnlyTry = messageOnlyTry;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

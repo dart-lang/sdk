@@ -585,6 +585,9 @@ class _ExprBuilder {
     // Invalid initializers and  annotations are represented as Let.
     if (expr is kernel.Let) {
       var body = expr.body;
+      if (_isStaticError(body)) {
+        throw const _CompilationErrorFound();
+      }
       if (body is kernel.Let) {
         var initializer = body.variable.initializer;
         if (initializer is kernel.Let && _isStaticError(initializer.body)) {

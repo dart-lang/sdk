@@ -2071,6 +2071,9 @@ class CompileTimeErrorCode extends ErrorCode {
               "Try calling a different constructor in the superclass, or "
               "making the called constructor not be a factory constructor.");
 
+  static const CompileTimeErrorCode NOT_CONSTANT_EXPRESSION =
+      const CompileTimeErrorCode.fromFasta('NOT_CONSTANT_EXPRESSION');
+
   /**
    * 7.9 Superclasses: It is a compile-time error to specify an extends clause
    * for class Object.

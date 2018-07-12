@@ -27,6 +27,8 @@ main() {
   });
 }
 
+final isBottomType = new TypeMatcher<BottomTypeImpl>();
+
 final isDynamicType = new TypeMatcher<DynamicTypeImpl>();
 
 final isUndefinedType = new TypeMatcher<UndefinedTypeImpl>();
@@ -3197,6 +3199,32 @@ const bool b = a;
     SimpleIdentifier aRef = bDeclaration.initializer;
     assertElement(aRef, findElement.topGet('a'));
     assertType(aRef, 'int');
+  }
+
+  test_invalid_const_throw_local() async {
+    addTestFile(r'''
+main() {
+  const c = throw 42;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var throwExpression = findNode.throw_('throw 42;');
+    expect(throwExpression.staticType, isBottomType);
+    assertType(throwExpression.expression, 'int');
+  }
+
+  test_invalid_const_throw_topLevel() async {
+    addTestFile(r'''
+const c = throw 42;
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var throwExpression = findNode.throw_('throw 42;');
+    expect(throwExpression.staticType, isBottomType);
+    assertType(throwExpression.expression, 'int');
   }
 
   test_invalid_instanceCreation_abstract() async {
@@ -8353,6 +8381,10 @@ class FindNode {
 
   SimpleFormalParameter simpleParameter(String search) {
     return _node(search).getAncestor((n) => n is SimpleFormalParameter);
+  }
+
+  ThrowExpression throw_(String search) {
+    return _node(search).getAncestor((n) => n is ThrowExpression);
   }
 
   VariableDeclaration variableDeclaration(String search) {

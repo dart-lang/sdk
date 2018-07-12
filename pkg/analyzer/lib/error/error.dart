@@ -208,6 +208,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
   CompileTimeErrorCode.NON_SYNC_ABSTRACT_METHOD,
   CompileTimeErrorCode.NON_SYNC_FACTORY_METHOD,
+  CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION,
   CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS,
   CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS,
   CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT,

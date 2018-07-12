@@ -2976,12 +2976,14 @@ class ThisJudgment extends ThisExpression implements ExpressionJudgment {
 
 class ThrowJudgment extends Throw implements ExpressionJudgment {
   final Token throwKeyword;
+  final kernel.Expression desugaredError;
 
   DartType inferredType;
 
   ExpressionJudgment get judgment => expression;
 
-  ThrowJudgment(this.throwKeyword, Expression expression) : super(expression);
+  ThrowJudgment(this.throwKeyword, Expression expression, {this.desugaredError})
+      : super(expression);
 
   @override
   Expression infer<Expression, Statement, Initializer, Type>(
@@ -2992,6 +2994,10 @@ class ThrowJudgment extends Throw implements ExpressionJudgment {
     inferredType = const BottomType();
     inferrer.listener
         .throw_(this, fileOffset, throwKeyword, null, inferredType);
+    if (desugaredError != null) {
+      parent.replaceChild(this, desugaredError);
+      parent = null;
+    }
     return null;
   }
 }

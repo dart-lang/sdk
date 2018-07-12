@@ -115,6 +115,7 @@ export 'kernel_shadow_ast.dart'
         SwitchCaseJudgment,
         SwitchStatementJudgment,
         SyntheticExpressionJudgment,
+        ThrowJudgment,
         UnresolvedTargetInvocationJudgment,
         UnresolvedVariableGetJudgment,
         UnresolvedVariableAssignmentJudgment,
