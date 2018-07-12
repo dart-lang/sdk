@@ -1083,10 +1083,7 @@ class Parser {
           new SyntheticKeywordToken(Keyword.WITH, withKeyword.charOffset);
       rewriter.insertTokenAfter(token, withKeyword);
       if (!isValidTypeReference(withKeyword.next)) {
-        rewriter.insertTokenAfter(
-            withKeyword,
-            new SyntheticStringToken(
-                TokenType.IDENTIFIER, '', withKeyword.charOffset));
+        rewriter.insertSyntheticIdentifier(withKeyword);
       }
     }
     listener.beginMixinApplication(withKeyword);
@@ -1872,10 +1869,7 @@ class Parser {
     Token next = token.next;
     reportRecoverableError(messageOnToken ?? next,
         message ?? context.recoveryTemplate.withArguments(next));
-    Token identifier =
-        new SyntheticStringToken(TokenType.IDENTIFIER, '', next.charOffset, 0);
-    rewriter.insertTokenAfter(token, identifier);
-    return token.next;
+    return rewriter.insertSyntheticIdentifier(token);
   }
 
   /// Parse a simple identifier at the given [token], and return the identifier
@@ -2308,10 +2302,7 @@ class Parser {
             next, fasta.templateExpectedButGot.withArguments('.'));
         rewriter.insertTokenAfter(
             token, new SyntheticToken(TokenType.PERIOD, next.offset));
-        token = token.next;
-        rewriter.insertTokenAfter(token,
-            new SyntheticStringToken(TokenType.IDENTIFIER, '', next.offset));
-        token = token.next;
+        token = rewriter.insertSyntheticIdentifier(token.next);
         next = token.next;
       }
       // Fall through to recovery
