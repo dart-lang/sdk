@@ -7988,6 +7988,7 @@ class Array : public Instance {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Array, Instance);
   friend class Class;
   friend class ImmutableArray;
+  friend class Interpreter;
   friend class Object;
   friend class String;
 };

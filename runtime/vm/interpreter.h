@@ -62,9 +62,15 @@ class Interpreter {
   // Call on program start.
   static void InitOnce();
 
-  RawObject* Call(const Code& code,
+  RawObject* Call(const Function& function,
                   const Array& arguments_descriptor,
                   const Array& arguments,
+                  Thread* thread);
+
+  RawObject* Call(RawFunction* function,
+                  RawArray* argdesc,
+                  intptr_t argc,
+                  RawObject* const* argv,
                   Thread* thread);
 
   void JumpToFrame(uword pc, uword sp, uword fp, Thread* thread);
@@ -92,8 +98,6 @@ class Interpreter {
   };
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
-
-  bool IsTracing() const;
 
  private:
   uintptr_t* stack_;

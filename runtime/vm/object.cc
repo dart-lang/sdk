@@ -15027,8 +15027,6 @@ RawCode* Code::FinalizeBytecode(const void* bytecode_data,
   code.SetPrologueOffset(bytecode_size);  // TODO(regis): Correct?
   INC_STAT(Thread::Current(), total_code_size,
            code.comments().comments_.Length());
-  // TODO(regis): Until we support exception handling.
-  code.set_exception_handlers(Object::empty_exception_handlers());
   return code.raw();
 }
 #endif  // defined(DART_USE_INTERPRETER)

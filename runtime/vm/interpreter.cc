@@ -13,7 +13,6 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/compiler/jit/compiler.h"
-#include "vm/constants_kbc.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
@@ -598,14 +597,6 @@ DART_NOINLINE void Interpreter::TraceInstruction(uint32_t* pc) const {
   }
 }
 #endif  // defined(DEBUG)
-
-bool Interpreter::IsTracing() const {
-#if defined(DEBUG)
-  return IsTracingExecution();
-#else
-  return false;
-#endif
-}
 
 // Calls into the Dart runtime are based on this interface.
 typedef void (*InterpreterRuntimeCall)(NativeArguments arguments);
@@ -1469,9 +1460,18 @@ DART_FORCE_INLINE bool Interpreter::Deoptimize(Thread* thread,
   return true;
 }
 
-RawObject* Interpreter::Call(const Code& code,
+RawObject* Interpreter::Call(const Function& function,
                              const Array& arguments_descriptor,
                              const Array& arguments,
+                             Thread* thread) {
+  return Call(function.raw(), arguments_descriptor.raw(), arguments.Length(),
+              arguments.raw_ptr()->data(), thread);
+}
+
+RawObject* Interpreter::Call(RawFunction* function,
+                             RawArray* argdesc,
+                             intptr_t argc,
+                             RawObject* const* argv,
                              Thread* thread) {
   // Dispatch used to interpret bytecode. Contains addresses of
   // labels of bytecode handlers. Handlers themselves are defined below.
@@ -1500,7 +1500,7 @@ RawObject* Interpreter::Call(const Code& code,
               reentering ? "Re-entering" : "Entering",
               reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_),
               thread->top_exit_frame_info(),
-              Function::Handle(code.function()).ToCString());
+              Function::Handle(function).ToCString());
   }
 #endif
 
@@ -1532,7 +1532,9 @@ RawObject* Interpreter::Call(const Code& code,
   //                        |
   //                        v
   //
-  FP = fp_ + 1 + arguments.Length() + kKBCDartFrameFixedSize;
+  // A negative argc indicates reverse memory order of arguments.
+  const intptr_t arg_count = argc < 0 ? -argc : argc;
+  FP = fp_ + 1 + arg_count + kKBCDartFrameFixedSize;
   SP = FP - 1;
 
   // Save outer top_exit_frame_info.
@@ -1540,25 +1542,25 @@ RawObject* Interpreter::Call(const Code& code,
   thread->set_top_exit_frame_info(0);
 
   // Copy arguments and setup the Dart frame.
-  const intptr_t argc = arguments.Length();
-  for (intptr_t i = 0; i < argc; i++) {
-    fp_[1 + i] = arguments.At(i);
+  for (intptr_t i = 0; i < arg_count; i++) {
+    fp_[1 + i] = argv[argc < 0 ? -i : i];
   }
 
-  FP[kKBCFunctionSlotFromFp] = code.function();
-  FP[kKBCPcMarkerSlotFromFp] = code.raw();
+  RawCode* bytecode = function->ptr()->bytecode_;
+  FP[kKBCFunctionSlotFromFp] = function;
+  FP[kKBCPcMarkerSlotFromFp] = bytecode;
   FP[kKBCSavedCallerPcSlotFromFp] =
-      reinterpret_cast<RawObject*>((argc << 2) | 2);
+      reinterpret_cast<RawObject*>((arg_count << 2) | 2);
   FP[kKBCSavedCallerFpSlotFromFp] = reinterpret_cast<RawObject*>(fp_);
 
   // Load argument descriptor.
-  argdesc_ = arguments_descriptor.raw();
+  argdesc_ = argdesc;
 
   // Ready to start executing bytecode. Load entry point and corresponding
   // object pool.
-  pc = reinterpret_cast<uint32_t*>(code.raw()->ptr()->entry_point_);
+  pc = reinterpret_cast<uint32_t*>(bytecode->ptr()->entry_point_);
   pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
-  pp_ = code.object_pool();
+  pp_ = bytecode->ptr()->object_pool_;
 
   // Cache some frequently used values in the frame.
   RawBool* true_value = Bool::True().raw();
@@ -3189,6 +3191,9 @@ RawObject* Interpreter::Call(const Code& code,
       ASSERT(reinterpret_cast<uword>(fp_) < stack_limit());
       const intptr_t argc = reinterpret_cast<uword>(pc) >> 2;
       ASSERT(fp_ == FrameArguments(FP, argc + 1));
+      // Exception propagation should have been done.
+      ASSERT(!result->IsHeapObject() ||
+             result->GetClassId() != kUnhandledExceptionCid);
 #endif
       return result;
     }

@@ -1894,16 +1894,10 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
 }
 
 // Stub for interpreting a function call.
-// RBX: IC-Data (for methods).
 // R10: Arguments descriptor.
 // RAX: Function.
 void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
 #if defined(DART_USE_INTERPRETER)
-  const intptr_t thread_offset = NativeArguments::thread_offset();
-  const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
-  const intptr_t argv_offset = NativeArguments::argv_offset();
-  const intptr_t retval_offset = NativeArguments::retval_offset();
-
   __ EnterStubFrame();
 
 #if defined(DEBUG)
@@ -1918,65 +1912,53 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
   }
 #endif
 
-  // Push result and first 3 arguments of the interpreted function call.
-  __ pushq(Immediate(0));  // Setup space on stack for result.
-  __ pushq(RAX);           // Function.
-  __ pushq(RBX);           // ICData/MegamorphicCache.
-  __ pushq(R10);           // Arguments descriptor array.
-
-  // Adjust arguments count.
-  __ movq(RDI, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
+  // Adjust arguments count for type arguments vector.
+  __ movq(R11, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
+  __ SmiUntag(R11);
   __ cmpq(FieldAddress(R10, ArgumentsDescriptor::type_args_len_offset()),
           Immediate(0));
-  __ movq(R10, RDI);
   Label args_count_ok;
   __ j(EQUAL, &args_count_ok, Assembler::kNearJump);
-  __ addq(R10, Immediate(Smi::RawValue(1)));  // Include the type arguments.
+  __ incq(R11);
   __ Bind(&args_count_ok);
 
-  // Push 4th Dart argument of the interpreted function call.
-  // R10: Smi-tagged arguments array length.
-  PushArrayOfArguments(assembler);  // May call into the runtime.
-  const intptr_t kNumArgs = 4;
+  // Compute argv.
+  __ leaq(R12, Address(RBP, R11, TIMES_8, kParamEndSlotFromFp * kWordSize));
 
-  // Set callee-saved RBX to point to first one of the 4 Dart arguments.
-  __ leaq(RBX, Address(RSP, (kNumArgs - 1) * kWordSize));
+  // Indicate decreasing memory addresses of arguments with negative argc.
+  __ negq(R11);
 
-  // Reserve space for native args and align frame before entering C++ world.
-  __ subq(RSP, Immediate(sizeof(NativeArguments)));
+  // Reserve shadow space for args and align frame before entering C++ world.
+  __ subq(RSP, Immediate(5 * kWordSize));
   if (OS::ActivationFrameAlignment() > 1) {
     __ andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
 
-  // Pass NativeArguments structure by value and call runtime.
-  __ movq(Address(RSP, thread_offset), THR);  // Set thread in NativeArgs.
-  __ movq(Address(RSP, argc_tag_offset), Immediate(kNumArgs));  // Set argc.
-  // Compute argv.
-  __ movq(Address(RSP, argv_offset), RBX);    // Set argv in NativeArguments.
-  __ addq(RBX, Immediate(1 * kWordSize));     // Retval is next to 1st argument.
-  __ movq(Address(RSP, retval_offset), RBX);  // Set retval in NativeArguments.
+  __ movq(CallingConventions::kArg1Reg, RAX);  // Function.
+  __ movq(CallingConventions::kArg2Reg, R10);  // Arguments descriptor.
+  __ movq(CallingConventions::kArg3Reg, R11);  // Negative argc.
+  __ movq(CallingConventions::kArg4Reg, R12);  // Argv.
+
 #if defined(_WIN64)
-  ASSERT(sizeof(NativeArguments) > CallingConventions::kRegisterTransferLimit);
-  __ movq(CallingConventions::kArg1Reg, RSP);
+  __ movq(Address(RSP, 0 * kWordSize), THR);  // Thread.
+#else
+  __ movq(CallingConventions::kArg5Reg, THR);  // Thread.
 #endif
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()), RBP);
 
   // Mark that the thread is executing VM code.
-  __ movq(RCX, Immediate(kInterpretCallRuntimeEntry.GetEntryPoint()));
-  __ movq(Assembler::VMTagAddress(), RCX);
+  __ movq(RAX, Address(THR, Thread::interpret_call_entry_point_offset()));
+  __ movq(Assembler::VMTagAddress(), RAX);
 
-  __ CallCFunction(RCX);
+  __ call(RAX);
 
   // Mark that the thread is executing Dart code.
   __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
-
-  // Load result of interpreted function call into RAX.
-  __ movq(RAX, Address(RBX, 0));
 
   __ LeaveStubFrame();
   __ ret();
