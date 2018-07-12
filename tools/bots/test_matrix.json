@@ -312,8 +312,7 @@
           "name": "fasta sdk tests",
           "arguments": [
             "--compiler=fasta",
-            "--runtime=none",
-            "--strong"
+            "--runtime=none"
           ]
         },
         {
@@ -322,14 +321,6 @@
             "--compiler=fasta",
             "--runtime=none",
             "co19_2"
-          ]
-        },
-        {
-          "name": "fasta legacy mode sdk tests",
-          "arguments": [
-            "--compiler=fasta",
-            "--no-preview-dart-2",
-            "--runtime=none"
           ]
         }
       ]
@@ -693,7 +684,6 @@
           "arguments": [
             "-cdartdevc",
             "--checked",
-            "--strong",
             "--use-sdk",
             "language_2",
             "corelib_2",
@@ -705,7 +695,6 @@
           "arguments": [
             "-cdartdevk",
             "--checked",
-            "--strong",
             "--use-sdk",
             "language_2",
             "corelib_2",
@@ -764,7 +753,6 @@
           "arguments": [
             "-cdartdevc",
             "--checked",
-            "--strong",
             "--use-sdk",
             "language_2",
             "corelib_2",
@@ -776,7 +764,6 @@
           "arguments": [
             "-cdartdevk",
             "--checked",
-            "--strong",
             "--use-sdk",
             "language_2",
             "corelib_2",
@@ -922,7 +909,6 @@
           "arguments": [
             "--builder-tag=optimization_counter_threshold",
             "--compiler=dartk",
-            "--strong",
             "--vm-options=--optimization-counter-threshold=5"
           ],
           "fileset": "vm-kernel",
@@ -974,7 +960,7 @@
         },
         {
           "name": "vm tests",
-          "arguments": ["--compiler=dartk", "--hot-reload", "--strong"]
+          "arguments": ["--compiler=dartk", "--hot-reload"]
         }
       ]
     },
@@ -1022,7 +1008,7 @@
         },
         {
           "name": "vm tests",
-          "arguments": ["--compiler=dartk", "--hot-reload-rollback", "--strong"]
+          "arguments": ["--compiler=dartk", "--hot-reload-rollback"]
         }
       ]
     },

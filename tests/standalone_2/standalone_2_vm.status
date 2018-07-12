@@ -92,7 +92,6 @@ io/dart_std_io_pipe_test: Timeout, Pass
 io/file_input_stream_test: Skip # Issue 26109
 io/file_stream_test: Skip # Issue 26109
 io/file_typed_data_test: Skip # Issue 26109
-io/http_client_stays_alive_test: RuntimeError
 io/process_sync_test: Timeout, Pass
 
 [ $runtime == vm && ($arch == simarm || $arch == simarm64) ]
