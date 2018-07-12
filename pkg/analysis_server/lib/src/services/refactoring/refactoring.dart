@@ -427,6 +427,15 @@ class RefactoringWorkspace {
       return driver.contextRoot.containsFile(path);
     });
   }
+
+  /**
+   * Returns the drivers that have [path] in a context root.
+   */
+  Iterable<AnalysisDriver> driversContaining(String path) {
+    return drivers.where((driver) {
+      return driver.contextRoot.containsFile(path);
+    });
+  }
 }
 
 /**
