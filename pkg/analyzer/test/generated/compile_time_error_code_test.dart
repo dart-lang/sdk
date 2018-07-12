@@ -585,16 +585,6 @@ class B {
     verify([source]);
   }
 
-  test_builtInIdentifierAsType_dynamicMissingPrefix() async {
-    Source source = addSource(r"""
-import 'dart:core' as core;
-
-dynamic x;
-""");
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
-  }
-
   test_builtInIdentifierAsMixinName_classTypeAlias() async {
     Source source = addSource(r'''
 class A {}
@@ -619,6 +609,16 @@ class as = A with B;''');
       HintCode.UNUSED_IMPORT
     ]);
     verify([source]);
+  }
+
+  test_builtInIdentifierAsType_dynamicMissingPrefix() async {
+    Source source = addSource(r"""
+import 'dart:core' as core;
+
+dynamic x;
+""");
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
   }
 
   test_builtInIdentifierAsType_formalParameter_field() async {
@@ -2858,41 +2858,32 @@ main() { f<S Function<S>(S)>(null); }''');
     verify([source]);
   }
 
-  @failingTest
   test_genericFunctionTypeArgument_inference_function() async {
-    // TODO(mfairhurst) how should these inference errors be reported?
     Source source = addSource(r'''
-T f<T>(T) => null;
+T f<T>(T t) => null;
 main() { f(<S>(S s) => s); }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT]);
+    assertErrors(source, [StrongModeCode.COULD_NOT_INFER]);
     verify([source]);
   }
 
-  @failingTest
   test_genericFunctionTypeArgument_inference_functionType() async {
-    // TODO(mfairhurst) how should these inference errors be reported?
     Source source = addSource(r'''
 T Function<T>(T) f;
 main() { f(<S>(S s) => s); }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT]);
+    assertErrors(source, [StrongModeCode.COULD_NOT_INFER]);
     verify([source]);
   }
 
-  @failingTest
   test_genericFunctionTypeArgument_inference_method() async {
-    // TODO(mfairhurst) how should these inference errors be reported?
     Source source = addSource(r'''
 class C {
-  T f<T>(T) => null;
+  T f<T>(T t) => null;
 }
 main() { new C().f(<S>(S s) => s); }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT]);
+    assertErrors(source, [StrongModeCode.COULD_NOT_INFER]);
     verify([source]);
   }
 

@@ -215,6 +215,22 @@ class GenericInferrer {
         // more errors (e.g. because `dynamic` is the most common bound).
       }
 
+      if (inferred is FunctionType && inferred.typeFormals.isNotEmpty) {
+        errorReporter
+            ?.reportErrorForNode(StrongModeCode.COULD_NOT_INFER, errorNode, [
+          typeParam,
+          ' Inferred candidate type $inferred has type parameters'
+              ' ${(inferred as FunctionType).typeFormals}, but a function with'
+              ' type parameters cannot be used as a type argument.'
+        ]);
+
+        // Heuristic: Using a generic function type as a bound makes subtyping
+        // undecidable. Therefore, we cannot keep [inferred] unless we wish to
+        // generate bogus subtyping errors. Instead generate plain [Function],
+        // which is the most general function type.
+        inferred = typeProvider.functionType;
+      }
+
       if (UnknownInferredType.isKnown(inferred)) {
         knownTypes[typeParam] = inferred;
       }
@@ -828,10 +844,10 @@ class StrongTypeSystemImpl extends TypeSystem {
    */
   DartType getLeastNullableSupertype(InterfaceType type) {
     // compute set of supertypes
-    List<InterfaceType> s = InterfaceTypeImpl
-        .computeSuperinterfaceSet(type, strong: true)
-        .where(isNullableType)
-        .toList();
+    List<InterfaceType> s =
+        InterfaceTypeImpl.computeSuperinterfaceSet(type, strong: true)
+            .where(isNullableType)
+            .toList();
     return InterfaceTypeImpl.computeTypeAtMaxUniqueDepth(s);
   }
 

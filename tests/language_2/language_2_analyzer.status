@@ -90,7 +90,6 @@ final_syntax_test/03: Fail # Issue 11124
 final_syntax_test/04: Fail # Issue 11124
 function_type_parameter2_negative_test: CompileTimeError
 function_type_parameter_negative_test: CompileTimeError
-generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 30929
 generic_local_functions_test: CompileTimeError # Issue 28515
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_no_such_method_dispatcher_simple_test: Skip # This test is just for kernel.

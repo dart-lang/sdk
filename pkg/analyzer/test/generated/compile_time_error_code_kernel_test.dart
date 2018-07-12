@@ -824,6 +824,27 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
+  test_genericFunctionTypeArgument_inference_function() async {
+    await super.test_genericFunctionTypeArgument_inference_function();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeArgument_inference_functionType() async {
+    await super.test_genericFunctionTypeArgument_inference_functionType();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeArgument_inference_method() async {
+    await super.test_genericFunctionTypeArgument_inference_method();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
   test_genericFunctionTypeArgument_method() async {
     await super.test_genericFunctionTypeArgument_method();
   }
