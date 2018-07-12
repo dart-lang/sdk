@@ -220,6 +220,9 @@ cc/Profiler_TrivialRecordAllocation: Fail, Pass
 cc/Service_Address: Fail
 cc/Service_Code: Fail
 
+[ $compiler == dartk && $checked ]
+dart/redirection_type_shuffling_test/00: Pass # Works in --checked mode but not in --strong mode.
+
 [ $compiler == dartk && $strong ]
 cc/DartGeneratedArrayLiteralMessages: Crash # Issue 32190
 cc/FullSnapshot1: Crash # Issue 32190
@@ -359,7 +362,7 @@ dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
 [ $hot_reload || $hot_reload_rollback ]
 dart/appjit_cha_deopt_test: SkipByDesign # Cannot reload with URI pointing to app snapshot.
 dart/appjit_determinism_test: SkipByDesign # Reload affects determinisim
-dart/script_determinism_test: SkipbyDesign # Cannot reload with URI pointing to script snapshot.
+dart/script_determinism_test: SkipByDesign # Cannot reload with URI pointing to script snapshot.
 dart/slow_path_shared_stub_test: SkipSlow # Too slow with --slow-path-triggers-gc flag and not relevant outside precompiled.
 dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.

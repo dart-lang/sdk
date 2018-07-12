@@ -845,6 +845,18 @@ wrong_number_type_arguments_test/none: Pass
 [ $compiler == dartk && $system == windows && $strong ]
 ct_const2_test: Fail
 
+[ $compiler == dartk && $checked ]
+assertion_initializer_const_error2_test/cc01: Pass # Works in --checked mode but not in --strong mode.
+assertion_initializer_const_error2_test/cc02: Pass # Works in --checked mode but not in --strong mode.
+assertion_initializer_const_error2_test/cc03: Pass # Works in --checked mode but not in --strong mode.
+assertion_initializer_const_error2_test/cc04: Pass # Works in --checked mode but not in --strong mode.
+assertion_initializer_const_error2_test/cc05: Pass # Works in --checked mode but not in --strong mode.
+assertion_initializer_const_error2_test/cc06: Pass # Works in --checked mode but not in --strong mode.
+assertion_initializer_const_error2_test/cc07: Pass # Works in --checked mode but not in --strong mode.
+assertion_initializer_const_error2_test/cc08: Pass # Works in --checked mode but not in --strong mode.
+assertion_initializer_const_error2_test/cc09: Pass # Works in --checked mode but not in --strong mode.
+assertion_initializer_const_error2_test/cc10: Pass # Works in --checked mode but not in --strong mode.
+
 [ $compiler == dartk && $hot_reload_rollback ]
 symbol_conflict_test: Pass, Slow
 
