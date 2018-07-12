@@ -2583,11 +2583,7 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
     reinterpret_cast<RuntimeFunction>(static_cast<UnaryMathCFunction>(&atan)));
 
 uword RuntimeEntry::InterpretCallEntry() {
-  uword entry = reinterpret_cast<uword>(RuntimeEntry::InterpretCall);
-#if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
-  UNIMPLEMENTED();
-#endif
-  return entry;
+  return reinterpret_cast<uword>(RuntimeEntry::InterpretCall);
 }
 
 // Interpret a function call. Should be called only for uncompiled functions.
