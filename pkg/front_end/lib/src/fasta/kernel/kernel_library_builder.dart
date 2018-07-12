@@ -129,11 +129,11 @@ class KernelLibraryBuilder
   final List<KernelTypeVariableBuilder> boundlessTypeVariables =
       <KernelTypeVariableBuilder>[];
 
-  // A list of alternating noSuchMethod forwarders and the abstract procedures
-  // they were generated for.  Note that it may not include a forwarder-origin
-  // pair in cases when the former does not need to be updated after the body of
-  // the latter was built.
-  final List<Procedure> noSuchMethodForwardersOrigins = <Procedure>[];
+  // A list of alternating forwarders and the procedures they were generated
+  // for.  Note that it may not include a forwarder-origin pair in cases when
+  // the former does not need to be updated after the body of the latter was
+  // built.
+  final List<Procedure> forwardersOrigins = <Procedure>[];
 
   /// Exports that can't be serialized.
   ///
@@ -1012,12 +1012,12 @@ class KernelLibraryBuilder
     return total;
   }
 
-  int finishNoSuchMethodForwarders() {
+  int finishForwarders() {
     int count = 0;
     CloneVisitor cloner = new CloneVisitor();
-    for (int i = 0; i < noSuchMethodForwardersOrigins.length; i += 2) {
-      Procedure forwarder = noSuchMethodForwardersOrigins[i];
-      Procedure origin = noSuchMethodForwardersOrigins[i + 1];
+    for (int i = 0; i < forwardersOrigins.length; i += 2) {
+      Procedure forwarder = forwardersOrigins[i];
+      Procedure origin = forwardersOrigins[i + 1];
 
       int positionalCount = origin.function.positionalParameters.length;
       if (forwarder.function.positionalParameters.length != positionalCount) {
@@ -1057,7 +1057,7 @@ class KernelLibraryBuilder
 
       ++count;
     }
-    noSuchMethodForwardersOrigins.clear();
+    forwardersOrigins.clear();
     return count;
   }
 

@@ -432,8 +432,8 @@ abstract class KernelClassBuilder
     cloned.parent = cls;
 
     KernelLibraryBuilder library = this.library;
-    library.noSuchMethodForwardersOrigins.add(cloned);
-    library.noSuchMethodForwardersOrigins.add(procedure);
+    library.forwardersOrigins.add(cloned);
+    library.forwardersOrigins.add(procedure);
   }
 
   void addNoSuchMethodForwarderGetterForField(Member noSuchMethod,

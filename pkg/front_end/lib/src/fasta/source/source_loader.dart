@@ -387,10 +387,10 @@ class SourceLoader<L> extends Loader<L> {
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
-        count += library.finishNoSuchMethodForwarders();
+        count += library.finishForwarders();
       }
     });
-    ticker.logMs("Finished noSuchMethod forwarders for $count procedures");
+    ticker.logMs("Finished forwarders for $count procedures");
   }
 
   void resolveConstructors() {

@@ -469,8 +469,9 @@ class ShadowClass extends Class {
   /// annotations, and creates forwarding stubs as needed.
   void finalizeCovariance(InterfaceResolver interfaceResolver) {
     interfaceResolver.finalizeCovariance(
-        this, _inferenceInfo.gettersAndMethods);
-    interfaceResolver.finalizeCovariance(this, _inferenceInfo.setters);
+        this, _inferenceInfo.gettersAndMethods, _inferenceInfo.builder.library);
+    interfaceResolver.finalizeCovariance(
+        this, _inferenceInfo.setters, _inferenceInfo.builder.library);
     interfaceResolver.recordInstrumentation(this);
   }
 

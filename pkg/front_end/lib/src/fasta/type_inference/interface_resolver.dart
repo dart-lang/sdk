@@ -43,6 +43,8 @@ import '../../base/instrumentation.dart'
 
 import '../builder/builder.dart' show LibraryBuilder;
 
+import '../kernel/kernel_library_builder.dart' show KernelLibraryBuilder;
+
 import '../kernel/kernel_shadow_ast.dart'
     show
         ShadowClass,
@@ -292,8 +294,7 @@ class ForwardingNode extends Procedure {
     IncludesTypeParametersCovariantly needsCheckVisitor =
         enclosingClass.typeParameters.isEmpty
             ? null
-            : ShadowClass
-                    .getClassInferenceInfo(enclosingClass)
+            : ShadowClass.getClassInferenceInfo(enclosingClass)
                     .needsCheckVisitor ??=
                 new IncludesTypeParametersCovariantly(
                     enclosingClass.typeParameters);
@@ -774,8 +775,8 @@ class InterfaceResolver {
     }
     var positionalParameters = method.function.positionalParameters;
     for (int i = 0; i < positionalParameters.length; ++i) {
-      if (VariableDeclarationJudgment
-          .isImplicitlyTyped(positionalParameters[i])) {
+      if (VariableDeclarationJudgment.isImplicitlyTyped(
+          positionalParameters[i])) {
         // Note that if the parameter is not present in the overridden method,
         // getPositionalParameterType treats it as dynamic.  This is consistent
         // with the behavior called for in the informal top level type inference
@@ -917,6 +918,11 @@ class InterfaceResolver {
         var forwardingNode = new ForwardingNode(
             this, null, class_, name, kind, candidates, start, end);
         getters[getterIndex++] = forwardingNode.finalize();
+        if (library is KernelLibraryBuilder &&
+            forwardingNode.finalize() != forwardingNode.resolve()) {
+          library.forwardersOrigins.add(forwardingNode.finalize());
+          library.forwardersOrigins.add(forwardingNode.resolve());
+        }
         return;
       }
 
@@ -1029,12 +1035,18 @@ class InterfaceResolver {
     setters.length = setterIndex;
   }
 
-  void finalizeCovariance(Class class_, List<Member> apiMembers) {
+  void finalizeCovariance(
+      Class class_, List<Member> apiMembers, LibraryBuilder library) {
     for (int i = 0; i < apiMembers.length; i++) {
       var member = apiMembers[i];
       Member resolution;
       if (member is ForwardingNode) {
         apiMembers[i] = resolution = member.finalize();
+        if (library is KernelLibraryBuilder &&
+            member.finalize() != member.resolve()) {
+          library.forwardersOrigins.add(member.finalize());
+          library.forwardersOrigins.add(member.resolve());
+        }
       } else {
         resolution = member;
       }

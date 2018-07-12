@@ -201,7 +201,6 @@ regress/issue_31184: TypeCheckError
 regress/issue_31299: TypeCheckError
 regress/issue_33452: RuntimeError # Test has an intentional error
 
-runtime_checks/forwarding_stub_with_default_values: RuntimeError # Bug 31027
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
 runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
