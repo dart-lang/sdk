@@ -423,6 +423,11 @@ class _AnalyzerKernelTarget extends KernelTarget {
   _AnalyzerSourceLoader<Library> createLoader() {
     return new _AnalyzerSourceLoader<Library>(fileSystem, this, resolutions);
   }
+
+  @override
+  Declaration getDuplicatedFieldInitializerError(loader) {
+    return loader.coreLibrary.getConstructor('Exception');
+  }
 }
 
 /// The [SourceLoader] that record resolution information.

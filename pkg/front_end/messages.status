@@ -175,7 +175,6 @@ FastaUsageShort/example: Fail
 FieldInitializerOutsideConstructor/script1: Fail
 FinalAndCovariant/script2: Fail
 FinalFieldWithoutInitializer/example: Fail
-FinalInstanceVariableAlreadyInitialized/analyzerCode: Fail
 FinalInstanceVariableAlreadyInitialized/example: Fail
 ForInLoopExactlyOneVariable/analyzerCode: Fail # The analyzer doesn't recover well.
 ForInLoopExactlyOneVariable/statement: Fail # Fasta reports too many errors.

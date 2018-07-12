@@ -2061,6 +2061,8 @@ SwitchCaseFallThrough:
 FinalInstanceVariableAlreadyInitialized:
   template: "'#name' is a final instance variable that has already been initialized."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: FINAL_INITIALIZED_MULTIPLE_TIMES
+  dart2jsCode: "*fatal*"
 
 FinalInstanceVariableAlreadyInitializedCause:
   template: "'#name' was initialized here."

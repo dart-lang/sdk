@@ -2515,8 +2515,13 @@ class A {
   A() : x = 0, x = 1 {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES]
+            : [
+                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
+              ]);
     verify([source]);
   }
 
@@ -2527,10 +2532,17 @@ class A {
   A() : x = 0, x = 1, x = 2 {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
-      CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES,
+                CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES
+              ]
+            : [
+                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
+                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
+              ]);
     verify([source]);
   }
 
@@ -2542,10 +2554,17 @@ class A {
   A() : x = 0, x = 1, y = 0, y = 1 {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
-      CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES,
+                CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES
+              ]
+            : [
+                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
+                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
+              ]);
     verify([source]);
   }
 
@@ -2556,8 +2575,14 @@ class A {
   A(this.x) : x = 1 {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES]
+            : [
+                CompileTimeErrorCode
+                    .FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER
+              ]);
     verify([source]);
   }
 
@@ -2658,8 +2683,13 @@ class A {
   A() : x = 0, x = 0 {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES]
+            : [
+                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
+              ]);
     verify([source]);
   }
 
@@ -2678,8 +2708,14 @@ class A {
   A(this.x) : x = 0 {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES]
+            : [
+                CompileTimeErrorCode
+                    .FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER
+              ]);
     verify([source]);
   }
 

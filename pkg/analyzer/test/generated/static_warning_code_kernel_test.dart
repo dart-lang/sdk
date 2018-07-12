@@ -513,13 +513,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_fieldInitializedInInitializerAndDeclaration_final() async {
-    return super.test_fieldInitializedInInitializerAndDeclaration_final();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_fieldInitializerNotAssignable() async {
     return super.test_fieldInitializerNotAssignable();
   }
@@ -537,14 +530,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   test_finalInitializedInDeclarationAndConstructor_initializers() async {
     return super
         .test_finalInitializedInDeclarationAndConstructor_initializers();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_finalInitializedInDeclarationAndConstructor_initializingFormal() async {
-    return super
-        .test_finalInitializedInDeclarationAndConstructor_initializingFormal();
   }
 
   @override

@@ -310,6 +310,10 @@ class Map<K, V> extends Object {
 
 class Duration implements Comparable<Duration> {}
 
+class Exception {
+  factory Exception([var message]);
+}
+
 external bool identical(Object a, Object b);
 
 void print(Object object) {}
@@ -328,10 +332,6 @@ class _CompileTimeError {
 class _ConstantExpressionError {
   const _ConstantExpressionError();
   external _throw(error);
-}
-
-class _DuplicatedFieldInitializerError {
-  _DuplicatedFieldInitializerError(String name);
 }
 
 class AbstractClassInstantiationError {

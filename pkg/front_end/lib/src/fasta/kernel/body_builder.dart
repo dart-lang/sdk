@@ -3984,15 +3984,16 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       ..fileOffset = charOffset;
   }
 
-  Initializer buildDuplicatedInitializer(
+  Initializer buildDuplicatedInitializer(Field field, Expression value,
       String name, int offset, int previousInitializerOffset) {
-    Initializer initializer = buildInvalidInitializer(
-        deprecated_buildCompileTimeError(
-            "'$name' has already been initialized.", offset),
-        offset);
-    deprecated_addCompileTimeError(
-        initializedFields[name], "'$name' was initialized here.");
-    return initializer;
+    var error = buildCompileTimeError(
+        fasta.templateFinalInstanceVariableAlreadyInitialized
+            .withArguments(name),
+        offset,
+        noLength);
+    return new ShadowInvalidFieldInitializer(
+        field, value, new VariableDeclaration.forValue(error))
+      ..fileOffset = offset;
   }
 
   /// Parameter [formalType] should only be passed in the special case of
@@ -4014,7 +4015,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       initializedFields ??= <String, int>{};
       if (initializedFields.containsKey(name)) {
         return buildDuplicatedInitializer(
-            name, offset, initializedFields[name]);
+            builder.field, expression, name, offset, initializedFields[name]);
       }
       initializedFields[name] = offset;
       if (builder.isFinal && builder.hasInitializer) {
@@ -4032,14 +4033,16 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             ]);
         Declaration constructor =
             library.loader.getDuplicatedFieldInitializerError();
-        return buildInvalidInitializer(
-            new Throw(buildStaticInvocation(
+        return new ShadowInvalidFieldInitializer(
+            builder.field,
+            expression,
+            new VariableDeclaration.forValue(new Throw(buildStaticInvocation(
                 constructor.target,
                 forest.arguments(<Expression>[
                   forest.literalString(name, null)..fileOffset = offset
                 ], noLocation),
-                charOffset: offset)),
-            offset);
+                charOffset: offset))))
+          ..fileOffset = offset;
       } else {
         if (library.loader.target.strongMode &&
             formalType != null &&

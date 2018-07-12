@@ -825,34 +825,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_fieldInitializedByMultipleInitializers() async {
-    // Bad state: No reference information for = at 36
-    await super.test_fieldInitializedByMultipleInitializers();
-  }
-
-  @override
-  @failingTest
-  test_fieldInitializedByMultipleInitializers_multipleInits() async {
-    // Bad state: No reference information for = at 36
-    await super.test_fieldInitializedByMultipleInitializers_multipleInits();
-  }
-
-  @override
-  @failingTest
-  test_fieldInitializedByMultipleInitializers_multipleNames() async {
-    // Bad state: Expected element reference for analyzer offset 45; got one for kernel offset 52
-    await super.test_fieldInitializedByMultipleInitializers_multipleNames();
-  }
-
-  @override
-  @failingTest
-  test_fieldInitializedInParameterAndInitializer() async {
-    // Bad state: No reference information for = at 35
-    await super.test_fieldInitializedInParameterAndInitializer();
-  }
-
-  @override
-  @failingTest
   test_fieldInitializerFactoryConstructor() async {
     // Expected 1 errors of type CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR, found 0
     await super.test_fieldInitializerFactoryConstructor();
@@ -886,29 +858,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30982')
   test_fieldInitializingFormalRedirectingConstructor() async {
     return super.test_fieldInitializingFormalRedirectingConstructor();
-  }
-
-  @override
-  @failingTest
-  test_finalInitializedMultipleTimes_initializers() async {
-    // Bad state: No reference information for = at 38
-    await super.test_finalInitializedMultipleTimes_initializers();
-  }
-
-  @override
-  @failingTest
-  test_finalInitializedMultipleTimes_initializingFormal_initializer() async {
-    // Bad state: No reference information for = at 37
-    await super
-        .test_finalInitializedMultipleTimes_initializingFormal_initializer();
-  }
-
-  @override
-  @failingTest
-  test_finalInitializedMultipleTimes_initializingFormals() async {
-    // Expected 1 errors of type CompileTimeErrorCode.DUPLICATE_DEFINITION, found 0;
-    //          1 errors of type CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES, found 0
-    await super.test_finalInitializedMultipleTimes_initializingFormals();
   }
 
   @override

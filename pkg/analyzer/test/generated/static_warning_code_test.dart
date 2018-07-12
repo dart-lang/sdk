@@ -1339,8 +1339,14 @@ class A {
   A() : x = 1 {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [StaticWarningCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES]
+            : [
+                StaticWarningCode
+                    .FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
+              ]);
     verify([source]);
   }
 
@@ -1402,8 +1408,14 @@ class A {
   A(this.x) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [StaticWarningCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES]
+            : [
+                StaticWarningCode
+                    .FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR
+              ]);
     verify([source]);
   }
 

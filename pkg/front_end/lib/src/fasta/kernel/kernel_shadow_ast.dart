@@ -1698,6 +1698,30 @@ class ShadowInvalidInitializer extends LocalInitializer
   }
 }
 
+/// Concrete shadow object representing an invalid initializer in kernel form.
+class ShadowInvalidFieldInitializer extends LocalInitializer
+    implements InitializerJudgment {
+  final Field field;
+  final Expression value;
+
+  ShadowInvalidFieldInitializer(
+      this.field, this.value, VariableDeclaration variable)
+      : super(variable) {
+    value?.parent = this;
+  }
+
+  ExpressionJudgment get judgment => value;
+
+  @override
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
+    inferrer.inferExpression(factory, value, field.type, false);
+    inferrer.listener.fieldInitializer(
+        this, fileOffset, null, null, null, null, null, field);
+  }
+}
+
 /// Concrete shadow object representing a non-inverted "is" test in kernel form.
 class IsJudgment extends IsExpression implements ExpressionJudgment {
   final Token isOperator;
