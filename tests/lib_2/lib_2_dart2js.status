@@ -476,11 +476,13 @@ html/storage_promise_test: RuntimeError # Not supported on Safari
 html/xhr_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == safari && $strong ]
+html/audiobuffersourcenode_test: Pass, RuntimeError
 html/canvasrenderingcontext2d_test/arc: Pass, RuntimeError
 html/canvasrenderingcontext2d_test/drawImage_canvas_element: Pass, RuntimeError
 html/canvasrenderingcontext2d_test/drawImage_image_element: Pass, RuntimeError
 html/canvasrenderingcontext2d_test/fillText: Pass, RuntimeError
 html/form_data_test/functional: RuntimeError
+html/interactive_media_test: SkipSlow
 html/notification_test: Pass, RuntimeError # Safari doesn't let us access the fields of the Notification to verify them.
 html/xhr_cross_origin_test/functional: RuntimeError
 
