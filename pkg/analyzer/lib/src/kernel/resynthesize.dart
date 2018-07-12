@@ -446,14 +446,6 @@ class KernelResynthesizer implements ElementResynthesizer {
 }
 
 /**
- * This exception is thrown when we detect that the Kernel has a compilation
- * error, so we cannot resynthesize the constant expression.
- */
-class _CompilationErrorFound {
-  const _CompilationErrorFound();
-}
-
-/**
  * Builder of [Expression]s from [kernel.Expression]s.
  */
 class _ExprBuilder {
@@ -463,11 +455,10 @@ class _ExprBuilder {
   _ExprBuilder(this._context, this._contextElement);
 
   Expression build(kernel.Expression expr) {
-    try {
-      return _build(expr);
-    } on _CompilationErrorFound {
+    if (_hasInvalidExpression(expr)) {
       return AstTestFactory.identifier3('#invalidConst');
     }
+    return _build(expr);
   }
 
   ConstructorInitializer buildInitializer(kernel.Initializer k) {
@@ -580,25 +571,6 @@ class _ExprBuilder {
       }
 
       return AstTestFactory.mapLiteral(keyword, typeArguments, entries);
-    }
-
-    // Invalid initializers and  annotations are represented as Let.
-    if (expr is kernel.Let) {
-      var body = expr.body;
-      if (_isStaticError(body)) {
-        throw const _CompilationErrorFound();
-      }
-      if (body is kernel.Let) {
-        var initializer = body.variable.initializer;
-        if (initializer is kernel.Let && _isStaticError(initializer.body)) {
-          throw const _CompilationErrorFound();
-        }
-      }
-    }
-
-    // Stop if there is an error.
-    if (_isStaticError(expr)) {
-      throw const _CompilationErrorFound();
     }
 
     if (expr is kernel.StaticGet) {
@@ -759,9 +731,6 @@ class _ExprBuilder {
   }
 
   SimpleIdentifier _buildSimpleIdentifier(kernel.Reference reference) {
-    if (reference == null) {
-      throw const _CompilationErrorFound();
-    }
     String name = reference.canonicalName.name;
     SimpleIdentifier identifier = AstTestFactory.identifier3(name);
     Element element = _getElement(reference);
@@ -852,12 +821,19 @@ class _ExprBuilder {
     throw new ArgumentError(name);
   }
 
-  /**
-   * Return `true` if the given [expr] throws an instance of
-   * `_ConstantExpressionError` defined in `dart:core`.
-   */
-  static bool _isStaticError(kernel.Expression expr) {
-    return expr is kernel.InvalidExpression;
+  static bool _hasInvalidExpression(kernel.Expression expr) {
+    var visitor = new _HasInvalidExpressionVisitor();
+    expr.accept(visitor);
+    return visitor.result;
+  }
+}
+
+class _HasInvalidExpressionVisitor extends kernel.RecursiveVisitor<void> {
+  bool result = false;
+
+  @override
+  void visitInvalidExpression(kernel.InvalidExpression node) {
+    result = true;
   }
 }
 
