@@ -18,4 +18,4 @@ keepContentMentions: true
 # Set custom aliases for targets
 aliases:
   flutter: flutter/flutter
-  flutter: flutter/flutter-intellij
+  flutter-intellij: flutter/flutter-intellij
