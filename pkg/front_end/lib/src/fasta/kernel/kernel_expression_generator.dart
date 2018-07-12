@@ -167,9 +167,11 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
       Procedure interfaceTarget,
-      bool isPreIncDec: false}) {
+      bool isPreIncDec: false,
+      bool isPostIncDec: false}) {
     var complexAssignment = startComplexAssignment(value);
     complexAssignment?.isPreIncDec = isPreIncDec;
+    complexAssignment?.isPostIncDec = isPostIncDec;
     var combiner = makeBinary(_makeRead(complexAssignment), binaryOperator,
         interfaceTarget, value, helper,
         offset: offset);
@@ -197,8 +199,12 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
       bool voidContext: false,
       Procedure interfaceTarget}) {
     if (voidContext) {
-      return buildPrefixIncrement(binaryOperator,
-          offset: offset, voidContext: true, interfaceTarget: interfaceTarget);
+      return buildCompoundAssignment(
+          binaryOperator, forest.literalInt(1, null)..fileOffset = offset,
+          offset: offset,
+          voidContext: voidContext,
+          interfaceTarget: interfaceTarget,
+          isPostIncDec: true);
     }
     var rhs = forest.literalInt(1, null)..fileOffset = offset;
     var complexAssignment = startComplexAssignment(rhs);

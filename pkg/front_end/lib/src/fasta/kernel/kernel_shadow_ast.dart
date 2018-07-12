@@ -3565,6 +3565,27 @@ class UnresolvedVariableAssignmentJudgment extends SyntheticExpressionJudgment {
   }
 }
 
+/// Synthetic judgment class representing an attempt to apply a prefix or
+/// postfix operator to an unresolved variable.
+class UnresolvedVariableUnaryJudgment extends SyntheticExpressionJudgment {
+  final Token token;
+
+  UnresolvedVariableUnaryJudgment(kernel.Expression desugared, this.token)
+      : super(desugared);
+
+  @override
+  Expression infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory,
+      DartType typeContext) {
+    inferrer.listener
+        .variableGet(this, token.offset, false, null, const DynamicType());
+    inferrer.listener.variableAssign(
+        this, fileOffset, const DynamicType(), null, null, inferredType);
+    return super.infer(inferrer, factory, typeContext);
+  }
+}
+
 /// Synthetic judgment class representing an attempt to read an unresolved
 /// variable.
 class UnresolvedVariableGetJudgment extends SyntheticExpressionJudgment {

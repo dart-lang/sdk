@@ -70,6 +70,7 @@ import 'kernel_ast_api.dart'
         Procedure,
         SyntheticExpressionJudgment,
         TypeParameterType,
+        UnresolvedVariableUnaryJudgment,
         VariableDeclaration;
 
 import 'kernel_builder.dart'
@@ -713,25 +714,25 @@ abstract class ErroneousExpressionGenerator implements Generator {
   @override
   Expression buildPrefixIncrement(Name binaryOperator,
       {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
-    // TODO(ahe): For the Analyzer, we probably need to build a prefix
-    // increment node that wraps an error.
-    return new SyntheticExpressionJudgment(buildError(
+    var error = buildError(
         forest.arguments(
             <Expression>[forest.literalInt(1, null)..fileOffset = offset],
             token),
-        isGetter: true));
+        isGetter: true);
+    return new UnresolvedVariableUnaryJudgment(error, token)
+      ..fileOffset = offset;
   }
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
       {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
-    // TODO(ahe): For the Analyzer, we probably need to build a post increment
-    // node that wraps an error.
-    return new SyntheticExpressionJudgment(buildError(
+    var error = buildError(
         forest.arguments(
             <Expression>[forest.literalInt(1, null)..fileOffset = offset],
             token),
-        isGetter: true));
+        isGetter: true);
+    return new UnresolvedVariableUnaryJudgment(error, token)
+      ..fileOffset = offset;
   }
 
   @override

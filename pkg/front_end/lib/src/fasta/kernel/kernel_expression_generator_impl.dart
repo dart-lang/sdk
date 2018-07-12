@@ -141,7 +141,8 @@ class ThisAccessGenerator extends KernelGenerator {
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
       Procedure interfaceTarget,
-      bool isPreIncDec: false}) {
+      bool isPreIncDec: false,
+      bool isPostIncDec: false}) {
     return buildAssignmentError();
   }
 
@@ -266,7 +267,8 @@ class SendAccessGenerator extends IncompleteSendGenerator {
       {int offset,
       bool voidContext: false,
       Procedure interfaceTarget,
-      bool isPreIncDec: false}) {
+      bool isPreIncDec: false,
+      bool isPostIncDec: false}) {
     return unsupported(
         "buildCompoundAssignment", offset ?? offsetForToken(token), uri);
   }
@@ -335,7 +337,8 @@ class IncompletePropertyAccessGenerator extends IncompleteSendGenerator {
       {int offset,
       bool voidContext: false,
       Procedure interfaceTarget,
-      bool isPreIncDec: false}) {
+      bool isPreIncDec: false,
+      bool isPostIncDec: false}) {
     return unsupported(
         "buildCompoundAssignment", offset ?? offsetForToken(token), uri);
   }

@@ -119,6 +119,7 @@ export 'kernel_shadow_ast.dart'
         UnresolvedTargetInvocationJudgment,
         UnresolvedVariableGetJudgment,
         UnresolvedVariableAssignmentJudgment,
+        UnresolvedVariableUnaryJudgment,
         VariableAssignmentJudgment,
         VariableDeclarationJudgment,
         VariableGetJudgment,
