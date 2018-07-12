@@ -2931,6 +2931,19 @@ const MessageCode messageGeneratorReturnsValue = const MessageCode(
     message: r"""'sync*' and 'async*' can't return a value.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeGenericFunctionTypeInBound =
+    messageGenericFunctionTypeInBound;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageGenericFunctionTypeInBound = const MessageCode(
+    "GenericFunctionTypeInBound",
+    analyzerCode: "GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message:
+        r"""Type variables can't have generic function types in their bounds.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateGetterNotFound =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Getter not found: '#name'.""",

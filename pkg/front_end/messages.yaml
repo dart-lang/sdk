@@ -2518,3 +2518,11 @@ CyclicRedirectingFactoryConstructors:
       factory Foo.bar() = Foo.foo;
     }
     main() { var foo = new Foo.foo(); }
+
+GenericFunctionTypeInBound:
+  template: "Type variables can't have generic function types in their bounds."
+  analyzerCode: GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND
+  dart2jsCode: "*fatal*"
+  severity: ERROR
+  script: |
+    class Hest<X extends Y Function<Y>(Y)> {}

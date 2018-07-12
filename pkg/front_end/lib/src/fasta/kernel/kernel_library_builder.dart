@@ -39,6 +39,7 @@ import '../fasta_codes.dart'
         LocatedMessage,
         Message,
         messageConflictsWithTypeVariableCause,
+        messageGenericFunctionTypeInBound,
         messageTypeVariableDuplicatedName,
         messageTypeVariableSameNameAsEnclosing,
         noLength,
@@ -115,6 +116,7 @@ import 'metadata_collector.dart';
 import 'type_algorithms.dart'
     show
         calculateBounds,
+        findGenericFunctionTypes,
         getNonSimplicityIssuesForDeclaration,
         getNonSimplicityIssuesForTypeVariables;
 
@@ -1107,13 +1109,30 @@ class KernelLibraryBuilder
         bool strongMode) {
       if (variables == null) return 0;
 
+      bool haveErroneousBounds = false;
       if (strongMode) {
-        List<KernelTypeBuilder> calculatedBounds =
-            calculateBounds(variables, dynamicType, bottomType, objectClass);
         for (int i = 0; i < variables.length; ++i) {
-          variables[i].defaultType = calculatedBounds[i];
+          TypeVariableBuilder<TypeBuilder, Object> variable = variables[i];
+          List<TypeBuilder> genericFunctionTypes = <TypeBuilder>[];
+          findGenericFunctionTypes(variable.bound,
+              result: genericFunctionTypes);
+          if (genericFunctionTypes.length > 0) {
+            haveErroneousBounds = true;
+            addProblem(messageGenericFunctionTypeInBound, variable.charOffset,
+                variable.name.length, variable.fileUri);
+          }
         }
-      } else {
+
+        if (!haveErroneousBounds) {
+          List<KernelTypeBuilder> calculatedBounds =
+              calculateBounds(variables, dynamicType, bottomType, objectClass);
+          for (int i = 0; i < variables.length; ++i) {
+            variables[i].defaultType = calculatedBounds[i];
+          }
+        }
+      }
+
+      if (!strongMode || haveErroneousBounds) {
         // In Dart 1, put `dynamic` everywhere.
         for (int i = 0; i < variables.length; ++i) {
           variables[i].defaultType = dynamicType;
