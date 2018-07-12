@@ -16,6 +16,6 @@ mentionAuthors: true
 keepContentMentions: true
 
 # Set custom aliases for targets
-# aliases:
-#   r: repo
-#   or: owner/repo
+aliases:
+  flutter: flutter/flutter
+  flutter-intellij: flutter/flutter-intellij
