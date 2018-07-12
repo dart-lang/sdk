@@ -2299,6 +2299,48 @@ main() {
     assertType(identifier, '() → Future<dynamic>');
   }
 
+  test_deferredImport_variable() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, 'var v = 0;');
+    addTestFile(r'''
+import 'a.dart' deferred as a;
+main() async {
+  a.v;
+  a.v = 1;
+}
+
+''');
+    await resolveTestFile();
+    var import = findElement.import('package:test/a.dart');
+    TopLevelVariableElement v = (import.importedLibrary.publicNamespace.get('v')
+            as PropertyAccessorElement)
+        .variable;
+
+    {
+      var prefixed = findNode.prefixed('a.v;');
+      assertElement(prefixed, v.getter);
+      assertType(prefixed, 'int');
+
+      assertElement(prefixed.prefix, import.prefix);
+      assertType(prefixed.prefix, null);
+
+      assertElement(prefixed.identifier, v.getter);
+      assertType(prefixed.identifier, 'int');
+    }
+
+    {
+      var prefixed = findNode.prefixed('a.v = 1;');
+      assertElement(prefixed, v.setter);
+      assertType(prefixed, 'int');
+
+      assertElement(prefixed.prefix, import.prefix);
+      assertType(prefixed.prefix, null);
+
+      assertElement(prefixed.identifier, v.setter);
+      assertType(prefixed.identifier, 'int');
+    }
+  }
+
   test_enum_toString() async {
     addTestFile(r'''
 enum MyEnum { A, B, C }
@@ -8196,23 +8238,6 @@ class FindElement {
       return importElement;
     }
     fail('Not found import: $targetUri');
-  }
-
-  LibraryElement importedLibrary(String targetUri) {
-    LibraryElement libraryElement;
-    for (var import in unitElement.library.imports) {
-      var importedUri = import.importedLibrary.source.uri.toString();
-      if (importedUri == targetUri) {
-        if (libraryElement != null) {
-          throw new StateError('Not unique $targetUri import.');
-        }
-        libraryElement = import.importedLibrary;
-      }
-    }
-    if (libraryElement != null) {
-      return libraryElement;
-    }
-    fail('Not found library: $targetUri');
   }
 
   MethodElement method(String name) {

@@ -1208,6 +1208,10 @@ class KernelDeferredAccessGenerator extends KernelGenerator
         prefixGenerator.prefix,
         token.charOffset);
   }
+
+  @override
+  ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
+      new StaticAssignmentJudgment(rhs);
 }
 
 class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
