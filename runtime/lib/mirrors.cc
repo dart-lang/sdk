@@ -774,6 +774,8 @@ DEFINE_NATIVE_ENTRY(IsolateMirror_loadUri, 1) {
     ThrowLanguageError("no library handler registered");
   }
 
+  NoReloadScope no_reload(isolate, thread);
+
   // Canonicalize library URI.
   String& canonical_uri = String::Handle(zone);
   if (uri.StartsWith(Symbols::DartScheme())) {
