@@ -449,6 +449,12 @@ class CompileTimeErrorCode extends ErrorCode {
           "this class.",
           correction: "Try renaming either the type variable or the member.");
 
+  static const CompileTimeErrorCode CONFLICTS_WITH_CONSTRUCTOR =
+      const CompileTimeErrorCode.fromFasta('CONFLICTS_WITH_CONSTRUCTOR');
+
+  static const CompileTimeErrorCode CONFLICTS_WITH_MEMBER =
+      const CompileTimeErrorCode.fromFasta('CONFLICTS_WITH_MEMBER');
+
   /**
    * 16.12.2 Const: It is a compile-time error if evaluation of a constant
    * object results in an uncaught exception being thrown.
@@ -770,6 +776,10 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode('CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
           "The class '{0}' doesn't have a default constant constructor.",
           correction: "Try calling a different contructor.");
+
+  static const CompileTimeErrorCode DECLARED_MEMBER_CONFLICTS_WITH_INHERITED =
+      const CompileTimeErrorCode.fromFasta(
+          'DECLARED_MEMBER_CONFLICTS_WITH_INHERITED');
 
   /**
    * 15.3.1 Typedef: It is a compile-time error if any default values are

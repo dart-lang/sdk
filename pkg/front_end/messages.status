@@ -39,11 +39,9 @@ CantInferTypeDueToInconsistentOverrides/example: Fail
 CantUseSuperBoundedTypeForInstanceCreation/analyzerCode: Fail
 CantUseSuperBoundedTypeForInstanceCreation/example: Fail
 ColonInPlaceOfIn/example: Fail
-ConflictsWithConstructor/analyzerCode: Fail
 ConflictsWithConstructor/example: Fail
 ConflictsWithFactory/analyzerCode: Fail
 ConflictsWithFactory/example: Fail
-ConflictsWithMember/analyzerCode: Fail
 ConflictsWithMember/example: Fail
 ConflictsWithMemberWarning/analyzerCode: Fail
 ConflictsWithMemberWarning/example: Fail
@@ -51,7 +49,6 @@ ConflictsWithSetter/analyzerCode: Fail
 ConflictsWithSetter/example: Fail
 ConflictsWithSetterWarning/analyzerCode: Fail
 ConflictsWithSetterWarning/example: Fail
-ConflictsWithTypeVariable/analyzerCode: Fail
 ConflictsWithTypeVariable/example: Fail
 ConstAfterFactory/script1: Fail
 ConstAndCovariant/script2: Fail
@@ -99,7 +96,6 @@ CovariantMember/script2: Fail
 CyclicClassHierarchy/analyzerCode: Fail
 CyclicClassHierarchy/example: Fail
 CyclicTypedef/example: Fail
-DeclaredMemberConflictsWithInheritedMember/analyzerCode: Fail
 DeferredAfterPrefix/example: Fail
 DeferredPrefixDuplicated/example: Fail
 DeferredTypeAnnotation/example: Fail
@@ -354,7 +350,6 @@ TypeArgumentsOnTypeVariable/script1: Fail
 TypeNotFound/example: Fail
 TypeVariableDuplicatedName/example: Fail
 TypeVariableInStaticContext/example: Fail
-TypeVariableSameNameAsEnclosing/analyzerCode: Fail
 TypeVariableSameNameAsEnclosing/example: Fail
 TypedefNotFunction/example: Fail
 UnexpectedDollarInString/script1: Fail

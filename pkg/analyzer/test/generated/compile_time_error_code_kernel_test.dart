@@ -114,27 +114,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_conflictingConstructorNameAndMember_field() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD, found 0
-    await super.test_conflictingConstructorNameAndMember_field();
-  }
-
-  @override
-  @failingTest
-  test_conflictingConstructorNameAndMember_getter() async {
-    // Bad state: No type information for 42 at 25
-    await super.test_conflictingConstructorNameAndMember_getter();
-  }
-
-  @override
-  @failingTest
-  test_conflictingConstructorNameAndMember_method() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD, found 0
-    await super.test_conflictingConstructorNameAndMember_method();
-  }
-
-  @override
-  @failingTest
   test_conflictingGenericInterfaces_hierarchyLoop() =>
       super.test_conflictingGenericInterfaces_hierarchyLoop();
 
@@ -150,69 +129,7 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_conflictingGetterAndMethod_field_method() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD, found 0
-    await super.test_conflictingGetterAndMethod_field_method();
-  }
-
-  @override
-  @failingTest
-  test_conflictingGetterAndMethod_getter_method() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD, found 0
-    await super.test_conflictingGetterAndMethod_getter_method();
-  }
-
-  @override
-  @failingTest
-  test_conflictingGetterAndMethod_method_field() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER, found 0
-    await super.test_conflictingGetterAndMethod_method_field();
-  }
-
-  @override
-  @failingTest
-  test_conflictingGetterAndMethod_method_getter() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER, found 0
-    await super.test_conflictingGetterAndMethod_method_getter();
-  }
-
-  @override
-  @failingTest
-  test_conflictingTypeVariableAndClass() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS, found 0
-    await super.test_conflictingTypeVariableAndClass();
-  }
-
-  @override
-  @failingTest
-  test_conflictingTypeVariableAndMember_field() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER, found 0
-    await super.test_conflictingTypeVariableAndMember_field();
-  }
-
-  @override
-  @failingTest
-  test_conflictingTypeVariableAndMember_getter() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER, found 0
-    await super.test_conflictingTypeVariableAndMember_getter();
-  }
-
-  @override
-  @failingTest
-  test_conflictingTypeVariableAndMember_method() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER, found 0
-    await super.test_conflictingTypeVariableAndMember_method();
-  }
-
-  @override
-  @failingTest
-  test_conflictingTypeVariableAndMember_method_static() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER, found 0
-    await super.test_conflictingTypeVariableAndMember_method_static();
-  }
-
-  @override
-  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33827')
   test_conflictingTypeVariableAndMember_setter() async {
     // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER, found 0
     await super.test_conflictingTypeVariableAndMember_setter();

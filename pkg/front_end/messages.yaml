@@ -1528,6 +1528,8 @@ IllegalMixinDueToConstructorsCause:
 ConflictsWithConstructor:
   template: "Conflicts with constructor '#name'."
   severity: ERROR
+  analyzerCode: CONFLICTS_WITH_CONSTRUCTOR
+  dart2jsCode: "*fatal*"
 
 ConflictsWithFactory:
   template: "Conflicts with factory '#name'."
@@ -1536,6 +1538,8 @@ ConflictsWithFactory:
 ConflictsWithMember:
   template: "Conflicts with member '#name'."
   severity: ERROR
+  analyzerCode: CONFLICTS_WITH_MEMBER
+  dart2jsCode: "*fatal*"
 
 ConflictsWithMemberWarning:
   template: "Conflicts with member '#name'."
@@ -1552,6 +1556,8 @@ ConflictsWithSetterWarning:
 ConflictsWithTypeVariable:
   template: "Conflicts with type variable '#name'."
   severity: ERROR
+  analyzerCode: CONFLICTING_TYPE_VARIABLE_AND_MEMBER
+  dart2jsCode: "*fatal*"
 
 ConflictsWithTypeVariableCause:
   template: "This is the type variable."
@@ -1560,6 +1566,8 @@ ConflictsWithTypeVariableCause:
 DeclaredMemberConflictsWithInheritedMember:
   template: "Can't declare a member that conflicts with an inherited one."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: DECLARED_MEMBER_CONFLICTS_WITH_INHERITED
+  dart2jsCode: "*fatal*"
   script:
     - >-
       class A {
@@ -1695,6 +1703,8 @@ TypeVariableDuplicatedNameCause:
 
 TypeVariableSameNameAsEnclosing:
   template: "A type variable can't have the same name as its enclosing declaration."
+  analyzerCode: CONFLICTING_TYPE_VARIABLE_AND_CLASS
+  dart2jsCode: "*fatal*"
 
 ExpectedEnumBody:
   template: "Expected a enum body, but got '#lexeme'."

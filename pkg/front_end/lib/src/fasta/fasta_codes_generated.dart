@@ -692,6 +692,8 @@ const Template<Message Function(String name)> templateConflictsWithConstructor =
 const Code<Message Function(String name)> codeConflictsWithConstructor =
     const Code<Message Function(String name)>(
         "ConflictsWithConstructor", templateConflictsWithConstructor,
+        analyzerCode: "CONFLICTS_WITH_CONSTRUCTOR",
+        dart2jsCode: "*fatal*",
         severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -730,6 +732,8 @@ const Template<Message Function(String name)> templateConflictsWithMember =
 const Code<Message Function(String name)> codeConflictsWithMember =
     const Code<Message Function(String name)>(
         "ConflictsWithMember", templateConflictsWithMember,
+        analyzerCode: "CONFLICTS_WITH_MEMBER",
+        dart2jsCode: "*fatal*",
         severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -809,6 +813,8 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)> codeConflictsWithTypeVariable =
     const Code<Message Function(String name)>(
         "ConflictsWithTypeVariable", templateConflictsWithTypeVariable,
+        analyzerCode: "CONFLICTING_TYPE_VARIABLE_AND_MEMBER",
+        dart2jsCode: "*fatal*",
         severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1552,6 +1558,8 @@ const Code<Null> codeDeclaredMemberConflictsWithInheritedMember =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageDeclaredMemberConflictsWithInheritedMember =
     const MessageCode("DeclaredMemberConflictsWithInheritedMember",
+        analyzerCode: "DECLARED_MEMBER_CONFLICTS_WITH_INHERITED",
+        dart2jsCode: "*fatal*",
         severity: Severity.errorLegacyWarning,
         message:
             r"""Can't declare a member that conflicts with an inherited one.""");
@@ -6392,6 +6400,8 @@ const Code<Null> codeTypeVariableSameNameAsEnclosing =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypeVariableSameNameAsEnclosing = const MessageCode(
     "TypeVariableSameNameAsEnclosing",
+    analyzerCode: "CONFLICTING_TYPE_VARIABLE_AND_CLASS",
+    dart2jsCode: "*fatal*",
     message:
         r"""A type variable can't have the same name as its enclosing declaration.""");
 

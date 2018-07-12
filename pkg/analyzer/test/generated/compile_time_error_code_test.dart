@@ -731,7 +731,13 @@ class A {
 }''');
     await computeAnalysisResult(source);
     assertErrors(
-        source, [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD]);
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.CONFLICTS_WITH_CONSTRUCTOR,
+                CompileTimeErrorCode.CONFLICTS_WITH_MEMBER
+              ]
+            : [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD]);
     verify([source]);
   }
 
@@ -743,7 +749,13 @@ class A {
 }''');
     await computeAnalysisResult(source);
     assertErrors(
-        source, [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD]);
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.CONFLICTS_WITH_CONSTRUCTOR,
+                CompileTimeErrorCode.CONFLICTS_WITH_MEMBER
+              ]
+            : [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD]);
     verify([source]);
   }
 
@@ -755,7 +767,13 @@ class A {
 }''');
     await computeAnalysisResult(source);
     assertErrors(
-        source, [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD]);
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.CONFLICTS_WITH_CONSTRUCTOR,
+                CompileTimeErrorCode.CONFLICTS_WITH_MEMBER
+              ]
+            : [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD]);
     verify([source]);
   }
 
@@ -818,7 +836,11 @@ class B extends A {
   m() {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.DECLARED_MEMBER_CONFLICTS_WITH_INHERITED]
+            : [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
     verify([source]);
   }
 
@@ -831,7 +853,11 @@ class B extends A {
   m() {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.DECLARED_MEMBER_CONFLICTS_WITH_INHERITED]
+            : [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
     verify([source]);
   }
 
@@ -844,7 +870,11 @@ class B extends A {
   int m;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.DECLARED_MEMBER_CONFLICTS_WITH_INHERITED]
+            : [CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER]);
     verify([source]);
   }
 
@@ -857,7 +887,11 @@ class B extends A {
   get m => 0;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.DECLARED_MEMBER_CONFLICTS_WITH_INHERITED]
+            : [CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER]);
     verify([source]);
   }
 
