@@ -15,12 +15,7 @@ import 'package:compiler/compiler_new.dart'
         Diagnostic,
         PackagesDiscoveryProvider;
 import 'package:compiler/src/diagnostics/messages.dart' show Message;
-import 'package:compiler/src/elements/entities.dart'
-    show LibraryEntity, MemberEntity;
-import 'package:compiler/src/enqueue.dart' show ResolutionEnqueuer;
 import 'package:compiler/src/null_compiler_output.dart' show NullCompilerOutput;
-import 'package:compiler/src/library_loader.dart'
-    show LoadedLibraries, KernelLibraryLoaderTask;
 import 'package:compiler/src/options.dart' show CompilerOptions;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
@@ -68,9 +63,6 @@ CompilerDiagnostics createCompilerDiagnostics(
   return handler;
 }
 
-Expando<MemorySourceFileProvider> expando =
-    new Expando<MemorySourceFileProvider>();
-
 // Cached kernel state for non-strong mode.
 fe.InitializedCompilerState kernelInitializedCompilerState;
 
@@ -86,7 +78,6 @@ Future<CompilationResult> runCompiler(
     CompilerDiagnostics diagnosticHandler,
     CompilerOutput outputProvider,
     List<String> options: const <String>[],
-    CompilerImpl cachedCompiler,
     bool showDiagnostics: true,
     Uri packageRoot,
     Uri packageConfig,
@@ -101,7 +92,6 @@ Future<CompilationResult> runCompiler(
       diagnosticHandler: diagnosticHandler,
       outputProvider: outputProvider,
       options: options,
-      cachedCompiler: cachedCompiler,
       showDiagnostics: showDiagnostics,
       packageRoot: packageRoot,
       packageConfig: packageConfig,
@@ -111,15 +101,12 @@ Future<CompilationResult> runCompiler(
   }
   fe.InitializedCompilerState compilerState;
   bool isSuccess = await compiler.run(entryPoint);
-  if (compiler.libraryLoader is KernelLibraryLoaderTask) {
-    KernelLibraryLoaderTask loader = compiler.libraryLoader;
-    if (compiler.options.strongMode) {
-      compilerState = strongKernelInitializedCompilerState =
-          loader.initializedCompilerState;
-    } else {
-      compilerState =
-          kernelInitializedCompilerState = loader.initializedCompilerState;
-    }
+  if (compiler.options.strongMode) {
+    compilerState = strongKernelInitializedCompilerState =
+        compiler.libraryLoader.initializedCompilerState;
+  } else {
+    compilerState = kernelInitializedCompilerState =
+        compiler.libraryLoader.initializedCompilerState;
   }
   return new CompilationResult(compiler,
       isSuccess: isSuccess, kernelInitializedCompilerState: compilerState);
@@ -131,7 +118,6 @@ CompilerImpl compilerFor(
     CompilerDiagnostics diagnosticHandler,
     CompilerOutput outputProvider,
     List<String> options: const <String>[],
-    CompilerImpl cachedCompiler,
     bool showDiagnostics: true,
     Uri packageRoot,
     Uri packageConfig,
@@ -154,17 +140,7 @@ CompilerImpl compilerFor(
   }
 
   MemorySourceFileProvider provider;
-  if (cachedCompiler == null) {
-    provider = new MemorySourceFileProvider(memorySourceFiles);
-    // Saving the provider in case we need it later for a cached compiler.
-    expando[provider] = provider;
-  } else {
-    // When using a cached compiler, it has read a number of files from disk
-    // already (and will not attempt to read them again due to caching). These
-    // files must be available to the new diagnostic handler.
-    provider = expando[cachedCompiler.provider];
-    provider.memorySourceFiles = memorySourceFiles;
-  }
+  provider = new MemorySourceFileProvider(memorySourceFiles);
   diagnosticHandler = createCompilerDiagnostics(diagnosticHandler, provider,
       showDiagnostics: showDiagnostics,
       verbose: options.contains('-v') || options.contains('--verbose'));
@@ -190,65 +166,7 @@ CompilerImpl compilerFor(
   CompilerImpl compiler = new CompilerImpl(
       provider, outputProvider, diagnosticHandler, compilerOptions);
 
-  if (cachedCompiler != null) {
-    Map copiedLibraries = {};
-    cachedCompiler.libraryLoader.libraries.forEach((dynamic library) {
-      if (library.isPlatformLibrary) {
-        dynamic libraryLoader = compiler.libraryLoader;
-        libraryLoader.mapLibrary(library);
-        copiedLibraries[library.canonicalUri] = library;
-      }
-    });
-    compiler.processLoadedLibraries(new MemoryLoadedLibraries(copiedLibraries));
-    ResolutionEnqueuer resolutionEnqueuer = compiler.startResolution();
-
-    Iterable<MemberEntity> cachedTreeElements =
-        cachedCompiler.enqueuer.resolution.processedEntities;
-    cachedTreeElements.forEach((MemberEntity element) {
-      if (element.library.canonicalUri.scheme == 'dart') {
-        resolutionEnqueuer.registerProcessedElementInternal(element);
-      }
-    });
-
-    dynamic frontendStrategy = compiler.frontendStrategy;
-    frontendStrategy.nativeBasicDataBuilder.reopenForTesting();
-
-    // One potential problem that can occur when reusing elements is that there
-    // is a stale reference to an old compiler object.  By nulling out the old
-    // compiler's fields, such stale references are easier to identify.
-    cachedCompiler.libraryLoader = null;
-    cachedCompiler.globalInference = null;
-    cachedCompiler.backend = null;
-    // Don't null out the enqueuer as it prevents us from using cachedCompiler
-    // more than once.
-    cachedCompiler.deferredLoadTask = null;
-    cachedCompiler.dumpInfoTask = null;
-  }
   return compiler;
-}
-
-class MemoryLoadedLibraries implements LoadedLibraries {
-  final Map copiedLibraries;
-
-  MemoryLoadedLibraries(this.copiedLibraries);
-
-  @override
-  bool containsLibrary(Uri uri) => copiedLibraries.containsKey(uri);
-
-  @override
-  void forEachImportChain(f, {callback}) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  void forEachLibrary(void f(LibraryEntity l)) =>
-      copiedLibraries.values.forEach((l) => f(l));
-
-  @override
-  getLibrary(Uri uri) => copiedLibraries[uri];
-
-  @override
-  LibraryEntity get rootLibrary => copiedLibraries.values.first;
 }
 
 DiagnosticHandler createDiagnosticHandler(DiagnosticHandler diagnosticHandler,

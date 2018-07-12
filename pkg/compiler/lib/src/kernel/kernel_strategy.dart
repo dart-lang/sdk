@@ -4,9 +4,6 @@
 
 library dart2js.kernel.frontend_strategy;
 
-import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
-
-import '../../compiler_new.dart' as api;
 import '../common.dart';
 import '../common/backend_api.dart';
 import '../common/resolution.dart';
@@ -51,32 +48,16 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   final Map<MemberEntity, ScopeModel> closureModels =
       <MemberEntity, ScopeModel>{};
 
-  fe.InitializedCompilerState initializedCompilerState;
-
-  KernelFrontEndStrategy(
-      this._compilerTask,
-      this._options,
-      DiagnosticReporter reporter,
-      env.Environment environment,
-      this.initializedCompilerState) {
+  KernelFrontEndStrategy(this._compilerTask, this._options,
+      DiagnosticReporter reporter, env.Environment environment) {
     assert(_compilerTask != null);
     _elementMap = new KernelToElementMapForImpactImpl(
         reporter, environment, this, _options);
   }
 
   @override
-  LibraryLoaderTask createLibraryLoader(api.CompilerInput compilerInput,
-      DiagnosticReporter reporter, Measurer measurer) {
-    return new KernelLibraryLoaderTask(
-        _options.librariesSpecificationUri,
-        _options.platformBinaries,
-        _options.packageConfig,
-        _elementMap,
-        compilerInput,
-        reporter,
-        measurer,
-        verbose: _options.verbose,
-        initializedCompilerState: initializedCompilerState);
+  void registerLoadedLibraries(LoadedLibraries loadedLibraries) {
+    _elementMap.addComponent(loadedLibraries.component);
   }
 
   @override
@@ -109,8 +90,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
 
   /// Computes the main function from [mainLibrary] adding additional world
   /// impact to [impactBuilder].
-  FunctionEntity computeMain(
-      LibraryEntity mainLibrary, WorldImpactBuilder impactBuilder) {
+  FunctionEntity computeMain(WorldImpactBuilder impactBuilder) {
     return elementEnvironment.mainFunction;
   }
 

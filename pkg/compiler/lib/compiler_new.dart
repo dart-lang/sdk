@@ -13,7 +13,6 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import 'compiler.dart' show Diagnostic;
 import 'src/apiimpl.dart';
-import 'src/library_loader.dart';
 import 'src/options.dart' show CompilerOptions;
 
 export 'compiler.dart' show Diagnostic, PackagesDiscoveryProvider;
@@ -134,6 +133,9 @@ class CompilationResult {
   /// Use only for debugging and testing.
   final compiler;
 
+  /// Shared state between compilations.
+  ///
+  /// This is used to speed up batch mode.
   final fe.InitializedCompilerState kernelInitializedCompilerState;
 
   CompilationResult(this.compiler,
@@ -170,12 +172,9 @@ Future<CompilationResult> compile(
   CompilerImpl compiler = new CompilerImpl(
       compilerInput, compilerOutput, compilerDiagnostics, compilerOptions);
   return compiler.run(compilerOptions.entryPoint).then((bool success) {
-    if (compiler.libraryLoader is KernelLibraryLoaderTask) {
-      KernelLibraryLoaderTask loader = compiler.libraryLoader;
-      return new CompilationResult(compiler,
-          isSuccess: success,
-          kernelInitializedCompilerState: loader.initializedCompilerState);
-    }
-    return new CompilationResult(compiler, isSuccess: success);
+    return new CompilationResult(compiler,
+        isSuccess: success,
+        kernelInitializedCompilerState:
+            compiler.libraryLoader.initializedCompilerState);
   });
 }
