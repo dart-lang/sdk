@@ -41,4 +41,5 @@ build_dart_simple/*: Skip
 sample_extension/*: Skip
 
 [ $hot_reload || $hot_reload_rollback ]
-sample_extension/test/sample_extension_script_snapshot_test: SkipByDesign # This test makes a script snapshot, which implies not exercising Dart code.
+sample_extension/test/sample_extension_app_snapshot_test: SkipByDesign # Cannot reload with URI pointing to app snapshot.
+sample_extension/test/sample_extension_script_snapshot_test: SkipByDesign # Cannot reload with URI pointing to script snapshot.
