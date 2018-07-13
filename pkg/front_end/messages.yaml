@@ -1228,6 +1228,8 @@ ListLiteralTypeArgumentMismatch:
 LoadLibraryTakesNoArguments:
   template: "'loadLibrary' takes no arguments."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: LOAD_LIBRARY_TAKES_NO_ARGUMENTS
+  dart2jsCode: "*fatal*"
 
 LoadLibraryHidesMember:
   template: "The library '#uri' defines a top-level member named 'loadLibrary'. This member is hidden by the special member 'loadLibrary' that the language adds to support deferred loading."

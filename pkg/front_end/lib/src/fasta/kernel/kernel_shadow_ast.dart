@@ -3752,6 +3752,8 @@ class LoadLibraryJudgment extends LoadLibrary implements ExpressionJudgment {
 
   LoadLibraryJudgment(LibraryDependency import, this.arguments) : super(import);
 
+  ArgumentsJudgment get argumentJudgments => arguments;
+
   @override
   Expression infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
@@ -3760,12 +3762,11 @@ class LoadLibraryJudgment extends LoadLibrary implements ExpressionJudgment {
     inferredType =
         inferrer.typeSchemaEnvironment.futureType(const DynamicType());
     if (arguments != null) {
-      inferrer.listener.loadLibrary(
-          this,
-          arguments.fileOffset,
-          import.targetLibrary,
-          new FunctionType([], inferredType),
-          inferredType);
+      var calleeType = new FunctionType([], inferredType);
+      inferrer.inferInvocation(factory, typeContext, fileOffset, calleeType,
+          calleeType.returnType, argumentJudgments);
+      inferrer.listener.loadLibrary(this, arguments.fileOffset,
+          import.targetLibrary, calleeType, inferredType);
     }
     return null;
   }

@@ -4260,6 +4260,8 @@ const Code<Null> codeLoadLibraryTakesNoArguments =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageLoadLibraryTakesNoArguments = const MessageCode(
     "LoadLibraryTakesNoArguments",
+    analyzerCode: "LOAD_LIBRARY_TAKES_NO_ARGUMENTS",
+    dart2jsCode: "*fatal*",
     severity: Severity.errorLegacyWarning,
     message: r"""'loadLibrary' takes no arguments.""");
 

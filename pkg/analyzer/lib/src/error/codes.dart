@@ -1598,6 +1598,9 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try defining the label, or "
               "correcting the name to match an existing label.");
 
+  static const CompileTimeErrorCode LOAD_LIBRARY_TAKES_NO_ARGUMENTS =
+      const CompileTimeErrorCode.fromFasta('LOAD_LIBRARY_TAKES_NO_ARGUMENTS');
+
   /**
    * 7 Classes: It is a compile time error if a class <i>C</i> declares a member
    * with the same name as <i>C</i>.

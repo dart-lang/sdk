@@ -175,6 +175,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.INVALID_USE_OF_COVARIANT,
   CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
   CompileTimeErrorCode.LABEL_UNDEFINED,
+  CompileTimeErrorCode.LOAD_LIBRARY_TAKES_NO_ARGUMENTS,
   CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME,
   CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME,
   CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL,

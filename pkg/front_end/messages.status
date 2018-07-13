@@ -216,7 +216,6 @@ ListLiteralTooManyTypeArguments/analyzerCode: Fail
 ListLiteralTooManyTypeArguments/example: Fail
 ListLiteralTypeArgumentMismatch/analyzerCode: Fail
 ListLiteralTypeArgumentMismatch/example: Fail
-LoadLibraryTakesNoArguments/analyzerCode: Fail
 LoadLibraryTakesNoArguments/example: Fail
 MemberWithSameNameAsClass/analyzerCode: Fail
 MemberWithSameNameAsClass/example: Fail

@@ -2278,6 +2278,42 @@ main() {
     assertType(name, useCFE ? '() → Future<dynamic>' : null);
   }
 
+  test_deferredImport_loadLibrary_invocation_argument() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, '');
+    addTestFile(r'''
+import 'a.dart' deferred as a;
+var b = 1;
+var c = 2;
+main() {
+  a.loadLibrary(b, c);
+}
+
+''');
+    await resolveTestFile();
+    var import = findElement.import('package:test/a.dart');
+
+    var invocation = findNode.methodInvocation('loadLibrary');
+    assertType(invocation, 'Future<dynamic>');
+    assertInvokeType(invocation, '() → Future<dynamic>');
+
+    SimpleIdentifier target = invocation.target;
+    assertElement(target, import.prefix);
+    assertType(target, null);
+
+    var name = invocation.methodName;
+    assertElement(name, import.importedLibrary.loadLibraryFunction);
+    assertType(name, useCFE ? '() → Future<dynamic>' : null);
+
+    var bRef = invocation.argumentList.arguments[0];
+    assertElement(bRef, findElement.topGet('b'));
+    assertType(bRef, 'int');
+
+    var cRef = invocation.argumentList.arguments[1];
+    assertElement(cRef, findElement.topGet('c'));
+    assertType(cRef, 'int');
+  }
+
   test_deferredImport_loadLibrary_tearOff() async {
     var a = _p('/test/lib/a.dart');
     provider.newFile(a, '');
