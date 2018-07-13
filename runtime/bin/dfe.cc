@@ -81,6 +81,7 @@ static char* GetDirectoryPrefixFromExeName() {
 
 DFE::DFE()
     : use_dfe_(false),
+      use_incremental_compiler_(false),
       frontend_filename_(NULL),
       application_kernel_buffer_(NULL),
       application_kernel_buffer_size_(0) {}
@@ -218,8 +219,8 @@ void DFE::CompileAndReadScript(const char* script_uri,
                                int* exit_code,
                                bool strong,
                                const char* package_config) {
-  Dart_KernelCompilationResult result =
-      CompileScript(script_uri, strong, true, package_config);
+  Dart_KernelCompilationResult result = CompileScript(
+      script_uri, strong, use_incremental_compiler(), package_config);
   switch (result.status) {
     case Dart_KernelCompilationStatus_Ok:
       *kernel_buffer = result.kernel;

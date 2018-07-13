@@ -34,6 +34,11 @@ class DFE {
   void set_use_dfe(bool value = true) { use_dfe_ = value; }
   bool UseDartFrontend() const { return use_dfe_; }
 
+  void set_use_incremental_compiler(bool value) {
+    use_incremental_compiler_ = value;
+  }
+  bool use_incremental_compiler() const { return use_incremental_compiler_; }
+
   // Returns the platform binary file name if the path to
   // kernel binaries was set using SetKernelBinaries.
   const char* GetPlatformBinaryFilename();
@@ -100,6 +105,7 @@ class DFE {
 
  private:
   bool use_dfe_;
+  bool use_incremental_compiler_;
   char* frontend_filename_;
 
   // Kernel binary specified on the cmd line.

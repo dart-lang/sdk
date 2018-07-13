@@ -305,18 +305,20 @@ void _recordDependencies(
     int isolateId, Component component, String packageConfig) {
   final dependencies = isolateDependencies[isolateId] ??= new List<Uri>();
 
-  for (var lib in component.libraries) {
-    if (lib.importUri.scheme == "dart") continue;
+  if (component != null) {
+    for (var lib in component.libraries) {
+      if (lib.importUri.scheme == "dart") continue;
 
-    dependencies.add(lib.fileUri);
-    for (var part in lib.parts) {
-      final fileUri = lib.fileUri.resolve(part.partUri);
-      if (fileUri.scheme != "" && fileUri.scheme != "file") {
-        // E.g. part 'package:foo/foo.dart';
-        // Maybe the front end should resolve this?
-        continue;
+      dependencies.add(lib.fileUri);
+      for (var part in lib.parts) {
+        final fileUri = lib.fileUri.resolve(part.partUri);
+        if (fileUri.scheme != "" && fileUri.scheme != "file") {
+          // E.g. part 'package:foo/foo.dart';
+          // Maybe the front end should resolve this?
+          continue;
+        }
+        dependencies.add(fileUri);
       }
-      dependencies.add(fileUri);
     }
   }
 
@@ -447,7 +449,7 @@ Future _processLoadRequest(request) async {
     FileSystem fileSystem = _buildFileSystem(
         sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
     compiler = new SingleShotCompilerWrapper(fileSystem, platformKernelPath,
-        requireMain: sourceFiles.isEmpty,
+        requireMain: false,
         strongMode: strong,
         suppressWarnings: suppressWarnings,
         syncAsync: syncAsync,
@@ -461,12 +463,17 @@ Future _processLoadRequest(request) async {
     }
 
     Component component = await compiler.compile(script);
-    _recordDependencies(isolateId, component, packageConfig);
 
     if (compiler.errors.isNotEmpty) {
-      result = new CompilationResult.errors(compiler.errors,
-          serializeComponent(component, filter: (lib) => !lib.isExternal));
+      if (component != null) {
+        result = new CompilationResult.errors(compiler.errors,
+            serializeComponent(component, filter: (lib) => !lib.isExternal));
+      } else {
+        result = new CompilationResult.errors(compiler.errors, null);
+      }
     } else {
+      // Record dependencies only if compilation was error free.
+      _recordDependencies(isolateId, component, packageConfig);
       // We serialize the component excluding vm_platform.dill because the VM has
       // these sources built-in. Everything loaded as a summary in
       // [kernelForProgram] is marked `external`, so we can use that bit to
