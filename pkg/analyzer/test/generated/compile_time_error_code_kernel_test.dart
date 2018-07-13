@@ -779,13 +779,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_finalNotInitialized_local_const() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONST_NOT_INITIALIZED, found 0
-    await super.test_finalNotInitialized_local_const();
-  }
-
-  @override
-  @failingTest
   test_fromEnvironment_bool_badArgs() async {
     // Expected 2 errors of type CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, found 0;
     //          2 errors of type StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0

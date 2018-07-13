@@ -569,13 +569,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_finalNotInitialized_local_final() async {
-    return super.test_finalNotInitialized_local_final();
-  }
-
-  @override
-  @failingTest
   test_generalizedVoid_invocationOfVoidFieldError() async {
     return super.test_generalizedVoid_invocationOfVoidFieldError();
   }

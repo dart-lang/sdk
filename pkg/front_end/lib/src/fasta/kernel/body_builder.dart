@@ -1810,10 +1810,16 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       // one variable it must be followed by `in`.
       if (isConst) {
         initializer = deprecated_buildCompileTimeError(
-            "A 'const' variable must be initialized.", token.charOffset);
+            null,
+            token.charOffset,
+            fasta.templateConstFieldWithoutInitializer
+                .withArguments(token.lexeme));
       } else if (isFinal) {
         initializer = deprecated_buildCompileTimeError(
-            "A 'final' variable must be initialized.", token.charOffset);
+            null,
+            token.charOffset,
+            fasta.templateFinalFieldWithoutInitializer
+                .withArguments(token.lexeme));
       }
     }
     pushNewLocalVariable(initializer);

@@ -692,14 +692,6 @@ class ExitCodesTest_PreviewDart2 extends ExitCodesTest {
 class ExitCodesTest_UseCFE extends ExitCodesTest {
   @override
   bool get useCFE => true;
-
-  @override
-  @failingTest
-  test_fatalWarnings() => callFailingTest(super.test_fatalWarnings);
-
-  @override
-  @failingTest
-  test_notFatalWarnings() => callFailingTest(super.test_notFatalWarnings);
 }
 
 @reflectiveTest
