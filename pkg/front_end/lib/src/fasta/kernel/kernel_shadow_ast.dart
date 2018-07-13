@@ -2084,6 +2084,7 @@ abstract class ShadowMember implements Member {
 /// Shadow object for [MethodInvocation].
 class MethodInvocationJudgment extends MethodInvocation
     implements ExpressionJudgment {
+  final kernel.Expression desugaredError;
   DartType inferredType;
 
   /// Indicates whether this method invocation is a call to a `call` method
@@ -2092,7 +2093,7 @@ class MethodInvocationJudgment extends MethodInvocation
 
   MethodInvocationJudgment(
       Expression receiver, Name name, ArgumentsJudgment arguments,
-      {bool isImplicitCall: false, Member interfaceTarget})
+      {this.desugaredError, bool isImplicitCall: false, Member interfaceTarget})
       : _isImplicitCall = isImplicitCall,
         super(receiver, name, arguments, interfaceTarget);
 
@@ -2107,6 +2108,10 @@ class MethodInvocationJudgment extends MethodInvocation
         factory, this, receiver, fileOffset, _isImplicitCall, typeContext,
         desugaredInvocation: this);
     inferredType = inferenceResult.type;
+    if (desugaredError != null) {
+      parent.replaceChild(this, desugaredError);
+      parent = null;
+    }
     return null;
   }
 }
@@ -2183,10 +2188,12 @@ class NotJudgment extends Not implements ExpressionJudgment {
 ///     let v = a in v == null ? null : v.b(...)
 class NullAwareMethodInvocationJudgment extends Let
     implements ExpressionJudgment {
+  final kernel.Expression desugaredError;
   DartType inferredType;
 
   NullAwareMethodInvocationJudgment(
-      VariableDeclaration variable, Expression body)
+      VariableDeclaration variable, Expression body,
+      {this.desugaredError})
       : super(variable, body);
 
   @override
@@ -2567,10 +2574,11 @@ class StaticGetJudgment extends StaticGet implements ExpressionJudgment {
 /// Shadow object for [StaticInvocation].
 class StaticInvocationJudgment extends StaticInvocation
     implements ExpressionJudgment {
+  final kernel.Expression desugaredError;
   DartType inferredType;
 
   StaticInvocationJudgment(Procedure target, ArgumentsJudgment arguments,
-      {bool isConst: false})
+      {this.desugaredError, bool isConst: false})
       : super(target, arguments, isConst: isConst);
 
   ArgumentsJudgment get argumentJudgments => arguments;
@@ -2593,6 +2601,10 @@ class StaticInvocationJudgment extends StaticInvocation
         inferrer.lastCalleeType,
         inferrer.lastInferredSubstitution,
         inferredType);
+    if (desugaredError != null) {
+      parent.replaceChild(this, desugaredError);
+      parent = null;
+    }
     return null;
   }
 }
@@ -2681,10 +2693,11 @@ class SuperInitializerJudgment extends SuperInitializer
 /// Shadow object for [SuperMethodInvocation].
 class SuperMethodInvocationJudgment extends SuperMethodInvocation
     implements ExpressionJudgment {
+  final kernel.Expression desugaredError;
   DartType inferredType;
 
   SuperMethodInvocationJudgment(Name name, ArgumentsJudgment arguments,
-      [Procedure interfaceTarget])
+      {this.desugaredError, Procedure interfaceTarget})
       : super(name, arguments, interfaceTarget);
 
   ArgumentsJudgment get argumentJudgments => arguments;
@@ -2704,6 +2717,10 @@ class SuperMethodInvocationJudgment extends SuperMethodInvocation
         methodName: name,
         arguments: arguments);
     inferredType = inferenceResult.type;
+    if (desugaredError != null) {
+      parent.replaceChild(this, desugaredError);
+      parent = null;
+    }
     return null;
   }
 }
@@ -2711,9 +2728,11 @@ class SuperMethodInvocationJudgment extends SuperMethodInvocation
 /// Shadow object for [SuperPropertyGet].
 class SuperPropertyGetJudgment extends SuperPropertyGet
     implements ExpressionJudgment {
+  final kernel.Expression desugaredError;
   DartType inferredType;
 
-  SuperPropertyGetJudgment(Name name, [Member interfaceTarget])
+  SuperPropertyGetJudgment(Name name,
+      {this.desugaredError, Member interfaceTarget})
       : super(name, interfaceTarget);
 
   @override
@@ -2727,6 +2746,10 @@ class SuperPropertyGetJudgment extends SuperPropertyGet
     }
     inferrer.inferPropertyGet(factory, this, null, fileOffset, typeContext,
         interfaceMember: interfaceTarget, propertyName: name);
+    if (desugaredError != null) {
+      parent.replaceChild(this, desugaredError);
+      parent = null;
+    }
     return null;
   }
 }

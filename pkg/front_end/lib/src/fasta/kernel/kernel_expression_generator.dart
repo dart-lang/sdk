@@ -13,7 +13,8 @@ import '../fasta_codes.dart'
     show
         LocatedMessage,
         messageLoadLibraryTakesNoArguments,
-        messageSuperAsExpression;
+        messageSuperAsExpression,
+        templateNotConstantExpression;
 
 import '../messages.dart' show Message, noLength;
 
@@ -618,7 +619,7 @@ class KernelSuperPropertyAccessGenerator extends KernelGenerator
       helper.warnUnresolvedGet(name, offsetForToken(token), isSuper: true);
     }
     // TODO(ahe): Use [DirectPropertyGet] when possible.
-    var read = new SuperPropertyGetJudgment(name, getter)
+    var read = new SuperPropertyGetJudgment(name, interfaceTarget: getter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
     return read;
@@ -981,10 +982,9 @@ class KernelSuperIndexedAccessGenerator extends KernelGenerator
           isSuper: true);
     }
     // TODO(ahe): Use [DirectMethodInvocation] when possible.
-    return new SuperMethodInvocationJudgment(
-        indexGetName,
+    return new SuperMethodInvocationJudgment(indexGetName,
         forest.castArguments(forest.arguments(<Expression>[index], token)),
-        getter)
+        interfaceTarget: getter)
       ..fileOffset = offsetForToken(token);
   }
 
@@ -1113,21 +1113,25 @@ class KernelStaticAccessGenerator extends KernelGenerator
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
+    Expression error;
     if (helper.constantContext != ConstantContext.none &&
         !helper.isIdentical(readTarget)) {
-      helper.deprecated_addCompileTimeError(
-          offset, "Not a constant expression.");
+      error = helper.buildCompileTimeError(
+          templateNotConstantExpression.withArguments('Method invocation'),
+          offset,
+          readTarget?.name?.name?.length ?? 0);
     }
     if (readTarget == null || isFieldOrGetter(readTarget)) {
       return helper.buildMethodInvocation(buildSimpleRead(), callName,
           arguments, offset + (readTarget?.name?.name?.length ?? 0),
+          error: error,
           // This isn't a constant expression, but we have checked if a
           // constant expression error should be emitted already.
           isConstantExpression: true,
           isImplicitCall: true);
     } else {
       return helper.buildStaticInvocation(readTarget, arguments,
-          charOffset: offset);
+          charOffset: offset, error: error);
     }
   }
 

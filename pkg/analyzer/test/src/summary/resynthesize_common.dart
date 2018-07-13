@@ -2537,11 +2537,9 @@ class C {
 int foo() => 42;
 ''', allowErrors: true);
     if (isSharedFrontEnd) {
-      // It is OK to keep non-constant initializers.
       checkElementText(library, r'''
 class C {
-  static const int f = 1 +
-        foo/*location: test.dart;foo*/();
+  static const int f = #invalidConst;
 }
 int foo() {}
 ''');
@@ -2605,10 +2603,8 @@ const v = 1 + foo();
 int foo() => 42;
 ''', allowErrors: true);
     if (isSharedFrontEnd) {
-      // It is OK to keep non-constant initializers.
       checkElementText(library, r'''
-const int v = 1 +
-        foo/*location: test.dart;foo*/();
+const int v = #invalidConst;
 int foo() {}
 ''');
     } else if (isStrongMode) {
@@ -4646,8 +4642,18 @@ class C {
 }
 int foo() => 42;
 ''', allowErrors: true);
-    // It is OK to keep non-constant initializers.
-    checkElementText(library, r'''
+    if (isSharedFrontEnd) {
+      checkElementText(library, r'''
+class C {
+  final dynamic x;
+  const C() :
+        x/*location: test.dart;C;x*/ = #invalidConst;
+}
+int foo() {}
+''');
+    } else {
+      // It is OK to keep non-constant initializers.
+      checkElementText(library, r'''
 class C {
   final dynamic x;
   const C() :
@@ -4656,6 +4662,7 @@ class C {
 }
 int foo() {}
 ''');
+    }
   }
 
   test_constructor_initializers_field_withParameter() async {

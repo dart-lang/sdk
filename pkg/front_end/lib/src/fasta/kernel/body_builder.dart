@@ -2738,7 +2738,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   Expression buildStaticInvocation(Member target, Arguments arguments,
-      {Constness constness: Constness.implicit, int charOffset: -1}) {
+      {Constness constness: Constness.implicit,
+      int charOffset: -1,
+      Expression error}) {
     // The argument checks for the initial target of redirecting factories
     // invocations are skipped in Dart 1.
     if (library.loader.target.strongMode || !isRedirectingFactory(target)) {
@@ -2790,7 +2792,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       } else {
         return new StaticInvocationJudgment(
             target, forest.castArguments(arguments),
-            isConst: isConst)
+            desugaredError: error, isConst: isConst)
           ..fileOffset = charOffset;
       }
     }
@@ -4209,14 +4211,18 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Expression buildMethodInvocation(
       Expression receiver, Name name, Arguments arguments, int offset,
-      {bool isConstantExpression: false,
+      {Expression error,
+      bool isConstantExpression: false,
       bool isNullAware: false,
       bool isImplicitCall: false,
       bool isSuper: false,
       Member interfaceTarget}) {
     if (constantContext != ConstantContext.none && !isConstantExpression) {
-      return deprecated_buildCompileTimeError(
-          "Not a constant expression.", offset);
+      error = buildCompileTimeError(
+          fasta.templateNotConstantExpression
+              .withArguments('Method invocation'),
+          offset,
+          name.name.length);
     }
     if (isSuper) {
       // We can ignore [isNullAware] on super sends.
@@ -4235,15 +4241,17 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
               name.name.length);
         }
         return new SuperMethodInvocationJudgment(
-            name, forest.castArguments(arguments), target)
+            name, forest.castArguments(arguments),
+            interfaceTarget: target, desugaredError: error)
           ..fileOffset = offset;
       }
 
-      receiver = new SuperPropertyGetJudgment(name, target)
+      receiver = new SuperPropertyGetJudgment(name,
+          interfaceTarget: target, desugaredError: error)
         ..fileOffset = offset;
       return new MethodInvocationJudgment(
           receiver, callName, forest.castArguments(arguments),
-          isImplicitCall: true)
+          isImplicitCall: true, desugaredError: error)
         ..fileOffset = forest.readOffset(arguments);
     }
 
@@ -4259,12 +4267,15 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
               new MethodInvocation(new VariableGet(variable), name,
                   forest.castArguments(arguments), interfaceTarget)
                 ..fileOffset = offset)
-            ..fileOffset = offset)
+            ..fileOffset = offset,
+          desugaredError: error)
         ..fileOffset = offset;
     } else {
       return new MethodInvocationJudgment(
           receiver, name, forest.castArguments(arguments),
-          isImplicitCall: isImplicitCall, interfaceTarget: interfaceTarget)
+          isImplicitCall: isImplicitCall,
+          interfaceTarget: interfaceTarget,
+          desugaredError: error)
         ..fileOffset = offset;
     }
   }

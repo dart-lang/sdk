@@ -50,6 +50,8 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
 
   InterfaceType get mapType => typeProvider.mapType;
 
+  ClassElement get stringElement => typeProvider.stringType.element;
+
   TypeProvider get typeProvider => result.unit.element.context.typeProvider;
 
   void assertElement(Expression node, Element expected) {
@@ -3199,6 +3201,69 @@ const bool b = a;
     SimpleIdentifier aRef = bDeclaration.initializer;
     assertElement(aRef, findElement.topGet('a'));
     assertType(aRef, 'int');
+  }
+
+  test_invalid_const_methodInvocation() async {
+    addTestFile(r'''
+const a = 'foo';
+const b = 0;
+const c = a.codeUnitAt(b);
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var invocation = findNode.methodInvocation('codeUnitAt');
+    assertType(invocation, 'int');
+    assertInvokeType(invocation, '(int) → int');
+    assertElement(invocation.methodName, stringElement.getMethod('codeUnitAt'));
+
+    var aRef = invocation.target;
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'String');
+
+    var bRef = invocation.argumentList.arguments[0];
+    assertElement(bRef, findElement.topGet('b'));
+    assertType(bRef, 'int');
+  }
+
+  test_invalid_const_methodInvocation_static() async {
+    addTestFile(r'''
+const c = A.m();
+class A {
+  static int m() => 0;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var invocation = findNode.methodInvocation('m();');
+    assertType(invocation, 'int');
+    assertInvokeType(invocation, '() → int');
+    assertElement(invocation.methodName, findElement.method('m'));
+  }
+
+  test_invalid_const_methodInvocation_topLevelFunction() async {
+    addTestFile(r'''
+const id = identical;
+const a = 0;
+const b = 0;
+const c = id(a, b);
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var invocation = findNode.methodInvocation('id(');
+    assertType(invocation, 'bool');
+    assertInvokeType(invocation, '(Object, Object) → bool');
+    assertElement(invocation.methodName, findElement.topGet('id'));
+
+    var aRef = invocation.argumentList.arguments[0];
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+
+    var bRef = invocation.argumentList.arguments[1];
+    assertElement(bRef, findElement.topGet('b'));
+    assertType(bRef, 'int');
   }
 
   test_invalid_const_throw_local() async {

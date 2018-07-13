@@ -157,6 +157,7 @@ abstract class String implements Comparable<String>, Pattern {
   bool get isEmpty => false;
   bool get isNotEmpty => false;
   int get length => 0;
+  int codeUnitAt(int index);
   String substring(int len) => null;
   String toLowerCase();
   String toUpperCase();
