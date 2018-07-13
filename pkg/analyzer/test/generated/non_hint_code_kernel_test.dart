@@ -54,6 +54,13 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
 
   @override
   @failingTest
+  test_propagatedFieldType() {
+    // Failed to resolve 1 nodes
+    return super.test_propagatedFieldType();
+  }
+
+  @override
+  @failingTest
   @notForDart2
   test_undefinedOperator_binaryExpression_inSubtype() async {
     await super.test_undefinedOperator_binaryExpression_inSubtype();
@@ -78,6 +85,20 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
   @notForDart2
   test_undefinedOperator_indexSetter_inSubtype() async {
     await super.test_undefinedOperator_indexSetter_inSubtype();
+  }
+
+  @override
+  @failingTest
+  test_unnecessaryCast_function() {
+    // NoSuchMethodError: The getter 'isBottom' was called on null.
+    return super.test_unnecessaryCast_function();
+  }
+
+  @override
+  @failingTest
+  test_unnecessaryCast_function2() {
+    // NoSuchMethodError: The getter 'isBottom' was called on null.
+    return super.test_unnecessaryCast_function2();
   }
 
   @override

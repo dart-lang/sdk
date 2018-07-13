@@ -85,9 +85,37 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
+  test_forIn_declaredVariableRightType() {
+    // Failed to resolve 1 nodes
+    return super.test_forIn_declaredVariableRightType();
+  }
+
+  @override
+  @failingTest
   test_forIn_declaredVariableWrongType() async {
     // Expected 1 errors of type StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, found 0
     await super.test_forIn_declaredVariableWrongType();
+  }
+
+  @override
+  @failingTest
+  test_forIn_downcast() {
+    // Failed to resolve 1 nodes
+    return super.test_forIn_downcast();
+  }
+
+  @override
+  @failingTest
+  test_forIn_dynamicVariable() {
+    // Failed to resolve 1 nodes
+    return super.test_forIn_dynamicVariable();
+  }
+
+  @override
+  @failingTest
+  test_forIn_existingVariableRightType() {
+    // Failed to resolve 1 nodes
+    return super.test_forIn_existingVariableRightType();
   }
 
   @override
@@ -109,6 +137,20 @@ class StaticTypeWarningCodeTest_Kernel
   test_forIn_typeBoundBad() async {
     // Expected 1 errors of type StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, found 0
     await super.test_forIn_typeBoundBad();
+  }
+
+  @override
+  @failingTest
+  test_forIn_typeBoundGood() {
+    // Failed to resolve 1 nodes
+    return super.test_forIn_typeBoundGood();
+  }
+
+  @override
+  @failingTest
+  test_forIn_upcast() {
+    // Failed to resolve 1 nodes
+    return super.test_forIn_upcast();
   }
 
   @override
@@ -486,6 +528,13 @@ class StaticTypeWarningCodeTest_Kernel
   test_returnOfInvalidType_method() async {
     // Expected 1 errors of type StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, found 0
     await super.test_returnOfInvalidType_method();
+  }
+
+  @override
+  @failingTest
+  test_returnOfInvalidType_not_issued_for_valid_generic_return() {
+    // Failed to resolve 2 nodes
+    return super.test_returnOfInvalidType_not_issued_for_valid_generic_return();
   }
 
   @override
@@ -886,20 +935,6 @@ class StaticTypeWarningCodeTest_Kernel
   test_wrongNumberOfTypeArguments_classAlias() async {
     // AnalysisException: Element mismatch in /test.dart at /test.dart
     await super.test_wrongNumberOfTypeArguments_classAlias();
-  }
-
-  @override
-  @failingTest
-  test_wrongNumberOfTypeArguments_typeTest_tooFew() async {
-    // Bad state: Found 2 argument types for 1 type arguments
-    await super.test_wrongNumberOfTypeArguments_typeTest_tooFew();
-  }
-
-  @override
-  @failingTest
-  test_wrongNumberOfTypeArguments_typeTest_tooMany() async {
-    // Bad state: Found 1 argument types for 2 type arguments
-    await super.test_wrongNumberOfTypeArguments_typeTest_tooMany();
   }
 
   @override

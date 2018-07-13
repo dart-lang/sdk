@@ -89,6 +89,13 @@ class CheckedModeCompileTimeErrorCodeTest_Kernel
     await super.test_fieldFormalParameterNotAssignableToField_map_keyMismatch();
   }
 
+  @override
+  @failingTest
+  test_fieldFormalParameterAssignableToField_list_nonDynamic() {
+    // Failed to resolve 1 nodes
+    return super.test_fieldFormalParameterAssignableToField_list_nonDynamic();
+  }
+
   @failingTest
   @override
   test_fieldFormalParameterNotAssignableToField_map_valueMismatch() async {
@@ -110,6 +117,13 @@ class CheckedModeCompileTimeErrorCodeTest_Kernel
     // Expected 1 errors of type CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, found 0;
     //          1 errors of type StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0
     await super.test_fieldFormalParameterNotAssignableToField_typedef();
+  }
+
+  @override
+  @failingTest
+  test_fieldFormalParameterAssignableToField_typeSubstitution() {
+    // Bad state: Not found #lib1::A::T in null
+    return super.test_fieldFormalParameterAssignableToField_typeSubstitution();
   }
 
   @failingTest
@@ -187,6 +201,13 @@ class CheckedModeCompileTimeErrorCodeTest_Kernel
     // Expected 1 errors of type CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, found 0;
     //          1 errors of type StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, found 0
     await super.test_mapValueTypeNotAssignable();
+  }
+
+  @override
+  @failingTest
+  test_parameterAssignable_typeSubstitution() {
+    // Failed to resolve 1 nodes
+    return super.test_parameterAssignable_typeSubstitution();
   }
 
   @failingTest

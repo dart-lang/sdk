@@ -434,6 +434,15 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Expression typeLiteral(ExpressionJudgment judgment, int fileOffset,
       Node expressionType, DartType inferredType);
 
+  Type typeReference(
+      int fileOffset,
+      Token leftBracket,
+      List<Type> typeArguments,
+      Token rightBracket,
+      Node reference,
+      covariant Object binder,
+      DartType type);
+
   Object typeVariableDeclaration(
       covariant Object binder, TypeParameter typeParameter);
 

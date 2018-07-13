@@ -19,6 +19,7 @@ class ResolutionData<Type, Declaration, Reference, PrefixInfo> {
   final Type invokeType;
   final bool isExplicitCall;
   final bool isImplicitCall;
+  final bool isTypeReference;
   final bool isWriteReference;
   final Type literalType;
   final Reference loadLibrary;
@@ -34,6 +35,7 @@ class ResolutionData<Type, Declaration, Reference, PrefixInfo> {
       this.invokeType,
       this.isExplicitCall = false,
       this.isImplicitCall = false,
+      this.isTypeReference = false,
       this.isWriteReference = false,
       this.literalType,
       this.loadLibrary,
@@ -598,6 +600,21 @@ class ResolutionStorer
     _store(location, reference: expressionType, inferredType: inferredType);
   }
 
+  void typeReference(
+      int location,
+      Token leftBracket,
+      List<void> typeArguments,
+      Token rightBracket,
+      Node reference,
+      covariant TypeVariableBinder binder,
+      DartType type) {
+    _store(location,
+        reference: reference,
+        declaration: binder?.fileOffset,
+        inferredType: type,
+        isTypeReference: true);
+  }
+
   void typeVariableDeclaration(
       covariant TypeVariableBinder binder, TypeParameter typeParameter) {
     _storeTypeVariableDeclaration(binder.fileOffset, typeParameter);
@@ -637,6 +654,10 @@ class ResolutionStorer
         declaration: variableBinder?.fileOffset, inferredType: inferredType);
   }
 
+  void voidType(int location, Token token, DartType type) {
+    _store(location, inferredType: type);
+  }
+
   void whileStatement(
       StatementJudgment judgment,
       int location,
@@ -657,6 +678,7 @@ class ResolutionStorer
       DartType invokeType,
       bool isExplicitCall = false,
       bool isImplicitCall = false,
+      bool isTypeReference = false,
       bool isWriteReference = false,
       DartType literalType,
       Node loadLibrary,
@@ -676,6 +698,7 @@ class ResolutionStorer
         invokeType: invokeType,
         isExplicitCall: isExplicitCall,
         isImplicitCall: isImplicitCall,
+        isTypeReference: isTypeReference,
         isWriteReference: isWriteReference,
         literalType: literalType,
         loadLibrary: loadLibrary,

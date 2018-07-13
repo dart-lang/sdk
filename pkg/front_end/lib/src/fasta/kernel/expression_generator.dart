@@ -43,6 +43,8 @@ import '../parser.dart' show lengthForToken, lengthOfSpan, offsetForToken;
 
 import '../problems.dart' show unhandled, unsupported;
 
+import '../type_inference/type_inferrer.dart' show TypeInferrer;
+
 import 'constness.dart' show Constness;
 
 import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
@@ -69,6 +71,7 @@ import 'kernel_ast_api.dart'
         Name,
         Procedure,
         SyntheticExpressionJudgment,
+        TreeNode,
         TypeParameterType,
         UnresolvedVariableUnaryJudgment,
         VariableDeclaration;
@@ -77,11 +80,15 @@ import 'kernel_builder.dart'
     show
         AccessErrorBuilder,
         BuiltinTypeBuilder,
+        ClassBuilder,
         Declaration,
+        DynamicTypeBuilder,
         FunctionTypeAliasBuilder,
+        InvalidTypeBuilder,
         KernelClassBuilder,
         KernelFunctionTypeAliasBuilder,
-        KernelTypeVariableBuilder;
+        KernelTypeVariableBuilder,
+        TypeVariableBuilder;
 
 import 'kernel_expression_generator.dart'
     show IncompleteSendGenerator, SendAccessGenerator;
@@ -212,7 +219,7 @@ abstract class Generator implements ExpressionGenerator {
   }
 
   DartType buildTypeWithBuiltArguments(List<DartType> arguments,
-      {bool nonInstanceAccessIsError: false}) {
+      {bool nonInstanceAccessIsError: false, TypeInferrer typeInferrer}) {
     helper.addProblem(templateNotAType.withArguments(token.lexeme),
         offsetForToken(token), lengthForToken(token));
     return const InvalidType();
@@ -503,7 +510,7 @@ abstract class DeferredAccessGenerator implements Generator {
 
   @override
   DartType buildTypeWithBuiltArguments(List<DartType> arguments,
-      {bool nonInstanceAccessIsError: false}) {
+      {bool nonInstanceAccessIsError: false, TypeInferrer typeInferrer}) {
     helper.addProblem(
         templateDeferredTypeAnnotation.withArguments(
             suffixGenerator.buildTypeWithBuiltArguments(arguments,
@@ -555,7 +562,8 @@ abstract class TypeUseGenerator implements Generator {
 
   @override
   DartType buildTypeWithBuiltArguments(List<DartType> arguments,
-      {bool nonInstanceAccessIsError: false}) {
+      {bool nonInstanceAccessIsError: false, TypeInferrer typeInferrer}) {
+    var declaration = this.declaration;
     if (arguments != null) {
       int expected = 0;
       if (declaration is KernelClassBuilder) {
@@ -601,6 +609,28 @@ abstract class TypeUseGenerator implements Generator {
       type =
           declaration.buildTypesWithBuiltArguments(helper.library, arguments);
     }
+    TreeNode declarationTarget;
+    Object declarationBinder;
+    if (declaration is KernelTypeVariableBuilder &&
+        declaration.binder != null) {
+      declarationBinder = declaration.binder;
+    } else if (declaration is DynamicTypeBuilder ||
+        declaration is InvalidTypeBuilder) {
+      // There's no target associated with these types, so we have to let
+      // the analyzer fill it in.
+    } else if (declaration is ClassBuilder ||
+        declaration is TypeVariableBuilder ||
+        declaration is FunctionTypeAliasBuilder) {
+      declarationTarget = declaration.target;
+    } else {
+      return unhandled(
+          "${declaration.runtimeType}",
+          "TypeUseGenerator.buildTypeWithBuiltArguments",
+          offsetForToken(token),
+          helper.uri);
+    }
+    typeInferrer?.storeTypeReference(
+        token.charOffset, declarationTarget, declarationBinder, type);
     if (type is TypeParameterType) {
       return helper.validatedTypeVariableUse(
           type, offsetForToken(token), nonInstanceAccessIsError);
@@ -1134,7 +1164,7 @@ abstract class UnexpectedQualifiedUseGenerator implements Generator {
 
   @override
   DartType buildTypeWithBuiltArguments(List<DartType> arguments,
-      {bool nonInstanceAccessIsError: false}) {
+      {bool nonInstanceAccessIsError: false, TypeInferrer typeInferrer}) {
     Template<Message Function(Token, Token)> template = isUnresolved
         ? templateUnresolvedPrefixInTypeAnnotation
         : templateNotAPrefixInTypeAnnotation;

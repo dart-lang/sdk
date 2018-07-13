@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/kernel/kernel_type_variable_builder.dart';
 import 'package:front_end/src/scanner/token.dart' show Token;
 
 import 'package:kernel/ast.dart'
@@ -649,6 +650,16 @@ class KernelFactory
       Node expressionType, DartType inferredType) {
     return judgment;
   }
+
+  @override
+  void typeReference(
+      int fileOffset,
+      Token leftBracket,
+      List<void> typeArguments,
+      Token rightBracket,
+      Node reference,
+      covariant KernelTypeVariableBuilder binder,
+      DartType type) {}
 
   @override
   TypeParameter typeVariableDeclaration(

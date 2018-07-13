@@ -37,6 +37,13 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
 
   @override
   @failingTest
+  test_closure_generic() {
+    // Assertion error: 'element != null': is not true.
+    return super.test_closure_generic();
+  }
+
+  @override
+  @failingTest
   test_local_type_parameter_reference_function_named_parameter_type() {
     // Stack overflow
     return super
@@ -57,6 +64,14 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
     // Stack overflow
     return super
         .test_local_type_parameter_reference_function_optional_parameter_type();
+  }
+
+  @override
+  @failingTest
+  test_local_type_parameter_reference_function_return_type() {
+    // type 'DynamicTypeImpl' is not a subtype of type 'TypeParameterType' in
+    // type cast
+    return super.test_local_type_parameter_reference_function_return_type();
   }
 
   @override

@@ -33,6 +33,8 @@ final isDynamicType = new TypeMatcher<DynamicTypeImpl>();
 
 final isUndefinedType = new TypeMatcher<UndefinedTypeImpl>();
 
+final isVoidType = new TypeMatcher<VoidTypeImpl>();
+
 /**
  * Integration tests for resolution.
  */
@@ -2419,11 +2421,7 @@ main() {
 
     TypeName typeName = statement.variables.type;
     expect(typeName.type, isUndefinedType);
-    if (useCFE) {
-      expect(typeName.typeArguments.arguments[0].type, isUndefinedType);
-    } else {
-      expect(typeName.typeArguments.arguments[0].type, typeProvider.intType);
-    }
+    expect(typeName.typeArguments.arguments[0].type, typeProvider.intType);
 
     VariableDeclaration vNode = statement.variables.variables[0];
     expect(vNode.name.staticType, isUndefinedType);
@@ -6984,6 +6982,23 @@ void main() {
     }
   }
 
+  test_type_dynamic() async {
+    addTestFile('''
+main() {
+  dynamic d;
+}
+''');
+    await resolveTestFile();
+    var statements = _getMainStatements(result);
+    var variableDeclarationStatement =
+        statements[0] as VariableDeclarationStatement;
+    var type = variableDeclarationStatement.variables.type as TypeName;
+    expect(type.type, isDynamicType);
+    var typeName = type.name;
+    assertTypeDynamic(typeName);
+    expect(typeName.staticElement, same(typeProvider.dynamicType.element));
+  }
+
   test_type_functionTypeAlias() async {
     addTestFile(r'''
 typedef T F<T>(bool a);
@@ -7017,6 +7032,23 @@ class C {
     List<TypeAnnotation> typeArguments = typeName.typeArguments.arguments;
     expect(typeArguments, hasLength(1));
     _assertTypeNameSimple(typeArguments[0], typeProvider.intType);
+  }
+
+  test_type_void() async {
+    addTestFile('''
+main() {
+  void v;
+}
+''');
+    await resolveTestFile();
+    var statements = _getMainStatements(result);
+    var variableDeclarationStatement =
+        statements[0] as VariableDeclarationStatement;
+    var type = variableDeclarationStatement.variables.type as TypeName;
+    expect(type.type, isVoidType);
+    var typeName = type.name;
+    expect(typeName.staticType, isVoidType);
+    expect(typeName.staticElement, isNull);
   }
 
   test_typeAnnotation_prefixed() async {

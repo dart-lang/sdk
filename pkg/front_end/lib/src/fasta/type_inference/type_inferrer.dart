@@ -42,6 +42,7 @@ import 'package:kernel/ast.dart'
         SuperPropertySet,
         Supertype,
         ThisExpression,
+        TreeNode,
         TypeParameter,
         TypeParameterType,
         Typedef,
@@ -384,9 +385,14 @@ abstract class TypeInferrer {
 
   void storePrefix(Token token, PrefixBuilder prefix);
 
+  void storeTypeReference(
+      int offset, TreeNode reference, Object binder, DartType type);
+
   void storeTypeUse(int offset, Node node);
 
   void typeVariableDeclaration(Object binder, TypeParameter typeParameter);
+
+  void voidType(int offset, Token token, DartType type);
 }
 
 /// Implementation of [TypeInferrer] which doesn't do any type inference.
@@ -452,10 +458,17 @@ class TypeInferrerDisabled extends TypeInferrer {
   void storePrefix(Token token, PrefixBuilder prefix) {}
 
   @override
+  void storeTypeReference(
+      int offset, TreeNode reference, Object binder, DartType type) {}
+
+  @override
   void storeTypeUse(int offset, Node node) {}
 
   @override
   void typeVariableDeclaration(Object binder, TypeParameter typeParameter) {}
+
+  @override
+  void voidType(int offset, Token token, DartType type) {}
 }
 
 /// Derived class containing generic implementations of [TypeInferrer].
@@ -522,6 +535,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// inference.
   TypePromoter get typePromoter;
 
+  @override
   Object binderForTypeVariable(
       KernelTypeVariableBuilder builder, int fileOffset, String name) {
     return listener.binderForTypeVariable(builder, fileOffset, name);
@@ -1719,6 +1733,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   @override
+  void storeTypeReference(
+      int offset, TreeNode reference, Object binder, DartType type) {
+    listener.typeReference(offset, null, null, null, reference, binder, type);
+  }
+
+  @override
   void storeTypeUse(int offset, Node node) {
     if (node is Class) {
       listener.storeClassReference(offset, node, node.rawType);
@@ -1739,6 +1759,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   @override
   void typeVariableDeclaration(Object binder, TypeParameter typeParameter) {
     return listener.typeVariableDeclaration(binder, typeParameter);
+  }
+
+  @override
+  void voidType(int offset, Token token, DartType type) {
+    listener.voidType(offset, token, type);
   }
 
   DartType wrapFutureOrType(DartType type) {

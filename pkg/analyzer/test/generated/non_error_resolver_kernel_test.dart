@@ -55,6 +55,22 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  test_argumentTypeNotAssignable_fieldFormalParameterElement_member() {
+    // Bad state: Not found #lib1::TimestampedObject::E in null
+    return super
+        .test_argumentTypeNotAssignable_fieldFormalParameterElement_member();
+  }
+
+  @override
+  @failingTest
+  test_argumentTypeNotAssignable_invocation_functionParameter_generic() {
+    // Failed to resolve 1 nodes
+    return super
+        .test_argumentTypeNotAssignable_invocation_functionParameter_generic();
+  }
+
+  @override
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_beforeConstructor() async {
     return super.test_commentReference_beforeConstructor();
@@ -134,6 +150,13 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  test_const_constructor_with_named_generic_parameter() {
+    // Failed to resolve 1 nodes
+    return super.test_const_constructor_with_named_generic_parameter();
+  }
+
+  @override
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/33676')
   test_constConstructorWithMixinWithField() {
     // Bad state: Unable to convert (Unspecified, null, @52, Can't extend a mixin application and be 'const'.)
@@ -145,6 +168,20 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_constConstructorWithNonConstSuper_unresolved() async {
     return super.test_constConstructorWithNonConstSuper_unresolved();
+  }
+
+  @override
+  @failingTest
+  test_expectedOneListTypeArgument() {
+    // Failed to resolve 1 nodes
+    return super.test_expectedOneListTypeArgument();
+  }
+
+  @override
+  @failingTest
+  test_extraPositionalArguments_implicitConstructor() {
+    // Failed to resolve 2 nodes
+    return super.test_extraPositionalArguments_implicitConstructor();
   }
 
   @override
@@ -177,10 +214,75 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  test_forEach_genericFunctionType() {
+    // Bad state: Not found T in main() → dynamic
+    return super.test_forEach_genericFunctionType();
+  }
+
+  @override
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/33799')
   test_functionTypeAlias_scope_signature() async {
     // Caused by Bad state: Found 1 annotation nodes and 0 element annotations
     return super.test_functionTypeAlias_scope_signature();
+  }
+
+  @override
+  @failingTest
+  test_genericTypeAlias_fieldAndReturnType_noTypeParameters() {
+    // Failed to resolve 1 nodes
+    return super.test_genericTypeAlias_fieldAndReturnType_noTypeParameters();
+  }
+
+  @override
+  @failingTest
+  test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments() {
+    // Failed to resolve 1 nodes
+    return super
+        .test_genericTypeAlias_fieldAndReturnType_typeParameters_arguments();
+  }
+
+  @override
+  @failingTest
+  test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments() {
+    // Failed to resolve 1 nodes
+    return super
+        .test_genericTypeAlias_fieldAndReturnType_typeParameters_noArguments();
+  }
+
+  @override
+  @failingTest
+  test_genericTypeAlias_noTypeParameters() {
+    // Failed to resolve 1 nodes
+    return super.test_genericTypeAlias_noTypeParameters();
+  }
+
+  @override
+  @failingTest
+  test_genericTypeAlias_typeParameters() {
+    // Failed to resolve 1 nodes
+    return super.test_genericTypeAlias_typeParameters();
+  }
+
+  @override
+  @failingTest
+  test_implicitThisReferenceInInitializer_typeParameter() {
+    // Failed to resolve 1 nodes
+    return super.test_implicitThisReferenceInInitializer_typeParameter();
+  }
+
+  @override
+  @failingTest
+  test_inconsistentMethodInheritance_methods_typeParameter2() {
+    // Failed to resolve 3 nodes
+    return super.test_inconsistentMethodInheritance_methods_typeParameter2();
+  }
+
+  @override
+  @failingTest
+  test_inconsistentMethodInheritance_methods_typeParameters1() {
+    // Failed to resolve 3 nodes
+    return super.test_inconsistentMethodInheritance_methods_typeParameters1();
   }
 
   @override // passes with kernel
@@ -192,9 +294,37 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  test_invalidTypeArgumentInConstList() {
+    // Failed to resolve 1 nodes
+    return super.test_invalidTypeArgumentInConstList();
+  }
+
+  @override
+  @failingTest
+  test_invalidTypeArgumentInConstMap() {
+    // Failed to resolve 1 nodes
+    return super.test_invalidTypeArgumentInConstMap();
+  }
+
+  @override
+  @failingTest
+  test_invocationOfNonFunction_functionTypeTypeParameter() {
+    // Bad state: Not found #lib2::C::T in null
+    return super.test_invocationOfNonFunction_functionTypeTypeParameter();
+  }
+
+  @override
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
   test_invocationOfNonFunction_Object() async {
     return super.test_invocationOfNonFunction_Object();
+  }
+
+  @override
+  @failingTest
+  test_listElementTypeNotAssignable() {
+    // Failed to resolve 2 nodes
+    return super.test_listElementTypeNotAssignable();
   }
 
   @override
@@ -214,6 +344,13 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  test_nonConstantDefaultValue_typedConstList() {
+    // Failed to resolve 2 nodes
+    return super.test_nonConstantDefaultValue_typedConstList();
+  }
+
+  @override
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31628')
   test_nonConstCaseExpression_constField() async {
     return super.test_nonConstCaseExpression_constField();
@@ -224,6 +361,13 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31627')
   test_nonConstMapKey_constField() async {
     return super.test_nonConstMapKey_constField();
+  }
+
+  @override
+  @failingTest
+  test_nonTypeInCatchClause_isTypeParameter() {
+    // Failed to resolve 1 nodes
+    return super.test_nonTypeInCatchClause_isTypeParameter();
   }
 
   @override
@@ -245,6 +389,20 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   test_optionalNew_rewrite_instantiatesToBounds() {
     // Bad state: No data for named1 at 21
     return super.test_optionalNew_rewrite_instantiatesToBounds();
+  }
+
+  @override
+  @failingTest
+  test_propagateTypeArgs_intoSupertype() {
+    // Failed to resolve 4 nodes
+    return super.test_propagateTypeArgs_intoSupertype();
+  }
+
+  @override
+  @failingTest
+  test_reversedTypeArguments() {
+    // Failed to resolve 4 nodes
+    return super.test_reversedTypeArguments();
   }
 
   @override

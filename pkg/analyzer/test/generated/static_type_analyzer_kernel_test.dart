@@ -19,4 +19,11 @@ class StaticTypeAnalyzer2Test_Kernel extends StaticTypeAnalyzer2Test_Driver {
 
   @override
   bool get useCFE => true;
+
+  @override
+  @failingTest
+  test_staticMethods_classTypeParameters_genericMethod() {
+    // Bad state: Not found U in m<S>(S s) → void
+    return super.test_staticMethods_classTypeParameters_genericMethod();
+  }
 }

@@ -2213,7 +2213,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
     if (name is Generator) {
-      push(name.buildTypeWithBuiltArguments(arguments));
+      push(name.buildTypeWithBuiltArguments(arguments,
+          typeInferrer: _typeInferrer));
     } else if (name is TypeBuilder) {
       push(name.build(library));
     } else {
@@ -2257,6 +2258,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     DartType returnType = pop();
     List<TypeParameter> typeVariables = typeVariableBuildersToKernel(pop());
     FunctionType type = formals.toFunctionType(returnType, typeVariables);
+    // TODO(paulberry): communicate resolution information to the
+    // TypeInferenceListener (dartbug.com/33846).
     exitLocalScope();
     push(type);
   }
@@ -2264,7 +2267,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleVoidKeyword(Token token) {
     debugEvent("VoidKeyword");
-    push(const VoidType());
+    var type = const VoidType();
+    _typeInferrer.voidType(token.offset, token, type);
+    push(type);
   }
 
   @override

@@ -139,6 +139,27 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
+  test_argumentTypeNotAssignable_invocation_functionParameter_generic() {
+    return super
+        .test_argumentTypeNotAssignable_invocation_functionParameter_generic();
+  }
+
+  @override
+  @failingTest
+  test_argumentTypeNotAssignable_invocation_generic() {
+    // Failed to resolve 1 nodes
+    return super.test_argumentTypeNotAssignable_invocation_generic();
+  }
+
+  @override
+  @failingTest
+  test_argumentTypeNotAssignable_new_generic() {
+    // Failed to resolve 1 nodes
+    return super.test_argumentTypeNotAssignable_new_generic();
+  }
+
+  @override
+  @failingTest
   @potentialAnalyzerProblem
   test_assignmentToClass() async {
     return super.test_assignmentToClass();
@@ -798,6 +819,14 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
+  test_invalidMethodOverrideNormalParamType_superclass_interface() {
+    // Failed to resolve 2 nodes
+    return super
+        .test_invalidMethodOverrideNormalParamType_superclass_interface();
+  }
+
+  @override
+  @failingTest
   @potentialAnalyzerProblem
   test_invalidMethodOverrideNormalParamType_twoInterfaces_conflicting() async {
     return super
@@ -1242,6 +1271,13 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
+  test_notAType() {
+    // Bad state: No data for f at 18 in /test.dart
+    return super.test_notAType();
+  }
+
+  @override
+  @failingTest
   @potentialAnalyzerProblem
   test_notEnoughRequiredArguments() async {
     return super.test_notEnoughRequiredArguments();
@@ -1389,10 +1425,31 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
+  test_typeAnnotationDeferredClass_asExpression() {
+    // Bad state: No data for A at 68 in /lib2.dart
+    return super.test_typeAnnotationDeferredClass_asExpression();
+  }
+
+  @override
+  @failingTest
+  test_typeAnnotationDeferredClass_catchClause() {
+    // Bad state: No data for A at 76 in /lib2.dart
+    return super.test_typeAnnotationDeferredClass_catchClause();
+  }
+
+  @override
+  @failingTest
   @potentialAnalyzerProblem
   test_typeAnnotationDeferredClass_functionDeclaration_returnType() async {
     return super
         .test_typeAnnotationDeferredClass_functionDeclaration_returnType();
+  }
+
+  @override
+  @failingTest
+  test_typeAnnotationDeferredClass_isExpression() {
+    // Bad state: No data for A at 77 in /lib2.dart
+    return super.test_typeAnnotationDeferredClass_isExpression();
   }
 
   @override
@@ -1405,9 +1462,23 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
+  test_typeAnnotationDeferredClass_simpleFormalParameter() {
+    // Bad state: No data for A at 52 in /lib2.dart
+    return super.test_typeAnnotationDeferredClass_simpleFormalParameter();
+  }
+
+  @override
+  @failingTest
   @potentialAnalyzerProblem
   test_typeAnnotationDeferredClass_typeParameter_bound() async {
     return super.test_typeAnnotationDeferredClass_typeParameter_bound();
+  }
+
+  @override
+  @failingTest
+  test_typeParameterReferencedByStatic_methodBodyReference() {
+    // Failed to resolve 1 nodes
+    return super.test_typeParameterReferencedByStatic_methodBodyReference();
   }
 
   @override

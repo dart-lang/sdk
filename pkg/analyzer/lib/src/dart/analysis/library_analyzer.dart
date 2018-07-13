@@ -774,7 +774,7 @@ class LibraryAnalyzer {
               var redirectedConstructor = context.redirectedConstructor;
               redirectName.staticElement = redirectedConstructor;
               // TODO(scheglov) Support for import prefix?
-              ResolutionApplier.applyConstructorElement(
+              DeclarationResolver.applyConstructorElement(
                   _libraryElement,
                   null,
                   redirectedConstructor,
@@ -1089,12 +1089,15 @@ class _ResolutionApplierContext implements TypeContext {
           invokeType: translateType(data.invokeType),
           isExplicitCall: data.isExplicitCall,
           isImplicitCall: data.isImplicitCall,
+          isTypeReference: data.isTypeReference,
           isWriteReference: data.isWriteReference,
           literalType: translateType(data.literalType),
           loadLibrary: _translateReference(data.loadLibrary),
           prefixInfo: _translatePrefixInfo(data.prefixInfo),
           reference: _translateReference(data.reference,
-              isWriteReference: data.isWriteReference),
+              isWriteReference: data.isWriteReference,
+              isTypeReference: data.isTypeReference,
+              inferredType: data.inferredType),
           writeContext: translateType(data.writeContext));
     }
 
@@ -1168,6 +1171,8 @@ class _ResolutionApplierContext implements TypeContext {
       element = declaration.staticElement;
     } else if (declaration is FunctionDeclaration) {
       element = declaration.element;
+    } else if (declaration is TypeParameter) {
+      element = declaration.element;
     } else {
       throw new UnimplementedError('${declaration.runtimeType}');
     }
@@ -1181,8 +1186,15 @@ class _ResolutionApplierContext implements TypeContext {
   }
 
   Element _translateReference(kernel.Node referencedNode,
-      {bool isWriteReference = false}) {
-    if (referencedNode == null) return null;
+      {bool isWriteReference = false,
+      bool isTypeReference = false,
+      kernel.DartType inferredType}) {
+    if (referencedNode == null) {
+      if (isTypeReference && inferredType is kernel.DynamicType) {
+        return typeProvider.dynamicType.element;
+      }
+      return null;
+    }
     Element element;
     if (referencedNode is kernel.NamedNode) {
       element = resynthesizer
@@ -1202,6 +1214,9 @@ class _ResolutionApplierContext implements TypeContext {
       assert(element != null);
     } else if (referencedNode is kernel.DynamicType) {
       element = DynamicElementImpl.instance;
+    } else if (referencedNode is kernel.TypeParameter) {
+      // TODO(paulberry): find the corresponding element (dartbug.com/33844)
+      element = null;
     } else if (referencedNode is kernel.InvalidType) {
       element = DynamicElementImpl.instance;
     } else {

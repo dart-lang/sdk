@@ -441,6 +441,15 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   void typeLiteral(ExpressionJudgment judgment, Location location,
       Reference expressionType, DartType inferredType);
 
+  void typeReference(
+      Location location,
+      Token leftBracket,
+      List<void> typeArguments,
+      Token rightBracket,
+      Reference reference,
+      covariant Object binder,
+      DartType type);
+
   void typeVariableDeclaration(
       covariant Object binder, TypeParameter typeParameter);
 
@@ -457,6 +466,8 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
 
   void variableGet(ExpressionJudgment judgment, Location location,
       bool isInCascade, covariant Object variableBinder, DartType inferredType);
+
+  void voidType(Location location, Token token, DartType type);
 
   void whileStatement(
       StatementJudgment judgment,
@@ -922,6 +933,10 @@ class KernelTypeInferenceListener
       DartType inferredType) {}
 
   @override
+  void typeReference(location, Token leftBracket, List<void> typeArguments,
+      Token rightBracket, reference, covariant void binder, DartType type) {}
+
+  @override
   void typeVariableDeclaration(
       covariant void binder, TypeParameter typeParameter) {}
 
@@ -941,6 +956,9 @@ class KernelTypeInferenceListener
   @override
   void variableGet(ExpressionJudgment judgment, location, bool isInCascade,
       expressionVariable, DartType inferredType) {}
+
+  @override
+  void voidType(location, Token token, DartType type) {}
 
   @override
   void whileStatement(

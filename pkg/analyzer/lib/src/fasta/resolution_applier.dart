@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/fasta/resolution_storer.dart';
-import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:front_end/src/base/syntactic_entity.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:kernel/kernel.dart' as kernel;
@@ -105,9 +104,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   @override
   void visitAsExpression(AsExpression node) {
     node.expression.accept(this);
+    node.type.accept(this);
     var data = _get(node.asOperator);
-    applyToTypeAnnotation(
-        _enclosingLibraryElement, data.literalType, node.type);
     node.staticType = data.inferredType;
   }
 
@@ -164,12 +162,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
   @override
   void visitCatchClause(CatchClause node) {
-    DartType guardType = _get(node.onKeyword ?? node.catchKeyword).literalType;
-    if (node.exceptionType != null) {
-      applyToTypeAnnotation(
-          _enclosingLibraryElement, guardType, node.exceptionType);
-    }
-
+    node.exceptionType?.accept(this);
     SimpleIdentifier exception = node.exceptionParameter;
     if (exception != null) {
       LocalVariableElementImpl element = exception.staticElement;
@@ -229,15 +222,11 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   void visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
     if (loopVariable != null) {
+      loopVariable.type?.accept(this);
       SimpleIdentifier identifier = loopVariable.identifier;
 
       DartType type = _get(identifier).inferredType;
       identifier.staticType = type;
-
-      if (loopVariable.type != null) {
-        applyToTypeAnnotation(
-            _enclosingLibraryElement, type, loopVariable.type);
-      }
 
       VariableElementImpl element = identifier.staticElement;
       if (element != null) {
@@ -256,14 +245,29 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   void visitFormalParameterList(FormalParameterList parameterList) {
     for (var parameter in parameterList.parameters) {
       parameter.metadata?.accept(this);
+      NormalFormalParameter normalParameter;
       if (parameter is DefaultFormalParameter) {
         parameter.defaultValue?.accept(this);
+        normalParameter = parameter.parameter;
+      } else if (parameter is NormalFormalParameter) {
+        normalParameter = parameter;
+      } else {
+        // All parameters should either be DefaultFormalParameter or
+        // NormalFormalParameter.
+        throw new UnimplementedError('${parameter.runtimeType}');
+      }
+      if (normalParameter is SimpleFormalParameter) {
+        normalParameter.type?.accept(this);
+      } else {
+        // TODO(paulberry): handle function typed formal parameters
+        // (dartbug.com/33845)
       }
     }
   }
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
+    node.returnType?.accept(this);
     FunctionExpression functionExpression = node.functionExpression;
     FormalParameterList parameterList = functionExpression.parameters;
 
@@ -292,11 +296,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
           typeParameter.name.staticType = _typeContext.typeType;
         }
       }
-
-      applyToTypeAnnotation(
-          _enclosingLibraryElement, element.returnType, node.returnType);
-      applyParameters(
-          _enclosingLibraryElement, element.parameters, parameterList);
     }
 
     _typeContext.exitLocalFunction(element);
@@ -319,8 +318,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     if (element != null) {
       node.element = element;
       node.staticType = element.type;
-      applyParameters(
-          _enclosingLibraryElement, element.parameters, parameterList);
     }
 
     _typeContext.exitLocalFunction(element);
@@ -329,18 +326,11 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.function.accept(this);
+    node.typeArguments?.accept(this);
 
     var data = _get(node.argumentList);
     DartType invokeType = data.invokeType;
     node.staticInvokeType = invokeType;
-
-    List<DartType> typeArguments = data.argumentTypes;
-    if (node.typeArguments != null && typeArguments != null) {
-      _applyTypeArgumentsToList(
-          _enclosingLibraryElement,
-          new TypeArgumentsDartType(typeArguments),
-          node.typeArguments.arguments);
-    }
 
     DartType resultType = data.inferredType;
     node.staticType = resultType;
@@ -374,6 +364,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     SimpleIdentifier classIdentifier;
     SimpleIdentifier constructorIdentifier;
 
+    constructorName.type.typeArguments?.accept(this);
     var data = _get(typeIdentifier);
     TypeName newTypeName;
     if (typeIdentifier is SimpleIdentifier) {
@@ -405,12 +396,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     ConstructorElement constructor = data.reference;
     DartType type = data.inferredType;
 
-    TypeArgumentList typeArguments = constructorName.type.typeArguments;
-    if (typeArguments != null) {
-      _applyTypeArgumentsToList(
-          _enclosingLibraryElement, type, typeArguments.arguments);
-    }
-
     node.staticElement = constructor;
     node.staticType = type;
 
@@ -429,9 +414,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   @override
   void visitIsExpression(IsExpression node) {
     node.expression.accept(this);
+    node.type.accept(this);
     var data = _get(node.isOperator);
-    applyToTypeAnnotation(
-        _enclosingLibraryElement, data.literalType, node.type);
     node.staticType = data.inferredType;
   }
 
@@ -449,26 +433,20 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     node.elements.accept(this);
     DartType type = _get(node.constKeyword ?? node.leftBracket).inferredType;
     node.staticType = type;
-    if (node.typeArguments != null) {
-      _applyTypeArgumentsToList(
-          _enclosingLibraryElement, type, node.typeArguments.arguments);
-    }
   }
 
   @override
   void visitMapLiteral(MapLiteral node) {
+    node.typeArguments?.accept(this);
     node.entries.accept(this);
     DartType type = _get(node.constKeyword ?? node.leftBracket).inferredType;
     node.staticType = type;
-    if (node.typeArguments != null) {
-      _applyTypeArgumentsToList(
-          _enclosingLibraryElement, type, node.typeArguments.arguments);
-    }
   }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
     node.target?.accept(this);
+    node.typeArguments?.accept(this);
 
     ArgumentList argumentList = node.argumentList;
 
@@ -486,7 +464,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       invokeElement = data.reference;
     }
     DartType invokeType = data.invokeType;
-    List<DartType> typeArguments = data.argumentTypes;
     DartType resultType = data.inferredType;
 
     if (invokeElement is PropertyInducingElement) {
@@ -504,13 +481,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     } else {
       node.methodName.staticElement = invokeElement;
       node.methodName.staticType = invokeType;
-    }
-
-    if (node.typeArguments != null && typeArguments != null) {
-      _applyTypeArgumentsToList(
-          _enclosingLibraryElement,
-          new TypeArgumentsDartType(typeArguments),
-          node.typeArguments.arguments);
     }
 
     _applyResolutionToArguments(argumentList);
@@ -659,6 +629,12 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitTypeName(TypeName node) {
+    super.visitTypeName(node);
+    node.type = node.name.staticType;
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     AstNode parent = node.parent;
     if (parent is VariableDeclarationList &&
@@ -684,15 +660,9 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     if (node.parent is TopLevelVariableDeclaration) {
       node.variables.accept(this);
     } else {
+      node.type?.accept(this);
       node.metadata.accept(this);
       node.variables.accept(this);
-      if (node.type != null) {
-        DartType type = node.variables[0].name.staticType;
-        // TODO(brianwilkerson) Understand why the type is sometimes `null`.
-        if (type != null) {
-          applyToTypeAnnotation(_enclosingLibraryElement, type, node.type);
-        }
-      }
     }
   }
 
@@ -788,192 +758,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
               type.optionalParameterTypes[optionalParameterIndex++]);
         }
       }
-    }
-  }
-
-  /// Apply the [type] that is created by the [constructorName] and the
-  /// [constructorElement] it references.
-  static void applyConstructorElement(
-      LibraryElement enclosingLibraryElement,
-      PrefixElement prefixElement,
-      ConstructorElement constructorElement,
-      DartType type,
-      ConstructorName constructorName) {
-    constructorName.staticElement = constructorElement;
-
-    ClassElement classElement = constructorElement?.enclosingElement;
-
-    Identifier typeIdentifier = constructorName.type.name;
-    if (prefixElement != null) {
-      PrefixedIdentifier prefixedTypeIdentifier = typeIdentifier;
-      prefixedTypeIdentifier.staticType = type;
-
-      prefixedTypeIdentifier.prefix.staticElement = prefixElement;
-
-      SimpleIdentifier classNode = prefixedTypeIdentifier.identifier;
-      classNode.staticElement = classElement;
-      classNode.staticType = type;
-    } else {
-      if (typeIdentifier is SimpleIdentifier) {
-        typeIdentifier.staticElement = classElement;
-        typeIdentifier.staticType = type;
-      } else if (typeIdentifier is PrefixedIdentifier) {
-        constructorName.type = astFactory.typeName(typeIdentifier.prefix, null);
-        constructorName.period = typeIdentifier.period;
-        constructorName.name = typeIdentifier.identifier;
-      }
-    }
-
-    constructorName.name?.staticElement = constructorElement;
-
-    applyToTypeAnnotation(enclosingLibraryElement, type, constructorName.type);
-  }
-
-  /// Apply the types of the [parameterElements] to the [parameterList] that
-  /// have an explicit type annotation.
-  static void applyParameters(
-      LibraryElement enclosingLibraryElement,
-      List<ParameterElement> parameterElements,
-      FormalParameterList parameterList) {
-    List<FormalParameter> parameters = parameterList.parameters;
-
-    int length = parameterElements.length;
-    if (parameters.length != length) {
-      throw new StateError('Parameter counts do not match');
-    }
-    for (int i = 0; i < length; i++) {
-      ParameterElementImpl element = parameterElements[i];
-      FormalParameter parameter = parameters[i];
-
-      DeclarationResolver.resolveMetadata(
-          parameter, parameter.metadata, element);
-
-      NormalFormalParameter normalParameter;
-      if (parameter is NormalFormalParameter) {
-        normalParameter = parameter;
-      } else if (parameter is DefaultFormalParameter) {
-        normalParameter = parameter.parameter;
-      }
-      assert(normalParameter != null);
-
-      if (normalParameter is SimpleFormalParameterImpl) {
-        normalParameter.element = element;
-      }
-
-      if (normalParameter.identifier != null) {
-        element.nameOffset = normalParameter.identifier.offset;
-        normalParameter.identifier.staticElement = element;
-        normalParameter.identifier.staticType = element.type;
-      }
-
-      // Apply the type or the return type, if a function typed parameter.
-      TypeAnnotation functionReturnType;
-      FormalParameterList functionParameterList;
-      if (normalParameter is SimpleFormalParameter) {
-        applyToTypeAnnotation(
-            enclosingLibraryElement, element.type, normalParameter.type);
-      } else if (normalParameter is FunctionTypedFormalParameter) {
-        functionReturnType = normalParameter.returnType;
-        functionParameterList = normalParameter.parameters;
-      } else if (normalParameter is FieldFormalParameter) {
-        if (normalParameter.parameters == null) {
-          applyToTypeAnnotation(
-              enclosingLibraryElement, element.type, normalParameter.type);
-        } else {
-          functionReturnType = normalParameter.type;
-          functionParameterList = normalParameter.parameters;
-        }
-      }
-
-      if (functionParameterList != null) {
-        FunctionType elementType = element.type;
-        if (functionReturnType != null) {
-          applyToTypeAnnotation(enclosingLibraryElement, elementType.returnType,
-              functionReturnType);
-        }
-        applyParameters(enclosingLibraryElement, elementType.parameters,
-            functionParameterList);
-      }
-    }
-  }
-
-  /// Apply the [type] to the [typeAnnotation] by setting the type of the
-  /// [typeAnnotation] to the [type] and recursively applying each of the type
-  /// arguments of the [type] to the corresponding type arguments of the
-  /// [typeAnnotation].
-  static void applyToTypeAnnotation(LibraryElement enclosingLibraryElement,
-      DartType type, TypeAnnotation typeAnnotation) {
-    if (typeAnnotation is GenericFunctionTypeImpl) {
-      if (type is! FunctionType) {
-        throw new StateError('Non-function type ($type) '
-            'for generic function annotation ($typeAnnotation)');
-      }
-      FunctionType functionType = type;
-      typeAnnotation.type = type;
-      applyToTypeAnnotation(enclosingLibraryElement, functionType.returnType,
-          typeAnnotation.returnType);
-      applyParameters(enclosingLibraryElement, functionType.parameters,
-          typeAnnotation.parameters);
-    } else if (typeAnnotation is TypeNameImpl) {
-      typeAnnotation.type = type;
-
-      Identifier typeIdentifier = typeAnnotation.name;
-      SimpleIdentifier typeName;
-      if (typeIdentifier is PrefixedIdentifier) {
-        if (enclosingLibraryElement != null) {
-          String prefixName = typeIdentifier.prefix.name;
-          for (var import in enclosingLibraryElement.imports) {
-            if (import.prefix?.name == prefixName) {
-              typeIdentifier.prefix.staticElement = import.prefix;
-              break;
-            }
-          }
-        }
-        typeName = typeIdentifier.identifier;
-      } else {
-        typeName = typeIdentifier;
-      }
-
-      Element typeElement = type.element;
-      if (typeElement is GenericFunctionTypeElement &&
-          typeElement.enclosingElement is GenericTypeAliasElement) {
-        typeElement = typeElement.enclosingElement;
-      }
-
-      typeName.staticElement = typeElement;
-      typeName.staticType = type;
-    }
-    if (typeAnnotation is NamedType) {
-      TypeArgumentList typeArguments = typeAnnotation.typeArguments;
-      if (typeArguments != null) {
-        _applyTypeArgumentsToList(
-            enclosingLibraryElement, type, typeArguments.arguments);
-      }
-    }
-  }
-
-  /// Recursively apply each of the type arguments of the [type] to the
-  /// corresponding type arguments of the [typeArguments].
-  static void _applyTypeArgumentsToList(LibraryElement enclosingLibraryElement,
-      DartType type, List<TypeAnnotation> typeArguments) {
-    if (type != null && type.isUndefined) {
-      for (TypeAnnotation argument in typeArguments) {
-        applyToTypeAnnotation(enclosingLibraryElement, type, argument);
-      }
-    } else if (type is ParameterizedType) {
-      List<DartType> argumentTypes = type.typeArguments;
-      int argumentCount = argumentTypes.length;
-      if (argumentCount != typeArguments.length) {
-        throw new StateError('Found $argumentCount argument types '
-            'for ${typeArguments.length} type arguments');
-      }
-      for (int i = 0; i < argumentCount; i++) {
-        applyToTypeAnnotation(
-            enclosingLibraryElement, argumentTypes[i], typeArguments[i]);
-      }
-    } else {
-      throw new StateError('Attempting to apply a non-parameterized type '
-          '(${type.runtimeType}) to type arguments');
     }
   }
 }

@@ -24,6 +24,8 @@ import '../parser.dart' show lengthForToken, offsetForToken;
 
 import '../problems.dart' show unhandled, unsupported;
 
+import '../type_inference/type_inferrer.dart' show TypeInferrer;
+
 import 'body_builder.dart' show noLocation;
 
 import 'constness.dart' show Constness;
@@ -1432,6 +1434,15 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
     Expression error = buildError(forest.argumentsEmpty(token), isGetter: true);
     return new UnresolvedVariableGetJudgment(error)
       ..fileOffset = token.charOffset;
+  }
+
+  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
+      {bool nonInstanceAccessIsError: false, TypeInferrer typeInferrer}) {
+    var type = super.buildTypeWithBuiltArguments(arguments,
+        nonInstanceAccessIsError: nonInstanceAccessIsError,
+        typeInferrer: typeInferrer);
+    typeInferrer.storeTypeReference(token.offset, null, null, type);
+    return type;
   }
 
   @override

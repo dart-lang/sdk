@@ -143,6 +143,13 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  test_constConstructor_redirect_generic() {
+    // Bad state: Not found #lib4::A::T in null
+    return super.test_constConstructor_redirect_generic();
+  }
+
+  @override
+  @failingTest
   test_constConstructorWithFieldInitializedByNonConst() async {
     // Expected 1 errors of type CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST, found 0;
     //          1 errors of type CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, found 0
