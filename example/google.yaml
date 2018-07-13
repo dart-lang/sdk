@@ -11,6 +11,7 @@
 linter:
   rules:
     - avoid_empty_else
+    - avoid_relative_lib_imports
     - avoid_return_types_on_setters
     - avoid_types_as_parameter_names
     - control_flow_in_finally
@@ -18,7 +19,17 @@ linter:
     - prefer_contains
     - prefer_equal_for_default_values
     - prefer_is_not_empty
+    - recursive_getters
     - throw_in_finally
     - unrelated_type_equality_checks
     - use_rethrow_when_possible
     - valid_regexps
+
+# The following lints will NOT be enforced for google internal code.
+#
+# avoid_relative_lib_imports
+#   This is enforced as part of the build rather than as a lint. Since it's
+#   effectively enabled it appears in the above list, too.
+# empty_statements
+#   Enforcing use of dartfmt is sufficient to make empty statements obvious.
+#   Also, see issue #383 for discussion of false positives.
