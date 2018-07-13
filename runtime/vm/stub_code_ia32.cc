@@ -1616,17 +1616,14 @@ void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 }
 
 // Stub for compiling a function and jumping to the compiled code.
-// ECX: IC-Data (for methods).
 // EDX: Arguments descriptor.
 // EAX: Function.
 void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ pushl(EDX);  // Preserve arguments descriptor array.
-  __ pushl(ECX);  // Preserve IC data object.
   __ pushl(EAX);  // Pass function.
   __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
   __ popl(EAX);  // Restore function.
-  __ popl(ECX);  // Restore IC data array.
   __ popl(EDX);  // Restore arguments descriptor array.
   __ LeaveFrame();
 

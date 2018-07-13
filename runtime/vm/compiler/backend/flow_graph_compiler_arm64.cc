@@ -807,7 +807,6 @@ void FlowGraphCompiler::EmitFrameEntry() {
 //   SP: address of last argument.
 //   FP: caller's frame pointer.
 //   PP: caller's pool pointer.
-//   R5: ic-data.
 //   R4: arguments descriptor array.
 void FlowGraphCompiler::CompileGraph() {
   InitCompiler();

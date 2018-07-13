@@ -1872,17 +1872,14 @@ void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 }
 
 // Stub for compiling a function and jumping to the compiled code.
-// RBX: IC-Data (for methods).
 // R10: Arguments descriptor.
 // RAX: Function.
 void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ pushq(R10);  // Preserve arguments descriptor array.
-  __ pushq(RBX);  // Preserve IC data object.
   __ pushq(RAX);  // Pass function.
   __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
   __ popq(RAX);  // Restore function.
-  __ popq(RBX);  // Restore IC data array.
   __ popq(R10);  // Restore arguments descriptor array.
   __ LeaveStubFrame();
 
