@@ -18,7 +18,8 @@ unsorted/types_test: RuntimeError
 unsorted/super_mixin_test: CompileTimeError
 
 [ $compiler == dart2analyzer && $strong ]
-*: Skip # Issue 28649
+unsorted/klass_field_initializer_test: CompileTimeError
+unsorted/super_initializer_test: CompileTimeError
 
 [ $compiler == dart2js && $fasta ]
 unsorted/super_mixin_test: RuntimeError
