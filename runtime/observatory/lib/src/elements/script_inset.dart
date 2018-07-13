@@ -150,7 +150,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
   int _startLine;
   int _endLine;
 
-  Map<int, List<S.ServiceMap>> _rangeMap = {};
+  Map/*<int, List<S.ServiceMap>>*/ _rangeMap = {};
   Set _callSites = new Set<S.CallSite>();
   Set _possibleBreakpointLines = new Set<int>();
   Map<int, ScriptLineProfile> _profileMap = {};

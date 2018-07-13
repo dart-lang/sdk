@@ -430,8 +430,8 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
     return const [];
   }
 
-  void _updateDominator(
-      HtmlElement element, M.HeapSnapshotDominatorNode node, int depth) {
+  void _updateDominator(HtmlElement element, nodeDynamic, int depth) {
+    M.HeapSnapshotDominatorNode node = nodeDynamic;
     element.children[0].text = Utils.formatSize(node.retainedSize);
     _updateLines(element.children[1].children, depth);
     if (_getChildrenDominator(node).isNotEmpty) {
@@ -463,8 +463,8 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
     }
   }
 
-  void _updateMergedDominator(
-      HtmlElement element, M.HeapSnapshotMergedDominatorNode node, int depth) {
+  void _updateMergedDominator(HtmlElement element, nodeDynamic, int depth) {
+    M.HeapSnapshotMergedDominatorNode node = nodeDynamic;
     element.children[0].text = Utils.formatSize(node.retainedSize);
     _updateLines(element.children[1].children, depth);
     if (_getChildrenMergedDominator(node).isNotEmpty) {

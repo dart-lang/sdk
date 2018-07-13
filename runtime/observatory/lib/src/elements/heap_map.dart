@@ -169,12 +169,12 @@ class HeapMapElement extends HtmlElement implements Renderable {
     return [rng.nextInt(128), rng.nextInt(128), rng.nextInt(128), 255];
   }
 
-  String _classNameAt(Point<int> point) {
+  String _classNameAt(Point<num> point) {
     var color = new PixelReference(_fragmentationData, point).color;
     return _classIdToName[_colorToClassId[_packColor(color)]];
   }
 
-  ObjectInfo _objectAt(Point<int> point) {
+  ObjectInfo _objectAt(Point<num> point) {
     if (_fragmentation == null || _canvas == null) {
       return null;
     }
@@ -302,13 +302,13 @@ class PixelReference {
   var _dataIndex;
   static const NUM_COLOR_COMPONENTS = 4;
 
-  PixelReference(ImageData data, Point<int> point)
+  PixelReference(ImageData data, Point<num> point)
       : _data = data,
         _dataIndex = (point.y * data.width + point.x) * NUM_COLOR_COMPONENTS;
 
   PixelReference._fromDataIndex(this._data, this._dataIndex);
 
-  Point<int> get point => new Point(index % _data.width, index ~/ _data.width);
+  Point<num> get point => new Point(index % _data.width, index ~/ _data.width);
 
   void set color(Iterable<int> color) {
     _data.data.setRange(_dataIndex, _dataIndex + NUM_COLOR_COMPONENTS, color);

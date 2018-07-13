@@ -162,17 +162,23 @@ class PersistentHandlesPageElement extends HtmlElement implements Renderable {
     }
     switch (_sortingDirection) {
       case _SortingDirection.ascending:
-        return (a, b) => getter(a).compareTo(getter(b));
+        int sort(M.WeakPersistentHandle a, M.WeakPersistentHandle b) {
+          return getter(a).compareTo(getter(b));
+        }
+        return sort;
       case _SortingDirection.descending:
-        return (a, b) => getter(b).compareTo(getter(a));
+        int sort(M.WeakPersistentHandle a, M.WeakPersistentHandle b) {
+          return getter(b).compareTo(getter(a));
+        }
+        return sort;
     }
   }
 
-  static Element _createLine() => new DivElement()
+  static HtmlElement _createLine() => new DivElement()
     ..classes = ['collection-item']
     ..text = 'object';
 
-  static Element _createWeakLine() => new DivElement()
+  static HtmlElement _createWeakLine() => new DivElement()
     ..classes = ['weak-item']
     ..children = <Element>[
       new SpanElement()
@@ -231,7 +237,8 @@ class PersistentHandlesPageElement extends HtmlElement implements Renderable {
     _r.dirty();
   }
 
-  void _updateWeakLine(Element e, M.WeakPersistentHandle item, index) {
+  void _updateWeakLine(Element e, itemDynamic, index) {
+    M.WeakPersistentHandle item = itemDynamic;
     e.children[0].text = Utils.formatSize(_getExternalSize(item));
     e.children[1].text = '${_getPeer(item)}';
     e.children[2] = anyRef(_isolate, item.object, _objects, queue: _r.queue)
@@ -241,7 +248,8 @@ class PersistentHandlesPageElement extends HtmlElement implements Renderable {
       ..title = '${_getFinalizerCallback(item)}';
   }
 
-  void _updateLine(Element e, M.PersistentHandle item, index) {
+  void _updateLine(Element e, itemDynamic, index) {
+    M.PersistentHandle item = itemDynamic;
     e.children = <Element>[
       anyRef(_isolate, item.object, _objects, queue: _r.queue)
         ..classes = ['object']

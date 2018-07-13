@@ -80,7 +80,7 @@ class NavNotifyElement extends HtmlElement implements Renderable {
     return true;
   }
 
-  HtmlElement _toElement(M.Notification notification) {
+  Element _toElement(M.Notification notification) {
     if (notification is M.EventNotification) {
       return new NavNotifyEventElement(notification.event, queue: _r.queue)
         ..onDelete.listen((_) => _repository.delete(notification));

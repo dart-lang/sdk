@@ -36,7 +36,7 @@ import 'package:observatory/src/elements/source_link.dart';
 abstract class DebuggerCommand extends Command {
   ObservatoryDebugger debugger;
 
-  DebuggerCommand(this.debugger, name, children) : super(name, children);
+  DebuggerCommand(this.debugger, name, List<Command> children) : super(name, children);
 
   String get helpShort;
   String get helpLong;
@@ -46,7 +46,7 @@ abstract class DebuggerCommand extends Command {
 // provided by the cli library.
 class HelpCommand extends DebuggerCommand {
   HelpCommand(Debugger debugger)
-      : super(debugger, 'help', [
+      : super(debugger, 'help', <Command>[
           new HelpHotkeysCommand(debugger),
         ]);
 
@@ -62,7 +62,7 @@ class HelpCommand extends DebuggerCommand {
     var con = debugger.console;
     if (args.length == 0) {
       // Print list of all top-level commands.
-      var commands = debugger.cmd.matchCommand([], false);
+      var commands = debugger.cmd.matchCommand(<String>[], false);
       commands.sort((a, b) => a.name.compareTo(b.name));
       con.print('List of commands:\n');
       for (DebuggerCommand command in commands) {
@@ -92,7 +92,7 @@ class HelpCommand extends DebuggerCommand {
         con.printBold(_nameAndAlias(command));
         con.print(command.helpLong);
 
-        var newArgs = [];
+        var newArgs = <String>[];
         newArgs.addAll(args.take(args.length - 1));
         newArgs.add(command.name);
         newArgs.add('');
@@ -129,7 +129,7 @@ class HelpCommand extends DebuggerCommand {
 }
 
 class HelpHotkeysCommand extends DebuggerCommand {
-  HelpHotkeysCommand(Debugger debugger) : super(debugger, 'hotkeys', []);
+  HelpHotkeysCommand(Debugger debugger) : super(debugger, 'hotkeys', <Command>[]);
 
   Future run(List<String> args) {
     var con = debugger.console;
@@ -160,7 +160,7 @@ class HelpHotkeysCommand extends DebuggerCommand {
 }
 
 class PrintCommand extends DebuggerCommand {
-  PrintCommand(Debugger debugger) : super(debugger, 'print', []) {
+  PrintCommand(Debugger debugger) : super(debugger, 'print', <Command>[]) {
     alias = 'p';
   }
 
@@ -193,7 +193,7 @@ class PrintCommand extends DebuggerCommand {
 }
 
 class DownCommand extends DebuggerCommand {
-  DownCommand(Debugger debugger) : super(debugger, 'down', []);
+  DownCommand(Debugger debugger) : super(debugger, 'down', <Command>[]);
 
   Future run(List<String> args) {
     int count = 1;
@@ -227,7 +227,7 @@ class DownCommand extends DebuggerCommand {
 }
 
 class UpCommand extends DebuggerCommand {
-  UpCommand(Debugger debugger) : super(debugger, 'up', []);
+  UpCommand(Debugger debugger) : super(debugger, 'up', <Command>[]);
 
   Future run(List<String> args) {
     int count = 1;
@@ -261,7 +261,7 @@ class UpCommand extends DebuggerCommand {
 }
 
 class FrameCommand extends DebuggerCommand {
-  FrameCommand(Debugger debugger) : super(debugger, 'frame', []) {
+  FrameCommand(Debugger debugger) : super(debugger, 'frame', <Command>[]) {
     alias = 'f';
   }
 
@@ -295,7 +295,7 @@ class FrameCommand extends DebuggerCommand {
 }
 
 class PauseCommand extends DebuggerCommand {
-  PauseCommand(Debugger debugger) : super(debugger, 'pause', []);
+  PauseCommand(Debugger debugger) : super(debugger, 'pause', <Command>[]);
 
   Future run(List<String> args) {
     return debugger.pause();
@@ -311,7 +311,7 @@ class PauseCommand extends DebuggerCommand {
 }
 
 class ContinueCommand extends DebuggerCommand {
-  ContinueCommand(Debugger debugger) : super(debugger, 'continue', []) {
+  ContinueCommand(Debugger debugger) : super(debugger, 'continue', <Command>[]) {
     alias = 'c';
   }
 
@@ -330,7 +330,7 @@ class ContinueCommand extends DebuggerCommand {
 }
 
 class SmartNextCommand extends DebuggerCommand {
-  SmartNextCommand(Debugger debugger) : super(debugger, 'next', []) {
+  SmartNextCommand(Debugger debugger) : super(debugger, 'next', <Command>[]) {
     alias = 'n';
   }
 
@@ -352,7 +352,7 @@ class SmartNextCommand extends DebuggerCommand {
 }
 
 class SyncNextCommand extends DebuggerCommand {
-  SyncNextCommand(Debugger debugger) : super(debugger, 'next-sync', []);
+  SyncNextCommand(Debugger debugger) : super(debugger, 'next-sync', <Command>[]);
 
   Future run(List<String> args) {
     return debugger.syncNext();
@@ -368,7 +368,7 @@ class SyncNextCommand extends DebuggerCommand {
 }
 
 class AsyncNextCommand extends DebuggerCommand {
-  AsyncNextCommand(Debugger debugger) : super(debugger, 'next-async', []);
+  AsyncNextCommand(Debugger debugger) : super(debugger, 'next-async', <Command>[]);
 
   Future run(List<String> args) {
     return debugger.asyncNext();
@@ -384,7 +384,7 @@ class AsyncNextCommand extends DebuggerCommand {
 }
 
 class StepCommand extends DebuggerCommand {
-  StepCommand(Debugger debugger) : super(debugger, 'step', []) {
+  StepCommand(Debugger debugger) : super(debugger, 'step', <Command>[]) {
     alias = 's';
   }
 
@@ -406,7 +406,7 @@ class StepCommand extends DebuggerCommand {
 }
 
 class RewindCommand extends DebuggerCommand {
-  RewindCommand(Debugger debugger) : super(debugger, 'rewind', []);
+  RewindCommand(Debugger debugger) : super(debugger, 'rewind', <Command>[]);
 
   Future run(List<String> args) async {
     try {
@@ -443,7 +443,7 @@ class ReloadCommand extends DebuggerCommand {
   final M.IsolateRepository _isolates;
 
   ReloadCommand(Debugger debugger, this._isolates)
-      : super(debugger, 'reload', []);
+      : super(debugger, 'reload', <Command>[]);
 
   Future run(List<String> args) async {
     try {
@@ -477,7 +477,7 @@ class ReloadCommand extends DebuggerCommand {
 }
 
 class ClsCommand extends DebuggerCommand {
-  ClsCommand(Debugger debugger) : super(debugger, 'cls', []) {}
+  ClsCommand(Debugger debugger) : super(debugger, 'cls', <Command>[]) {}
 
   Future run(List<String> args) {
     debugger.console.clear();
@@ -493,7 +493,7 @@ class ClsCommand extends DebuggerCommand {
 }
 
 class LogCommand extends DebuggerCommand {
-  LogCommand(Debugger debugger) : super(debugger, 'log', []);
+  LogCommand(Debugger debugger) : super(debugger, 'log', <Command>[]);
 
   Future run(List<String> args) async {
     if (args.length == 0) {
@@ -560,7 +560,7 @@ class LogCommand extends DebuggerCommand {
 }
 
 class FinishCommand extends DebuggerCommand {
-  FinishCommand(Debugger debugger) : super(debugger, 'finish', []);
+  FinishCommand(Debugger debugger) : super(debugger, 'finish', <Command>[]);
 
   Future run(List<String> args) {
     if (debugger.isolatePaused()) {
@@ -591,7 +591,7 @@ class FinishCommand extends DebuggerCommand {
 }
 
 class SetCommand extends DebuggerCommand {
-  SetCommand(Debugger debugger) : super(debugger, 'set', []);
+  SetCommand(Debugger debugger) : super(debugger, 'set', <Command>[]);
 
   static var _boeValues = ['All', 'None', 'Unhandled'];
   static var _boolValues = ['false', 'true'];
@@ -737,7 +737,7 @@ class SetCommand extends DebuggerCommand {
 }
 
 class BreakCommand extends DebuggerCommand {
-  BreakCommand(Debugger debugger) : super(debugger, 'break', []);
+  BreakCommand(Debugger debugger) : super(debugger, 'break', <Command>[]);
 
   Future run(List<String> args) async {
     if (args.length > 1) {
@@ -821,7 +821,7 @@ class BreakCommand extends DebuggerCommand {
 }
 
 class ClearCommand extends DebuggerCommand {
-  ClearCommand(Debugger debugger) : super(debugger, 'clear', []);
+  ClearCommand(Debugger debugger) : super(debugger, 'clear', <Command>[]);
 
   Future run(List<String> args) async {
     if (args.length > 1) {
@@ -908,7 +908,7 @@ class ClearCommand extends DebuggerCommand {
 
 // TODO(turnidge): Add argument completion.
 class DeleteCommand extends DebuggerCommand {
-  DeleteCommand(Debugger debugger) : super(debugger, 'delete', []);
+  DeleteCommand(Debugger debugger) : super(debugger, 'delete', <Command>[]);
 
   Future run(List<String> args) {
     if (args.length < 1) {
@@ -948,7 +948,7 @@ class DeleteCommand extends DebuggerCommand {
 
 class InfoBreakpointsCommand extends DebuggerCommand {
   InfoBreakpointsCommand(Debugger debugger)
-      : super(debugger, 'breakpoints', []);
+      : super(debugger, 'breakpoints', <Command>[]);
 
   Future run(List<String> args) async {
     if (debugger.isolate.breakpoints.isEmpty) {
@@ -975,7 +975,7 @@ class InfoBreakpointsCommand extends DebuggerCommand {
 }
 
 class InfoFrameCommand extends DebuggerCommand {
-  InfoFrameCommand(Debugger debugger) : super(debugger, 'frame', []);
+  InfoFrameCommand(Debugger debugger) : super(debugger, 'frame', <Command>[]);
 
   Future run(List<String> args) {
     if (args.length > 0) {
@@ -995,7 +995,7 @@ class InfoFrameCommand extends DebuggerCommand {
 
 class IsolateCommand extends DebuggerCommand {
   IsolateCommand(Debugger debugger)
-      : super(debugger, 'isolate', [
+      : super(debugger, 'isolate', <Command>[
           new IsolateListCommand(debugger),
           new IsolateNameCommand(debugger),
         ]) {
@@ -1077,7 +1077,7 @@ String _isolateRunState(S.Isolate isolate) {
 }
 
 class IsolateListCommand extends DebuggerCommand {
-  IsolateListCommand(Debugger debugger) : super(debugger, 'list', []);
+  IsolateListCommand(Debugger debugger) : super(debugger, 'list', <Command>[]);
 
   Future run(List<String> args) async {
     if (debugger.vm == null) {
@@ -1123,7 +1123,7 @@ class IsolateListCommand extends DebuggerCommand {
 }
 
 class IsolateNameCommand extends DebuggerCommand {
-  IsolateNameCommand(Debugger debugger) : super(debugger, 'name', []);
+  IsolateNameCommand(Debugger debugger) : super(debugger, 'name', <Command>[]);
 
   Future run(List<String> args) {
     if (args.length != 1) {
@@ -1142,7 +1142,7 @@ class IsolateNameCommand extends DebuggerCommand {
 
 class InfoCommand extends DebuggerCommand {
   InfoCommand(Debugger debugger)
-      : super(debugger, 'info', [
+      : super(debugger, 'info', <Command>[
           new InfoBreakpointsCommand(debugger),
           new InfoFrameCommand(debugger)
         ]);
@@ -1160,7 +1160,7 @@ class InfoCommand extends DebuggerCommand {
 }
 
 class RefreshStackCommand extends DebuggerCommand {
-  RefreshStackCommand(Debugger debugger) : super(debugger, 'stack', []);
+  RefreshStackCommand(Debugger debugger) : super(debugger, 'stack', <Command>[]);
 
   Future run(List<String> args) {
     return debugger.refreshStack();
@@ -1175,7 +1175,7 @@ class RefreshStackCommand extends DebuggerCommand {
 
 class RefreshCommand extends DebuggerCommand {
   RefreshCommand(Debugger debugger)
-      : super(debugger, 'refresh', [
+      : super(debugger, 'refresh', <Command>[
           new RefreshStackCommand(debugger),
         ]);
 
@@ -1193,7 +1193,7 @@ class RefreshCommand extends DebuggerCommand {
 }
 
 class VmListCommand extends DebuggerCommand {
-  VmListCommand(Debugger debugger) : super(debugger, 'list', []);
+  VmListCommand(Debugger debugger) : super(debugger, 'list', <Command>[]);
 
   Future run(List<String> args) async {
     if (args.length > 0) {
@@ -1235,7 +1235,7 @@ class VmListCommand extends DebuggerCommand {
 }
 
 class VmNameCommand extends DebuggerCommand {
-  VmNameCommand(Debugger debugger) : super(debugger, 'name', []);
+  VmNameCommand(Debugger debugger) : super(debugger, 'name', <Command>[]);
 
   Future run(List<String> args) async {
     if (args.length != 1) {
@@ -1258,7 +1258,7 @@ class VmNameCommand extends DebuggerCommand {
 
 class VmCommand extends DebuggerCommand {
   VmCommand(Debugger debugger)
-      : super(debugger, 'vm', [
+      : super(debugger, 'vm', <Command>[
           new VmListCommand(debugger),
           new VmNameCommand(debugger),
         ]);

@@ -10,7 +10,7 @@ import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/models.dart' show ConnectionException;
 
 class ExceptionDeleteEvent {
-  final Exception exception;
+  final dynamic exception;
   final StackTrace stacktrace;
 
   ExceptionDeleteEvent(this.exception, {this.stacktrace});
@@ -28,13 +28,13 @@ class NavNotifyExceptionElement extends HtmlElement implements Renderable {
       new StreamController<ExceptionDeleteEvent>.broadcast();
   Stream<ExceptionDeleteEvent> get onDelete => _onDelete.stream;
 
-  Exception _exception;
+  dynamic _exception;
   StackTrace _stacktrace;
 
-  Exception get exception => _exception;
+  dynamic get exception => _exception;
   StackTrace get stacktrace => _stacktrace;
 
-  factory NavNotifyExceptionElement(Exception exception,
+  factory NavNotifyExceptionElement(dynamic exception,
       {StackTrace stacktrace: null, RenderingQueue queue}) {
     assert(exception != null);
     NavNotifyExceptionElement e = document.createElement(tag.name);

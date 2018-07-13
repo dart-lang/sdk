@@ -106,7 +106,7 @@ class FakeVMRpcException extends RpcException {
 }
 
 /// A [ServiceObject] represents a persistent object within the vm.
-abstract class ServiceObject {
+abstract class ServiceObject implements M.ObjectRef {
   static int LexicalSortName(ServiceObject o1, ServiceObject o2) {
     return o1.name.compareTo(o2.name);
   }
@@ -1173,17 +1173,18 @@ class InboundReferences implements M.InboundReferences {
   final Iterable<InboundReference> elements;
 
   InboundReferences(ServiceMap map)
-      : this.elements =
-            map['references'].map((rmap) => new InboundReference(rmap));
+      : this.elements = map['references']
+            .map<InboundReference>((rmap) => new InboundReference(rmap))
+            .toList();
 }
 
 class InboundReference implements M.InboundReference {
-  final HeapObject source;
+  final ServiceObject /*HeapObject*/ source;
   final Instance parentField;
   final int parentListIndex;
   final int parentWordOffset;
 
-  InboundReference(ServiceMap map)
+  InboundReference(Map map)
       : source = map['source'],
         parentField = map['parentField'],
         parentListIndex = map['parentListIndex'],
@@ -1194,17 +1195,18 @@ class RetainingPath implements M.RetainingPath {
   final Iterable<RetainingPathItem> elements;
 
   RetainingPath(ServiceMap map)
-      : this.elements =
-            map['elements'].map((rmap) => new RetainingPathItem(rmap));
+      : this.elements = map['elements']
+            .map<RetainingPathItem>((rmap) => new RetainingPathItem(rmap))
+            .toList();
 }
 
 class RetainingPathItem implements M.RetainingPathItem {
-  final HeapObject source;
+  final ServiceObject /*HeapObject*/ source;
   final Instance parentField;
   final int parentListIndex;
   final int parentWordOffset;
 
-  RetainingPathItem(ServiceMap map)
+  RetainingPathItem(Map map)
       : source = map['value'],
         parentField = map['parentField'],
         parentListIndex = map['parentListIndex'],
@@ -1215,7 +1217,8 @@ class Ports implements M.Ports {
   final Iterable<Port> elements;
 
   Ports(ServiceMap map)
-      : this.elements = map['ports'].map((rmap) => new Port(rmap));
+      : this.elements =
+            map['ports'].map<Port>((rmap) => new Port(rmap)).toList();
 }
 
 class Port implements M.Port {
@@ -1233,10 +1236,11 @@ class PersistentHandles implements M.PersistentHandles {
 
   PersistentHandles(ServiceMap map)
       : this.elements = map['persistentHandles']
-            .map<PersistentHandle>((rmap) => new PersistentHandle(rmap)),
+            .map<PersistentHandle>((rmap) => new PersistentHandle(rmap))
+            .toList(),
         this.weakElements = map['weakPersistentHandles']
-            .map<WeakPersistentHandle>(
-                (rmap) => new WeakPersistentHandle(rmap));
+            .map<WeakPersistentHandle>((rmap) => new WeakPersistentHandle(rmap))
+            .toList();
 }
 
 class PersistentHandle implements M.PersistentHandle {
@@ -1983,13 +1987,14 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return invokeRpc('_getInstances', params);
   }
 
-  Future<HeapObject> getObjectByAddress(String address, [bool ref = true]) {
+  Future<ServiceObject /*HeapObject*/ > getObjectByAddress(String address,
+      [bool ref = true]) {
     Map params = {
       'address': address,
       'ref': ref,
     };
     return invokeRpc('_getObjectByAddress', params)
-        .then((result) => result as HeapObject);
+        .then((result) => result as ServiceObject);
   }
 
   final Map<String, ServiceMetric> dartMetrics = <String, ServiceMetric>{};
@@ -2121,21 +2126,22 @@ M.ErrorKind stringToErrorKind(String value) {
 }
 
 /// A [DartError] is peered to a Dart Error object.
-class DartError extends ServiceObject implements M.Error {
+class DartError extends HeapObject implements M.Error {
   DartError._empty(ServiceObject owner) : super._empty(owner);
 
   M.ErrorKind kind;
-  final M.ClassRef clazz = null;
-  final int size = null;
   String message;
   Instance exception;
   Instance stacktrace;
 
   void _update(Map map, bool mapIsRef) {
+    _upgradeCollection(map, owner);
+    super._update(map, mapIsRef);
+
     message = map['message'];
     kind = stringToErrorKind(map['kind']);
-    exception = new ServiceObject._fromMap(owner, map['exception']);
-    stacktrace = new ServiceObject._fromMap(owner, map['stacktrace']);
+    exception = map['exception'];
+    stacktrace = map['stacktrace'];
     name = 'DartError($message)';
     vmName = name;
   }
@@ -3310,7 +3316,7 @@ class Field extends HeapObject implements M.Field {
   bool isStatic;
   bool isFinal;
   bool isConst;
-  Instance staticValue;
+  ServiceObject staticValue;
   String name;
   String vmName;
 
@@ -3960,7 +3966,9 @@ class ObjectPool extends HeapObject implements M.ObjectPool {
     if (mapIsRef) {
       return;
     }
-    entries = map['_entries'].map((map) => new ObjectPoolEntry(map));
+    entries = map['_entries']
+        .map<ObjectPoolEntry>((map) => new ObjectPoolEntry(map))
+        .toList();
   }
 }
 
@@ -4120,7 +4128,7 @@ class InstanceSet extends HeapObject implements M.InstanceSet {
       return;
     }
     count = map['totalCount'];
-    samples = map['samples'];
+    samples = new List<HeapObject>.from(map['samples']);
   }
 }
 
@@ -4303,12 +4311,15 @@ class Code extends HeapObject implements M.Code {
           return;
         }
         // Load the script and then update descriptors.
-        script.load().then(_updateDescriptors);
+        script.load().then((_) => _updateDescriptors(script));
       });
       return;
     }
-    // Load the script and then update descriptors.
-    function.location.script.load().then(_updateDescriptors);
+    {
+      // Load the script and then update descriptors.
+      var script = function.location.script;
+      script.load().then((_) => _updateDescriptors(script));
+    }
   }
 
   /// Reload [this]. Returns a future which completes to [this] or an
