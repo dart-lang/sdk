@@ -83,6 +83,12 @@ class ContextBuilderImpl implements ContextBuilder {
         contextRoot.root.path, contextRoot.excludedPaths.toList(),
         pathContext: resourceProvider.pathContext);
     AnalysisDriver driver = builder.buildDriver(oldContextRoot);
+
+    // AnalysisDriver reports results into streams.
+    // We need to drain these streams to avoid memory leak.
+    driver.results.drain();
+    driver.exceptions.drain();
+
     DriverBasedAnalysisContext context =
         new DriverBasedAnalysisContext(resourceProvider, contextRoot, driver);
     return context;
