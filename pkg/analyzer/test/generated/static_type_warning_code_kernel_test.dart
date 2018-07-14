@@ -141,13 +141,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_forIn_typeBoundGood() {
-    // Failed to resolve 1 nodes
-    return super.test_forIn_typeBoundGood();
-  }
-
-  @override
-  @failingTest
   test_forIn_upcast() {
     // Failed to resolve 1 nodes
     return super.test_forIn_upcast();
@@ -528,13 +521,6 @@ class StaticTypeWarningCodeTest_Kernel
   test_returnOfInvalidType_method() async {
     // Expected 1 errors of type StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, found 0
     await super.test_returnOfInvalidType_method();
-  }
-
-  @override
-  @failingTest
-  test_returnOfInvalidType_not_issued_for_valid_generic_return() {
-    // Failed to resolve 2 nodes
-    return super.test_returnOfInvalidType_not_issued_for_valid_generic_return();
   }
 
   @override

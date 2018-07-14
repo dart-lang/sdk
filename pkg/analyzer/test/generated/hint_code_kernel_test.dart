@@ -283,13 +283,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @failingTest
   @override
-  test_unusedElement_method_isUsed_invocation_MemberElement() {
-    // Failed to resolve 1 nodes
-    return super.test_unusedElement_method_isUsed_invocation_MemberElement();
-  }
-
-  @failingTest
-  @override
   test_unusedImport_inComment_libraryDirective() async {
     // Expected 0 errors of type HintCode.UNUSED_IMPORT, found 1 (42)
     return super.test_unusedImport_inComment_libraryDirective();

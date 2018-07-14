@@ -37,13 +37,6 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
 
   @override
   @failingTest
-  test_constrainedByBounds1() {
-    // Failed to resolve 1 nodes
-    return super.test_constrainedByBounds1();
-  }
-
-  @override
-  @failingTest
   test_constrainedByBounds2() async {
     // Expected: InterfaceTypeImpl:<int>
     await super.test_constrainedByBounds2();
@@ -54,13 +47,6 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
   test_constrainedByBounds3() async {
     // Expected: InterfaceTypeImpl:<int>
     await super.test_constrainedByBounds3();
-  }
-
-  @override
-  @failingTest
-  test_constrainedByBounds4() {
-    // Failed to resolve 1 nodes
-    return super.test_constrainedByBounds4();
   }
 
   @override
@@ -100,100 +86,9 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
 
   @override
   @failingTest
-  test_futureOr_assignFromFuture() {
-    // Failed to resolve 1 nodes
-    return super.test_futureOr_assignFromFuture();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_assignFromValue() {
-    // Failed to resolve 1 nodes
-    return super.test_futureOr_assignFromValue();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_asyncExpressionBody() {
-    // Failed to resolve 1 nodes
-    return super.test_futureOr_asyncExpressionBody();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_asyncReturn() {
-    // Failed to resolve 1 nodes
-    return super.test_futureOr_asyncReturn();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_await() {
-    // Failed to resolve 1 nodes
-    return super.test_futureOr_await();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_downwards1() {
-    // Failed to resolve 1 nodes
-    return super.test_futureOr_downwards1();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_downwards2() {
-    // Failed to resolve 1 nodes
-    return super.test_futureOr_downwards2();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_downwards3() {
-    // Failed to resolve 1 nodes
-    return super.test_futureOr_downwards3();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_downwards4() {
-    // Failed to resolve 1 nodes
-    return super.test_futureOr_downwards4();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_downwards5() {
-    // Failed to resolve 1 nodes
-    return super.test_futureOr_downwards5();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_downwards6() {
-    // Failed to resolve 1 nodes
-    return super.test_futureOr_downwards6();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_downwards7() {
-    // Failed to resolve 1 nodes
-    return super.test_futureOr_downwards7();
-  }
-
-  @override
-  @failingTest
   test_futureOr_downwards8() async {
     // type 'BottomTypeImpl' is not a subtype of type 'InterfaceType' in type cast where
     await super.test_futureOr_downwards8();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_downwards9() {
-    // Failed to resolve 1 nodes
-    return super.test_futureOr_downwards9();
   }
 
   @override
@@ -240,37 +135,9 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
 
   @override
   @failingTest
-  test_futureOr_upwards1() {
-    // Failed to resolve 1 nodes
-    return super.test_futureOr_upwards1();
-  }
-
-  @override
-  @failingTest
   test_futureOr_upwards2() async {
     // Expected 1 errors of type StrongModeCode.STRONG_MODE_COULD_NOT_INFER, found 0
     await super.test_futureOr_upwards2();
-  }
-
-  @override
-  @failingTest
-  test_futureOrNull_no_return() {
-    // Failed to resolve 1 nodes
-    return super.test_futureOrNull_no_return();
-  }
-
-  @override
-  @failingTest
-  test_futureOrNull_no_return_value() {
-    // Failed to resolve 1 nodes
-    return super.test_futureOrNull_no_return_value();
-  }
-
-  @override
-  @failingTest
-  test_futureOrNull_return_null() {
-    // Failed to resolve 1 nodes
-    return super.test_futureOrNull_return_null();
   }
 
   @override
@@ -331,34 +198,6 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
 
   @override
   @failingTest
-  test_inference_simplePolymorphicRecursion_function() {
-    // Failed to resolve 4 nodes
-    return super.test_inference_simplePolymorphicRecursion_function();
-  }
-
-  @override
-  @failingTest
-  test_inference_simplePolymorphicRecursion_interface() {
-    // Failed to resolve 2 nodes
-    return super.test_inference_simplePolymorphicRecursion_interface();
-  }
-
-  @override
-  @failingTest
-  test_inference_simplePolymorphicRecursion_simple() {
-    // Failed to resolve 2 nodes
-    return super.test_inference_simplePolymorphicRecursion_simple();
-  }
-
-  @override
-  @failingTest
-  test_inferGenericInstantiation() {
-    // Failed to resolve 1 nodes
-    return super.test_inferGenericInstantiation();
-  }
-
-  @override
-  @failingTest
   test_inferGenericInstantiation2() async {
     // Expected 1 errors of type StrongModeCode.STRONG_MODE_COULD_NOT_INFER, found 0;
     //          1 errors of type StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0
@@ -378,13 +217,6 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
 
   @override
   @failingTest
-  test_partialTypes1() {
-    // Failed to resolve 2 nodes
-    return super.test_partialTypes1();
-  }
-
-  @override
-  @failingTest
   test_pinning_multipleConstraints1() async {
     // Expected 1 errors of type StrongModeCode.STRONG_MODE_INVALID_CAST_LITERAL, found 0
     await super.test_pinning_multipleConstraints1();
@@ -392,44 +224,9 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
 
   @override
   @failingTest
-  test_pinning_multipleConstraints2() {
-    // Failed to resolve 1 nodes
-    return super.test_pinning_multipleConstraints2();
-  }
-
-  @override
-  @failingTest
   test_pinning_multipleConstraints3() async {
     // Expected 1 errors of type StrongModeCode.STRONG_MODE_INVALID_CAST_LITERAL, found 0
     await super.test_pinning_multipleConstraints3();
-  }
-
-  @override
-  @failingTest
-  test_pinning_multipleConstraints_contravariant1() {
-    // Failed to resolve 2 nodes
-    return super.test_pinning_multipleConstraints_contravariant1();
-  }
-
-  @override
-  @failingTest
-  test_pinning_multipleConstraints_contravariant2() {
-    // Failed to resolve 2 nodes
-    return super.test_pinning_multipleConstraints_contravariant2();
-  }
-
-  @override
-  @failingTest
-  test_pinning_multipleConstraints_contravariant3() {
-    // Failed to resolve 2 nodes
-    return super.test_pinning_multipleConstraints_contravariant3();
-  }
-
-  @override
-  @failingTest
-  test_pinning_multipleConstraints_contravariant4() {
-    // Failed to resolve 2 nodes
-    return super.test_pinning_multipleConstraints_contravariant4();
   }
 
   @override
@@ -454,48 +251,6 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
     // TODO(brianwilkerson) Figure out why this test is flaky.
     fail('Flaky test');
   }
-
-  @override
-  @failingTest
-  test_returnType_variance1() {
-    // Failed to resolve 1 nodes
-    return super.test_returnType_variance1();
-  }
-
-  @override
-  @failingTest
-  test_returnType_variance2() {
-    // Failed to resolve 1 nodes
-    return super.test_returnType_variance2();
-  }
-
-  @override
-  @failingTest
-  test_returnType_variance3() {
-    // Failed to resolve 1 nodes
-    return super.test_returnType_variance3();
-  }
-
-  @override
-  @failingTest
-  test_returnType_variance4() {
-    // Failed to resolve 1 nodes
-    return super.test_returnType_variance4();
-  }
-
-  @override
-  @failingTest
-  test_returnType_variance5() {
-    // Failed to resolve 3 nodes
-    return super.test_returnType_variance5();
-  }
-
-  @override
-  @failingTest
-  test_returnType_variance6() {
-    // Failed to resolve 3 nodes
-    return super.test_returnType_variance6();
-  }
 }
 
 @reflectiveTest
@@ -512,51 +267,9 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
 
   @override
   @failingTest
-  test_futureOr_promotion3() async {
-    // Failed to resolve 2 nodes
-    await super.test_futureOr_promotion3();
-  }
-
-  @override
-  @failingTest
-  test_futureOr_promotion4() {
-    // Failed to resolve 2 nodes
-    return super.test_futureOr_promotion4();
-  }
-
-  @override
-  @failingTest
-  test_genericFunction() {
-    // Failed to resolve 1 nodes
-    return super.test_genericFunction();
-  }
-
-  @override
-  @failingTest
-  test_genericFunction_bounds() {
-    // Failed to resolve 1 nodes
-    return super.test_genericFunction_bounds();
-  }
-
-  @override
-  @failingTest
   test_genericFunction_parameter() async {
     // Failed to resolve 1 nodes:
     await super.test_genericFunction_parameter();
-  }
-
-  @override
-  @failingTest
-  test_genericFunction_static() {
-    // Failed to resolve 1 nodes
-    return super.test_genericFunction_static();
-  }
-
-  @override
-  @failingTest
-  test_genericMethod() async {
-    // Failed to resolve 1 nodes
-    await super.test_genericMethod();
   }
 
   @override
@@ -642,44 +355,9 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
 
   @override
   @failingTest
-  test_genericMethod_nestedBound() async {
-    // Failed to resolve 1 nodes
-    await super.test_genericMethod_nestedBound();
-  }
-
-  @override
-  @failingTest
   test_genericMethod_nestedCapture() async {
     // Bad state: Found 2 argument types for 1 type arguments
     await super.test_genericMethod_nestedCapture();
-  }
-
-  @override
-  @failingTest
-  test_genericMethod_nestedFunctions() async {
-    // Failed to resolve 1 nodes
-    await super.test_genericMethod_nestedFunctions();
-  }
-
-  @override
-  @failingTest
-  test_genericMethod_override() async {
-    // Failed to resolve 2 nodes
-    await super.test_genericMethod_override();
-  }
-
-  @override
-  @failingTest
-  test_genericMethod_override_bounds() async {
-    // Failed to resolve 3 nodes
-    await super.test_genericMethod_override_bounds();
-  }
-
-  @override
-  @failingTest
-  test_genericMethod_override_differentContextsSameBounds() async {
-    // Failed to resolve 4 nodes
-    await super.test_genericMethod_override_differentContextsSameBounds();
   }
 
   @override
@@ -696,13 +374,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
     // Expected 1 errors of type StrongModeCode.STRONG_MODE_INVALID_METHOD_OVERRIDE, found 0
     await super
         .test_genericMethod_override_invalidContravariantTypeParamBounds();
-  }
-
-  @override
-  @failingTest
-  test_genericMethod_override_invalidReturnType() {
-    // Failed to resolve 2 nodes
-    return super.test_genericMethod_override_invalidReturnType();
   }
 
   @override
@@ -731,27 +402,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
   test_genericMethod_toplevel_field_staticTearoff() {
     // Failed to resolve 1 nodes
     return super.test_genericMethod_toplevel_field_staticTearoff();
-  }
-
-  @override
-  @failingTest
-  test_instantiateToBounds_method_ok_referenceOther_before() {
-    // Failed to resolve 2 nodes
-    return super.test_instantiateToBounds_method_ok_referenceOther_before();
-  }
-
-  @override
-  @failingTest
-  test_instantiateToBounds_method_ok_simpleBounds() {
-    // Failed to resolve 1 nodes
-    return super.test_instantiateToBounds_method_ok_simpleBounds();
-  }
-
-  @override
-  @failingTest
-  test_issue32396() {
-    // Failed to resolve 1 nodes
-    return super.test_issue32396();
   }
 
   @override

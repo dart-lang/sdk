@@ -54,13 +54,6 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
 
   @override
   @failingTest
-  test_propagatedFieldType() {
-    // Failed to resolve 1 nodes
-    return super.test_propagatedFieldType();
-  }
-
-  @override
-  @failingTest
   @notForDart2
   test_undefinedOperator_binaryExpression_inSubtype() async {
     await super.test_undefinedOperator_binaryExpression_inSubtype();

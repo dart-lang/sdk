@@ -1215,8 +1215,8 @@ class _ResolutionApplierContext implements TypeContext {
     } else if (referencedNode is kernel.DynamicType) {
       element = DynamicElementImpl.instance;
     } else if (referencedNode is kernel.TypeParameter) {
-      // TODO(paulberry): find the corresponding element (dartbug.com/33844)
-      element = null;
+      element = resynthesizer.getTypeParameter(context, referencedNode,
+          getLocalTypeParameter: _getLocalTypeParameter);
     } else if (referencedNode is kernel.InvalidType) {
       element = DynamicElementImpl.instance;
     } else {

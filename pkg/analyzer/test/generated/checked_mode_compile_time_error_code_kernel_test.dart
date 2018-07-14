@@ -203,13 +203,6 @@ class CheckedModeCompileTimeErrorCodeTest_Kernel
     await super.test_mapValueTypeNotAssignable();
   }
 
-  @override
-  @failingTest
-  test_parameterAssignable_typeSubstitution() {
-    // Failed to resolve 1 nodes
-    return super.test_parameterAssignable_typeSubstitution();
-  }
-
   @failingTest
   @override
   test_parameterAssignable_undefined_null() async {

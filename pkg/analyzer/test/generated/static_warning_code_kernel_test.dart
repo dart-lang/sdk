@@ -139,27 +139,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
-  test_argumentTypeNotAssignable_invocation_functionParameter_generic() {
-    return super
-        .test_argumentTypeNotAssignable_invocation_functionParameter_generic();
-  }
-
-  @override
-  @failingTest
-  test_argumentTypeNotAssignable_invocation_generic() {
-    // Failed to resolve 1 nodes
-    return super.test_argumentTypeNotAssignable_invocation_generic();
-  }
-
-  @override
-  @failingTest
-  test_argumentTypeNotAssignable_new_generic() {
-    // Failed to resolve 1 nodes
-    return super.test_argumentTypeNotAssignable_new_generic();
-  }
-
-  @override
-  @failingTest
   @potentialAnalyzerProblem
   test_assignmentToClass() async {
     return super.test_assignmentToClass();
@@ -819,14 +798,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
-  test_invalidMethodOverrideNormalParamType_superclass_interface() {
-    // Failed to resolve 2 nodes
-    return super
-        .test_invalidMethodOverrideNormalParamType_superclass_interface();
-  }
-
-  @override
-  @failingTest
   @potentialAnalyzerProblem
   test_invalidMethodOverrideNormalParamType_twoInterfaces_conflicting() async {
     return super
@@ -1472,13 +1443,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @potentialAnalyzerProblem
   test_typeAnnotationDeferredClass_typeParameter_bound() async {
     return super.test_typeAnnotationDeferredClass_typeParameter_bound();
-  }
-
-  @override
-  @failingTest
-  test_typeParameterReferencedByStatic_methodBodyReference() {
-    // Failed to resolve 1 nodes
-    return super.test_typeParameterReferencedByStatic_methodBodyReference();
   }
 
   @override

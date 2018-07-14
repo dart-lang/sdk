@@ -5793,6 +5793,22 @@ class C {
     }
   }
 
+  test_reference_to_class_type_parameter() async {
+    addTestFile('''
+class C<T> {
+  void f() {
+    T x;
+  }
+}
+''');
+    await resolveTestFile();
+    var tElement = findElement.class_('C').typeParameters[0];
+    var tReference = findNode.simple('T x');
+    var tReferenceType = tReference.staticType as TypeParameterType;
+    expect(tReferenceType.element, same(tElement));
+    assertElement(tReference, tElement);
+  }
+
   test_stringInterpolation() async {
     String content = r'''
 void main() {
