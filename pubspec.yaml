@@ -1,10 +1,14 @@
 name: linter
-version: 0.1.56
+version: 0.1.57
+
 author: Dart Team <misc@dartlang.org>
+
 description: Style linter for Dart.
 homepage: https://github.com/dart-lang/linter
+
 environment:
-  sdk: '>=2.0.0-dev <2.0.0'
+  sdk: '>=2.0.0-dev <3.0.0'
+
 dependencies:
   analyzer: ^0.32.2
   args: '>=1.4.0 <2.0.0'
@@ -12,6 +16,7 @@ dependencies:
   meta: ^1.0.2
   source_span: ^1.0.2
   yaml: ^2.1.2
+
 dev_dependencies:
   cli_util: ^0.1.2
   dart_style: ^1.1.0

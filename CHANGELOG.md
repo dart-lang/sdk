@@ -1,3 +1,7 @@
+# 0.1.57
+
+* Set max SDK version to <3.0.0
+
 # 0.1.56
 
 * fix to `avoid_positional_boolean_parameters` to ignore overridden methods
