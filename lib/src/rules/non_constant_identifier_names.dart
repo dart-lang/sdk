@@ -55,6 +55,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   checkIdentifier(SimpleIdentifier id, {bool underscoresOk = false}) {
+    if (id == null) {
+      return;
+    }
     if (underscoresOk && isJustUnderscores(id.name)) {
       // For example, `___` is OK in a callback.
       return;
@@ -66,15 +69,13 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (node.name != null) {
-      checkIdentifier(node.name);
-    }
+    checkIdentifier(node.name);
   }
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
     node.parameters.forEach((FormalParameter p) {
-      if (p is! FieldFormalParameter && p.identifier != null) {
+      if (p is! FieldFormalParameter) {
         checkIdentifier(p.identifier, underscoresOk: true);
       }
     });
