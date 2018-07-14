@@ -1425,7 +1425,7 @@ class _OverrideChecker {
   /// [covariantInterfaces] that may allow those members to be called in an
   /// unsound way.
   ///
-  /// See [_findCovariantChecksForMember] for more information and an exmaple.
+  /// See [_findCovariantChecksForMember] for more information and an example.
   Set<Element> _findCovariantChecks(Iterable<ExecutableElement> members,
       Iterable<ClassElement> covariantInterfaces,
       [Set<Element> covariantChecks]) {
