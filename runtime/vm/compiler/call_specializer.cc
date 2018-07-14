@@ -916,12 +916,6 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
                                               const ICData& unary_ic_data) {
   ASSERT(!unary_ic_data.NumberOfChecksIs(0) &&
          (unary_ic_data.NumArgsTested() == 1));
-  if (I->argument_type_checks()) {
-    // Checked mode setters are inlined like normal methods by conventional
-    // inlining.
-    return false;
-  }
-
   ASSERT(instr->HasICData());
   if (unary_ic_data.NumberOfChecksIs(0)) {
     // No type feedback collected.
@@ -940,8 +934,11 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
     return false;
   }
   // Inline implicit instance setter.
-  const String& field_name =
-      String::Handle(Z, Field::NameFromSetter(instr->function_name()));
+  String& field_name = String::Handle(Z, instr->function_name().raw());
+  if (Function::IsDynamicInvocationForwaderName(field_name)) {
+    field_name = Function::DemangleDynamicInvocationForwarderName(field_name);
+  }
+  field_name = Field::NameFromSetter(field_name);
   const Field& field = Field::ZoneHandle(Z, GetField(class_id, field_name));
   ASSERT(!field.IsNull());
 
@@ -970,6 +967,62 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
           instr,
           new (Z) GuardFieldLengthInstr(new (Z) Value(instr->ArgumentAt(1)),
                                         field, instr->deopt_id()),
+          instr->env(), FlowGraph::kEffect);
+    }
+  }
+
+  // Build an AssertAssignable if necessary.
+  if (I->argument_type_checks()) {
+    const AbstractType& dst_type =
+        AbstractType::ZoneHandle(zone(), field.type());
+
+    // Compute if we need to type check the value. Always type check if
+    // not in strong mode or if at a dynamic invocation.
+    bool needs_check = true;
+    if (I->strong() && !instr->interface_target().IsNull() &&
+        (field.kernel_offset() >= 0)) {
+      bool is_covariant = false;
+      bool is_generic_covariant = false;
+      field.GetCovarianceAttributes(&is_covariant, &is_generic_covariant);
+
+      if (is_covariant) {
+        // Always type check covariant fields.
+        needs_check = true;
+      } else if (is_generic_covariant) {
+        // If field is generic covariant then we don't need to check it
+        // if we know that actual type arguments match static type arguments
+        // e.g. if this is an invocation on this (an instance we are storing
+        // into is also a receiver of a surrounding method).
+        needs_check = !flow_graph_->IsReceiver(instr->ArgumentAt(0));
+      } else {
+        // The rest of the stores are checked statically (we are not at
+        // a dynamic invocation).
+        needs_check = false;
+      }
+    }
+
+    if (needs_check) {
+      Definition* instantiator_type_args = flow_graph_->constant_null();
+      Definition* function_type_args = flow_graph_->constant_null();
+      if (!dst_type.IsInstantiated()) {
+        const Class& owner = Class::Handle(Z, field.Owner());
+        if (owner.NumTypeArguments() > 0) {
+          instantiator_type_args = new (Z) LoadFieldInstr(
+              new (Z) Value(instr->ArgumentAt(0)),
+              NativeFieldDesc::GetTypeArgumentsFieldFor(zone(), owner),
+              instr->token_pos());
+          InsertBefore(instr, instantiator_type_args, instr->env(),
+                       FlowGraph::kValue);
+        }
+      }
+
+      InsertBefore(
+          instr,
+          new (Z) AssertAssignableInstr(
+              instr->token_pos(), new (Z) Value(instr->ArgumentAt(1)),
+              new (Z) Value(instantiator_type_args),
+              new (Z) Value(function_type_args), dst_type,
+              String::ZoneHandle(zone(), field.name()), instr->deopt_id()),
           instr->env(), FlowGraph::kEffect);
     }
   }

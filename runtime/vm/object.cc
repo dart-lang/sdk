@@ -8316,7 +8316,11 @@ RawScript* Field::Script() const {
 
 RawExternalTypedData* Field::KernelData() const {
   const Object& obj = Object::Handle(this->raw_ptr()->owner_);
-  if (obj.IsClass()) {
+  // During background JIT compilation field objects are copied
+  // and copy points to the original field via the owner field.
+  if (obj.IsField()) {
+    return Field::Cast(obj).KernelData();
+  } else if (obj.IsClass()) {
     Library& library = Library::Handle(Class::Cast(obj).library());
     return library.kernel_data();
   }
@@ -8326,13 +8330,38 @@ RawExternalTypedData* Field::KernelData() const {
 
 intptr_t Field::KernelDataProgramOffset() const {
   const Object& obj = Object::Handle(raw_ptr()->owner_);
-  if (obj.IsClass()) {
+  // During background JIT compilation field objects are copied
+  // and copy points to the original field via the owner field.
+  if (obj.IsField()) {
+    return Field::Cast(obj).KernelDataProgramOffset();
+  } else if (obj.IsClass()) {
     Library& lib = Library::Handle(Class::Cast(obj).library());
     return lib.kernel_offset();
   }
   ASSERT(obj.IsPatchClass());
   return PatchClass::Cast(obj).library_kernel_offset();
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+void Field::GetCovarianceAttributes(bool* is_covariant,
+                                    bool* is_generic_covariant) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = Thread::Current()->zone();
+  auto& script = Script::Handle(zone, Script());
+
+  kernel::TranslationHelper translation_helper(thread);
+  translation_helper.InitFromScript(script);
+
+  kernel::KernelReaderHelper kernel_reader_helper(
+      zone, &translation_helper, script,
+      ExternalTypedData::Handle(zone, KernelData()), KernelDataProgramOffset());
+  kernel_reader_helper.SetOffset(kernel_offset());
+  kernel::FieldHelper field_helper(&kernel_reader_helper);
+  field_helper.ReadUntilIncluding(kernel::FieldHelper::kFlags);
+  *is_covariant = field_helper.IsCovariant();
+  *is_generic_covariant = field_helper.IsGenericCovariantImpl();
+}
+#endif
 
 // Called at finalization time
 void Field::SetFieldType(const AbstractType& value) const {
