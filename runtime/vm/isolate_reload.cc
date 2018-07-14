@@ -695,6 +695,12 @@ void IsolateReloadContext::Reload(bool force_reload,
     if (!tmp.IsError()) {
       Library& lib = Library::Handle(thread->zone());
       lib ^= tmp.raw();
+      // If main method disappeared or were not there to begin with then
+      // KernelLoader will return null. In this case lookup library by
+      // URL.
+      if (lib.IsNull()) {
+        lib = Library::LookupLibrary(thread, root_lib_url);
+      }
       isolate()->object_store()->set_root_library(lib);
       FinalizeLoading();
       result = Object::null();
