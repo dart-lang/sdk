@@ -125,13 +125,11 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
 
       SimpleIdentifier nameIdentifier = named.name.label;
       expect(nameIdentifier.staticElement, isNull);
-      if (useCFE) {
-        expect(nameIdentifier.staticType, isDynamicType);
-      }
+      expect(nameIdentifier.staticType, isNull);
 
-      SimpleIdentifier arg2Node = named.expression;
-      expect(arg2Node.staticElement, same(variable.getter));
-      expect(arg2Node.staticType, variable.type);
+      SimpleIdentifier expression = named.expression;
+      expect(expression.staticElement, same(variable.getter));
+      expect(expression.staticType, variable.type);
     };
   }
 
@@ -8310,6 +8308,7 @@ class C {
       if (argument is NamedExpression) {
         SimpleIdentifier name = argument.name.label;
         expect(name.staticElement, same(actualParameter));
+        expect(name.staticType, isNull);
       }
     }
   }

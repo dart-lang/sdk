@@ -105,13 +105,6 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_unresolved_instanceCreation_name_11() async {
-    await super.test_unresolved_instanceCreation_name_11();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_unresolved_instanceCreation_name_21() async {
     await super.test_unresolved_instanceCreation_name_21();
   }
@@ -133,13 +126,6 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_unresolved_instanceCreation_name_32() async {
-    await super.test_unresolved_instanceCreation_name_32();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_unresolved_instanceCreation_name_33() async {
     await super.test_unresolved_instanceCreation_name_33();
   }
@@ -149,13 +135,6 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   @potentialAnalyzerProblem
   test_unresolved_methodInvocation_noTarget() async {
     await super.test_unresolved_methodInvocation_noTarget();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_unresolved_methodInvocation_target_resolved() async {
-    await super.test_unresolved_methodInvocation_target_resolved();
   }
 
   @override

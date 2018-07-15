@@ -1750,6 +1750,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       // TODO(paulberry): handle this case.
     } else if (node is InvalidType) {
       // TODO(paulberry): handle this case.
+      listener.storeClassReference(offset, null, const DynamicType());
     } else {
       // TODO(paulberry): handle this case.
       return unhandled("${node.runtimeType}", "storeTypeUse", offset, uri);

@@ -66,6 +66,7 @@ import 'kernel_ast_api.dart'
         DynamicType,
         Expression,
         Initializer,
+        InvalidConstructorInvocationJudgment,
         InvalidType,
         Member,
         Name,
@@ -792,11 +793,13 @@ abstract class ErroneousExpressionGenerator implements Generator {
   @override
   Expression invokeConstructor(List<DartType> typeArguments, String name,
       Arguments arguments, Token nameToken, Constness constness) {
+    helper.storeTypeUse(offsetForToken(token), const InvalidType());
     if (typeArguments != null) {
       assert(forest.argumentsTypeArguments(arguments).isEmpty);
       forest.argumentsSetTypeArguments(arguments, typeArguments);
     }
-    return new SyntheticExpressionJudgment(buildError(arguments));
+    var error = buildError(arguments);
+    return new InvalidConstructorInvocationJudgment(error, null, arguments);
   }
 }
 

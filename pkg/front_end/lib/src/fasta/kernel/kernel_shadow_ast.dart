@@ -2857,8 +2857,8 @@ class SymbolLiteralJudgment extends SymbolLiteral
   }
 }
 
-/// Synthetic judgment class representing an attempt to invoke a constructor
-/// that cannot be invoked.
+/// Synthetic judgment class representing an attempt to invoke an unresolved
+/// constructor, or a constructor that cannot be invoked.
 class InvalidConstructorInvocationJudgment extends SyntheticExpressionJudgment {
   final Constructor constructor;
   final Arguments arguments;
@@ -2874,13 +2874,21 @@ class InvalidConstructorInvocationJudgment extends SyntheticExpressionJudgment {
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    var calleeType = constructor.function.functionType;
-    var inferenceResult = inferrer.inferInvocation(
+    FunctionType calleeType;
+    DartType returnType;
+    if (constructor != null) {
+      calleeType = constructor.function.functionType;
+      returnType = computeConstructorReturnType(constructor);
+    } else {
+      calleeType = new FunctionType([], const DynamicType());
+      returnType = const DynamicType();
+    }
+    ExpressionInferenceResult inferenceResult = inferrer.inferInvocation(
         factory,
         typeContext,
         fileOffset,
         calleeType,
-        computeConstructorReturnType(constructor),
+        returnType,
         argumentJudgments);
     this.inferredType = inferenceResult.type;
     inferrer.listener.constructorInvocation(

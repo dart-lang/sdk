@@ -672,6 +672,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     for (var argument in argumentList.arguments) {
       if (argument is NamedExpression) {
         argument.expression.accept(this);
+        argument.staticType = argument.expression.staticType;
       } else {
         argument.accept(this);
       }
