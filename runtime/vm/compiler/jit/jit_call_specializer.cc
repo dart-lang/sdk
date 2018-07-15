@@ -132,8 +132,8 @@ void JitCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
   if (has_one_target) {
     const Function& target =
         Function::ZoneHandle(Z, unary_checks.GetTargetAt(0));
-    const RawFunction::Kind function_kind = target.kind();
-    if (!flow_graph()->InstanceCallNeedsClassCheck(instr, function_kind)) {
+    if (flow_graph()->CheckForInstanceCall(instr, target.kind()) ==
+        FlowGraph::ToCheck::kNoCheck) {
       StaticCallInstr* call = StaticCallInstr::FromCall(Z, instr, target);
       instr->ReplaceWith(call, current_iterator());
       return;
