@@ -1206,8 +1206,8 @@ class FixProcessor {
     String filePath;
     if (prefixElement == null) {
       targetUnit = unitElement;
-      CompilationUnitMember enclosingMember =
-          node.getAncestor((node) => node.parent is CompilationUnit);
+      CompilationUnitMember enclosingMember = node.getAncestor((node) =>
+          node is CompilationUnitMember && node.parent is CompilationUnit);
       if (enclosingMember == null) {
         return;
       }
@@ -1909,8 +1909,7 @@ class FixProcessor {
     ClassDeclaration targetClass = node.parent as ClassDeclaration;
     ClassElement targetClassElement = targetClass.element;
     utils.targetClassElement = targetClassElement;
-    List<ExecutableElement> elements = ErrorVerifier
-        .computeMissingOverrides(
+    List<ExecutableElement> elements = ErrorVerifier.computeMissingOverrides(
             driver.analysisOptions.strongMode,
             typeProvider,
             typeSystem,
