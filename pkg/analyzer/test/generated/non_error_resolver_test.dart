@@ -4966,6 +4966,21 @@ h(x) {}
     verify([source]);
   }
 
+  test_parametricCallFunction() async {
+    Source source = addSource(r'''
+f() {
+  var c = new C();
+  c<String>().codeUnits;
+}
+
+class C {
+  T call<T>() => null;
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_prefixCollidesWithTopLevelMembers() async {
     addNamedSource("/lib.dart", r'''
 library lib;
