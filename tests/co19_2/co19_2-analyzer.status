@@ -42,7 +42,7 @@ Language/Generics/scope_t03: CompileTimeError # Please triage this failure
 Language/Generics/syntax_t02: CompileTimeError # Please triage this failure
 Language/Generics/syntax_t03: Crash # Issue 29388
 Language/Libraries_and_Scripts/Parts/compilation_t01: MissingCompileTimeError, Pass # Please triage this failure
-Language/Libraries_and_Scripts/Parts/compilation_t04: MissingCompileTimeError, Pass # Please triage this failure
+Language/Libraries_and_Scripts/Parts/compilation_t04: Pass, CompileTimeError, MissingCompileTimeError # Please triage this failure
 Language/Libraries_and_Scripts/Parts/compilation_t15: CompileTimeError, Pass # Please triage this failure
 Language/Mixins/Mixin_Application/static_warning_t02: CompileTimeError # Issue 26409
 Language/Mixins/Mixin_Application/superinterfaces_t07: CompileTimeError # Issue 26409
