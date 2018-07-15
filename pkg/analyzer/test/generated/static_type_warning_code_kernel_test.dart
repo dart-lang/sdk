@@ -64,13 +64,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_expectedOneListTypeArgument() async {
-    // Bad state: Found 1 argument types for 2 type arguments
-    await super.test_expectedOneListTypeArgument();
-  }
-
-  @override
-  @failingTest
   test_expectedTwoMapTypeArguments_one() async {
     // Bad state: Found 2 argument types for 1 type arguments
     await super.test_expectedTwoMapTypeArguments_one();
@@ -85,37 +78,9 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_forIn_declaredVariableRightType() {
-    // Failed to resolve 1 nodes
-    return super.test_forIn_declaredVariableRightType();
-  }
-
-  @override
-  @failingTest
   test_forIn_declaredVariableWrongType() async {
     // Expected 1 errors of type StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, found 0
     await super.test_forIn_declaredVariableWrongType();
-  }
-
-  @override
-  @failingTest
-  test_forIn_downcast() {
-    // Failed to resolve 1 nodes
-    return super.test_forIn_downcast();
-  }
-
-  @override
-  @failingTest
-  test_forIn_dynamicVariable() {
-    // Failed to resolve 1 nodes
-    return super.test_forIn_dynamicVariable();
-  }
-
-  @override
-  @failingTest
-  test_forIn_existingVariableRightType() {
-    // Failed to resolve 1 nodes
-    return super.test_forIn_existingVariableRightType();
   }
 
   @override
@@ -137,13 +102,6 @@ class StaticTypeWarningCodeTest_Kernel
   test_forIn_typeBoundBad() async {
     // Expected 1 errors of type StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, found 0
     await super.test_forIn_typeBoundBad();
-  }
-
-  @override
-  @failingTest
-  test_forIn_upcast() {
-    // Failed to resolve 1 nodes
-    return super.test_forIn_upcast();
   }
 
   @override

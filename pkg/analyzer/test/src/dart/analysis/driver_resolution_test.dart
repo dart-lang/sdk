@@ -44,7 +44,13 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
   FindNode findNode;
   FindElement findElement;
 
+  ClassElement get doubleElement => typeProvider.doubleType.element;
+
   InterfaceType get doubleType => typeProvider.doubleType;
+
+  DynamicTypeImpl get dynamicType => DynamicTypeImpl.instance;
+
+  ClassElement get intElement => typeProvider.intType.element;
 
   InterfaceType get intType => typeProvider.intType;
 
@@ -3529,6 +3535,55 @@ main() {
     BreakStatement breakStatement = whileBlock.statements[1];
     expect(breakStatement.label.staticElement, same(labelElement));
     expect(breakStatement.label.staticType, isNull);
+  }
+
+  test_listLiteral_01() async {
+    addTestFile(r'''
+main() {
+  var v = [];
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var literal = findNode.listLiteral('[];');
+    expect(literal.typeArguments, isNull);
+    assertType(literal, 'List<dynamic>');
+  }
+
+  test_listLiteral_02() async {
+    addTestFile(r'''
+main() {
+  var v = <>[];
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var literal = findNode.listLiteral('[];');
+    expect(literal.typeArguments, isNotNull);
+    assertType(literal, 'List<dynamic>');
+  }
+
+  test_listLiteral_2() async {
+    addTestFile(r'''
+main() {
+  var v = <int, double>[];
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var literal = findNode.listLiteral('<int, double>[]');
+    assertType(literal, 'List<dynamic>');
+
+    var intRef = findNode.simple('int, double');
+    assertElement(intRef, intElement);
+    assertType(intRef, 'int');
+
+    var doubleRef = findNode.simple('double>[]');
+    assertElement(doubleRef, doubleElement);
+    assertType(doubleRef, 'double');
   }
 
   test_local_function() async {
@@ -8498,6 +8553,10 @@ class FindNode {
 
   InstanceCreationExpression instanceCreation(String search) {
     return _node(search).getAncestor((n) => n is InstanceCreationExpression);
+  }
+
+  ListLiteral listLiteral(String search) {
+    return _node(search).getAncestor((n) => n is ListLiteral);
   }
 
   MethodInvocation methodInvocation(String search) {

@@ -212,7 +212,6 @@ InvalidVoid/script1: Fail
 InvalidVoid/script2: Fail
 LibraryDirectiveNotFirst/script2: Fail
 LibraryDirectiveNotFirst/script3: Fail
-ListLiteralTooManyTypeArguments/analyzerCode: Fail
 ListLiteralTooManyTypeArguments/example: Fail
 ListLiteralTypeArgumentMismatch/analyzerCode: Fail
 ListLiteralTypeArgumentMismatch/example: Fail

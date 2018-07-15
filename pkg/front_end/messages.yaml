@@ -1218,8 +1218,10 @@ MissingImplementationCause:
   severity: CONTEXT
 
 ListLiteralTooManyTypeArguments:
-  template: "Too many type arguments on List literal."
+  template: "List literal requires exactly one type argument."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: EXPECTED_ONE_LIST_TYPE_ARGUMENTS
+  dart2jsCode: "*fatal*"
 
 ListLiteralTypeArgumentMismatch:
   template: "Map literal requires two type arguments."

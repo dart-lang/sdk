@@ -4215,8 +4215,10 @@ const Code<Null> codeListLiteralTooManyTypeArguments =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageListLiteralTooManyTypeArguments = const MessageCode(
     "ListLiteralTooManyTypeArguments",
+    analyzerCode: "EXPECTED_ONE_LIST_TYPE_ARGUMENTS",
+    dart2jsCode: "*fatal*",
     severity: Severity.errorLegacyWarning,
-    message: r"""Too many type arguments on List literal.""");
+    message: r"""List literal requires exactly one type argument.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeListLiteralTypeArgumentMismatch =

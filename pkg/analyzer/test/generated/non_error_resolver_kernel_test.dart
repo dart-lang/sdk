@@ -157,13 +157,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_expectedOneListTypeArgument() {
-    // Failed to resolve 1 nodes
-    return super.test_expectedOneListTypeArgument();
-  }
-
-  @override
-  @failingTest
   test_fieldFormalParameter_genericFunctionTyped() {
     // Expected 0 errors of type ParserErrorCode.EXPECTED_TOKEN, found 1 (88)
     return super.test_fieldFormalParameter_genericFunctionTyped();
@@ -214,13 +207,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_invalidTypeArgumentInConstList() {
-    // Failed to resolve 1 nodes
-    return super.test_invalidTypeArgumentInConstList();
-  }
-
-  @override
-  @failingTest
   test_invocationOfNonFunction_functionTypeTypeParameter() {
     // Bad state: Not found #lib2::C::T in null
     return super.test_invocationOfNonFunction_functionTypeTypeParameter();
@@ -231,13 +217,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
   test_invocationOfNonFunction_Object() async {
     return super.test_invocationOfNonFunction_Object();
-  }
-
-  @override
-  @failingTest
-  test_listElementTypeNotAssignable() {
-    // Failed to resolve 2 nodes
-    return super.test_listElementTypeNotAssignable();
   }
 
   @override
@@ -253,13 +232,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   test_nativeConstConstructor() {
     // Expected 0 errors of type ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, found 1 (35)
     return super.test_nativeConstConstructor();
-  }
-
-  @override
-  @failingTest
-  test_nonConstantDefaultValue_typedConstList() {
-    // Failed to resolve 2 nodes
-    return super.test_nonConstantDefaultValue_typedConstList();
   }
 
   @override

@@ -89,13 +89,6 @@ class CheckedModeCompileTimeErrorCodeTest_Kernel
     await super.test_fieldFormalParameterNotAssignableToField_map_keyMismatch();
   }
 
-  @override
-  @failingTest
-  test_fieldFormalParameterAssignableToField_list_nonDynamic() {
-    // Failed to resolve 1 nodes
-    return super.test_fieldFormalParameterAssignableToField_list_nonDynamic();
-  }
-
   @failingTest
   @override
   test_fieldFormalParameterNotAssignableToField_map_valueMismatch() async {
