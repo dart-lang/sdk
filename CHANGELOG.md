@@ -1,6 +1,7 @@
 # 0.1.57
 
 * Set max SDK version to <3.0.0
+* fix to `non_constant_identifier_names` to better handle invalid code
 
 # 0.1.56
 
