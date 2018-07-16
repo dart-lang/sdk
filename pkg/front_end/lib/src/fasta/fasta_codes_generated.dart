@@ -4297,16 +4297,6 @@ const MessageCode messageListLiteralTooManyTypeArguments = const MessageCode(
     message: r"""List literal requires exactly one type argument.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeListLiteralTypeArgumentMismatch =
-    messageListLiteralTypeArgumentMismatch;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageListLiteralTypeArgumentMismatch = const MessageCode(
-    "ListLiteralTypeArgumentMismatch",
-    severity: Severity.errorLegacyWarning,
-    message: r"""Map literal requires two type arguments.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(Uri uri_)> templateLoadLibraryHidesMember = const Template<
         Message Function(Uri uri_)>(
@@ -4388,6 +4378,18 @@ Message _withArgumentsLocalDefinitionHidesImport(String name, Uri uri_) {
       message: """Local definition of '${name}' hides import from '${uri}'.""",
       arguments: {'name': name, 'uri': uri_});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMapLiteralTypeArgumentMismatch =
+    messageMapLiteralTypeArgumentMismatch;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMapLiteralTypeArgumentMismatch = const MessageCode(
+    "MapLiteralTypeArgumentMismatch",
+    analyzerCode: "EXPECTED_TWO_MAP_TYPE_ARGUMENTS",
+    dart2jsCode: "*fatal*",
+    severity: Severity.errorLegacyWarning,
+    message: r"""Map literal requires exactly two type arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMemberWithSameNameAsClass =

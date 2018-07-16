@@ -215,9 +215,8 @@ InvalidVoid/script2: Fail
 LibraryDirectiveNotFirst/script2: Fail
 LibraryDirectiveNotFirst/script3: Fail
 ListLiteralTooManyTypeArguments/example: Fail
-ListLiteralTypeArgumentMismatch/analyzerCode: Fail
-ListLiteralTypeArgumentMismatch/example: Fail
 LoadLibraryTakesNoArguments/example: Fail
+MapLiteralTypeArgumentMismatch/example: Fail
 MemberWithSameNameAsClass/analyzerCode: Fail
 MemberWithSameNameAsClass/example: Fail
 MetadataTypeArguments/analyzerCode: Fail

@@ -44,6 +44,8 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
   FindNode findNode;
   FindElement findElement;
 
+  ClassElement get boolElement => typeProvider.boolType.element;
+
   ClassElement get doubleElement => typeProvider.doubleType.element;
 
   InterfaceType get doubleType => typeProvider.doubleType;
@@ -4724,6 +4726,48 @@ void main() {
     }
   }
 
+  test_mapLiteral_1() async {
+    addTestFile(r'''
+main() {
+  var v = <int>{};
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var literal = findNode.mapLiteral('<int>{}');
+    assertType(literal, 'Map<dynamic, dynamic>');
+
+    var intRef = findNode.simple('int>{}');
+    assertElement(intRef, intElement);
+    assertType(intRef, 'int');
+  }
+
+  test_mapLiteral_3() async {
+    addTestFile(r'''
+main() {
+  var v = <bool, int, double>{};
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var literal = findNode.mapLiteral('<bool, int, double>{}');
+    assertType(literal, 'Map<dynamic, dynamic>');
+
+    var boolRef = findNode.simple('bool, ');
+    assertElement(boolRef, boolElement);
+    assertType(boolRef, 'bool');
+
+    var intRef = findNode.simple('int, ');
+    assertElement(intRef, intElement);
+    assertType(intRef, 'int');
+
+    var doubleRef = findNode.simple('double>');
+    assertElement(doubleRef, doubleElement);
+    assertType(doubleRef, 'double');
+  }
+
   test_method_namedParameters() async {
     addTestFile(r'''
 class C {
@@ -8556,6 +8600,10 @@ class FindNode {
 
   ListLiteral listLiteral(String search) {
     return _node(search).getAncestor((n) => n is ListLiteral);
+  }
+
+  MapLiteral mapLiteral(String search) {
+    return _node(search).getAncestor((n) => n is MapLiteral);
   }
 
   MethodInvocation methodInvocation(String search) {

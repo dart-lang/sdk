@@ -1223,9 +1223,11 @@ ListLiteralTooManyTypeArguments:
   analyzerCode: EXPECTED_ONE_LIST_TYPE_ARGUMENTS
   dart2jsCode: "*fatal*"
 
-ListLiteralTypeArgumentMismatch:
-  template: "Map literal requires two type arguments."
+MapLiteralTypeArgumentMismatch:
+  template: "Map literal requires exactly two type arguments."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: EXPECTED_TWO_MAP_TYPE_ARGUMENTS
+  dart2jsCode: "*fatal*"
 
 LoadLibraryTakesNoArguments:
   template: "'loadLibrary' takes no arguments."

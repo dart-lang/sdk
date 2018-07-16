@@ -2128,7 +2128,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     if (typeArguments != null) {
       if (forest.getTypeCount(typeArguments) != 2) {
         addProblem(
-            fasta.messageListLiteralTypeArgumentMismatch,
+            fasta.messageMapLiteralTypeArgumentMismatch,
             offsetForToken(leftBrace),
             lengthOfSpan(leftBrace, leftBrace.endGroup));
       } else {

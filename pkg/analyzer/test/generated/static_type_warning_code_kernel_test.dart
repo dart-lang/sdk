@@ -43,20 +43,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_expectedTwoMapTypeArguments_one() async {
-    // Bad state: Found 2 argument types for 1 type arguments
-    await super.test_expectedTwoMapTypeArguments_one();
-  }
-
-  @override
-  @failingTest
-  test_expectedTwoMapTypeArguments_three() async {
-    // Bad state: Found 2 argument types for 3 type arguments
-    await super.test_expectedTwoMapTypeArguments_three();
-  }
-
-  @override
-  @failingTest
   test_illegalAsyncGeneratorReturnType_function_nonStream() async {
     // Expected 1 errors of type StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, found 0
     await super.test_illegalAsyncGeneratorReturnType_function_nonStream();
