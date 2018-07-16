@@ -193,7 +193,6 @@ ImplementsBeforeExtends/script: Fail
 ImplementsBeforeWith/script: Fail
 ImplicitCallOfNonMethod/example: Fail
 ImportAfterPart/script1: Fail
-InheritedMembersConflict/analyzerCode: Fail
 InputFileNotFound/analyzerCode: Fail
 InputFileNotFound/example: Fail
 IntegerLiteralIsOutOfRange/example: Fail

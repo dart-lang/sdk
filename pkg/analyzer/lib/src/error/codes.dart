@@ -452,6 +452,9 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode CONFLICTS_WITH_CONSTRUCTOR =
       const CompileTimeErrorCode.fromFasta('CONFLICTS_WITH_CONSTRUCTOR');
 
+  static const CompileTimeErrorCode CONFLICTS_WITH_INHERITED_MEMBER =
+      const CompileTimeErrorCode.fromFasta('CONFLICTS_WITH_INHERITED_MEMBER');
+
   static const CompileTimeErrorCode CONFLICTS_WITH_MEMBER =
       const CompileTimeErrorCode.fromFasta('CONFLICTS_WITH_MEMBER');
 

@@ -3243,6 +3243,8 @@ const Code<Null> codeInheritedMembersConflict = messageInheritedMembersConflict;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInheritedMembersConflict = const MessageCode(
     "InheritedMembersConflict",
+    analyzerCode: "CONFLICTS_WITH_INHERITED_MEMBER",
+    dart2jsCode: "*fatal*",
     severity: Severity.errorLegacyWarning,
     message: r"""Can't inherit members that conflict with each other.""");
 
