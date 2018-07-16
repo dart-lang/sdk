@@ -38,7 +38,8 @@ import 'package:front_end/src/fasta/hybrid_file_system.dart';
 import 'package:kernel/kernel.dart' show Component, Procedure;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/target/vm.dart' show VmTarget;
-import 'package:vm/incremental_compiler.dart';
+import '../lib/incremental_compiler.dart';
+import '../lib/http_filesystem.dart';
 
 final bool verbose = new bool.fromEnvironment('DFE_VERBOSE');
 const String platformKernelFile = 'virtual_platform_kernel.dill';
@@ -514,11 +515,9 @@ Future _processLoadRequest(request) async {
 /// frontend.
 FileSystem _buildFileSystem(List sourceFiles, List<int> platformKernel,
     String multirootFilepaths, String multirootScheme) {
-  FileSystem fileSystem;
+  FileSystem fileSystem = new HttpAwareFileSystem(StandardFileSystem.instance);
 
-  if (sourceFiles.isEmpty && platformKernel == null) {
-    fileSystem = StandardFileSystem.instance;
-  } else {
+  if (!sourceFiles.isEmpty || platformKernel != null) {
     MemoryFileSystem memoryFileSystem =
         new MemoryFileSystem(Uri.parse('file:///'));
     if (sourceFiles != null) {
@@ -533,7 +532,7 @@ FileSystem _buildFileSystem(List sourceFiles, List<int> platformKernel,
           .entityForUri(Uri.parse(platformKernelFile))
           .writeAsBytesSync(platformKernel);
     }
-    fileSystem = new HybridFileSystem(memoryFileSystem);
+    fileSystem = new HybridFileSystem(memoryFileSystem, fileSystem);
   }
 
   if (multirootFilepaths != null) {

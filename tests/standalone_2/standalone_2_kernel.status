@@ -11,7 +11,6 @@
 # to add them.
 
 [ $compiler == app_jitk ]
-http_launch_test: RuntimeError # Issue 33388
 io/directory_test: RuntimeError
 io/file_error_test: RuntimeError
 io/file_test: RuntimeError
@@ -69,7 +68,6 @@ io/socket_port_test: Pass, Crash
 io/web_socket_ping_test: Crash, Pass
 
 [ $compiler == dartk && $runtime == vm && $strong ]
-http_launch_test: RuntimeError # Issue 33388
 io/http_client_request_test: Pass, Timeout
 io/http_compression_test: RuntimeError
 io/platform_resolved_executable_test/03: Pass, RuntimeError
