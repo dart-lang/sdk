@@ -43,13 +43,13 @@ intptr_t OS::ProcessId() {
 static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
                                                  int32_t* local_offset,
                                                  int32_t* dst_offset) {
-  fuchsia::timezone::TimezoneSync2Ptr tz;
+  fuchsia::timezone::TimezoneSyncPtr tz;
   fuchsia::sys::ConnectToEnvironmentService(tz.NewRequest());
   zx_status_t status = tz->GetTimezoneOffsetMinutes(seconds_since_epoch * 1000,
-                                                    local_offset,
-                                                    dst_offset).statvs;
-  if (status != ZX_OK)
+                                                    local_offset, dst_offset);
+  if (status != ZX_OK) {
     return status;
+  }
   *local_offset *= 60;
   *dst_offset *= 60;
   return ZX_OK;
