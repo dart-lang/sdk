@@ -255,8 +255,6 @@ field3_test/01: MissingCompileTimeError # Issue 33022
 field3_test/02: MissingCompileTimeError # Issue 33022
 generic_methods_bounds_test/01: MissingCompileTimeError # Issue 33018
 generic_methods_recursive_bound_test/02: MissingCompileTimeError # Issue 33018
-issue31596_override_test/07: MissingCompileTimeError
-issue31596_override_test/08: MissingCompileTimeError
 issue31596_super_test/02: MissingCompileTimeError
 issue31596_super_test/04: MissingCompileTimeError
 malbounded_instantiation_test/01: MissingCompileTimeError # Issue 33018

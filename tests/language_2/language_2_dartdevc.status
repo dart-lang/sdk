@@ -397,8 +397,6 @@ implicit_creation/implicit_const_not_default_values_test/e6: Pass
 implicit_creation/implicit_const_not_default_values_test/e9: Pass
 instantiate_tearoff_of_call_test: CompileTimeError
 issue18628_2_test/01: MissingCompileTimeError
-issue31596_override_test/07: MissingCompileTimeError
-issue31596_override_test/08: MissingCompileTimeError
 issue31596_super_test/01: CompileTimeError
 issue31596_super_test/02: MissingCompileTimeError
 issue31596_super_test/03: CompileTimeError

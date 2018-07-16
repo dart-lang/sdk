@@ -289,8 +289,26 @@ abstract class KernelClassBuilder
 
   void checkOverrides(
       ClassHierarchy hierarchy, TypeEnvironment typeEnvironment) {
-    hierarchy.forEachOverridePair(cls,
-        (Member declaredMember, Member interfaceMember, bool isSetter) {
+    handleSeenCovariant(
+        Member declaredMember,
+        Member interfaceMember,
+        bool isSetter,
+        callback(
+            Member declaredMember, Member interfaceMember, bool isSetter)) {
+      // When a parameter is covariant we have to check that we also
+      // override the same member in all parents.
+      for (Supertype supertype in interfaceMember.enclosingClass.supers) {
+        Member m = hierarchy.getInterfaceMember(
+            supertype.classNode, interfaceMember.name,
+            setter: isSetter);
+        if (m != null) {
+          callback(declaredMember, m, isSetter);
+        }
+      }
+    }
+
+    overridePairCallback(
+        Member declaredMember, Member interfaceMember, bool isSetter) {
       if (declaredMember is Constructor || interfaceMember is Constructor) {
         unimplemented("Constructor in override check.",
             declaredMember.fileOffset, fileUri);
@@ -298,8 +316,12 @@ abstract class KernelClassBuilder
       if (declaredMember is Procedure && interfaceMember is Procedure) {
         if (declaredMember.kind == ProcedureKind.Method &&
             interfaceMember.kind == ProcedureKind.Method) {
-          checkMethodOverride(
+          bool seenCovariant = checkMethodOverride(
               hierarchy, typeEnvironment, declaredMember, interfaceMember);
+          if (seenCovariant) {
+            handleSeenCovariant(declaredMember, interfaceMember, isSetter,
+                overridePairCallback);
+          }
         }
         if (declaredMember.kind == ProcedureKind.Getter &&
             interfaceMember.kind == ProcedureKind.Getter) {
@@ -308,8 +330,12 @@ abstract class KernelClassBuilder
         }
         if (declaredMember.kind == ProcedureKind.Setter &&
             interfaceMember.kind == ProcedureKind.Setter) {
-          checkSetterOverride(
+          bool seenCovariant = checkSetterOverride(
               hierarchy, typeEnvironment, declaredMember, interfaceMember);
+          if (seenCovariant) {
+            handleSeenCovariant(declaredMember, interfaceMember, isSetter,
+                overridePairCallback);
+          }
         }
       } else {
         bool declaredMemberHasGetter = declaredMember is Field ||
@@ -324,12 +350,18 @@ abstract class KernelClassBuilder
           checkGetterOverride(
               hierarchy, typeEnvironment, declaredMember, interfaceMember);
         } else if (declaredMemberHasSetter && interfaceMemberHasSetter) {
-          checkSetterOverride(
+          bool seenCovariant = checkSetterOverride(
               hierarchy, typeEnvironment, declaredMember, interfaceMember);
+          if (seenCovariant) {
+            handleSeenCovariant(declaredMember, interfaceMember, isSetter,
+                overridePairCallback);
+          }
         }
       }
       // TODO(ahe): Handle other cases: accessors, operators, and fields.
-    });
+    }
+
+    hierarchy.forEachOverridePair(cls, overridePairCallback);
   }
 
   void checkAbstractMembers(CoreTypes coreTypes, ClassHierarchy hierarchy) {
@@ -728,7 +760,9 @@ abstract class KernelClassBuilder
     return false;
   }
 
-  void checkMethodOverride(
+  /// Returns whether a covariant parameter was seen and more methods thus have
+  /// to be checked.
+  bool checkMethodOverride(
       ClassHierarchy hierarchy,
       TypeEnvironment typeEnvironment,
       Procedure declaredMember,
@@ -736,10 +770,11 @@ abstract class KernelClassBuilder
     if (declaredMember.enclosingClass != cls) {
       // TODO(ahe): Include these checks as well, but the message needs to
       // explain that [declaredMember] is inherited.
-      return;
+      return false;
     }
     assert(declaredMember.kind == ProcedureKind.Method);
     assert(interfaceMember.kind == ProcedureKind.Method);
+    bool seenCovariant = false;
     FunctionNode declaredFunction = declaredMember.function;
     FunctionNode interfaceFunction = interfaceMember.function;
 
@@ -807,10 +842,11 @@ abstract class KernelClassBuilder
           interfaceFunction.positionalParameters[i].type,
           declaredParameter.isCovariant,
           declaredParameter);
+      if (declaredParameter.isCovariant) seenCovariant = true;
     }
     if (declaredFunction.namedParameters.isEmpty &&
         interfaceFunction.namedParameters.isEmpty) {
-      return;
+      return seenCovariant;
     }
     if (declaredFunction.namedParameters.length <
         interfaceFunction.namedParameters.length) {
@@ -875,7 +911,9 @@ abstract class KernelClassBuilder
           interfaceNamedParameters.current.type,
           declaredParameter.isCovariant,
           declaredParameter);
+      if (declaredParameter.isCovariant) seenCovariant = true;
     }
+    return seenCovariant;
   }
 
   void checkGetterOverride(
@@ -896,7 +934,9 @@ abstract class KernelClassBuilder
         interfaceMember, declaredType, interfaceType, false, null);
   }
 
-  void checkSetterOverride(
+  /// Returns whether a covariant parameter was seen and more methods thus have
+  /// to be checked.
+  bool checkSetterOverride(
       ClassHierarchy hierarchy,
       TypeEnvironment typeEnvironment,
       Member declaredMember,
@@ -904,7 +944,7 @@ abstract class KernelClassBuilder
     if (declaredMember.enclosingClass != cls) {
       // TODO(paulberry): Include these checks as well, but the message needs to
       // explain that [declaredMember] is inherited.
-      return;
+      return false;
     }
     Substitution interfaceSubstitution = _computeInterfaceSubstitution(
         hierarchy, declaredMember, interfaceMember, null, null);
@@ -924,6 +964,7 @@ abstract class KernelClassBuilder
         isCovariant,
         declaredParameter,
         asIfDeclaredParameter: true);
+    return isCovariant;
   }
 
   String get fullNameForErrors {

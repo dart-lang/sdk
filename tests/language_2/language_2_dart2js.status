@@ -598,8 +598,6 @@ identical_const_test/03: MissingCompileTimeError
 identical_const_test/04: MissingCompileTimeError
 issue18628_2_test/01: MissingCompileTimeError
 issue23244_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-issue31596_override_test/07: MissingCompileTimeError
-issue31596_override_test/08: MissingCompileTimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 malbounded_instantiation_test/01: MissingCompileTimeError
@@ -791,8 +789,6 @@ invocation_mirror2_test: RuntimeError # mirrors not supported
 invocation_mirror_test: RuntimeError
 issue18628_2_test/01: MissingCompileTimeError
 issue23244_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-issue31596_override_test/07: MissingCompileTimeError
-issue31596_override_test/08: MissingCompileTimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 malbounded_instantiation_test/01: MissingCompileTimeError
