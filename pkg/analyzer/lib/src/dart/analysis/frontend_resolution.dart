@@ -77,7 +77,7 @@ class FrontEndCompiler {
       'A compile() invocation is still executing.';
 
   /// Options used by the kernel compiler.
-  final ProcessedOptions _options;
+  final CompilerOptions _compilerOptions;
 
   /// The logger to report compilation progress.
   final PerformanceLog _logger;
@@ -171,7 +171,7 @@ class FrontEndCompiler {
     var uriTranslator = new UriTranslatorImpl(
         new TargetLibrariesSpecification('none', dartLibraries), packages);
     var errorListener = new _ErrorListener();
-    var options = new CompilerOptions()
+    var compilerOptions = new CompilerOptions()
       ..target = new _AnalyzerTarget(
           new TargetFlags(strongMode: analysisOptions.strongMode))
       ..reportMessages = false
@@ -179,15 +179,15 @@ class FrontEndCompiler {
       ..fileSystem = new _FileSystemAdaptor(fsState, pathContext)
       ..byteStore = byteStore
       ..onError = errorListener.onError;
-    var processedOptions = new ProcessedOptions(options);
 
     return new FrontEndCompiler._(
-        processedOptions, uriTranslator, errorListener);
+        compilerOptions, uriTranslator, errorListener);
   }
 
-  FrontEndCompiler._(this._options, this.uriTranslator, this._errorListener)
-      : _logger = _options.logger,
-        _fileSystem = _options.fileSystem;
+  FrontEndCompiler._(
+      this._compilerOptions, this.uriTranslator, this._errorListener)
+      : _logger = _compilerOptions.logger,
+        _fileSystem = _compilerOptions.fileSystem;
 
   /// Compile the library with the given absolute [uri], and everything it
   /// depends on. Return the result of the requested library compilation.
@@ -210,12 +210,15 @@ class FrontEndCompiler {
       }
     }
 
-    return _runWithFrontEndContext('Compile', () async {
+    return _runWithFrontEndContext('Compile', uri, (processedOptions) async {
       try {
         // Initialize the dill target once.
         if (_dillTarget == null) {
-          _dillTarget =
-              new DillTarget(_options.ticker, uriTranslator, _options.target);
+          _dillTarget = new DillTarget(
+            processedOptions.ticker,
+            uriTranslator,
+            processedOptions.target,
+          );
         }
 
         // Append new libraries from the current component.
@@ -347,10 +350,12 @@ class FrontEndCompiler {
     _component.libraries.forEach(processLibrary);
   }
 
-  Future<T> _runWithFrontEndContext<T>(String msg, Future<T> f()) async {
-    return await CompilerContext.runWithOptions(_options, (context) {
+  Future<T> _runWithFrontEndContext<T>(
+      String msg, Uri input, Future<T> Function(ProcessedOptions) f) async {
+    var processedOptions = new ProcessedOptions(_compilerOptions, [input]);
+    return await CompilerContext.runWithOptions(processedOptions, (context) {
       context.disableColors();
-      return _logger.runAsync(msg, f);
+      return _logger.runAsync(msg, () => f(processedOptions));
     });
   }
 }
