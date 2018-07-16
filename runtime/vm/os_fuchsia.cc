@@ -16,7 +16,7 @@
 
 #include <fuchsia/timezone/cpp/fidl.h>
 
-#include "lib/app/cpp/environment_services.h"
+#include "lib/component/cpp/environment_services.h"
 
 #include "platform/assert.h"
 #include "vm/zone.h"
@@ -44,7 +44,7 @@ static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
                                                  int32_t* local_offset,
                                                  int32_t* dst_offset) {
   fuchsia::timezone::TimezoneSyncPtr tz;
-  fuchsia::sys::ConnectToEnvironmentService(tz.NewRequest());
+  component::ConnectToEnvironmentService(tz.NewRequest());
   zx_status_t status = tz->GetTimezoneOffsetMinutes(seconds_since_epoch * 1000,
                                                     local_offset, dst_offset);
   if (status != ZX_OK) {
@@ -59,7 +59,7 @@ const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   // TODO(abarth): Handle time zone changes.
   static const auto* tz_name = new std::string([] {
     fuchsia::timezone::TimezoneSyncPtr tz;
-    fuchsia::sys::ConnectToEnvironmentService(tz.NewRequest());
+    component::ConnectToEnvironmentService(tz.NewRequest());
     fidl::StringPtr result;
     tz->GetTimezoneId(&result);
     return *result;
