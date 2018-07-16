@@ -41,7 +41,9 @@ import '../fasta_codes.dart'
     show
         noLength,
         templateCantInferTypeDueToCircularity,
-        templateCantUseSuperBoundedTypeForInstanceCreation;
+        templateCantUseSuperBoundedTypeForInstanceCreation,
+        templateForInLoopElementTypeNotAssignable,
+        templateForInLoopTypeNotIterable;
 
 import '../problems.dart' show unhandled, unsupported;
 
@@ -1125,7 +1127,8 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
         inferrer.wrapType(const DynamicType(), iterableClass),
         inferredExpressionType,
         iterable,
-        iterable.fileOffset);
+        iterable.fileOffset,
+        template: templateForInLoopTypeNotIterable);
 
     DartType inferredType;
     if (typeNeeded || typeChecksNeeded) {
@@ -1159,7 +1162,8 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
       var variableGet = new VariableGet(tempVar)
         ..fileOffset = this.variable.fileOffset;
       var implicitDowncast = inferrer.ensureAssignable(
-          variable.type, inferredType, variableGet, fileOffset);
+          variable.type, inferredType, variableGet, fileOffset,
+          template: templateForInLoopElementTypeNotAssignable);
       if (implicitDowncast != null) {
         this.variable = tempVar..parent = this;
         variable.initializer = implicitDowncast..parent = variable;
@@ -1171,7 +1175,8 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
             greatestClosure(inferrer.coreTypes, syntheticWriteType),
             this.variable.type,
             syntheticAssignment.rhs,
-            syntheticAssignment.rhs.fileOffset);
+            syntheticAssignment.rhs.fileOffset,
+            template: templateForInLoopElementTypeNotAssignable);
         if (syntheticAssignment is PropertyAssignmentJudgment) {
           syntheticAssignment._handleWriteContravariance(
               inferrer, inferrer.thisType);

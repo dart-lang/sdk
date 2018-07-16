@@ -2407,6 +2407,17 @@ ForInLoopExactlyOneVariable:
   severity: ERROR
   statement: "for (var x, y in []) {}"
 
+ForInLoopElementTypeNotAssignable:
+  template: "A value of type '#type' can't be assigned to a variable of type '#type2'."
+  tip: "Try changing the type of the variable."
+  analyzerCode: FOR_IN_OF_INVALID_ELEMENT_TYPE
+  dart2jsCode: "*fatal*"
+
+ForInLoopTypeNotIterable:
+  template: "The type '#type' used in the 'for' loop must implement '#type2'."
+  analyzerCode: FOR_IN_OF_INVALID_TYPE
+  dart2jsCode: "*fatal*"
+
 InitializingFormalTypeMismatch:
   template: "The type of parameter '#name' (#type) is not a subtype of the corresponding field's type (#type2)."
   tip: "Try changing the type of parameter '#name' to a subtype of #type2."

@@ -85,10 +85,10 @@ static method test() → dynamic /* originally async */ {
             }
         }
         for (final self::A #t9 in iterable) {
-          i = let<BottomType> _ = null in let final dynamic #t10 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:26:39: Error: A value of type 'test::A' can't be assigned to a variable of type 'dart.core::int'.
-Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
-  for (i /*@error=InvalidAssignment*/ in iterable) {}
-                                      ^" in let final self::A #t11 = #t9 in null;
+          i = let<BottomType> _ = null in let final dynamic #t10 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:26:55: Error: A value of type 'test::A' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the variable.
+  for (i /*@error=ForInLoopElementTypeNotAssignable*/ in iterable) {}
+                                                      ^" in let final self::A #t11 = #t9 in null;
         }
         {
           asy::_StreamIterator<self::A> :for-iterator = new asy::_StreamIterator::•<self::A>(stream);
@@ -99,10 +99,10 @@ Try changing the type of the left hand side, or casting the right hand side to '
               if(:result) {
                 final self::A #t13 = :for-iterator.{asy::_StreamIterator::current};
                 {
-                  i = let<BottomType> _ = null in let final dynamic #t14 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:27:45: Error: A value of type 'test::A' can't be assigned to a variable of type 'dart.core::int'.
-Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
-  await for (i /*@error=InvalidAssignment*/ in stream) {}
-                                            ^" in let final self::A #t15 = #t13 in null;
+                  i = let<BottomType> _ = null in let final dynamic #t14 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:27:61: Error: A value of type 'test::A' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the variable.
+  await for (i /*@error=ForInLoopElementTypeNotAssignable*/ in stream) {}
+                                                            ^" in let final self::A #t15 = #t13 in null;
                 }
               }
               else

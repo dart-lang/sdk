@@ -2888,6 +2888,46 @@ Message _withArgumentsFinalInstanceVariableAlreadyInitializedCause(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType
+            _type2)> templateForInLoopElementTypeNotAssignable = const Template<
+        Message Function(DartType _type, DartType _type2)>(
+    messageTemplate:
+        r"""A value of type '#type' can't be assigned to a variable of type '#type2'.""",
+    tipTemplate: r"""Try changing the type of the variable.""",
+    withArguments: _withArgumentsForInLoopElementTypeNotAssignable);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeForInLoopElementTypeNotAssignable =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+        "ForInLoopElementTypeNotAssignable",
+        templateForInLoopElementTypeNotAssignable,
+        analyzerCode: "FOR_IN_OF_INVALID_ELEMENT_TYPE",
+        dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsForInLoopElementTypeNotAssignable(
+    DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeForInLoopElementTypeNotAssignable,
+      message:
+          """A value of type '${type}' can't be assigned to a variable of type '${type2}'.""",
+      tip: """Try changing the type of the variable.""",
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeForInLoopExactlyOneVariable =
     messageForInLoopExactlyOneVariable;
 
@@ -2906,6 +2946,42 @@ const MessageCode messageForInLoopNotAssignable = const MessageCode(
     severity: Severity.error,
     message:
         r"""Can't assign to this, so it can't be used in a for-in loop.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType
+            _type2)> templateForInLoopTypeNotIterable = const Template<
+        Message Function(DartType _type, DartType _type2)>(
+    messageTemplate:
+        r"""The type '#type' used in the 'for' loop must implement '#type2'.""",
+    withArguments: _withArgumentsForInLoopTypeNotIterable);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeForInLoopTypeNotIterable =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+        "ForInLoopTypeNotIterable", templateForInLoopTypeNotIterable,
+        analyzerCode: "FOR_IN_OF_INVALID_TYPE", dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsForInLoopTypeNotIterable(
+    DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeForInLoopTypeNotIterable,
+      message:
+          """The type '${type}' used in the 'for' loop must implement '${type2}'.""",
+      arguments: {'type': _type, 'type2': _type2});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFunctionTypeDefaultValue = messageFunctionTypeDefaultValue;

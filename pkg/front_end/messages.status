@@ -172,10 +172,12 @@ FieldInitializerOutsideConstructor/script1: Fail
 FinalAndCovariant/script2: Fail
 FinalFieldWithoutInitializer/example: Fail
 FinalInstanceVariableAlreadyInitialized/example: Fail
+ForInLoopElementTypeNotAssignable/example: Fail
 ForInLoopExactlyOneVariable/analyzerCode: Fail # The analyzer doesn't recover well.
 ForInLoopExactlyOneVariable/statement: Fail # Fasta reports too many errors.
 ForInLoopNotAssignable/analyzerCode: Fail # The analyzer reports a different error.
 ForInLoopNotAssignable/statement: Fail
+ForInLoopTypeNotIterable/example: Fail
 FunctionTypeDefaultValue/example: Fail
 FunctionTypedParameterVar/script1: Fail
 GeneratorReturnsValue/example: Fail
