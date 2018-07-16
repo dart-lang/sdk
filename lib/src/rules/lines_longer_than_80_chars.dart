@@ -64,9 +64,13 @@ class _Visitor extends SimpleAstVisitor {
       if (i == lineCount - 1) {
         end = node.end;
       } else {
-        end = lineInfo.getOffsetOfLineAfter(start) - 1;
-        if (_charAt(node, end) == _lf && _charAt(node, end - 1) == _cr) {
-          end--;
+        end = lineInfo.getOffsetOfLine(i + 1) - 1;
+        final length = end - start;
+        if (length > 80) {
+          final chars = _getChars(node);
+          if (chars[end] == _lf && chars[end - 1] == _cr) {
+            end--;
+          }
         }
       }
       final length = end - start;
@@ -98,10 +102,9 @@ class _Visitor extends SimpleAstVisitor {
 const _cr = '\r';
 const _lf = '\n';
 
-String _charAt(CompilationUnit unit, int offset) {
+String _getChars(CompilationUnit unit) {
   final element = unit.element;
-  final contents = element.context.getContents(element.source).data;
-  return contents[offset];
+  return element.context.getContents(element.source).data;
 }
 
 class _LineInfo {
