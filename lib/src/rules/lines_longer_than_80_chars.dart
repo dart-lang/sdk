@@ -58,6 +58,7 @@ class _Visitor extends SimpleAstVisitor {
     final lineInfo = node.lineInfo;
     final lineCount = lineInfo.lineCount;
     final longLines = <_LineInfo>[];
+    String chars;
     for (int i = 0; i < lineCount; i++) {
       final start = lineInfo.getOffsetOfLine(i);
       int end;
@@ -67,7 +68,7 @@ class _Visitor extends SimpleAstVisitor {
         end = lineInfo.getOffsetOfLine(i + 1) - 1;
         final length = end - start;
         if (length > 80) {
-          final chars = _getChars(node);
+          chars ??= _getChars(node);
           if (chars[end] == _lf && chars[end - 1] == _cr) {
             end--;
           }
