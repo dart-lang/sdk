@@ -1274,7 +1274,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  ClassElement get element => super.element as ClassElement;
+  ClassElement get element => super.element;
 
   @override
   int get hashCode {

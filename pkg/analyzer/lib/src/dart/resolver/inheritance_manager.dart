@@ -240,8 +240,7 @@ class InheritanceManager {
       InterfaceType definingType) {
     // if the baseFunctionType is null, or does not have any parameters,
     // return it.
-    if (baseFunctionType == null ||
-        baseFunctionType.typeArguments.length == 0) {
+    if (baseFunctionType == null || baseFunctionType.typeArguments.isEmpty) {
       return baseFunctionType;
     }
     // First, generate the path from the defining type to the overridden member
@@ -691,7 +690,7 @@ class InheritanceManager {
         }
       }
     }
-    if (lookupMaps.length == 0) {
+    if (lookupMaps.isEmpty) {
       return null;
     }
     return lookupMaps;
