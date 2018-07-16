@@ -183,13 +183,8 @@ class FlowGraph : public ZoneAllocated {
     return current_ssa_temp_index();
   }
 
-  enum class ToCheck { kNoCheck, kCheckNull, kCheckCid };
-
-  // Uses CHA to determine if the called method can be overridden.
-  // Return value indicates that the call needs no check at all,
-  // just a null check, or a full class check.
-  ToCheck CheckForInstanceCall(InstanceCallInstr* call,
-                               RawFunction::Kind kind) const;
+  bool InstanceCallNeedsClassCheck(InstanceCallInstr* call,
+                                   RawFunction::Kind kind) const;
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return thread()->zone(); }

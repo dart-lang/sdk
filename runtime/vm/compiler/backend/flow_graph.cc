@@ -15,7 +15,6 @@
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/growable_array.h"
 #include "vm/object_store.h"
-#include "vm/resolver.h"
 
 namespace dart {
 
@@ -417,91 +416,38 @@ bool FlowGraph::IsReceiver(Definition* def) const {
   return (phi->is_receiver() == PhiInstr::kReceiver);
 }
 
-FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
-    InstanceCallInstr* call,
-    RawFunction::Kind kind) const {
+// Use CHA to determine if the call needs a class check: if the callee's
+// receiver is the same as the caller's receiver and there are no overridden
+// callee functions, then no class check is needed.
+bool FlowGraph::InstanceCallNeedsClassCheck(InstanceCallInstr* call,
+                                            RawFunction::Kind kind) const {
   if (!FLAG_use_cha_deopt && !isolate()->all_classes_finalized()) {
     // Even if class or function are private, lazy class finalization
     // may later add overriding methods.
-    return ToCheck::kCheckCid;
+    return true;
   }
-
-  // Best effort to get the receiver class.
-  Value* receiver = call->Receiver();
-  Class& receiver_class = Class::Handle(zone());
-  bool receiver_maybe_null = false;
-  if (function().IsDynamicFunction() && IsReceiver(receiver->definition())) {
-    // Call receiver is callee receiver: calling "this.g()" in f().
-    receiver_class = function().Owner();
-  } else if (FLAG_use_strong_mode_types && isolate()->strong()) {
-    // In strong mode, get the receiver's compile type. Note that
-    // we allow nullable types, which may result in just generating
-    // a null check rather than the more elaborate class check
-    CompileType* type = receiver->Type();
-    const AbstractType* atype = type->ToAbstractType();
-    if (atype->HasResolvedTypeClass() && !atype->IsDynamicType()) {
-      if (type->is_nullable()) {
-        receiver_maybe_null = true;
+  Definition* callee_receiver = call->Receiver()->definition();
+  ASSERT(callee_receiver != NULL);
+  if (function().IsDynamicFunction() && IsReceiver(callee_receiver)) {
+    const String& name =
+        (kind == RawFunction::kMethodExtractor)
+            ? String::Handle(zone(),
+                             Field::NameFromGetter(call->function_name()))
+            : call->function_name();
+    const Class& cls = Class::Handle(zone(), function().Owner());
+    intptr_t subclass_count = 0;
+    if (!thread()->cha()->HasOverride(cls, name, &subclass_count)) {
+      if (FLAG_trace_cha) {
+        THR_Print(
+            "  **(CHA) Instance call needs no check, "
+            "no overrides of '%s' '%s'\n",
+            name.ToCString(), cls.ToCString());
       }
-      receiver_class = atype->type_class();
-      if (receiver_class.is_implemented()) {
-        receiver_class = Class::null();
-      }
+      thread()->cha()->AddToGuardedClasses(cls, subclass_count);
+      return false;
     }
   }
-
-  // Useful receiver class information?
-  if (receiver_class.IsNull()) {
-    return ToCheck::kCheckCid;
-  } else if (FLAG_precompiled_mode && call->HasICData() &&
-             !call->ic_data()->HasReceiverClassId(receiver_class.id())) {
-    // In AOT, if the static class type does not match information
-    // found in ICData (which may be "guessed"), then bail, since
-    // subsequent code generation for inlining uses the latter.
-    // TODO(ajcbik): improve this by using the static class in AOT.
-    return ToCheck::kCheckCid;
-  }
-
-  const String& method_name =
-      (kind == RawFunction::kMethodExtractor)
-          ? String::Handle(zone(), Field::NameFromGetter(call->function_name()))
-          : call->function_name();
-
-  // If the receiver can have the null value, exclude any method
-  // that is actually valid on a null receiver.
-  if (receiver_maybe_null) {
-#ifdef TARGET_ARCH_DBC
-    // TODO(ajcbik): DBC does not support null check at all yet.
-    return ToCheck::kCheckCid;
-#else
-    const Class& null_class =
-        Class::Handle(zone(), isolate()->object_store()->null_class());
-    const Function& target = Function::Handle(
-        zone(),
-        Resolver::ResolveDynamicAnyArgs(zone(), null_class, method_name));
-    if (!target.IsNull()) {
-      return ToCheck::kCheckCid;
-    }
-#endif
-  }
-
-  // Use CHA to determine if the method is not overridden by any subclass
-  // of the receiver class. Any methods that are valid when the receiver
-  // has a null value are excluded above (to avoid throwing an exception
-  // on something valid, like null.hashCode).
-  intptr_t subclass_count = 0;
-  if (!thread()->cha()->HasOverride(receiver_class, method_name,
-                                    &subclass_count)) {
-    if (FLAG_trace_cha) {
-      THR_Print(
-          "  **(CHA) Instance call needs no class check since there "
-          "are no overrides of method '%s' on '%s'\n",
-          method_name.ToCString(), receiver_class.ToCString());
-    }
-    thread()->cha()->AddToGuardedClasses(receiver_class, subclass_count);
-    return receiver_maybe_null ? ToCheck::kCheckNull : ToCheck::kNoCheck;
-  }
-  return ToCheck::kCheckCid;
+  return true;
 }
 
 Instruction* FlowGraph::CreateCheckClass(Definition* to_check,

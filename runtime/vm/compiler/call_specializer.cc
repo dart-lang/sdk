@@ -879,20 +879,13 @@ bool CallSpecializer::TryInlineImplicitInstanceGetter(InstanceCallInstr* call) {
   const Field& field = Field::ZoneHandle(Z, GetField(class_ids[0], field_name));
   ASSERT(!field.IsNull());
 
-  switch (
-      flow_graph()->CheckForInstanceCall(call, RawFunction::kImplicitGetter)) {
-    case FlowGraph::ToCheck::kCheckNull:
-      AddCheckNull(call->Receiver(), call->function_name(), call->deopt_id(),
-                   call->env(), call);
-      break;
-    case FlowGraph::ToCheck::kCheckCid:
-      if (FLAG_precompiled_mode) {
-        return false;  // AOT cannot class check
-      }
-      AddReceiverCheck(call);
-      break;
-    case FlowGraph::ToCheck::kNoCheck:
-      break;
+  if (flow_graph()->InstanceCallNeedsClassCheck(call,
+                                                RawFunction::kImplicitGetter)) {
+    if (FLAG_precompiled_mode) {
+      return false;
+    }
+
+    AddReceiverCheck(call);
   }
   InlineImplicitInstanceGetter(call, field);
   return true;
@@ -949,20 +942,13 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   const Field& field = Field::ZoneHandle(Z, GetField(class_id, field_name));
   ASSERT(!field.IsNull());
 
-  switch (
-      flow_graph()->CheckForInstanceCall(instr, RawFunction::kImplicitSetter)) {
-    case FlowGraph::ToCheck::kCheckNull:
-      AddCheckNull(instr->Receiver(), instr->function_name(), instr->deopt_id(),
-                   instr->env(), instr);
-      break;
-    case FlowGraph::ToCheck::kCheckCid:
-      if (FLAG_precompiled_mode) {
-        return false;  // AOT cannot class check
-      }
-      AddReceiverCheck(instr);
-      break;
-    case FlowGraph::ToCheck::kNoCheck:
-      break;
+  if (flow_graph()->InstanceCallNeedsClassCheck(instr,
+                                                RawFunction::kImplicitSetter)) {
+    if (FLAG_precompiled_mode) {
+      return false;
+    }
+
+    AddReceiverCheck(instr);
   }
 
   if (I->use_field_guards()) {
