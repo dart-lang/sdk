@@ -133,7 +133,7 @@ class NativeMemoryProfileElement extends HtmlElement implements Renderable {
             _direction = tree.direction = e.element.direction;
           }),
         new BRElement(),
-        tree = new CpuProfileVirtualTreeElement(_vm, _progress.profile,
+        tree = new CpuProfileVirtualTreeElement(null, _progress.profile,
             queue: _r.queue, type: M.SampleProfileType.memory)
       ]);
     }

@@ -245,20 +245,26 @@ class InstanceRefElement extends HtmlElement implements Renderable {
     }
     switch (_instance.kind) {
       case M.InstanceKind.closure:
-        return [
-          new DivElement()
-            ..children = <Element>[
-              new SpanElement()..text = 'function = ',
-              anyRef(_isolate, _loadedInstance.closureFunction, _objects,
-                  queue: _r.queue)
-            ],
-          new DivElement()
-            ..children = <Element>[
-              new SpanElement()..text = 'context = ',
-              anyRef(_isolate, _loadedInstance.closureContext, _objects,
-                  queue: _r.queue)
-            ],
-        ];
+        {
+          var members = <Element>[];
+          if (_loadedInstance.closureFunction != null) {
+            members.add(new DivElement()
+              ..children = <Element>[
+                new SpanElement()..text = 'function = ',
+                anyRef(_isolate, _loadedInstance.closureFunction, _objects,
+                    queue: _r.queue)
+              ]);
+          }
+          if (_loadedInstance.closureContext != null) {
+            members.add(new DivElement()
+              ..children = <Element>[
+                new SpanElement()..text = 'context = ',
+                anyRef(_isolate, _loadedInstance.closureContext, _objects,
+                    queue: _r.queue)
+              ]);
+          }
+          return members;
+        }
       case M.InstanceKind.plainInstance:
         return _loadedInstance.fields
             .map<Element>((f) => new DivElement()

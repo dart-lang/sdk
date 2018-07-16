@@ -2932,8 +2932,9 @@ class Instance extends HeapObject implements M.Instance {
       fields = null;
     }
     if (map['_nativeFields'] != null) {
-      nativeFields =
-          map['_nativeFields'].map((f) => new NativeField(f['value'])).toList();
+      nativeFields = map['_nativeFields']
+          .map<NativeField>((f) => new NativeField(f['value']))
+          .toList();
     } else {
       nativeFields = null;
     }
@@ -2951,7 +2952,7 @@ class Instance extends HeapObject implements M.Instance {
     }
     if (map['associations'] != null) {
       associations = map['associations']
-          .map((a) => new MapAssociation(a['key'], a['value']))
+          .map<MapAssociation>((a) => new MapAssociation(a['key'], a['value']))
           .toList();
     } else {
       associations = null;
@@ -4003,7 +4004,8 @@ M.ObjectPoolEntryKind stringToObjectPoolEntryKind(String kind) {
       return M.ObjectPoolEntryKind.object;
     case 'Immediate':
       return M.ObjectPoolEntryKind.immediate;
-    case 'NativeEntry':
+    case 'NativeFunction':
+    case 'NativeFunctionWrapper':
       return M.ObjectPoolEntryKind.nativeEntry;
   }
   throw new Exception('Unknown ObjectPoolEntryKind ($kind)');
@@ -4393,8 +4395,8 @@ class Code extends HeapObject implements M.Code {
     return null;
   }
 
-  void _processInline(List<ServiceFunction> inlinedFunctionsTable,
-      List<List<int>> inlinedIntervals) {
+  void _processInline(List/*<ServiceFunction>*/ inlinedFunctionsTable,
+      List/*<List<int>>*/ inlinedIntervals) {
     for (var i = 0; i < inlinedIntervals.length; i++) {
       var inlinedInterval = inlinedIntervals[i];
       var start = inlinedInterval[0] + startAddress;

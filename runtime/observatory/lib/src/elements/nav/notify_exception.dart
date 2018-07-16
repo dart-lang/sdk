@@ -88,7 +88,7 @@ class NavNotifyExceptionElement extends HtmlElement implements Renderable {
   }
 
   void renderGenericException() {
-    List<Node> content;
+    List<Element> content;
     content = <Element>[
       new SpanElement()..text = 'Unexpected exception:',
       new BRElement(),
@@ -97,7 +97,7 @@ class NavNotifyExceptionElement extends HtmlElement implements Renderable {
       new BRElement()
     ];
     if (stacktrace != null) {
-      content.addAll([
+      content.addAll(<Element>[
         new SpanElement()..text = 'StackTrace:',
         new BRElement(),
         new BRElement(),
@@ -105,7 +105,7 @@ class NavNotifyExceptionElement extends HtmlElement implements Renderable {
         new BRElement()
       ]);
     }
-    content.addAll([
+    content.addAll(<Element>[
       new SpanElement()..text = '[',
       new AnchorElement(href: Uris.vmConnect())
         ..text = 'Connect to a different VM',

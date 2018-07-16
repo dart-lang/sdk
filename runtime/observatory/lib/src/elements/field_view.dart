@@ -183,19 +183,18 @@ class FieldViewElement extends HtmlElement implements Renderable {
   }
 
   List<Element> _createMenu() {
-    final menu = [
+    final menu = <Element>[
       new NavTopMenuElement(queue: _r.queue),
       new NavVMMenuElement(_vm, _events, queue: _r.queue),
       new NavIsolateMenuElement(_isolate, _events, queue: _r.queue)
     ];
     if (_library != null) {
-      menu.add(new NavLibraryMenuElement(_isolate, _field.dartOwner,
-          queue: _r.queue));
+      menu.add(new NavLibraryMenuElement(_isolate, _library, queue: _r.queue));
     } else if (_field.dartOwner is M.ClassRef) {
       menu.add(
           new NavClassMenuElement(_isolate, _field.dartOwner, queue: _r.queue));
     }
-    menu.addAll([
+    menu.addAll(<Element>[
       navMenu(_field.name),
       new NavRefreshElement(queue: _r.queue)
         ..onRefresh.listen((e) {

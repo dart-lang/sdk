@@ -129,9 +129,15 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
     }
     switch (_sortingDirection) {
       case _SortingDirection.ascending:
-        return (a, b) => getter(a).compareTo(getter(b));
+        int sort(M.ClassHeapStats a, M.ClassHeapStats b) {
+          return getter(a).compareTo(getter(b));
+        }
+        return sort;
       case _SortingDirection.descending:
-        return (a, b) => getter(b).compareTo(getter(a));
+        int sort(M.ClassHeapStats a, M.ClassHeapStats b) {
+          return getter(b).compareTo(getter(a));
+        }
+        return sort;
     }
   }
 
@@ -243,7 +249,8 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
     });
   }
 
-  bool _search(Pattern pattern, M.ClassHeapStats item) {
+  bool _search(Pattern pattern, itemDynamic) {
+    M.ClassHeapStats item = itemDynamic;
     final String value = item.clazz?.name ?? item.displayName;
     return value.contains(pattern);
   }

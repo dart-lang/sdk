@@ -190,7 +190,7 @@ class InstanceViewElement extends HtmlElement implements Renderable {
   }
 
   List<Element> _createMenu() {
-    final menu = [
+    final menu = <Element>[
       new NavTopMenuElement(queue: _r.queue),
       new NavVMMenuElement(_vm, _events, queue: _r.queue),
       new NavIsolateMenuElement(_isolate, _events, queue: _r.queue)
@@ -198,7 +198,7 @@ class InstanceViewElement extends HtmlElement implements Renderable {
     if (_library != null) {
       menu.add(new NavLibraryMenuElement(_isolate, _library, queue: _r.queue));
     }
-    menu.addAll([
+    menu.addAll(<Element>[
       new NavClassMenuElement(_isolate, _instance.clazz, queue: _r.queue),
       navMenu('instance'),
       new NavRefreshElement(queue: _r.queue)

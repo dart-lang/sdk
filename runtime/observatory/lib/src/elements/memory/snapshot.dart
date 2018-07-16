@@ -72,7 +72,7 @@ class MemorySnapshotElement extends HtmlElement implements Renderable {
       children = const [];
       return;
     }
-    List<HtmlElement> content;
+    List<Element> content;
     switch (_progress.status) {
       case M.HeapSnapshotLoadingStatus.fetching:
         content = _createStatusMessage('Fetching snapshot from VM...',
@@ -139,7 +139,7 @@ class MemorySnapshotElement extends HtmlElement implements Renderable {
   VirtualTreeElement _tree;
 
   List<Element> _createReport() {
-    final List roots = _getChildrenDominator(_snapshot.dominatorTree);
+    final List roots = _getChildrenDominator(_snapshot.dominatorTree).toList();
     _tree = new VirtualTreeElement(
         _createDominator, _updateDominator, _getChildrenDominator,
         items: roots, queue: _r.queue);
@@ -195,8 +195,8 @@ class MemorySnapshotElement extends HtmlElement implements Renderable {
         .take(kMaxChildren);
   }
 
-  void _updateDominator(
-      HtmlElement element, M.HeapSnapshotDominatorNode node, int depth) {
+  void _updateDominator(HtmlElement element, nodeDynamic, int depth) {
+    M.HeapSnapshotDominatorNode node = nodeDynamic;
     element.children[0].text = Utils.formatSize(node.retainedSize);
     _updateLines(element.children[1].children, depth);
     if (_getChildrenDominator(node).isNotEmpty) {

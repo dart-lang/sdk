@@ -16,7 +16,6 @@ isolate/counter_chart/element_test: CompileTimeError # observatory is not strong
 isolate/isolate-shared-summary/element_test: CompileTimeError # observatory is not strong clean (Issue 32503)
 isolate_reconnect/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
 megamorphiccache_view/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
-nav/notify/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
 nav/notify_event/element_test: RuntimeError # observatory is not strong clean (Issue 32503)
 nav/notify_exception/connection_exception_test: Timeout, RuntimeError # observatory is not strong clean (Issue 32503)
 nav/notify_exception/exception_test: Timeout, RuntimeError # observatory is not strong clean (Issue 32503)

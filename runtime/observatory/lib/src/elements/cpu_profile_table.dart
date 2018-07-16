@@ -171,7 +171,7 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
       _callers.items = const [];
       _callees.items = const [];
     }
-    return [
+    return <Element>[
       new DivElement()
         ..classes = ['profile-trees']
         ..children = <Element>[
@@ -200,7 +200,7 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
     ];
   }
 
-  Element _createFunction() {
+  HtmlElement _createFunction() {
     final element = new DivElement()
       ..classes = ['function-item']
       ..children = <Element>[
@@ -255,7 +255,8 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
           ]
       ];
 
-  bool _searchFunction(Pattern pattern, M.ProfileFunction item) {
+  bool _searchFunction(Pattern pattern, itemDynamic) {
+    M.ProfileFunction item = itemDynamic;
     return M.getFunctionFullName(item.function).contains(pattern);
   }
 
@@ -277,7 +278,7 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
     _r.dirty();
   }
 
-  Element _createCallee() {
+  HtmlElement _createCallee() {
     final element = new DivElement()
       ..classes = ['function-item']
       ..children = <Element>[
@@ -316,7 +317,7 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
           ]
       ];
 
-  Element _createCaller() {
+  HtmlElement _createCaller() {
     final element = new DivElement()
       ..classes = ['function-item']
       ..children = <Element>[
@@ -403,8 +404,10 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
     ];
   }
 
-  bool _filterTree(M.FunctionCallTreeNode node) =>
-      node.profileFunction == _selected;
+  bool _filterTree(nodeDynamic) {
+    M.FunctionCallTreeNode node = nodeDynamic;
+    return node.profileFunction == _selected;
+  }
 
   Future _request({bool clear: false, bool forceFetch: false}) async {
     _progress = null;
@@ -452,9 +455,15 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
     }
     switch (_sortingDirection[table]) {
       case _SortingDirection.ascending:
-        return (a, b) => getter(a).compareTo(getter(b));
+        int sort(M.ProfileFunction a, M.ProfileFunction b) {
+          return getter(a).compareTo(getter(b));
+        }
+        return sort;
       case _SortingDirection.descending:
-        return (a, b) => getter(b).compareTo(getter(a));
+        int sort(M.ProfileFunction a, M.ProfileFunction b) {
+          return getter(b).compareTo(getter(a));
+        }
+        return sort;
     }
   }
 

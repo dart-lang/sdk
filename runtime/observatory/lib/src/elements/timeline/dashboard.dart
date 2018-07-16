@@ -207,7 +207,8 @@ class TimelineDashboardElement extends HtmlElement implements Renderable {
   Future _refresh() async {
     _flags = await _repository.getFlags(vm);
     _r.dirty();
-    final params = new Map.from(await _repository.getIFrameParams(vm));
+    final params =
+        new Map<String, dynamic>.from(await _repository.getIFrameParams(vm));
     return _postMessage('refresh', params);
   }
 

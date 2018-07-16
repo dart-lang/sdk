@@ -199,7 +199,7 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
     }
   }
 
-  String _formatTimeAxis(num ms) =>
+  String _formatTimeAxis(dynamic ms) =>
       Utils.formatDuration(new Duration(microseconds: ms.toInt()),
           precision: DurationComponent.Seconds);
 
