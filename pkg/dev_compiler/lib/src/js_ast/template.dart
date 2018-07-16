@@ -598,7 +598,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   Instantiator<ArrowFun> visitArrowFun(ArrowFun node) {
     var paramMakers = node.params.map(visitSplayable).toList();
-    Instantiator makeBody = visit(node.body as Node);
+    Instantiator makeBody = visit(node.body);
     return (a) => ArrowFun(splayNodes(paramMakers, a), makeBody(a));
   }
 
@@ -698,32 +698,6 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       throw UnimplementedError();
 
   Instantiator visitExportClause(ExportClause node) =>
-      throw UnimplementedError();
-
-  Instantiator visitAnyTypeRef(AnyTypeRef node) => throw UnimplementedError();
-
-  Instantiator visitUnknownTypeRef(UnknownTypeRef node) =>
-      throw UnimplementedError();
-
-  Instantiator visitArrayTypeRef(ArrayTypeRef node) =>
-      throw UnimplementedError();
-
-  Instantiator visitFunctionTypeRef(FunctionTypeRef node) =>
-      throw UnimplementedError();
-
-  Instantiator visitGenericTypeRef(GenericTypeRef node) =>
-      throw UnimplementedError();
-
-  Instantiator visitQualifiedTypeRef(QualifiedTypeRef node) =>
-      throw UnimplementedError();
-
-  Instantiator visitOptionalTypeRef(OptionalTypeRef node) =>
-      throw UnimplementedError();
-
-  Instantiator visitRecordTypeRef(RecordTypeRef node) =>
-      throw UnimplementedError();
-
-  Instantiator visitUnionTypeRef(UnionTypeRef node) =>
       throw UnimplementedError();
 
   @override

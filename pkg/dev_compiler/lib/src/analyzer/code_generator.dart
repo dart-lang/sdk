@@ -35,7 +35,6 @@ import 'package:analyzer/src/task/strong/ast_properties.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart' show SourceLocation;
 
-import '../closure/closure_annotator.dart' show ClosureAnnotator;
 import '../compiler/js_metalet.dart' as JS;
 import '../compiler/js_names.dart' as JS;
 import '../compiler/js_utils.dart' as JS;
@@ -49,7 +48,6 @@ import 'element_helpers.dart';
 import 'error_helpers.dart';
 import 'extension_types.dart' show ExtensionTypeSet;
 import 'js_interop.dart';
-import 'js_typeref_codegen.dart' show JSTypeRefCodegen;
 import 'js_typerep.dart';
 import 'module_compiler.dart' show BuildUnit, CompilerOptions, JSModuleFile;
 import 'nullable_type_inference.dart' show NullableTypeInference;
@@ -74,11 +72,7 @@ import 'type_utilities.dart';
 // expressions (which result in JS.Expression) and statements
 // (which result in (JS.Statement).
 class CodeGenerator extends Object
-    with
-        ClosureAnnotator,
-        JSTypeRefCodegen,
-        NullableTypeInference,
-        SharedCompiler<LibraryElement>
+    with NullableTypeInference, SharedCompiler<LibraryElement>
     implements AstVisitor<JS.Node> {
   final AnalysisContext context;
   final SummaryDataStore summaryData;
@@ -871,13 +865,10 @@ class CodeGenerator extends Object
       }
     }
 
-    JS.Expression body = closureAnnotate(
-        runtimeCall('typedef(#, () => #)', [
-          js.string(element.name, "'"),
-          _emitFunctionType(type, nameType: false)
-        ]),
-        element,
-        node);
+    JS.Expression body = runtimeCall('typedef(#, () => #)', [
+      js.string(element.name, "'"),
+      _emitFunctionType(type, nameType: false)
+    ]);
 
     if (typeFormals.isNotEmpty) {
       return _defineClassTypeArguments(element, typeFormals,
@@ -1231,19 +1222,6 @@ class CodeGenerator extends Object
         .toList(growable: false);
   }
 
-  /// Emits a field declaration for TypeScript & Closure's ES6_TYPED
-  /// (e.g. `class Foo { i: string; }`)
-  JS.VariableDeclarationList _emitTypeScriptField(FieldElement field) {
-    return JS.VariableDeclarationList(field.isStatic ? 'static' : null, [
-      JS.VariableInitialization(
-          JS.Identifier(
-              // TODO(ochafik): use a refactored _emitMemberName instead.
-              field.name,
-              type: emitTypeRef(field.type)),
-          null)
-    ]);
-  }
-
   @override
   JS.Statement visitEnumDeclaration(EnumDeclaration node) {
     return _emitClassDeclaration(node, node.element, []);
@@ -1279,19 +1257,12 @@ class CodeGenerator extends Object
       JS.Expression className,
       JS.Expression heritage,
       List<JS.Method> methods) {
-    var typeParams = _emitTypeFormals(classElem.typeParameters);
-
-    var jsFields = options.closure
-        ? classElem.fields.map(_emitTypeScriptField).toList()
-        : null;
     if (classElem.typeParameters.isNotEmpty) {
-      return JS.ClassExpression(className as JS.Identifier, heritage, methods,
-              typeParams: typeParams, fields: jsFields)
+      return JS.ClassExpression(className as JS.Identifier, heritage, methods)
           .toStatement();
     }
-    var classExpr = JS.ClassExpression(
-        JS.TemporaryId(classElem.name), heritage, methods,
-        typeParams: typeParams, fields: jsFields);
+    var classExpr =
+        JS.ClassExpression(JS.TemporaryId(classElem.name), heritage, methods);
     return js.statement('# = #;', [className, classExpr]);
   }
 
@@ -1648,8 +1619,7 @@ class CodeGenerator extends Object
           body.add(js.statement(
               'return super.#(#)(#);', [name, typeFormals, jsParams]));
         }
-        var fn = JS.Fun(jsParams, JS.Block(body),
-            typeParams: typeFormals, returnType: emitTypeRef(type.returnType));
+        var fn = JS.Fun(jsParams, JS.Block(body));
         methods.add(JS.Method(name, fn));
       } else {
         throw StateError(
@@ -1664,7 +1634,6 @@ class CodeGenerator extends Object
     if (isUnsupportedFactoryConstructor(node)) return null;
 
     var element = node.element;
-    var returnType = emitTypeRef(element.returnType);
     var name = _constructorName(element.name);
     JS.Fun fun;
 
@@ -1687,8 +1656,7 @@ class CodeGenerator extends Object
             js.statement('return $newKeyword #(#)',
                 [visitConstructorName(redirect), params])
               ..sourceInformation = _nodeStart(redirect)
-          ]),
-          returnType: returnType);
+          ]));
     } else {
       // Normal factory constructor
       var body = <JS.Statement>[];
@@ -1697,16 +1665,13 @@ class CodeGenerator extends Object
       body.add(_visitStatement(node.body));
 
       var params = _emitParameters(node.parameters?.parameters);
-      fun = JS.Fun(params, JS.Block(body), returnType: returnType);
+      fun = JS.Fun(params, JS.Block(body));
     }
 
     _currentFunction = savedFunction;
 
-    return closureAnnotate(
-        JS.Method(name, fun, isStatic: true)
-          ..sourceInformation = _functionEnd(node),
-        element,
-        node);
+    return JS.Method(name, fun, isStatic: true)
+      ..sourceInformation = _functionEnd(node);
   }
 
   /// Given a class C that implements method M from interface I, but does not
@@ -1784,7 +1749,7 @@ class CodeGenerator extends Object
     return JS.Method(
         _declareMemberName(method,
             useExtension: _extensionTypes.isNativeClass(type.element)),
-        JS.Fun(fnArgs, fnBlock, typeParams: typeParams),
+        JS.Fun(fnArgs, fnBlock),
         isGetter: method is PropertyAccessorElement && method.isGetter,
         isSetter: method is PropertyAccessorElement && method.isSetter,
         isStatic: false);
@@ -2630,14 +2595,11 @@ class CodeGenerator extends Object
       fn = _emitFunction(node.element, node.parameters, node.body);
     }
 
-    return closureAnnotate(
-        JS.Method(_declareMemberName(node.element), fn,
-            isGetter: node.isGetter,
-            isSetter: node.isSetter,
-            isStatic: node.isStatic)
-          ..sourceInformation = _functionEnd(node),
-        node.element,
-        node);
+    return JS.Method(_declareMemberName(node.element), fn,
+        isGetter: node.isGetter,
+        isSetter: node.isSetter,
+        isStatic: node.isStatic)
+      ..sourceInformation = _functionEnd(node);
   }
 
   @override
@@ -2683,8 +2645,7 @@ class CodeGenerator extends Object
 
     var element = resolutionMap.elementDeclaredByFunctionDeclaration(node);
     var nameExpr = _emitTopLevelName(element);
-    body.add(
-        closureAnnotate(js.statement('# = #', [nameExpr, fn]), element, node));
+    body.add(js.statement('# = #', [nameExpr, fn]));
     // Function types of top-level/static functions are only needed when
     // dart:mirrors is enabled.
     // TODO(jmesserly): do we even need this for mirrors, since statics are not
@@ -2718,13 +2679,10 @@ class CodeGenerator extends Object
 
   JS.Method _emitTopLevelProperty(FunctionDeclaration node) {
     var name = node.name.name;
-    return closureAnnotate(
-        JS.Method(_propertyName(name),
-            _emitFunctionExpression(node.functionExpression),
-            isGetter: node.isGetter, isSetter: node.isSetter)
-          ..sourceInformation = _functionEnd(node),
-        node.element,
-        node);
+    return JS.Method(
+        _propertyName(name), _emitFunctionExpression(node.functionExpression),
+        isGetter: node.isGetter, isSetter: node.isSetter)
+      ..sourceInformation = _functionEnd(node);
   }
 
   bool _executesAtTopLevel(AstNode node) {
@@ -2788,8 +2746,7 @@ class CodeGenerator extends Object
 
     // Convert `function(...) { ... }` to `(...) => ...`
     // This is for readability, but it also ensures correct `this` binding.
-    return JS.ArrowFun(f.params, body,
-        typeParams: f.typeParams, returnType: f.returnType);
+    return JS.ArrowFun(f.params, body);
   }
 
   /// Emits a non-arrow FunctionExpression node.
@@ -2824,8 +2781,7 @@ class CodeGenerator extends Object
           ]);
 
     code = super.exitFunction(element.name, formals, code);
-    return JS.Fun(formals, code,
-        typeParams: typeFormals, returnType: emitTypeRef(type.returnType));
+    return JS.Fun(formals, code);
   }
 
   JS.Block _emitFunctionBody(ExecutableElement element,
@@ -2897,8 +2853,7 @@ class CodeGenerator extends Object
       // TODO(jmesserly): this will emit argument initializers (for default
       // values) inside the generator function body. Is that the best place?
       var jsBody = _emitFunctionBody(element, parameters, body);
-      var genFn = JS.Fun(jsParams, jsBody,
-          isGenerator: true, returnType: emitTypeRef(returnType));
+      var genFn = JS.Fun(jsParams, jsBody, isGenerator: true);
 
       // Name the function if possible, to get better stack traces.
       var name = element.name;
@@ -3132,9 +3087,8 @@ class CodeGenerator extends Object
     return JS.PropertyAccess(target, member);
   }
 
-  JS.Identifier _emitVariableDef(SimpleIdentifier id, {JS.TypeRef type}) {
-    return JS.Identifier(id.name, type: type)
-      ..sourceInformation = _nodeStart(id);
+  JS.Identifier _emitVariableDef(SimpleIdentifier id) {
+    return JS.Identifier(id.name)..sourceInformation = _nodeStart(id);
   }
 
   /// Returns `true` if the type name referred to by [node] is used in a
@@ -3175,8 +3129,7 @@ class CodeGenerator extends Object
           element, () => JS.TemporaryId(element.name.substring(1)));
     }
 
-    var type = declaration ? emitTypeRef(element.type) : null;
-    return JS.Identifier(element.name, type: type);
+    return JS.Identifier(element.name);
   }
 
   List<Annotation> _parameterMetadata(FormalParameter p) =>
@@ -4272,8 +4225,7 @@ class CodeGenerator extends Object
       return null;
     }
 
-    var name =
-        _emitVariableDef(node.name, type: emitTypeRef(node.element.type));
+    var name = _emitVariableDef(node.name);
     return JS.VariableInitialization(
         name, _visitInitializer(node.initializer, node.element));
   }
@@ -4300,13 +4252,10 @@ class CodeGenerator extends Object
           _isJSInvocation(init) ||
           init is InstanceCreationExpression &&
               isSdkInternalRuntime(init.staticElement.library)) {
-        moduleItems.add(closureAnnotate(
-            js.statement('# = #;', [
-              _emitTopLevelName(field.element),
-              _visitInitializer(field.initializer, field.element)
-            ]),
-            field.element,
-            field));
+        moduleItems.add(js.statement('# = #;', [
+          _emitTopLevelName(field.element),
+          _visitInitializer(field.initializer, field.element)
+        ]));
       } else {
         lazyFields.add(field);
       }
@@ -4332,39 +4281,22 @@ class CodeGenerator extends Object
     for (var node in fields) {
       var element = node.element;
       var access = emitFieldName(element);
-      accessors.add(closureAnnotate(
-          JS.Method(
-              access,
-              js.call('function() { return #; }',
-                  _visitInitializer(node.initializer, element)) as JS.Fun,
-              isGetter: true)
-            ..sourceInformation =
-                _hoverComment(JS.PropertyAccess(objExpr, access), node.name),
-          _findAccessor(element, getter: true),
-          node));
+      accessors.add(JS.Method(
+          access,
+          js.call('function() { return #; }',
+              _visitInitializer(node.initializer, element)) as JS.Fun,
+          isGetter: true)
+        ..sourceInformation =
+            _hoverComment(JS.PropertyAccess(objExpr, access), node.name));
 
       // TODO(jmesserly): currently uses a dummy setter to indicate writable.
       if (!node.isFinal && !node.isConst) {
-        accessors.add(closureAnnotate(
-            JS.Method(access, js.call('function(_) {}') as JS.Fun,
-                isSetter: true),
-            _findAccessor(element, getter: false),
-            node));
+        accessors.add(JS.Method(access, js.call('function(_) {}') as JS.Fun,
+            isSetter: true));
       }
     }
 
     return runtimeStatement('defineLazy(#, { # })', [objExpr, accessors]);
-  }
-
-  PropertyAccessorElement _findAccessor(VariableElement element,
-      {bool getter}) {
-    var parent = element.enclosingElement;
-    if (parent is ClassElement) {
-      return getter
-          ? parent.getGetter(element.name)
-          : parent.getSetter(element.name);
-    }
-    return null;
   }
 
   JS.Expression _emitConstructorName(DartType type, String name) {
@@ -6217,15 +6149,6 @@ class CodeGenerator extends Object
     return _libraries[library] ??
         _imports.putIfAbsent(library,
             () => JS.TemporaryId(jsLibraryName(_libraryRoot, library)));
-  }
-
-  T closureAnnotate<T extends JS.Node>(
-      T node, Element element, AnnotatedNode original) {
-    if (options.closure) {
-      node.closureAnnotation =
-          closureAnnotationFor(node, original, element, namedArgumentTemp.name);
-    }
-    return node;
   }
 
   /// Return true if this is one of the methods/properties on all Dart Objects

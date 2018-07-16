@@ -17,8 +17,7 @@ Fun simplifyPassThroughArrowFunCallBody(Fun fn) {
           innerFun.params.isEmpty) {
         var body = innerFun.body;
         if (body is Block) {
-          return Fun(fn.params, body,
-              typeParams: fn.typeParams, returnType: fn.returnType);
+          return Fun(fn.params, body);
         }
       }
     }

@@ -8,7 +8,6 @@ class JavaScriptPrintingOptions {
   final bool shouldCompressOutput;
   final bool minifyLocalVariables;
   final bool preferSemicolonToNewlineInMinifiedOutput;
-  final bool emitTypes;
   final bool allowSingleLineIfStatements;
 
   /// True to allow keywords in properties, such as `obj.var` or `obj.function`
@@ -19,7 +18,6 @@ class JavaScriptPrintingOptions {
       {this.shouldCompressOutput = false,
       this.minifyLocalVariables = false,
       this.preferSemicolonToNewlineInMinifiedOutput = false,
-      this.emitTypes = false,
       this.allowKeywordsInProperties = false,
       this.allowSingleLineIfStatements = false});
 }
@@ -58,7 +56,7 @@ class SimpleJavaScriptPrintingContext extends JavaScriptPrintingContext {
 
 // TODO(ochafik): Inline the body of [TypeScriptTypePrinter] here if/when it no
 // longer needs to share utils with [ClosureTypePrinter].
-class Printer extends TypeScriptTypePrinter implements NodeVisitor {
+class Printer implements NodeVisitor {
   final JavaScriptPrintingOptions options;
   final JavaScriptPrintingContext context;
   final bool shouldCompressOutput;
@@ -296,7 +294,6 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
 
   visitExpressionStatement(ExpressionStatement expressionStatement) {
     indent();
-    outClosureAnnotation(expressionStatement);
     visitNestedExpression(expressionStatement.expression, EXPRESSION,
         newInForInit: false, newAtStatementBegin: true);
     outSemicolonLn();
@@ -558,14 +555,12 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
           newInForInit: false, newAtStatementBegin: false);
     }
     localNamer.enterScope(fun);
-    outTypeParams(fun.typeParams);
     out("(");
     if (fun.params != null) {
       visitCommaSeparated(fun.params, PRIMARY,
           newInForInit: false, newAtStatementBegin: false);
     }
     out(")");
-    outTypeAnnotation(fun.returnType);
     switch (fun.asyncModifier) {
       case const AsyncModifier.sync():
         break;
@@ -585,7 +580,6 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
 
   visitFunctionDeclaration(FunctionDeclaration declaration) {
     indent();
-    outClosureAnnotation(declaration);
     var f = declaration.function;
     context.enterNode(f);
     functionOut(f, declaration.name);
@@ -623,7 +617,6 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   }
 
   visitVariableDeclarationList(VariableDeclarationList list) {
-    outClosureAnnotation(list);
     // Note: keyword can be null for non-static field declarations.
     if (list.keyword != null) {
       out(list.keyword);
@@ -665,7 +658,6 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
       }
       visit(structure);
     }
-    outTypeAnnotation(node.type);
     var defaultValue = node.defaultValue;
     if (defaultValue != null) {
       spaceOut();
@@ -695,7 +687,6 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   }
 
   visitVariableInitialization(VariableInitialization init) {
-    outClosureAnnotation(init);
     visitNestedExpression(init.declaration, LEFT_HAND_SIDE,
         newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
     if (init.value != null) {
@@ -898,7 +889,6 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
 
   visitIdentifier(Identifier node) {
     out(localNamer.getName(node));
-    outTypeAnnotation(node.type);
   }
 
   visitRestParameter(RestParameter node) {
@@ -966,9 +956,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
 
   visitArrowFun(ArrowFun fun) {
     localNamer.enterScope(fun);
-    if (fun.params.length == 1 &&
-        fun.params[0] is Identifier &&
-        (!options.emitTypes || fun.params[0].type == null)) {
+    if (fun.params.length == 1 && fun.params[0] is Identifier) {
       visitNestedExpression(fun.params.single, SPREAD,
           newInForInit: false, newAtStatementBegin: false);
     } else {
@@ -977,7 +965,6 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
           newInForInit: false, newAtStatementBegin: false);
       out(")");
     }
-    outTypeAnnotation(fun.returnType);
     spaceOut();
     out("=>");
     var body = fun.body;
@@ -1116,24 +1103,10 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     lineOut();
   }
 
-  void outTypeParams(Iterable<Identifier> typeParams) {
-    if (typeParams != null && options.emitTypes && typeParams.isNotEmpty) {
-      out("<");
-      var first = true;
-      for (var typeParam in typeParams) {
-        if (!first) out(", ");
-        first = false;
-        visit(typeParam);
-      }
-      out(">");
-    }
-  }
-
   visitClassExpression(ClassExpression node) {
     localNamer.enterScope(node);
     out('class ');
     visit(node.name);
-    outTypeParams(node.typeParams);
     if (node.heritage != null) {
       out(' extends ');
       visit(node.heritage);
@@ -1143,14 +1116,6 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
       out('{');
       lineOut();
       indentMore();
-      if (options.emitTypes && node.fields != null) {
-        for (var field in node.fields) {
-          indent();
-          visit(field);
-          out(";");
-          lineOut();
-        }
-      }
       for (var method in node.methods) {
         indent();
         visit(method);
@@ -1166,7 +1131,6 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   }
 
   visitMethod(Method node) {
-    outClosureAnnotation(node);
     if (node.isStatic) {
       out('static ');
     }
@@ -1196,17 +1160,6 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
       blockOut(fun.body, false, false);
     }
     localNamer.leaveScope();
-  }
-
-  void outClosureAnnotation(Node node) {
-    if (node != null && node.closureAnnotation != null) {
-      String comment = node.closureAnnotation.toString(indentation);
-      if (comment.isNotEmpty) {
-        out(comment);
-        lineOut();
-        indent();
-      }
-    }
   }
 
   void propertyNameOut(Expression node,
@@ -1403,18 +1356,6 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   void visitAwait(Await node) {
     out("await ");
     visit(node.expression);
-  }
-
-  void outTypeAnnotation(TypeRef node) {
-    if (node == null || !options.emitTypes || node.isUnknown) return;
-
-    if (node is OptionalTypeRef) {
-      out("?: ");
-      visit(node.type);
-    } else {
-      out(": ");
-      visit(node);
-    }
   }
 }
 
