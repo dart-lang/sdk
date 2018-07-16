@@ -906,6 +906,20 @@ class InterfaceResolver {
                           conflict.fileUri, conflict.fileOffset, noLength)
                     ]);
               }
+            } else {
+              // If it's a setter conflicting with a method and both are
+              // declared in the same class, it hasn't been signaled as a
+              // duplicated definition so it's reported here.
+              library.addProblem(
+                  messageDeclaredMemberConflictsWithInheritedMember,
+                  member.fileOffset,
+                  noLength,
+                  member.fileUri,
+                  context: [
+                    messageDeclaredMemberConflictsWithInheritedMemberCause
+                        .withLocation(
+                            conflict.fileUri, conflict.fileOffset, noLength)
+                  ]);
             }
             return;
           }

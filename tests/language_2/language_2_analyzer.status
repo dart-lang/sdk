@@ -173,6 +173,18 @@ regress_29025_test: CompileTimeError # Issue 29081
 regress_29349_test: CompileTimeError # Issue 29744
 regress_29405_test: CompileTimeError # Issue 29421
 regress_29784_test/02: MissingCompileTimeError # Issue 29784
+regress_33235_03_test/01: MissingCompileTimeError
+regress_33235_07_test/03: MissingCompileTimeError
+regress_33235_10_test/01: MissingCompileTimeError
+regress_33235_10_test/02: MissingCompileTimeError
+regress_33235_10_test/03: MissingCompileTimeError
+regress_33235_11_test/01: MissingCompileTimeError
+regress_33235_12_test/03: MissingCompileTimeError
+regress_33235_13_test/03: MissingCompileTimeError
+regress_33235_16_test/02: MissingCompileTimeError
+regress_33235_16_test/03: MissingCompileTimeError
+regress_33235_19_test: CompileTimeError
+regress_33235_20_test: CompileTimeError
 script1_negative_test: CompileTimeError
 script2_negative_test: CompileTimeError
 setter_declaration2_negative_test: CompileTimeError

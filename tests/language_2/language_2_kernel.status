@@ -330,7 +330,6 @@ regress_22976_test/*: CompileTimeError # Issue 31935
 regress_27617_test/1: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
 regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
-setter4_test: MissingCompileTimeError # Issue 14736
 switch_bad_case_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 switch_bad_case_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 switch_case_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
@@ -1399,6 +1398,34 @@ prefix_transitive_import_prefix_test/03: MissingCompileTimeError
 prefix_transitive_import_test/01: MissingCompileTimeError
 prefix_transitive_import_test/02: MissingCompileTimeError
 regress_23089_test: MissingCompileTimeError
+regress_33235_05_test/02: MissingCompileTimeError
+regress_33235_05_test/03: MissingCompileTimeError
+regress_33235_06_test/02: MissingCompileTimeError
+regress_33235_06_test/03: MissingCompileTimeError
+regress_33235_07_test/01: MissingCompileTimeError
+regress_33235_07_test/02: MissingCompileTimeError
+regress_33235_07_test/03: MissingCompileTimeError
+regress_33235_08_test/02: MissingCompileTimeError
+regress_33235_08_test/03: MissingCompileTimeError
+regress_33235_09_test/02: MissingCompileTimeError
+regress_33235_09_test/03: MissingCompileTimeError
+regress_33235_10_test/01: MissingCompileTimeError
+regress_33235_10_test/02: MissingCompileTimeError
+regress_33235_10_test/03: MissingCompileTimeError
+regress_33235_12_test/01: MissingCompileTimeError
+regress_33235_12_test/02: MissingCompileTimeError
+regress_33235_12_test/03: MissingCompileTimeError
+regress_33235_13_test/01: MissingCompileTimeError
+regress_33235_13_test/02: MissingCompileTimeError
+regress_33235_13_test/03: MissingCompileTimeError
+regress_33235_14_test/02: MissingCompileTimeError
+regress_33235_14_test/03: MissingCompileTimeError
+regress_33235_15_test/02: MissingCompileTimeError
+regress_33235_15_test/03: MissingCompileTimeError
+regress_33235_16_test/01: MissingCompileTimeError
+regress_33235_16_test/02: MissingCompileTimeError
+regress_33235_16_test/03: MissingCompileTimeError
+setter4_test: MissingCompileTimeError
 setter_override2_test/02: MissingCompileTimeError
 super_no_such_method4_test/01: MissingCompileTimeError # Requires Dart 2 semantics. See http://dartbug.com/33380.
 super_no_such_method5_test/01: MissingCompileTimeError # Requires Dart 2 semantics. See http://dartbug.com/33380.

@@ -668,7 +668,6 @@ redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 regress_13462_1_test: RuntimeError
 regress_18535_test: RuntimeError
-setter4_test: MissingCompileTimeError
 sync_generator2_test/41: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_impl.dart': Failed assertion: line 939 pos 18: 'asyncMarker == AsyncMarker.SYNC': is not true.
 sync_generator2_test/52: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_impl.dart': Failed assertion: line 939 pos 18: 'asyncMarker == AsyncMarker.SYNC': is not true.
 type_literal_prefix_call_test/00: MissingCompileTimeError
@@ -875,7 +874,6 @@ redirecting_factory_malbounded_test/01: MissingCompileTimeError
 regress_13462_1_test: RuntimeError
 regress_18535_test: RuntimeError
 regress_21795_test: RuntimeError # Issue 12605
-setter4_test: MissingCompileTimeError
 stack_trace_test: RuntimeError, OK # Stack trace not preserved in minified code.
 symbol_conflict_test: RuntimeError # Issue 23857
 type_literal_prefix_call_test/00: MissingCompileTimeError

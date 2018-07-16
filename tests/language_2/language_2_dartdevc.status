@@ -149,10 +149,22 @@ regress_24283_test: RuntimeError # Intended to fail, requires 64-bit numbers.
 regress_29025_test: CompileTimeError # Issue 29081
 regress_29349_test: CompileTimeError # Issue 31093
 regress_29405_test: CompileTimeError # Issue 29421
-regress_29784_test/02: Crash # assert initializers not implemented
 regress_29784_test/02: MissingCompileTimeError
+regress_29784_test/02: Crash # assert initializers not implemented
 regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError # As expected. Should we make this a multi test?
+regress_33235_03_test/01: MissingCompileTimeError
+regress_33235_07_test/03: MissingCompileTimeError
+regress_33235_10_test/01: MissingCompileTimeError
+regress_33235_10_test/02: MissingCompileTimeError
+regress_33235_10_test/03: MissingCompileTimeError
+regress_33235_11_test/01: MissingCompileTimeError
+regress_33235_12_test/03: MissingCompileTimeError
+regress_33235_13_test/03: MissingCompileTimeError
+regress_33235_16_test/02: MissingCompileTimeError
+regress_33235_16_test/03: MissingCompileTimeError
+regress_33235_19_test: CompileTimeError
+regress_33235_20_test: CompileTimeError
 setter_override2_test/02: MissingCompileTimeError # Issue 14736
 stacktrace_test: RuntimeError # Issue 29920
 static_setter_conflicts_test/02: MissingCompileTimeError
@@ -525,7 +537,6 @@ regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
 regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 regress_30339_test: CompileTimeError
-setter4_test: MissingCompileTimeError
 setter_no_getter_test/01: CompileTimeError
 string_split_test: CompileTimeError # Issue 31616
 string_supertype_checked_test: CompileTimeError # Issue 31616

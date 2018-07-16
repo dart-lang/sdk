@@ -114,6 +114,30 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  test_conflictingConstructorNameAndMember_field() async {
+    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTS_WITH_CONSTRUCTOR, found 0;
+    //          1 errors of type CompileTimeErrorCode.CONFLICTS_WITH_MEMBER, found 0
+    await super.test_conflictingConstructorNameAndMember_field();
+  }
+
+  @override
+  @failingTest
+  test_conflictingConstructorNameAndMember_getter() async {
+    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTS_WITH_CONSTRUCTOR, found 0;
+    //          1 errors of type CompileTimeErrorCode.CONFLICTS_WITH_MEMBER, found 0
+    await super.test_conflictingConstructorNameAndMember_getter();
+  }
+
+  @override
+  @failingTest
+  test_conflictingConstructorNameAndMember_method() async {
+    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTS_WITH_CONSTRUCTOR, found 0;
+    //          1 errors of type CompileTimeErrorCode.CONFLICTS_WITH_MEMBER, found 0
+    await super.test_conflictingConstructorNameAndMember_method();
+  }
+
+  @override
+  @failingTest
   test_conflictingGenericInterfaces_hierarchyLoop() =>
       super.test_conflictingGenericInterfaces_hierarchyLoop();
 

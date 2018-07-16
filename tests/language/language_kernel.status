@@ -3,6 +3,8 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == fasta ]
+bad_constructor_test/04: MissingCompileTimeError
+bad_constructor_test/06: MissingCompileTimeError
 function_type_parameter2_negative_test: Fail
 function_type_parameter_negative_test: Fail
 prefix5_negative_test: Fail
