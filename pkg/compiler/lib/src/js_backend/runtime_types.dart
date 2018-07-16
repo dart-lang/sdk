@@ -511,13 +511,10 @@ abstract class RuntimeTypesSubstitutionsMixin
     ArgumentCollector collector = new ArgumentCollector();
     for (ClassEntity target in checks.classes) {
       ClassChecks classChecks = checks[target];
-      if (classChecks.isNotEmpty) {
-        instantiated.add(target);
-        for (TypeCheck check in classChecks.checks) {
-          Substitution substitution = check.substitution;
-          if (substitution != null) {
-            collector.collectAll(substitution.arguments);
-          }
+      for (TypeCheck check in classChecks.checks) {
+        Substitution substitution = check.substitution;
+        if (substitution != null) {
+          collector.collectAll(substitution.arguments);
         }
       }
     }
@@ -1862,12 +1859,20 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
 class _RuntimeTypesChecks implements RuntimeTypesChecks {
   final RuntimeTypesSubstitutions _substitutions;
   final TypeChecks requiredChecks;
+  final Iterable<ClassEntity> _typeLiterals;
+  final Iterable<ClassEntity> _typeArguments;
 
-  _RuntimeTypesChecks(this._substitutions, this.requiredChecks);
+  _RuntimeTypesChecks(this._substitutions, this.requiredChecks,
+      this._typeLiterals, this._typeArguments);
 
   @override
   Iterable<ClassEntity> get requiredClasses {
-    return _substitutions.getClassesUsedInSubstitutions(requiredChecks);
+    Set<ClassEntity> required = new Set<ClassEntity>();
+    required.addAll(_typeArguments);
+    required.addAll(_typeLiterals);
+    required
+        .addAll(_substitutions.getClassesUsedInSubstitutions(requiredChecks));
+    return required;
   }
 
   @override
@@ -1936,6 +1941,8 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
     }
 
     Set<FunctionType> checkedFunctionTypes = new Set<FunctionType>();
+    Set<ClassEntity> typeLiterals = new Set<ClassEntity>();
+    Set<ClassEntity> typeArguments = new Set<ClassEntity>();
 
     TypeVisitor liveTypeVisitor =
         new TypeVisitor(onClass: (ClassEntity cls, {TypeVisitorState state}) {
@@ -1943,9 +1950,11 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
       switch (state) {
         case TypeVisitorState.typeArgument:
           classUse.typeArgument = true;
+          typeArguments.add(cls);
           break;
         case TypeVisitorState.typeLiteral:
           classUse.typeLiteral = true;
+          typeLiterals.add(cls);
           break;
         case TypeVisitorState.direct:
           break;
@@ -1959,6 +1968,7 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
         case TypeVisitorState.typeArgument:
           classUse.typeArgument = true;
           classUse.checkedTypeArgument = true;
+          typeArguments.add(cls);
           break;
         case TypeVisitorState.typeLiteral:
           break;
@@ -2086,7 +2096,8 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
 
     cachedRequiredChecks = _computeChecks(classUseMap);
     rtiChecksBuilderClosed = true;
-    return new _RuntimeTypesChecks(this, cachedRequiredChecks);
+    return new _RuntimeTypesChecks(
+        this, cachedRequiredChecks, typeArguments, typeLiterals);
   }
 }
 
@@ -2882,8 +2893,6 @@ class ClassChecks {
   TypeCheck operator [](ClassEntity cls) => _map[cls];
 
   Iterable<TypeCheck> get checks => _map.values;
-
-  bool get isNotEmpty => _map.isNotEmpty;
 
   String toString() {
     return 'ClassChecks($checks)';

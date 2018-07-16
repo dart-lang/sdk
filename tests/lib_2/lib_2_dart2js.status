@@ -515,7 +515,6 @@ html/custom/js_custom_test: Fail # Issue 14643
 [ $compiler == dart2js && $browser && $strong ]
 html/element_classes_svg_test: RuntimeError
 html/js_array_test: RuntimeError
-html/js_mock_test: RuntimeError
 html/typed_arrays_range_checks_test: RuntimeError
 
 [ $compiler == dart2js && $checked ]
