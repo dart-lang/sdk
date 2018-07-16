@@ -140,6 +140,12 @@ NotConstantExpression:
   analyzerCode: NOT_CONSTANT_EXPRESSION
   dart2jsCode: "*fatal*"
 
+NotAConstantExpression:
+  template: "Not a constant expression."
+  severity: ERROR
+  analyzerCode: NOT_CONSTANT_EXPRESSION
+  dart2jsCode: "*fatal*"
+
 NonAsciiIdentifier:
   template: "The non-ASCII character '#character' (#unicode) can't be used in identifiers, only in strings and comments."
   tip: "Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign)."

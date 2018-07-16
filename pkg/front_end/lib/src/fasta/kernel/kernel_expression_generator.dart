@@ -13,6 +13,7 @@ import '../fasta_codes.dart'
     show
         LocatedMessage,
         messageLoadLibraryTakesNoArguments,
+        messageNotAConstantExpression,
         messageSuperAsExpression,
         templateNotConstantExpression;
 
@@ -643,8 +644,8 @@ class KernelSuperPropertyAccessGenerator extends KernelGenerator
   @override
   Expression doInvocation(int offset, Arguments arguments) {
     if (helper.constantContext != ConstantContext.none) {
-      helper.deprecated_addCompileTimeError(
-          offset, "Not a constant expression.");
+      // TODO(brianwilkerson) Fix the length
+      helper.addCompileTimeError(messageNotAConstantExpression, offset, 1);
     }
     if (getter == null || isFieldOrGetter(getter)) {
       return helper.buildMethodInvocation(

@@ -16,6 +16,7 @@ import '../fasta_codes.dart'
         messageCantUsePrefixAsExpression,
         messageCantUsePrefixWithNullAware,
         messageInvalidInitializer,
+        messageNotAConstantExpression,
         templateCantUseDeferredPrefixAsConstant,
         templateDeferredTypeAnnotation,
         templateIntegerLiteralIsOutOfRange,
@@ -211,8 +212,8 @@ abstract class Generator implements ExpressionGenerator {
     } else {
       if (helper.constantContext != ConstantContext.none &&
           send.name != lengthName) {
-        helper.deprecated_addCompileTimeError(
-            offsetForToken(token), "Not a constant expression.");
+        helper.addCompileTimeError(
+            messageNotAConstantExpression, offsetForToken(token), token.length);
       }
       return PropertyAccessGenerator.make(helper, send.token, buildSimpleRead(),
           send.name, null, null, isNullAware);
@@ -944,7 +945,7 @@ abstract class DelayedAssignment implements ContextAwareGenerator {
   Expression handleAssignment(bool voidContext) {
     if (helper.constantContext != ConstantContext.none) {
       return helper.deprecated_buildCompileTimeError(
-          "Not a constant expression.", offsetForToken(token));
+          null, offsetForToken(token), messageNotAConstantExpression);
     }
     if (identical("=", assignmentOperator)) {
       return generator.buildAssignment(value, voidContext: voidContext);

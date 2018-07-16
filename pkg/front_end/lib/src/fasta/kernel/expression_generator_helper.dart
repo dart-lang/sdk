@@ -77,7 +77,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Expression wrapInCompileTimeError(Expression expression, Message message);
 
-  Expression deprecated_buildCompileTimeError(String error, [int offset]);
+  Expression deprecated_buildCompileTimeError(String error,
+      [int offset, Message message]);
 
   Initializer buildInvalidInitializer(Expression expression, [int offset]);
 
@@ -143,6 +144,9 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   DartType validatedTypeVariableUse(
       TypeParameterType type, int offset, bool nonInstanceAccessIsError);
+
+  void addCompileTimeError(Message message, int charOffset, int length,
+      {List<LocatedMessage> context});
 
   void addProblem(Message message, int charOffset, int length);
 

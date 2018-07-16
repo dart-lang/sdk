@@ -4957,6 +4957,17 @@ Message _withArgumentsNonSimpleBoundViaVariable(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNotAConstantExpression = messageNotAConstantExpression;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNotAConstantExpression = const MessageCode(
+    "NotAConstantExpression",
+    analyzerCode: "NOT_CONSTANT_EXPRESSION",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message: r"""Not a constant expression.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         Token token,

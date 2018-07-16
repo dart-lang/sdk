@@ -246,6 +246,7 @@ NoUnnamedConstructorInObject/example: Fail
 NonAsciiIdentifier/expression: Fail
 NonInstanceTypeVariableUse/example: Fail
 NonPartOfDirectiveInPart/script1: Fail
+NotAConstantExpression/example: Fail
 NotAPrefixInTypeAnnotation/example: Fail
 NotAType/example: Fail
 NotAnLvalue/analyzerCode: Fail
