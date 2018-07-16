@@ -26,3 +26,6 @@ This line is a long, very long, very very long, very very very long, very very v
 ''';
 
 var interpolated = 'this $uriIsOk that';
+
+var line80EndingWithCRLF =
+    '                                                                   '; // OK
