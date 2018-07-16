@@ -1,5 +1,7 @@
 ## 1.1.5
 
+* Set max SDK version to <3.0.0.
+
 * Introduce @isTest and @isTestGroup to declare a function that is a
   test, or a test group.
 
