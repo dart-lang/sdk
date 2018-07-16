@@ -26,13 +26,10 @@ analyzer/test/src/task/strong/checker_test: Slow, Pass
 analyzer_plugin/test/plugin/folding_mixin_test: Slow, Pass
 analyzer_plugin/tool/spec/check_all_test: Skip # Issue 29133
 dart_messages/test/dart_messages_test: Skip # Requires a package root.
-dev_compiler/gen/*: SkipByDesign # Skip dev_compiler codegen tests
-dev_compiler/test/codegen/*: Skip # Skip dev_compiler codegen tests
-dev_compiler/test/codegen_test: Skip # Skip dev_compiler codegen tests
-dev_compiler/test/options/*: Skip # Skip dev_compiler codegen tests
-dev_compiler/test/sourcemap/*: SkipByDesign # Skip dev_compiler codegen tests
+dev_compiler/test/options/*: Skip # test needs fixes
+dev_compiler/test/sourcemap/*: SkipByDesign # Skip sourcemap tests
 dev_compiler/test/sourcemap/testfiles/*: SkipByDesign # Skip dev_compiler codegen tests
-dev_compiler/test/worker/*: Skip # Skip dev_compiler codegen tests
+dev_compiler/test/worker/*: Skip # test needs fixes
 front_end/test/fasta/analyze_test: Pass, Slow
 front_end/test/fasta/ast_builder_test: Pass, Slow
 front_end/test/fasta/bootstrap_test: Pass, Slow
