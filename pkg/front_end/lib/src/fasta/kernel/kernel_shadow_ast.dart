@@ -996,7 +996,8 @@ class FactoryConstructorInvocationJudgment extends StaticInvocation
         fileOffset,
         target.function.functionType,
         computeConstructorReturnType(target),
-        argumentJudgments);
+        argumentJudgments,
+        isConst: isConst);
     var inferredType = inferenceResult.type;
     this.inferredType = inferredType;
     inferrer.listener.constructorInvocation(

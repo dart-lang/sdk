@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class _Y<T extends core::Object = dynamic> extends core::Object {
+  const constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class A<T extends core::Object = dynamic> extends core::Object {
+  generic-covariant-impl field self::_Y<self::A::T> x;
+  constructor •(self::_Y<self::A::T> x) → void
+    : self::A::x = x, super core::Object::•()
+    ;
+}
+class B<T extends core::Object = dynamic> extends self::A<self::B::T> {
+  constructor •() → void
+    : super self::A::•(const self::_Y::•<core::Null>())
+    ;
+}
+static method main() → dynamic {
+  dynamic x = new self::B::•<dynamic>().{self::A::x};
+  if(!(x is self::_Y<core::Null>)) {
+    throw "Unexpected run-time type: `new B().x` is ${x.{core::Object::runtimeType}}, but `_Y<Null>` expected";
+  }
+}
