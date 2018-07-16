@@ -2785,7 +2785,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       if ((isConst || constantContext == ConstantContext.inferred) &&
           !target.isConst) {
         return deprecated_buildCompileTimeError(
-            "Not a const constructor.", charOffset);
+            null, charOffset, fasta.messageNonConstConstructor);
       }
       return new ConstructorInvocationJudgment(
           target, forest.castArguments(arguments),
@@ -2799,7 +2799,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         if ((isConst || constantContext == ConstantContext.inferred) &&
             !procedure.isConst) {
           return deprecated_buildCompileTimeError(
-              "Not a const factory.", charOffset);
+              null, charOffset, fasta.messageNonConstFactory);
         }
         return new FactoryConstructorInvocationJudgment(
             target, forest.castArguments(arguments),

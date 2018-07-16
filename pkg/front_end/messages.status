@@ -245,6 +245,8 @@ NoSuchNamedParameter/example: Fail
 NoUnnamedConstructorInObject/analyzerCode: Fail
 NoUnnamedConstructorInObject/example: Fail
 NonAsciiIdentifier/expression: Fail
+NonConstConstructor/example: Fail
+NonConstFactory/example: Fail
 NonInstanceTypeVariableUse/example: Fail
 NonPartOfDirectiveInPart/script1: Fail
 NotAConstantExpression/example: Fail

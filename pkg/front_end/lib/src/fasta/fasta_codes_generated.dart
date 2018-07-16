@@ -4899,6 +4899,31 @@ Message _withArgumentsNonAsciiWhitespace(int codePoint) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonConstConstructor = messageNonConstConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonConstConstructor = const MessageCode(
+    "NonConstConstructor",
+    analyzerCode: "NOT_CONSTANT_EXPRESSION",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message:
+        r"""Cannot invoke a non-'const' constructor where a const expression is expected.""",
+    tip: r"""Try using a constructor or factory that is 'const'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonConstFactory = messageNonConstFactory;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonConstFactory = const MessageCode("NonConstFactory",
+    analyzerCode: "NOT_CONSTANT_EXPRESSION",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message:
+        r"""Cannot invoke a non-'const' factory where a const expression is expected.""",
+    tip: r"""Try using a constructor or factory that is 'const'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNonInstanceTypeVariableUse =
     messageNonInstanceTypeVariableUse;
 

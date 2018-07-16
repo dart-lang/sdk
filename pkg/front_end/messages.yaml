@@ -474,6 +474,20 @@ ConstFactory:
   script:
     - "class C { const factory C() {} }"
 
+NonConstFactory:
+  template: "Cannot invoke a non-'const' factory where a const expression is expected."
+  tip: "Try using a constructor or factory that is 'const'."
+  severity: ERROR
+  analyzerCode: NOT_CONSTANT_EXPRESSION
+  dart2jsCode: "*fatal*"
+
+NonConstConstructor:
+  template: "Cannot invoke a non-'const' constructor where a const expression is expected."
+  tip: "Try using a constructor or factory that is 'const'."
+  severity: ERROR
+  analyzerCode: NOT_CONSTANT_EXPRESSION
+  dart2jsCode: "*fatal*"
+
 ConstAfterFactory:
   template: "The modifier 'const' should be before the modifier 'factory'."
   tip: "Try re-ordering the modifiers."
