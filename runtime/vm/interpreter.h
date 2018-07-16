@@ -24,6 +24,7 @@ class RawImmutableArray;
 class RawArray;
 class RawObjectPool;
 class RawFunction;
+class RawSubtypeTestCache;
 class ObjectPointerVisitor;
 
 // Interpreter intrinsic handler. It is invoked on entry to the intrinsified
@@ -194,6 +195,13 @@ class Interpreter {
                           RawObject** FP,
                           RawObject*** SP,
                           uint32_t** pc);
+
+  bool AssertAssignable(Thread* thread,
+                        uint32_t* pc,
+                        RawObject** FP,
+                        RawObject** call_top,
+                        RawObject** args,
+                        RawSubtypeTestCache* cache);
 
 #if defined(DEBUG)
   // Returns true if tracing of executed instructions is enabled.

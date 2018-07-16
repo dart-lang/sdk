@@ -963,16 +963,46 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
     }
     case RawFunction::kImplicitSetter: {
       // Field object is cached in function's data_.
-      // TODO(regis): We currently ignore field.guarded_cid() and the type
-      // test of the setter value. Either execute these tests here or fall
-      // back to compiling the setter when required.
+      // TODO(regis): We currently ignore field.guarded_cid().
       RawInstance* instance = reinterpret_cast<RawInstance*>(*call_base);
       RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
       intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
-      reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words] =
-          *(call_base + 1);
+      RawAbstractType* field_type = field->ptr()->type_;
+      const classid_t cid =
+          field_type->GetClassId() == kTypeCid
+              ? Smi::Value(reinterpret_cast<RawSmi*>(
+                    Type::RawCast(field_type)->ptr()->type_class_id_))
+              : kIllegalCid;  // Not really illegal, but not a Type to skip.
+      // Perform type test of value if field type is not one of dynamic, object,
+      // or void, and if the value is not null.
+      RawObject* null_value = Object::null();
+      RawObject* value = *(call_base + 1);
+      if (cid != kDynamicCid && cid != kInstanceCid && cid != kVoidCid &&
+          value != null_value) {
+        // Push arguments of type test.
+        // Type checked value is at call_base + 1.
+        // Provide type arguments of instance as instantiator.
+        RawClass* instance_class = thread->isolate()->class_table()->At(
+            InterpreterHelpers::GetClassId(instance));
+        call_base[2] =
+            instance_class->ptr()->num_type_arguments_ > 0
+                ? reinterpret_cast<RawObject**>(
+                      instance
+                          ->ptr())[instance_class->ptr()
+                                       ->type_arguments_field_offset_in_words_]
+                : null_value;
+        call_base[3] = null_value;  // Implicit setters cannot be generic.
+        call_base[4] = field_type;
+        call_base[5] = field->ptr()->name_;
+        if (!AssertAssignable(thread, *pc, *FP, call_base + 5, call_base + 1,
+                              SubtypeTestCache::RawCast(null_value))) {
+          *invoked = true;
+          return false;
+        }
+      }
+      reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words] = value;
       *SP = call_base;
-      **SP = Object::null();
+      **SP = null_value;
       *invoked = true;
       return true;
     }
@@ -1458,6 +1488,81 @@ DART_FORCE_INLINE bool Interpreter::Deoptimize(Thread* thread,
   pp_ = InterpreterHelpers::FrameCode(*FP)->ptr()->object_pool_;
 
   return true;
+}
+
+bool Interpreter::AssertAssignable(Thread* thread,
+                                   uint32_t* pc,
+                                   RawObject** FP,
+                                   RawObject** call_top,
+                                   RawObject** args,
+                                   RawSubtypeTestCache* cache) {
+  RawObject* null_value = Object::null();
+  if (cache != null_value) {
+    RawInstance* instance = static_cast<RawInstance*>(args[0]);
+    RawTypeArguments* instantiator_type_arguments =
+        static_cast<RawTypeArguments*>(args[1]);
+    RawTypeArguments* function_type_arguments =
+        static_cast<RawTypeArguments*>(args[2]);
+
+    const intptr_t cid = InterpreterHelpers::GetClassId(instance);
+
+    RawTypeArguments* instance_type_arguments =
+        static_cast<RawTypeArguments*>(null_value);
+    RawObject* instance_cid_or_function;
+    if (cid == kClosureCid) {
+      RawClosure* closure = static_cast<RawClosure*>(instance);
+      if (closure->ptr()->function_type_arguments_ != TypeArguments::null()) {
+        // Cache cannot be used for generic closures.
+        goto AssertAssignableCallRuntime;
+      }
+      instance_type_arguments = closure->ptr()->instantiator_type_arguments_;
+      instance_cid_or_function = closure->ptr()->function_;
+    } else {
+      instance_cid_or_function = Smi::New(cid);
+
+      RawClass* instance_class = thread->isolate()->class_table()->At(cid);
+      if (instance_class->ptr()->num_type_arguments_ < 0) {
+        goto AssertAssignableCallRuntime;
+      } else if (instance_class->ptr()->num_type_arguments_ > 0) {
+        instance_type_arguments = reinterpret_cast<RawTypeArguments**>(
+            instance->ptr())[instance_class->ptr()
+                                 ->type_arguments_field_offset_in_words_];
+      }
+    }
+
+    for (RawObject** entries = cache->ptr()->cache_->ptr()->data();
+         entries[0] != null_value;
+         entries += SubtypeTestCache::kTestEntryLength) {
+      if ((entries[SubtypeTestCache::kInstanceClassIdOrFunction] ==
+           instance_cid_or_function) &&
+          (entries[SubtypeTestCache::kInstanceTypeArguments] ==
+           instance_type_arguments) &&
+          (entries[SubtypeTestCache::kInstantiatorTypeArguments] ==
+           instantiator_type_arguments) &&
+          (entries[SubtypeTestCache::kFunctionTypeArguments] ==
+           function_type_arguments)) {
+        if (Bool::True().raw() == entries[SubtypeTestCache::kTestResult]) {
+          return true;
+        } else {
+          break;
+        }
+      }
+    }
+  }
+
+AssertAssignableCallRuntime:
+  // TODO(regis): Modify AssertAssignable bytecode to expect arguments in same
+  // order as the TypeCheck runtime call, so this copying can be avoided.
+  call_top[1] = args[0];  // instance
+  call_top[2] = args[3];  // type
+  call_top[3] = args[1];  // instantiator type args
+  call_top[4] = args[2];  // function type args
+  call_top[5] = args[4];  // name
+  call_top[6] = cache;
+  call_top[7] = Smi::New(kTypeCheckFromInline);
+  Exit(thread, FP, call_top + 8, pc);
+  NativeArguments native_args(thread, 7, call_top + 1, call_top + 1);
+  return InvokeRuntime(thread, this, DRT_TypeCheck, native_args);
 }
 
 RawObject* Interpreter::Call(const Function& function,
@@ -3583,76 +3688,11 @@ RawObject* Interpreter::Call(RawFunction* function,
     if (!smi_ok && (args[0] != null_value)) {
       RawSubtypeTestCache* cache =
           static_cast<RawSubtypeTestCache*>(LOAD_CONSTANT(rD));
-      if (cache != null_value) {
-        RawInstance* instance = static_cast<RawInstance*>(args[0]);
-        RawTypeArguments* instantiator_type_arguments =
-            static_cast<RawTypeArguments*>(args[1]);
-        RawTypeArguments* function_type_arguments =
-            static_cast<RawTypeArguments*>(args[2]);
 
-        const intptr_t cid = InterpreterHelpers::GetClassId(instance);
-
-        RawTypeArguments* instance_type_arguments =
-            static_cast<RawTypeArguments*>(null_value);
-        RawObject* instance_cid_or_function;
-        if (cid == kClosureCid) {
-          RawClosure* closure = static_cast<RawClosure*>(instance);
-          if (closure->ptr()->function_type_arguments_ !=
-              TypeArguments::null()) {
-            // Cache cannot be used for generic closures.
-            goto AssertAssignableCallRuntime;
-          }
-          instance_type_arguments =
-              closure->ptr()->instantiator_type_arguments_;
-          instance_cid_or_function = closure->ptr()->function_;
-        } else {
-          instance_cid_or_function = Smi::New(cid);
-
-          RawClass* instance_class = thread->isolate()->class_table()->At(cid);
-          if (instance_class->ptr()->num_type_arguments_ < 0) {
-            goto AssertAssignableCallRuntime;
-          } else if (instance_class->ptr()->num_type_arguments_ > 0) {
-            instance_type_arguments = reinterpret_cast<RawTypeArguments**>(
-                instance->ptr())[instance_class->ptr()
-                                     ->type_arguments_field_offset_in_words_];
-          }
-        }
-
-        for (RawObject** entries = cache->ptr()->cache_->ptr()->data();
-             entries[0] != null_value;
-             entries += SubtypeTestCache::kTestEntryLength) {
-          if ((entries[SubtypeTestCache::kInstanceClassIdOrFunction] ==
-               instance_cid_or_function) &&
-              (entries[SubtypeTestCache::kInstanceTypeArguments] ==
-               instance_type_arguments) &&
-              (entries[SubtypeTestCache::kInstantiatorTypeArguments] ==
-               instantiator_type_arguments) &&
-              (entries[SubtypeTestCache::kFunctionTypeArguments] ==
-               function_type_arguments)) {
-            if (true_value == entries[SubtypeTestCache::kTestResult]) {
-              goto AssertAssignableOk;
-            } else {
-              break;
-            }
-          }
-        }
-      }
-
-    AssertAssignableCallRuntime:
-      SP[1] = args[0];  // instance
-      SP[2] = args[3];  // type
-      SP[3] = args[1];  // instantiator type args
-      SP[4] = args[2];  // function type args
-      SP[5] = args[4];  // name
-      SP[6] = cache;
-      SP[7] = Smi::New(kTypeCheckFromInline);
-      Exit(thread, FP, SP + 8, pc);
-      NativeArguments native_args(thread, 7, SP + 1, SP - 4);
-      INVOKE_RUNTIME(DRT_TypeCheck, native_args);
+      AssertAssignable(thread, pc, FP, SP, args, cache);
     }
 
-  AssertAssignableOk:
-    SP -= 4;
+    SP -= 4;  // Instance remains on stack.
     DISPATCH();
   }
 

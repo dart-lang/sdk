@@ -794,6 +794,15 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
 
   if (should_update_cache) {
     if (cache.IsNull()) {
+#if defined(DART_USE_INTERPRETER)
+      // TODO(regis): Remove this workaround once the interpreter can provide a
+      // non-null cache for the type test in an implicit setter.
+      if (mode == kTypeCheckFromInline) {
+        arguments.SetReturn(src_instance);
+        return;
+      }
+#endif  // defined(DART_USE_INTERPRETER)
+
 #if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
       ASSERT(mode == kTypeCheckFromSlowStub);
       // We lazily create [SubtypeTestCache] for those call sites which actually
