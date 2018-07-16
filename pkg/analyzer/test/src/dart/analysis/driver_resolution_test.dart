@@ -7703,14 +7703,12 @@ main() {
 
     SimpleIdentifier typePrefix = typePrefixed.prefix;
     expect(typePrefix.staticElement, isNull);
-    if (useCFE) {
-      expect(typePrefix.staticType, isDynamicType);
-    }
+    expect(typePrefix.staticType, isNull);
 
     SimpleIdentifier typeIdentifier = typePrefixed.identifier;
     expect(typeIdentifier.staticElement, isNull);
     if (useCFE) {
-      expect(typePrefix.staticType, isDynamicType);
+      expect(typeIdentifier.staticType, isDynamicType);
     }
 
     assertTypeArguments(typeName.typeArguments, [intType, doubleType]);
@@ -7761,7 +7759,7 @@ main() {
     SimpleIdentifier typeIdentifier = typePrefixed.identifier;
     expect(typeIdentifier.staticElement, isNull);
     if (useCFE) {
-      expect(typePrefix.staticType, isDynamicType);
+      expect(typeIdentifier.staticType, isDynamicType);
     }
 
     assertTypeArguments(typeName.typeArguments, [intType, doubleType]);
@@ -7802,20 +7800,16 @@ main() {
 
     SimpleIdentifier typePrefix = typePrefixed.prefix;
     expect(typePrefix.staticElement, isNull);
-    if (useCFE) {
-      expect(typePrefix.staticType, isDynamicType);
-    }
+    expect(typePrefix.staticType, isNull);
 
     SimpleIdentifier typeIdentifier = typePrefixed.identifier;
     expect(typeIdentifier.staticElement, isNull);
     if (useCFE) {
-      expect(typePrefix.staticType, isDynamicType);
+      expect(typeIdentifier.staticType, isDynamicType);
     }
 
     expect(constructorName.name.staticElement, isNull);
-    if (useCFE) {
-      expect(constructorName.name.staticType, isDynamicType);
-    }
+    expect(constructorName.name.staticType, isNull);
 
     assertTypeArguments(typeName.typeArguments, [intType, doubleType]);
     _assertInvocationArguments(creation.argumentList,
@@ -7865,7 +7859,7 @@ main() {
     SimpleIdentifier typeIdentifier = typePrefixed.identifier;
     expect(typeIdentifier.staticElement, isNull);
     if (useCFE) {
-      expect(typePrefix.staticType, isNull);
+      expect(typeIdentifier.staticType, isDynamicType);
     }
 
     expect(constructorName.name.staticElement, isNull);
@@ -7909,7 +7903,7 @@ main() {
 
     PrefixedIdentifier typePrefixed = typeName.name;
     expect(typePrefixed.staticElement, same(randomElement));
-    expect(typePrefixed.staticType, randomElement.type);
+    expect(typePrefixed.staticType, useCFE ? dynamicType : randomElement.type);
 
     SimpleIdentifier typePrefix = typePrefixed.prefix;
     expect(typePrefix.staticElement, same(foo));
@@ -7917,7 +7911,7 @@ main() {
 
     SimpleIdentifier typeIdentifier = typePrefixed.identifier;
     expect(typeIdentifier.staticElement, same(randomElement));
-    expect(typePrefix.staticType, isNull);
+    expect(typeIdentifier.staticType, useCFE ? dynamicType : null);
 
     expect(constructorName.name.staticElement, isNull);
     expect(constructorName.name.staticType, isNull);

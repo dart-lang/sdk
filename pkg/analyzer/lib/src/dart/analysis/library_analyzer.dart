@@ -1089,6 +1089,7 @@ class _ResolutionApplierContext implements TypeContext {
           invokeType: translateType(data.invokeType),
           isExplicitCall: data.isExplicitCall,
           isImplicitCall: data.isImplicitCall,
+          isPrefixReference: data.isPrefixReference,
           isTypeReference: data.isTypeReference,
           isWriteReference: data.isWriteReference,
           literalType: translateType(data.literalType),

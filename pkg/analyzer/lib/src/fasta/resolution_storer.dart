@@ -19,6 +19,7 @@ class ResolutionData<Type, Declaration, Reference, PrefixInfo> {
   final Type invokeType;
   final bool isExplicitCall;
   final bool isImplicitCall;
+  final bool isPrefixReference;
   final bool isTypeReference;
   final bool isWriteReference;
   final Type literalType;
@@ -35,6 +36,7 @@ class ResolutionData<Type, Declaration, Reference, PrefixInfo> {
       this.invokeType,
       this.isExplicitCall = false,
       this.isImplicitCall = false,
+      this.isPrefixReference = false,
       this.isTypeReference = false,
       this.isWriteReference = false,
       this.literalType,
@@ -547,7 +549,7 @@ class ResolutionStorer
   }
 
   void storePrefixInfo(int location, int prefixInfo) {
-    _store(location, prefixInfo: prefixInfo);
+    _store(location, isPrefixReference: true, prefixInfo: prefixInfo);
   }
 
   void stringConcatenation(
@@ -684,6 +686,7 @@ class ResolutionStorer
       DartType invokeType,
       bool isExplicitCall = false,
       bool isImplicitCall = false,
+      bool isPrefixReference = false,
       bool isTypeReference = false,
       bool isWriteReference = false,
       DartType literalType,
@@ -704,6 +707,7 @@ class ResolutionStorer
         invokeType: invokeType,
         isExplicitCall: isExplicitCall,
         isImplicitCall: isImplicitCall,
+        isPrefixReference: isPrefixReference,
         isTypeReference: isTypeReference,
         isWriteReference: isWriteReference,
         literalType: literalType,

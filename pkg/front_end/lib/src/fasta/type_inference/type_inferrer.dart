@@ -1739,7 +1739,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   @override
   void storePrefix(Token token, PrefixBuilder prefix) {
-    listener.storePrefixInfo(token.offset, prefix.importIndex);
+    listener.storePrefixInfo(token.offset, prefix?.importIndex);
   }
 
   @override

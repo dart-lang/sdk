@@ -168,4 +168,6 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       Arguments arguments, Expression expression);
 
   void storeTypeUse(int offset, Node node);
+
+  void storeUnresolvedPrefix(Token token);
 }

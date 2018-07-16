@@ -4377,6 +4377,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void storeTypeUse(int offset, Node node) {
     _typeInferrer.storeTypeUse(offset, node);
   }
+
+  @override
+  void storeUnresolvedPrefix(Token token) {
+    _typeInferrer.storePrefix(token, null);
+  }
 }
 
 class Identifier {

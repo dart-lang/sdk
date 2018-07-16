@@ -237,11 +237,14 @@ abstract class Generator implements ExpressionGenerator {
       assert(forest.argumentsTypeArguments(arguments).isEmpty);
       forest.argumentsSetTypeArguments(arguments, typeArguments);
     }
-    return new SyntheticExpressionJudgment(helper.throwNoSuchMethodError(
+    helper.storeTypeUse(offsetForToken(token), const InvalidType());
+    var error = helper.throwNoSuchMethodError(
         forest.literalNull(token),
         name == "" ? plainNameForRead : "${plainNameForRead}.$name",
         arguments,
-        nameToken.charOffset));
+        nameToken.charOffset);
+
+    return new InvalidConstructorInvocationJudgment(error, null, arguments);
   }
 
   bool get isThisPropertyAccess => false;
@@ -834,6 +837,7 @@ abstract class UnresolvedNameGenerator implements ErroneousExpressionGenerator {
 
   @override
   /* Expression | Generator */ Object prefixedLookup(Token name) {
+    helper.storeUnresolvedPrefix(token);
     return new UnexpectedQualifiedUseGenerator(helper, name, this, true);
   }
 }

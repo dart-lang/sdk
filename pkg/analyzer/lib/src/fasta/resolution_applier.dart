@@ -381,7 +381,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       classIdentifier = typeIdentifier;
       constructorIdentifier = constructorName.name;
     } else if (typeIdentifier is PrefixedIdentifier) {
-      if (data.prefixInfo != null) {
+      if (data.isPrefixReference) {
         typeIdentifier.prefix.staticElement = data.prefixInfo;
 
         classIdentifier = typeIdentifier.identifier;
