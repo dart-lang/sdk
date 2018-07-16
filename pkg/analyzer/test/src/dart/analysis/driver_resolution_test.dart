@@ -3967,6 +3967,32 @@ void main() {
     }
   }
 
+  test_local_function_with_function_typed_parameter() async {
+    addTestFile('''
+class C {}
+class D {}
+class E {}
+void f() {
+  void g(C callback<T extends E>(D d)) {}
+}
+''');
+    await resolveTestFile();
+    var callback = findNode.simple('callback');
+    assertType(callback, '<T extends E>(D) → C');
+    var cReference = findNode.simple('C callback');
+    var cElement = findElement.class_('C');
+    assertType(cReference, 'C');
+    assertElement(cReference, cElement);
+    var dReference = findNode.simple('D d');
+    var dElement = findElement.class_('D');
+    assertType(dReference, 'D');
+    assertElement(dReference, dElement);
+    var eReference = findNode.simple('E>');
+    var eElement = findElement.class_('E');
+    assertType(eReference, 'E');
+    assertElement(eReference, eElement);
+  }
+
   test_local_parameter() async {
     String content = r'''
 void main(int p) {

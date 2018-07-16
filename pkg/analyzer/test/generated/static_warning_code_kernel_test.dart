@@ -1410,10 +1410,25 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
+  test_typeAnnotationDeferredClass_fieldFormalParameter() {
+    // Bad state: No data for A at 73 in /lib2.dart
+    return super.test_typeAnnotationDeferredClass_fieldFormalParameter();
+  }
+
+  @override
+  @failingTest
   @potentialAnalyzerProblem
   test_typeAnnotationDeferredClass_functionDeclaration_returnType() async {
     return super
         .test_typeAnnotationDeferredClass_functionDeclaration_returnType();
+  }
+
+  @override
+  @failingTest
+  test_typeAnnotationDeferredClass_functionTypedFormalParameter_returnType() {
+    // Bad state: No data for A at 52 in /lib2.dart
+    return super
+        .test_typeAnnotationDeferredClass_functionTypedFormalParameter_returnType();
   }
 
   @override

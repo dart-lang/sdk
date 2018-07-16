@@ -342,6 +342,8 @@ abstract class TypeInferrer {
   Object binderForTypeVariable(
       KernelTypeVariableBuilder builder, int fileOffset, String name);
 
+  void functionTypedFormalParameter(int offset, DartType type);
+
   /// Performs full type inference on the given field initializer.
   void inferFieldInitializer<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
@@ -390,7 +392,8 @@ abstract class TypeInferrer {
 
   void storeTypeUse(int offset, Node node);
 
-  void typeVariableDeclaration(Object binder, TypeParameter typeParameter);
+  void typeVariableDeclaration(
+      int offset, Object binder, TypeParameter typeParameter);
 
   void voidType(int offset, Token token, DartType type);
 }
@@ -414,6 +417,8 @@ class TypeInferrerDisabled extends TypeInferrer {
   @override
   void binderForTypeVariable(
       KernelTypeVariableBuilder builder, int fileOffset, String name) {}
+
+  void functionTypedFormalParameter(int offset, DartType type) {}
 
   @override
   void inferFieldInitializer<Expression, Statement, Initializer, Type>(
@@ -465,7 +470,8 @@ class TypeInferrerDisabled extends TypeInferrer {
   void storeTypeUse(int offset, Node node) {}
 
   @override
-  void typeVariableDeclaration(Object binder, TypeParameter typeParameter) {}
+  void typeVariableDeclaration(
+      int offset, Object binder, TypeParameter typeParameter) {}
 
   @override
   void voidType(int offset, Token token, DartType type) {}
@@ -539,6 +545,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   Object binderForTypeVariable(
       KernelTypeVariableBuilder builder, int fileOffset, String name) {
     return listener.binderForTypeVariable(builder, fileOffset, name);
+  }
+
+  void functionTypedFormalParameter(int offset, DartType type) {
+    listener.functionTypedFormalParameter(offset, type);
   }
 
   bool isAssignable(DartType expectedType, DartType actualType) {
@@ -1758,8 +1768,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   @override
-  void typeVariableDeclaration(Object binder, TypeParameter typeParameter) {
-    return listener.typeVariableDeclaration(binder, typeParameter);
+  void typeVariableDeclaration(
+      int offset, Object binder, TypeParameter typeParameter) {
+    return listener.typeVariableDeclaration(offset, binder, typeParameter);
   }
 
   @override

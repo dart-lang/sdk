@@ -204,6 +204,8 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Expression functionExpression(
       ExpressionJudgment judgment, int fileOffset, DartType inferredType);
 
+  Object functionTypedFormalParameter(int fileOffset, DartType type);
+
   Expression ifNull(
       ExpressionJudgment judgment,
       int fileOffset,
@@ -444,7 +446,7 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       DartType type);
 
   Object typeVariableDeclaration(
-      covariant Object binder, TypeParameter typeParameter);
+      int fileOffset, covariant Object binder, TypeParameter typeParameter);
 
   Expression variableAssign(
       ExpressionJudgment judgment,

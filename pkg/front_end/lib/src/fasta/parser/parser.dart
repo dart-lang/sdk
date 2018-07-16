@@ -1350,7 +1350,7 @@ class Parser {
       token = typeInfo.parseType(beforeType, this);
       endInlineFunctionType = parseFormalParametersRequiredOpt(
           endInlineFunctionType, MemberKind.FunctionTypedParameter);
-      listener.endFunctionTypedFormalParameter();
+      listener.endFunctionTypedFormalParameter(beforeInlineFunctionType);
 
       // Generalized function types don't allow inline function types.
       // The following isn't allowed:

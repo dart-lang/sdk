@@ -291,6 +291,11 @@ class ResolutionStorer
           ExpressionJudgment judgment, int location, DartType inferredType) =>
       genericExpression("functionExpression", location, inferredType);
 
+  @override
+  void functionTypedFormalParameter(int location, DartType type) {
+    _store(location, inferredType: type);
+  }
+
   void genericExpression(
       String expressionType, int location, DartType inferredType) {
     _store(location, inferredType: inferredType);
@@ -615,9 +620,10 @@ class ResolutionStorer
         isTypeReference: true);
   }
 
-  void typeVariableDeclaration(
+  void typeVariableDeclaration(int location,
       covariant TypeVariableBinder binder, TypeParameter typeParameter) {
     _storeTypeVariableDeclaration(binder.fileOffset, typeParameter);
+    _store(location, declaration: binder.fileOffset);
   }
 
   void variableAssign(

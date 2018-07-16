@@ -258,9 +258,19 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       }
       if (normalParameter is SimpleFormalParameter) {
         normalParameter.type?.accept(this);
+      } else if (normalParameter is FieldFormalParameter) {
+        normalParameter.type?.accept(this);
+      } else if (normalParameter is FunctionTypedFormalParameter) {
+        normalParameter.returnType?.accept(this);
+        normalParameter.typeParameters?.accept(this);
+        normalParameter.parameters?.accept(this);
+        var data = _get(normalParameter.identifier);
+        normalParameter.identifier.staticType = data.inferredType;
       } else {
-        // TODO(paulberry): handle function typed formal parameters
-        // (dartbug.com/33845)
+        // Now that DefaultFormalParameter has been handled, all parameters
+        // should be SimpleFormalParameter, FieldFormalParameter, or
+        // FunctionTypedFormalParameter.
+        throw new UnimplementedError('${normalParameter.runtimeType}');
       }
     }
   }

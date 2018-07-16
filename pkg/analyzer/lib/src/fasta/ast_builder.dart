@@ -1220,7 +1220,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endFunctionTypedFormalParameter() {
+  void endFunctionTypedFormalParameter(Token nameToken) {
     debugEvent("FunctionTypedFormalParameter");
 
     FormalParameterList formalParameters = pop();

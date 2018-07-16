@@ -241,6 +241,9 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
 
   @override
+  void functionTypedFormalParameter(int fileOffset, DartType type) {}
+
+  @override
   void ifNull(ExpressionJudgment judgment, int fileOffset, void leftOperand,
       Token operator, void rightOperand, DartType inferredType) {}
 
@@ -506,7 +509,7 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
 
   @override
   void typeVariableDeclaration(
-      covariant void binder, TypeParameter typeParameter) {}
+      int fileOffset, covariant void binder, TypeParameter typeParameter) {}
 
   @override
   void variableAssign(

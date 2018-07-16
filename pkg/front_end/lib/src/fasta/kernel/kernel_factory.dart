@@ -303,6 +303,9 @@ class KernelFactory
   }
 
   @override
+  void functionTypedFormalParameter(int fileOffset, DartType type) {}
+
+  @override
   Expression ifNull(
       ExpressionJudgment judgment,
       int fileOffset,
@@ -662,7 +665,7 @@ class KernelFactory
       DartType type) {}
 
   @override
-  TypeParameter typeVariableDeclaration(
+  TypeParameter typeVariableDeclaration(int fileOffset,
       covariant KernelTypeVariableBuilder binder, TypeParameter typeParameter) {
     return typeParameter;
   }

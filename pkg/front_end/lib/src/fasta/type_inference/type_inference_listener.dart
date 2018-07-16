@@ -216,6 +216,8 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   void functionExpression(
       ExpressionJudgment judgment, Location location, DartType inferredType);
 
+  void functionTypedFormalParameter(Location location, DartType type);
+
   void ifNull(ExpressionJudgment judgment, Location location, void leftOperand,
       Token operator, void rightOperand, DartType inferredType);
 
@@ -451,7 +453,7 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
       DartType type);
 
   void typeVariableDeclaration(
-      covariant Object binder, TypeParameter typeParameter);
+      Location location, covariant Object binder, TypeParameter typeParameter);
 
   void variableAssign(
       ExpressionJudgment judgment,
@@ -685,6 +687,8 @@ class KernelTypeInferenceListener
   @override
   void functionExpression(
       ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  void functionTypedFormalParameter(int location, DartType type) {}
 
   @override
   void ifNull(ExpressionJudgment judgment, location, void leftOperand,
@@ -938,7 +942,7 @@ class KernelTypeInferenceListener
 
   @override
   void typeVariableDeclaration(
-      covariant void binder, TypeParameter typeParameter) {}
+      location, covariant void binder, TypeParameter typeParameter) {}
 
   @override
   void variableAssign(

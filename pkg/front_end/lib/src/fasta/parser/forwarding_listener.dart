@@ -641,8 +641,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endFunctionTypedFormalParameter() {
-    listener?.endFunctionTypedFormalParameter();
+  void endFunctionTypedFormalParameter(Token nameToken) {
+    listener?.endFunctionTypedFormalParameter(nameToken);
   }
 
   @override

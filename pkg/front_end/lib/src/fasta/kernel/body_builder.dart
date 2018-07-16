@@ -2439,7 +2439,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void endFunctionTypedFormalParameter() {
+  void endFunctionTypedFormalParameter(Token nameToken) {
     debugEvent("FunctionTypedFormalParameter");
     if (inCatchClause || functionNestingLevel != 0) {
       exitLocalScope();
@@ -2448,6 +2448,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     DartType returnType = pop();
     List<TypeParameter> typeVariables = typeVariableBuildersToKernel(pop());
     FunctionType type = formals.toFunctionType(returnType, typeVariables);
+    _typeInferrer.functionTypedFormalParameter(nameToken.offset, type);
     exitLocalScope();
     push(type);
     functionNestingLevel--;
@@ -3811,7 +3812,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       variable.binder = _typeInferrer.binderForTypeVariable(
           variable, variable.charOffset, variable.name);
     }
-    storeTypeUse(offsetForToken(token), variable.target);
     if (annotations != null) {
       _typeInferrer.inferMetadata(this, factory, annotations);
       for (Expression annotation in annotations) {
@@ -3893,7 +3893,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     int i = 0;
     for (KernelTypeVariableBuilder builder in typeVariableBuilders) {
       var typeParameter = builder.target;
-      _typeInferrer.typeVariableDeclaration(builder.binder, typeParameter);
+      _typeInferrer.typeVariableDeclaration(
+          builder.charOffset, builder.binder, typeParameter);
       typeParameters[i++] = typeParameter;
     }
     return typeParameters;
