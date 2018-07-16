@@ -363,6 +363,7 @@ abstract class DeferredLoadTask extends CompilerTask {
               }
               break;
             case TypeUseKind.RTI_VALUE:
+            case TypeUseKind.TYPE_ARGUMENT:
               failedAt(element, "Unexpected type use: $typeUse.");
               break;
           }

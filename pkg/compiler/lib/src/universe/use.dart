@@ -577,6 +577,7 @@ enum TypeUseKind {
   IMPLICIT_CAST,
   PARAMETER_CHECK,
   RTI_VALUE,
+  TYPE_ARGUMENT,
 }
 
 /// Use of a [DartType].
@@ -625,6 +626,9 @@ class TypeUse {
         sb.write('param:');
         break;
       case TypeUseKind.RTI_VALUE:
+        sb.write('rti:');
+        break;
+      case TypeUseKind.TYPE_ARGUMENT:
         sb.write('typeArg:');
         break;
     }
@@ -693,6 +697,14 @@ class TypeUse {
   /// [type] used as a direct RTI value.
   factory TypeUse.constTypeLiteral(DartType type) {
     return new TypeUse.internal(type, TypeUseKind.RTI_VALUE);
+  }
+
+  /// [type] used directly as a type argument.
+  ///
+  /// The happens during optimization where a type variable can be replaced by
+  /// an invariable type argument derived from a constant receiver.
+  factory TypeUse.typeArgument(DartType type) {
+    return new TypeUse.internal(type, TypeUseKind.TYPE_ARGUMENT);
   }
 
   bool operator ==(other) {

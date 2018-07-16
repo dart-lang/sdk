@@ -211,6 +211,9 @@ class CodegenEnqueuer extends EnqueuerImpl {
         }
         break;
       case TypeUseKind.RTI_VALUE:
+        _worldBuilder.registerConstTypeLiteral(type);
+        break;
+      case TypeUseKind.TYPE_ARGUMENT:
         _worldBuilder.registerTypeArgument(type);
         break;
     }

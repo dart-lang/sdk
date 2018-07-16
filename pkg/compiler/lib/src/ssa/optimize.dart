@@ -1404,7 +1404,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
             TypeInfoExpressionKind.COMPLETE,
             typeArgument,
             const <HInstruction>[],
-            _abstractValueDomain.dynamicType);
+            _abstractValueDomain.dynamicType,
+            isTypeVariableReplacement: true);
         return replacement;
       }
       return node;
@@ -1436,7 +1437,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
           TypeInfoExpressionKind.COMPLETE,
           type,
           arguments,
-          _abstractValueDomain.dynamicType);
+          _abstractValueDomain.dynamicType,
+          isTypeVariableReplacement: true);
       return replacement;
     }
 

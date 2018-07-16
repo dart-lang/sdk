@@ -3098,6 +3098,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitTypeInfoExpression(HTypeInfoExpression node) {
     DartType type = node.dartType;
+    if (node.isTypeVariableReplacement) {
+      _registry.registerTypeUse(new TypeUse.typeArgument(type));
+    }
+
     List<js.Expression> arguments = <js.Expression>[];
     for (HInstruction input in node.inputs) {
       use(input);

@@ -1998,6 +1998,9 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
 
     codegenWorldBuilder.forEachStaticTypeArgument(processMethodTypeArguments);
     codegenWorldBuilder.forEachDynamicTypeArgument(processMethodTypeArguments);
+    codegenWorldBuilder.liveTypeArguments.forEach((DartType type) {
+      liveTypeVisitor.visitType(type, TypeVisitorState.typeArgument);
+    });
     codegenWorldBuilder.constTypeLiterals.forEach((DartType type) {
       liveTypeVisitor.visitType(type, TypeVisitorState.typeLiteral);
     });
@@ -2944,12 +2947,10 @@ class ClassUse {
 
   /// Whether the class is used in a constant type literal.
   ///
-  /// For instance `A`, `B` and `C` in:
+  /// For instance `A`:
   ///
   ///     class A {}
-  ///     class B<T> {}
-  ///     class C {}
-  ///     main() => A == B<C>;
+  ///     main() => A;
   ///
   bool typeLiteral = false;
 
