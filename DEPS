@@ -59,7 +59,7 @@ vars = {
   "boringssl_rev" : "189270cd190267f5bd60cfe8f8ce7a61d07ba6f4",
   "charcode_tag": "v1.1.1",
   "chrome_rev" : "19997",
-  "cli_util_tag" : "0.1.2+1",
+  "cli_util_rev" : "fb5ee65ab72f6b4dd99a53efd992979ebdaf10df",
   "collection_tag": "1.14.10",
   "convert_tag": "2.0.1",
   "crypto_tag" : "2.0.5",
@@ -86,7 +86,7 @@ vars = {
   "glob_tag": "1.1.5",
   "html_tag" : "0.13.3",
   "http_io_rev": "265e90afbffacb7b2988385d4a6aa2f14e970d44",
-  "http_multi_server_tag" : "2.0.4",
+  "http_multi_server_tag" : "2.0.5",
   "http_parser_tag" : "3.1.1",
   "http_retry_tag": "0.1.1",
   "http_tag" : "0.11.3+17",
@@ -94,18 +94,18 @@ vars = {
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "0.15.6",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
-  "json_rpc_2_tag": "2.0.6",
+  "json_rpc_2_tag": "2.0.8",
   "linter_tag": "0.1.56",
   "logging_tag": "0.11.3+1",
   "markdown_tag": "2.0.1",
   "matcher_tag": "0.12.3",
-  "mime_tag": "0.9.6",
+  "mime_tag": "0.9.6+1",
   "mockito_tag": "d39ac507483b9891165e422ec98d9fb480037c8b",
   "mustache4dart_tag" : "v2.1.2",
   "oauth2_tag": "1.2.1",
   "observatory_pub_packages_rev": "caf0aecfb15077fc7a34d48e9df13606c793fddf",
   "package_config_tag": "1.0.3",
-  "package_resolver_tag": "1.0.2+1",
+  "package_resolver_tag": "1.0.3",
   "path_tag": "1.5.1",
   "plugin_tag": "0.2.0+2",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
@@ -114,12 +114,12 @@ vars = {
   "pub_rev": "58fe996eab8d54f28f5109c407ff0ab62fbd835d",
   "pub_semver_tag": "1.4.1",
   "quiver_tag": "0.29.0",
-  "resource_tag": "2.1.4",
+  "resource_rev": "b786afa7567fc6b95c185edb01cc4e9d3dadbe30",
   "root_certificates_rev": "16ef64be64c7dfdff2b9f4b910726e635ccc519e",
-  "shelf_static_rev": "v0.2.7",
+  "shelf_static_rev": "v0.2.8",
   "shelf_packages_handler_tag": "1.0.3",
   "shelf_tag": "0.7.3+2",
-  "shelf_web_socket_tag": "0.2.2",
+  "shelf_web_socket_tag": "0.2.2+2",
   "source_map_stack_trace_tag": "1.1.4",
   "source_maps-0.9.4_rev": "38524",
   "source_maps_tag": "0.10.6",
@@ -128,8 +128,8 @@ vars = {
   "stream_channel_tag": "1.6.4",
   "string_scanner_tag": "1.0.2",
   "sunflower_rev": "879b704933413414679396b129f5dfa96f7a0b1e",
-  "test_descriptor_tag": "1.0.3",
-  "test_process_tag": "1.0.1",
+  "test_descriptor_tag": "1.1.1",
+  "test_process_tag": "1.0.3",
   "term_glyph_tag": "1.0.0",
   "test_reflective_loader_tag": "0.1.4",
   "test_tag": "1.0.0",
@@ -137,9 +137,9 @@ vars = {
   "typed_data_tag": "1.1.3",
   "usage_tag": "3.4.0",
   "utf_tag": "0.9.0+4",
-  "watcher_tag": "0.9.7+8",
+  "watcher_rev": "908d74c6ed0889fa9bd7939c72bcc287e4f581fd",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
-  "web_socket_channel_tag": "1.0.7",
+  "web_socket_channel_tag": "1.0.8",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
   "yaml_tag": "2.1.14",
   "zlib_rev": "c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
@@ -215,7 +215,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/charcode":
       Var("dart_git") + "charcode.git" + "@" + Var("charcode_tag"),
   Var("dart_root") + "/third_party/pkg/cli_util":
-      Var("dart_git") + "cli_util.git" + "@" + Var("cli_util_tag"),
+      Var("dart_git") + "cli_util.git" + "@" + Var("cli_util_rev"),
   Var("dart_root") + "/third_party/pkg/collection":
       Var("dart_git") + "collection.git" + "@" + Var("collection_tag"),
   Var("dart_root") + "/third_party/pkg/convert":
@@ -301,7 +301,7 @@ deps = {
       + "/external/github.com/google/quiver-dart.git"
       + "@" + Var("quiver_tag"),
   Var("dart_root") + "/third_party/pkg/resource":
-      Var("dart_git") + "resource.git" + "@" + Var("resource_tag"),
+      Var("dart_git") + "resource.git" + "@" + Var("resource_rev"),
   Var("dart_root") + "/third_party/pkg/shelf":
       Var("dart_git") + "shelf.git" + "@" + Var("shelf_tag"),
   Var("dart_root") + "/third_party/pkg/shelf_packages_handler":
@@ -351,7 +351,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/utf":
       Var("dart_git") + "utf.git" + "@" + Var("utf_tag"),
   Var("dart_root") + "/third_party/pkg/watcher":
-      Var("dart_git") + "watcher.git" + "@" + Var("watcher_tag"),
+      Var("dart_git") + "watcher.git" + "@" + Var("watcher_rev"),
   Var("dart_root") + "/third_party/pkg/web_components":
       Var("dart_git") + "web-components.git" +
       "@" + Var("web_components_rev"),
