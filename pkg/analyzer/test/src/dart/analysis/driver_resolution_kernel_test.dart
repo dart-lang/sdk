@@ -44,6 +44,13 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
 
   @override
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33858')
+  test_invalid_fieldInitializer_this() async {
+    await super.test_invalid_fieldInitializer_this();
+  }
+
+  @override
+  @failingTest
   test_local_type_parameter_reference_function_named_parameter_type() {
     // Stack overflow
     return super

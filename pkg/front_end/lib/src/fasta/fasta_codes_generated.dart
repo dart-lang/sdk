@@ -6060,6 +6060,8 @@ const Code<Null> codeSuperAsExpression = messageSuperAsExpression;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSuperAsExpression = const MessageCode(
     "SuperAsExpression",
+    analyzerCode: "SUPER_AS_EXPRESSION",
+    dart2jsCode: "*fatal*",
     message: r"""Can't use 'super' as an expression.""",
     tip:
         r"""To delegate a constructor to a super constructor, put the super call as an initializer.""");
@@ -6291,9 +6293,8 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeThisAccessInFieldInitializer =
     const Code<Message Function(String name)>(
-  "ThisAccessInFieldInitializer",
-  templateThisAccessInFieldInitializer,
-);
+        "ThisAccessInFieldInitializer", templateThisAccessInFieldInitializer,
+        analyzerCode: "THIS_ACCESS_FROM_INITIALIZER", dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsThisAccessInFieldInitializer(String name) {

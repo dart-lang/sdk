@@ -1518,7 +1518,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           classBuilder.origin.findStaticBuilder(name, charOffset, uri, library);
     }
     if (declaration != null && member.isField && declaration.isInstanceMember) {
-      return new IncompleteErrorGenerator(this, token,
+      return new IncompleteErrorGenerator(this, token, declaration.target,
           fasta.templateThisAccessInFieldInitializer.withArguments(name));
     }
     if (declaration == null ||
@@ -3087,7 +3087,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       push(new ThisAccessGenerator(this, token, inInitializer));
     } else {
       push(new IncompleteErrorGenerator(
-          this, token, fasta.messageThisAsIdentifier));
+          this, token, null, fasta.messageThisAsIdentifier));
     }
   }
 
@@ -3100,7 +3100,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       push(new ThisAccessGenerator(this, token, inInitializer, isSuper: true));
     } else {
       push(new IncompleteErrorGenerator(
-          this, token, fasta.messageSuperAsIdentifier));
+          this, token, null, fasta.messageSuperAsIdentifier));
     }
   }
 

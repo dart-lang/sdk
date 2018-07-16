@@ -2057,6 +2057,8 @@ SdkSpecificationNotFound:
 
 ThisAccessInFieldInitializer:
   template: "Can't access 'this' in a field initializer to read '#name'."
+  analyzerCode: THIS_ACCESS_FROM_INITIALIZER
+  dart2jsCode: "*fatal*"
 
 ThisAsIdentifier:
   template: "Expected identifier, but got 'this'."
@@ -2067,6 +2069,8 @@ SuperAsIdentifier:
 SuperAsExpression:
   template: "Can't use 'super' as an expression."
   tip: "To delegate a constructor to a super constructor, put the super call as an initializer."
+  analyzerCode: SUPER_AS_EXPRESSION
+  dart2jsCode: "*fatal*"
 
 SwitchHasCaseAfterDefault:
   template: "The default case should be the last case in a switch statement."

@@ -2923,6 +2923,25 @@ class InvalidVariableWriteJudgment extends SyntheticExpressionJudgment {
   }
 }
 
+/// Synthetic judgment class representing an attempt reference a member
+/// that is not allowed at this location.
+class InvalidPropertyGetJudgment extends SyntheticExpressionJudgment {
+  final Member member;
+
+  InvalidPropertyGetJudgment(kernel.Expression desugared, this.member)
+      : super(desugared);
+
+  @override
+  Expression infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory,
+      DartType typeContext) {
+    var inferredType = member?.getterType ?? const DynamicType();
+    inferrer.listener.propertyGet(this, fileOffset, member, inferredType);
+    return super.infer(inferrer, factory, typeContext);
+  }
+}
+
 /// Shadow object for expressions that are introduced by the front end as part
 /// of desugaring or the handling of error conditions.
 ///

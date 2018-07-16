@@ -3332,6 +3332,64 @@ const c = throw 42;
     assertType(throwExpression.expression, 'int');
   }
 
+  test_invalid_fieldInitializer_field() async {
+    addTestFile(r'''
+class C {
+  final int a = 0;
+  final int b = a + 1;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var aRef = findNode.simple('a + 1');
+    assertElement(aRef, findElement.getter('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_invalid_fieldInitializer_getter() async {
+    addTestFile(r'''
+class C {
+  int get a => 0;
+  final int b = a + 1;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var aRef = findNode.simple('a + 1');
+    assertElement(aRef, findElement.getter('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_invalid_fieldInitializer_method() async {
+    addTestFile(r'''
+class C {
+  int a() => 0;
+  final int b = a + 1;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var aRef = findNode.simple('a + 1');
+    assertElement(aRef, findElement.method('a'));
+    assertType(aRef, '() → int');
+  }
+
+  test_invalid_fieldInitializer_this() async {
+    addTestFile(r'''
+class C {
+  final b = this;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var thisRef = findNode.this_('this');
+    assertType(thisRef, 'C');
+  }
+
   test_invalid_instanceCreation_abstract() async {
     addTestFile(r'''
 abstract class C<T> {
@@ -8656,6 +8714,14 @@ class FindNode {
 
   SimpleFormalParameter simpleParameter(String search) {
     return _node(search).getAncestor((n) => n is SimpleFormalParameter);
+  }
+
+  SuperExpression super_(String search) {
+    return _node(search).getAncestor((n) => n is SuperExpression);
+  }
+
+  ThisExpression this_(String search) {
+    return _node(search).getAncestor((n) => n is ThisExpression);
   }
 
   ThrowExpression throw_(String search) {

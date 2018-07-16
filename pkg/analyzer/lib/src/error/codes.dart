@@ -2379,6 +2379,9 @@ class CompileTimeErrorCode extends ErrorCode {
           "directives.",
           correction: "Try renaming one of the prefixes.");
 
+  static const CompileTimeErrorCode SUPER_AS_EXPRESSION =
+      const CompileTimeErrorCode.fromFasta('SUPER_AS_EXPRESSION');
+
   /**
    * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form
    * <i>super.m(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>:
@@ -2454,6 +2457,9 @@ class CompileTimeErrorCode extends ErrorCode {
           ' as a type argument',
           correction: "Try removing the type parameters '<{0}>', or using"
               " 'dynamic' as the type argument here instead of a function.");
+
+  static const CompileTimeErrorCode THIS_ACCESS_FROM_INITIALIZER =
+      const CompileTimeErrorCode.fromFasta('THIS_ACCESS_FROM_INITIALIZER');
 
   /**
    * 15.3.1 Typedef: Any self reference, either directly, or recursively via

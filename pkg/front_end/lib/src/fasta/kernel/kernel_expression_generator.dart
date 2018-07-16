@@ -81,6 +81,7 @@ import 'kernel_ast_api.dart'
         ComplexAssignmentJudgment,
         IllegalAssignmentJudgment,
         IndexAssignmentJudgment,
+        InvalidPropertyGetJudgment,
         InvalidVariableWriteJudgment,
         LoadLibraryTearOffJudgment,
         MethodInvocationJudgment,
