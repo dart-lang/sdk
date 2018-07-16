@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:front_end/src/byte_store/protected_file_byte_store.dart';
@@ -49,13 +50,16 @@ class ProtectedFileByteStoreTest {
     } on io.FileSystemException {}
   }
 
-  test_flush() {
+  test_flush() async {
     store.put('a', _b(1));
     store.put('b', _b(2));
     store.put('c', _b(3));
     store.put('d', _b(4));
 
     store.updateProtectedKeys(add: ['b', 'd']);
+
+    // Add a delay to give the store time to write to disk.
+    await new Future.delayed(const Duration(milliseconds: 200));
 
     // Flush, only protected 'b' and 'd' survive.
     store.flush();
@@ -69,7 +73,7 @@ class ProtectedFileByteStoreTest {
     _assertCacheContent({'d': 4}, ['b']);
   }
 
-  test_put() {
+  test_put() async {
     store.put('a', _b(65));
     store.put('b', _b(63));
     store.put('c', _b(1));
@@ -78,6 +82,10 @@ class ProtectedFileByteStoreTest {
     expect(store.get('a'), hasLength(65));
     expect(store.get('b'), hasLength(63));
     expect(store.get('c'), hasLength(1));
+
+    // Add a delay to give the store time to write to disk.
+    await new Future.delayed(const Duration(milliseconds: 200));
+
     _assertCacheContent({'a': 65, 'b': 63, 'c': 1}, []);
   }
 

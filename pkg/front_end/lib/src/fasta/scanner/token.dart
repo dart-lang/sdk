@@ -235,7 +235,7 @@ abstract class _LazySubstring {
   int get length;
 
   /**
-   * If this substring is based on a String, the [boolValue] indicates wheter
+   * If this substring is based on a String, the [boolValue] indicates whether
    * the resulting substring should be canonicalized.
    *
    * For substrings based on a byte array, the [boolValue] is true if the
