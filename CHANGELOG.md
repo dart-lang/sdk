@@ -1,7 +1,10 @@
 # 0.1.57
 
-* Set max SDK version to <3.0.0
+* fix to `lines_longer_than_80_chars` to handle CRLF endings
+* doc improvements
+* set max SDK version to <3.0.0
 * fix to `non_constant_identifier_names` to better handle invalid code
+* new lint: `curly_braces_in_flow_control_structures`
 
 # 0.1.56
 
