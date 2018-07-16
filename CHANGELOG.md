@@ -1,3 +1,7 @@
+## 0.5.10
+
+* Set max SDK version to `<3.0.0`, and adjust other dependencies.
+
 ## 0.5.6+4
 
 - Changes to make the library strong mode (runtime) clean.
