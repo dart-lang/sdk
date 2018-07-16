@@ -475,7 +475,7 @@ class _Future<T> implements Future<T> {
 
   void _completeWithValue(T value) {
     assert(!_isComplete);
-    assert(value is! Future);
+    assert(value is! Future<T>);
 
     _FutureListener listeners = _removeListeners();
     _setValue(value);

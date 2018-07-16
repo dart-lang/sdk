@@ -11,8 +11,6 @@
 # to add them.
 
 [ $compiler == app_jitk ]
-async/future_test/01: RuntimeError
-async/future_test/none: RuntimeError
 async/slow_consumer2_test: RuntimeError
 async/stream_controller_async_test: RuntimeError
 async/stream_distinct_test: RuntimeError
@@ -201,8 +199,6 @@ isolate/illegal_msg_function_test: Skip # Timeout
 isolate/pause_test: Skip # Timeout
 
 [ $compiler == dartk && $strong ]
-async/future_test/01: RuntimeError
-async/future_test/none: RuntimeError
 async/slow_consumer2_test: RuntimeError # Issue 31402 (Invocation arguments)
 async/stream_controller_async_test: RuntimeError
 async/stream_distinct_test: RuntimeError
@@ -304,8 +300,6 @@ isolate/static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/iss
 
 # ===== dartkp + dart_precompiled status lines =====
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
-async/future_test/01: RuntimeError
-async/future_test/none: RuntimeError
 async/slow_consumer2_test: RuntimeError # Issue 31402 (Invocation arguments)
 async/stream_controller_async_test: RuntimeError
 async/stream_distinct_test: RuntimeError
