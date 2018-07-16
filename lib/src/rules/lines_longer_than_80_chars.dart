@@ -58,11 +58,22 @@ class _Visitor extends SimpleAstVisitor {
     final lineInfo = node.lineInfo;
     final lineCount = lineInfo.lineCount;
     final longLines = <_LineInfo>[];
+    String chars;
     for (int i = 0; i < lineCount; i++) {
       final start = lineInfo.getOffsetOfLine(i);
-      final end = i == lineCount - 1
-          ? node.end
-          : lineInfo.getOffsetOfLineAfter(start) - 1;
+      int end;
+      if (i == lineCount - 1) {
+        end = node.end;
+      } else {
+        end = lineInfo.getOffsetOfLine(i + 1) - 1;
+        final length = end - start;
+        if (length > 80) {
+          chars ??= _getChars(node);
+          if (chars[end] == _lf && chars[end - 1] == _cr) {
+            end--;
+          }
+        }
+      }
       final length = end - start;
       if (length > 80) {
         final line = _LineInfo(index: i, offset: start, end: end);
@@ -87,6 +98,14 @@ class _Visitor extends SimpleAstVisitor {
           .reportErrorForOffset(rule.lintCode, line.offset, line.length);
     }
   }
+}
+
+const _cr = '\r';
+const _lf = '\n';
+
+String _getChars(CompilationUnit unit) {
+  final element = unit.element;
+  return element.context.getContents(element.source).data;
 }
 
 class _LineInfo {
@@ -173,7 +192,11 @@ class _AllowedCommentVisitor extends SimpleAstVisitor {
       lines.add(content.substring(2));
     } else if (content.startsWith('/*')) {
       // remove last slash before finding slash
-      lines.addAll(content.substring(2, content.length - 2).split('\n'));
+      lines.addAll(content
+          .substring(2, content.length - 2)
+          .split('$_cr$_lf')
+          .expand((e) => e.split(_cr))
+          .expand((e) => e.split(_lf)));
     }
     for (var i = 0; i < lines.length; i++) {
       final value = lines[i];
