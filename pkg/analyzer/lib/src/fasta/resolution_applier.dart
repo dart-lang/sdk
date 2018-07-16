@@ -349,6 +349,13 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitGenericFunctionType(GenericFunctionType node) {
+    super.visitGenericFunctionType(node);
+    var data = _get(node.functionKeyword);
+    (node as GenericFunctionTypeImpl).type = data.inferredType;
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     node.target?.accept(this);
 

@@ -303,6 +303,9 @@ class KernelFactory
   }
 
   @override
+  void functionType(int fileOffset, DartType type) {}
+
+  @override
   void functionTypedFormalParameter(int fileOffset, DartType type) {}
 
   @override

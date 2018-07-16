@@ -75,14 +75,6 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
 
   @override
   @failingTest
-  test_local_type_parameter_reference_function_return_type() {
-    // type 'DynamicTypeImpl' is not a subtype of type 'TypeParameterType' in
-    // type cast
-    return super.test_local_type_parameter_reference_function_return_type();
-  }
-
-  @override
-  @failingTest
   @potentialAnalyzerProblem
   test_unresolved_assignment_left_indexed1_simple() async {
     await super.test_unresolved_assignment_left_indexed1_simple();

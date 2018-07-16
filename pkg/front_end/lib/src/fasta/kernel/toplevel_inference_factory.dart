@@ -241,6 +241,9 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
 
   @override
+  void functionType(int fileOffset, DartType type) {}
+
+  @override
   void functionTypedFormalParameter(int fileOffset, DartType type) {}
 
   @override

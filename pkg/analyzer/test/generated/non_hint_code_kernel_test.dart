@@ -75,20 +75,6 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
   }
 
   @override
-  @failingTest
-  test_unnecessaryCast_function() {
-    // NoSuchMethodError: The getter 'isBottom' was called on null.
-    return super.test_unnecessaryCast_function();
-  }
-
-  @override
-  @failingTest
-  test_unnecessaryCast_function2() {
-    // NoSuchMethodError: The getter 'isBottom' was called on null.
-    return super.test_unnecessaryCast_function2();
-  }
-
-  @override
   test_unnecessaryCast_generics() async {
     // dartbug.com/18953
     // Overridden because type inference now produces more information and there

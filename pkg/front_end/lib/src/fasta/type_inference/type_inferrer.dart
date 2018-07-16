@@ -342,6 +342,8 @@ abstract class TypeInferrer {
   Object binderForTypeVariable(
       KernelTypeVariableBuilder builder, int fileOffset, String name);
 
+  void functionType(int offset, DartType type);
+
   void functionTypedFormalParameter(int offset, DartType type);
 
   /// Performs full type inference on the given field initializer.
@@ -417,6 +419,8 @@ class TypeInferrerDisabled extends TypeInferrer {
   @override
   void binderForTypeVariable(
       KernelTypeVariableBuilder builder, int fileOffset, String name) {}
+
+  void functionType(int offset, DartType type) {}
 
   void functionTypedFormalParameter(int offset, DartType type) {}
 
@@ -545,6 +549,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   Object binderForTypeVariable(
       KernelTypeVariableBuilder builder, int fileOffset, String name) {
     return listener.binderForTypeVariable(builder, fileOffset, name);
+  }
+
+  void functionType(int offset, DartType type) {
+    listener.functionType(offset, type);
   }
 
   void functionTypedFormalParameter(int offset, DartType type) {

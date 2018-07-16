@@ -2258,8 +2258,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     DartType returnType = pop();
     List<TypeParameter> typeVariables = typeVariableBuildersToKernel(pop());
     FunctionType type = formals.toFunctionType(returnType, typeVariables);
-    // TODO(paulberry): communicate resolution information to the
-    // TypeInferenceListener (dartbug.com/33846).
+    _typeInferrer.functionType(functionToken.offset, type);
     exitLocalScope();
     push(type);
   }

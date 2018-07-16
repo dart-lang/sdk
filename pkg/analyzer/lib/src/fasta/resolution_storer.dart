@@ -294,6 +294,11 @@ class ResolutionStorer
       genericExpression("functionExpression", location, inferredType);
 
   @override
+  void functionType(int location, DartType type) {
+    _store(location, inferredType: type);
+  }
+
+  @override
   void functionTypedFormalParameter(int location, DartType type) {
     _store(location, inferredType: type);
   }

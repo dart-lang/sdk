@@ -204,6 +204,8 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Expression functionExpression(
       ExpressionJudgment judgment, int fileOffset, DartType inferredType);
 
+  Object functionType(int fileOffset, DartType type);
+
   Object functionTypedFormalParameter(int fileOffset, DartType type);
 
   Expression ifNull(
