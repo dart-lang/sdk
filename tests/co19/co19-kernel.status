@@ -3,9 +3,13 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == fasta ]
+Language/Classes/Getters/override_t02: CompileTimeError
+Language/Classes/Getters/override_t03: CompileTimeError
+Language/Classes/Setters/override_t02: CompileTimeError
 Language/Classes/definition_t24: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: MissingCompileTimeError
+Language/Mixins/Mixin_Application/syntax_t21: CompileTimeError
 Language/Types/Type_Void/syntax_t08: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t09: MissingCompileTimeError
 LayoutTests/*: Skip # TODO(ahe): Make dart:html available.

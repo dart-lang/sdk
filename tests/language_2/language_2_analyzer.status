@@ -70,6 +70,7 @@ abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # I
 bad_initializer2_negative_test: Fail # Issue 14880
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/dynamic-gen: MissingCompileTimeError # Issue 28813
+check_member_static_test/01: CompileTimeError
 config_import_corelib_test: StaticWarning, OK
 conflicting_type_variable_and_setter_test: CompileTimeError # Issue 25525
 const_cast2_test/01: CompileTimeError
@@ -416,10 +417,6 @@ override_inheritance_field_test/06: CompileTimeError
 override_inheritance_field_test/26: CompileTimeError
 override_inheritance_field_test/29: CompileTimeError
 override_inheritance_field_test/42: CompileTimeError
-override_inheritance_field_test/43: CompileTimeError
-override_inheritance_field_test/45: CompileTimeError
-override_inheritance_field_test/49: CompileTimeError
-override_inheritance_field_test/50: CompileTimeError
 override_inheritance_generic_test/02: CompileTimeError
 override_inheritance_method_test/28: CompileTimeError
 override_inheritance_method_test/29: CompileTimeError

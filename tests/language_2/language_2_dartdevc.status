@@ -28,6 +28,7 @@ built_in_identifier_type_annotation_test/dynamic-gen: MissingCompileTimeError # 
 built_in_identifier_type_annotation_test/dynamic-list: RuntimeError # Issue 28816
 cascaded_forwarding_stubs_generic_test: RuntimeError
 cascaded_forwarding_stubs_test: CompileTimeError
+check_member_static_test/01: CompileTimeError
 conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Crashes or times out
 conflicting_generic_interfaces_simple_test: MissingCompileTimeError
 conflicting_type_variable_and_setter_test: CompileTimeError
@@ -133,10 +134,6 @@ override_inheritance_field_test/06: CompileTimeError
 override_inheritance_field_test/26: CompileTimeError
 override_inheritance_field_test/29: CompileTimeError
 override_inheritance_field_test/42: CompileTimeError
-override_inheritance_field_test/43: CompileTimeError
-override_inheritance_field_test/45: CompileTimeError
-override_inheritance_field_test/49: CompileTimeError
-override_inheritance_field_test/50: CompileTimeError
 override_inheritance_generic_test/02: CompileTimeError
 override_inheritance_method_test/28: CompileTimeError
 override_inheritance_method_test/29: CompileTimeError
@@ -315,7 +312,6 @@ call_method_must_not_be_field_test/06: RuntimeError # Kernel does not distinguis
 call_method_must_not_be_getter_test/06: RuntimeError # Kernel does not distinguish `d()` from `d.call()`
 call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
-check_member_static_test/01: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 compile_time_constant_c_test/02: MissingCompileTimeError
@@ -373,8 +369,6 @@ f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
 factory4_test/00: MissingCompileTimeError
 field_initialization_order_test/01: MissingCompileTimeError
-field_override_test/00: MissingCompileTimeError
-field_override_test/01: MissingCompileTimeError
 function_propagation_test: RuntimeError
 function_type_parameter2_negative_test: Fail
 function_type_parameter_negative_test: Fail
@@ -382,7 +376,6 @@ generic_function_bounds_test: RuntimeError
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 29920
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 29920
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
-generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29920
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Warning: Superclass has no method named 'foo'.
 generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
@@ -516,11 +509,6 @@ override_inheritance_field_test/04: CompileTimeError # Issue 31616
 override_inheritance_field_test/06: CompileTimeError # Issue 31616
 override_inheritance_field_test/26: CompileTimeError # Issue 31616
 override_inheritance_field_test/29: CompileTimeError # Issue 31616
-override_inheritance_field_test/44: MissingCompileTimeError
-override_inheritance_field_test/47: MissingCompileTimeError
-override_inheritance_field_test/48: MissingCompileTimeError
-override_inheritance_field_test/53: MissingCompileTimeError
-override_inheritance_field_test/54: MissingCompileTimeError
 override_inheritance_generic_test/02: CompileTimeError # Issue 31616
 override_inheritance_method_test/28: CompileTimeError # Issue 31616
 override_inheritance_method_test/29: CompileTimeError # Issue 31616

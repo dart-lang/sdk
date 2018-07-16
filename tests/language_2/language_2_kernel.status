@@ -228,7 +228,6 @@ async_return_types_test/nestedFuture: MissingCompileTimeError # Issue 33068
 async_return_types_test/wrongReturnType: MissingCompileTimeError # Issue 33068
 call_non_method_field_test/01: MissingCompileTimeError # Issue 32975
 call_non_method_field_test/02: MissingCompileTimeError # Issue 32975
-check_member_static_test/01: MissingCompileTimeError # Issue 32613
 const_cast2_test/01: CompileTimeError # Issue 32517
 const_cast2_test/none: CompileTimeError # Issue 32517
 const_instance_field_test/01: MissingCompileTimeError # Fasta bug: Const instance field. Issue 32326.
@@ -254,10 +253,7 @@ f_bounded_quantification_test/02: MissingCompileTimeError # Issue 33018
 factory4_test/00: MissingCompileTimeError # Issue 32988
 field3_test/01: MissingCompileTimeError # Issue 33022
 field3_test/02: MissingCompileTimeError # Issue 33022
-field_override_test/00: MissingCompileTimeError # Issue 32613
-field_override_test/01: MissingCompileTimeError # Issue 32613
 generic_methods_bounds_test/01: MissingCompileTimeError # Issue 33018
-generic_methods_overriding_test/01: MissingCompileTimeError # Issue 32613
 generic_methods_recursive_bound_test/02: MissingCompileTimeError # Issue 33018
 issue31596_override_test/07: MissingCompileTimeError
 issue31596_override_test/08: MissingCompileTimeError
@@ -315,11 +311,6 @@ named_constructor_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError # Fasta bug: Default values are not allowed on redirecting factory constructors.
 override_field_test/02: MissingCompileTimeError
 override_field_test/03: MissingCompileTimeError
-override_inheritance_field_test/44: MissingCompileTimeError
-override_inheritance_field_test/47: MissingCompileTimeError
-override_inheritance_field_test/48: MissingCompileTimeError
-override_inheritance_field_test/53: MissingCompileTimeError
-override_inheritance_field_test/54: MissingCompileTimeError
 partial_tearoff_instantiation_test/05: MissingCompileTimeError
 partial_tearoff_instantiation_test/06: MissingCompileTimeError
 partial_tearoff_instantiation_test/07: MissingCompileTimeError
@@ -364,7 +355,6 @@ void_type_function_types_test/06: MissingCompileTimeError # Issue 32804
 void_type_function_types_test/08: MissingCompileTimeError # Issue 32804
 void_type_override_test/00: MissingCompileTimeError # Issue 32804
 void_type_override_test/00b: MissingCompileTimeError # Issue 32804
-void_type_override_test/00c: MissingCompileTimeError # Issue 32804
 void_type_override_test/01: MissingCompileTimeError # Issue 32804
 void_type_override_test/03: MissingCompileTimeError # Issue 32804
 void_type_usage_test/call_argument: MissingCompileTimeError # Issue 32804

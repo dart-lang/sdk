@@ -29,15 +29,15 @@ class E extends A implements B {
 // Superclasses don't have a consistent type for `x` so inference fails, even if
 // the types are related.
 class F extends A implements C {
-  var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ x;
+  var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ x;
 }
 
 class G extends A implements D {
-  var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ x;
+  var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ x;
 }
 
 class H extends C implements D {
-  var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ x;
+  var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ x;
 }
 
 main() {}

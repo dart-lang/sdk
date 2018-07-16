@@ -311,6 +311,22 @@ abstract class KernelClassBuilder
           checkSetterOverride(
               hierarchy, typeEnvironment, declaredMember, interfaceMember);
         }
+      } else {
+        bool declaredMemberHasGetter = declaredMember is Field ||
+            declaredMember is Procedure && declaredMember.isGetter;
+        bool interfaceMemberHasGetter = interfaceMember is Field ||
+            interfaceMember is Procedure && interfaceMember.isGetter;
+        bool declaredMemberHasSetter = declaredMember is Field ||
+            declaredMember is Procedure && declaredMember.isSetter;
+        bool interfaceMemberHasSetter = interfaceMember is Field ||
+            interfaceMember is Procedure && interfaceMember.isSetter;
+        if (declaredMemberHasGetter && interfaceMemberHasGetter) {
+          checkGetterOverride(
+              hierarchy, typeEnvironment, declaredMember, interfaceMember);
+        } else if (declaredMemberHasSetter && interfaceMemberHasSetter) {
+          checkSetterOverride(
+              hierarchy, typeEnvironment, declaredMember, interfaceMember);
+        }
       }
       // TODO(ahe): Handle other cases: accessors, operators, and fields.
     });
@@ -621,8 +637,32 @@ abstract class KernelClassBuilder
         declaredFunction?.typeParameters != null) {
       var substitution = <TypeParameter, DartType>{};
       for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {
-        var declaredParameter = declaredFunction.typeParameters[i];
-        var interfaceParameter = interfaceFunction.typeParameters[i];
+        TypeParameter declaredParameter = declaredFunction.typeParameters[i];
+        TypeParameter interfaceParameter = interfaceFunction.typeParameters[i];
+        if (!interfaceParameter.isGenericCovariantImpl) {
+          DartType declaredBound = declaredParameter.bound;
+          DartType interfaceBound = interfaceParameter.bound;
+          if (interfaceSubstitution != null) {
+            declaredBound = interfaceSubstitution.substituteType(declaredBound);
+            interfaceBound =
+                interfaceSubstitution.substituteType(interfaceBound);
+          }
+          if (declaredBound != interfaceBound) {
+            addProblem(
+                templateOverrideTypeVariablesMismatch.withArguments(
+                    "$name::${declaredMember.name.name}",
+                    "${interfaceMember.enclosingClass.name}::"
+                    "${interfaceMember.name.name}"),
+                declaredMember.fileOffset,
+                noLength,
+                context: [
+                  templateOverriddenMethodCause
+                      .withArguments(interfaceMember.name.name)
+                      .withLocation(_getMemberUri(interfaceMember),
+                          interfaceMember.fileOffset, noLength)
+                ]);
+          }
+        }
         substitution[interfaceParameter] =
             new TypeParameterType(declaredParameter);
       }
@@ -642,14 +682,15 @@ abstract class KernelClassBuilder
       DartType declaredType,
       DartType interfaceType,
       bool isCovariant,
-      VariableDeclaration declaredParameter) {
+      VariableDeclaration declaredParameter,
+      {bool asIfDeclaredParameter = false}) {
     if (!library.loader.target.backendTarget.strongMode) return false;
 
     if (interfaceSubstitution != null) {
       interfaceType = interfaceSubstitution.substituteType(interfaceType);
     }
 
-    bool inParameter = declaredParameter != null;
+    bool inParameter = declaredParameter != null || asIfDeclaredParameter;
     DartType subtype = inParameter ? interfaceType : declaredType;
     DartType supertype = inParameter ? declaredType : interfaceType;
 
@@ -840,8 +881,8 @@ abstract class KernelClassBuilder
   void checkGetterOverride(
       ClassHierarchy hierarchy,
       TypeEnvironment typeEnvironment,
-      Procedure declaredMember,
-      Procedure interfaceMember) {
+      Member declaredMember,
+      Member interfaceMember) {
     if (declaredMember.enclosingClass != cls) {
       // TODO(paulberry): Include these checks as well, but the message needs to
       // explain that [declaredMember] is inherited.
@@ -858,8 +899,8 @@ abstract class KernelClassBuilder
   void checkSetterOverride(
       ClassHierarchy hierarchy,
       TypeEnvironment typeEnvironment,
-      Procedure declaredMember,
-      Procedure interfaceMember) {
+      Member declaredMember,
+      Member interfaceMember) {
     if (declaredMember.enclosingClass != cls) {
       // TODO(paulberry): Include these checks as well, but the message needs to
       // explain that [declaredMember] is inherited.
@@ -869,8 +910,10 @@ abstract class KernelClassBuilder
         hierarchy, declaredMember, interfaceMember, null, null);
     var declaredType = declaredMember.setterType;
     var interfaceType = interfaceMember.setterType;
-    var declaredParameter = declaredMember.function.positionalParameters[0];
-    bool isCovariant = declaredParameter.isCovariant;
+    var declaredParameter =
+        declaredMember.function?.positionalParameters?.elementAt(0);
+    bool isCovariant = declaredParameter?.isCovariant ?? false;
+    if (declaredMember is Field) isCovariant = declaredMember.isCovariant;
     _checkTypes(
         typeEnvironment,
         interfaceSubstitution,
@@ -879,7 +922,8 @@ abstract class KernelClassBuilder
         declaredType,
         interfaceType,
         isCovariant,
-        declaredParameter);
+        declaredParameter,
+        asIfDeclaredParameter: true);
   }
 
   String get fullNameForErrors {

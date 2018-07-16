@@ -569,7 +569,6 @@ async_star_cancel_while_paused_test: Crash # 'file:*/pkg/compiler/lib/src/js_emi
 await_not_started_immediately_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
-check_member_static_test/01: MissingCompileTimeError
 class_literal_static_test/01: MissingCompileTimeError
 class_literal_static_test/03: MissingCompileTimeError
 class_literal_static_test/07: MissingCompileTimeError
@@ -590,10 +589,7 @@ f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
 factory4_test/00: MissingCompileTimeError
 field3_test/01: MissingCompileTimeError
-field_override_test/00: MissingCompileTimeError
-field_override_test/01: MissingCompileTimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
-generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_methods_unused_parameter_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 identical_const_test/01: MissingCompileTimeError
@@ -655,11 +651,6 @@ mixin_type_parameters_errors_test/04: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
 override_field_test/02: MissingCompileTimeError
 override_field_test/03: MissingCompileTimeError
-override_inheritance_field_test/44: MissingCompileTimeError
-override_inheritance_field_test/47: MissingCompileTimeError
-override_inheritance_field_test/48: MissingCompileTimeError
-override_inheritance_field_test/53: MissingCompileTimeError
-override_inheritance_field_test/54: MissingCompileTimeError
 partial_tearoff_instantiation_test/05: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 partial_tearoff_instantiation_test/06: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 partial_tearoff_instantiation_test/07: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
@@ -771,7 +762,6 @@ await_not_started_immediately_test: Crash # Assertion failure: Runtime type info
 call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
 call_with_no_such_method_test: RuntimeError
-check_member_static_test/01: MissingCompileTimeError
 class_literal_static_test/01: MissingCompileTimeError
 class_literal_static_test/03: MissingCompileTimeError
 class_literal_static_test/07: MissingCompileTimeError
@@ -791,10 +781,7 @@ f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
 factory4_test/00: MissingCompileTimeError
 field3_test/01: MissingCompileTimeError
-field_override_test/00: MissingCompileTimeError
-field_override_test/01: MissingCompileTimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
-generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 identical_const_test/01: MissingCompileTimeError
 identical_const_test/02: MissingCompileTimeError
@@ -863,11 +850,6 @@ no_such_method_test: RuntimeError
 overridden_no_such_method_test: RuntimeError
 override_field_test/02: MissingCompileTimeError
 override_field_test/03: MissingCompileTimeError
-override_inheritance_field_test/44: MissingCompileTimeError
-override_inheritance_field_test/47: MissingCompileTimeError
-override_inheritance_field_test/48: MissingCompileTimeError
-override_inheritance_field_test/53: MissingCompileTimeError
-override_inheritance_field_test/54: MissingCompileTimeError
 recursive_generic_test: RuntimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError

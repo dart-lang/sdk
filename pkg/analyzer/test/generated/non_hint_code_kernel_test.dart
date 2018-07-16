@@ -37,18 +37,12 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
   bool get useCFE => true;
 
   @override
-  @failingTest
   test_overrideOnNonOverridingField_inInterface() {
-    // Expected 1 errors of type
-    // StrongModeCode.STRONG_MODE_INVALID_METHOD_OVERRIDE, found 0
     return super.test_overrideOnNonOverridingField_inInterface();
   }
 
   @override
-  @failingTest
   test_overrideOnNonOverridingField_inSuperclass() {
-    // Expected 1 errors of type
-    // StrongModeCode.STRONG_MODE_INVALID_METHOD_OVERRIDE, found 0
     return super.test_overrideOnNonOverridingField_inSuperclass();
   }
 

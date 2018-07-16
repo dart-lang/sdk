@@ -22,13 +22,13 @@ class B {
 }
 
 class C1 implements A, B {
-  get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ a =>
+  get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ a =>
       null;
 }
 
 // Still ambiguous
 class C2 implements B, A {
-  get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ a =>
+  get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ a =>
       null;
 }
 
