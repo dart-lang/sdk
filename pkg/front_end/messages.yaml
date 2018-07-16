@@ -960,9 +960,14 @@ AwaitForNotAsync:
       await for (var e in o) {}
     }
 
+ConstructorNotSync:
+  template: "Constructor bodies can't use 'async', 'async*', or 'sync*'."
+  analyzerCode: NON_SYNC_CONSTRUCTOR
+  dart2jsCode: "*ignored*"
+
 FactoryNotSync:
-  template: "Factories can't use 'async', 'async*', or 'sync*'."
-  analyzerCode: NON_SYNC_FACTORY_METHOD
+  template: "Factory bodies can't use 'async', 'async*', or 'sync*'."
+  analyzerCode: NON_SYNC_FACTORY
   dart2jsCode: "*ignored*"
 
 GeneratorReturnsValue:

@@ -2051,8 +2051,11 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode NON_SYNC_ABSTRACT_METHOD =
       const CompileTimeErrorCode.fromFasta('NON_SYNC_ABSTRACT_METHOD');
 
-  static const CompileTimeErrorCode NON_SYNC_FACTORY_METHOD =
-      const CompileTimeErrorCode.fromFasta('NON_SYNC_FACTORY_METHOD');
+  static const CompileTimeErrorCode NON_SYNC_CONSTRUCTOR =
+      const CompileTimeErrorCode.fromFasta('NON_SYNC_CONSTRUCTOR');
+
+  static const CompileTimeErrorCode NON_SYNC_FACTORY =
+      const CompileTimeErrorCode.fromFasta('NON_SYNC_FACTORY');
 
   /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i>

@@ -1335,6 +1335,17 @@ Message _withArgumentsConstructorNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstructorNotSync = messageConstructorNotSync;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstructorNotSync = const MessageCode(
+    "ConstructorNotSync",
+    analyzerCode: "NON_SYNC_CONSTRUCTOR",
+    dart2jsCode: "*ignored*",
+    message:
+        r"""Constructor bodies can't use 'async', 'async*', or 'sync*'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstructorWithReturnType =
     messageConstructorWithReturnType;
 
@@ -2675,9 +2686,9 @@ const Code<Null> codeFactoryNotSync = messageFactoryNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFactoryNotSync = const MessageCode("FactoryNotSync",
-    analyzerCode: "NON_SYNC_FACTORY_METHOD",
+    analyzerCode: "NON_SYNC_FACTORY",
     dart2jsCode: "*ignored*",
-    message: r"""Factories can't use 'async', 'async*', or 'sync*'.""");
+    message: r"""Factory bodies can't use 'async', 'async*', or 'sync*'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFactoryTopLevelDeclaration =

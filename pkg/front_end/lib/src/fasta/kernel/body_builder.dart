@@ -933,7 +933,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       int offset = builder.body?.fileOffset ?? builder.charOffset;
       constructor.initializers.add(buildInvalidInitializer(
           deprecated_buildCompileTimeError(
-              "A constructor can't be '${asyncModifier}'.", offset),
+              null, offset, fasta.messageConstructorNotSync),
           offset));
     }
     if (needsImplicitSuperInitializer) {
