@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/stack_trace_tree_config.dart';
 
@@ -138,7 +138,7 @@ main() {
       document.body.append(e);
       await e.onRendered.first;
       expect(e.mode, equals(ProfileTreeMode.function));
-      e.onModeChange.listen(expectAsync((_) {
+      e.onModeChange.listen(expectAsync1((_) {
         expect(e.mode, equals(ProfileTreeMode.code));
       }, count: 1));
       final select = (e.querySelector('.mode-select') as SelectElement);
@@ -155,7 +155,7 @@ main() {
       document.body.append(e);
       await e.onRendered.first;
       expect(e.direction, equals(M.ProfileTreeDirection.exclusive));
-      e.onDirectionChange.listen(expectAsync((_) {
+      e.onDirectionChange.listen(expectAsync1((_) {
         expect(e.direction, equals(M.ProfileTreeDirection.inclusive));
       }, count: 1));
       final select = (e.querySelector('.direction-select') as SelectElement);
@@ -172,7 +172,7 @@ main() {
       document.body.append(e);
       await e.onRendered.first;
       expect(e.direction, equals(M.ProfileTreeDirection.exclusive));
-      e.onFilterChange.listen(expectAsync((_) {
+      e.onFilterChange.listen(expectAsync1((_) {
         expect(e.filter, equals('value'));
       }, count: 1));
       var input = (e.querySelector('input') as TextInputElement);

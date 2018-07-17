@@ -4,7 +4,7 @@
 
 import 'dart:html';
 import 'dart:async';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:observatory/src/elements/nav/notify_exception.dart';
 
 main() {
@@ -65,11 +65,11 @@ main() {
       });
       test('navigation after connect', () async {
         sub = window.onPopState
-            .listen(expectAsync((_) {}, count: 1, reason: 'event is fired'));
+            .listen(expectAsync1((_) {}, count: 1, reason: 'event is fired'));
         e.querySelector('a').click();
       });
       test('onDelete events (DOM)', () async {
-        sub = e.onDelete.listen(expectAsync((ExceptionDeleteEvent event) {
+        sub = e.onDelete.listen(expectAsync1((ExceptionDeleteEvent event) {
           expect(event, isNotNull, reason: 'event is passed');
           expect(event.exception, equals(ex), reason: 'exception is the same');
           expect(event.stacktrace, equals(st),
@@ -78,7 +78,7 @@ main() {
         e.querySelector('button').click();
       });
       test('onDelete events (code)', () async {
-        sub = e.onDelete.listen(expectAsync((ExceptionDeleteEvent event) {
+        sub = e.onDelete.listen(expectAsync1((ExceptionDeleteEvent event) {
           expect(event, isNotNull, reason: 'event is passed');
           expect(event.exception, equals(ex), reason: 'exception is the same');
           expect(event.stacktrace, equals(st),

@@ -4,7 +4,7 @@
 
 import 'dart:html';
 import 'package:observatory/models.dart' as M;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:observatory/src/elements/flag_list.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import '../mocks.dart';

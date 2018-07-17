@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:observatory/src/elements/class_ref.dart';
 import 'package:observatory/src/elements/inbound_references.dart';
 import 'package:observatory/src/elements/object_common.dart';
@@ -50,7 +50,7 @@ main() {
           const InstanceMock(valueAsString: '10'));
       bool invoked = false;
       final reachableSizes = new ReachableSizeRepositoryMock(
-          getter: expectAsync((i, id) async {
+          getter: expectAsync2((i, id) async {
         expect(i, equals(isolate));
         expect(id, equals(object.id));
         invoked = true;
@@ -77,7 +77,7 @@ main() {
           const InstanceMock(valueAsString: '10'));
       bool invoked = false;
       final retainedSizes = new RetainedSizeRepositoryMock(
-          getter: expectAsync((i, id) async {
+          getter: expectAsync2((i, id) async {
         expect(i, equals(isolate));
         expect(id, equals(object.id));
         invoked = true;

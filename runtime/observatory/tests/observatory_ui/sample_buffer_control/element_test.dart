@@ -4,7 +4,7 @@
 
 import 'dart:html';
 import 'dart:async';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/sample_buffer_control.dart';
 import '../mocks.dart';
@@ -150,7 +150,7 @@ main() {
               profile: new SampleProfileMock())));
       await e.onRendered.first;
       expect(e.selectedTag, equals(M.SampleProfileTag.none));
-      e.onTagChange.listen(expectAsync((_) {
+      e.onTagChange.listen(expectAsync1((_) {
         expect(e.selectedTag, equals(M.SampleProfileTag.userOnly));
       }, count: 1));
       final select = (e.querySelector('.tag-select') as SelectElement);

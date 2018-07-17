@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:observatory/src/elements/persistent_handles.dart';
 import '../mocks.dart';
 
@@ -24,7 +24,7 @@ main() {
   });
   test('elements created after attachment', () async {
     final repository = new PersistentHandlesRepositoryMock(
-        getter: expectAsync((i) async {
+        getter: expectAsync1((i) async {
       expect(i, equals(isolate));
       return const PersistentHandlesMock();
     }, count: 1));

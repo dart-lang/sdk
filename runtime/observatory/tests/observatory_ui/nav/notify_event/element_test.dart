@@ -4,7 +4,7 @@
 
 import 'dart:html';
 import 'dart:async';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:observatory/src/elements/nav/notify_event.dart';
 import '../../mocks.dart';
 
@@ -14,9 +14,11 @@ main() {
   final event = new PauseStartEventMock(
       isolate: new IsolateMock(id: 'isolate-id', name: 'isolate-name'));
   group('instantiation', () {
-    final e = new NavNotifyEventElement(event);
-    expect(e, isNotNull, reason: 'element correctly created');
-    expect(e.event, equals(event));
+    test('default', () {
+      final e = new NavNotifyEventElement(event);
+      expect(e, isNotNull, reason: 'element correctly created');
+      expect(e.event, equals(event));
+    });
   });
   group('elements', () {
     test('created after attachment', () async {
@@ -43,18 +45,18 @@ main() {
     });
     test('navigation after connect', () async {
       sub = window.onPopState
-          .listen(expectAsync((_) {}, count: 1, reason: 'event is fired'));
+          .listen(expectAsync1((_) {}, count: 1, reason: 'event is fired'));
       e.querySelector('a').click();
     });
     test('onDelete events (DOM)', () async {
-      sub = e.onDelete.listen(expectAsync((EventDeleteEvent ev) {
+      sub = e.onDelete.listen(expectAsync1((EventDeleteEvent ev) {
         expect(ev, isNotNull, reason: 'event is passed');
         expect(ev.event, equals(event), reason: 'exception is the same');
       }, count: 1, reason: 'event is fired'));
       e.querySelector('button').click();
     });
     test('onDelete events (code)', () async {
-      sub = e.onDelete.listen(expectAsync((EventDeleteEvent ev) {
+      sub = e.onDelete.listen(expectAsync1((EventDeleteEvent ev) {
         expect(ev, isNotNull, reason: 'event is passed');
         expect(ev.event, equals(event), reason: 'exception is the same');
       }, count: 1, reason: 'event is fired'));

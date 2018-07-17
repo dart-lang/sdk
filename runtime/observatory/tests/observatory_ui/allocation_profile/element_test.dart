@@ -4,7 +4,7 @@
 
 import 'dart:html';
 import 'dart:async';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/allocation_profile.dart';
 import 'package:observatory/src/elements/class_ref.dart';
@@ -32,7 +32,7 @@ main() {
     final completer = new Completer<AllocationProfileMock>();
     final repo = new AllocationProfileRepositoryMock(
         getter:
-            expectAsync((M.IsolateRef i, bool gc, bool reset, bool combine) {
+            expectAsync4((M.IsolateRef i, bool gc, bool reset, bool combine) {
       expect(i, equals(isolate));
       expect(gc, isFalse);
       expect(reset, isFalse);
@@ -57,7 +57,7 @@ main() {
       int step = 0;
       final repo = new AllocationProfileRepositoryMock(
           getter:
-              expectAsync((M.IsolateRef i, bool gc, bool reset, bool combine) {
+              expectAsync4((M.IsolateRef i, bool gc, bool reset, bool combine) {
         expect(i, equals(isolate));
         expect(combine, isFalse);
         switch (step) {
@@ -100,7 +100,7 @@ main() {
       int count = 0;
       final repo = new AllocationProfileRepositoryMock(
           getter:
-              expectAsync((M.IsolateRef i, bool gc, bool reset, bool combine) {
+              expectAsync4((M.IsolateRef i, bool gc, bool reset, bool combine) {
         expect(i, equals(isolate));
         expect(gc, isFalse);
         expect(reset, isFalse);
@@ -151,7 +151,7 @@ main() {
       final completer = new Completer<AllocationProfileMock>();
       final repo = new AllocationProfileRepositoryMock(
           getter:
-              expectAsync((M.IsolateRef i, bool gc, bool reset, bool combine) {
+              expectAsync4((M.IsolateRef i, bool gc, bool reset, bool combine) {
         expect(i, equals(isolate));
         expect(gc, isFalse);
         expect(reset, isFalse);
