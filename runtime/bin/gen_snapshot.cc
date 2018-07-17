@@ -735,8 +735,7 @@ static void CreateAndWriteDependenciesFile() {
   for (intptr_t i = 0; i < dependencies->length(); i++) {
     free(dependencies->At(i));
   }
-  delete dependencies;
-  isolate_data->set_dependencies(NULL);
+  dependencies->Clear();
 }
 
 static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,

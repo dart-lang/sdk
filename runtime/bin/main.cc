@@ -211,8 +211,7 @@ static void WriteDepsFile(Dart_Isolate isolate) {
               Options::snapshot_deps_filename());
   }
   file->Release();
-  isolate_data->set_dependencies(NULL);
-  delete dependencies;
+  dependencies->Clear();
 }
 
 static void SnapshotOnExitHook(int64_t exit_code) {
@@ -1219,12 +1218,6 @@ void main(int argc, char** argv) {
   }
 
   Loader::InitOnce();
-
-  if (!DartUtils::SetOriginalWorkingDirectory()) {
-    OSError err;
-    Log::PrintErr("Error determining current directory: %s\n", err.message());
-    Platform::Exit(kErrorExitCode);
-  }
 
 #if defined(DART_LINK_APP_SNAPSHOT)
   vm_run_app_snapshot = true;
