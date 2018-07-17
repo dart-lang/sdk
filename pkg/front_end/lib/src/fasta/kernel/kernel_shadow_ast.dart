@@ -2864,7 +2864,8 @@ class SymbolLiteralJudgment extends SymbolLiteral
 }
 
 /// Synthetic judgment class representing an attempt to invoke an unresolved
-/// constructor, or a constructor that cannot be invoked.
+/// constructor, or a constructor that cannot be invoked, or a resolved
+/// constructor with wrong number of arguments.
 class InvalidConstructorInvocationJudgment extends SyntheticExpressionJudgment {
   final Constructor constructor;
   final Arguments arguments;

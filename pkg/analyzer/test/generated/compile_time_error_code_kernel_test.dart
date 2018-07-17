@@ -738,13 +738,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_extraPositionalArguments_const() async {
-    // Bad state: No type information for A at 42
-    await super.test_extraPositionalArguments_const();
-  }
-
-  @override
-  @failingTest
   test_extraPositionalArguments_const_super() async {
     // Bad state: No type information for 0 at 65
     await super.test_extraPositionalArguments_const_super();
@@ -2090,13 +2083,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_notEnoughRequiredArguments_const() async {
-    // Bad state: No type information for A at 47
-    await super.test_notEnoughRequiredArguments_const();
-  }
-
-  @override
-  @failingTest
   test_optionalParameterInOperator_named() async {
     // Expected 1 errors of type CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR, found 0
     await super.test_optionalParameterInOperator_named();
@@ -2708,13 +2694,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_undefinedConstructorInInitializer_implicit() async {
     // Expected 1 errors of type CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT, found 0
     await super.test_undefinedConstructorInInitializer_implicit();
-  }
-
-  @override
-  @failingTest
-  test_undefinedNamedParameter() async {
-    // Bad state: No type information for A at 42
-    await super.test_undefinedNamedParameter();
   }
 
   @override

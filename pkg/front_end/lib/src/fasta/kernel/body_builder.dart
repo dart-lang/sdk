@@ -2767,13 +2767,20 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       LocatedMessage argMessage = checkArgumentsForFunction(
           target.function, arguments, charOffset, typeParameters);
       if (argMessage != null) {
-        return new SyntheticExpressionJudgment(throwNoSuchMethodError(
+        var error = throwNoSuchMethodError(
             forest.literalNull(null)..fileOffset = charOffset,
             target.name.name,
             arguments,
             charOffset,
             candidate: target,
-            argMessage: argMessage));
+            argMessage: argMessage);
+        if (target is Constructor) {
+          return new InvalidConstructorInvocationJudgment(
+              error, target, arguments)
+            ..fileOffset = charOffset;
+        } else {
+          return new SyntheticExpressionJudgment(error);
+        }
       }
     }
 

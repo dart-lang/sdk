@@ -3458,6 +3458,74 @@ main() {
     }
   }
 
+  test_invalid_instanceCreation_arguments_named() async {
+    addTestFile(r'''
+class C {
+  C();
+}
+var a = 0;
+main() {
+  new C(x: a);
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var classElement = findElement.class_('C');
+
+    var creation = findNode.instanceCreation('new C(x: a)');
+    _assertConstructorInvocation(creation, classElement);
+
+    NamedExpression argument = creation.argumentList.arguments[0];
+    assertElementNull(argument.name.label);
+    var aRef = argument.expression;
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_invalid_instanceCreation_arguments_required_01() async {
+    addTestFile(r'''
+class C {
+  C();
+}
+var a = 0;
+main() {
+  new C(a);
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var classElement = findElement.class_('C');
+
+    var creation = findNode.instanceCreation('new C(a)');
+    _assertConstructorInvocation(creation, classElement);
+
+    var aRef = creation.argumentList.arguments[0];
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_invalid_instanceCreation_arguments_required_21() async {
+    addTestFile(r'''
+class C {
+  C(a, b);
+}
+var a = 0;
+main() {
+  new C(a);
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var classElement = findElement.class_('C');
+
+    var creation = findNode.instanceCreation('new C(a)');
+    _assertConstructorInvocation(creation, classElement);
+
+    var aRef = creation.argumentList.arguments[0];
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
   test_invalid_methodInvocation_simpleIdentifier() async {
     addTestFile(r'''
 int foo = 0;
@@ -8433,6 +8501,27 @@ class C {
         expect(name.staticType, isNull);
       }
     }
+  }
+
+  /// Assert that the given [creation] creates instance of the [classElement].
+  /// Limitations: no import prefix, no type arguments, unnamed constructor.
+  void _assertConstructorInvocation(
+      InstanceCreationExpression creation, ClassElement classElement) {
+    assertType(creation, classElement.name);
+
+    var constructorName = creation.constructorName;
+    var constructorElement = classElement.unnamedConstructor;
+    expect(constructorName.staticElement, constructorElement);
+
+    var typeName = constructorName.type;
+    expect(typeName.typeArguments, isNull);
+
+    SimpleIdentifier typeIdentifier = typeName.name;
+    assertElement(typeIdentifier, classElement);
+    assertType(typeIdentifier, classElement.name);
+
+    // Only unnamed constructors are supported now.
+    expect(constructorName.name, isNull);
   }
 
   void _assertDefaultParameter(
