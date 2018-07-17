@@ -67,21 +67,21 @@ main() {
   Expect.isTrue(g is F);
   Expect.isTrue(g is G);
   Expect.isFalse(g is H);
-  expectsF(g); //# 04: compile-time error
+  expectsF(g);
   expectsG(g);
   expectsH(g); //# 05: compile-time error
 
   Expect.isTrue(g2 is F2);
   Expect.isTrue(g2 is G2);
   Expect.isFalse(g2 is H2);
-  expectsF2(g2); //# 06: compile-time error
+  expectsF2(g2);
   expectsG2(g2);
   expectsH2(g2); //# 07: compile-time error
 
   Expect.isTrue(g3 is F3);
   Expect.isTrue(g3 is G3);
   Expect.isFalse(g3 is H3);
-  expectsF3(g3); //# 08: compile-time error
+  expectsF3(g3);
   expectsG3(g3);
   expectsH3(g3); //# 09: compile-time error
 
