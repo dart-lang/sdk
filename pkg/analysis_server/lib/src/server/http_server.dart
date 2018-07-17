@@ -136,7 +136,9 @@ class HttpAnalysisServer {
     if (getHandler == null) {
       getHandler = new DiagnosticsSite(socketServer, _printBuffer);
     }
-    await getHandler.handleGetRequest(request);
+    // TODO(brianwilkerson) Determine if await is necessary, if so, change the
+    // return type of [AbstractGetHandler.handleGetRequest] to `Future<void>`.
+    await (getHandler.handleGetRequest(request) as dynamic);
   }
 
   /**
