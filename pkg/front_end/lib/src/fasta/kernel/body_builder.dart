@@ -2755,6 +2755,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   Expression buildStaticInvocation(Member target, Arguments arguments,
       {Constness constness: Constness.implicit,
       int charOffset: -1,
+      int charLength: noLength,
       Expression error}) {
     // The argument checks for the initial target of redirecting factories
     // invocations are skipped in Dart 1.
@@ -2790,8 +2791,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           isConst || constantContext != ConstantContext.none && target.isConst;
       if ((isConst || constantContext == ConstantContext.inferred) &&
           !target.isConst) {
-        return deprecated_buildCompileTimeError(
-            null, charOffset, fasta.messageNonConstConstructor);
+        var error = buildCompileTimeError(
+            fasta.messageNonConstConstructor, charOffset, charLength);
+        return new InvalidConstructorInvocationJudgment(
+            error, target, arguments);
       }
       return new ConstructorInvocationJudgment(
           target, forest.castArguments(arguments),
@@ -2804,8 +2807,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             constantContext != ConstantContext.none && procedure.isConst;
         if ((isConst || constantContext == ConstantContext.inferred) &&
             !procedure.isConst) {
-          return deprecated_buildCompileTimeError(
-              null, charOffset, fasta.messageNonConstFactory);
+          var error = buildCompileTimeError(
+              fasta.messageNonConstFactory, charOffset, charLength);
+          return new InvalidConstructorInvocationJudgment(
+              error, target, arguments);
         }
         return new FactoryConstructorInvocationJudgment(
             target, forest.castArguments(arguments),
@@ -3043,7 +3048,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             ..fileOffset = nameToken.charOffset;
         } else {
           invocation = buildStaticInvocation(target, arguments,
-              constness: constness, charOffset: nameToken.charOffset);
+              constness: constness,
+              charOffset: nameToken.charOffset,
+              charLength: nameToken.length);
         }
 
         if (invocation is StaticInvocation && isRedirectingFactory(target)) {

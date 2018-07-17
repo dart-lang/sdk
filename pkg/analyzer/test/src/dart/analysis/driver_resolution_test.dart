@@ -3526,6 +3526,52 @@ main() {
     assertType(aRef, 'int');
   }
 
+  test_invalid_instanceCreation_constOfNotConst_factory() async {
+    addTestFile(r'''
+class C {
+  factory C(x) => null;
+}
+
+var a = 0;
+main() {
+  const C(a);
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var classElement = findElement.class_('C');
+
+    var creation = findNode.instanceCreation('const C(a)');
+    _assertConstructorInvocation(creation, classElement);
+
+    var aRef = creation.argumentList.arguments[0];
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_invalid_instanceCreation_constOfNotConst_generative() async {
+    addTestFile(r'''
+class C {
+  C(x);
+}
+
+var a = 0;
+main() {
+  const C(a);
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var classElement = findElement.class_('C');
+
+    var creation = findNode.instanceCreation('const C(a)');
+    _assertConstructorInvocation(creation, classElement);
+
+    var aRef = creation.argumentList.arguments[0];
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
   test_invalid_methodInvocation_simpleIdentifier() async {
     addTestFile(r'''
 int foo = 0;

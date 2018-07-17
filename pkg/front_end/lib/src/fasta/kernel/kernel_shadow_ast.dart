@@ -2867,7 +2867,7 @@ class SymbolLiteralJudgment extends SymbolLiteral
 /// constructor, or a constructor that cannot be invoked, or a resolved
 /// constructor with wrong number of arguments.
 class InvalidConstructorInvocationJudgment extends SyntheticExpressionJudgment {
-  final Constructor constructor;
+  final Member constructor;
   final Arguments arguments;
 
   InvalidConstructorInvocationJudgment(
