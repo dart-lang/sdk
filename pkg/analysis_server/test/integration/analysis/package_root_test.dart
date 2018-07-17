@@ -21,8 +21,8 @@ main() {
 
 @reflectiveTest
 class SetAnalysisRootsTest extends AbstractAnalysisServerIntegrationTest {
-  @TestTimeout(const Timeout.factor(2))
-  test_package_root() async {
+  xtest_package_root() async {
+    // TODO(devoncarew): This test fails intermittently on the bots; #33879.
     String projPath = sourcePath('project');
     String mainPath = path.join(projPath, 'main.dart');
     String packagesPath = sourcePath('packages');
