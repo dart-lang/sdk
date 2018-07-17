@@ -23,39 +23,6 @@ namespace kernel {
 
 class StreamingFlowGraphBuilder;
 struct InferredTypeMetadata;
-
-class KernelConstMapKeyEqualsTraits {
- public:
-  static const char* Name() { return "KernelConstMapKeyEqualsTraits"; }
-  static bool ReportStats() { return false; }
-
-  static bool IsMatch(const Object& a, const Object& b) {
-    const Smi& key1 = Smi::Cast(a);
-    const Smi& key2 = Smi::Cast(b);
-    return (key1.Value() == key2.Value());
-  }
-  static bool IsMatch(const intptr_t key1, const Object& b) {
-    return KeyAsSmi(key1) == Smi::Cast(b).raw();
-  }
-  static uword Hash(const Object& obj) {
-    const Smi& key = Smi::Cast(obj);
-    return HashValue(key.Value());
-  }
-  static uword Hash(const intptr_t key) {
-    return HashValue(Smi::Value(KeyAsSmi(key)));
-  }
-  static RawObject* NewKey(const intptr_t key) { return KeyAsSmi(key); }
-
- private:
-  static uword HashValue(intptr_t pos) { return pos % (Smi::kMaxValue - 13); }
-
-  static RawSmi* KeyAsSmi(const intptr_t key) {
-    ASSERT(key >= 0);
-    return Smi::New(key);
-  }
-};
-typedef UnorderedHashMap<KernelConstMapKeyEqualsTraits> KernelConstantsMap;
-
 class BreakableBlock;
 class CatchBlock;
 class FlowGraphBuilder;
@@ -268,12 +235,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   virtual ~FlowGraphBuilder();
 
   FlowGraph* BuildGraph();
-
-  // Returns true if the given function needs dynamic invocation forwarder:
-  // that is if any of the arguments require checking on the dynamic
-  // call-site: if function has no parameters or has only covariant parameters
-  // as such function already checks all of its parameters.
-  static bool NeedsDynamicInvocationForwarder(const Function& function);
 
  private:
   BlockEntryInstr* BuildPrologue(TargetEntryInstr* normal_entry,
@@ -698,25 +659,6 @@ class CatchBlock {
 
   DISALLOW_COPY_AND_ASSIGN(CatchBlock);
 };
-
-RawObject* EvaluateMetadata(const Field& metadata_field,
-                            bool is_annotations_offset);
-RawObject* BuildParameterDescriptor(const Function& function);
-void CollectTokenPositionsFor(const Script& script);
-
-}  // namespace kernel
-}  // namespace dart
-
-#else  // !defined(DART_PRECOMPILED_RUNTIME)
-
-#include "vm/kernel.h"
-#include "vm/object.h"
-
-namespace dart {
-namespace kernel {
-
-RawObject* EvaluateMetadata(const Field& metadata_field);
-RawObject* BuildParameterDescriptor(const Function& function);
 
 }  // namespace kernel
 }  // namespace dart

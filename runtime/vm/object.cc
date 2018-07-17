@@ -14,7 +14,6 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/frontend/kernel_fingerprints.h"
-#include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/intrinsifier.h"
 #include "vm/compiler/jit/compiler.h"
@@ -2953,7 +2952,7 @@ RawFunction* Function::GetDynamicInvocationForwarder(
   }
 
   // Check if function actually needs a dynamic invocation forwarder.
-  if (!kernel::FlowGraphBuilder::NeedsDynamicInvocationForwarder(*this)) {
+  if (!kernel::NeedsDynamicInvocationForwarder(*this)) {
     result = raw();
   } else if (allow_add) {
     result = CreateDynamicInvocationForwarder(mangled_name);

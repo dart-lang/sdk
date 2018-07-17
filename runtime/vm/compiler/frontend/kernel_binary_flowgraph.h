@@ -39,64 +39,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                             &type_translator_,
                             active_class_,
                             flow_graph_builder),
-        current_script_id_(-1),
-        record_for_script_id_(-1),
-        record_token_positions_into_(NULL),
-        record_yield_positions_into_(NULL),
-#if defined(DART_USE_INTERPRETER)
-        bytecode_metadata_helper_(this, &type_translator_, active_class_),
-#endif  // defined(DART_USE_INTERPRETER)
-        direct_call_metadata_helper_(this),
-        inferred_type_metadata_helper_(this),
-        procedure_attributes_metadata_helper_(this) {
-  }
-
-  StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
-                            Zone* zone,
-                            const uint8_t* data_buffer,
-                            intptr_t buffer_length,
-                            intptr_t data_program_offset,
-                            ActiveClass* active_class)
-      : KernelReaderHelper(zone,
-                           translation_helper,
-                           data_buffer,
-                           buffer_length,
-                           data_program_offset),
-        flow_graph_builder_(NULL),
-        active_class_(active_class),
-        type_translator_(this, active_class_, /* finalize= */ true),
-        constant_evaluator_(this, &type_translator_, active_class_, nullptr),
-        current_script_id_(-1),
-        record_for_script_id_(-1),
-        record_token_positions_into_(NULL),
-        record_yield_positions_into_(NULL),
-#if defined(DART_USE_INTERPRETER)
-        bytecode_metadata_helper_(this, &type_translator_, active_class_),
-#endif  // defined(DART_USE_INTERPRETER)
-        direct_call_metadata_helper_(this),
-        inferred_type_metadata_helper_(this),
-        procedure_attributes_metadata_helper_(this) {
-  }
-
-  StreamingFlowGraphBuilder(TranslationHelper* translation_helper,
-                            const Script& script,
-                            Zone* zone,
-                            const ExternalTypedData& data,
-                            intptr_t data_program_offset,
-                            ActiveClass* active_class)
-      : KernelReaderHelper(zone,
-                           translation_helper,
-                           script,
-                           data,
-                           data_program_offset),
-        flow_graph_builder_(NULL),
-        active_class_(active_class),
-        type_translator_(this, active_class_, /* finalize= */ true),
-        constant_evaluator_(this, &type_translator_, active_class_, nullptr),
-        current_script_id_(-1),
-        record_for_script_id_(-1),
-        record_token_positions_into_(NULL),
-        record_yield_positions_into_(NULL),
 #if defined(DART_USE_INTERPRETER)
         bytecode_metadata_helper_(this, &type_translator_, active_class_),
 #endif  // defined(DART_USE_INTERPRETER)
@@ -107,27 +49,11 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
 
   virtual ~StreamingFlowGraphBuilder() {}
 
-  bool NeedsDynamicInvocationForwarder(const Function& function);
-
   FlowGraph* BuildGraph();
 
   void ReportUnexpectedTag(const char* variant, Tag tag) override;
 
   Fragment BuildStatementAt(intptr_t kernel_offset);
-  RawObject* BuildParameterDescriptor(intptr_t kernel_offset);
-  RawObject* BuildAnnotations();
-  RawObject* EvaluateMetadata(intptr_t kernel_offset,
-                              bool is_annotations_offset);
-  void CollectTokenPositionsFor(
-      intptr_t script_index,
-      intptr_t initial_script_index,
-      intptr_t kernel_offset,
-      GrowableArray<intptr_t>* record_token_positions_in,
-      GrowableArray<intptr_t>* record_yield_positions_in);
-  intptr_t SourceTableSize();
-  String& SourceTableUriFor(intptr_t index);
-  String& GetSourceFor(intptr_t index);
-  RawTypedData* GetLineStartsFor(intptr_t index);
 
  private:
   bool optimizing();
@@ -144,8 +70,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
       const Function& function,
       bool is_implicit_closure_function,
       bool throw_no_such_method_error = false);
-
-  intptr_t GetOffsetForSourceInfo(intptr_t index);
 
   Fragment BuildExpression(TokenPosition* position = NULL);
   Fragment BuildStatement();
@@ -402,26 +326,11 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildFunctionDeclaration();
   Fragment BuildFunctionNode(TokenPosition parent_position,
                              StringIndex name_index);
-  void SetupFunctionParameters(ActiveClass* active_class,
-                               const Class& klass,
-                               const Function& function,
-                               bool is_method,
-                               bool is_closure,
-                               FunctionNodeHelper* function_node_helper);
-
-  void set_current_script_id(intptr_t id) override { current_script_id_ = id; }
-
-  void RecordTokenPosition(TokenPosition position) override;
-  void RecordYieldPosition(TokenPosition position) override;
 
   FlowGraphBuilder* flow_graph_builder_;
   ActiveClass* const active_class_;
   TypeTranslator type_translator_;
   ConstantEvaluator constant_evaluator_;
-  intptr_t current_script_id_;
-  intptr_t record_for_script_id_;
-  GrowableArray<intptr_t>* record_token_positions_into_;
-  GrowableArray<intptr_t>* record_yield_positions_into_;
 #if defined(DART_USE_INTERPRETER)
   BytecodeMetadataHelper bytecode_metadata_helper_;
 #endif  // defined(DART_USE_INTERPRETER)

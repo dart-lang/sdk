@@ -7,11 +7,12 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
-#include "vm/compiler/frontend/kernel_binary_flowgraph.h"
-#include "vm/compiler/frontend/kernel_to_il.h"
+#include "vm/bit_vector.h"
+#include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/hash_map.h"
 #include "vm/kernel.h"
 #include "vm/object.h"
+#include "vm/symbols.h"
 
 namespace dart {
 namespace kernel {
@@ -308,7 +309,8 @@ class KernelLoader : public ValueObject {
   ExternalTypedData& library_kernel_data_;
   KernelProgramInfo& kernel_program_info_;
   BuildingTranslationHelper translation_helper_;
-  StreamingFlowGraphBuilder builder_;
+  KernelReaderHelper helper_;
+  TypeTranslator type_translator_;
 
   Class& external_name_class_;
   Field& external_name_field_;
@@ -323,6 +325,12 @@ class KernelLoader : public ValueObject {
 
   DISALLOW_COPY_AND_ASSIGN(KernelLoader);
 };
+
+RawFunction* CreateFieldInitializerFunction(Thread* thread,
+                                            Zone* zone,
+                                            const Field& field);
+
+ParsedFunction* ParseStaticFieldInitializer(Zone* zone, const Field& field);
 
 }  // namespace kernel
 }  // namespace dart

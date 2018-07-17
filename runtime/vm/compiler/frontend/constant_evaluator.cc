@@ -226,6 +226,20 @@ RawObject* ConstantEvaluator::EvaluateExpressionSafe(intptr_t offset) {
   }
 }
 
+RawObject* ConstantEvaluator::EvaluateAnnotations() {
+  intptr_t list_length = helper_->ReadListLength();  // read list length.
+  const Array& metadata_values =
+      Array::Handle(Z, Array::New(list_length, H.allocation_space()));
+  Instance& value = Instance::Handle(Z);
+  for (intptr_t i = 0; i < list_length; ++i) {
+    // this will (potentially) read the expression, but reset the position.
+    value = EvaluateExpression(helper_->ReaderOffset());
+    helper_->SkipExpression();  // read (actual) initializer.
+    metadata_values.SetAt(i, value);
+  }
+  return metadata_values.raw();
+}
+
 bool ConstantEvaluator::IsBuildingFlowGraph() const {
   return flow_graph_builder_ != nullptr;
 }

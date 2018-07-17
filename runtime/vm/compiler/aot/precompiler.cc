@@ -30,6 +30,7 @@
 #include "vm/hash_table.h"
 #include "vm/isolate.h"
 #include "vm/json_writer.h"
+#include "vm/kernel_loader.h"  // For kernel::ParseStaticFieldInitializer.
 #include "vm/log.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
