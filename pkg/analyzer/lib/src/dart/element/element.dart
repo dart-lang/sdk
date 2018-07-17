@@ -4948,7 +4948,7 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
  * A concrete implementation of a [FunctionElement].
  */
 class FunctionElementImpl extends ExecutableElementImpl
-    implements FunctionElement {
+    implements FunctionElement, FunctionTypedElementImpl {
   /**
    * The offset to the beginning of the visible range for this element.
    */
@@ -5187,13 +5187,23 @@ class FunctionElementImpl_forLUB extends FunctionElementImpl {
 }
 
 /**
+ * Common internal interface shared by elements whose type is a function type.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class FunctionTypedElementImpl
+    implements ElementImpl, FunctionTypedElement {
+  void set returnType(DartType returnType);
+}
+
+/**
  * The element used for a generic function type.
  *
  * Clients may not extend, implement or mix-in this class.
  */
 class GenericFunctionTypeElementImpl extends ElementImpl
     with TypeParameterizedElementMixin
-    implements GenericFunctionTypeElement {
+    implements GenericFunctionTypeElement, FunctionTypedElementImpl {
   /**
    * The kernel type.
    */

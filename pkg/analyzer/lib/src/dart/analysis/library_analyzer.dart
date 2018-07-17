@@ -1079,35 +1079,8 @@ class _ResolutionApplierContext implements TypeContext {
       }
     }
 
-    // Convert referenced nodes into elements.
-    Map<int, kernel.ResolutionData<DartType, Element, Element, PrefixElement>>
-        convertedData = {};
-    for (var location in resolution.kernelData.keys) {
-      var data = resolution.kernelData[location];
-      convertedData[location] = new kernel.ResolutionData(
-          argumentTypes: data.argumentTypes == null
-              ? null
-              : data.argumentTypes.map(translateType).toList(),
-          combiner: _translateReference(data.combiner),
-          declaration: _translateDeclaration(data.declaration),
-          inferredType: translateType(data.inferredType),
-          invokeType: translateType(data.invokeType),
-          isExplicitCall: data.isExplicitCall,
-          isImplicitCall: data.isImplicitCall,
-          isPrefixReference: data.isPrefixReference,
-          isTypeReference: data.isTypeReference,
-          isWriteReference: data.isWriteReference,
-          literalType: translateType(data.literalType),
-          loadLibrary: _translateReference(data.loadLibrary),
-          prefixInfo: _translatePrefixInfo(data.prefixInfo),
-          reference: _translateReference(data.reference,
-              isWriteReference: data.isWriteReference,
-              isTypeReference: data.isTypeReference,
-              inferredType: data.inferredType),
-          writeContext: translateType(data.writeContext));
-    }
-
-    applier = new ResolutionApplier(libraryElement, this, convertedData);
+    applier =
+        new ResolutionApplier(libraryElement, this, resolution.kernelData);
   }
 
   @override
@@ -1122,7 +1095,7 @@ class _ResolutionApplierContext implements TypeContext {
   }
 
   @override
-  void enterLocalFunction(FunctionElementImpl element) {
+  void enterLocalFunction(FunctionTypedElementImpl element) {
     context.encloseElement(element);
 
     // The function is the new resolution context.
@@ -1131,41 +1104,13 @@ class _ResolutionApplierContext implements TypeContext {
   }
 
   @override
-  void exitLocalFunction(FunctionElementImpl element) {
+  void exitLocalFunction(FunctionTypedElementImpl element) {
     assert(identical(context, element));
     context = contextStack.removeLast();
   }
 
   @override
-  DartType translateType(kernel.DartType kernelType) {
-    if (kernelType == null) {
-      return null;
-    } else if (kernelType is kernel.TypeArgumentsDartType) {
-      // TODO(paulberry): get rid of this case
-      List<kernel.DartType> kernelTypes = kernelType.types;
-      var types = new List<DartType>(kernelTypes.length);
-      for (var i = 0; i < kernelTypes.length; i++) {
-        types[i] = translateType(kernelTypes[i]);
-      }
-      return new TypeArgumentsDartType(types);
-    } else {
-      return resynthesizer.getType(context, kernelType,
-          getLocalTypeParameter: _getLocalTypeParameter);
-    }
-  }
-
-  TypeParameterElement _getLocalTypeParameter(
-      kernel.TypeParameter typeParameter) {
-    var declarationOffset = resolution.typeVariableDeclarations[typeParameter];
-    if (declarationOffset != null) {
-      TypeParameter typeParameter = localDeclarations[declarationOffset];
-      return typeParameter.element;
-    } else {
-      return null;
-    }
-  }
-
-  Element _translateDeclaration(int declarationOffset) {
+  Element translateDeclaration(int declarationOffset) {
     if (declarationOffset == null) return null;
     var declaration = localDeclarations[declarationOffset];
     Element element;
@@ -1186,12 +1131,14 @@ class _ResolutionApplierContext implements TypeContext {
     return element;
   }
 
-  PrefixElement _translatePrefixInfo(int importIndex) {
+  @override
+  PrefixElement translatePrefixInfo(int importIndex) {
     if (importIndex == null) return null;
     return libraryElement.imports[importIndex].prefix;
   }
 
-  Element _translateReference(kernel.Node referencedNode,
+  @override
+  Element translateReference(kernel.Node referencedNode,
       {bool isWriteReference = false,
       bool isTypeReference = false,
       kernel.DartType inferredType}) {
@@ -1214,15 +1161,13 @@ class _ResolutionApplierContext implements TypeContext {
           .getElementFromCanonicalName(referencedNode.classNode.canonicalName);
       assert(element != null);
     } else if (referencedNode is kernel.TypeParameterType) {
-      element = resynthesizer.getTypeParameter(
-          context, referencedNode.parameter,
-          getLocalTypeParameter: _getLocalTypeParameter);
+      element =
+          resynthesizer.getTypeParameter(context, referencedNode.parameter);
       assert(element != null);
     } else if (referencedNode is kernel.DynamicType) {
       element = DynamicElementImpl.instance;
     } else if (referencedNode is kernel.TypeParameter) {
-      element = resynthesizer.getTypeParameter(context, referencedNode,
-          getLocalTypeParameter: _getLocalTypeParameter);
+      element = resynthesizer.getTypeParameter(context, referencedNode);
     } else if (referencedNode is kernel.InvalidType) {
       element = DynamicElementImpl.instance;
     } else {
@@ -1233,6 +1178,23 @@ class _ResolutionApplierContext implements TypeContext {
       return isWriteReference ? element.setter : element.getter;
     } else {
       return element;
+    }
+  }
+
+  @override
+  DartType translateType(kernel.DartType kernelType) {
+    if (kernelType == null) {
+      return null;
+    } else if (kernelType is kernel.TypeArgumentsDartType) {
+      // TODO(paulberry): get rid of this case
+      List<kernel.DartType> kernelTypes = kernelType.types;
+      var types = new List<DartType>(kernelTypes.length);
+      for (var i = 0; i < kernelTypes.length; i++) {
+        types[i] = translateType(kernelTypes[i]);
+      }
+      return new TypeArgumentsDartType(types);
+    } else {
+      return resynthesizer.getType(context, kernelType);
     }
   }
 }

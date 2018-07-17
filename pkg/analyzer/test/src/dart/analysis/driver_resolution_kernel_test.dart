@@ -51,30 +51,6 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
 
   @override
   @failingTest
-  test_local_type_parameter_reference_function_named_parameter_type() {
-    // Stack overflow
-    return super
-        .test_local_type_parameter_reference_function_named_parameter_type();
-  }
-
-  @override
-  @failingTest
-  test_local_type_parameter_reference_function_normal_parameter_type() {
-    // Stack overflow
-    return super
-        .test_local_type_parameter_reference_function_normal_parameter_type();
-  }
-
-  @override
-  @failingTest
-  test_local_type_parameter_reference_function_optional_parameter_type() {
-    // Stack overflow
-    return super
-        .test_local_type_parameter_reference_function_optional_parameter_type();
-  }
-
-  @override
-  @failingTest
   @potentialAnalyzerProblem
   test_unresolved_assignment_left_indexed1_simple() async {
     await super.test_unresolved_assignment_left_indexed1_simple();

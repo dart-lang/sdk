@@ -2637,6 +2637,26 @@ void main(f) {
     _assertTypeNameSimple(typeArguments[0], typeProvider.stringType);
   }
 
+  test_generic_function_type() async {
+    addTestFile('''
+main() {
+  void Function<T>(T) f;
+}
+''');
+    await resolveTestFile();
+    var f = findNode.simple('f;');
+    assertType(f, '<T>(T) → void');
+    var fType = f.staticType as FunctionType;
+    var fTypeTypeParameter = fType.typeFormals[0];
+    var fTypeParameter = fType.normalParameterTypes[0] as TypeParameterType;
+    expect(fTypeParameter.element, same(fTypeTypeParameter));
+    var tRef = findNode.simple('T>');
+    assertType(tRef, null);
+    var functionTypeNode = tRef.parent.parent.parent as GenericFunctionType;
+    var functionType = functionTypeNode.type as FunctionType;
+    assertElement(tRef, functionType.typeFormals[0]);
+  }
+
   test_indexExpression() async {
     String content = r'''
 main() {

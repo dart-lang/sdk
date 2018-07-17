@@ -41,7 +41,7 @@ import 'package:path/path.dart' as pathos;
 
 /// Resolution information in a single function body.
 class CollectedResolution {
-  final Map<int, ResolutionData<DartType, int, Node, int>> kernelData = {};
+  final Map<int, ResolutionData> kernelData = {};
 
   final Map<TypeParameter, int> typeVariableDeclarations =
       new Map<TypeParameter, int>.identity();

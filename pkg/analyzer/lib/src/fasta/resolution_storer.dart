@@ -11,22 +11,22 @@ import 'package:front_end/src/scanner/token.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 
-class ResolutionData<Type, Declaration, Reference, PrefixInfo> {
-  final List<Type> argumentTypes;
-  final Reference combiner;
-  final Declaration declaration;
-  final Type inferredType;
-  final Type invokeType;
+class ResolutionData {
+  final List<DartType> argumentTypes;
+  final Node combiner;
+  final int declaration;
+  final DartType inferredType;
+  final DartType invokeType;
   final bool isExplicitCall;
   final bool isImplicitCall;
   final bool isPrefixReference;
   final bool isTypeReference;
   final bool isWriteReference;
-  final Type literalType;
-  final Reference loadLibrary;
-  final PrefixInfo prefixInfo;
-  final Reference reference;
-  final Type writeContext;
+  final DartType literalType;
+  final Node loadLibrary;
+  final int prefixInfo;
+  final Node reference;
+  final DartType writeContext;
 
   ResolutionData(
       {this.argumentTypes,
@@ -52,11 +52,11 @@ class ResolutionStorer
     implements
         TypeInferenceListener<int, Node, int>,
         Factory<void, void, void, void> {
-  final Map<int, ResolutionData<DartType, int, Node, int>> _data;
+  final Map<int, ResolutionData> _data;
 
   final Map<TypeParameter, int> _typeVariableDeclarations;
 
-  ResolutionStorer(Map<int, ResolutionData<DartType, int, Node, int>> data,
+  ResolutionStorer(Map<int, ResolutionData> data,
       Map<TypeParameter, int> typeVariableDeclarations)
       : _data = data,
         _typeVariableDeclarations = typeVariableDeclarations;
