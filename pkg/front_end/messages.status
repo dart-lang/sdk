@@ -21,7 +21,6 @@ AssertExtraneousArgument/example: Fail
 AsyncAsIdentifier/example: Fail
 AwaitAsIdentifier/example: Fail
 AwaitNotAsync/example: Fail
-BreakOutsideOfLoop/script1: Fail
 BuiltInIdentifierAsType/example: Fail
 BuiltInIdentifierInDeclaration/example: Fail
 CannotReadPackagesFile/analyzerCode: Fail

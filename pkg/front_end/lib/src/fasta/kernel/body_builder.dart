@@ -3689,9 +3689,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       target = scope.lookupLabel(name);
     }
     if (target == null && name == null) {
-      push(compileTimeErrorInLoopOrSwitch =
-          deprecated_buildCompileTimeErrorStatement(
-              "No target of break.", breakKeyword.charOffset));
+      push(compileTimeErrorInLoopOrSwitch = buildCompileTimeErrorStatement(
+          fasta.messageBreakOutsideOfLoop, breakKeyword.charOffset));
     } else if (target == null ||
         target is! JumpTarget ||
         !target.isBreakTarget) {
