@@ -83,7 +83,7 @@ DFE* Options::dfe_ = NULL;
 DEFINE_STRING_OPTION_CB(dfe, { Options::dfe()->set_frontend_filename(value); });
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-DEFINE_BOOL_OPTION_CB(hot_reload_test_mode, {
+static void hot_reload_test_mode_callback(CommandLineOptions* vm_options) {
   // Identity reload.
   vm_options->AddArgument("--identity_reload");
   // Start reloading quickly.
@@ -94,9 +94,15 @@ DEFINE_BOOL_OPTION_CB(hot_reload_test_mode, {
   vm_options->AddArgument("--reload_every_back_off");
   // Ensure that every isolate has reloaded once before exiting.
   vm_options->AddArgument("--check_reloaded");
-});
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Options::dfe()->set_use_incremental_compiler(true);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+}
 
-DEFINE_BOOL_OPTION_CB(hot_reload_rollback_test_mode, {
+DEFINE_BOOL_OPTION_CB(hot_reload_test_mode, hot_reload_test_mode_callback);
+
+static void hot_reload_rollback_test_mode_callback(
+    CommandLineOptions* vm_options) {
   // Identity reload.
   vm_options->AddArgument("--identity_reload");
   // Start reloading quickly.
@@ -109,7 +115,13 @@ DEFINE_BOOL_OPTION_CB(hot_reload_rollback_test_mode, {
   vm_options->AddArgument("--check_reloaded");
   // Force all reloads to fail and execute the rollback code.
   vm_options->AddArgument("--reload_force_rollback");
-});
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Options::dfe()->set_use_incremental_compiler(true);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+}
+
+DEFINE_BOOL_OPTION_CB(hot_reload_rollback_test_mode,
+                      hot_reload_rollback_test_mode_callback);
 
 void Options::PrintVersion() {
   Log::PrintErr("Dart VM version: %s\n", Dart_VersionString());
