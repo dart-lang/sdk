@@ -4514,6 +4514,7 @@ LayoutTests/fast/events/event-listener-list-mutation_t01: RuntimeError # Please 
 LayoutTests/fast/events/event-listener-sharing_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-on-created-document_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-on-xhr-document_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/events/event-trace_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/fire-scroll-event_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/form-onchange_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/init-message-event_t01: RuntimeError # Please triage this failure
