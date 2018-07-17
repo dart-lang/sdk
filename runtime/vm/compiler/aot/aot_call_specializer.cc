@@ -750,8 +750,12 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
   const intptr_t number_of_checks = unary_checks.NumberOfChecks();
-  if (speculative_policy_->IsAllowedForInlining(instr->deopt_id()) &&
-      number_of_checks > 0) {
+  if (FLAG_use_strong_mode_types && I->strong()) {
+    // In AOT strong mode, we avoid deopting speculation.
+    // TODO(ajcbik): replace this with actual analysis phase
+    //               that determines if checks are removed later.
+  } else if (speculative_policy_->IsAllowedForInlining(instr->deopt_id()) &&
+             number_of_checks > 0) {
     if ((op_kind == Token::kINDEX) &&
         TryReplaceWithIndexedOp(instr, &unary_checks)) {
       return;

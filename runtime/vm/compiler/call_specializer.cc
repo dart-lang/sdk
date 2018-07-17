@@ -212,14 +212,7 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
   }
 
   const Token::Kind op_kind = call->token_kind();
-  if (FLAG_precompiled_mode && FLAG_strong) {
-    // Avoid speculation for AOT Dart2 targets.
-    //
-    // TODO(ajcbik): expand this to more and more targets as we
-    // investigate the performance impact of moving smi decision
-    // into a later phase, and recover from Meteor loss.
-    //
-  } else if (FLAG_guess_icdata_cid) {
+  if (FLAG_guess_icdata_cid) {
     if (FLAG_precompiled_mode) {
       // In precompiler speculate that both sides of bitwise operation
       // are Smi-s.
