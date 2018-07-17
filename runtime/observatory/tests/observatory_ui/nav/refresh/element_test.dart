@@ -4,7 +4,7 @@
 
 import 'dart:html';
 import 'dart:async';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 
 main() {
@@ -95,7 +95,7 @@ main() {
       await e.onRendered.first;
     });
     test('fires', () async {
-      sub = e.onRefresh.listen(expectAsync((event) {
+      sub = e.onRefresh.listen(expectAsync1((event) {
         expect(event, isNotNull, reason: 'event passed');
         expect(event is RefreshEvent, isTrue, reason: 'is the right event');
         expect(event.element, equals(e), reason: 'is related to the element');
@@ -103,7 +103,7 @@ main() {
       e.refresh();
     });
     test('fires on click', () async {
-      sub = e.onRefresh.listen(expectAsync((event) {
+      sub = e.onRefresh.listen(expectAsync1((event) {
         expect(event, isNotNull, reason: 'event passed');
         expect(event is RefreshEvent, isTrue, reason: 'is the right event');
         expect(event.element, equals(e), reason: 'is related to the element');
@@ -112,12 +112,12 @@ main() {
     });
     test('does not fire if disabled', () async {
       e.disabled = true;
-      sub = e.onRefresh.listen(expectAsync((_) {}, count: 0));
+      sub = e.onRefresh.listen(expectAsync1((_) {}, count: 0));
       e.refresh();
     });
     test('does not fires on click if disabled', () async {
       e.disabled = true;
-      sub = e.onRefresh.listen(expectAsync((_) {}, count: 0));
+      sub = e.onRefresh.listen(expectAsync1((_) {}, count: 0));
       e.querySelector('button').click();
     });
   });

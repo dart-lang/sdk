@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:observatory/src/elements/ports.dart';
 import '../mocks.dart';
 
@@ -30,7 +30,7 @@ main() {
     ];
     const isolatePorts = const PortsAndHandlesMock(elements: elements);
     final ports = new PortsRepositoryMock(
-        getter: expectAsync((i) async {
+        getter: expectAsync1((i) async {
       expect(i, equals(isolate));
       return isolatePorts;
     }, count: 1));

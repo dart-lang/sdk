@@ -4,7 +4,7 @@
 
 import 'dart:html';
 import 'dart:async';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/cpu_profile.dart';
 import 'package:observatory/src/elements/cpu_profile/virtual_tree.dart';
