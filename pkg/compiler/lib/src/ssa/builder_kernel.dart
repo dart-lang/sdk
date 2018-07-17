@@ -3670,7 +3670,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     add(argumentsInstruction);
 
     List<HInstruction> argumentNames = <HInstruction>[];
-    for (String argumentName in selector.namedArguments) {
+    for (String argumentName
+        in selector.callStructure.getOrderedNamedArguments()) {
       ConstantValue argumentNameConstant =
           constantSystem.createString(argumentName);
       argumentNames.add(graph.addConstant(argumentNameConstant, closedWorld));
