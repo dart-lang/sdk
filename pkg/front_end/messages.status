@@ -52,6 +52,7 @@ ConstAfterFactory/script1: Fail
 ConstAndCovariant/script2: Fail
 ConstAndFinal/script1: Fail
 ConstAndVar/script1: Fail
+ConstConstructorInSubclassOfMixinApplication/example: Fail
 ConstConstructorNonFinalField/example: Fail
 ConstEvalContext/analyzerCode: Fail # This is just used for displaying the context.
 ConstEvalContext/example: Fail # This is just used for displaying the context.

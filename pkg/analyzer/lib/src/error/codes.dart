@@ -458,6 +458,11 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode CONFLICTS_WITH_MEMBER =
       const CompileTimeErrorCode.fromFasta('CONFLICTS_WITH_MEMBER');
 
+  static const CompileTimeErrorCode
+      CONST_CONSTRUCTOR_IN_SUBCLASS_OF_MIXIN_APPLICATION =
+      const CompileTimeErrorCode.fromFasta(
+          'CONST_CONSTRUCTOR_IN_SUBCLASS_OF_MIXIN_APPLICATION');
+
   /**
    * 16.12.2 Const: It is a compile-time error if evaluation of a constant
    * object results in an uncaught exception being thrown.

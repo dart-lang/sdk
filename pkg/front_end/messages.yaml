@@ -2196,6 +2196,12 @@ ConstConstructorNonFinalFieldCause:
   template: "Field isn't final, but constructor is 'const'."
   severity: CONTEXT
 
+ConstConstructorInSubclassOfMixinApplication:
+  template: "Can't extend a mixin application and be 'const'."
+  severity: ERROR
+  analyzerCode: CONST_CONSTRUCTOR_IN_SUBCLASS_OF_MIXIN_APPLICATION
+  dart2jsCode: "*fatal*"
+
 AccessError:
   template: "Access error: '#name'."
 

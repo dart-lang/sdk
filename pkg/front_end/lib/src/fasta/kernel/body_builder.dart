@@ -572,8 +572,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     if (member is KernelConstructorBuilder) {
       if (member.isConst &&
           (classBuilder.cls.superclass?.isMixinApplication ?? false)) {
-        deprecated_addCompileTimeError(member.charOffset,
-            "Can't extend a mixin application and be 'const'.");
+        addCompileTimeError(
+            fasta.messageConstConstructorInSubclassOfMixinApplication,
+            member.charOffset,
+            member.name.length);
       }
       if (member.formals != null) {
         for (KernelFormalParameterBuilder formal in member.formals) {
