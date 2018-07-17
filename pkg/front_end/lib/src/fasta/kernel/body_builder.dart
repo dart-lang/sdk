@@ -4203,10 +4203,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
       return const InvalidType();
     } else if (constantContext != ConstantContext.none) {
-      deprecated_addCompileTimeError(
+      int length = type.parameter.name.length;
+      addCompileTimeError(
+          fasta.templateTypeVariableInConstExpression
+              .withArguments(type.parameter.name, type),
           offset,
-          "Type variable '${type.parameter.name}' can't be used as a constant "
-          "expression $type.");
+          length);
     }
     return type;
   }

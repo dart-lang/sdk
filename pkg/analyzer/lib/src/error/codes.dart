@@ -2474,6 +2474,10 @@ class CompileTimeErrorCode extends ErrorCode {
           "Typedefs can't reference themselves directly or recursively via "
           "another typedef.");
 
+  static const CompileTimeErrorCode TYPE_PARAMETER_IN_CONST_EXPRESSION =
+      const CompileTimeErrorCode.fromFasta(
+          'TYPE_PARAMETER_IN_CONST_EXPRESSION');
+
   static const CompileTimeErrorCode TYPE_PARAMETER_ON_CONSTRUCTOR =
       const CompileTimeErrorCode.fromFasta('TYPE_PARAMETER_ON_CONSTRUCTOR');
 

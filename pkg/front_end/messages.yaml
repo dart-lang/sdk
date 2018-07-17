@@ -2147,6 +2147,12 @@ FinalInstanceVariableAlreadyInitializedCause:
   template: "'#name' was initialized here."
   severity: CONTEXT
 
+TypeVariableInConstExpression:
+  template: "Type variable '#name' can't be used as a constant expression '#type'."
+  severity: ERROR
+  analyzerCode: TYPE_PARAMETER_IN_CONST_EXPRESSION
+  dart2jsCode: "*fatal*"
+
 TypeVariableInStaticContext:
   template: "Type variables can't be used in static members."
   severity: ERROR_LEGACY_WARNING

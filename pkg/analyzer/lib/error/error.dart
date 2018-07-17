@@ -250,6 +250,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.THIS_ACCESS_FROM_INITIALIZER,
   CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
   CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+  CompileTimeErrorCode.TYPE_PARAMETER_IN_CONST_EXPRESSION,
   CompileTimeErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR,
   CompileTimeErrorCode.UNDEFINED_ANNOTATION,
   CompileTimeErrorCode.UNDEFINED_CLASS,
