@@ -14924,6 +14924,20 @@ main() {
     expect(statement.semicolon, isNotNull);
   }
 
+  void test_parseElseAlone() {
+    parseCompilationUnit('main() { else return 0; } ',
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 4),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 4),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 9, 4),
+              ]
+            : [
+                expectedError(ParserErrorCode.MISSING_STATEMENT, 9, 4),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 9, 4),
+              ]);
+  }
+
   void test_parseEmptyStatement() {
     var statement = parseStatement(';') as EmptyStatement;
     assertNoErrors();

@@ -300,6 +300,7 @@ bool looksLikeStatementStart(Token token) => isOneOfOrEof(token, const [
       'break',
       'continue',
       'do',
+      'else',
       'final',
       'for',
       'if',
