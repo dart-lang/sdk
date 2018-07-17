@@ -14,7 +14,11 @@ import '../common_test_utils.dart';
 final String pkgVmDir = Platform.script.resolve('../..').toFilePath();
 
 runTestCase(Uri source) async {
-  Component component = await compileTestCaseToKernelProgram(source);
+  // Certain tests require super-mixin semantics which is used in Flutter.
+  bool enableSuperMixins = source.pathSegments.last == 'super_calls.dart';
+
+  Component component = await compileTestCaseToKernelProgram(source,
+      enableSuperMixins: enableSuperMixins);
 
   // Need to omit source positions from bytecode as they are different on
   // Linux and Windows (due to differences in newline characters).

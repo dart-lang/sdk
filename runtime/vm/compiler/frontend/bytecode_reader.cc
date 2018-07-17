@@ -220,6 +220,11 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
           }
           name = H.DartProcedureName(target).raw();
           elem = H.LookupStaticMethodByKernelProcedure(target);
+          if ((kind == InvocationKind::getter) && !H.IsGetter(target)) {
+            // Tear-off
+            name = H.DartGetterName(target).raw();
+            elem = Function::Cast(elem).GetMethodExtractor(name);
+          }
         }
         ASSERT(elem.IsFunction());
         intptr_t arg_desc_index = helper_->ReadUInt();

@@ -235,6 +235,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   Procedure get throwNewAssertionError => _throwNewAssertionError ??=
       libraryIndex.getMember('dart:core', '_AssertionError', '_throwNew');
 
+  Procedure _allocateInvocationMirror;
+  Procedure get allocateInvocationMirror =>
+      _allocateInvocationMirror ??= libraryIndex.getMember(
+          'dart:core', '_InvocationMirror', '_allocateInvocationMirror');
+
   void _genConstructorInitializers(Constructor node) {
     bool isRedirecting =
         node.initializers.any((init) => init is RedirectingInitializer);
@@ -1043,6 +1048,63 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
           expr is SuperPropertySet ||
           expr is DirectPropertySet);
 
+  void _createArgumentsArray(int temp, List<DartType> typeArgs,
+      List<Expression> args, bool storeLastArgumentToTemp) {
+    final int totalCount = (typeArgs.isNotEmpty ? 1 : 0) + args.length;
+
+    _genTypeArguments([const DynamicType()]);
+    _genPushInt(totalCount);
+    asm.emitCreateArrayTOS();
+
+    asm.emitStoreLocal(temp);
+
+    int index = 0;
+    if (typeArgs.isNotEmpty) {
+      asm.emitPush(temp);
+      _genPushInt(index++);
+      _genTypeArguments(typeArgs);
+      asm.emitStoreIndexedTOS();
+    }
+
+    for (Expression arg in args) {
+      asm.emitPush(temp);
+      _genPushInt(index++);
+      arg.accept(this);
+      if (storeLastArgumentToTemp && index == totalCount) {
+        // Arguments array in 'temp' is replaced with the last argument
+        // in order to return result of RHS value in case of setter.
+        asm.emitStoreLocal(temp);
+      }
+      asm.emitStoreIndexedTOS();
+    }
+  }
+
+  void _genNoSuchMethodForSuperCall(String name, int temp,
+      ConstantArgDesc argDesc, List<DartType> typeArgs, List<Expression> args,
+      {bool storeLastArgumentToTemp: false}) {
+    // Receiver for noSuchMethod() call.
+    _genPushReceiver();
+
+    // Argument 0 for _allocateInvocationMirror(): function name.
+    asm.emitPushConstant(cp.add(new ConstantString(name)));
+
+    // Argument 1 for _allocateInvocationMirror(): arguments descriptor.
+    asm.emitPushConstant(cp.add(argDesc));
+
+    // Argument 2 for _allocateInvocationMirror(): list of arguments.
+    _createArgumentsArray(temp, typeArgs, args, storeLastArgumentToTemp);
+
+    // Argument 3 for _allocateInvocationMirror(): isSuperInvocation flag.
+    asm.emitPushConstant(cp.add(new ConstantBool(true)));
+
+    _genStaticCall(allocateInvocationMirror, new ConstantArgDesc(4), 4);
+
+    final Member target = hierarchy.getDispatchTarget(
+        enclosingClass.superclass, new Name('noSuchMethod'));
+    assert(target != null);
+    _genStaticCall(target, new ConstantArgDesc(2), 2);
+  }
+
   @override
   defaultTreeNode(Node node) => throw new UnsupportedOperationError(
       'Unsupported node ${node.runtimeType}');
@@ -1175,13 +1237,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
 
     final target = node.target;
-    if (target is Field || (target is Procedure && target.isSetter)) {
-      _genStaticCall(target, new ConstantArgDesc(2), 2, isSet: true);
-      asm.emitDrop1();
-    } else {
-      throw new UnsupportedOperationError(
-          'Unsupported DirectPropertySet with target ${target.runtimeType} $target');
-    }
+    assert(target is Field || (target is Procedure && target.isSetter));
+    _genStaticCall(target, new ConstantArgDesc(2), 2, isSet: true);
+    asm.emitDrop1();
 
     if (hasResult) {
       asm.emitPush(temp);
@@ -1399,36 +1457,36 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   @override
   visitSuperMethodInvocation(SuperMethodInvocation node) {
     final args = node.arguments;
-    _genArguments(new ThisExpression(), args);
-    Member target =
+    final Member target =
         hierarchy.getDispatchTarget(enclosingClass.superclass, node.name);
     if (target == null) {
-      throw new UnsupportedOperationError(
-          'Unsupported SuperMethodInvocation without target');
+      final int temp = locals.tempIndexInFrame(node);
+      _genNoSuchMethodForSuperCall(
+          node.name.name,
+          temp,
+          new ConstantArgDesc.fromArguments(args, hasReceiver: true),
+          args.types,
+          <Expression>[new ThisExpression()]
+            ..addAll(args.positional)
+            ..addAll(args.named.map((x) => x.value)));
+      return;
     }
-    if (target is Procedure && !target.isGetter) {
-      _genStaticCallWithArgs(target, args, hasReceiver: true);
-    } else {
-      throw new UnsupportedOperationError(
-          'Unsupported SuperMethodInvocation with target ${target.runtimeType} $target');
-    }
+    _genArguments(new ThisExpression(), args);
+    _genStaticCallWithArgs(target, args, hasReceiver: true);
   }
 
   @override
   visitSuperPropertyGet(SuperPropertyGet node) {
-    _genPushReceiver();
     final Member target =
         hierarchy.getDispatchTarget(enclosingClass.superclass, node.name);
     if (target == null) {
-      throw new UnsupportedOperationError(
-          'Unsupported SuperPropertyGet without target');
+      final int temp = locals.tempIndexInFrame(node);
+      _genNoSuchMethodForSuperCall(node.name.name, temp, new ConstantArgDesc(1),
+          [], <Expression>[new ThisExpression()]);
+      return;
     }
-    if (target is Field || (target is Procedure && target.isGetter)) {
-      _genStaticCall(target, new ConstantArgDesc(1), 1, isGet: true);
-    } else {
-      throw new UnsupportedOperationError(
-          'Unsupported SuperPropertyGet with target ${target.runtimeType} $target');
-    }
+    _genPushReceiver();
+    _genStaticCall(target, new ConstantArgDesc(1), 1, isGet: true);
   }
 
   @override
@@ -1436,26 +1494,25 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final int temp = locals.tempIndexInFrame(node);
     final bool hasResult = !isExpressionWithoutResult(node);
 
-    _genPushReceiver();
-    node.value.accept(this);
-
-    if (hasResult) {
-      asm.emitStoreLocal(temp);
-    }
-
     final Member target = hierarchy
         .getDispatchTarget(enclosingClass.superclass, node.name, setter: true);
     if (target == null) {
-      throw new UnsupportedOperationError(
-          'Unsupported SuperPropertySet without target');
-    }
-    if (target is Field || (target is Procedure && target.isSetter)) {
-      _genStaticCall(target, new ConstantArgDesc(2), 2, isSet: true);
-      asm.emitDrop1();
+      _genNoSuchMethodForSuperCall(node.name.name, temp, new ConstantArgDesc(2),
+          [], <Expression>[new ThisExpression(), node.value],
+          storeLastArgumentToTemp: hasResult);
     } else {
-      throw new UnsupportedOperationError(
-          'Unsupported SuperPropertySet with target ${target.runtimeType} $target');
+      _genPushReceiver();
+      node.value.accept(this);
+
+      if (hasResult) {
+        asm.emitStoreLocal(temp);
+      }
+
+      assert(target is Field || (target is Procedure && target.isSetter));
+      _genStaticCall(target, new ConstantArgDesc(2), 2, isSet: true);
     }
+
+    asm.emitDrop1();
 
     if (hasResult) {
       asm.emitPush(temp);

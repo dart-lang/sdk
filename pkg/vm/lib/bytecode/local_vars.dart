@@ -971,6 +971,16 @@ class _Allocator extends RecursiveVisitor<Null> {
   }
 
   @override
+  visitSuperMethodInvocation(SuperMethodInvocation node) {
+    _visit(node, temps: 1);
+  }
+
+  @override
+  visitSuperPropertyGet(SuperPropertyGet node) {
+    _visit(node, temps: 1);
+  }
+
+  @override
   visitSuperPropertySet(SuperPropertySet node) {
     _visit(node, temps: 1);
   }
