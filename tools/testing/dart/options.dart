@@ -98,6 +98,7 @@ dart2analyzer: Perform static analysis on Dart code using the analyzer.
 app_jit:       Compile the Dart code into an app snapshot.
 app_jitk:      Compile the Dart code into Kernel and then into an app snapshot.
 dartk:         Compile the Dart code into Kernel before running test.
+dartkb:        Compile the Dart code into Kernel with bytecode before running test.
 dartkp:        Compile the Dart code into Kernel and then Kernel into AOT
                snapshot before running the test.
 spec_parser:   Parse Dart code using the specification parser.''',
@@ -675,6 +676,7 @@ compiler.''',
                 useEnableAsserts: data["enable_asserts"] as bool,
                 useDart2JSWithKernel: data["dart2js_with_kernel"] as bool,
                 useDart2JSOldFrontend: data["dart2js_old_frontend"] as bool,
+                useKernelBytecode: compiler == Compiler.dartkb,
                 writeDebugLog: data["write_debug_log"] as bool,
                 writeTestOutcomeLog: data["write_test_outcome_log"] as bool,
                 writeResultLog: data["write_result_log"] as bool,

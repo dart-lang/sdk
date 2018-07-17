@@ -193,5 +193,5 @@ unresolved_top_level_var_negative_test: Fail
 
 # We skip all the Dart 1.0 tests in dartk and dartkp mode as these
 # modes are intended only for Dart 2.0 with strong mode enabled.
-[ $compiler == app_jitk || $compiler == dartk || $compiler == dartkp ]
+[ $compiler == app_jitk || $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
 *: SkipByDesign

@@ -444,6 +444,7 @@ class TestUtils {
     if (configuration.compiler == Compiler.appJit ||
         configuration.compiler == Compiler.precompiler ||
         configuration.compiler == Compiler.dartk ||
+        configuration.compiler == Compiler.dartkb ||
         configuration.compiler == Compiler.dartkp) {
       var checked = configuration.isChecked ? '-checked' : '';
       var legacy = configuration.noPreviewDart2 ? '-legacy' : '';

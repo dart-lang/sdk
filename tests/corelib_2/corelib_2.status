@@ -281,11 +281,11 @@ string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
 
-[ $compiler == dartk && $mode == release && $hot_reload ]
+[ ($compiler == dartk || $compiler == dartkb) && $mode == release && $hot_reload ]
 bigint_parse_radix_test: Crash
 
 # ===== dartk + vm status lines =====
-[ $compiler == dartk && $runtime == vm && $strong ]
+[ ($compiler == dartk || $compiler == dartkb) && $runtime == vm && $strong ]
 iterable_fold_test/02: RuntimeError
 iterable_reduce_test/01: CompileTimeError # Issue 31533
 iterable_reduce_test/none: RuntimeError
@@ -446,7 +446,7 @@ symbol_test/01: MissingCompileTimeError
 # a section you need, please reach out to sigmund@ to see the best way to add
 # them.
 # ===== Skip dartk and darkp in !$strong mode ====
-[ !$strong && ($compiler == dartk || $compiler == dartkp) ]
+[ !$strong && ($compiler == dartk || $compiler == dartkb || $compiler == dartkp) ]
 *: SkipByDesign
 
 [ !$strong && ($runtime == dart_precompiled || $runtime == vm) ]

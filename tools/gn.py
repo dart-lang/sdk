@@ -64,8 +64,8 @@ def GetGNArgs(args):
   return args.split()
 
 
-def GetOutDir(mode, arch, target_os):
-  return utils.GetBuildRoot(HOST_OS, mode, arch, target_os)
+def GetOutDir(mode, arch, target_os, kbc):
+  return utils.GetBuildRoot(HOST_OS, mode, arch, target_os, kbc=kbc)
 
 
 def ToCommandLine(gn_args):
@@ -95,7 +95,7 @@ def TargetCpuForArch(arch, target_os):
     return 'x64'
   if arch == 'simdbc':
     return 'arm' if target_os == 'android' else 'x86'
-  if arch == 'simdbc64':
+  if arch in ['simdbc64']:
     return 'arm64' if target_os == 'android' else 'x64'
   if arch == 'armsimdbc':
     return 'arm'
@@ -173,6 +173,9 @@ def ToGnArgs(args, mode, arch, target_os):
   gn_args['host_cpu'] = HostCpuForArch(arch)
   gn_args['target_cpu'] = TargetCpuForArch(arch, target_os)
   gn_args['dart_target_arch'] = DartTargetCpuForArch(arch)
+
+  if args.bytecode:
+    gn_args['dart_use_interpreter'] = True
 
   if arch != HostCpuForArch(arch):
     # Training an app-jit snapshot under a simulator is slow. Use script
@@ -342,6 +345,10 @@ def parse_args(args):
       metavar='[all,ia32,x64,simarm,arm,simarmv6,armv6,simarmv5te,armv5te,'
               'simarm64,arm64,simdbc,armsimdbc]',
       default='x64')
+  common_group.add_argument('--bytecode', '-b',
+      help='Configure with the kernel bytecode interpreter',
+      default=False,
+      action="store_true")
   common_group.add_argument('--mode', '-m',
       type=str,
       help='Build variants (comma-separated).',
@@ -481,7 +488,7 @@ def Main(argv):
   for target_os in args.os:
     for mode in args.mode:
       for arch in args.arch:
-        out_dir = GetOutDir(mode, arch, target_os)
+        out_dir = GetOutDir(mode, arch, target_os, args.bytecode)
         # TODO(infra): Re-enable --check. Many targets fail to use
         # public_deps to re-expose header files to their dependents.
         # See dartbug.com/32364

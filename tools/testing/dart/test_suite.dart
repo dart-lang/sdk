@@ -1608,6 +1608,7 @@ class StandardTestSuite extends TestSuite {
     const compilers = const [
       Compiler.none,
       Compiler.dartk,
+      Compiler.dartkb,
       Compiler.dartkp,
       Compiler.precompiler,
       Compiler.appJit

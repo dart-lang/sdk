@@ -85,7 +85,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
   // Restore error handler (in case 'options' are reused).
   options.onProblem = errorDetector.previousErrorHandler;
 
-  if (genBytecode && component != null) {
+  if (!errorDetector.hasCompilationErrors && genBytecode && component != null) {
     generateBytecode(component,
         strongMode: options.strongMode, dropAST: dropAST);
   }

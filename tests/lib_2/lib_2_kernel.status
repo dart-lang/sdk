@@ -44,16 +44,16 @@ mirrors/reflected_type_test/02: MissingCompileTimeError
 mirrors/reflected_type_test/03: MissingCompileTimeError
 mirrors/variable_is_const_test/01: MissingCompileTimeError
 
-[ $arch == simarm64 && $compiler == dartk && $strong ]
+[ $arch == simarm64 && ($compiler == dartk || $compiler == dartkb) && $strong ]
 isolate/mint_maker_test: Timeout # Please triage.
 
-[ $arch == simdbc64 && $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
+[ $arch == simdbc64 && ($compiler == dartk || $compiler == dartkb) && $mode == debug && $runtime == vm && $strong ]
 isolate/isolate_complex_messages_test: Crash # http://dartbug.com/33128
 
-[ $arch == x64 && $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
+[ $arch == x64 && ($compiler == dartk || $compiler == dartkb) && $mode == debug && $runtime == vm && $strong ]
 mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
 
-[ $builder_tag == optimization_counter_threshold && $compiler == dartk ]
+[ $builder_tag == optimization_counter_threshold && ($compiler == dartk || $compiler == dartkb) ]
 isolate/unresolved_ports_test: CompileTimeError, Pass, Timeout # Fails to compile on opt counter builder (#31838)
 mirrors/invocation_fuzz_test/emptyarray: Pass, Crash, RuntimeError # Flaky on vm-kernel-optcounter-threshold-linux-release-x64, bug #31838
 mirrors/invocation_fuzz_test/false: Pass, Crash, RuntimeError # Flaky on vm-kernel-optcounter-threshold-linux-release-x64, bug #31838
@@ -73,22 +73,22 @@ isolate/browser/package_resolve_browser_hook2_test: CompileTimeError
 isolate/browser/package_resolve_browser_hook_test: CompileTimeError
 isolate/browser/package_resolve_browser_test: CompileTimeError
 
-[ $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
+[ ($compiler == dartk || $compiler == dartkb) && $mode == debug && $runtime == vm && $strong ]
 mirrors/other_declarations_location_test: Crash # Issue 33325 (assertion error, TypeParameter not having position).
 
-[ $compiler == dartk && $mode == debug && $hot_reload_rollback ]
+[ ($compiler == dartk || $compiler == dartkb) && $mode == debug && $hot_reload_rollback ]
 isolate/message3_test/constList_identical: Skip # Timeout
 
-[ $compiler == dartk && $mode == debug && $strong ]
+[ ($compiler == dartk || $compiler == dartkb) && $mode == debug && $strong ]
 mirrors/variable_is_const_test/01: Crash # Issue 32326
 
-[ $compiler == dartk && $runtime == vm && $checked && $strong ]
+[ ($compiler == dartk || $compiler == dartkb) && $runtime == vm && $checked && $strong ]
 mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError # Issue 28424
 mirrors/redirecting_factory_different_type_test/none: RuntimeError # Issue 28424
 mirrors/reflected_type_generics_test/02: Pass
 
 # ===== dartk + vm status lines =====
-[ $compiler == dartk && $runtime == vm && $strong ]
+[ ($compiler == dartk || $compiler == dartkb) && $runtime == vm && $strong ]
 async/slow_consumer2_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/stream_controller_async_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/stream_join_test: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -191,14 +191,14 @@ mirrors/typedef_reflected_type_test/none: RuntimeError
 mirrors/typedef_test: RuntimeError
 mirrors/typevariable_mirror_metadata_test: RuntimeError
 
-[ $compiler == dartk && $system == windows ]
+[ ($compiler == dartk || $compiler == dartkb) && $system == windows ]
 isolate/ping_pause_test: Skip # Issues 32137 and 32138
 
-[ $compiler == dartk && $hot_reload_rollback ]
+[ ($compiler == dartk || $compiler == dartkb) && $hot_reload_rollback ]
 isolate/illegal_msg_function_test: Skip # Timeout
 isolate/pause_test: Skip # Timeout
 
-[ $compiler == dartk && $strong ]
+[ ($compiler == dartk || $compiler == dartkb) && $strong ]
 async/slow_consumer2_test: RuntimeError # Issue 31402 (Invocation arguments)
 async/stream_controller_async_test: RuntimeError
 async/stream_distinct_test: RuntimeError
@@ -229,7 +229,7 @@ mirrors/top_level_accessors_test/01: MissingCompileTimeError
 # Enabling of dartk for sim{arm,arm64,dbc64} revealed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
-[ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+[ ($compiler == dartk || $compiler == dartkb) && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
 isolate/cross_isolate_message_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
 isolate/error_at_spawnuri_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
 isolate/error_exit_at_spawnuri_test: Skip # No support for Isolate.spawnUri in batch-mode atm.
@@ -253,10 +253,10 @@ isolate/unresolved_ports_test: Skip # No support for Isolate.spawnUri in batch-m
 mirrors/library_uri_io_test: RuntimeError # Please triage.
 
 # ===== Skip dartk and darkp in !$strong mode ====
-[ $compiler == dartk && !$strong ]
+[ ($compiler == dartk || $compiler == dartkb) && !$strong ]
 *: SkipByDesign
 
-[ $compiler == dartk && ($hot_reload || $hot_reload_rollback) ]
+[ ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
 async/stream_from_iterable_test: Skip # Timeout
 async/stream_iterator_test: Skip # Timeout
 async/stream_periodic2_test: Skip # Timeout
@@ -356,7 +356,7 @@ typed_data/float32x4_static_test: MissingCompileTimeError
 typed_data/int32x4_static_test/01: MissingCompileTimeError
 typed_data/int32x4_static_test/02: MissingCompileTimeError
 
-[ $compiler == app_jitk || $compiler == dartk || $compiler == dartkp ]
+[ $compiler == app_jitk || ($compiler == dartk || $compiler == dartkb) || $compiler == dartkp ]
 html/*: SkipByDesign
 isolate/browser/*: SkipByDesign
 js/*: SkipByDesign

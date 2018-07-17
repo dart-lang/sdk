@@ -79,6 +79,9 @@ abstract class CompilerConfiguration {
         }
         return new NoneCompilerConfiguration(configuration);
 
+      case Compiler.dartkb:
+        return new VMKernelCompilerConfiguration(configuration);
+
       case Compiler.dartkp:
         return new PrecompilerCompilerConfiguration(configuration);
 
@@ -1115,6 +1118,10 @@ abstract class VMKernelCompilerMixin {
     args.addAll(arguments.where((name) => name.startsWith('-D')));
     if (_isChecked || _useEnableAsserts) {
       args.add('--enable_asserts');
+    }
+
+    if (_configuration.useKernelBytecode) {
+      args.add('--gen-bytecode');
     }
 
     return Command.vmKernelCompilation(dillFile, true, bootstrapDependencies(),

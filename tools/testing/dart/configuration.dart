@@ -53,6 +53,7 @@ class Configuration {
       this.useEnableAsserts,
       this.useDart2JSWithKernel,
       this.useDart2JSOldFrontend,
+      this.useKernelBytecode,
       this.writeDebugLog,
       this.writeTestOutcomeLog,
       this.writeResultLog,
@@ -124,6 +125,7 @@ class Configuration {
   final bool useEnableAsserts;
   final bool useDart2JSWithKernel;
   final bool useDart2JSOldFrontend;
+  final bool useKernelBytecode;
   final bool writeDebugLog;
   final bool writeTestOutcomeLog;
   final bool writeResultLog;
@@ -186,6 +188,7 @@ class Configuration {
       Compiler.appJitk,
       Compiler.dartdevk,
       Compiler.dartk,
+      Compiler.dartkb,
       Compiler.dartkp,
       Compiler.fasta,
     ];
@@ -426,9 +429,10 @@ class Configuration {
     var os = '';
     if (system == System.android) os = "Android";
 
+    var kbc = useKernelBytecode ? 'KBC' : '';
     var arch = architecture.name.toUpperCase();
-    var normal = '$modeName$os$arch';
-    var cross = '$modeName${os}X$arch';
+    var normal = '$modeName$os$arch$kbc';
+    var cross = '$modeName${os}X$arch$kbc';
     var outDir = system.outputDirectory;
     var normalDir = new Directory(new Path('$outDir$normal').toNativePath());
     var crossDir = new Directory(new Path('$outDir$cross').toNativePath());
@@ -477,7 +481,8 @@ class Configuration {
         'batch': batch,
         'batch_dart2js': batchDart2JS,
         'reset_browser_configuration': resetBrowser,
-        'selectors': selectors.keys.toList()
+        'selectors': selectors.keys.toList(),
+        'use_kernel_bytecode': useKernelBytecode,
       };
     }
     return _summaryMap;
@@ -512,7 +517,7 @@ class Architecture {
     simarmv5te,
     simarm64,
     simdbc,
-    simdbc64
+    simdbc64,
   ], key: (architecture) => (architecture as Architecture).name);
 
   static Architecture find(String name) {
@@ -539,6 +544,7 @@ class Compiler {
   static const appJit = const Compiler._('app_jit');
   static const appJitk = const Compiler._('app_jitk');
   static const dartk = const Compiler._('dartk');
+  static const dartkb = const Compiler._('dartkb');
   static const dartkp = const Compiler._('dartkp');
   static const specParser = const Compiler._('spec_parser');
   static const fasta = const Compiler._('fasta');
@@ -555,6 +561,7 @@ class Compiler {
     appJit,
     appJitk,
     dartk,
+    dartkb,
     dartkp,
     specParser,
     fasta,
@@ -610,6 +617,8 @@ class Compiler {
       case Compiler.appJitk:
       case Compiler.dartk:
         return const [Runtime.vm, Runtime.selfCheck];
+      case Compiler.dartkb:
+        return const [Runtime.vm, Runtime.selfCheck];
       case Compiler.precompiler:
       case Compiler.dartkp:
         return const [Runtime.dartPrecompiled];
@@ -643,6 +652,7 @@ class Compiler {
       case Compiler.appJit:
       case Compiler.appJitk:
       case Compiler.dartk:
+      case Compiler.dartkb:
         return Runtime.vm;
       case Compiler.precompiler:
       case Compiler.dartkp:
