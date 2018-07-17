@@ -621,22 +621,6 @@ abstract class _ChunkedJsonParser<T> {
   }
 
   /**
-   * Create a _NumberBuffer containing the digits from [start] to [chunkEnd].
-   *
-   * This creates a number buffer and initializes it with the part of the
-   * number literal ending the current chunk
-   */
-  void createNumberBuffer(int start) {
-    assert(start >= 0);
-    assert(start < chunkEnd);
-    int length = chunkEnd - start;
-    var buffer = new _NumberBuffer(length);
-    copyCharsToList(start, chunkEnd, buffer.list, 0);
-    buffer.length = length;
-    return buffer;
-  }
-
-  /**
    * Continues parsing a partial value.
    */
   int parsePartial(int position) {
