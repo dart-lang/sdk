@@ -2,11 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $strong ]
-allocation_profile/element_test: CompileTimeError # observatory is not strong clean (Issue 32503)
-isolate/counter_chart/element_test: CompileTimeError # observatory is not strong clean (Issue 32503)
-isolate/isolate-shared-summary/element_test: CompileTimeError # observatory is not strong clean (Issue 32503)
-
 [ $runtime == drt || !$browser || $fast_startup ]
 *: SkipByDesign
 
