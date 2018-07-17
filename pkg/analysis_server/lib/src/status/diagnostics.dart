@@ -384,6 +384,11 @@ class ContextsPage extends DiagnosticPageWithNav {
   String describe(AnalysisOptionsImpl options) {
     StringBuffer b = new StringBuffer();
 
+    b.write(writeOption('Strong mode', options.strongMode));
+    b.write(writeOption('Implicit dynamic', options.implicitDynamic));
+    b.write(writeOption('Implicit casts', options.implicitCasts));
+    b.write(writeOption('Declaration casts', options.declarationCasts));
+
     b.write(
         writeOption('Analyze function bodies', options.analyzeFunctionBodies));
     b.write(writeOption('Enable super mixins', options.enableSuperMixins));
@@ -394,7 +399,6 @@ class ContextsPage extends DiagnosticPageWithNav {
         writeOption('Generate errors in SDK files', options.generateSdkErrors));
     b.write(writeOption('Generate hints', options.hint));
     b.write(writeOption('Preserve comments', options.preserveComments));
-    b.write(writeOption('Strong mode', options.strongMode));
     b.write(writeOption('Strong mode hints', options.strongModeHints));
 
     return b.toString();
@@ -1312,6 +1316,8 @@ class StatusPage extends DiagnosticPageWithNav {
     h3('Status');
     buf.writeln(writeOption('Preview-dart-2',
         diagnosticsSite.socketServer.analysisServerOptions.previewDart2));
+    buf.writeln(writeOption('Use fasta parser',
+        diagnosticsSite.socketServer.analysisServerOptions.useFastaParser));
     buf.writeln(writeOption('Use common front end',
         diagnosticsSite.socketServer.analysisServerOptions.useCFE));
     buf.writeln(writeOption('Instrumentation enabled',

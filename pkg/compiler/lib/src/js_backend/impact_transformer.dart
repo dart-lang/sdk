@@ -203,6 +203,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           hasTypeLiteral = true;
           break;
         case TypeUseKind.RTI_VALUE:
+        case TypeUseKind.TYPE_ARGUMENT:
           failedAt(CURRENT_ELEMENT_SPANNABLE, "Unexpected type use: $typeUse.");
           break;
       }

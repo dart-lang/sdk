@@ -134,8 +134,8 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   }
 
   @override
-  void onQueueOpen(Enqueuer enqueuer, FunctionEntity mainMethod,
-      Iterable<LibraryEntity> libraries) {
+  void onQueueOpen(
+      Enqueuer enqueuer, FunctionEntity mainMethod, Iterable<Uri> libraries) {
     if (_deferredLoadTask.isProgramSplit) {
       enqueuer.applyImpact(_computeDeferredLoadingImpact(),
           impactSource: 'deferred load');

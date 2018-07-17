@@ -163,6 +163,7 @@ class Zone;
     NativeEntry::NoScopeNativeCallWrapperEntry(), 0)                           \
   V(uword, auto_scope_native_wrapper_entry_point_,                             \
     NativeEntry::AutoScopeNativeCallWrapperEntry(), 0)                         \
+  V(uword, interpret_call_entry_point_, RuntimeEntry::InterpretCallEntry(), 0) \
   V(RawString**, predefined_symbols_address_, Symbols::PredefinedAddress(),    \
     NULL)                                                                      \
   V(uword, double_nan_address_, reinterpret_cast<uword>(&double_nan_constant), \
@@ -212,11 +213,15 @@ class Thread : public BaseThread {
 
   // The currently executing thread, or NULL if not yet initialized.
   static Thread* Current() {
+#if defined(HAS_C11_THREAD_LOCAL)
+    return OSThread::CurrentVMThread();
+#else
     BaseThread* thread = OSThread::GetCurrentTLS();
     if (thread == NULL || thread->is_os_thread()) {
       return NULL;
     }
     return reinterpret_cast<Thread*>(thread);
+#endif
   }
 
   // Makes the current thread enter 'isolate'.
@@ -902,9 +907,7 @@ class Thread : public BaseThread {
   void ExitSafepointUsingLock();
   void BlockForSafepoint();
 
-  static void SetCurrent(Thread* current) {
-    OSThread::SetCurrentTLS(reinterpret_cast<uword>(current));
-  }
+  static void SetCurrent(Thread* current) { OSThread::SetCurrentTLS(current); }
 
   void DeferOOBMessageInterrupts();
   void RestoreOOBMessageInterrupts();

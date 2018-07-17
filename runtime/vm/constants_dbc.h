@@ -596,9 +596,11 @@ namespace dart {
 //    arguments SP[-2] using SubtypeTestCache PP[D].
 //    If A is 1, then the instance may be a Smi.
 //
+//    Instance remains on stack. Other arguments are consumed.
+//
 //  - AssertSubtype
 //
-//    Assers that one type is a subtype of another.  Throws a TypeError
+//    Assert that one type is a subtype of another.  Throws a TypeError
 //    otherwise.  The stack has the following arguments on it:
 //
 //        SP[-4]  instantiator type args

@@ -43,7 +43,8 @@ class StronglyReachableInstancesElement extends HtmlElement
     assert(stronglyReachable != null);
     assert(objects != null);
     StronglyReachableInstancesElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<StronglyReachableInstancesElement>(e,
+        queue: queue);
     e._isolate = isolate;
     e._cls = cls;
     e._stronglyReachableInstances = stronglyReachable;
@@ -62,12 +63,12 @@ class StronglyReachableInstancesElement extends HtmlElement
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
         ..content = _createContent()
         ..onToggle.listen((e) async {
@@ -90,8 +91,10 @@ class StronglyReachableInstancesElement extends HtmlElement
       return [new SpanElement()..text = 'Loading...'];
     }
     final content = _result.samples
-        .map((sample) => new DivElement()
-          ..children = [anyRef(_isolate, sample, _objects, queue: _r.queue)])
+        .map<Element>((sample) => new DivElement()
+          ..children = <Element>[
+            anyRef(_isolate, sample, _objects, queue: _r.queue)
+          ])
         .toList();
     content.add(new DivElement()
       ..children = ([]

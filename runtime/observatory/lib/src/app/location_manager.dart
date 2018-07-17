@@ -95,7 +95,7 @@ class LocationManager {
         var newPath = ((_app.vm == null || _app.vm.isDisconnected)
             ? '/vm-connect'
             : '/isolate-reconnect');
-        var parameters = {};
+        var parameters = <String, dynamic>{};
         parameters.addAll(_uri.queryParameters);
         parameters['originalUri'] = _uri.toString();
         parameters['isolateId'] = parameters['isolateId'];

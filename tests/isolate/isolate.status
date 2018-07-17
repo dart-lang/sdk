@@ -42,9 +42,6 @@ spawn_uri_multi_test/none: RuntimeError # Issue 13544
 [ $strong ]
 *: SkipByDesign
 
-[ $compiler == dart2analyzer && $strong ]
-*: Skip # Issue 28649
-
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
 

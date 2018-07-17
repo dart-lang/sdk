@@ -42,6 +42,9 @@ import 'package:path/path.dart' as pathos;
 /// Resolution information in a single function body.
 class CollectedResolution {
   final Map<int, ResolutionData<DartType, int, Node, int>> kernelData = {};
+
+  final Map<TypeParameter, int> typeVariableDeclarations =
+      new Map<TypeParameter, int>.identity();
 }
 
 /// The compilation result for a single file.
@@ -74,7 +77,7 @@ class FrontEndCompiler {
       'A compile() invocation is still executing.';
 
   /// Options used by the kernel compiler.
-  final ProcessedOptions _options;
+  final CompilerOptions _compilerOptions;
 
   /// The logger to report compilation progress.
   final PerformanceLog _logger;
@@ -92,9 +95,16 @@ class FrontEndCompiler {
   /// Each value is the compilation result of the key library.
   final Map<Uri, LibraryCompilationResult> _results = {};
 
+  /// Index of metadata in [_component].
+  final AnalyzerMetadataIndex _metadataIndex = new AnalyzerMetadataIndex();
+
   /// The [Component] with currently valid libraries. When a file is invalidated,
   /// we remove the file, its library, and everything affected from [_component].
   Component _component = new Component();
+
+  /// The [DillTarget] that is filled with [_component] libraries before
+  /// compilation of a new library.
+  DillTarget _dillTarget;
 
   /// Each key is the file system URI of a library.
   /// Each value is the libraries that directly depend on the key library.
@@ -161,7 +171,7 @@ class FrontEndCompiler {
     var uriTranslator = new UriTranslatorImpl(
         new TargetLibrariesSpecification('none', dartLibraries), packages);
     var errorListener = new _ErrorListener();
-    var options = new CompilerOptions()
+    var compilerOptions = new CompilerOptions()
       ..target = new _AnalyzerTarget(
           new TargetFlags(strongMode: analysisOptions.strongMode))
       ..reportMessages = false
@@ -169,15 +179,15 @@ class FrontEndCompiler {
       ..fileSystem = new _FileSystemAdaptor(fsState, pathContext)
       ..byteStore = byteStore
       ..onError = errorListener.onError;
-    var processedOptions = new ProcessedOptions(options);
 
     return new FrontEndCompiler._(
-        processedOptions, uriTranslator, errorListener);
+        compilerOptions, uriTranslator, errorListener);
   }
 
-  FrontEndCompiler._(this._options, this.uriTranslator, this._errorListener)
-      : _logger = _options.logger,
-        _fileSystem = _options.fileSystem;
+  FrontEndCompiler._(
+      this._compilerOptions, this.uriTranslator, this._errorListener)
+      : _logger = _compilerOptions.logger,
+        _fileSystem = _compilerOptions.fileSystem;
 
   /// Compile the library with the given absolute [uri], and everything it
   /// depends on. Return the result of the requested library compilation.
@@ -200,23 +210,26 @@ class FrontEndCompiler {
       }
     }
 
-    return _runWithFrontEndContext('Compile', () async {
-      // TODO(brianwilkerson) Determine whether this await is necessary.
-      await null;
+    return _runWithFrontEndContext('Compile', uri, (processedOptions) async {
       try {
-        var dillTarget =
-            new DillTarget(_options.ticker, uriTranslator, _options.target);
+        // Initialize the dill target once.
+        if (_dillTarget == null) {
+          _dillTarget = new DillTarget(
+            processedOptions.ticker,
+            uriTranslator,
+            processedOptions.target,
+          );
+        }
 
-        // Append all libraries what we still have in the current component.
+        // Append new libraries from the current component.
         await _logger.runAsync('Load dill libraries', () async {
-          // TODO(brianwilkerson) Determine whether this await is necessary.
-          await null;
-          dillTarget.loader.appendLibraries(_component);
-          await dillTarget.buildOutlines();
+          _dillTarget.loader.appendLibraries(_component,
+              filter: (uri) => !_dillTarget.loader.builders.containsKey(uri));
+          await _dillTarget.buildOutlines();
         });
 
         // Create the target to compile the library.
-        var kernelTarget = new _AnalyzerKernelTarget(_fileSystem, dillTarget,
+        var kernelTarget = new _AnalyzerKernelTarget(_fileSystem, _dillTarget,
             uriTranslator, new AnalyzerMetadataCollector());
         kernelTarget.read(uri);
 
@@ -225,7 +238,7 @@ class FrontEndCompiler {
           await kernelTarget.buildOutlines(nameRoot: _component.root);
           Component newComponent = await kernelTarget.buildComponent();
           if (newComponent != null) {
-            AnalyzerMetadataRepository.merge(newComponent, _component);
+            _metadataIndex.replaceComponent(newComponent);
             return newComponent;
           } else {
             return _component;
@@ -237,9 +250,9 @@ class FrontEndCompiler {
 
         _logger.run('Compute dependencies', _computeDependencies);
 
-        // TODO(scheglov) Can we keep the same instance?
+        // Reuse CoreTypes and ClassHierarchy.
         var types = new TypeEnvironment(
-            new CoreTypes(_component), new ClassHierarchy(_component));
+            kernelTarget.loader.coreTypes, kernelTarget.loader.hierarchy);
 
         // Add results for new libraries.
         for (var library in _component.libraries) {
@@ -287,9 +300,13 @@ class FrontEndCompiler {
       if (library == null) return;
 
       // Invalidate the library.
+      _metadataIndex.invalidate(library);
       _component.libraries.remove(library);
       _component.root.removeChild('${library.importUri}');
       _component.uriToSource.remove(libraryUri);
+      _dillTarget.loader.builders.remove(library.importUri);
+      _dillTarget.loader.libraries.remove(library);
+      _dillTarget.loader.uriToSource.remove(libraryUri);
       _results.remove(library.importUri);
 
       // Recursively invalidate dependencies.
@@ -333,12 +350,12 @@ class FrontEndCompiler {
     _component.libraries.forEach(processLibrary);
   }
 
-  Future<T> _runWithFrontEndContext<T>(String msg, Future<T> f()) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    return await CompilerContext.runWithOptions(_options, (context) {
+  Future<T> _runWithFrontEndContext<T>(
+      String msg, Uri input, Future<T> Function(ProcessedOptions) f) async {
+    var processedOptions = new ProcessedOptions(_compilerOptions, [input]);
+    return await CompilerContext.runWithOptions(processedOptions, (context) {
       context.disableColors();
-      return _logger.runAsync(msg, f);
+      return _logger.runAsync(msg, () => f(processedOptions));
     });
   }
 }
@@ -391,7 +408,8 @@ class _AnalyzerDietListener extends DietListener {
     }
     var resolution = new CollectedResolution();
     fileResolutions.add(resolution);
-    storer = new ResolutionStorer(resolution.kernelData);
+    storer = new ResolutionStorer(
+        resolution.kernelData, resolution.typeVariableDeclarations);
     return super.createListener(
         builder, memberScope, isInstanceMember, formalParameterScope, storer);
   }
@@ -409,6 +427,11 @@ class _AnalyzerKernelTarget extends KernelTarget {
   @override
   _AnalyzerSourceLoader<Library> createLoader() {
     return new _AnalyzerSourceLoader<Library>(fileSystem, this, resolutions);
+  }
+
+  @override
+  Declaration getDuplicatedFieldInitializerError(loader) {
+    return loader.coreLibrary.getConstructor('Exception');
   }
 }
 

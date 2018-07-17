@@ -471,18 +471,17 @@ html/element_types_datalist_test: RuntimeError # Issue 29922
 html/element_types_shadow_test: RuntimeError # Issue 29922
 html/file_sample_test: Skip # FileSystem not supported on Safari.
 html/fileapi_supported_throws_test: Skip # FileSystem not supported on Safari
-html/js_mock_test: RuntimeError # Issue 32286
 html/storage_promise_test: RuntimeError # Not supported on Safari
 html/xhr_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == safari && $strong ]
+html/audiobuffersourcenode_test: Pass, RuntimeError
 html/canvasrenderingcontext2d_test/arc: Pass, RuntimeError
 html/canvasrenderingcontext2d_test/drawImage_canvas_element: Pass, RuntimeError
 html/canvasrenderingcontext2d_test/drawImage_image_element: Pass, RuntimeError
 html/canvasrenderingcontext2d_test/fillText: Pass, RuntimeError
-html/form_data_test/functional: RuntimeError
+html/interactive_media_test: SkipSlow
 html/notification_test: Pass, RuntimeError # Safari doesn't let us access the fields of the Notification to verify them.
-html/xhr_cross_origin_test/functional: RuntimeError
 
 [ $compiler == dart2js && $runtime == safari && !$strong ]
 convert/json_test: Fail # https://bugs.webkit.org/show_bug.cgi?id=134920
@@ -513,7 +512,6 @@ html/custom/js_custom_test: Fail # Issue 14643
 [ $compiler == dart2js && $browser && $strong ]
 html/element_classes_svg_test: RuntimeError
 html/js_array_test: RuntimeError
-html/js_mock_test: RuntimeError
 html/typed_arrays_range_checks_test: RuntimeError
 
 [ $compiler == dart2js && $checked ]
@@ -823,8 +821,6 @@ html/canvas_pixel_array_type_alias_test/types2_runtimeTypeName: Fail, OK # Issue
 
 [ $compiler == dart2js && $strong ]
 async/future_or_type_test: RuntimeError
-async/future_test/01: RuntimeError
-async/future_test/none: RuntimeError
 async/slow_consumer2_test: RuntimeError
 async/stream_controller_async_test: RuntimeError
 async/stream_distinct_test: RuntimeError

@@ -67,6 +67,13 @@ class RuntimeEntry : public ValueObject {
   static inline uword AddressFromId(RuntimeFunctionId id);
   static inline RuntimeFunctionId RuntimeFunctionIdFromAddress(uword address);
 
+  static uword InterpretCallEntry();
+  static RawObject* InterpretCall(RawFunction* function,
+                                  RawArray* argdesc,
+                                  intptr_t argc,
+                                  RawObject** argv,
+                                  Thread* thread);
+
  private:
   const char* name_;
   const RuntimeFunction function_;

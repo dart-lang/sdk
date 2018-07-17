@@ -379,7 +379,7 @@ class JsonMLFormatter {
     // This is stylistically a bit ugly but it eases distinguishing Dart and
     // JS objects.
     var element = JsonMLElement('span')
-      ..setStyle('background-color: #d9edf7;')
+      ..setStyle('background-color: #d9edf7;color: black')
       ..createTextChild(c);
     return element.toJsonML();
   }
@@ -394,7 +394,7 @@ class JsonMLFormatter {
           'margin-bottom: 0px;'
           'margin-left: 12px;');
     if (object is StackTrace) {
-      body.addStyle('color: rgb(196, 26, 22);');
+      body.addStyle('background-color: thistle;color: rgb(196, 26, 22);');
     }
     var children = _simpleFormatter.children(object, config);
     if (children == null) return body.toJsonML();
@@ -411,7 +411,8 @@ class JsonMLFormatter {
         nameSpan = JsonMLElement('span')
           ..createTextChild(
               child.displayName.isNotEmpty ? '${child.displayName}: ' : '')
-          ..setStyle('color: rgb(136, 19, 145); margin-right: -13px');
+          ..setStyle(
+              'background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px');
         valueStyle = 'margin-left: 13px';
       }
 

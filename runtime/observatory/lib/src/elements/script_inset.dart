@@ -59,7 +59,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
     assert(inDebuggerContext != null);
     assert(variables != null);
     ScriptInsetElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<ScriptInsetElement>(e, queue: queue);
     e._isolate = isolate;
     e._script = script;
     e._scripts = scripts;
@@ -106,16 +106,16 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
     _subscription.cancel();
   }
 
   void render() {
     if (noSource) {
-      children = [new SpanElement()..text = 'No source'];
+      children = <Element>[new SpanElement()..text = 'No source'];
     } else if (_loadedScript == null) {
-      children = [new SpanElement()..text = 'Loading...'];
+      children = <Element>[new SpanElement()..text = 'Loading...'];
     } else {
       final table = linesTable();
       var firstBuild = false;
@@ -125,7 +125,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
 
         firstBuild = true;
       }
-      children = [container];
+      children = <Element>[container];
       container.children.clear();
       container.children.add(table);
       _makeCssClassUncopyable(table, "noCopy");
@@ -150,7 +150,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
   int _startLine;
   int _endLine;
 
-  Map<int, List<S.ServiceMap>> _rangeMap = {};
+  Map/*<int, List<S.ServiceMap>>*/ _rangeMap = {};
   Set _callSites = new Set<S.CallSite>();
   Set _possibleBreakpointLines = new Set<int>();
   Map<int, ScriptLineProfile> _profileMap = {};
@@ -608,7 +608,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
       button.disabled = false;
     });
     button.title = 'Refresh coverage';
-    button.children = [_iconRefresh.clone(true)];
+    button.children = <Element>[_iconRefresh.clone(true)];
     return button;
   }
 
@@ -624,7 +624,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
       _refresh();
       button.disabled = false;
     });
-    button.children = [_iconWhatsHot.clone(true)];
+    button.children = <Element>[_iconWhatsHot.clone(true)];
     return button;
   }
 
@@ -1367,7 +1367,7 @@ class ScriptLineProfile {
 final SvgSvgElement _iconRefresh = new SvgSvgElement()
   ..setAttribute('width', '24')
   ..setAttribute('height', '24')
-  ..children = [
+  ..children = <Element>[
     new PathElement()
       ..setAttribute(
           'd',
@@ -1381,7 +1381,7 @@ final SvgSvgElement _iconRefresh = new SvgSvgElement()
 final SvgSvgElement _iconWhatsHot = new SvgSvgElement()
   ..setAttribute('width', '24')
   ..setAttribute('height', '24')
-  ..children = [
+  ..children = <Element>[
     new PathElement()
       ..setAttribute(
           'd',

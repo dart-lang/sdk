@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/kernel/kernel_type_variable_builder.dart';
 import 'package:front_end/src/scanner/token.dart' show Token;
 
 import 'package:kernel/ast.dart'
@@ -15,6 +16,7 @@ import 'package:kernel/ast.dart'
         Node,
         Statement,
         SwitchCase,
+        TypeParameter,
         VariableDeclaration;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
@@ -27,6 +29,8 @@ import 'kernel_shadow_ast.dart'
         InitializerJudgment,
         StatementJudgment,
         SwitchCaseJudgment;
+
+import 'kernel_type_variable_builder.dart' show KernelTypeVariableBuilder;
 
 /// Implementation of [Factory] that builds source code into a kernel
 /// representation.
@@ -73,6 +77,36 @@ class KernelFactory
   @override
   Expression awaitExpression(ExpressionJudgment judgment, int fileOffset,
       Token awaitKeyword, Expression expression, DartType inferredType) {
+    return judgment;
+  }
+
+  @override
+  Object binderForFunctionDeclaration(
+      StatementJudgment judgment, int fileOffset, String name) {
+    return judgment;
+  }
+
+  @override
+  Object binderForStatementLabel(
+      StatementJudgment judgment, int fileOffset, String name) {
+    return judgment;
+  }
+
+  @override
+  SwitchCase binderForSwitchLabel(
+      SwitchCaseJudgment judgment, int fileOffset, String name) {
+    return judgment;
+  }
+
+  @override
+  KernelTypeVariableBuilder binderForTypeVariable(
+      KernelTypeVariableBuilder builder, int fileOffset, String name) {
+    return builder;
+  }
+
+  @override
+  Object binderForVariableDeclaration(
+      StatementJudgment judgment, int fileOffset, String name) {
     return judgment;
   }
 
@@ -263,16 +297,16 @@ class KernelFactory
   }
 
   @override
-  Object binderForFunctionDeclaration(
-      StatementJudgment judgment, int fileOffset, String name) {
-    return judgment;
-  }
-
-  @override
   Expression functionExpression(
       ExpressionJudgment judgment, int fileOffset, DartType inferredType) {
     return judgment;
   }
+
+  @override
+  void functionType(int fileOffset, DartType type) {}
+
+  @override
+  void functionTypedFormalParameter(int fileOffset, DartType type) {}
 
   @override
   Expression ifNull(
@@ -344,17 +378,6 @@ class KernelFactory
   @override
   Statement labeledStatement(List<Object> labels, Statement statement) {
     return labels[0];
-  }
-
-  Object statementLabel(
-      covariant StatementJudgment binder, Token label, Token colon) {
-    return binder;
-  }
-
-  @override
-  Object binderForStatementLabel(
-      StatementJudgment judgment, int fileOffset, String name) {
-    return judgment;
   }
 
   @override
@@ -496,6 +519,11 @@ class KernelFactory
     return judgment;
   }
 
+  Object statementLabel(
+      covariant StatementJudgment binder, Token label, Token colon) {
+    return binder;
+  }
+
   @override
   Expression staticAssign(
       ExpressionJudgment judgment,
@@ -569,11 +597,6 @@ class KernelFactory
     return binder;
   }
 
-  SwitchCase binderForSwitchLabel(
-      SwitchCaseJudgment judgment, int fileOffset, String name) {
-    return judgment;
-  }
-
   @override
   Statement switchStatement(
       StatementJudgment judgment,
@@ -635,6 +658,22 @@ class KernelFactory
   }
 
   @override
+  void typeReference(
+      int fileOffset,
+      Token leftBracket,
+      List<void> typeArguments,
+      Token rightBracket,
+      Node reference,
+      covariant KernelTypeVariableBuilder binder,
+      DartType type) {}
+
+  @override
+  TypeParameter typeVariableDeclaration(int fileOffset,
+      covariant KernelTypeVariableBuilder binder, TypeParameter typeParameter) {
+    return typeParameter;
+  }
+
+  @override
   Expression variableAssign(
       ExpressionJudgment judgment,
       int fileOffset,
@@ -649,12 +688,6 @@ class KernelFactory
   Statement variableDeclaration(covariant VariableDeclaration binder,
       DartType statementType, DartType inferredType) {
     return binder;
-  }
-
-  @override
-  Object binderForVariableDeclaration(
-      StatementJudgment judgment, int fileOffset, String name) {
-    return judgment;
   }
 
   @override

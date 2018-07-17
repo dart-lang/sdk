@@ -38,7 +38,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
     assert(instance != null);
     assert(objects != null);
     InstanceRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<InstanceRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._instance = instance;
     e._objects = objects;
@@ -57,7 +57,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
@@ -68,7 +68,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
       content.addAll([
         new SpanElement()..text = ' ',
         new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
-          ..content = [
+          ..content = <Element>[
             new DivElement()
               ..classes = ['indent']
               ..children = _createValue()
@@ -136,7 +136,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
       case M.InstanceKind.closure:
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
-            ..children = [
+            ..children = <Element>[
               new SpanElement()
                 ..classes = ['emphasize']
                 ..text = 'Closure',
@@ -146,7 +146,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
       case M.InstanceKind.regExp:
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
-            ..children = [
+            ..children = <Element>[
               new SpanElement()
                 ..classes = ['emphasize']
                 ..text = _instance.clazz.name,
@@ -156,7 +156,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
       case M.InstanceKind.stackTrace:
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
-            ..children = [
+            ..children = <Element>[
               new SpanElement()
                 ..classes = ['emphasize']
                 ..text = _instance.clazz.name,
@@ -186,7 +186,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
       case M.InstanceKind.float64x2List:
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
-            ..children = [
+            ..children = <Element>[
               new SpanElement()
                 ..classes = ['emphasize']
                 ..text = _instance.clazz.name,
@@ -245,24 +245,30 @@ class InstanceRefElement extends HtmlElement implements Renderable {
     }
     switch (_instance.kind) {
       case M.InstanceKind.closure:
-        return [
-          new DivElement()
-            ..children = [
-              new SpanElement()..text = 'function = ',
-              anyRef(_isolate, _loadedInstance.closureFunction, _objects,
-                  queue: _r.queue)
-            ],
-          new DivElement()
-            ..children = [
-              new SpanElement()..text = 'context = ',
-              anyRef(_isolate, _loadedInstance.closureContext, _objects,
-                  queue: _r.queue)
-            ],
-        ];
+        {
+          var members = <Element>[];
+          if (_loadedInstance.closureFunction != null) {
+            members.add(new DivElement()
+              ..children = <Element>[
+                new SpanElement()..text = 'function = ',
+                anyRef(_isolate, _loadedInstance.closureFunction, _objects,
+                    queue: _r.queue)
+              ]);
+          }
+          if (_loadedInstance.closureContext != null) {
+            members.add(new DivElement()
+              ..children = <Element>[
+                new SpanElement()..text = 'context = ',
+                anyRef(_isolate, _loadedInstance.closureContext, _objects,
+                    queue: _r.queue)
+              ]);
+          }
+          return members;
+        }
       case M.InstanceKind.plainInstance:
         return _loadedInstance.fields
-            .map((f) => new DivElement()
-              ..children = [
+            .map<Element>((f) => new DivElement()
+              ..children = <Element>[
                 new FieldRefElement(_isolate, f.decl, _objects,
                     queue: _r.queue),
                 new SpanElement()..text = ' = ',
@@ -273,7 +279,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
         var index = 0;
         return _loadedInstance.elements
             .map<Element>((element) => new DivElement()
-              ..children = [
+              ..children = <Element>[
                 new SpanElement()..text = '[ ${index++} ] : ',
                 anyRef(_isolate, element, _objects, queue: _r.queue)
               ])
@@ -282,7 +288,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
       case M.InstanceKind.map:
         return _loadedInstance.associations
             .map<Element>((association) => new DivElement()
-              ..children = [
+              ..children = <Element>[
                 new SpanElement()..text = '[ ',
                 anyRef(_isolate, association.key, _objects, queue: _r.queue),
                 new SpanElement()..text = ' ] : ',

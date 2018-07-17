@@ -112,6 +112,13 @@ class CheckedModeCompileTimeErrorCodeTest_Kernel
     await super.test_fieldFormalParameterNotAssignableToField_typedef();
   }
 
+  @override
+  @failingTest
+  test_fieldFormalParameterAssignableToField_typeSubstitution() {
+    // Bad state: Not found #lib1::A::T in null
+    return super.test_fieldFormalParameterAssignableToField_typeSubstitution();
+  }
+
   @failingTest
   @override
   test_fieldInitializerNotAssignable() async {

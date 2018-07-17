@@ -110,7 +110,7 @@ testToString() {
   testType([1, 2, 3]);
   testType({'a': 'b'});
   testType((x) => x + 1);
-  testType(testType);
+  testType(testType as dynamic); // illegal inferred type for T otherwise
 }
 
 class N {
@@ -159,7 +159,7 @@ testNoSuchMethod() {
   testType([1, 2, 3]);
   testType({'a': 'b'});
   testType((x) => x + 1);
-  testType(testType);
+  testType(testType as dynamic); // illegal inferred type for T otherwise
 }
 
 main() {

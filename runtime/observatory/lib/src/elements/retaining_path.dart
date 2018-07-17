@@ -37,7 +37,7 @@ class RetainingPathElement extends HtmlElement implements Renderable {
     assert(retainingPaths != null);
     assert(objects != null);
     RetainingPathElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<RetainingPathElement>(e, queue: queue);
     e._isolate = isolate;
     e._object = object;
     e._retainingPaths = retainingPaths;
@@ -56,7 +56,7 @@ class RetainingPathElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
@@ -72,7 +72,7 @@ class RetainingPathElement extends HtmlElement implements Renderable {
               e.control.disabled = false;
             }
           });
-    children = [curlyBlock];
+    children = <Element>[curlyBlock];
     _r.waitFor([curlyBlock.onRendered.first]);
   }
 
@@ -87,7 +87,7 @@ class RetainingPathElement extends HtmlElement implements Renderable {
       return [new SpanElement()..text = 'Loading'];
     }
 
-    var elements = new List();
+    var elements = new List<Element>();
     bool first = true;
     for (var item in _path.elements) {
       elements.add(_createItem(item, first));
@@ -104,7 +104,7 @@ class RetainingPathElement extends HtmlElement implements Renderable {
       // No prefix.
     } else if (item.parentField != null) {
       content.add(new SpanElement()
-        ..children = [
+        ..children = <Element>[
           new SpanElement()..text = 'retained by ',
           anyRef(_isolate, item.parentField, _objects, queue: _r.queue),
           new SpanElement()..text = ' of ',

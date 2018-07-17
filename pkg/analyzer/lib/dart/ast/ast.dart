@@ -520,6 +520,11 @@ abstract class AstNode implements SyntacticEntity {
   E accept<E>(AstVisitor<E> visitor);
 
   /**
+   * Return the token before [target] or `null` if it cannot be found.
+   */
+  Token findPrevious(Token target);
+
+  /**
    * Return the most immediate ancestor of this node for which the [predicate]
    * returns `true`, or `null` if there is no such ancestor. Note that this node
    * will never be returned.
@@ -531,11 +536,6 @@ abstract class AstNode implements SyntacticEntity {
    * node does not have a property with the given name.
    */
   E getProperty<E>(String name);
-
-  /**
-   * Return the token before [target] or `null` if it cannot be found.
-   */
-  Token findPrevious(Token target);
 
   /**
    * Set the value of the property with the given [name] to the given [value].
@@ -4469,9 +4469,9 @@ abstract class InvocationExpression extends Expression {
    * information, or `null` if the AST structure has not been resolved, or if
    * the invoke could not be resolved.
    *
-   * This will usually be a [FunctionType], but it can also be an
-   * [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
-   * interface type that implements `Function`.
+   * This will usually be a [FunctionType], but it can also be `dynamic` or
+   * `Function`. In the case of interface types that have a `call` method, we
+   * store the type of that `call` method here as parameterized.
    */
   DartType get staticInvokeType;
 

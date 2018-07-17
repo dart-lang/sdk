@@ -492,6 +492,15 @@ class DevCompilerConfiguration extends CompilerConfiguration {
         .absolute
         .toNativePath();
 
+    // If we're testing a built SDK use the SDK path. This will test that we can
+    // find the summary file from that. For local development we don't have a
+    // built SDK yet, so point directly at the built summary file.
+    //
+    // TODO(jmesserly): ideally we'd test the `dartdevc` script/.bat file.
+    // That's the closest to what users/tools use. That script has its own way
+    // of computing `--dart-sdk` and passing it to DDC. For simplicitly that
+    // script should be passing `--dart-sdk-summary`, that way DDC doesn't need
+    // two options for the same thing.
     var args = _useSdk
         ? ["--dart-sdk", "${_configuration.buildDirectory}/dart-sdk"]
         : ["--dart-sdk-summary", sdkSummary];

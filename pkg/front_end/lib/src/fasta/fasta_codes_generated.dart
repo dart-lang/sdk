@@ -692,6 +692,8 @@ const Template<Message Function(String name)> templateConflictsWithConstructor =
 const Code<Message Function(String name)> codeConflictsWithConstructor =
     const Code<Message Function(String name)>(
         "ConflictsWithConstructor", templateConflictsWithConstructor,
+        analyzerCode: "CONFLICTS_WITH_CONSTRUCTOR",
+        dart2jsCode: "*fatal*",
         severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -730,6 +732,8 @@ const Template<Message Function(String name)> templateConflictsWithMember =
 const Code<Message Function(String name)> codeConflictsWithMember =
     const Code<Message Function(String name)>(
         "ConflictsWithMember", templateConflictsWithMember,
+        analyzerCode: "CONFLICTS_WITH_MEMBER",
+        dart2jsCode: "*fatal*",
         severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -809,6 +813,8 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)> codeConflictsWithTypeVariable =
     const Code<Message Function(String name)>(
         "ConflictsWithTypeVariable", templateConflictsWithTypeVariable,
+        analyzerCode: "CONFLICTING_TYPE_VARIABLE_AND_MEMBER",
+        dart2jsCode: "*fatal*",
         severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1329,6 +1335,17 @@ Message _withArgumentsConstructorNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstructorNotSync = messageConstructorNotSync;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstructorNotSync = const MessageCode(
+    "ConstructorNotSync",
+    analyzerCode: "NON_SYNC_CONSTRUCTOR",
+    dart2jsCode: "*ignored*",
+    message:
+        r"""Constructor bodies can't use 'async', 'async*', or 'sync*'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstructorWithReturnType =
     messageConstructorWithReturnType;
 
@@ -1552,6 +1569,8 @@ const Code<Null> codeDeclaredMemberConflictsWithInheritedMember =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageDeclaredMemberConflictsWithInheritedMember =
     const MessageCode("DeclaredMemberConflictsWithInheritedMember",
+        analyzerCode: "DECLARED_MEMBER_CONFLICTS_WITH_INHERITED",
+        dart2jsCode: "*fatal*",
         severity: Severity.errorLegacyWarning,
         message:
             r"""Can't declare a member that conflicts with an inherited one.""");
@@ -1998,7 +2017,9 @@ const Template<Message Function(String name)> templateDuplicatedParameterName =
 const Code<Message Function(String name)> codeDuplicatedParameterName =
     const Code<Message Function(String name)>(
         "DuplicatedParameterName", templateDuplicatedParameterName,
-        analyzerCode: "DUPLICATE_DEFINITION", dart2jsCode: "*fatal*");
+        analyzerCode: "DUPLICATE_DEFINITION",
+        dart2jsCode: "*fatal*",
+        severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedParameterName(String name) {
@@ -2113,6 +2134,26 @@ const MessageCode messageEqualityCannotBeEqualityOperand = const MessageCode(
     message:
         r"""An equality expression can't be an operand of another equality expression.""",
     tip: r"""Try re-writing the expression.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)> templateExpectedAfterButGot =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""Expected '#string' after this.""",
+        withArguments: _withArgumentsExpectedAfterButGot);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeExpectedAfterButGot =
+    const Code<Message Function(String string)>(
+        "ExpectedAfterButGot", templateExpectedAfterButGot,
+        analyzerCode: "EXPECTED_TOKEN",
+        dart2jsCode: "MISSING_TOKEN_AFTER_THIS");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExpectedAfterButGot(String string) {
+  return new Message(codeExpectedAfterButGot,
+      message: """Expected '${string}' after this.""",
+      arguments: {'string': string});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExpectedAnInitializer = messageExpectedAnInitializer;
@@ -2665,9 +2706,9 @@ const Code<Null> codeFactoryNotSync = messageFactoryNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFactoryNotSync = const MessageCode("FactoryNotSync",
-    analyzerCode: "NON_SYNC_FACTORY_METHOD",
+    analyzerCode: "NON_SYNC_FACTORY",
     dart2jsCode: "*ignored*",
-    message: r"""Factories can't use 'async', 'async*', or 'sync*'.""");
+    message: r"""Factory bodies can't use 'async', 'async*', or 'sync*'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFactoryTopLevelDeclaration =
@@ -2841,6 +2882,8 @@ const Code<Message Function(String name)>
     const Code<Message Function(String name)>(
         "FinalInstanceVariableAlreadyInitialized",
         templateFinalInstanceVariableAlreadyInitialized,
+        analyzerCode: "FINAL_INITIALIZED_MULTIPLE_TIMES",
+        dart2jsCode: "*fatal*",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2876,6 +2919,46 @@ Message _withArgumentsFinalInstanceVariableAlreadyInitializedCause(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType
+            _type2)> templateForInLoopElementTypeNotAssignable = const Template<
+        Message Function(DartType _type, DartType _type2)>(
+    messageTemplate:
+        r"""A value of type '#type' can't be assigned to a variable of type '#type2'.""",
+    tipTemplate: r"""Try changing the type of the variable.""",
+    withArguments: _withArgumentsForInLoopElementTypeNotAssignable);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeForInLoopElementTypeNotAssignable =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+        "ForInLoopElementTypeNotAssignable",
+        templateForInLoopElementTypeNotAssignable,
+        analyzerCode: "FOR_IN_OF_INVALID_ELEMENT_TYPE",
+        dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsForInLoopElementTypeNotAssignable(
+    DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeForInLoopElementTypeNotAssignable,
+      message:
+          """A value of type '${type}' can't be assigned to a variable of type '${type2}'.""",
+      tip: """Try changing the type of the variable.""",
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeForInLoopExactlyOneVariable =
     messageForInLoopExactlyOneVariable;
 
@@ -2894,6 +2977,42 @@ const MessageCode messageForInLoopNotAssignable = const MessageCode(
     severity: Severity.error,
     message:
         r"""Can't assign to this, so it can't be used in a for-in loop.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType
+            _type2)> templateForInLoopTypeNotIterable = const Template<
+        Message Function(DartType _type, DartType _type2)>(
+    messageTemplate:
+        r"""The type '#type' used in the 'for' loop must implement '#type2'.""",
+    withArguments: _withArgumentsForInLoopTypeNotIterable);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeForInLoopTypeNotIterable =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+        "ForInLoopTypeNotIterable", templateForInLoopTypeNotIterable,
+        analyzerCode: "FOR_IN_OF_INVALID_TYPE", dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsForInLoopTypeNotIterable(
+    DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeForInLoopTypeNotIterable,
+      message:
+          """The type '${type}' used in the 'for' loop must implement '${type2}'.""",
+      arguments: {'type': _type, 'type2': _type2});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFunctionTypeDefaultValue = messageFunctionTypeDefaultValue;
@@ -2927,6 +3046,19 @@ const MessageCode messageGeneratorReturnsValue = const MessageCode(
     analyzerCode: "RETURN_IN_GENERATOR",
     dart2jsCode: "*ignored*",
     message: r"""'sync*' and 'async*' can't return a value.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeGenericFunctionTypeInBound =
+    messageGenericFunctionTypeInBound;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageGenericFunctionTypeInBound = const MessageCode(
+    "GenericFunctionTypeInBound",
+    analyzerCode: "GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message:
+        r"""Type variables can't have generic function types in their bounds.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateGetterNotFound =
@@ -3131,6 +3263,8 @@ const Code<Null> codeInheritedMembersConflict = messageInheritedMembersConflict;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInheritedMembersConflict = const MessageCode(
     "InheritedMembersConflict",
+    analyzerCode: "CONFLICTS_WITH_INHERITED_MEMBER",
+    dart2jsCode: "*fatal*",
     severity: Severity.errorLegacyWarning,
     message: r"""Can't inherit members that conflict with each other.""");
 
@@ -4190,18 +4324,10 @@ const Code<Null> codeListLiteralTooManyTypeArguments =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageListLiteralTooManyTypeArguments = const MessageCode(
     "ListLiteralTooManyTypeArguments",
+    analyzerCode: "EXPECTED_ONE_LIST_TYPE_ARGUMENTS",
+    dart2jsCode: "*fatal*",
     severity: Severity.errorLegacyWarning,
-    message: r"""Too many type arguments on List literal.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeListLiteralTypeArgumentMismatch =
-    messageListLiteralTypeArgumentMismatch;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageListLiteralTypeArgumentMismatch = const MessageCode(
-    "ListLiteralTypeArgumentMismatch",
-    severity: Severity.errorLegacyWarning,
-    message: r"""Map literal requires two type arguments.""");
+    message: r"""List literal requires exactly one type argument.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -4235,6 +4361,8 @@ const Code<Null> codeLoadLibraryTakesNoArguments =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageLoadLibraryTakesNoArguments = const MessageCode(
     "LoadLibraryTakesNoArguments",
+    analyzerCode: "LOAD_LIBRARY_TAKES_NO_ARGUMENTS",
+    dart2jsCode: "*fatal*",
     severity: Severity.errorLegacyWarning,
     message: r"""'loadLibrary' takes no arguments.""");
 
@@ -4283,6 +4411,18 @@ Message _withArgumentsLocalDefinitionHidesImport(String name, Uri uri_) {
       message: """Local definition of '${name}' hides import from '${uri}'.""",
       arguments: {'name': name, 'uri': uri_});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMapLiteralTypeArgumentMismatch =
+    messageMapLiteralTypeArgumentMismatch;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMapLiteralTypeArgumentMismatch = const MessageCode(
+    "MapLiteralTypeArgumentMismatch",
+    analyzerCode: "EXPECTED_TWO_MAP_TYPE_ARGUMENTS",
+    dart2jsCode: "*fatal*",
+    severity: Severity.errorLegacyWarning,
+    message: r"""Map literal requires exactly two type arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMemberWithSameNameAsClass =
@@ -4781,6 +4921,31 @@ Message _withArgumentsNonAsciiWhitespace(int codePoint) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonConstConstructor = messageNonConstConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonConstConstructor = const MessageCode(
+    "NonConstConstructor",
+    analyzerCode: "NOT_CONSTANT_EXPRESSION",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message:
+        r"""Cannot invoke a non-'const' constructor where a const expression is expected.""",
+    tip: r"""Try using a constructor or factory that is 'const'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonConstFactory = messageNonConstFactory;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonConstFactory = const MessageCode("NonConstFactory",
+    analyzerCode: "NOT_CONSTANT_EXPRESSION",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message:
+        r"""Cannot invoke a non-'const' factory where a const expression is expected.""",
+    tip: r"""Try using a constructor or factory that is 'const'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNonInstanceTypeVariableUse =
     messageNonInstanceTypeVariableUse;
 
@@ -4850,6 +5015,17 @@ Message _withArgumentsNonSimpleBoundViaVariable(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNotAConstantExpression = messageNotAConstantExpression;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNotAConstantExpression = const MessageCode(
+    "NotAConstantExpression",
+    analyzerCode: "NOT_CONSTANT_EXPRESSION",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message: r"""Not a constant expression.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         Token token,
@@ -4904,6 +5080,25 @@ const Code<Null> codeNotAnLvalue = messageNotAnLvalue;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNotAnLvalue =
     const MessageCode("NotAnLvalue", message: r"""Can't assign to this.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)> templateNotConstantExpression =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""#string is not a constant expression.""",
+        withArguments: _withArgumentsNotConstantExpression);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeNotConstantExpression =
+    const Code<Message Function(String string)>(
+        "NotConstantExpression", templateNotConstantExpression,
+        analyzerCode: "NOT_CONSTANT_EXPRESSION", dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNotConstantExpression(String string) {
+  return new Message(codeNotConstantExpression,
+      message: """${string} is not a constant expression.""",
+      arguments: {'string': string});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeOnlyTry = messageOnlyTry;
@@ -5912,6 +6107,8 @@ const Code<Null> codeSuperAsExpression = messageSuperAsExpression;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSuperAsExpression = const MessageCode(
     "SuperAsExpression",
+    analyzerCode: "SUPER_AS_EXPRESSION",
+    dart2jsCode: "*fatal*",
     message: r"""Can't use 'super' as an expression.""",
     tip:
         r"""To delegate a constructor to a super constructor, put the super call as an initializer.""");
@@ -6143,9 +6340,8 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeThisAccessInFieldInitializer =
     const Code<Message Function(String name)>(
-  "ThisAccessInFieldInitializer",
-  templateThisAccessInFieldInitializer,
-);
+        "ThisAccessInFieldInitializer", templateThisAccessInFieldInitializer,
+        analyzerCode: "THIS_ACCESS_FROM_INITIALIZER", dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsThisAccessInFieldInitializer(String name) {
@@ -6356,6 +6552,8 @@ const Code<Null> codeTypeVariableSameNameAsEnclosing =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypeVariableSameNameAsEnclosing = const MessageCode(
     "TypeVariableSameNameAsEnclosing",
+    analyzerCode: "CONFLICTING_TYPE_VARIABLE_AND_CLASS",
+    dart2jsCode: "*fatal*",
     message:
         r"""A type variable can't have the same name as its enclosing declaration.""");
 

@@ -1943,6 +1943,7 @@ class BinaryBuilder {
         var annotation = annotations[i];
         annotation.parent = node;
       }
+      node.annotations = annotations;
     }
     return node;
   }

@@ -22,8 +22,11 @@ class FlagsRepository implements M.FlagsRepository {
   FlagsRepository(this.vm);
 
   Future<Iterable<Flag>> list() async {
-    List<Map> flags = ((await vm.getFlagList()) as S.ServiceMap)['flags'];
-    return flags.map(_toFlag);
+    var result = new List<Flag>();
+    for (var map in ((await vm.getFlagList()) as S.ServiceMap)['flags']) {
+      result.add(_toFlag(map));
+    }
+    return result;
   }
 
   static Flag _toFlag(Map map) {

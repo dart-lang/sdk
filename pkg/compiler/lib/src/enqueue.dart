@@ -73,7 +73,7 @@ abstract class Enqueuer {
   WorldBuilder get worldBuilder;
 
   void open(ImpactStrategy impactStrategy, FunctionEntity mainMethod,
-      Iterable<LibraryEntity> libraries);
+      Iterable<Uri> libraries);
   void close();
 
   /// Returns [:true:] if this enqueuer is the resolution enqueuer.
@@ -133,8 +133,8 @@ abstract class EnqueuerListener {
   /// backend specific [WorldImpact] of this is returned.
   WorldImpact registerUsedConstant(ConstantValue value);
 
-  void onQueueOpen(Enqueuer enqueuer, FunctionEntity mainMethod,
-      Iterable<LibraryEntity> libraries);
+  void onQueueOpen(
+      Enqueuer enqueuer, FunctionEntity mainMethod, Iterable<Uri> libraries);
 
   /// Called when [enqueuer]'s queue is empty, but before it is closed.
   ///
@@ -177,7 +177,7 @@ abstract class EnqueuerImpl extends Enqueuer {
   ImpactStrategy get impactStrategy => _impactStrategy;
 
   void open(ImpactStrategy impactStrategy, FunctionEntity mainMethod,
-      Iterable<LibraryEntity> libraries) {
+      Iterable<Uri> libraries) {
     _impactStrategy = impactStrategy;
     listener.onQueueOpen(this, mainMethod, libraries);
   }
@@ -381,6 +381,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         }
         break;
       case TypeUseKind.RTI_VALUE:
+      case TypeUseKind.TYPE_ARGUMENT:
         failedAt(CURRENT_ELEMENT_SPANNABLE, "Unexpected type use: $typeUse.");
         break;
     }

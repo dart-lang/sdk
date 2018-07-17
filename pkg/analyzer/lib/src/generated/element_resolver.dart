@@ -1622,33 +1622,45 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    */
   DartType _instantiateGenericMethod(
       DartType invokeType, TypeArgumentList typeArguments, AstNode node) {
-    // TODO(jmesserly): support generic "call" methods on InterfaceType.
+    DartType parameterizableType;
+    List<TypeParameterElement> parameters;
     if (invokeType is FunctionType) {
-      List<TypeParameterElement> parameters = invokeType.typeFormals;
+      parameterizableType = invokeType;
+      parameters = invokeType.typeFormals;
+    } else if (invokeType is InterfaceType) {
+      MethodElement callMethod = invokeType.lookUpMethod(
+          FunctionElement.CALL_METHOD_NAME, _resolver.definingLibrary);
+      parameterizableType = callMethod?.type;
+      parameters = (parameterizableType as FunctionType)?.typeFormals;
+    }
 
+    if (parameterizableType is ParameterizedType) {
       NodeList<TypeAnnotation> arguments = typeArguments?.arguments;
       if (arguments != null && arguments.length != parameters.length) {
         if (_resolver.strongMode) {
           _resolver.errorReporter.reportErrorForNode(
               StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
               node,
-              [invokeType, parameters.length, arguments?.length ?? 0]);
+              [parameterizableType, parameters.length, arguments?.length ?? 0]);
         } else {
           _resolver.errorReporter.reportErrorForNode(
               HintCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
               node,
-              [invokeType, parameters.length, arguments?.length ?? 0]);
+              [parameterizableType, parameters.length, arguments?.length ?? 0]);
         }
         // Wrong number of type arguments. Ignore them.
         arguments = null;
       }
       if (parameters.isNotEmpty) {
         if (arguments == null) {
-          return _resolver.typeSystem.instantiateToBounds(invokeType);
+          return _resolver.typeSystem.instantiateToBounds(parameterizableType);
         } else {
-          return invokeType.instantiate(arguments.map((n) => n.type).toList());
+          return parameterizableType
+              .instantiate(arguments.map((n) => n.type).toList());
         }
       }
+
+      return parameterizableType;
     }
     return invokeType;
   }

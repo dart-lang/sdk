@@ -10,7 +10,7 @@ class A {
 class B extends A {}
 
 class C extends B {
-  var a; //# 01: compile-time error
+  var a; //# 01: ok
   static var b; //# 02: compile-time error
 }
 

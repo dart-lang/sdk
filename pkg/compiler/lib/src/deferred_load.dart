@@ -19,6 +19,7 @@ import 'constants/values.dart'
         InstantiationConstantValue;
 import 'elements/types.dart';
 import 'elements/entities.dart';
+import 'library_loader.dart';
 import 'universe/use.dart';
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
@@ -362,6 +363,7 @@ abstract class DeferredLoadTask extends CompilerTask {
               }
               break;
             case TypeUseKind.RTI_VALUE:
+            case TypeUseKind.TYPE_ARGUMENT:
               failedAt(element, "Unexpected type use: $typeUse.");
               break;
           }
@@ -791,16 +793,15 @@ abstract class DeferredLoadTask extends CompilerTask {
   /// Frees up strategy-specific temporary data.
   void cleanup() {}
 
-  void beforeResolution(LibraryEntity mainLibrary) {
-    if (mainLibrary == null) return;
-    for (LibraryEntity library in compiler.libraryLoader.libraries) {
+  void beforeResolution(LoadedLibraries loadedLibraries) {
+    for (Uri uri in loadedLibraries.libraries) {
+      LibraryEntity library = elementEnvironment.lookupLibrary(uri);
       reporter.withCurrentElement(library, () {
         checkForDeferredErrorCases(library);
         for (ImportEntity import in elementEnvironment.getImports(library)) {
           if (import.isDeferred) {
-            Uri mainLibraryUri = compiler.mainLibraryUri;
-            _deferredImportDescriptions[import] =
-                new ImportDescription(import, library, mainLibraryUri);
+            _deferredImportDescriptions[import] = new ImportDescription(
+                import, library, loadedLibraries.rootLibraryUri);
             isProgramSplit = true;
           }
         }

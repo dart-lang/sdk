@@ -29,7 +29,7 @@ class PcDescriptorsRefElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(descriptors != null);
     PcDescriptorsRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<PcDescriptorsRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._descriptors = descriptors;
     return e;
@@ -47,14 +47,14 @@ class PcDescriptorsRefElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
     final text = (_descriptors.name == null || _descriptors.name == '')
         ? 'PcDescriptors'
         : _descriptors.name;
-    children = [
+    children = <Element>[
       new AnchorElement(href: Uris.inspect(_isolate, object: _descriptors))
         ..text = text
     ];

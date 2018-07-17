@@ -43,76 +43,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_awaitForIn_declaredVariableWrongType() async {
-    // Expected 1 errors of type StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, found 0
-    await super.test_awaitForIn_declaredVariableWrongType();
-  }
-
-  @override
-  @failingTest
-  test_awaitForIn_existingVariableWrongType() async {
-    // Expected 1 errors of type StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, found 0
-    await super.test_awaitForIn_existingVariableWrongType();
-  }
-
-  @override
-  @failingTest
-  test_awaitForIn_notStream() async {
-    // Expected 1 errors of type StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE, found 0
-    await super.test_awaitForIn_notStream();
-  }
-
-  @override
-  @failingTest
-  test_expectedOneListTypeArgument() async {
-    // Bad state: Found 1 argument types for 2 type arguments
-    await super.test_expectedOneListTypeArgument();
-  }
-
-  @override
-  @failingTest
-  test_expectedTwoMapTypeArguments_one() async {
-    // Bad state: Found 2 argument types for 1 type arguments
-    await super.test_expectedTwoMapTypeArguments_one();
-  }
-
-  @override
-  @failingTest
-  test_expectedTwoMapTypeArguments_three() async {
-    // Bad state: Found 2 argument types for 3 type arguments
-    await super.test_expectedTwoMapTypeArguments_three();
-  }
-
-  @override
-  @failingTest
-  test_forIn_declaredVariableWrongType() async {
-    // Expected 1 errors of type StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, found 0
-    await super.test_forIn_declaredVariableWrongType();
-  }
-
-  @override
-  @failingTest
-  test_forIn_existingVariableWrongType() async {
-    // Expected 1 errors of type StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, found 0
-    await super.test_forIn_existingVariableWrongType();
-  }
-
-  @override
-  @failingTest
-  test_forIn_notIterable() async {
-    // Expected 1 errors of type StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE, found 0
-    await super.test_forIn_notIterable();
-  }
-
-  @override
-  @failingTest
-  test_forIn_typeBoundBad() async {
-    // Expected 1 errors of type StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, found 0
-    await super.test_forIn_typeBoundBad();
-  }
-
-  @override
-  @failingTest
   test_illegalAsyncGeneratorReturnType_function_nonStream() async {
     // Expected 1 errors of type StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, found 0
     await super.test_illegalAsyncGeneratorReturnType_function_nonStream();
@@ -886,20 +816,6 @@ class StaticTypeWarningCodeTest_Kernel
   test_wrongNumberOfTypeArguments_classAlias() async {
     // AnalysisException: Element mismatch in /test.dart at /test.dart
     await super.test_wrongNumberOfTypeArguments_classAlias();
-  }
-
-  @override
-  @failingTest
-  test_wrongNumberOfTypeArguments_typeTest_tooFew() async {
-    // Bad state: Found 2 argument types for 1 type arguments
-    await super.test_wrongNumberOfTypeArguments_typeTest_tooFew();
-  }
-
-  @override
-  @failingTest
-  test_wrongNumberOfTypeArguments_typeTest_tooMany() async {
-    // Bad state: Found 1 argument types for 2 type arguments
-    await super.test_wrongNumberOfTypeArguments_typeTest_tooMany();
   }
 
   @override

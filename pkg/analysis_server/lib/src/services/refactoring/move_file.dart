@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -25,6 +26,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   final pathos.Context pathContext;
   final RefactoringWorkspace workspace;
   final Source source;
+  AnalysisDriver driver;
 
   String oldFile;
   String newFile;
@@ -42,39 +44,33 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   String get refactoringName => 'Move File';
 
   @override
-  Future<RefactoringStatus> checkFinalConditions() {
-    RefactoringStatus result = new RefactoringStatus();
-    return new Future.value(result);
+  Future<RefactoringStatus> checkFinalConditions() async {
+    final drivers = workspace.driversContaining(newFile);
+    if (drivers.length != 1) {
+      return new RefactoringStatus.fatal(
+          'Unable to find a single driver for $newFile.');
+    }
+    driver = drivers.first;
+    return new RefactoringStatus();
   }
 
   @override
-  Future<RefactoringStatus> checkInitialConditions() {
-    RefactoringStatus result = new RefactoringStatus();
-    return new Future.value(result);
+  Future<RefactoringStatus> checkInitialConditions() async {
+    return new RefactoringStatus();
   }
 
   @override
   Future<SourceChange> createChange() async {
-    var changeBuilder =
-        new DartChangeBuilder(workspace.drivers.first.currentSession);
-
-    final drivers =
-        workspace.drivers.where((d) => d.contextRoot.containsFile(newFile));
-    if (drivers.length != 1) {
-      // TODO(dantup): What to do in this case? Should we throw?
-      return changeBuilder.sourceChange;
-    }
-
-    final driver = drivers.first; // The above guarantees there's exactly one.
-    final result = await driver.getResult(oldFile);
-    final element = result?.unit?.element;
+    var changeBuilder = new DartChangeBuilder(driver.currentSession);
+    final result = await driver.getUnitElement(oldFile);
+    final element = result?.element;
     if (element == null) {
       return changeBuilder.sourceChange;
     }
     final library = element.library;
 
     // If this element is a library, update outgoing references inside the file.
-    if (library != null && element == library.definingCompilationUnit) {
+    if (element == library.definingCompilationUnit) {
       await changeBuilder.addFileEdit(library.source.fullName, (builder) {
         final oldDir = pathContext.dirname(oldFile);
         final newDir = pathContext.dirname(newFile);
@@ -86,7 +82,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
 
     // Update incoming references to this file
     List<SearchMatch> matches =
-        await workspace.searchEngine.searchReferences(result.unit.element);
+        await workspace.searchEngine.searchReferences(element);
     List<SourceReference> references = getSourceReferences(matches);
     for (SourceReference reference in references) {
       await changeBuilder.addFileEdit(reference.file, (builder) {

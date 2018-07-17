@@ -146,6 +146,7 @@ class TranslationHelper {
       StringIndex constructor_name);
   RawFunction* LookupMethodByMember(NameIndex target,
                                     const String& method_name);
+  RawFunction* LookupDynamicFunction(const Class& klass, const String& name);
 
   Type& GetCanonicalType(const Class& klass);
 
@@ -186,6 +187,8 @@ class TranslationHelper {
   ExternalTypedData& metadata_payloads_;
   ExternalTypedData& metadata_mappings_;
   Array& constants_;
+
+  DISALLOW_COPY_AND_ASSIGN(TranslationHelper);
 };
 
 // Helper class that reads a kernel FunctionNode from binary.
@@ -245,6 +248,8 @@ class FunctionNodeHelper {
  private:
   KernelReaderHelper* helper_;
   intptr_t next_read_;
+
+  DISALLOW_COPY_AND_ASSIGN(FunctionNodeHelper);
 };
 
 class TypeParameterHelper {
@@ -295,6 +300,8 @@ class TypeParameterHelper {
  private:
   KernelReaderHelper* helper_;
   intptr_t next_read_;
+
+  DISALLOW_COPY_AND_ASSIGN(TypeParameterHelper);
 };
 
 // Helper class that reads a kernel VariableDeclaration from binary.
@@ -353,6 +360,8 @@ class VariableDeclarationHelper {
  private:
   KernelReaderHelper* helper_;
   intptr_t next_read_;
+
+  DISALLOW_COPY_AND_ASSIGN(VariableDeclarationHelper);
 };
 
 // Helper class that reads a kernel Field from binary.
@@ -434,6 +443,8 @@ class FieldHelper {
   bool has_function_literal_initializer_;
   TokenPosition function_literal_start_;
   TokenPosition function_literal_end_;
+
+  DISALLOW_COPY_AND_ASSIGN(FieldHelper);
 };
 
 // Helper class that reads a kernel Procedure from binary.
@@ -518,6 +529,8 @@ class ProcedureHelper {
  private:
   KernelReaderHelper* helper_;
   intptr_t next_read_;
+
+  DISALLOW_COPY_AND_ASSIGN(ProcedureHelper);
 };
 
 // Helper class that reads a kernel Constructor from binary.
@@ -577,6 +590,8 @@ class ConstructorHelper {
  private:
   KernelReaderHelper* helper_;
   intptr_t next_read_;
+
+  DISALLOW_COPY_AND_ASSIGN(ConstructorHelper);
 };
 
 // Helper class that reads a kernel Class from binary.
@@ -649,6 +664,8 @@ class ClassHelper {
  private:
   KernelReaderHelper* helper_;
   intptr_t next_read_;
+
+  DISALLOW_COPY_AND_ASSIGN(ClassHelper);
 };
 
 // Helper class that reads a kernel Library from binary.
@@ -705,6 +722,8 @@ class LibraryHelper {
  private:
   KernelReaderHelper* helper_;
   intptr_t next_read_;
+
+  DISALLOW_COPY_AND_ASSIGN(LibraryHelper);
 };
 
 class LibraryDependencyHelper {
@@ -745,6 +764,8 @@ class LibraryDependencyHelper {
  private:
   KernelReaderHelper* helper_;
   intptr_t next_read_;
+
+  DISALLOW_COPY_AND_ASSIGN(LibraryDependencyHelper);
 };
 
 // Base class for helpers accessing metadata of a certain kind.
@@ -778,6 +799,8 @@ class MetadataHelper {
   intptr_t mappings_num_;
   intptr_t last_node_offset_;
   intptr_t last_mapping_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(MetadataHelper);
 };
 
 struct DirectCallMetadata {
@@ -803,6 +826,8 @@ class DirectCallMetadataHelper : public MetadataHelper {
   bool ReadMetadata(intptr_t node_offset,
                     NameIndex* target_name,
                     bool* check_receiver_for_null);
+
+  DISALLOW_COPY_AND_ASSIGN(DirectCallMetadataHelper);
 };
 
 struct InferredTypeMetadata {
@@ -823,6 +848,9 @@ class InferredTypeMetadataHelper : public MetadataHelper {
   explicit InferredTypeMetadataHelper(KernelReaderHelper* helper);
 
   InferredTypeMetadata GetInferredType(intptr_t node_offset);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(InferredTypeMetadataHelper);
 };
 
 struct ProcedureAttributesMetadata {
@@ -849,6 +877,8 @@ class ProcedureAttributesMetadataHelper : public MetadataHelper {
  private:
   bool ReadMetadata(intptr_t node_offset,
                     ProcedureAttributesMetadata* metadata);
+
+  DISALLOW_COPY_AND_ASSIGN(ProcedureAttributesMetadataHelper);
 };
 
 class KernelReaderHelper {
@@ -961,6 +991,7 @@ class KernelReaderHelper {
   intptr_t data_program_offset_;
 
   friend class ClassHelper;
+  friend class ConstantEvaluator;
   friend class ConstantHelper;
   friend class ConstructorHelper;
   friend class DirectCallMetadataHelper;
@@ -974,7 +1005,6 @@ class KernelReaderHelper {
   friend class ProcedureAttributesMetadataHelper;
   friend class ProcedureHelper;
   friend class SimpleExpressionConverter;
-  friend class StreamingConstantEvaluator;
   friend class ScopeBuilder;
   friend class TypeParameterHelper;
   friend class TypeTranslator;
@@ -983,6 +1013,9 @@ class KernelReaderHelper {
 #if defined(DART_USE_INTERPRETER)
   friend class BytecodeMetadataHelper;
 #endif  // defined(DART_USE_INTERPRETER)
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(KernelReaderHelper);
 };
 
 class ActiveClass {
@@ -1046,6 +1079,8 @@ class ActiveClassScope {
  private:
   ActiveClass* active_class_;
   ActiveClass saved_;
+
+  DISALLOW_COPY_AND_ASSIGN(ActiveClassScope);
 };
 
 class ActiveMemberScope {
@@ -1061,6 +1096,8 @@ class ActiveMemberScope {
  private:
   ActiveClass* active_class_;
   ActiveClass saved_;
+
+  DISALLOW_COPY_AND_ASSIGN(ActiveMemberScope);
 };
 
 class ActiveTypeParametersScope {
@@ -1087,6 +1124,8 @@ class ActiveTypeParametersScope {
  private:
   ActiveClass* active_class_;
   ActiveClass saved_;
+
+  DISALLOW_COPY_AND_ASSIGN(ActiveTypeParametersScope);
 };
 
 class TypeTranslator {
@@ -1162,6 +1201,8 @@ class TypeTranslator {
 
   friend class ScopeBuilder;
   friend class KernelLoader;
+
+  DISALLOW_COPY_AND_ASSIGN(TypeTranslator);
 };
 
 }  // namespace kernel

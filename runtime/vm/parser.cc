@@ -14,7 +14,7 @@
 #include "vm/class_finalizer.h"
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/backend/il_printer.h"
-#include "vm/compiler/frontend/kernel_binary_flowgraph.h"
+#include "vm/compiler/frontend/scope_builder.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/compiler_stats.h"
 #include "vm/dart_api_impl.h"

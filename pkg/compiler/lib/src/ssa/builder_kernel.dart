@@ -2040,7 +2040,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       void visitElse(),
       SourceInformation sourceInformation}) {
     SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this,
-        node == null ? node : _elementMap.getSpannable(targetElement, node));
+        node == null ? null : _elementMap.getSpannable(targetElement, node));
     branchBuilder.handleIf(visitCondition, visitThen, visitElse,
         sourceInformation: sourceInformation);
   }

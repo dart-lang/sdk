@@ -28,18 +28,19 @@ class A {
 
   @virtual int field1; //# 41: ok
   num field2; //# 42: ok
-  int field3; //# 43: ok
+  int field3; //# 43: compile-time error
   int field4; //# 44: compile-time error
-  int field5; //# 45: ok
+  int field5; //# 45: compile-time error
   @virtual num field6; //# 46: ok
   num field7; //# 47: compile-time error
   num get field8 => null; //# 48: compile-time error
-  num field9; //# 49: ok
-  num field10; //# 50: ok
+  num field9; //# 49: compile-time error
+  num field10; //# 50: compile-time error
   set field11(int _) {} //# 51: ok
   void set field12(int _) {} //# 52: ok
   num field13; //# 53: compile-time error
   set field14(num _) {} //# 54: compile-time error
+  num field15; //# 55: ok
 }
 
 class B extends A {
@@ -110,6 +111,7 @@ abstract class Class extends B implements I, J {
   num field12; //# 52: continued
   set field13(String _) {} //# 53: continued
   String field14; //# 54: continued
+  set field15(covariant int _) {} //# 55: continued
 }
 
 class SubClass extends Class {

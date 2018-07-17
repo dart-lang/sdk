@@ -57,6 +57,12 @@ void_type_function_types_test/06: MissingCompileTimeError
 void_type_function_types_test/08: MissingCompileTimeError
 void_type_function_types_test/none: Pass
 
+[ $compiler == dart2analyzer && $fasta ]
+compile_time_constant_static5_test/11: CompileTimeError # Issue 31537
+compile_time_constant_static5_test/16: CompileTimeError # Issue 31537
+compile_time_constant_static5_test/21: CompileTimeError # Issue 31537
+compile_time_constant_static5_test/23: CompileTimeError # Issue 31402
+
 [ $compiler == dart2analyzer && !$fasta ]
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
@@ -64,6 +70,7 @@ abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # I
 bad_initializer2_negative_test: Fail # Issue 14880
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/dynamic-gen: MissingCompileTimeError # Issue 28813
+check_member_static_test/01: CompileTimeError
 config_import_corelib_test: StaticWarning, OK
 conflicting_type_variable_and_setter_test: CompileTimeError # Issue 25525
 const_cast2_test/01: CompileTimeError
@@ -90,7 +97,6 @@ final_syntax_test/03: Fail # Issue 11124
 final_syntax_test/04: Fail # Issue 11124
 function_type_parameter2_negative_test: CompileTimeError
 function_type_parameter_negative_test: CompileTimeError
-generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 30929
 generic_local_functions_test: CompileTimeError # Issue 28515
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_no_such_method_dispatcher_simple_test: Skip # This test is just for kernel.
@@ -168,6 +174,18 @@ regress_29025_test: CompileTimeError # Issue 29081
 regress_29349_test: CompileTimeError # Issue 29744
 regress_29405_test: CompileTimeError # Issue 29421
 regress_29784_test/02: MissingCompileTimeError # Issue 29784
+regress_33235_03_test/01: MissingCompileTimeError
+regress_33235_07_test/03: MissingCompileTimeError
+regress_33235_10_test/01: MissingCompileTimeError
+regress_33235_10_test/02: MissingCompileTimeError
+regress_33235_10_test/03: MissingCompileTimeError
+regress_33235_11_test/01: MissingCompileTimeError
+regress_33235_12_test/03: MissingCompileTimeError
+regress_33235_13_test/03: MissingCompileTimeError
+regress_33235_16_test/02: MissingCompileTimeError
+regress_33235_16_test/03: MissingCompileTimeError
+regress_33235_19_test: CompileTimeError
+regress_33235_20_test: CompileTimeError
 script1_negative_test: CompileTimeError
 script2_negative_test: CompileTimeError
 setter_declaration2_negative_test: CompileTimeError
@@ -201,16 +219,12 @@ vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
 vm/regress_33469_test/01: Crash # http://dartbug.com/33481
 vm/regress_33469_test/02: Crash # http://dartbug.com/33481
 vm/regress_33469_test/03: MissingCompileTimeError # http://dartbug.com/33481
-void_type_override_test/00: MissingCompileTimeError
-void_type_override_test/00b: MissingCompileTimeError
-void_type_override_test/01: MissingCompileTimeError
 void_type_override_test/02: MissingCompileTimeError
 void_type_override_test/03: MissingCompileTimeError
 void_type_usage_test/call_conditional: MissingCompileTimeError
 void_type_usage_test/call_literal_list_init: MissingCompileTimeError
 void_type_usage_test/call_literal_map_key_init: MissingCompileTimeError
 void_type_usage_test/call_literal_map_value_init: MissingCompileTimeError
-void_type_usage_test/call_return: MissingCompileTimeError
 void_type_usage_test/call_void_init: MissingCompileTimeError
 void_type_usage_test/conditional2_conditional: MissingCompileTimeError
 void_type_usage_test/conditional2_for: MissingCompileTimeError
@@ -247,51 +261,41 @@ void_type_usage_test/final_local_for_in2: MissingCompileTimeError
 void_type_usage_test/final_local_literal_list_init: MissingCompileTimeError
 void_type_usage_test/final_local_literal_map_key_init: MissingCompileTimeError
 void_type_usage_test/final_local_literal_map_value_init: MissingCompileTimeError
-void_type_usage_test/final_local_return: MissingCompileTimeError
 void_type_usage_test/final_local_void_init: MissingCompileTimeError
 void_type_usage_test/global_conditional: MissingCompileTimeError
 void_type_usage_test/global_literal_list_init: MissingCompileTimeError
 void_type_usage_test/global_literal_map_key_init: MissingCompileTimeError
 void_type_usage_test/global_literal_map_value_init: MissingCompileTimeError
-void_type_usage_test/global_return: MissingCompileTimeError
 void_type_usage_test/global_void_init: MissingCompileTimeError
 void_type_usage_test/instance2_conditional: MissingCompileTimeError
-void_type_usage_test/instance2_for_in2: MissingCompileTimeError
 void_type_usage_test/instance2_literal_list_init: MissingCompileTimeError
 void_type_usage_test/instance2_literal_map_key_init: MissingCompileTimeError
 void_type_usage_test/instance2_literal_map_value_init: MissingCompileTimeError
-void_type_usage_test/instance2_return: MissingCompileTimeError
 void_type_usage_test/instance2_void_init: MissingCompileTimeError
 void_type_usage_test/instance3_conditional: MissingCompileTimeError
-void_type_usage_test/instance3_for_in2: MissingCompileTimeError
 void_type_usage_test/instance3_literal_list_init: MissingCompileTimeError
 void_type_usage_test/instance3_literal_map_key_init: MissingCompileTimeError
 void_type_usage_test/instance3_literal_map_value_init: MissingCompileTimeError
-void_type_usage_test/instance3_return: MissingCompileTimeError
 void_type_usage_test/instance3_void_init: MissingCompileTimeError
 void_type_usage_test/instance_conditional: MissingCompileTimeError
 void_type_usage_test/instance_literal_list_init: MissingCompileTimeError
 void_type_usage_test/instance_literal_map_key_init: MissingCompileTimeError
 void_type_usage_test/instance_literal_map_value_init: MissingCompileTimeError
-void_type_usage_test/instance_return: MissingCompileTimeError
 void_type_usage_test/instance_void_init: MissingCompileTimeError
 void_type_usage_test/local_conditional: MissingCompileTimeError
 void_type_usage_test/local_literal_list_init: MissingCompileTimeError
 void_type_usage_test/local_literal_map_key_init: MissingCompileTimeError
 void_type_usage_test/local_literal_map_value_init: MissingCompileTimeError
-void_type_usage_test/local_return: MissingCompileTimeError
 void_type_usage_test/local_void_init: MissingCompileTimeError
 void_type_usage_test/param_conditional: MissingCompileTimeError
 void_type_usage_test/param_literal_list_init: MissingCompileTimeError
 void_type_usage_test/param_literal_map_key_init: MissingCompileTimeError
 void_type_usage_test/param_literal_map_value_init: MissingCompileTimeError
-void_type_usage_test/param_return: MissingCompileTimeError
 void_type_usage_test/param_void_init: MissingCompileTimeError
 void_type_usage_test/paren_conditional: MissingCompileTimeError
 void_type_usage_test/paren_literal_list_init: MissingCompileTimeError
 void_type_usage_test/paren_literal_map_key_init: MissingCompileTimeError
 void_type_usage_test/paren_literal_map_value_init: MissingCompileTimeError
-void_type_usage_test/paren_return: MissingCompileTimeError
 void_type_usage_test/paren_void_init: MissingCompileTimeError
 web_int_literals_test/01: MissingCompileTimeError
 web_int_literals_test/02: MissingCompileTimeError
@@ -399,10 +403,6 @@ override_inheritance_field_test/06: CompileTimeError
 override_inheritance_field_test/26: CompileTimeError
 override_inheritance_field_test/29: CompileTimeError
 override_inheritance_field_test/42: CompileTimeError
-override_inheritance_field_test/43: CompileTimeError
-override_inheritance_field_test/45: CompileTimeError
-override_inheritance_field_test/49: CompileTimeError
-override_inheritance_field_test/50: CompileTimeError
 override_inheritance_generic_test/02: CompileTimeError
 override_inheritance_method_test/28: CompileTimeError
 override_inheritance_method_test/29: CompileTimeError

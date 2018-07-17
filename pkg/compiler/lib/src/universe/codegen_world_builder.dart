@@ -80,6 +80,9 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
 
   /// Returns the types that are live as constant type literals.
   Iterable<DartType> get constTypeLiterals;
+
+  /// Returns the types that are live as constant type literals.
+  Iterable<DartType> get liveTypeArguments;
 }
 
 class CodegenWorldBuilderImpl extends WorldBuilderBase
@@ -165,6 +168,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   final KernelToWorldBuilder _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
 
+  final Set<DartType> _constTypeLiterals = new Set<DartType>();
   final Set<DartType> _liveTypeArguments = new Set<DartType>();
 
   CodegenWorldBuilderImpl(
@@ -692,9 +696,15 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
     });
   }
 
+  void registerConstTypeLiteral(DartType type) {
+    _constTypeLiterals.add(type);
+  }
+
+  Iterable<DartType> get constTypeLiterals => _constTypeLiterals;
+
   void registerTypeArgument(DartType type) {
     _liveTypeArguments.add(type);
   }
 
-  Iterable<DartType> get constTypeLiterals => _liveTypeArguments;
+  Iterable<DartType> get liveTypeArguments => _liveTypeArguments;
 }

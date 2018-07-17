@@ -7,7 +7,6 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
-#include <functional>
 #include <initializer_list>
 
 #include "vm/growable_array.h"
@@ -15,7 +14,7 @@
 
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
-#include "vm/compiler/frontend/flow_graph_builder.h"
+#include "vm/compiler/frontend/flow_graph_builder.h"  // For InlineExitCollector.
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/frontend/scope_builder.h"
 
@@ -253,6 +252,8 @@ class BaseFlowGraphBuilder {
   friend class StreamingFlowGraphBuilder;
   friend class FlowGraphBuilder;
   friend class PrologueBuilder;
+
+  DISALLOW_COPY_AND_ASSIGN(BaseFlowGraphBuilder);
 };
 
 class FlowGraphBuilder : public BaseFlowGraphBuilder {
@@ -284,9 +285,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   Fragment NativeFunctionBody(intptr_t first_positional_offset,
                               const Function& function);
-
-  Fragment TranslateFinallyFinalizers(TryFinallyBlock* outer_finally,
-                                      intptr_t target_context_depth);
 
   Fragment EnterScope(intptr_t kernel_offset,
                       intptr_t* num_context_variables = NULL);
@@ -468,14 +466,15 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   ActiveClass active_class_;
 
-  StreamingFlowGraphBuilder* streaming_flow_graph_builder_;
-
   friend class BreakableBlock;
   friend class CatchBlock;
+  friend class ConstantEvaluator;
   friend class StreamingFlowGraphBuilder;
   friend class SwitchBlock;
   friend class TryCatchBlock;
   friend class TryFinallyBlock;
+
+  DISALLOW_COPY_AND_ASSIGN(FlowGraphBuilder);
 };
 
 class SwitchBlock {
@@ -557,6 +556,8 @@ class SwitchBlock {
   intptr_t depth_;
   intptr_t context_depth_;
   intptr_t try_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(SwitchBlock);
 };
 
 class TryCatchBlock {
@@ -578,6 +579,8 @@ class TryCatchBlock {
   BaseFlowGraphBuilder* builder_;
   TryCatchBlock* outer_;
   intptr_t try_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(TryCatchBlock);
 };
 
 class TryFinallyBlock {
@@ -609,6 +612,8 @@ class TryFinallyBlock {
   const intptr_t context_depth_;
   const intptr_t try_depth_;
   const intptr_t try_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(TryFinallyBlock);
 };
 
 class BreakableBlock {
@@ -661,6 +666,8 @@ class BreakableBlock {
   TryFinallyBlock* outer_finally_;
   intptr_t context_depth_;
   intptr_t try_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(BreakableBlock);
 };
 
 class CatchBlock {
@@ -688,6 +695,8 @@ class CatchBlock {
   LocalVariable* exception_var_;
   LocalVariable* stack_trace_var_;
   intptr_t catch_try_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(CatchBlock);
 };
 
 RawObject* EvaluateMetadata(const Field& metadata_field,

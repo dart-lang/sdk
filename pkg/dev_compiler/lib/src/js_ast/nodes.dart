@@ -4,7 +4,7 @@
 
 part of js_ast;
 
-abstract class NodeVisitor<T> implements TypeRefVisitor<T> {
+abstract class NodeVisitor<T> {
   T visitProgram(Program node);
 
   T visitBlock(Block node);
@@ -93,18 +93,6 @@ abstract class NodeVisitor<T> implements TypeRefVisitor<T> {
   T visitObjectBindingPattern(ObjectBindingPattern node);
   T visitDestructuredVariable(DestructuredVariable node);
   T visitSimpleBindingPattern(SimpleBindingPattern node);
-}
-
-abstract class TypeRefVisitor<T> {
-  T visitQualifiedTypeRef(QualifiedTypeRef node);
-  T visitGenericTypeRef(GenericTypeRef node);
-  T visitUnionTypeRef(UnionTypeRef node);
-  T visitRecordTypeRef(RecordTypeRef node);
-  T visitOptionalTypeRef(OptionalTypeRef node);
-  T visitFunctionTypeRef(FunctionTypeRef node);
-  T visitAnyTypeRef(AnyTypeRef node);
-  T visitUnknownTypeRef(UnknownTypeRef node);
-  T visitArrayTypeRef(ArrayTypeRef node);
 }
 
 class BaseVisitor<T> implements NodeVisitor<T> {
@@ -229,26 +217,12 @@ class BaseVisitor<T> implements NodeVisitor<T> {
       visitBindingPattern(node);
   T visitDestructuredVariable(DestructuredVariable node) => visitNode(node);
   T visitSimpleBindingPattern(SimpleBindingPattern node) => visitNode(node);
-
-  T visitTypeRef(TypeRef node) => visitNode(node);
-  T visitQualifiedTypeRef(QualifiedTypeRef node) => visitTypeRef(node);
-  T visitGenericTypeRef(GenericTypeRef node) => visitTypeRef(node);
-  T visitOptionalTypeRef(OptionalTypeRef node) => visitTypeRef(node);
-  T visitRecordTypeRef(RecordTypeRef node) => visitTypeRef(node);
-  T visitUnionTypeRef(UnionTypeRef node) => visitTypeRef(node);
-  T visitFunctionTypeRef(FunctionTypeRef node) => visitTypeRef(node);
-  T visitAnyTypeRef(AnyTypeRef node) => visitTypeRef(node);
-  T visitUnknownTypeRef(UnknownTypeRef node) => visitTypeRef(node);
-  T visitArrayTypeRef(ArrayTypeRef node) => visitTypeRef(node);
 }
 
 abstract class Node {
   /// Sets the source location of this node. For performance reasons, we allow
   /// setting this after construction.
   Object sourceInformation;
-
-  /// Closure annotation of this node.
-  ClosureAnnotation closureAnnotation;
 
   T accept<T>(NodeVisitor<T> visitor);
   void visitChildren(NodeVisitor visitor);
@@ -892,13 +866,9 @@ class DestructuredVariable extends Expression implements Parameter {
 
   final BindingPattern structure;
   final Expression defaultValue;
-  final TypeRef type;
+
   DestructuredVariable(
-      {this.name,
-      this.property,
-      this.structure,
-      this.defaultValue,
-      this.type}) {
+      {this.name, this.property, this.structure, this.defaultValue}) {
     assert(name != null || structure != null);
   }
 
@@ -1177,16 +1147,13 @@ class Postfix extends Expression {
   int get precedenceLevel => UNARY;
 }
 
-abstract class Parameter implements Expression, VariableBinding {
-  TypeRef get type;
-}
+abstract class Parameter implements Expression, VariableBinding {}
 
 class Identifier extends Expression implements Parameter {
   final String name;
   final bool allowRename;
-  final TypeRef type;
 
-  Identifier(this.name, {this.allowRename = true, this.type}) {
+  Identifier(this.name, {this.allowRename = true}) {
     if (!_identifierRE.hasMatch(name)) {
       throw ArgumentError.value(name, "name", "not a valid identifier");
     }
@@ -1204,7 +1171,6 @@ class Identifier extends Expression implements Parameter {
 // This is an expression for convenience in the AST.
 class RestParameter extends Expression implements Parameter {
   final Identifier parameter;
-  TypeRef get type => null;
 
   RestParameter(this.parameter);
 
@@ -1278,24 +1244,13 @@ class NamedFunction extends Expression {
 }
 
 abstract class FunctionExpression extends Expression {
+  Node get body; // Expression or block
   List<Parameter> get params;
-
-  get body; // Expression or block
-  /// Type parameters passed to this generic function, if any. `null` otherwise.
-  // TODO(ochafik): Support type bounds.
-  List<Identifier> get typeParams;
-
-  /// Return type of this function, if any. `null` otherwise.
-  TypeRef get returnType;
 }
 
 class Fun extends FunctionExpression {
   final List<Parameter> params;
   final Block body;
-  @override
-  final List<Identifier> typeParams;
-  @override
-  final TypeRef returnType;
 
   /** Whether this is a JS generator (`function*`) that may contain `yield`. */
   final bool isGenerator;
@@ -1304,9 +1259,7 @@ class Fun extends FunctionExpression {
 
   Fun(this.params, this.body,
       {this.isGenerator = false,
-      this.asyncModifier = const AsyncModifier.sync(),
-      this.typeParams,
-      this.returnType});
+      this.asyncModifier = const AsyncModifier.sync()});
 
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitFun(this);
 
@@ -1324,12 +1277,8 @@ class Fun extends FunctionExpression {
 class ArrowFun extends FunctionExpression {
   final List<Parameter> params;
   final body; // Expression or Block
-  @override
-  final List<Identifier> typeParams;
-  @override
-  final TypeRef returnType;
 
-  ArrowFun(this.params, this.body, {this.typeParams, this.returnType});
+  ArrowFun(this.params, this.body);
 
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitArrowFun(this);
 
@@ -1627,15 +1576,7 @@ class ClassExpression extends Expression {
   final Expression heritage; // Can be null.
   final List<Method> methods;
 
-  /// Type parameters of this class, if any. `null` otherwise.
-  // TODO(ochafik): Support type bounds.
-  final List<Identifier> typeParams;
-
-  /// Field declarations of this class (TypeScript / ES6_TYPED).
-  final List<VariableDeclarationList> fields;
-
-  ClassExpression(this.name, this.heritage, this.methods,
-      {this.typeParams, this.fields});
+  ClassExpression(this.name, this.heritage, this.methods);
 
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitClassExpression(this);
 
@@ -1643,23 +1584,12 @@ class ClassExpression extends Expression {
     name.accept(visitor);
     if (heritage != null) heritage.accept(visitor);
     for (Method element in methods) element.accept(visitor);
-    if (fields != null) {
-      for (var field in fields) {
-        field.accept(visitor);
-      }
-    }
-    if (typeParams != null) {
-      for (var typeParam in typeParams) {
-        typeParam.accept(visitor);
-      }
-    }
   }
 
   @override
   ClassDeclaration toStatement() => ClassDeclaration(this);
 
-  ClassExpression _clone() => ClassExpression(name, heritage, methods,
-      typeParams: typeParams, fields: fields);
+  ClassExpression _clone() => ClassExpression(name, heritage, methods);
 
   int get precedenceLevel => PRIMARY_LOW_PRECEDENCE;
 }
@@ -1726,7 +1656,6 @@ class InterpolatedParameter extends Expression
     with InterpolatedNode
     implements Identifier {
   final nameOrPosition;
-  TypeRef get type => null;
 
   String get name {
     throw "InterpolatedParameter.name must not be invoked";
@@ -1797,7 +1726,6 @@ class InterpolatedIdentifier extends Expression
     with InterpolatedNode
     implements Identifier {
   final nameOrPosition;
-  TypeRef get type => null;
 
   InterpolatedIdentifier(this.nameOrPosition);
 

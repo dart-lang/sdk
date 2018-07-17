@@ -822,11 +822,11 @@ class IntegerLiteralImplTest {
   }
 
   test_isValidLiteral_hex_negative_equalMax() {
-    expect(IntegerLiteralImpl.isValidLiteral('0x7FFFFFFFFFFFFFFF', true), true);
+    expect(IntegerLiteralImpl.isValidLiteral('0x8000000000000000', true), true);
   }
 
   test_isValidLiteral_heX_negative_equalMax() {
-    expect(IntegerLiteralImpl.isValidLiteral('0X7FFFFFFFFFFFFFFF', true), true);
+    expect(IntegerLiteralImpl.isValidLiteral('0X8000000000000000', true), true);
   }
 
   test_isValidLiteral_hex_negative_fewDigits() {
@@ -857,14 +857,22 @@ class IntegerLiteralImplTest {
         IntegerLiteralImpl.isValidLiteral('0X007FFFFFFFFFFFFFFF', true), true);
   }
 
+  test_isValidLiteral_hex_negative_oneBelowMax() {
+    expect(IntegerLiteralImpl.isValidLiteral('0x7FFFFFFFFFFFFFFF', true), true);
+  }
+
+  test_isValidLiteral_heX_negative_oneBelowMax() {
+    expect(IntegerLiteralImpl.isValidLiteral('0X7FFFFFFFFFFFFFFF', true), true);
+  }
+
   test_isValidLiteral_hex_negative_oneOverMax() {
     expect(
-        IntegerLiteralImpl.isValidLiteral('0x8000000000000000', true), false);
+        IntegerLiteralImpl.isValidLiteral('0x8000000000000001', true), false);
   }
 
   test_isValidLiteral_heX_negative_oneOverMax() {
     expect(
-        IntegerLiteralImpl.isValidLiteral('0X8000000000000000', true), false);
+        IntegerLiteralImpl.isValidLiteral('0X8000000000000001', true), false);
   }
 
   test_isValidLiteral_hex_negative_tooManyDigits() {

@@ -111,10 +111,14 @@ class KernelResynthesizer implements ElementResynthesizer {
     }
 
     String libraryUri = components[--componentPtr];
-    String topKindOrClassName = components[--componentPtr];
-
     LibraryElementImpl library = getLibrary(libraryUri);
     if (library == null) return null;
+
+    if (componentPtr == 0) {
+      return library;
+    }
+
+    String topKindOrClassName = components[--componentPtr];
 
     String takeElementName() {
       String publicNameOrLibraryUri = components[--componentPtr];
@@ -217,7 +221,9 @@ class KernelResynthesizer implements ElementResynthesizer {
     });
   }
 
-  DartType getType(ElementImpl context, kernel.DartType kernelType) {
+  DartType getType(ElementImpl context, kernel.DartType kernelType,
+      {TypeParameterElement Function(kernel.TypeParameter)
+          getLocalTypeParameter}) {
     if (kernelType is kernel.DynamicType) return DynamicTypeImpl.instance;
     if (kernelType is kernel.InvalidType) return UndefinedTypeImpl.instance;
     if (kernelType is kernel.BottomType) return BottomTypeImpl.instance;
@@ -230,16 +236,20 @@ class KernelResynthesizer implements ElementResynthesizer {
           name.parent.name == 'dart:async') {
         return DynamicTypeImpl.instance;
       }
-      return _getInterfaceType(context, name, kernelType.typeArguments);
+      return _getInterfaceType(context, name, kernelType.typeArguments,
+          getLocalTypeParameter: getLocalTypeParameter);
     }
 
     if (kernelType is kernel.TypeParameterType) {
       kernel.TypeParameter kTypeParameter = kernelType.parameter;
-      return getTypeParameter(context, kTypeParameter).type;
+      return getTypeParameter(context, kTypeParameter,
+              getLocalTypeParameter: getLocalTypeParameter)
+          .type;
     }
 
     if (kernelType is kernel.FunctionType) {
-      return _getFunctionType(context, kernelType);
+      return _getFunctionType(context, kernelType,
+          getLocalTypeParameter: getLocalTypeParameter);
     }
 
     // TODO(scheglov) Support other kernel types.
@@ -248,7 +258,13 @@ class KernelResynthesizer implements ElementResynthesizer {
 
   /// Return the [TypeParameterElement] for the given [kernelTypeParameter].
   TypeParameterElement getTypeParameter(
-      ElementImpl context, kernel.TypeParameter kernelTypeParameter) {
+      ElementImpl context, kernel.TypeParameter kernelTypeParameter,
+      {TypeParameterElement Function(kernel.TypeParameter)
+          getLocalTypeParameter}) {
+    if (getLocalTypeParameter != null) {
+      var translatedElement = getLocalTypeParameter(kernelTypeParameter);
+      if (translatedElement != null) return translatedElement;
+    }
     String name = kernelTypeParameter.name;
     for (var ctx = context; ctx != null; ctx = ctx.enclosingElement) {
       if (ctx is TypeParameterizedElementMixin) {
@@ -275,9 +291,12 @@ class KernelResynthesizer implements ElementResynthesizer {
 
   /// Return the [FunctionType] that corresponds to the given [kernelType].
   FunctionType _getFunctionType(
-      ElementImpl context, kernel.FunctionType kernelType) {
+      ElementImpl context, kernel.FunctionType kernelType,
+      {TypeParameterElement Function(kernel.TypeParameter)
+          getLocalTypeParameter}) {
     if (kernelType.typedef != null) {
-      var translatedType = _getTypedefType(context, kernelType);
+      var translatedType = _getTypedefType(context, kernelType,
+          getLocalTypeParameter: getLocalTypeParameter);
       if (translatedType != null) return translatedType;
     }
 
@@ -307,13 +326,16 @@ class KernelResynthesizer implements ElementResynthesizer {
         namedParameters);
     element.parameters = astParameters;
 
-    element.returnType = getType(element, kernelType.returnType);
+    element.returnType = getType(element, kernelType.returnType,
+        getLocalTypeParameter: getLocalTypeParameter);
 
     return new FunctionTypeImpl(element);
   }
 
   InterfaceType _getInterfaceType(ElementImpl context,
-      kernel.CanonicalName className, List<kernel.DartType> kernelArguments) {
+      kernel.CanonicalName className, List<kernel.DartType> kernelArguments,
+      {TypeParameterElement Function(kernel.TypeParameter)
+          getLocalTypeParameter}) {
     var libraryName = className.parent;
     var libraryElement = getLibrary(libraryName.name);
     ClassElement classElement = libraryElement.getType(className.name);
@@ -326,7 +348,8 @@ class KernelResynthesizer implements ElementResynthesizer {
     return new InterfaceTypeImpl.elementWithNameAndArgs(
         classElement, classElement.name, () {
       List<DartType> arguments = kernelArguments
-          .map((kernel.DartType k) => getType(context, k))
+          .map((kernel.DartType k) =>
+              getType(context, k, getLocalTypeParameter: getLocalTypeParameter))
           .toList(growable: false);
       return arguments;
     });
@@ -342,7 +365,9 @@ class KernelResynthesizer implements ElementResynthesizer {
 
   /// Return the [FunctionType] for the given typedef based [kernelType].
   FunctionType _getTypedefType(
-      ElementImpl context, kernel.FunctionType kernelType) {
+      ElementImpl context, kernel.FunctionType kernelType,
+      {TypeParameterElement Function(kernel.TypeParameter)
+          getLocalTypeParameter}) {
     kernel.Typedef typedef = kernelType.typedef;
 
     GenericTypeAliasElementImpl typedefElement =
@@ -372,7 +397,8 @@ class KernelResynthesizer implements ElementResynthesizer {
     // Convert kernel type arguments into Analyzer types.
     var typeArguments = typedef.typeParameters
         .map((t) => substitution.containsKey(t)
-            ? getType(context, substitution[t])
+            ? getType(context, substitution[t],
+                getLocalTypeParameter: getLocalTypeParameter)
             : _typeProvider.nullType)
         .toList();
     return typedefElement.instantiate(typeArguments);
@@ -420,14 +446,6 @@ class KernelResynthesizer implements ElementResynthesizer {
 }
 
 /**
- * This exception is thrown when we detect that the Kernel has a compilation
- * error, so we cannot resynthesize the constant expression.
- */
-class _CompilationErrorFound {
-  const _CompilationErrorFound();
-}
-
-/**
  * Builder of [Expression]s from [kernel.Expression]s.
  */
 class _ExprBuilder {
@@ -437,11 +455,10 @@ class _ExprBuilder {
   _ExprBuilder(this._context, this._contextElement);
 
   Expression build(kernel.Expression expr) {
-    try {
-      return _build(expr);
-    } on _CompilationErrorFound {
+    if (_hasInvalidExpression(expr)) {
       return AstTestFactory.identifier3('#invalidConst');
     }
+    return _build(expr);
   }
 
   ConstructorInitializer buildInitializer(kernel.Initializer k) {
@@ -554,22 +571,6 @@ class _ExprBuilder {
       }
 
       return AstTestFactory.mapLiteral(keyword, typeArguments, entries);
-    }
-
-    // Invalid initializers and  annotations are represented as Let.
-    if (expr is kernel.Let) {
-      var body = expr.body;
-      if (body is kernel.Let) {
-        var initializer = body.variable.initializer;
-        if (initializer is kernel.Let && _isStaticError(initializer.body)) {
-          throw const _CompilationErrorFound();
-        }
-      }
-    }
-
-    // Stop if there is an error.
-    if (_isStaticError(expr)) {
-      throw const _CompilationErrorFound();
     }
 
     if (expr is kernel.StaticGet) {
@@ -730,9 +731,6 @@ class _ExprBuilder {
   }
 
   SimpleIdentifier _buildSimpleIdentifier(kernel.Reference reference) {
-    if (reference == null) {
-      throw const _CompilationErrorFound();
-    }
     String name = reference.canonicalName.name;
     SimpleIdentifier identifier = AstTestFactory.identifier3(name);
     Element element = _getElement(reference);
@@ -823,12 +821,19 @@ class _ExprBuilder {
     throw new ArgumentError(name);
   }
 
-  /**
-   * Return `true` if the given [expr] throws an instance of
-   * `_ConstantExpressionError` defined in `dart:core`.
-   */
-  static bool _isStaticError(kernel.Expression expr) {
-    return expr is kernel.InvalidExpression;
+  static bool _hasInvalidExpression(kernel.Expression expr) {
+    var visitor = new _HasInvalidExpressionVisitor();
+    expr.accept(visitor);
+    return visitor.result;
+  }
+}
+
+class _HasInvalidExpressionVisitor extends kernel.RecursiveVisitor<void> {
+  bool result = false;
+
+  @override
+  void visitInvalidExpression(kernel.InvalidExpression node) {
+    result = true;
   }
 }
 

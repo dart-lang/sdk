@@ -141,7 +141,8 @@ class ThisAccessGenerator extends KernelGenerator {
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
       Procedure interfaceTarget,
-      bool isPreIncDec: false}) {
+      bool isPreIncDec: false,
+      bool isPostIncDec: false}) {
     return buildAssignmentError();
   }
 
@@ -195,10 +196,11 @@ abstract class IncompleteSendGenerator extends KernelGenerator {
 
 class IncompleteErrorGenerator extends IncompleteSendGenerator
     with ErroneousExpressionGenerator {
+  final Member member;
   final Message message;
 
   IncompleteErrorGenerator(
-      ExpressionGeneratorHelper helper, Token token, this.message)
+      ExpressionGeneratorHelper helper, Token token, this.member, this.message)
       : super(helper, token, null);
 
   String get debugName => "IncompleteErrorGenerator";
@@ -216,6 +218,13 @@ class IncompleteErrorGenerator extends IncompleteSendGenerator
 
   @override
   doInvocation(int offset, Arguments arguments) => this;
+
+  @override
+  Expression buildSimpleRead() {
+    var error = buildError(forest.argumentsEmpty(token), isGetter: true);
+    return new InvalidPropertyGetJudgment(error, member)
+      ..fileOffset = offsetForToken(token);
+  }
 
   @override
   void printOn(StringSink sink) {
@@ -266,7 +275,8 @@ class SendAccessGenerator extends IncompleteSendGenerator {
       {int offset,
       bool voidContext: false,
       Procedure interfaceTarget,
-      bool isPreIncDec: false}) {
+      bool isPreIncDec: false,
+      bool isPostIncDec: false}) {
     return unsupported(
         "buildCompoundAssignment", offset ?? offsetForToken(token), uri);
   }
@@ -335,7 +345,8 @@ class IncompletePropertyAccessGenerator extends IncompleteSendGenerator {
       {int offset,
       bool voidContext: false,
       Procedure interfaceTarget,
-      bool isPreIncDec: false}) {
+      bool isPreIncDec: false,
+      bool isPostIncDec: false}) {
     return unsupported(
         "buildCompoundAssignment", offset ?? offsetForToken(token), uri);
   }

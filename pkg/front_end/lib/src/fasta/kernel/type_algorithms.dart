@@ -693,3 +693,29 @@ List<Object> getNonSimplicityIssuesForDeclaration(
   issues.addAll(convertRawTypeCyclesIntoIssues(declaration, cyclesToReport));
   return issues;
 }
+
+void findGenericFunctionTypes(TypeBuilder type, {List<TypeBuilder> result}) {
+  result ??= <TypeBuilder>[];
+  if (type is FunctionTypeBuilder) {
+    if (type.typeVariables != null && type.typeVariables.length > 0) {
+      result.add(type);
+
+      for (TypeVariableBuilder<TypeBuilder, Object> typeVariable
+          in type.typeVariables) {
+        findGenericFunctionTypes(typeVariable.bound, result: result);
+        findGenericFunctionTypes(typeVariable.defaultType, result: result);
+      }
+    }
+    findGenericFunctionTypes(type.returnType, result: result);
+    if (type.formals != null) {
+      for (FormalParameterBuilder<TypeBuilder> formal in type.formals) {
+        findGenericFunctionTypes(formal.type, result: result);
+      }
+    }
+  } else if (type is NamedTypeBuilder<TypeBuilder, Object> &&
+      type.arguments != null) {
+    for (TypeBuilder argument in type.arguments) {
+      findGenericFunctionTypes(argument, result: result);
+    }
+  }
+}

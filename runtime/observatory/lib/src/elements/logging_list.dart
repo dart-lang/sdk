@@ -33,7 +33,7 @@ class LoggingListElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(events != null);
     LoggingListElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<LoggingListElement>(e, queue: queue);
     e._isolate = isolate;
     e._events = events;
     return e;
@@ -59,16 +59,16 @@ class LoggingListElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
     _subscription.cancel();
   }
 
   void render() {
     children = _logs
         .where(_shouldBeVisible)
-        .map((logRecord) => new DivElement()
+        .map<Element>((logRecord) => new DivElement()
           ..classes = ['logItem', logRecord['level'].name]
-          ..children = [
+          ..children = <Element>[
             new SpanElement()
               ..classes = ['level']
               ..text = logRecord['level'].name,

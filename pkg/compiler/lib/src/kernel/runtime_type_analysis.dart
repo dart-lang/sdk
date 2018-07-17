@@ -305,6 +305,6 @@ RuntimeTypeUse computeRuntimeTypeUse(
 
   DartType receiverType = elementMap.getStaticType(receiver);
   DartType argumentType =
-      argument == null ? argument : elementMap.getStaticType(argument);
+      argument == null ? null : elementMap.getStaticType(argument);
   return new RuntimeTypeUse(kind, receiverType, argumentType);
 }

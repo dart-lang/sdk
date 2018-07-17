@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "include/dart_api.h"
+#include "include/dart_embedder_api.h"
 #include "include/dart_tools_api.h"
 
 #include "bin/builtin.h"
@@ -267,11 +268,6 @@ static Dart_Isolate IsolateSetupHelperAotCompilationDart2(
   Dart_EnterScope();
   Dart_Handle library = Dart_LoadScriptFromKernel(payload, payload_length);
   CHECK_RESULT(library);
-  Dart_Handle url = DartUtils::NewString("dart:_builtin");
-  CHECK_RESULT(url);
-  Dart_Handle builtin_lib = Dart_LookupLibrary(url);
-  CHECK_RESULT(builtin_lib);
-  isolate_data->set_builtin_lib(builtin_lib);
   Dart_ExitScope();
   Dart_ExitIsolate();
 
@@ -1018,7 +1014,7 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     Dart_Handle root_lib = Dart_RootLibrary();
     // Import the root library into the builtin library so that we can easily
     // lookup the main entry point exported from the root library.
-    result = Dart_LibraryImportLibrary(isolate_data->builtin_lib(), root_lib,
+    result = Dart_LibraryImportLibrary(DartUtils::LookupBuiltinLib(), root_lib,
                                        Dart_Null());
 #if !defined(DART_PRECOMPILED_RUNTIME)
     if (Options::gen_snapshot_kind() == kAppAOT) {
@@ -1222,8 +1218,6 @@ void main(int argc, char** argv) {
     }
   }
 
-  Thread::InitOnce();
-
   Loader::InitOnce();
 
   if (!DartUtils::SetOriginalWorkingDirectory()) {
@@ -1284,7 +1278,14 @@ void main(int argc, char** argv) {
     Process::SetExitHook(SnapshotOnExitHook);
   }
 
-  char* error = Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
+  char* error = nullptr;
+  if (!dart::embedder::InitOnce(&error)) {
+    Log::PrintErr("Stanalone embedder initialization failed: %s\n", error);
+    free(error);
+    Platform::Exit(kErrorExitCode);
+  }
+
+  error = Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
   if (error != NULL) {
     Log::PrintErr("Setting VM flags failed: %s\n", error);
     free(error);
@@ -1308,10 +1309,6 @@ void main(int argc, char** argv) {
     Options::SetDart2Options(&vm_options);
   }
 #endif
-
-  // Start event handler.
-  TimerUtils::InitOnce();
-  EventHandler::Start();
 
   // Initialize the Dart VM.
   Dart_InitializeParams init_params;

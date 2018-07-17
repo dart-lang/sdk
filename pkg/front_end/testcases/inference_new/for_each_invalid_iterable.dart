@@ -7,11 +7,11 @@ library test;
 
 test() async {
   String s;
-  for (int x in /*@error=InvalidAssignment*/ s) {}
-  await for (int x in /*@error=InvalidAssignment*/ s) {}
+  for (int x in /*@error=ForInLoopTypeNotIterable*/ s) {}
+  await for (int x in /*@error=ForInLoopTypeNotIterable*/ s) {}
   int y;
-  for (y in /*@error=InvalidAssignment*/ s) {}
-  await for (y in /*@error=InvalidAssignment*/ s) {}
+  for (y in /*@error=ForInLoopTypeNotIterable*/ s) {}
+  await for (y in /*@error=ForInLoopTypeNotIterable*/ s) {}
 }
 
 main() {}

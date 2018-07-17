@@ -90,7 +90,7 @@ var tests = <IsolateTest>[
 
     expectTypedData(name, expectedValue) {
       var variable = lib.variables.singleWhere((v) => v.name == name);
-      var actualValue = variable.staticValue.typedElements;
+      var actualValue = (variable.staticValue as Instance).typedElements;
       if (expectedValue is Int32x4List) {
         expect(actualValue.length, equals(expectedValue.length));
         for (var i = 0; i < actualValue.length; i++) {

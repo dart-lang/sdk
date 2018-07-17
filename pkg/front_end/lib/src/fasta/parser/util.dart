@@ -33,11 +33,24 @@ Token beforeCloseBraceTokenFor(BeginToken left) {
   return token;
 }
 
-/// Return [token] if it is non-synthetic,
-/// otherwise find the next non-synthetic token.
+/// Return [token] or a token before [token] which is either
+/// not synthetic or synthetic with non-zero length.
+Token findPreviousNonZeroLengthToken(Token token) {
+  while (token.isSynthetic && token.length == 0) {
+    Token previous = token.beforeSynthetic;
+    if (previous == null) {
+      break;
+    }
+    token = previous;
+  }
+  return token;
+}
+
+/// Return [token] or a token after [token] which is either
+/// not synthetic or synthetic with non-zero length.
 /// This may return EOF if there are no more non-synthetic tokens in the stream.
-Token findNonSyntheticToken(Token token) {
-  while (token.isSynthetic && !token.isEof) {
+Token findNonZeroLengthToken(Token token) {
+  while (token.isSynthetic && token.length == 0 && !token.isEof) {
     token = token.next;
   }
   return token;

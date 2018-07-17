@@ -87,7 +87,7 @@ class ScriptViewElement extends HtmlElement implements Renderable {
     assert(retainingPaths != null);
     assert(objects != null);
     ScriptViewElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<ScriptViewElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -115,12 +115,12 @@ class ScriptViewElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    children = [
-      navBar([
+    children = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue),
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
@@ -136,7 +136,7 @@ class ScriptViewElement extends HtmlElement implements Renderable {
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h2()..text = 'Script',
           new HRElement(),
           new ObjectCommonElement(_isolate, _script, _retainedSizes,
@@ -145,10 +145,10 @@ class ScriptViewElement extends HtmlElement implements Renderable {
           new BRElement(),
           new DivElement()
             ..classes = ['memberList']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'load time',

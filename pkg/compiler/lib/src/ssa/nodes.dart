@@ -3699,8 +3699,13 @@ enum TypeInfoExpressionKind { COMPLETE, INSTANCE }
 class HTypeInfoExpression extends HInstruction {
   final TypeInfoExpressionKind kind;
   final DartType dartType;
+
+  /// `true` if this
+  final bool isTypeVariableReplacement;
+
   HTypeInfoExpression(this.kind, this.dartType, List<HInstruction> inputs,
-      AbstractValue instructionType)
+      AbstractValue instructionType,
+      {this.isTypeVariableReplacement: false})
       : super(inputs, instructionType) {
     setUseGvn();
   }

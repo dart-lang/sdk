@@ -114,11 +114,7 @@ abstract class _IntListMixin implements List<int> {
 
   List<int> _createList(int length);
 
-  // TODO(leafp): Restore this functionality once generic methods are enabled
-  // in the VM and dart2js.
-  // https://github.com/dart-lang/sdk/issues/32463
-  Iterable<T> whereType<T>() =>
-      throw new UnimplementedError("whereType is not yet supported");
+  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
 
   Iterable<int> followedBy(Iterable<int> other) =>
       new FollowedByIterable<int>.firstEfficient(this, other);
@@ -471,11 +467,7 @@ abstract class _DoubleListMixin implements List<double> {
 
   List<double> _createList(int length);
 
-  // TODO(leafp): Restore this functionality once generic methods are enabled
-  // in the VM and dart2js.
-  // https://github.com/dart-lang/sdk/issues/32463
-  Iterable<T> whereType<T>() =>
-      throw new UnimplementedError("whereType is not yet supported");
+  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
 
   Iterable<double> followedBy(Iterable<double> other) =>
       new FollowedByIterable<double>.firstEfficient(this, other);
@@ -831,11 +823,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
 
   List<Float32x4> _createList(int length);
 
-  // TODO(leafp): Restore this functionality once generic methods are enabled
-  // in the VM and dart2js.
-  // https://github.com/dart-lang/sdk/issues/32463
-  Iterable<T> whereType<T>() =>
-      throw new UnimplementedError("whereType is not yet supported");
+  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
 
   Iterable<Float32x4> followedBy(Iterable<Float32x4> other) =>
       new FollowedByIterable<Float32x4>.firstEfficient(this, other);
@@ -1195,11 +1183,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
 
   List<Int32x4> _createList(int length);
 
-  // TODO(leafp): Restore this functionality once generic methods are enabled
-  // in the VM and dart2js.
-  // https://github.com/dart-lang/sdk/issues/32463
-  Iterable<T> whereType<T>() =>
-      throw new UnimplementedError("whereType is not yet supported");
+  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
 
   Iterable<Int32x4> followedBy(Iterable<Int32x4> other) =>
       new FollowedByIterable<Int32x4>.firstEfficient(this, other);
@@ -1558,11 +1542,7 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
 
   List<Float64x2> _createList(int length);
 
-  // TODO(leafp): Restore this functionality once generic methods are enabled
-  // in the VM and dart2js.
-  // https://github.com/dart-lang/sdk/issues/32463
-  Iterable<T> whereType<T>() =>
-      throw new UnimplementedError("whereType is not yet supported");
+  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
 
   Iterable<Float64x2> followedBy(Iterable<Float64x2> other) =>
       new FollowedByIterable<Float64x2>.firstEfficient(this, other);

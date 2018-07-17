@@ -324,21 +324,21 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   return NULL;
 }
 
-// This waits until only the VM isolate and the service isolate remains in the
-// list, i.e. list length == 2.
+bool Dart::HasApplicationIsolateLocked() {
+  for (Isolate* isolate = Isolate::isolates_list_head_; isolate != NULL;
+       isolate = isolate->next_) {
+    if (!Isolate::IsVMInternalIsolate(isolate)) return true;
+  }
+  return false;
+}
+
+// This waits until only the VM, service and kernel isolates are in the list.
 void Dart::WaitForApplicationIsolateShutdown() {
   ASSERT(!Isolate::creation_enabled_);
   MonitorLocker ml(Isolate::isolates_list_monitor_);
-  while ((Isolate::isolates_list_head_ != NULL) &&
-         (Isolate::isolates_list_head_->next_ != NULL) &&
-         (Isolate::isolates_list_head_->next_->next_ != NULL)) {
+  while (HasApplicationIsolateLocked()) {
     ml.Wait();
   }
-  ASSERT(
-      ((Isolate::isolates_list_head_ == Dart::vm_isolate()) &&
-       ServiceIsolate::IsServiceIsolate(Isolate::isolates_list_head_->next_)) ||
-      ((Isolate::isolates_list_head_->next_ == Dart::vm_isolate()) &&
-       ServiceIsolate::IsServiceIsolate(Isolate::isolates_list_head_)));
 }
 
 // This waits until only the VM isolate remains in the list.
@@ -402,13 +402,20 @@ const char* Dart::Cleanup() {
 
   // Wait for all isolates, but the service and the vm isolate to shut down.
   // Only do that if there is a service isolate running.
-  if (ServiceIsolate::IsRunning()) {
+  if (ServiceIsolate::IsRunning() || KernelIsolate::IsRunning()) {
     if (FLAG_trace_shutdown) {
       OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down app isolates\n",
                    UptimeMillis());
     }
     WaitForApplicationIsolateShutdown();
   }
+
+  // Shutdown the kernel isolate.
+  if (FLAG_trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down kernel isolate\n",
+                 UptimeMillis());
+  }
+  KernelIsolate::Shutdown();
 
   // Shutdown the service isolate.
   if (FLAG_trace_shutdown) {

@@ -48,9 +48,6 @@ field_override_optimization_test: RuntimeError
 field_type_check2_test/01: MissingRuntimeError
 round_test: Pass, Fail, OK # Fixed in ff 35. Common JavaScript engine Math.round bug.
 
-[ $compiler == dart2js && $runtime == ff && $strong ]
-call_function_test: RuntimeError
-
 [ $compiler == dart2js && $runtime == jsshell ]
 async_call_test: RuntimeError # Timer interface not supported: Issue 7728.
 async_star_await_pauses_test: RuntimeError # Need triage
@@ -149,6 +146,7 @@ field_type_check2_test/01: MissingRuntimeError
 round_test: Fail, OK # Common JavaScript engine Math.round bug.
 
 [ $compiler == dart2js && $runtime == safari && $strong ]
+async_throw_in_catch_test/none: Pass, RuntimeError
 stacktrace_test: RuntimeError
 
 [ $compiler == dart2js && $system == windows ]
@@ -571,7 +569,6 @@ async_star_cancel_while_paused_test: Crash # 'file:*/pkg/compiler/lib/src/js_emi
 await_not_started_immediately_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
 call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
-check_member_static_test/01: MissingCompileTimeError
 class_literal_static_test/01: MissingCompileTimeError
 class_literal_static_test/03: MissingCompileTimeError
 class_literal_static_test/07: MissingCompileTimeError
@@ -592,10 +589,7 @@ f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
 factory4_test/00: MissingCompileTimeError
 field3_test/01: MissingCompileTimeError
-field_override_test/00: MissingCompileTimeError
-field_override_test/01: MissingCompileTimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
-generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_methods_unused_parameter_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 identical_const_test/01: MissingCompileTimeError
@@ -604,8 +598,6 @@ identical_const_test/03: MissingCompileTimeError
 identical_const_test/04: MissingCompileTimeError
 issue18628_2_test/01: MissingCompileTimeError
 issue23244_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-issue31596_override_test/07: MissingCompileTimeError
-issue31596_override_test/08: MissingCompileTimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 malbounded_instantiation_test/01: MissingCompileTimeError
@@ -657,11 +649,6 @@ mixin_type_parameters_errors_test/04: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
 override_field_test/02: MissingCompileTimeError
 override_field_test/03: MissingCompileTimeError
-override_inheritance_field_test/44: MissingCompileTimeError
-override_inheritance_field_test/47: MissingCompileTimeError
-override_inheritance_field_test/48: MissingCompileTimeError
-override_inheritance_field_test/53: MissingCompileTimeError
-override_inheritance_field_test/54: MissingCompileTimeError
 partial_tearoff_instantiation_test/05: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 partial_tearoff_instantiation_test/06: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 partial_tearoff_instantiation_test/07: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
@@ -670,7 +657,6 @@ redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 regress_13462_1_test: RuntimeError
 regress_18535_test: RuntimeError
-setter4_test: MissingCompileTimeError
 sync_generator2_test/41: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_impl.dart': Failed assertion: line 939 pos 18: 'asyncMarker == AsyncMarker.SYNC': is not true.
 sync_generator2_test/52: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_impl.dart': Failed assertion: line 939 pos 18: 'asyncMarker == AsyncMarker.SYNC': is not true.
 type_literal_prefix_call_test/00: MissingCompileTimeError
@@ -774,7 +760,6 @@ await_not_started_immediately_test: Crash # Assertion failure: Runtime type info
 call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
 call_with_no_such_method_test: RuntimeError
-check_member_static_test/01: MissingCompileTimeError
 class_literal_static_test/01: MissingCompileTimeError
 class_literal_static_test/03: MissingCompileTimeError
 class_literal_static_test/07: MissingCompileTimeError
@@ -794,10 +779,7 @@ f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
 factory4_test/00: MissingCompileTimeError
 field3_test/01: MissingCompileTimeError
-field_override_test/00: MissingCompileTimeError
-field_override_test/01: MissingCompileTimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
-generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 identical_const_test/01: MissingCompileTimeError
 identical_const_test/02: MissingCompileTimeError
@@ -807,8 +789,6 @@ invocation_mirror2_test: RuntimeError # mirrors not supported
 invocation_mirror_test: RuntimeError
 issue18628_2_test/01: MissingCompileTimeError
 issue23244_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-issue31596_override_test/07: MissingCompileTimeError
-issue31596_override_test/08: MissingCompileTimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 malbounded_instantiation_test/01: MissingCompileTimeError
@@ -866,18 +846,12 @@ no_such_method_test: RuntimeError
 overridden_no_such_method_test: RuntimeError
 override_field_test/02: MissingCompileTimeError
 override_field_test/03: MissingCompileTimeError
-override_inheritance_field_test/44: MissingCompileTimeError
-override_inheritance_field_test/47: MissingCompileTimeError
-override_inheritance_field_test/48: MissingCompileTimeError
-override_inheritance_field_test/53: MissingCompileTimeError
-override_inheritance_field_test/54: MissingCompileTimeError
 recursive_generic_test: RuntimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 regress_13462_1_test: RuntimeError
 regress_18535_test: RuntimeError
 regress_21795_test: RuntimeError # Issue 12605
-setter4_test: MissingCompileTimeError
 stack_trace_test: RuntimeError, OK # Stack trace not preserved in minified code.
 symbol_conflict_test: RuntimeError # Issue 23857
 type_literal_prefix_call_test/00: MissingCompileTimeError

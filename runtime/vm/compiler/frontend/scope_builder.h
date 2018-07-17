@@ -159,6 +159,8 @@ class ScopeBuilder {
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
   ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper_;
   TypeTranslator type_translator_;
+
+  DISALLOW_COPY_AND_ASSIGN(ScopeBuilder);
 };
 
 struct FunctionScope {
@@ -221,6 +223,9 @@ class ScopeBuildingResult : public ZoneAllocated {
 
   // For-in iterators, one per for-in nesting level.
   GrowableArray<LocalVariable*> iterator_variables;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(ScopeBuildingResult);
 };
 
 bool IsFieldInitializer(const Function& function, Zone* zone);

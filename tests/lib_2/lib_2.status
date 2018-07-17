@@ -119,6 +119,7 @@ mirrors/dynamic_load_test: RuntimeError # Issue 26869 - Reload fails to preserve
 isolate/spawn_uri_multi_test/none: RuntimeError # Issue 13544
 
 [ !$strong ]
+async/future_test: SkipByDesign # Uses Dart 2 syntax.
 async/stream_first_where_test/badType: MissingCompileTimeError
 async/stream_last_where_test/badType: MissingCompileTimeError
 mirrors/redirecting_factory_different_type_test/02: MissingCompileTimeError
@@ -245,6 +246,8 @@ html/xhr_test/xhr: Skip # Times out.  Issue 21527
 
 [ $hot_reload || $hot_reload_rollback ]
 async/stream_transformer_test: Pass, Fail # Closure identity
+convert/chunked_conversion_utf88_test: SkipSlow
+convert/utf85_test: SkipSlow
 isolate/deferred_in_isolate2_test: Crash # Requires deferred libraries
 isolate/deferred_in_isolate_test: Crash # Requires deferred libraries
 isolate/function_send_test: Pass, Fail # Closure identity

@@ -39,7 +39,7 @@ class NavReloadElement extends HtmlElement implements Renderable {
     assert(isolates == null);
     assert(events == null);
     NavReloadElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<NavReloadElement>(e, queue: queue);
     e._isolate = isolate;
     e._isolates = isolates;
     e._events = events;
@@ -58,17 +58,17 @@ class NavReloadElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _sub.cancel();
     _sub = null;
     _r.disable(notify: true);
   }
 
   void render() {
-    final children = [];
+    final children = <Element>[];
     if (_isolates.reloadSourcesServices.isEmpty) {
       children.add(new LIElement()
-        ..children = [
+        ..children = <Element>[
           new ButtonElement()
             ..text = 'Reload Source'
             ..disabled = _disabled
@@ -76,7 +76,7 @@ class NavReloadElement extends HtmlElement implements Renderable {
         ]);
     } else if (_isolates.reloadSourcesServices.length == 1) {
       children.add(new LIElement()
-        ..children = [
+        ..children = <Element>[
           new ButtonElement()
             ..text = 'Reload Source'
             ..disabled = _disabled
@@ -85,7 +85,7 @@ class NavReloadElement extends HtmlElement implements Renderable {
         ]);
     } else {
       final content = _isolates.reloadSourcesServices.map((s) => new LIElement()
-        ..children = [
+        ..children = <Element>[
           new ButtonElement()
             ..text = s.alias
             ..disabled = _disabled

@@ -296,6 +296,9 @@ bool Options::ProcessEnableVmServiceOption(const char* arg,
         "Use --enable-vm-service[=<port number>[/<bind address>]]\n");
     return false;
   }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  dfe()->set_use_incremental_compiler(true);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   return true;
 }
@@ -320,6 +323,9 @@ bool Options::ProcessObserveOption(const char* arg,
   vm_options->AddArgument("--pause-isolates-on-unhandled-exceptions");
   vm_options->AddArgument("--profiler");
   vm_options->AddArgument("--warn-on-pause-with-no-debugger");
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  dfe()->set_use_incremental_compiler(true);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   return true;
 }
 

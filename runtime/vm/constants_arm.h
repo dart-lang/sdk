@@ -268,7 +268,6 @@ const Register PP = R5;     // Caches object pool pointer in generated code.
 const Register SPREG = SP;  // Stack pointer register.
 const Register FPREG = FP;  // Frame pointer register.
 const Register LRREG = LR;  // Link register.
-const Register ICREG = R9;  // IC data register.
 const Register ARGS_DESC_REG = R4;
 const Register CODE_REG = R6;
 const Register THR = R10;  // Caches current thread in generated code.

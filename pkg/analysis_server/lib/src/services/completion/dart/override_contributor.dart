@@ -151,24 +151,33 @@ class OverrideContributor implements DartCompletionContributor {
     if (node is ClassDeclaration) {
       Object entity = target.entity;
       if (entity is FieldDeclaration) {
-        NodeList<VariableDeclaration> variables = entity.fields.variables;
-        if (variables.length == 1) {
-          SimpleIdentifier targetId = variables[0].name;
-          if (targetId.name.isEmpty) {
-            return targetId;
-          }
-        }
+        return _getTargetIdFromVarList(entity.fields);
       }
     } else if (node is FieldDeclaration) {
       Object entity = target.entity;
       if (entity is VariableDeclarationList) {
-        NodeList<VariableDeclaration> variables = entity.variables;
-        if (variables.length == 1) {
-          SimpleIdentifier targetId = variables[0].name;
-          if (targetId.name.isEmpty) {
-            return targetId;
-          }
-        }
+        return _getTargetIdFromVarList(entity);
+      }
+    }
+    return null;
+  }
+
+  SimpleIdentifier _getTargetIdFromVarList(VariableDeclarationList fields) {
+    NodeList<VariableDeclaration> variables = fields.variables;
+    if (variables.length == 1) {
+      VariableDeclaration variable = variables[0];
+      SimpleIdentifier targetId = variable.name;
+      if (targetId.name.isEmpty) {
+        // analyzer parser
+        // Actual: class C { foo^ }
+        // Parsed: class C { foo^ _s_ }
+        //   where _s_ is a synthetic id inserted by the analyzer parser
+        return targetId;
+      } else if (fields.keyword == null &&
+          fields.type == null &&
+          variable.initializer == null) {
+        // fasta parser does not insert a synthetic identifier
+        return targetId;
       }
     }
     return null;

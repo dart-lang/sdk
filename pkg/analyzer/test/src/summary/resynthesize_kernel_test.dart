@@ -242,12 +242,6 @@ class C {
   }
 
   @failingTest
-  @potentialAnalyzerProblem
-  test_type_inference_based_on_loadLibrary() async {
-    await super.test_type_inference_based_on_loadLibrary();
-  }
-
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30267')
   test_unresolved_annotation_instanceCreation_argument_super() async {
     await super.test_unresolved_annotation_instanceCreation_argument_super();

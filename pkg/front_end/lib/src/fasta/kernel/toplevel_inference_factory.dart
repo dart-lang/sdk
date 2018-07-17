@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/kernel/kernel_type_variable_builder.dart';
 import 'package:front_end/src/scanner/token.dart' show Token;
 
-import 'package:kernel/ast.dart' show Catch, DartType, FunctionType, Node;
+import 'package:kernel/ast.dart'
+    show Catch, DartType, FunctionType, Node, TypeParameter;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
@@ -16,6 +18,10 @@ import 'kernel_shadow_ast.dart'
         InitializerJudgment,
         StatementJudgment,
         SwitchCaseJudgment;
+
+import 'kernel_type_variable_builder.dart' show KernelTypeVariableBuilder;
+
+const toplevelInferenceFactory = const ToplevelInferenceFactory();
 
 /// Implementation of [Factory] for use during top level type inference, when
 /// no representation of the code semantics needs to be created (only the type
@@ -58,6 +64,26 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
   @override
   void awaitExpression(ExpressionJudgment judgment, int fileOffset,
       Token awaitKeyword, void expression, DartType inferredType) {}
+
+  @override
+  void binderForFunctionDeclaration(
+      StatementJudgment judgment, int fileOffset, String name) {}
+
+  @override
+  void binderForStatementLabel(
+      StatementJudgment judgment, int fileOffset, String name) {}
+
+  @override
+  void binderForSwitchLabel(
+      SwitchCaseJudgment judgment, int fileOffset, String name) {}
+
+  @override
+  void binderForTypeVariable(
+      KernelTypeVariableBuilder builder, int fileOffset, String name) {}
+
+  @override
+  void binderForVariableDeclaration(
+      StatementJudgment judgment, int fileOffset, String name) {}
 
   @override
   void block(StatementJudgment judgment, int fileOffset, Token leftBracket,
@@ -211,12 +237,14 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
   void functionDeclaration(covariant void binder, FunctionType inferredType) {}
 
   @override
-  void binderForFunctionDeclaration(
-      StatementJudgment judgment, int fileOffset, String name) {}
-
-  @override
   void functionExpression(
       ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
+
+  @override
+  void functionType(int fileOffset, DartType type) {}
+
+  @override
+  void functionTypedFormalParameter(int fileOffset, DartType type) {}
 
   @override
   void ifNull(ExpressionJudgment judgment, int fileOffset, void leftOperand,
@@ -268,13 +296,6 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
 
   @override
   void labeledStatement(List<Object> labels, void statement) {}
-
-  @override
-  void statementLabel(covariant void binder, Token label, Token colon) {}
-
-  @override
-  void binderForStatementLabel(
-      StatementJudgment judgment, int fileOffset, String name) {}
 
   @override
   void listLiteral(
@@ -384,6 +405,9 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       Token returnKeyword, void expression, Token semicolon) {}
 
   @override
+  void statementLabel(covariant void binder, Token label, Token colon) {}
+
+  @override
   void staticAssign(
       ExpressionJudgment judgment,
       int fileOffset,
@@ -437,10 +461,6 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
   void switchLabel(covariant void binder, Token label, Token colon) {}
 
   @override
-  void binderForSwitchLabel(
-      SwitchCaseJudgment judgment, int fileOffset, String name) {}
-
-  @override
   void switchStatement(
       StatementJudgment judgment,
       int fileOffset,
@@ -481,6 +501,20 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       Node expressionType, DartType inferredType) {}
 
   @override
+  void typeReference(
+      int fileOffset,
+      Token leftBracket,
+      List<void> typeArguments,
+      Token rightBracket,
+      Node reference,
+      covariant void binder,
+      DartType type) {}
+
+  @override
+  void typeVariableDeclaration(
+      int fileOffset, covariant void binder, TypeParameter typeParameter) {}
+
+  @override
   void variableAssign(
       ExpressionJudgment judgment,
       int fileOffset,
@@ -492,9 +526,6 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
   @override
   void variableDeclaration(
       covariant void binder, DartType statementType, DartType inferredType) {}
-
-  void binderForVariableDeclaration(
-      StatementJudgment judgment, int fileOffset, String name) {}
 
   @override
   void variableGet(ExpressionJudgment judgment, int fileOffset,
@@ -514,5 +545,3 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
   void yieldStatement(StatementJudgment judgment, int fileOffset,
       Token yieldKeyword, Token star, void expression, Token semicolon) {}
 }
-
-const toplevelInferenceFactory = const ToplevelInferenceFactory();

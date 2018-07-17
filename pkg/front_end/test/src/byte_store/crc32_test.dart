@@ -33,6 +33,6 @@ class Crc32Test {
   }
 
   test_string() {
-    expect(getCrc32(UTF8.encode('My very long test string.')), 0x88B8252E);
+    expect(getCrc32(utf8.encode('My very long test string.')), 0x88B8252E);
   }
 }

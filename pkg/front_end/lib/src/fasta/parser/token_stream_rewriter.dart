@@ -55,20 +55,29 @@ class TokenStreamRewriter {
     next = next.setNext(new SyntheticToken(TokenType.CLOSE_PAREN, offset));
     leftParen.endGroup = next;
     next.setNext(token.next);
+
+    // A no-op rewriter could skip this step.
     token.setNext(leftParen);
+
     return leftParen;
   }
 
   /// Insert a synthetic identifier after [token] and return the new identifier.
   Token insertSyntheticIdentifier(Token token) {
-    Token identifier = new SyntheticStringToken(
-        TokenType.IDENTIFIER, '', token.next.charOffset, 0)
-      ..setNext(token.next);
+    return insertToken(
+        token,
+        new SyntheticStringToken(
+            TokenType.IDENTIFIER, '', token.next.charOffset, 0));
+  }
 
-    // A no-op rewriter could simply return the synthetic identifier here.
+  /// Insert [newToken] after [token] and return [newToken].
+  Token insertToken(Token token, Token newToken) {
+    newToken.setNext(token.next);
 
-    token.setNext(identifier);
-    return identifier;
+    // A no-op rewriter could skip this step.
+    token.setNext(newToken);
+
+    return newToken;
   }
 
   /// Insert the chain of tokens starting at the [insertedToken] immediately

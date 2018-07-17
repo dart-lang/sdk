@@ -6057,11 +6057,13 @@ Dart_CompileToKernel(const char* script_uri,
                                           platform_kernel_size, 0, NULL,
                                           incremental_compile, package_config);
   if (result.status == Dart_KernelCompilationStatus_Ok) {
-    if (KernelIsolate::AcceptCompilation().status !=
-        Dart_KernelCompilationStatus_Ok) {
-      FATAL(
+    Dart_KernelCompilationResult accept_result =
+        KernelIsolate::AcceptCompilation();
+    if (accept_result.status != Dart_KernelCompilationStatus_Ok) {
+      FATAL1(
           "An error occurred in the CFE while accepting the most recent"
-          " compilation results.");
+          " compilation results: %s",
+          accept_result.error);
     }
   }
 #endif

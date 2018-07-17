@@ -49,7 +49,7 @@ class HeapMapElement extends HtmlElement implements Renderable {
     assert(events != null);
     assert(notifications != null);
     HeapMapElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<HeapMapElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -70,7 +70,7 @@ class HeapMapElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   CanvasElement _canvas;
@@ -102,8 +102,8 @@ class HeapMapElement extends HtmlElement implements Renderable {
     // Set hover text to describe the object under the cursor.
     _canvas.title = _status;
 
-    children = [
-      navBar([
+    children = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue),
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
@@ -120,13 +120,13 @@ class HeapMapElement extends HtmlElement implements Renderable {
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h2()..text = _status,
           new HRElement(),
         ],
       new DivElement()
         ..classes = ['flex-row']
-        ..children = [_canvas]
+        ..children = <Element>[_canvas]
     ];
   }
 
@@ -169,12 +169,12 @@ class HeapMapElement extends HtmlElement implements Renderable {
     return [rng.nextInt(128), rng.nextInt(128), rng.nextInt(128), 255];
   }
 
-  String _classNameAt(Point<int> point) {
+  String _classNameAt(Point<num> point) {
     var color = new PixelReference(_fragmentationData, point).color;
     return _classIdToName[_colorToClassId[_packColor(color)]];
   }
 
-  ObjectInfo _objectAt(Point<int> point) {
+  ObjectInfo _objectAt(Point<num> point) {
     if (_fragmentation == null || _canvas == null) {
       return null;
     }
@@ -302,13 +302,13 @@ class PixelReference {
   var _dataIndex;
   static const NUM_COLOR_COMPONENTS = 4;
 
-  PixelReference(ImageData data, Point<int> point)
+  PixelReference(ImageData data, Point<num> point)
       : _data = data,
         _dataIndex = (point.y * data.width + point.x) * NUM_COLOR_COMPONENTS;
 
   PixelReference._fromDataIndex(this._data, this._dataIndex);
 
-  Point<int> get point => new Point(index % _data.width, index ~/ _data.width);
+  Point<num> get point => new Point(index % _data.width, index ~/ _data.width);
 
   void set color(Iterable<int> color) {
     _data.data.setRange(_dataIndex, _dataIndex + NUM_COLOR_COMPONENTS, color);

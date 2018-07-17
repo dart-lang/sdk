@@ -213,7 +213,7 @@ static Dart_Handle ResolvePackageUri(const char* uri_chars) {
   const int kNumArgs = 1;
   Dart_Handle dart_args[kNumArgs];
   dart_args[0] = DartUtils::NewString(uri_chars);
-  return Dart_Invoke(DartUtils::BuiltinLib(),
+  return Dart_Invoke(DartUtils::LookupBuiltinLib(),
                      DartUtils::NewString("_filePathFromUri"), kNumArgs,
                      dart_args);
 }

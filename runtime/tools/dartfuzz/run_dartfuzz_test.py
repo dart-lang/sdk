@@ -118,39 +118,85 @@ class TestRunner(object):
 class TestRunnerDartJIT(TestRunner):
   """Concrete test runner of Dart JIT."""
 
+  def  __init__(self, mode):
+    self._mode = mode
+    if mode == 'jit-ia32':
+      self.AddPathAndTimeout('ReleaseIA32')
+    elif mode == 'jit-x64':
+      self.AddPathAndTimeout('ReleaseX64')
+    elif mode == 'jit-arm32':
+      self.AddPathAndTimeout('ReleaseSIMARM')
+    elif mode == 'jit-arm64':
+      self.AddPathAndTimeout('ReleaseSIMARM64')
+    else:
+      raise FatalError('Unknown JIT execution mode: ' + mode)
+
   @property
   def description(self):
-    return 'Dart JIT'
+    return 'Dart ' + self._mode
+
+  def AddPathAndTimeout(self, tag, timeout=30):
+    self._env = os.environ.copy()
+    self._env['PATH'] = self._env['DART_TOP'] + '/out/' + tag + ':' + self._env['PATH']
+    self._timeout = timeout
 
   def RunTest(self):
-    return RunCommandWithOutput(['dart', 'fuzz.dart'], None, PIPE, STDOUT)
+    return RunCommandWithOutput(
+        ['dart', 'fuzz.dart'], self._env, PIPE, STDOUT, self._timeout)
 
 class TestRunnerDartAOT(TestRunner):
   """Concrete test runner of Dart AOT."""
 
+  def  __init__(self, mode):
+    self._mode = mode
+    if mode == 'aot-x64':
+      self.AddPathConfigAndTimeout('ReleaseX64')
+    elif mode == 'aot-arm64':
+      self.AddPathConfigAndTimeout('ReleaseSIMARM64', 30 * 60)
+    else:
+      raise FatalError('Unknown AOT execution mode: ' + mode)
+
   @property
   def description(self):
-    return 'Dart AOT'
+    return 'Dart ' + self._mode
+
+  def AddPathConfigAndTimeout(self, tag, timeout=30):
+    self._env = os.environ.copy()
+    self._env['PATH'] = self._env['DART_TOP'] + '/pkg/vm/tool:' + self._env['PATH']
+    self._env['DART_CONFIGURATION'] = tag
+    self._timeout = timeout
 
   def RunTest(self):
     (out, err, retcode) = RunCommandWithOutput(
-        ['precompiler2', 'fuzz.dart', 'snap'], None, PIPE, STDOUT)
+        ['precompiler2', 'fuzz.dart', 'snap'],
+        self._env, PIPE, STDOUT, self._timeout)
     if retcode != RetCode.SUCCESS:
       return (out, err, retcode)
-    return RunCommandWithOutput(['dart_precompiled_runtime2', 'snap'], None, PIPE, STDOUT)
+    return RunCommandWithOutput(
+        ['dart_precompiled_runtime2', 'snap'],
+        self._env, PIPE, STDOUT, self._timeout)
 
 class TestRunnerDart2JS(TestRunner):
   """Concrete test runner of Dart through dart2js and JS."""
+
+  def  __init__(self):
+    self.AddPath()
 
   @property
   def description(self):
     return 'Dart as JS'
 
+  def AddPath(self):
+    self._env = os.environ.copy()
+    self._env['PATH'] = self._env['DART_TOP'] + '/ReleaseX64/dart-sdk/bin:' + self._env['PATH']
+
   def RunTest(self):
-    (out, err, retcode) = RunCommandWithOutput(['dart2js', 'fuzz.dart'], None, PIPE, STDOUT)
+    (out, err, retcode) = RunCommandWithOutput(
+        ['dart2js', 'fuzz.dart'], self._env, PIPE, STDOUT)
     if retcode != RetCode.SUCCESS:
       return (out, err, retcode)
-    return RunCommandWithOutput(['nodejs', 'out.js'], None, PIPE, STDOUT)
+    return RunCommandWithOutput(
+        ['nodejs', 'out.js'], self._env, PIPE, STDOUT)
 
 def GetExecutionModeRunner(mode):
   """Returns a runner for the given execution mode.
@@ -162,13 +208,13 @@ def GetExecutionModeRunner(mode):
   Raises:
     FatalError: error for unknown execution mode
   """
-  if mode == 'jit':
-    return TestRunnerDartJIT()
-  if mode == 'aot':
-    return TestRunnerDartAOT()
+  if mode.startswith('jit'):
+    return TestRunnerDartJIT(mode)
+  if mode.startswith('aot'):
+    return TestRunnerDartAOT(mode)
   if mode == 'js':
     return TestRunnerDart2JS()
-  raise FatalError('Unknown execution mode')
+  raise FatalError('Unknown execution mode: ' + mode)
 
 #
 # DartFuzzTester class.
@@ -222,6 +268,7 @@ class DartFuzzTester(object):
     print('#Tests      :', self._repeat)
     print('Exec-Mode 1 :', self._runner1.description)
     print('Exec-Mode 2 :', self._runner2.description)
+    print('Dart Dev    :', os.environ.get('DART_TOP'))
     print()
     self.ShowStats()  # show all zeros on start
     for self._test in range(1, self._repeat + 1):
@@ -352,11 +399,15 @@ def main():
                       help='number of tests to run (default: 1000)')
   parser.add_argument('--true_divergence', default=False, action='store_true',
                       help='only report true divergences')
-  parser.add_argument('--mode1', default='jit',
-                      help='execution mode 1 (default: jit)')
-  parser.add_argument('--mode2', default='aot',
-                      help='execution mode 2 (default: aot)')
+  parser.add_argument('--mode1', default='jit-x64',
+                      help='execution mode 1 (default: jit-x64)')
+  parser.add_argument('--mode2', default='aot-x64',
+                      help='execution mode 2 (default: aot-x64)')
   args = parser.parse_args()
+
+  # Verify DART_TOP.
+  if os.environ.get('DART_TOP') == None:
+    raise FatalError('DART_TOP needs to point to the Dart SDK tree')
 
   # Run DartFuzz tester.
   with DartFuzzTester(args.repeat,

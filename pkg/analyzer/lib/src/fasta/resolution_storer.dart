@@ -5,6 +5,7 @@
 import 'package:analyzer/src/fasta/resolution_applier.dart';
 import 'package:front_end/src/fasta/kernel/factory.dart';
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
+import 'package:front_end/src/fasta/kernel/kernel_type_variable_builder.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:kernel/ast.dart';
@@ -18,8 +19,11 @@ class ResolutionData<Type, Declaration, Reference, PrefixInfo> {
   final Type invokeType;
   final bool isExplicitCall;
   final bool isImplicitCall;
+  final bool isPrefixReference;
+  final bool isTypeReference;
   final bool isWriteReference;
   final Type literalType;
+  final Reference loadLibrary;
   final PrefixInfo prefixInfo;
   final Reference reference;
   final Type writeContext;
@@ -32,8 +36,11 @@ class ResolutionData<Type, Declaration, Reference, PrefixInfo> {
       this.invokeType,
       this.isExplicitCall = false,
       this.isImplicitCall = false,
+      this.isPrefixReference = false,
+      this.isTypeReference = false,
       this.isWriteReference = false,
       this.literalType,
+      this.loadLibrary,
       this.prefixInfo,
       this.reference,
       this.writeContext});
@@ -41,83 +48,27 @@ class ResolutionData<Type, Declaration, Reference, PrefixInfo> {
 
 /// Type inference listener that records inferred types for later use by
 /// [ResolutionApplier].
-class ResolutionStorer extends _ResolutionStorer<int, Node, int>
+class ResolutionStorer
     implements
         TypeInferenceListener<int, Node, int>,
         Factory<void, void, void, void> {
-  ResolutionStorer(Map<int, ResolutionData<DartType, int, Node, int>> data)
-      : super(data);
+  final Map<int, ResolutionData<DartType, int, Node, int>> _data;
 
-  @override
-  void _validateLocation(int location) {
-    if (location < 0) {
-      throw new StateError('Invalid location: $location');
-    }
-  }
-}
+  final Map<TypeParameter, int> _typeVariableDeclarations;
 
-/// Implementation of [ResolutionStorer], with types parameterized to avoid
-/// accidentally peeking into kernel internals.
-///
-/// TODO(paulberry): when the time is right, fuse this with [ResolutionStorer].
-class _ResolutionStorer<Location, Reference, PrefixInfo> {
-  final Map<Location, ResolutionData<DartType, int, Reference, PrefixInfo>>
-      _data;
+  ResolutionStorer(Map<int, ResolutionData<DartType, int, Node, int>> data,
+      Map<TypeParameter, int> typeVariableDeclarations)
+      : _data = data,
+        _typeVariableDeclarations = typeVariableDeclarations;
 
-  _ResolutionStorer(this._data);
-
-  void _store(Location location,
-      {List<DartType> argumentTypes,
-      Reference combiner,
-      int declaration,
-      DartType inferredType,
-      DartType invokeType,
-      bool isExplicitCall = false,
-      bool isImplicitCall = false,
-      bool isWriteReference = false,
-      DartType literalType,
-      PrefixInfo prefixInfo,
-      Reference reference,
-      bool replace = false,
-      DartType writeContext}) {
-    _validateLocation(location);
-    if (!replace && _data.containsKey(location)) {
-      throw new StateError('Data already stored for offset $location');
-    }
-    _data[location] = new ResolutionData(
-        argumentTypes: argumentTypes,
-        combiner: combiner,
-        declaration: declaration,
-        inferredType: inferredType,
-        invokeType: invokeType,
-        isExplicitCall: isExplicitCall,
-        isImplicitCall: isImplicitCall,
-        isWriteReference: isWriteReference,
-        literalType: literalType,
-        prefixInfo: prefixInfo,
-        reference: reference,
-        writeContext: writeContext);
-  }
-
-  void _unstore(Location location) {
-    _data.remove(location) == null;
-  }
-
-  void _validateLocation(Location location) {}
-
-  void asExpression(
-      ExpressionJudgment judgment,
-      Location location,
-      void expression,
-      Token asOperator,
-      void literalType,
-      DartType inferredType) {
+  void asExpression(ExpressionJudgment judgment, int location, void expression,
+      Token asOperator, void literalType, DartType inferredType) {
     _store(location, literalType: inferredType, inferredType: inferredType);
   }
 
   void assertInitializer(
       InitializerJudgment judgment,
-      Location location,
+      int location,
       Token assertKeyword,
       Token leftParenthesis,
       void condition,
@@ -127,7 +78,7 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
 
   void assertStatement(
       StatementJudgment judgment,
-      Location location,
+      int location,
       Token assertKeyword,
       Token leftParenthesis,
       void condition,
@@ -136,27 +87,48 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
       Token rightParenthesis,
       Token semicolon) {}
 
-  void awaitExpression(ExpressionJudgment judgment, Location location,
+  void awaitExpression(ExpressionJudgment judgment, int location,
           Token awaitKeyword, void expression, DartType inferredType) =>
       genericExpression("awaitExpression", location, inferredType);
 
-  void block(StatementJudgment judgment, Location location, Token leftBracket,
+  Object binderForFunctionDeclaration(
+      StatementJudgment judgment, int fileOffset, String name) {
+    return new VariableDeclarationBinder(fileOffset);
+  }
+
+  void binderForStatementLabel(
+      StatementJudgment judgment, int fileOffset, String name) {}
+
+  void binderForSwitchLabel(
+      SwitchCaseJudgment judgment, int fileOffset, String name) {}
+
+  TypeVariableBinder binderForTypeVariable(
+      KernelTypeVariableBuilder builder, int fileOffset, String name) {
+    return new TypeVariableBinder(fileOffset);
+  }
+
+  Object binderForVariableDeclaration(
+      StatementJudgment judgment, int fileOffset, String name) {
+    return new VariableDeclarationBinder(fileOffset);
+  }
+
+  void block(StatementJudgment judgment, int location, Token leftBracket,
       List<void> statements, Token rightBracket) {}
 
-  void boolLiteral(ExpressionJudgment judgment, Location location,
-          Token literal, bool value, DartType inferredType) =>
+  void boolLiteral(ExpressionJudgment judgment, int location, Token literal,
+          bool value, DartType inferredType) =>
       genericExpression("boolLiteral", location, inferredType);
 
   void breakStatement(
       StatementJudgment judgment,
-      Location location,
+      int location,
       Token breakKeyword,
       void label,
       Token semicolon,
       covariant Object labelBinder) {}
 
   void cascadeExpression(
-      ExpressionJudgment judgment, Location location, DartType inferredType) {
+      ExpressionJudgment judgment, int location, DartType inferredType) {
     // Overridden so that the type of the expression will not be recorded. We
     // don't need to record the type because the type is always the same as the
     // type of the target, and we don't have the appropriate offset so we can't
@@ -165,7 +137,7 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
 
   void catchStatement(
       Catch judgment,
-      Location location,
+      int location,
       Token onKeyword,
       void type,
       Token catchKeyword,
@@ -183,19 +155,17 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
     _store(location, literalType: guardType);
 
     if (exceptionBinder != null) {
-      _store(exceptionBinder.fileOffset as Location,
-          literalType: exceptionType);
+      _store(exceptionBinder.fileOffset, literalType: exceptionType);
     }
 
     if (stackTraceBinder != null) {
-      _store(stackTraceBinder.fileOffset as Location,
-          literalType: stackTraceType);
+      _store(stackTraceBinder.fileOffset, literalType: stackTraceType);
     }
   }
 
   void conditionalExpression(
           ExpressionJudgment judgment,
-          Location location,
+          int location,
           void condition,
           Token question,
           void thenExpression,
@@ -204,8 +174,8 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
           DartType inferredType) =>
       genericExpression("conditionalExpression", location, inferredType);
 
-  void constructorInvocation(ExpressionJudgment judgment, Location location,
-      Reference expressionTarget, DartType inferredType) {
+  void constructorInvocation(ExpressionJudgment judgment, int location,
+      Node expressionTarget, DartType inferredType) {
     // A class reference may have already been stored at this location by
     // storeClassReference.  We want to replace it with a constructor
     // reference.
@@ -215,7 +185,7 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
 
   void continueStatement(
       StatementJudgment judgment,
-      Location location,
+      int location,
       Token continueKeyword,
       void label,
       Token semicolon,
@@ -223,20 +193,20 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
 
   void continueSwitchStatement(
       StatementJudgment judgment,
-      Location location,
+      int location,
       Token continueKeyword,
       void label,
       Token semicolon,
       covariant Object labelBinder) {}
 
   void deferredCheck(
-      ExpressionJudgment judgment, Location location, DartType inferredType) {
+      ExpressionJudgment judgment, int location, DartType inferredType) {
     // This judgment has no semantic value for Analyzer.
   }
 
   void doStatement(
       StatementJudgment judgment,
-      Location location,
+      int location,
       Token doKeyword,
       void body,
       Token whileKeyword,
@@ -245,30 +215,30 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
       Token rightParenthesis,
       Token semicolon) {}
 
-  void doubleLiteral(ExpressionJudgment judgment, Location location,
-          Token literal, double value, DartType inferredType) =>
+  void doubleLiteral(ExpressionJudgment judgment, int location, Token literal,
+          double value, DartType inferredType) =>
       genericExpression("doubleLiteral", location, inferredType);
 
   void emptyStatement(Token semicolon) {}
 
-  void expressionStatement(StatementJudgment judgment, Location location,
+  void expressionStatement(StatementJudgment judgment, int location,
       void expression, Token semicolon) {}
 
   void fieldInitializer(
       InitializerJudgment judgment,
-      Location location,
+      int location,
       Token thisKeyword,
       Token period,
       Token fieldName,
       Token equals,
       void expression,
-      Reference initializerField) {
+      Node initializerField) {
     _store(location, reference: initializerField);
   }
 
   void forInStatement(
       StatementJudgment judgment,
-      Location location,
+      int location,
       Token awaitKeyword,
       Token forKeyword,
       Token leftParenthesis,
@@ -280,13 +250,12 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
       void body,
       covariant VariableDeclarationBinder loopVariableBinder,
       DartType loopVariableType,
-      Location writeLocation,
+      int writeLocation,
       DartType writeType,
       covariant VariableDeclarationBinder writeVariableBinder,
-      Reference writeTarget) {
+      Node writeTarget) {
     if (loopVariableBinder != null) {
-      _store(loopVariableBinder.fileOffset as Location,
-          inferredType: loopVariableType);
+      _store(loopVariableBinder.fileOffset, inferredType: loopVariableType);
     } else {
       if (writeVariableBinder != null) {
         _store(writeLocation,
@@ -303,7 +272,7 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
 
   void forStatement(
       StatementJudgment judgment,
-      Location location,
+      int location,
       Token forKeyword,
       Token leftParenthesis,
       void variableDeclarationList,
@@ -317,30 +286,35 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
 
   void functionDeclaration(
       covariant VariableDeclarationBinder binder, FunctionType inferredType) {
-    _store(binder.fileOffset as Location, inferredType: inferredType);
+    _store(binder.fileOffset, inferredType: inferredType);
   }
 
-  Object binderForFunctionDeclaration(
-      StatementJudgment judgment, int fileOffset, String name) {
-    return new VariableDeclarationBinder(fileOffset);
-  }
-
-  void functionExpression(ExpressionJudgment judgment, Location location,
-          DartType inferredType) =>
+  void functionExpression(
+          ExpressionJudgment judgment, int location, DartType inferredType) =>
       genericExpression("functionExpression", location, inferredType);
 
+  @override
+  void functionType(int location, DartType type) {
+    _store(location, inferredType: type);
+  }
+
+  @override
+  void functionTypedFormalParameter(int location, DartType type) {
+    _store(location, inferredType: type);
+  }
+
   void genericExpression(
-      String expressionType, Location location, DartType inferredType) {
+      String expressionType, int location, DartType inferredType) {
     _store(location, inferredType: inferredType);
   }
 
-  void ifNull(ExpressionJudgment judgment, Location location, void leftOperand,
+  void ifNull(ExpressionJudgment judgment, int location, void leftOperand,
           Token operator, void rightOperand, DartType inferredType) =>
       genericExpression('ifNull', location, inferredType);
 
   void ifStatement(
       StatementJudgment judgment,
-      Location location,
+      int location,
       Token ifKeyword,
       Token leftParenthesis,
       void condition,
@@ -349,22 +323,46 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
       Token elseKeyword,
       void elseStatement) {}
 
-  void intLiteral(ExpressionJudgment judgment, Location location, Token literal,
+  void indexAssign(ExpressionJudgment judgment, int location, Node writeMember,
+      Node combiner, DartType inferredType) {
+    _store(location,
+        reference: writeMember, inferredType: inferredType, combiner: combiner);
+  }
+
+  void intLiteral(ExpressionJudgment judgment, int location, Token literal,
           num value, DartType inferredType) =>
       genericExpression("intLiteral", location, inferredType);
 
-  void invalidInitializer(InitializerJudgment judgment, Location location) {}
+  void invalidInitializer(InitializerJudgment judgment, int location) {}
+
+  void isExpression(
+      ExpressionJudgment judgment,
+      int location,
+      void expression,
+      Token isOperator,
+      void literalType,
+      DartType testedType,
+      DartType inferredType) {
+    _store(location, literalType: testedType, inferredType: inferredType);
+  }
+
+  void isNotExpression(
+      ExpressionJudgment judgment,
+      int location,
+      void expression,
+      Token isOperator,
+      Token notOperator,
+      void literalType,
+      DartType type,
+      DartType inferredType) {
+    _store(location, literalType: type, inferredType: inferredType);
+  }
 
   void labeledStatement(List<Object> labels, void statement) {}
 
-  void statementLabel(covariant void binder, Token label, Token colon) {}
-
-  void binderForStatementLabel(
-      StatementJudgment judgment, int fileOffset, String name) {}
-
   void listLiteral(
           ExpressionJudgment judgment,
-          Location location,
+          int location,
           Token constKeyword,
           Object typeArguments,
           Token leftBracket,
@@ -373,9 +371,24 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
           DartType inferredType) =>
       genericExpression("listLiteral", location, inferredType);
 
+  @override
+  void loadLibrary(LoadLibraryJudgment judgment, int location, Node library,
+      FunctionType calleeType, DartType inferredType) {
+    _store(location,
+        loadLibrary: library,
+        invokeType: calleeType,
+        inferredType: inferredType);
+  }
+
+  @override
+  void loadLibraryTearOff(LoadLibraryTearOffJudgment judgment, int location,
+      Node library, DartType inferredType) {
+    _store(location, loadLibrary: library, inferredType: inferredType);
+  }
+
   void logicalExpression(
           ExpressionJudgment judgment,
-          Location location,
+          int location,
           void leftOperand,
           Token operator,
           void rightOperand,
@@ -384,7 +397,7 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
 
   void mapLiteral(
           ExpressionJudgment judgment,
-          Location location,
+          int location,
           Token constKeyword,
           Object typeArguments,
           Token leftBracket,
@@ -398,56 +411,12 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
     // TODO(brianwilkerson) Implement this.
   }
 
-  void namedFunctionExpression(ExpressionJudgment judgment,
-          covariant VariableDeclarationBinder binder, DartType inferredType) =>
-      genericExpression("namedFunctionExpression",
-          binder.fileOffset as Location, inferredType);
-
-  void not(ExpressionJudgment judgment, Location location, Token operator,
-          void operand, DartType inferredType) =>
-      genericExpression("not", location, inferredType);
-
-  void nullLiteral(ExpressionJudgment judgment, Location location,
-      Token literal, bool isSynthetic, DartType inferredType) {
-    if (isSynthetic) return null;
-    genericExpression("nullLiteral", location, inferredType);
-  }
-
-  void indexAssign(ExpressionJudgment judgment, Location location,
-      Reference writeMember, Reference combiner, DartType inferredType) {
-    _store(location,
-        reference: writeMember, inferredType: inferredType, combiner: combiner);
-  }
-
-  void isExpression(
-      ExpressionJudgment judgment,
-      Location location,
-      void expression,
-      Token isOperator,
-      void literalType,
-      DartType testedType,
-      DartType inferredType) {
-    _store(location, literalType: testedType, inferredType: inferredType);
-  }
-
-  void isNotExpression(
-      ExpressionJudgment judgment,
-      Location location,
-      void expression,
-      Token isOperator,
-      Token notOperator,
-      void literalType,
-      DartType type,
-      DartType inferredType) {
-    _store(location, literalType: type, inferredType: inferredType);
-  }
-
   void methodInvocation(
       ExpressionJudgment judgment,
-      Location resultOffset,
+      int resultOffset,
       List<DartType> argumentsTypes,
       bool isImplicitCall,
-      Reference interfaceMember,
+      Node interfaceMember,
       FunctionType calleeType,
       Substitution substitution,
       DartType inferredType) {
@@ -465,7 +434,7 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
 
   void methodInvocationCall(
       ExpressionJudgment judgment,
-      Location resultOffset,
+      int resultOffset,
       List<DartType> argumentsTypes,
       bool isImplicitCall,
       FunctionType calleeType,
@@ -482,12 +451,27 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
         isImplicitCall: isImplicitCall);
   }
 
+  void namedFunctionExpression(ExpressionJudgment judgment,
+          covariant VariableDeclarationBinder binder, DartType inferredType) =>
+      genericExpression(
+          "namedFunctionExpression", binder.fileOffset, inferredType);
+
+  void not(ExpressionJudgment judgment, int location, Token operator,
+          void operand, DartType inferredType) =>
+      genericExpression("not", location, inferredType);
+
+  void nullLiteral(ExpressionJudgment judgment, int location, Token literal,
+      bool isSynthetic, DartType inferredType) {
+    if (isSynthetic) return null;
+    genericExpression("nullLiteral", location, inferredType);
+  }
+
   void propertyAssign(
       ExpressionJudgment judgment,
-      Location location,
-      Reference writeMember,
+      int location,
+      Node writeMember,
       DartType writeContext,
-      Reference combiner,
+      Node combiner,
       DartType inferredType) {
     _store(location,
         isWriteReference: true,
@@ -497,45 +481,42 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
         inferredType: inferredType);
   }
 
-  void propertySet(ExpressionJudgment judgment, Location location,
-          DartType inferredType) =>
-      genericExpression("propertySet", location, inferredType);
-
-  void propertyGet(ExpressionJudgment judgment, Location location,
-      Reference member, DartType inferredType) {
+  void propertyGet(ExpressionJudgment judgment, int location, Node member,
+      DartType inferredType) {
     _store(location, reference: member, inferredType: inferredType);
   }
 
   void propertyGetCall(
-      ExpressionJudgment judgment, Location location, DartType inferredType) {
+      ExpressionJudgment judgment, int location, DartType inferredType) {
     _store(location, isExplicitCall: true);
   }
 
+  void propertySet(
+          ExpressionJudgment judgment, int location, DartType inferredType) =>
+      genericExpression("propertySet", location, inferredType);
+
   void redirectingInitializer(
       InitializerJudgment judgment,
-      Location location,
+      int location,
       Token thisKeyword,
       Token period,
       Token constructorName,
       covariant Object argumentList,
-      Reference initializerTarget) {
+      Node initializerTarget) {
     _store(location, reference: initializerTarget);
   }
 
-  void rethrow_(ExpressionJudgment judgment, Location location,
-          Token rethrowKeyword, DartType inferredType) =>
+  void rethrow_(ExpressionJudgment judgment, int location, Token rethrowKeyword,
+          DartType inferredType) =>
       genericExpression('rethrow', location, inferredType);
 
-  void returnStatement(StatementJudgment judgment, Location location,
+  void returnStatement(StatementJudgment judgment, int location,
       Token returnKeyword, void expression, Token semicolon) {}
 
-  void staticAssign(
-      ExpressionJudgment judgment,
-      Location location,
-      Reference writeMember,
-      DartType writeContext,
-      Reference combiner,
-      DartType inferredType) {
+  void statementLabel(covariant void binder, Token label, Token colon) {}
+
+  void staticAssign(ExpressionJudgment judgment, int location, Node writeMember,
+      DartType writeContext, Node combiner, DartType inferredType) {
     _store(location,
         reference: writeMember,
         isWriteReference: true,
@@ -544,15 +525,15 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
         inferredType: inferredType);
   }
 
-  void staticGet(ExpressionJudgment judgment, Location location,
-      Reference expressionTarget, DartType inferredType) {
+  void staticGet(ExpressionJudgment judgment, int location,
+      Node expressionTarget, DartType inferredType) {
     _store(location, reference: expressionTarget, inferredType: inferredType);
   }
 
   void staticInvocation(
       ExpressionJudgment judgment,
-      Location location,
-      Reference expressionTarget,
+      int location,
+      Node expressionTarget,
       List<DartType> expressionArgumentsTypes,
       FunctionType calleeType,
       Substitution substitution,
@@ -567,19 +548,28 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
         inferredType: inferredType);
   }
 
+  void storeClassReference(int location, Node reference, DartType rawType) {
+    // TODO(paulberry): would it be better to use literalType?
+    _store(location, reference: reference, inferredType: rawType);
+  }
+
+  void storePrefixInfo(int location, int prefixInfo) {
+    _store(location, isPrefixReference: true, prefixInfo: prefixInfo);
+  }
+
   void stringConcatenation(
-      ExpressionJudgment judgment, Location location, DartType inferredType) {
+      ExpressionJudgment judgment, int location, DartType inferredType) {
     // We don't need the type - we already know that it is String.
     // Moreover, the file offset for StringConcatenation is `-1`.
   }
 
-  void stringLiteral(ExpressionJudgment judgment, Location location,
-          Token literal, String value, DartType inferredType) =>
+  void stringLiteral(ExpressionJudgment judgment, int location, Token literal,
+          String value, DartType inferredType) =>
       genericExpression("StringLiteral", location, inferredType);
 
   void superInitializer(
       InitializerJudgment judgment,
-      Location location,
+      int location,
       Token superKeyword,
       Token period,
       Token constructorName,
@@ -590,12 +580,9 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
 
   void switchLabel(covariant void binder, Token label, Token colon) {}
 
-  void binderForSwitchLabel(
-      SwitchCaseJudgment judgment, int fileOffset, String name) {}
-
   void switchStatement(
       StatementJudgment judgment,
-      Location location,
+      int location,
       Token switchKeyword,
       Token leftParenthesis,
       void expression,
@@ -604,44 +591,54 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
       void members,
       Token rightBracket) {}
 
-  void symbolLiteral(
-          ExpressionJudgment judgment,
-          Location location,
-          Token poundSign,
-          List<Token> components,
-          String value,
-          DartType inferredType) =>
+  void symbolLiteral(ExpressionJudgment judgment, int location, Token poundSign,
+          List<Token> components, String value, DartType inferredType) =>
       genericExpression("symbolLiteral", location, inferredType);
 
-  void thisExpression(ExpressionJudgment judgment, Location location,
+  void thisExpression(ExpressionJudgment judgment, int location,
       Token thisKeyword, DartType inferredType) {}
 
-  void throw_(ExpressionJudgment judgment, Location location,
-          Token throwKeyword, void expression, DartType inferredType) =>
+  void throw_(ExpressionJudgment judgment, int location, Token throwKeyword,
+          void expression, DartType inferredType) =>
       genericExpression('throw', location, inferredType);
 
-  void tryCatch(StatementJudgment judgment, Location location) {}
+  void tryCatch(StatementJudgment judgment, int location) {}
 
-  void tryFinally(
-      StatementJudgment judgment,
-      Location location,
-      Token tryKeyword,
-      void body,
-      void catchClauses,
-      Token finallyKeyword,
-      void finallyBlock) {}
+  void tryFinally(StatementJudgment judgment, int location, Token tryKeyword,
+      void body, void catchClauses, Token finallyKeyword, void finallyBlock) {}
 
-  void typeLiteral(ExpressionJudgment judgment, Location location,
-      Reference expressionType, DartType inferredType) {
+  void typeLiteral(ExpressionJudgment judgment, int location,
+      Node expressionType, DartType inferredType) {
     _store(location, reference: expressionType, inferredType: inferredType);
+  }
+
+  void typeReference(
+      int location,
+      Token leftBracket,
+      List<void> typeArguments,
+      Token rightBracket,
+      Node reference,
+      covariant TypeVariableBinder binder,
+      DartType type) {
+    _store(location,
+        reference: reference,
+        declaration: binder?.fileOffset,
+        inferredType: type,
+        isTypeReference: true);
+  }
+
+  void typeVariableDeclaration(int location,
+      covariant TypeVariableBinder binder, TypeParameter typeParameter) {
+    _storeTypeVariableDeclaration(binder.fileOffset, typeParameter);
+    _store(location, declaration: binder.fileOffset);
   }
 
   void variableAssign(
       ExpressionJudgment judgment,
-      Location location,
+      int location,
       DartType writeContext,
       covariant VariableDeclarationBinder writeVariableBinder,
-      Reference combiner,
+      Node combiner,
       DartType inferredType) {
     _store(location,
         declaration: writeVariableBinder?.fileOffset,
@@ -653,18 +650,13 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
 
   void variableDeclaration(covariant VariableDeclarationBinder binder,
       DartType statementType, DartType inferredType) {
-    _store(binder.fileOffset as Location,
+    _store(binder.fileOffset,
         literalType: statementType, inferredType: inferredType);
-  }
-
-  Object binderForVariableDeclaration(
-      StatementJudgment judgment, int fileOffset, String name) {
-    return new VariableDeclarationBinder(fileOffset);
   }
 
   void variableGet(
       ExpressionJudgment judgment,
-      Location location,
+      int location,
       bool isInCascade,
       covariant VariableDeclarationBinder variableBinder,
       DartType inferredType) {
@@ -675,34 +667,79 @@ class _ResolutionStorer<Location, Reference, PrefixInfo> {
         declaration: variableBinder?.fileOffset, inferredType: inferredType);
   }
 
+  void voidType(int location, Token token, DartType type) {
+    _store(location, inferredType: type);
+  }
+
   void whileStatement(
       StatementJudgment judgment,
-      Location location,
+      int location,
       Token whileKeyword,
       Token leftParenthesis,
       void condition,
       Token rightParenthesis,
       void body) {}
 
-  void yieldStatement(StatementJudgment judgment, Location location,
+  void yieldStatement(StatementJudgment judgment, int location,
       Token yieldKeyword, Token star, void expression, Token semicolon) {}
 
-  void storePrefixInfo(Location location, PrefixInfo prefixInfo) {
-    _store(location, prefixInfo: prefixInfo);
+  void _store(int location,
+      {List<DartType> argumentTypes,
+      Node combiner,
+      int declaration,
+      DartType inferredType,
+      DartType invokeType,
+      bool isExplicitCall = false,
+      bool isImplicitCall = false,
+      bool isPrefixReference = false,
+      bool isTypeReference = false,
+      bool isWriteReference = false,
+      DartType literalType,
+      Node loadLibrary,
+      int prefixInfo,
+      Node reference,
+      bool replace = false,
+      DartType writeContext}) {
+    _validateLocation(location);
+    if (!replace && _data.containsKey(location)) {
+      throw new StateError('Data already stored for offset $location');
+    }
+    _data[location] = new ResolutionData(
+        argumentTypes: argumentTypes,
+        combiner: combiner,
+        declaration: declaration,
+        inferredType: inferredType,
+        invokeType: invokeType,
+        isExplicitCall: isExplicitCall,
+        isImplicitCall: isImplicitCall,
+        isPrefixReference: isPrefixReference,
+        isTypeReference: isTypeReference,
+        isWriteReference: isWriteReference,
+        literalType: literalType,
+        loadLibrary: loadLibrary,
+        prefixInfo: prefixInfo,
+        reference: reference,
+        writeContext: writeContext);
   }
 
-  void storeClassReference(
-      Location location, Reference reference, DartType rawType) {
-    // TODO(paulberry): would it be better to use literalType?
-    _store(location, reference: reference, inferredType: rawType);
+  void _storeTypeVariableDeclaration(
+      int fileOffset, TypeParameter typeParameter) {
+    if (_typeVariableDeclarations.containsKey(fileOffset)) {
+      throw new StateError(
+          'Type declaration already stored for offset $fileOffset');
+    }
+    _typeVariableDeclarations[typeParameter] = fileOffset;
   }
-}
 
-/// TODO(paulberry): eventually just use the element directly.
-class VariableDeclarationBinder {
-  final int fileOffset;
+  void _unstore(int location) {
+    _data.remove(location) == null;
+  }
 
-  VariableDeclarationBinder(this.fileOffset);
+  void _validateLocation(int location) {
+    if (location < 0) {
+      throw new StateError('Invalid location: $location');
+    }
+  }
 }
 
 /// A [DartType] wrapper around invocation type arguments.
@@ -717,4 +754,18 @@ class TypeArgumentsDartType implements DartType {
   String toString() {
     return '<${types.join(', ')}>';
   }
+}
+
+/// TODO(paulberry): eventually just use the element directly.
+class TypeVariableBinder {
+  final int fileOffset;
+
+  TypeVariableBinder(this.fileOffset);
+}
+
+/// TODO(paulberry): eventually just use the element directly.
+class VariableDeclarationBinder {
+  final int fileOffset;
+
+  VariableDeclarationBinder(this.fileOffset);
 }

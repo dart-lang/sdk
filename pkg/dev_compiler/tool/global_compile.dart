@@ -85,7 +85,7 @@ void main(List<String> args) {
   out.writeAsStringSync(dartLibrary);
   var dartSdk = File(path.join(ddcPath, 'lib', 'js', 'legacy', 'dart_sdk.js'))
       .readAsStringSync();
-  out.writeAsStringSync(dartSdk, mode: FileMode.APPEND);
+  out.writeAsStringSync(dartSdk, mode: FileMode.append);
 
   // Linearize module concatenation for deterministic output
   var last = Future.value();
@@ -138,7 +138,7 @@ void main(List<String> args) {
         linearizerMap[module]
             .then((_) => codefile.readAsString())
             .then((code) =>
-                out.writeAsString(code, mode: FileMode.APPEND, flush: true))
+                out.writeAsString(code, mode: FileMode.append, flush: true))
             .then((_) => completerMap[module].complete());
       });
     });
@@ -152,7 +152,7 @@ void main(List<String> args) {
     var libraryName =
         path.withoutExtension(entry).replaceAll(path.separator, '__');
     out.writeAsStringSync('dart_library.start("$ENTRY", "$libraryName");\n',
-        mode: FileMode.APPEND);
+        mode: FileMode.append);
   });
 }
 

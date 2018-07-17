@@ -36,7 +36,7 @@ class NavNotifyElement extends HtmlElement implements Renderable {
     assert(repository != null);
     assert(notifyOnPause != null);
     NavNotifyElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<NavNotifyElement>(e, queue: queue);
     e._repository = repository;
     e._notifyOnPause = notifyOnPause;
     return e;
@@ -54,18 +54,21 @@ class NavNotifyElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
     _subscription.cancel();
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new DivElement()
-        ..children = [
+        ..children = <Element>[
           new DivElement()
-            ..children =
-                _repository.list().where(_filter).map(_toElement).toList()
+            ..children = _repository
+                .list()
+                .where(_filter)
+                .map<Element>(_toElement)
+                .toList()
         ]
     ];
   }
@@ -77,7 +80,7 @@ class NavNotifyElement extends HtmlElement implements Renderable {
     return true;
   }
 
-  HtmlElement _toElement(M.Notification notification) {
+  Element _toElement(M.Notification notification) {
     if (notification is M.EventNotification) {
       return new NavNotifyEventElement(notification.event, queue: _r.queue)
         ..onDelete.listen((_) => _repository.delete(notification));

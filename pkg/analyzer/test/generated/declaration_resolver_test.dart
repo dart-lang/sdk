@@ -10,7 +10,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/api/dart.dart';
 import 'package:analyzer/src/task/dart.dart';

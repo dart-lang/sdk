@@ -38,7 +38,6 @@ dart/snapshot_version_test: RuntimeError
 [ $compiler == dart2analyzer ]
 dart/byte_array_optimized_test: CompileTimeError # int64
 dart/byte_array_test: CompileTimeError # int64
-dart/truncating_ints_test: CompileTimeError # int64
 
 [ $compiler == dart2js ]
 dart/byte_array_optimized_test: Skip # compilers not aware of byte arrays
@@ -57,7 +56,7 @@ dart/wrap_around_in_range_analysis_test: SkipByDesign # The test requires int64.
 [ $compiler == dartk ]
 cc/DartAPI_New: Fail # Issue #33041
 dart/appjit_cha_deopt_test: SkipSlow # Issue 33266
-dart/redirection_type_shuffling_test/00: RuntimeError
+dart/redirection_type_shuffling_test/00: RuntimeError, Pass
 dart/redirection_type_shuffling_test/none: RuntimeError
 
 [ $compiler != dartk ]
@@ -129,6 +128,14 @@ cc/Profiler_ToggleRecordAllocation: Skip
 cc/Profiler_TrivialRecordAllocation: Skip
 cc/Profiler_TypedArrayAllocation: Skip
 
+[ $arch != simarm && $arch != simarm64 && $arch != simdbc64 && $compiler == dartk && $hot_reload ]
+dart/data_uri_import_test/base64: Crash
+dart/data_uri_import_test/nocharset: Crash
+dart/data_uri_import_test/nomime: Crash
+dart/data_uri_import_test/percentencoded: Crash
+dart/data_uri_import_test/utf16: Crash
+dart/data_uri_import_test/wrongmime: Crash
+
 [ $arch == x64 && $compiler == dartk && $system == windows && $strong ]
 cc/Profiler_BasicSourcePosition: Fail # http://dartbug.com/33224
 cc/Profiler_CodeTicks: Fail # dartbug.com/33337
@@ -145,11 +152,10 @@ cc/Profiler_TypedArrayAllocation: Pass, Fail # Issue 31137
 cc/Dart2JSCompileAll: SkipSlow # Timeout.
 
 [ $compiler == dart2analyzer && $strong ]
-*: Skip # Issue 28649
+dart/redirection_type_shuffling_test/00: CompileTimeError
 
 [ $compiler == dartk && $mode == debug && $runtime == vm ]
 cc/PrintJSON: Crash
-cc/Profiler_FunctionInline: Fail
 cc/Service_TokenStream: Crash
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
@@ -213,13 +219,8 @@ cc/Profiler_TrivialRecordAllocation: Fail, Pass
 cc/Service_Address: Fail
 cc/Service_Code: Fail
 
-[ $compiler == dartk && $hot_reload ]
-dart/data_uri_import_test/base64: Crash
-dart/data_uri_import_test/nocharset: Crash
-dart/data_uri_import_test/nomime: Crash
-dart/data_uri_import_test/percentencoded: Crash
-dart/data_uri_import_test/utf16: Crash
-dart/data_uri_import_test/wrongmime: Crash
+[ $compiler == dartk && $checked ]
+dart/redirection_type_shuffling_test/00: Pass # Works in --checked mode but not in --strong mode.
 
 [ $compiler == dartk && $strong ]
 cc/DartGeneratedArrayLiteralMessages: Crash # Issue 32190
@@ -358,9 +359,10 @@ cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
 
 [ $hot_reload || $hot_reload_rollback ]
-dart/appjit_determinism_test: Skip # Reload affects determinisim
-dart/script_determinism_test: Skip # We can shutdown an isolate before it reloads.
-dart/slow_path_shared_stub_test: Skip # Too slow with --slow-path-triggers-gc flag and not relevant outside precompiled.
+dart/appjit_cha_deopt_test: SkipByDesign # Cannot reload with URI pointing to app snapshot.
+dart/appjit_determinism_test: SkipByDesign # Reload affects determinisim
+dart/script_determinism_test: SkipByDesign # Cannot reload with URI pointing to script snapshot.
+dart/slow_path_shared_stub_test: SkipSlow # Too slow with --slow-path-triggers-gc flag and not relevant outside precompiled.
 dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
-dart/stack_overflow_shared_test: Skip # Too slow with --slow-path-triggers-gc flag and not relevant outside precompiled.
+dart/stack_overflow_shared_test: SkipSlow # Too slow with --slow-path-triggers-gc flag and not relevant outside precompiled.

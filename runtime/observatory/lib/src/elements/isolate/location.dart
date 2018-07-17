@@ -31,7 +31,7 @@ class IsolateLocationElement extends HtmlElement implements Renderable {
     assert(events != null);
     assert(scripts != null);
     IsolateLocationElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<IsolateLocationElement>(e, queue: queue);
     e._isolate = isolate;
     e._events = events;
     e._scripts = scripts;
@@ -51,7 +51,7 @@ class IsolateLocationElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
     _debugSubscription.cancel();
     _isolateSubscription.cancel();
@@ -60,10 +60,10 @@ class IsolateLocationElement extends HtmlElement implements Renderable {
   void render() {
     switch (_isolate.status) {
       case M.IsolateStatus.loading:
-        children = [new SpanElement()..text = 'not yet runnable'];
+        children = <Element>[new SpanElement()..text = 'not yet runnable'];
         break;
       case M.IsolateStatus.running:
-        children = [
+        children = <Element>[
           new SpanElement()..text = 'at ',
           new FunctionRefElement(
               _isolate, M.topFrame(_isolate.pauseEvent).function,
@@ -77,11 +77,11 @@ class IsolateLocationElement extends HtmlElement implements Renderable {
         break;
       case M.IsolateStatus.paused:
         if (_isolate.pauseEvent is M.PauseStartEvent) {
-          children = [new SpanElement()..text = 'at isolate start'];
+          children = <Element>[new SpanElement()..text = 'at isolate start'];
         } else if (_isolate.pauseEvent is M.PauseExitEvent) {
-          children = [new SpanElement()..text = 'at isolate exit'];
+          children = <Element>[new SpanElement()..text = 'at isolate exit'];
         } else if (_isolate.pauseEvent is M.NoneEvent) {
-          children = [new SpanElement()..text = 'not yet runnable'];
+          children = <Element>[new SpanElement()..text = 'not yet runnable'];
         } else {
           final content = <Element>[];
           if (_isolate.pauseEvent is M.PauseBreakpointEvent) {

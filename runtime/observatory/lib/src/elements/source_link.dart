@@ -33,7 +33,7 @@ class SourceLinkElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(location != null);
     SourceLinkElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<SourceLinkElement>(e, queue: queue);
     e._isolate = isolate;
     e._location = location;
     e._repository = repository;
@@ -55,19 +55,19 @@ class SourceLinkElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   Future render() async {
     if (_script == null) {
-      children = [new SpanElement()..text = '<LOADING>'];
+      children = <Element>[new SpanElement()..text = '<LOADING>'];
     } else {
       String label = _script.uri.split('/').last;
       int token = _location.tokenPos;
       int line = _script.tokenToLine(token);
       int column = _script.tokenToCol(token);
-      children = [
+      children = <Element>[
         new AnchorElement(
             href: Uris.inspect(isolate, object: _script, pos: token))
           ..title = _script.uri

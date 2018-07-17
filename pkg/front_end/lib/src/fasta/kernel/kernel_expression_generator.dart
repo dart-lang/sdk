@@ -13,7 +13,9 @@ import '../fasta_codes.dart'
     show
         LocatedMessage,
         messageLoadLibraryTakesNoArguments,
-        messageSuperAsExpression;
+        messageNotAConstantExpression,
+        messageSuperAsExpression,
+        templateNotConstantExpression;
 
 import '../messages.dart' show Message, noLength;
 
@@ -22,6 +24,8 @@ import '../names.dart' show callName, equalsName, indexGetName, indexSetName;
 import '../parser.dart' show lengthForToken, offsetForToken;
 
 import '../problems.dart' show unhandled, unsupported;
+
+import '../type_inference/type_inferrer.dart' show TypeInferrer;
 
 import 'body_builder.dart' show noLocation;
 
@@ -77,7 +81,9 @@ import 'kernel_ast_api.dart'
         ComplexAssignmentJudgment,
         IllegalAssignmentJudgment,
         IndexAssignmentJudgment,
+        InvalidPropertyGetJudgment,
         InvalidVariableWriteJudgment,
+        LoadLibraryTearOffJudgment,
         MethodInvocationJudgment,
         NullAwarePropertyGetJudgment,
         PropertyAssignmentJudgment,
@@ -166,9 +172,11 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
       Procedure interfaceTarget,
-      bool isPreIncDec: false}) {
+      bool isPreIncDec: false,
+      bool isPostIncDec: false}) {
     var complexAssignment = startComplexAssignment(value);
     complexAssignment?.isPreIncDec = isPreIncDec;
+    complexAssignment?.isPostIncDec = isPostIncDec;
     var combiner = makeBinary(_makeRead(complexAssignment), binaryOperator,
         interfaceTarget, value, helper,
         offset: offset);
@@ -196,8 +204,12 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
       bool voidContext: false,
       Procedure interfaceTarget}) {
     if (voidContext) {
-      return buildPrefixIncrement(binaryOperator,
-          offset: offset, voidContext: true, interfaceTarget: interfaceTarget);
+      return buildCompoundAssignment(
+          binaryOperator, forest.literalInt(1, null)..fileOffset = offset,
+          offset: offset,
+          voidContext: voidContext,
+          interfaceTarget: interfaceTarget,
+          isPostIncDec: true);
     }
     var rhs = forest.literalInt(1, null)..fileOffset = offset;
     var complexAssignment = startComplexAssignment(rhs);
@@ -611,7 +623,7 @@ class KernelSuperPropertyAccessGenerator extends KernelGenerator
       helper.warnUnresolvedGet(name, offsetForToken(token), isSuper: true);
     }
     // TODO(ahe): Use [DirectPropertyGet] when possible.
-    var read = new SuperPropertyGetJudgment(name, getter)
+    var read = new SuperPropertyGetJudgment(name, interfaceTarget: getter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
     return read;
@@ -633,8 +645,8 @@ class KernelSuperPropertyAccessGenerator extends KernelGenerator
   @override
   Expression doInvocation(int offset, Arguments arguments) {
     if (helper.constantContext != ConstantContext.none) {
-      helper.deprecated_addCompileTimeError(
-          offset, "Not a constant expression.");
+      // TODO(brianwilkerson) Fix the length
+      helper.addCompileTimeError(messageNotAConstantExpression, offset, 1);
     }
     if (getter == null || isFieldOrGetter(getter)) {
       return helper.buildMethodInvocation(
@@ -974,10 +986,9 @@ class KernelSuperIndexedAccessGenerator extends KernelGenerator
           isSuper: true);
     }
     // TODO(ahe): Use [DirectMethodInvocation] when possible.
-    return new SuperMethodInvocationJudgment(
-        indexGetName,
+    return new SuperMethodInvocationJudgment(indexGetName,
         forest.castArguments(forest.arguments(<Expression>[index], token)),
-        getter)
+        interfaceTarget: getter)
       ..fileOffset = offsetForToken(token);
   }
 
@@ -1106,21 +1117,25 @@ class KernelStaticAccessGenerator extends KernelGenerator
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
+    Expression error;
     if (helper.constantContext != ConstantContext.none &&
         !helper.isIdentical(readTarget)) {
-      helper.deprecated_addCompileTimeError(
-          offset, "Not a constant expression.");
+      error = helper.buildCompileTimeError(
+          templateNotConstantExpression.withArguments('Method invocation'),
+          offset,
+          readTarget?.name?.name?.length ?? 0);
     }
     if (readTarget == null || isFieldOrGetter(readTarget)) {
       return helper.buildMethodInvocation(buildSimpleRead(), callName,
           arguments, offset + (readTarget?.name?.name?.length ?? 0),
+          error: error,
           // This isn't a constant expression, but we have checked if a
           // constant expression error should be emitted already.
           isConstantExpression: true,
           isImplicitCall: true);
     } else {
       return helper.buildStaticInvocation(readTarget, arguments,
-          charOffset: offset);
+          charOffset: offset, error: error);
     }
   }
 
@@ -1148,8 +1163,10 @@ class KernelLoadLibraryGenerator extends KernelGenerator
 
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    var read =
-        helper.makeStaticGet(builder.createTearoffMethod(helper.forest), token);
+    builder.importDependency.targetLibrary;
+    var read = new LoadLibraryTearOffJudgment(
+        builder.importDependency, builder.createTearoffMethod(helper.forest))
+      ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
     return read;
   }
@@ -1161,7 +1178,7 @@ class KernelLoadLibraryGenerator extends KernelGenerator
       helper.addProblemErrorIfConst(
           messageLoadLibraryTakesNoArguments, offset, 'loadLibrary'.length);
     }
-    return builder.createLoadLibrary(offset, forest);
+    return builder.createLoadLibrary(offset, forest, arguments);
   }
 
   @override
@@ -1205,6 +1222,10 @@ class KernelDeferredAccessGenerator extends KernelGenerator
         prefixGenerator.prefix,
         token.charOffset);
   }
+
+  @override
+  ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
+      new StaticAssignmentJudgment(rhs);
 }
 
 class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
@@ -1415,6 +1436,15 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
     Expression error = buildError(forest.argumentsEmpty(token), isGetter: true);
     return new UnresolvedVariableGetJudgment(error)
       ..fileOffset = token.charOffset;
+  }
+
+  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
+      {bool nonInstanceAccessIsError: false, TypeInferrer typeInferrer}) {
+    var type = super.buildTypeWithBuiltArguments(arguments,
+        nonInstanceAccessIsError: nonInstanceAccessIsError,
+        typeInferrer: typeInferrer);
+    typeInferrer.storeTypeReference(token.offset, null, null, type);
+    return type;
   }
 
   @override

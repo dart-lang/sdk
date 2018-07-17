@@ -53,7 +53,8 @@ Future test(Uri entryPoint, Map<String, bool> expectedResults) async {
       packageConfig: Uri.parse('memory:.packages'));
   Compiler compiler = result.compiler;
   expectedResults.forEach((String uri, bool expectedResult) {
-    dynamic element = compiler.libraryLoader.lookupLibrary(Uri.parse(uri));
+    dynamic element = compiler.frontendStrategy.elementEnvironment
+        .lookupLibrary(Uri.parse(uri));
     Expect.isNotNull(element, "Unknown library '$uri'.");
     Expect.equals(
         expectedResult,

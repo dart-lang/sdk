@@ -69,9 +69,6 @@ dev_fs_weird_char_test: Skip # Windows disallows question mark in paths
 [ $builder_tag == optimization_counter_threshold && $compiler != dartk ]
 pause_on_unhandled_async_exceptions_test: Pass, RuntimeError # Issue 33365
 
-[ $compiler == dart2analyzer && $strong ]
-*: Skip # Issue 28649
-
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
 

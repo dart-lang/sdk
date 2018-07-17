@@ -146,7 +146,7 @@ abstract class NativeMemberResolverBase implements NativeMemberResolver {
 /// Determines all native classes in a set of libraries.
 abstract class NativeClassFinder {
   /// Returns the set of all native classes declared in [libraries].
-  Iterable<ClassEntity> computeNativeClasses(Iterable<LibraryEntity> libraries);
+  Iterable<ClassEntity> computeNativeClasses(Iterable<Uri> libraries);
 }
 
 class BaseNativeClassFinder implements NativeClassFinder {
@@ -157,10 +157,10 @@ class BaseNativeClassFinder implements NativeClassFinder {
 
   BaseNativeClassFinder(this._elementEnvironment, this._nativeBasicData);
 
-  Iterable<ClassEntity> computeNativeClasses(
-      Iterable<LibraryEntity> libraries) {
+  Iterable<ClassEntity> computeNativeClasses(Iterable<Uri> libraries) {
     Set<ClassEntity> nativeClasses = new Set<ClassEntity>();
-    libraries.forEach((l) => _processNativeClassesInLibrary(l, nativeClasses));
+    libraries.forEach((uri) => _processNativeClassesInLibrary(
+        _elementEnvironment.lookupLibrary(uri), nativeClasses));
     _processSubclassesOfNativeClasses(libraries, nativeClasses);
     return nativeClasses;
   }
@@ -207,7 +207,7 @@ class BaseNativeClassFinder implements NativeClassFinder {
   /// Adds all subclasses of [nativeClasses] found in [libraries] to
   /// [nativeClasses].
   void _processSubclassesOfNativeClasses(
-      Iterable<LibraryEntity> libraries, Set<ClassEntity> nativeClasses) {
+      Iterable<Uri> libraries, Set<ClassEntity> nativeClasses) {
     Set<ClassEntity> nativeClassesAndSubclasses = new Set<ClassEntity>();
     // Collect potential subclasses, e.g.
     //
@@ -218,7 +218,8 @@ class BaseNativeClassFinder implements NativeClassFinder {
     Map<String, Set<ClassEntity>> potentialExtends =
         <String, Set<ClassEntity>>{};
 
-    libraries.forEach((LibraryEntity library) {
+    libraries.forEach((Uri uri) {
+      LibraryEntity library = _elementEnvironment.lookupLibrary(uri);
       _elementEnvironment.forEachClass(library, (ClassEntity cls) {
         String extendsName = _findExtendsNameOfClass(cls);
         if (extendsName != null) {

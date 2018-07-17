@@ -138,12 +138,10 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
       }
     }
     if (!function.HasCode() && function.HasBytecode()) {
-      const Code& bytecode = Code::Handle(zone, function.Bytecode());
-      ASSERT(!bytecode.IsNull());
       ASSERT(thread->no_callback_scope_depth() == 0);
       SuspendLongJumpScope suspend_long_jump_scope(thread);
       TransitionToGenerated transition(thread);
-      return Interpreter::Current()->Call(bytecode, arguments_descriptor,
+      return Interpreter::Current()->Call(function, arguments_descriptor,
                                           arguments, thread);
     }
 #else

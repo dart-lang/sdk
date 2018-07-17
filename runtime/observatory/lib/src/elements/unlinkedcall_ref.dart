@@ -28,7 +28,7 @@ class UnlinkedCallRefElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(unlinkedcall != null);
     UnlinkedCallRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<UnlinkedCallRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._unlinkedcall = unlinkedcall;
     return e;
@@ -46,13 +46,13 @@ class UnlinkedCallRefElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new AnchorElement(href: Uris.inspect(_isolate, object: _unlinkedcall))
-        ..children = [
+        ..children = <Element>[
           new SpanElement()
             ..classes = ['emphasize']
             ..text = 'UnlinkedCall',

@@ -417,6 +417,8 @@ class AlternativeReadingScope {
   const uint8_t* saved_raw_buffer_;
   const ExternalTypedData* saved_typed_data_;
   intptr_t saved_offset_;
+
+  DISALLOW_COPY_AND_ASSIGN(AlternativeReadingScope);
 };
 
 // A helper class that resets the readers min and max positions both upon
@@ -446,6 +448,8 @@ class PositionScope {
   Reader* reader_;
   TokenPosition min_;
   TokenPosition max_;
+
+  DISALLOW_COPY_AND_ASSIGN(PositionScope);
 };
 
 }  // namespace kernel

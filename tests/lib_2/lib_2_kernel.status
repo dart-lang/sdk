@@ -11,8 +11,6 @@
 # to add them.
 
 [ $compiler == app_jitk ]
-async/future_test/01: RuntimeError
-async/future_test/none: RuntimeError
 async/slow_consumer2_test: RuntimeError
 async/stream_controller_async_test: RuntimeError
 async/stream_distinct_test: RuntimeError
@@ -196,17 +194,11 @@ mirrors/typevariable_mirror_metadata_test: RuntimeError
 [ $compiler == dartk && $system == windows ]
 isolate/ping_pause_test: Skip # Issues 32137 and 32138
 
-[ $compiler == dartk && $hot_reload ]
-isolate/message4_test: Pass, Timeout
-
 [ $compiler == dartk && $hot_reload_rollback ]
 isolate/illegal_msg_function_test: Skip # Timeout
-isolate/message4_test: Pass, Timeout
 isolate/pause_test: Skip # Timeout
 
 [ $compiler == dartk && $strong ]
-async/future_test/01: RuntimeError
-async/future_test/none: RuntimeError
 async/slow_consumer2_test: RuntimeError # Issue 31402 (Invocation arguments)
 async/stream_controller_async_test: RuntimeError
 async/stream_distinct_test: RuntimeError
@@ -289,6 +281,7 @@ isolate/isolate_import_test/none: Skip # Timeout
 isolate/issue_21398_parent_isolate1_test: Skip # Timeout
 isolate/mandel_isolate_test: Skip # Timeout
 isolate/message2_test: Skip # Timeout
+isolate/message4_test: Pass, Timeout, Crash # Timeout and sporadic crash (issue 33824)
 isolate/nested_spawn2_test: Skip # Timeout
 isolate/nested_spawn_test: Skip # Timeout
 isolate/raw_port_test: Skip # Timeout
@@ -307,8 +300,6 @@ isolate/static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/iss
 
 # ===== dartkp + dart_precompiled status lines =====
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
-async/future_test/01: RuntimeError
-async/future_test/none: RuntimeError
 async/slow_consumer2_test: RuntimeError # Issue 31402 (Invocation arguments)
 async/stream_controller_async_test: RuntimeError
 async/stream_distinct_test: RuntimeError

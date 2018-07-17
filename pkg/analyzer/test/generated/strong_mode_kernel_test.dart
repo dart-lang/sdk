@@ -266,12 +266,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
   bool get useCFE => true;
 
   @override
-  test_futureOr_promotion3() async {
-    // Test passes even though the overridden method fails.
-    await super.test_futureOr_promotion3();
-  }
-
-  @override
   @failingTest
   test_genericFunction_parameter() async {
     // Failed to resolve 1 nodes:

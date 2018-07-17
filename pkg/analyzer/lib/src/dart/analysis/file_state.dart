@@ -766,15 +766,16 @@ class FileSystemState {
   FileSystemStateTestView _testView;
 
   FileSystemState(
-      this._logger,
-      this._byteStore,
-      this._contentOverlay,
-      this._resourceProvider,
-      this._sourceFactory,
-      this._analysisOptions,
-      this._salt,
-      {this.externalSummaries,
-      this.parseExceptionHandler}) {
+    this._logger,
+    this._byteStore,
+    this._contentOverlay,
+    this._resourceProvider,
+    this._sourceFactory,
+    this._analysisOptions,
+    this._salt, {
+    this.externalSummaries,
+    this.parseExceptionHandler,
+  }) {
     _fileContentCache =
         _FileContentCache.getInstance(_resourceProvider, _contentOverlay);
     _testView = new FileSystemStateTestView(this);
@@ -815,9 +816,9 @@ class FileSystemState {
         return file;
       }
       // Create a new file.
-      Uri fileUri = _resourceProvider.pathContext.toUri(path);
       FileSource uriSource = new FileSource(resource, uri);
-      file = new FileState._(this, path, uri, fileUri, uriSource);
+      file = new FileState._(
+          this, path, uri, _absolutePathToFileUri(path), uriSource);
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
       _pathToCanonicalFile[path] = file;
@@ -856,9 +857,9 @@ class FileSystemState {
 
       String path = uriSource.fullName;
       File resource = _resourceProvider.getFile(path);
-      Uri fileUri = _resourceProvider.pathContext.toUri(path);
       FileSource source = new FileSource(resource, uri);
-      file = new FileState._(this, path, uri, fileUri, source);
+      file = new FileState._(
+          this, path, uri, _absolutePathToFileUri(path), source);
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
       file.refresh(allowCached: true);
@@ -932,6 +933,18 @@ class FileSystemState {
       fileStamp++;
     }
     files.add(file);
+  }
+
+  /**
+   * A specialized version of package:path context.toUri(). This assumes the
+   * path is absolute as does a performant conversion to a file: uri.
+   */
+  Uri _absolutePathToFileUri(String path) {
+    if (path.contains(r'\')) {
+      return new Uri(scheme: 'file', path: path.replaceAll(r'\', '/'));
+    } else {
+      return new Uri(scheme: 'file', path: path);
+    }
   }
 }
 

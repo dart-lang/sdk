@@ -97,7 +97,7 @@ class Utils {
   }
 
   static String formatSize(bytesDynamic) {
-    int bytes = bytesDynamic;
+    int bytes = bytesDynamic.toInt();
     const int digits = 1;
     const int bytesPerKB = 1024;
     const int bytesPerMB = 1024 * bytesPerKB;

@@ -446,8 +446,7 @@ class C {
     checkSimpleExpression('({x}) => 0');
   }
 
-  @failingTest
-  void test_pushLocalFunctionReference_nested() {
+  void xtest_pushLocalFunctionReference_nested() {
     // TODO(devoncarew): This test fails when run in strong mode.
     // Failed assertion: line 5116 pos 16:
     //   'Linker._initializerTypeInferenceCycle == null': is not true.
@@ -472,8 +471,7 @@ class C {
     expect(yRef.staticElement, same(yElement));
   }
 
-  @failingTest
-  void test_pushLocalFunctionReference_paramReference() {
+  void xtest_pushLocalFunctionReference_paramReference() {
     // TODO(devoncarew): This test fails when run in strong mode.
     prepareAnalysisContext(new AnalysisOptionsImpl()..previewDart2 = false);
     var expr = checkSimpleExpression('(x, y) => x + y') as FunctionExpression;

@@ -21,6 +21,7 @@ main() {
 
 @reflectiveTest
 class SetAnalysisRootsTest extends AbstractAnalysisServerIntegrationTest {
+  @TestTimeout(const Timeout.factor(2))
   test_package_root() async {
     String projPath = sourcePath('project');
     String mainPath = path.join(projPath, 'main.dart');

@@ -47,10 +47,8 @@ class Scanner extends fe.Scanner {
    */
   factory Scanner(Source source, CharacterReader reader,
           AnalysisErrorListener errorListener) =>
-      fe.Scanner.useFasta
-          ? new Scanner.fasta(source, errorListener,
-              contents: reader.getContents(), offset: reader.offset)
-          : new Scanner._(source, reader, errorListener);
+      new Scanner.fasta(source, errorListener,
+          contents: reader.getContents(), offset: reader.offset);
 
   factory Scanner.fasta(Source source, AnalysisErrorListener errorListener,
       {String contents, int offset: -1}) {
@@ -58,7 +56,8 @@ class Scanner extends fe.Scanner {
         source, contents ?? source.contents.data, offset, errorListener);
   }
 
-  Scanner._(this.source, CharacterReader reader, this._errorListener)
+  // Deprecated
+  Scanner.old(this.source, CharacterReader reader, this._errorListener)
       : super.create(reader);
 
   @override

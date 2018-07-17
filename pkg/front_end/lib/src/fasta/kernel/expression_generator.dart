@@ -16,6 +16,7 @@ import '../fasta_codes.dart'
         messageCantUsePrefixAsExpression,
         messageCantUsePrefixWithNullAware,
         messageInvalidInitializer,
+        messageNotAConstantExpression,
         templateCantUseDeferredPrefixAsConstant,
         templateDeferredTypeAnnotation,
         templateIntegerLiteralIsOutOfRange,
@@ -43,6 +44,8 @@ import '../parser.dart' show lengthForToken, lengthOfSpan, offsetForToken;
 
 import '../problems.dart' show unhandled, unsupported;
 
+import '../type_inference/type_inferrer.dart' show TypeInferrer;
+
 import 'constness.dart' show Constness;
 
 import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
@@ -64,23 +67,30 @@ import 'kernel_ast_api.dart'
         DynamicType,
         Expression,
         Initializer,
+        InvalidConstructorInvocationJudgment,
         InvalidType,
         Member,
         Name,
         Procedure,
         SyntheticExpressionJudgment,
+        TreeNode,
         TypeParameterType,
+        UnresolvedVariableUnaryJudgment,
         VariableDeclaration;
 
 import 'kernel_builder.dart'
     show
         AccessErrorBuilder,
         BuiltinTypeBuilder,
+        ClassBuilder,
         Declaration,
+        DynamicTypeBuilder,
         FunctionTypeAliasBuilder,
+        InvalidTypeBuilder,
         KernelClassBuilder,
         KernelFunctionTypeAliasBuilder,
-        KernelTypeVariableBuilder;
+        KernelTypeVariableBuilder,
+        TypeVariableBuilder;
 
 import 'kernel_expression_generator.dart'
     show IncompleteSendGenerator, SendAccessGenerator;
@@ -202,8 +212,8 @@ abstract class Generator implements ExpressionGenerator {
     } else {
       if (helper.constantContext != ConstantContext.none &&
           send.name != lengthName) {
-        helper.deprecated_addCompileTimeError(
-            offsetForToken(token), "Not a constant expression.");
+        helper.addCompileTimeError(
+            messageNotAConstantExpression, offsetForToken(token), token.length);
       }
       return PropertyAccessGenerator.make(helper, send.token, buildSimpleRead(),
           send.name, null, null, isNullAware);
@@ -211,7 +221,7 @@ abstract class Generator implements ExpressionGenerator {
   }
 
   DartType buildTypeWithBuiltArguments(List<DartType> arguments,
-      {bool nonInstanceAccessIsError: false}) {
+      {bool nonInstanceAccessIsError: false, TypeInferrer typeInferrer}) {
     helper.addProblem(templateNotAType.withArguments(token.lexeme),
         offsetForToken(token), lengthForToken(token));
     return const InvalidType();
@@ -227,11 +237,14 @@ abstract class Generator implements ExpressionGenerator {
       assert(forest.argumentsTypeArguments(arguments).isEmpty);
       forest.argumentsSetTypeArguments(arguments, typeArguments);
     }
-    return new SyntheticExpressionJudgment(helper.throwNoSuchMethodError(
+    helper.storeTypeUse(offsetForToken(token), const InvalidType());
+    var error = helper.throwNoSuchMethodError(
         forest.literalNull(token),
         name == "" ? plainNameForRead : "${plainNameForRead}.$name",
         arguments,
-        nameToken.charOffset));
+        nameToken.charOffset);
+
+    return new InvalidConstructorInvocationJudgment(error, null, arguments);
   }
 
   bool get isThisPropertyAccess => false;
@@ -502,7 +515,7 @@ abstract class DeferredAccessGenerator implements Generator {
 
   @override
   DartType buildTypeWithBuiltArguments(List<DartType> arguments,
-      {bool nonInstanceAccessIsError: false}) {
+      {bool nonInstanceAccessIsError: false, TypeInferrer typeInferrer}) {
     helper.addProblem(
         templateDeferredTypeAnnotation.withArguments(
             suffixGenerator.buildTypeWithBuiltArguments(arguments,
@@ -554,7 +567,8 @@ abstract class TypeUseGenerator implements Generator {
 
   @override
   DartType buildTypeWithBuiltArguments(List<DartType> arguments,
-      {bool nonInstanceAccessIsError: false}) {
+      {bool nonInstanceAccessIsError: false, TypeInferrer typeInferrer}) {
+    var declaration = this.declaration;
     if (arguments != null) {
       int expected = 0;
       if (declaration is KernelClassBuilder) {
@@ -600,6 +614,28 @@ abstract class TypeUseGenerator implements Generator {
       type =
           declaration.buildTypesWithBuiltArguments(helper.library, arguments);
     }
+    TreeNode declarationTarget;
+    Object declarationBinder;
+    if (declaration is KernelTypeVariableBuilder &&
+        declaration.binder != null) {
+      declarationBinder = declaration.binder;
+    } else if (declaration is DynamicTypeBuilder ||
+        declaration is InvalidTypeBuilder) {
+      // There's no target associated with these types, so we have to let
+      // the analyzer fill it in.
+    } else if (declaration is ClassBuilder ||
+        declaration is TypeVariableBuilder ||
+        declaration is FunctionTypeAliasBuilder) {
+      declarationTarget = declaration.target;
+    } else {
+      return unhandled(
+          "${declaration.runtimeType}",
+          "TypeUseGenerator.buildTypeWithBuiltArguments",
+          offsetForToken(token),
+          helper.uri);
+    }
+    typeInferrer?.storeTypeReference(
+        token.charOffset, declarationTarget, declarationBinder, type);
     if (type is TypeParameterType) {
       return helper.validatedTypeVariableUse(
           type, offsetForToken(token), nonInstanceAccessIsError);
@@ -713,25 +749,25 @@ abstract class ErroneousExpressionGenerator implements Generator {
   @override
   Expression buildPrefixIncrement(Name binaryOperator,
       {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
-    // TODO(ahe): For the Analyzer, we probably need to build a prefix
-    // increment node that wraps an error.
-    return new SyntheticExpressionJudgment(buildError(
+    var error = buildError(
         forest.arguments(
             <Expression>[forest.literalInt(1, null)..fileOffset = offset],
             token),
-        isGetter: true));
+        isGetter: true);
+    return new UnresolvedVariableUnaryJudgment(error, token)
+      ..fileOffset = offset;
   }
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
       {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
-    // TODO(ahe): For the Analyzer, we probably need to build a post increment
-    // node that wraps an error.
-    return new SyntheticExpressionJudgment(buildError(
+    var error = buildError(
         forest.arguments(
             <Expression>[forest.literalInt(1, null)..fileOffset = offset],
             token),
-        isGetter: true));
+        isGetter: true);
+    return new UnresolvedVariableUnaryJudgment(error, token)
+      ..fileOffset = offset;
   }
 
   @override
@@ -761,11 +797,13 @@ abstract class ErroneousExpressionGenerator implements Generator {
   @override
   Expression invokeConstructor(List<DartType> typeArguments, String name,
       Arguments arguments, Token nameToken, Constness constness) {
+    helper.storeTypeUse(offsetForToken(token), const InvalidType());
     if (typeArguments != null) {
       assert(forest.argumentsTypeArguments(arguments).isEmpty);
       forest.argumentsSetTypeArguments(arguments, typeArguments);
     }
-    return new SyntheticExpressionJudgment(buildError(arguments));
+    var error = buildError(arguments);
+    return new InvalidConstructorInvocationJudgment(error, null, arguments);
   }
 }
 
@@ -799,6 +837,7 @@ abstract class UnresolvedNameGenerator implements ErroneousExpressionGenerator {
 
   @override
   /* Expression | Generator */ Object prefixedLookup(Token name) {
+    helper.storeUnresolvedPrefix(token);
     return new UnexpectedQualifiedUseGenerator(helper, name, this, true);
   }
 }
@@ -910,7 +949,7 @@ abstract class DelayedAssignment implements ContextAwareGenerator {
   Expression handleAssignment(bool voidContext) {
     if (helper.constantContext != ConstantContext.none) {
       return helper.deprecated_buildCompileTimeError(
-          "Not a constant expression.", offsetForToken(token));
+          null, offsetForToken(token), messageNotAConstantExpression);
     }
     if (identical("=", assignmentOperator)) {
       return generator.buildAssignment(value, voidContext: voidContext);
@@ -1133,7 +1172,7 @@ abstract class UnexpectedQualifiedUseGenerator implements Generator {
 
   @override
   DartType buildTypeWithBuiltArguments(List<DartType> arguments,
-      {bool nonInstanceAccessIsError: false}) {
+      {bool nonInstanceAccessIsError: false, TypeInferrer typeInferrer}) {
     Template<Message Function(Token, Token)> template = isUnresolved
         ? templateUnresolvedPrefixInTypeAnnotation
         : templateNotAPrefixInTypeAnnotation;

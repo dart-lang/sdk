@@ -82,7 +82,7 @@ class ContextViewElement extends HtmlElement implements Renderable {
     assert(retainingPaths != null);
     assert(objects != null);
     ContextViewElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<ContextViewElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -109,12 +109,12 @@ class ContextViewElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    var content = [
-      navBar([
+    var content = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue),
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
@@ -130,7 +130,7 @@ class ContextViewElement extends HtmlElement implements Renderable {
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h2()..text = 'Context',
           new HRElement(),
           new ObjectCommonElement(_isolate, _context, _retainedSizes,
@@ -143,19 +143,19 @@ class ContextViewElement extends HtmlElement implements Renderable {
         new BRElement(),
         new DivElement()
           ..classes = ['content-centered-big']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['memberList']
-              ..children = [
+              ..children = <Element>[
                 new DivElement()
                   ..classes = ['memberItem']
-                  ..children = [
+                  ..children = <Element>[
                     new DivElement()
                       ..classes = ['memberName']
                       ..text = 'parent context',
                     new DivElement()
                       ..classes = ['memberName']
-                      ..children = [
+                      ..children = <Element>[
                         new ContextRefElement(
                             _isolate, _context.parentContext, _objects,
                             queue: _r.queue)
@@ -171,22 +171,22 @@ class ContextViewElement extends HtmlElement implements Renderable {
       content.addAll([
         new DivElement()
           ..classes = ['content-centered-big']
-          ..children = [
+          ..children = <Element>[
             new SpanElement()..text = 'Variables ',
             new CurlyBlockElement(expanded: true, queue: _r.queue)
-              ..content = [
+              ..content = <Element>[
                 new DivElement()
                   ..classes = ['memberList']
                   ..children = _context.variables
-                      .map((variable) => new DivElement()
+                      .map<Element>((variable) => new DivElement()
                         ..classes = ['memberItem']
-                        ..children = [
+                        ..children = <Element>[
                           new DivElement()
                             ..classes = ['memberName']
                             ..text = '[ ${++index} ]',
                           new DivElement()
                             ..classes = ['memberName']
-                            ..children = [
+                            ..children = <Element>[
                               anyRef(_isolate, variable.value, _objects,
                                   queue: _r.queue)
                             ]
@@ -198,7 +198,7 @@ class ContextViewElement extends HtmlElement implements Renderable {
     }
     content.add(new DivElement()
       ..classes = ['content-centered-big']
-      ..children = [new ViewFooterElement(queue: _r.queue)]);
+      ..children = <Element>[new ViewFooterElement(queue: _r.queue)]);
     children = content;
   }
 }

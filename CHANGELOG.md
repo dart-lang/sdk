@@ -1,26 +1,17 @@
-## 2.0.0-dev.XX.0
-(Add new changes here, and they will be copied to the
- change section for the next dev version)
-
-### Language
-
-#### Strong Mode
-
-### Dart VM
-
-### Tool Changes
-
-#### dartfmt
-
-#### Pub
-
-#### Dart2js
-
-#### Analyzer
-
-#### Other Tools
+## 2.0.0-dev.69.0
 
 ### Core library changes
+* `dart:collection`, `dart:core`:
+  * Re-enable `Iterable.whereType`. The method was disabled because code
+    was still being compiled in Dart 1 mode, and the function was
+    error-prone when used in that code.
+* `dart:async`
+  * Changed an internal lazily-allocated reusable "null future" to always belong
+    to the root zone. This avoids race conditions where the first access to the
+    future determined which zone it would belong to. The zone is only used
+    for *scheduling* the callback of listeners, the listeners themselves will
+    run in the correct zone in any case.
+    Issue [#32556](http://dartbug.com/32556).
 
 ## 2.0.0-dev.68.0
 

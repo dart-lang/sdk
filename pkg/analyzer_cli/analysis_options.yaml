@@ -1,6 +1,6 @@
 analyzer:
   exclude:
-    - 'test/data'
+    - test/data/**
 linter:
   rules:
     #- annotate_overrides

@@ -115,21 +115,24 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @override
   @failingTest
   test_conflictingConstructorNameAndMember_field() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD, found 0
+    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTS_WITH_CONSTRUCTOR, found 0;
+    //          1 errors of type CompileTimeErrorCode.CONFLICTS_WITH_MEMBER, found 0
     await super.test_conflictingConstructorNameAndMember_field();
   }
 
   @override
   @failingTest
   test_conflictingConstructorNameAndMember_getter() async {
-    // Bad state: No type information for 42 at 25
+    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTS_WITH_CONSTRUCTOR, found 0;
+    //          1 errors of type CompileTimeErrorCode.CONFLICTS_WITH_MEMBER, found 0
     await super.test_conflictingConstructorNameAndMember_getter();
   }
 
   @override
   @failingTest
   test_conflictingConstructorNameAndMember_method() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD, found 0
+    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTS_WITH_CONSTRUCTOR, found 0;
+    //          1 errors of type CompileTimeErrorCode.CONFLICTS_WITH_MEMBER, found 0
     await super.test_conflictingConstructorNameAndMember_method();
   }
 
@@ -150,69 +153,7 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_conflictingGetterAndMethod_field_method() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD, found 0
-    await super.test_conflictingGetterAndMethod_field_method();
-  }
-
-  @override
-  @failingTest
-  test_conflictingGetterAndMethod_getter_method() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD, found 0
-    await super.test_conflictingGetterAndMethod_getter_method();
-  }
-
-  @override
-  @failingTest
-  test_conflictingGetterAndMethod_method_field() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER, found 0
-    await super.test_conflictingGetterAndMethod_method_field();
-  }
-
-  @override
-  @failingTest
-  test_conflictingGetterAndMethod_method_getter() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER, found 0
-    await super.test_conflictingGetterAndMethod_method_getter();
-  }
-
-  @override
-  @failingTest
-  test_conflictingTypeVariableAndClass() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS, found 0
-    await super.test_conflictingTypeVariableAndClass();
-  }
-
-  @override
-  @failingTest
-  test_conflictingTypeVariableAndMember_field() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER, found 0
-    await super.test_conflictingTypeVariableAndMember_field();
-  }
-
-  @override
-  @failingTest
-  test_conflictingTypeVariableAndMember_getter() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER, found 0
-    await super.test_conflictingTypeVariableAndMember_getter();
-  }
-
-  @override
-  @failingTest
-  test_conflictingTypeVariableAndMember_method() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER, found 0
-    await super.test_conflictingTypeVariableAndMember_method();
-  }
-
-  @override
-  @failingTest
-  test_conflictingTypeVariableAndMember_method_static() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER, found 0
-    await super.test_conflictingTypeVariableAndMember_method_static();
-  }
-
-  @override
-  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33827')
   test_conflictingTypeVariableAndMember_setter() async {
     // Expected 1 errors of type CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER, found 0
     await super.test_conflictingTypeVariableAndMember_setter();
@@ -222,6 +163,13 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @failingTest
   test_const_invalid_constructorFieldInitializer_fromLibrary() {
     return super.test_const_invalid_constructorFieldInitializer_fromLibrary();
+  }
+
+  @override
+  @failingTest
+  test_constConstructor_redirect_generic() {
+    // Bad state: Not found #lib4::A::T in null
+    return super.test_constConstructor_redirect_generic();
   }
 
   @override
@@ -643,13 +591,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_duplicateDefinition_catch() async {
-    // Expected 1 errors of type CompileTimeErrorCode.DUPLICATE_DEFINITION, found 0
-    await super.test_duplicateDefinition_catch();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30857')
   test_duplicateDefinition_classMembers_fields() async {
     return super.test_duplicateDefinition_classMembers_fields();
@@ -674,13 +615,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30857')
   test_duplicateDefinition_inPart() async {
     return super.test_duplicateDefinition_inPart();
-  }
-
-  @override
-  @failingTest
-  test_duplicateDefinition_parameters_inLocalFunction() async {
-    // Expected 1 errors of type CompileTimeErrorCode.DUPLICATE_DEFINITION, found 0
-    await super.test_duplicateDefinition_parameters_inLocalFunction();
   }
 
   @override
@@ -804,13 +738,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_extraPositionalArguments_const() async {
-    // Bad state: No type information for A at 42
-    await super.test_extraPositionalArguments_const();
-  }
-
-  @override
-  @failingTest
   test_extraPositionalArguments_const_super() async {
     // Bad state: No type information for 0 at 65
     await super.test_extraPositionalArguments_const_super();
@@ -835,34 +762,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_fieldFormalParameter_assignedInInitializer() async {
     // Bad state: No reference information for = at 35
     await super.test_fieldFormalParameter_assignedInInitializer();
-  }
-
-  @override
-  @failingTest
-  test_fieldInitializedByMultipleInitializers() async {
-    // Bad state: No reference information for = at 36
-    await super.test_fieldInitializedByMultipleInitializers();
-  }
-
-  @override
-  @failingTest
-  test_fieldInitializedByMultipleInitializers_multipleInits() async {
-    // Bad state: No reference information for = at 36
-    await super.test_fieldInitializedByMultipleInitializers_multipleInits();
-  }
-
-  @override
-  @failingTest
-  test_fieldInitializedByMultipleInitializers_multipleNames() async {
-    // Bad state: Expected element reference for analyzer offset 45; got one for kernel offset 52
-    await super.test_fieldInitializedByMultipleInitializers_multipleNames();
-  }
-
-  @override
-  @failingTest
-  test_fieldInitializedInParameterAndInitializer() async {
-    // Bad state: No reference information for = at 35
-    await super.test_fieldInitializedInParameterAndInitializer();
   }
 
   @override
@@ -904,36 +803,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_finalInitializedMultipleTimes_initializers() async {
-    // Bad state: No reference information for = at 38
-    await super.test_finalInitializedMultipleTimes_initializers();
-  }
-
-  @override
-  @failingTest
-  test_finalInitializedMultipleTimes_initializingFormal_initializer() async {
-    // Bad state: No reference information for = at 37
-    await super
-        .test_finalInitializedMultipleTimes_initializingFormal_initializer();
-  }
-
-  @override
-  @failingTest
-  test_finalInitializedMultipleTimes_initializingFormals() async {
-    // Expected 1 errors of type CompileTimeErrorCode.DUPLICATE_DEFINITION, found 0;
-    //          1 errors of type CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES, found 0
-    await super.test_finalInitializedMultipleTimes_initializingFormals();
-  }
-
-  @override
-  @failingTest
-  test_finalNotInitialized_local_const() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONST_NOT_INITIALIZED, found 0
-    await super.test_finalNotInitialized_local_const();
-  }
-
-  @override
-  @failingTest
   test_fromEnvironment_bool_badArgs() async {
     // Expected 2 errors of type CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, found 0;
     //          2 errors of type StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0
@@ -967,6 +836,27 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @potentialAnalyzerProblem
   test_genericFunctionTypeArgument_functionType() async {
     await super.test_genericFunctionTypeArgument_functionType();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeArgument_inference_function() async {
+    await super.test_genericFunctionTypeArgument_inference_function();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeArgument_inference_functionType() async {
+    await super.test_genericFunctionTypeArgument_inference_functionType();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_genericFunctionTypeArgument_inference_method() async {
+    await super.test_genericFunctionTypeArgument_inference_method();
   }
 
   @override
@@ -2193,13 +2083,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_notEnoughRequiredArguments_const() async {
-    // Bad state: No type information for A at 47
-    await super.test_notEnoughRequiredArguments_const();
-  }
-
-  @override
-  @failingTest
   test_optionalParameterInOperator_named() async {
     // Expected 1 errors of type CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR, found 0
     await super.test_optionalParameterInOperator_named();
@@ -2811,13 +2694,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_undefinedConstructorInInitializer_implicit() async {
     // Expected 1 errors of type CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT, found 0
     await super.test_undefinedConstructorInInitializer_implicit();
-  }
-
-  @override
-  @failingTest
-  test_undefinedNamedParameter() async {
-    // Bad state: No type information for A at 42
-    await super.test_undefinedNamedParameter();
   }
 
   @override

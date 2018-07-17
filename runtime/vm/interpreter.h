@@ -24,6 +24,7 @@ class RawImmutableArray;
 class RawArray;
 class RawObjectPool;
 class RawFunction;
+class RawSubtypeTestCache;
 class ObjectPointerVisitor;
 
 // Interpreter intrinsic handler. It is invoked on entry to the intrinsified
@@ -62,9 +63,15 @@ class Interpreter {
   // Call on program start.
   static void InitOnce();
 
-  RawObject* Call(const Code& code,
+  RawObject* Call(const Function& function,
                   const Array& arguments_descriptor,
                   const Array& arguments,
+                  Thread* thread);
+
+  RawObject* Call(RawFunction* function,
+                  RawArray* argdesc,
+                  intptr_t argc,
+                  RawObject* const* argv,
                   Thread* thread);
 
   void JumpToFrame(uword pc, uword sp, uword fp, Thread* thread);
@@ -92,8 +99,6 @@ class Interpreter {
   };
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
-
-  bool IsTracing() const;
 
  private:
   uintptr_t* stack_;
@@ -190,6 +195,13 @@ class Interpreter {
                           RawObject** FP,
                           RawObject*** SP,
                           uint32_t** pc);
+
+  bool AssertAssignable(Thread* thread,
+                        uint32_t* pc,
+                        RawObject** FP,
+                        RawObject** call_top,
+                        RawObject** args,
+                        RawSubtypeTestCache* cache);
 
 #if defined(DEBUG)
   // Returns true if tracing of executed instructions is enabled.

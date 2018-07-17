@@ -6,7 +6,7 @@
 
 void use(dynamic x) { }
 
-testVoidParam(void x) {
+Object testVoidParam(void x) {
   x;  //# param_stmt: ok
   true ? x : x;  //# param_conditional: compile-time error
   for (x; false; x) {}   //# param_for: ok
@@ -34,7 +34,11 @@ testVoidParam(void x) {
   x..toString();  //# param_cascade: compile-time error
 }
 
-testVoidCall(void f()) {
+dynamic testVoidParamDynamic(void x) {
+  return x;   //# param_return_dynamic: ok
+}
+
+Object testVoidCall(void f()) {
   f();  //# call_stmt: ok
   true ? f() : f();  //# call_conditional: compile-time error
   for (f(); false; f()) {}   //# call_for: ok
@@ -60,7 +64,11 @@ testVoidCall(void f()) {
   f()..toString();  //# call_cascade: compile-time error
 }
 
-testVoidLocal() {
+dynamic testVoidCallDynamic(void f()) {
+  return f();   //# call_return: ok
+}
+
+Object testVoidLocal() {
   void x;
   x = 42;   //# local_assign: ok
   x;  //# local_stmt: ok
@@ -90,7 +98,12 @@ testVoidLocal() {
   x..toString();  //# local_cascade: compile-time error
 }
 
-testVoidFinalLocal() {
+dynamic testVoidLocalDynamic() {
+  void x;
+  return x;   //# local_return_dynamic: ok
+}
+
+Object testVoidFinalLocal() {
   final void x = null;
   x = 42;   //# final_local_assign: compile-time error
   x;  //# final_local_stmt: ok
@@ -120,8 +133,13 @@ testVoidFinalLocal() {
   x..toString();  //# final_local_cascade: compile-time error
 }
 
+dynamic testVoidFinalLocalDynamic() {
+  final void x = null;
+  return x;   //# final_local_return_dynamic: ok
+}
+
 void global;
-testVoidGlobal() {
+Object testVoidGlobal() {
   global;  //# global_stmt: ok
   true ? global : global;  //# global_conditional: compile-time error
   for (global; false; global) {}   //# global_for: ok
@@ -147,6 +165,10 @@ testVoidGlobal() {
   global.toString();  //# global_toString: compile-time error
   global?.toString();  //# global_null_dot: compile-time error
   global..toString();  //# global_cascade: compile-time error
+}
+
+dynamic testVoidGlobalDynamic() {
+  return global;   //# global_return_dynamic: ok
 }
 
 testVoidConditional() {
@@ -215,7 +237,7 @@ class B implements A<void> {
   int foo() => 499;
 
   void forInTest() {
-    for (x in <void>[]) {}  //# instance2_for_in2: compile-time error
+    for (x in <void>[]) {}  //# instance2_for_in2: ok
     for (x in [1, 2]) {}  //# instance2_for_in3: ok
   }
 }
@@ -227,12 +249,12 @@ class C implements A<void> {
   void foo() {}
 
   void forInTest() {
-    for (x in <void>[]) {}  //# instance3_for_in2: compile-time error
+    for (x in <void>[]) {}  //# instance3_for_in2: ok
     for (x in [1, 2]) {}  //# instance3_for_in3: ok
   }
 }
 
-testInstanceField() {
+Object testInstanceField() {
   A<void> a = new A<void>();
   a.x = 499;  //# field_assign: ok
   a.x;  //# instance_stmt: ok
@@ -317,7 +339,18 @@ testInstanceField() {
   c.x..toString();  //# instance3_cascade: compile-time error
 }
 
-testParenthesized() {
+dynamic testInstanceFieldDynamic() {
+  A<void> a = new A<void>();
+  return a.x;   //# instance_return_dynamic: ok
+
+  B b = new B();
+  return b.x;   //# instance2_return_dynamic: ok
+
+  C c = new C();
+  return c.x;   //# instance3_return_dynamic: ok
+}
+
+Object testParenthesized() {
   void x;
   (x);  //# paren_stmt: ok
   true ? (x) : (x);  //# paren_conditional: compile-time error
@@ -342,6 +375,11 @@ testParenthesized() {
   (x).toString();  //# paren_toString: compile-time error
   (x)?.toString();  //# paren_null_dot: compile-time error
   (x)..toString();  //# paren_cascade: compile-time error
+}
+
+dynamic testParenthesizedDynamic() {
+  void x;
+  return (x);   //# paren_return_dynamic: ok
 }
 
 void testReturnToVoid(void x, void f()) {

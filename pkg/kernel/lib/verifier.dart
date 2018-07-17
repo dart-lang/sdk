@@ -27,7 +27,7 @@ class VerificationError {
       // TODO(ahe): Fix the compiler instead.
     }
     if (location != null) {
-      String file = location.file ?? "";
+      String file = location.file?.toString() ?? "";
       return "$file:${location.line}:${location.column}: Verification error:"
           " $details";
     } else {

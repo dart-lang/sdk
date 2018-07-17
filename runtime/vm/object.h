@@ -3177,6 +3177,11 @@ class Field : public Object {
 
   intptr_t KernelDataProgramOffset() const;
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  void GetCovarianceAttributes(bool* is_covariant,
+                               bool* is_generic_covariant) const;
+#endif
+
   inline intptr_t Offset() const;
   // Called during class finalization.
   inline void SetOffset(intptr_t offset_in_bytes) const;
@@ -7988,6 +7993,7 @@ class Array : public Instance {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Array, Instance);
   friend class Class;
   friend class ImmutableArray;
+  friend class Interpreter;
   friend class Object;
   friend class String;
 };

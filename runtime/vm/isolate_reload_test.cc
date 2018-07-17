@@ -309,7 +309,7 @@ TEST_CASE(IsolateReload_BadClass) {
 
   Dart_Handle result = TestCase::ReloadTestScript(kReloadScript);
   if (TestCase::UsingDartFrontend()) {
-    EXPECT_ERROR(result, "Expected ';' before this");
+    EXPECT_ERROR(result, "Expected ';' after this");
   } else {
     EXPECT_ERROR(result, "unexpected token");
   }
@@ -2470,7 +2470,7 @@ TEST_CASE(IsolateReload_DirectSubclasses_Failure) {
 
   lib = TestCase::ReloadTestScript(kReloadScript);
   if (TestCase::UsingDartFrontend()) {
-    EXPECT_ERROR(lib, "Expected ';' before this");
+    EXPECT_ERROR(lib, "Expected ';' after this");
   } else {
     EXPECT_ERROR(lib, "unexpected token");
   }

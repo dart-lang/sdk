@@ -85,7 +85,7 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
     assert(notifications != null);
     assert(profiles != null);
     CpuProfileTableElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<CpuProfileTableElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -107,12 +107,12 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    var content = [
-      navBar([
+    var content = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue),
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
@@ -171,19 +171,19 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
       _callers.items = const [];
       _callees.items = const [];
     }
-    return [
+    return <Element>[
       new DivElement()
         ..classes = ['profile-trees']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['profile-trees-all']
-            ..children = [_functions],
+            ..children = <Element>[_functions],
           new DivElement()
             ..classes = ['profile-trees-current']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['profile-trees-caller']
-                ..children = [_callers],
+                ..children = <Element>[_callers],
               new DivElement()
                 ..classes = ['profile-trees-selected']
                 ..children = _selected == null
@@ -194,16 +194,16 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
                       ],
               new DivElement()
                 ..classes = ['profile-trees-callee']
-                ..children = [_callees]
+                ..children = <Element>[_callees]
             ]
         ]
     ];
   }
 
-  Element _createFunction() {
+  HtmlElement _createFunction() {
     final element = new DivElement()
       ..classes = ['function-item']
-      ..children = [
+      ..children = <Element>[
         new SpanElement()
           ..classes = ['exclusive']
           ..text = '0%',
@@ -237,7 +237,7 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
   List<HtmlElement> _createFunctionHeader() => [
         new DivElement()
           ..classes = ['function-item']
-          ..children = [
+          ..children = <Element>[
             _createHeaderButton(
                 const ['exclusive'],
                 'Execution(%)',
@@ -255,7 +255,8 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
           ]
       ];
 
-  bool _searchFunction(Pattern pattern, M.ProfileFunction item) {
+  bool _searchFunction(Pattern pattern, itemDynamic) {
+    M.ProfileFunction item = itemDynamic;
     return M.getFunctionFullName(item.function).contains(pattern);
   }
 
@@ -277,10 +278,10 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
     _r.dirty();
   }
 
-  Element _createCallee() {
+  HtmlElement _createCallee() {
     final element = new DivElement()
       ..classes = ['function-item']
-      ..children = [
+      ..children = <Element>[
         new SpanElement()
           ..classes = ['inclusive']
           ..text = '0%',
@@ -304,7 +305,7 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
   List<HtmlElement> _createCalleeHeader() => [
         new DivElement()
           ..classes = ['function-item']
-          ..children = [
+          ..children = <Element>[
             _createHeaderButton(
                 const ['inclusive'],
                 'Callees(%)',
@@ -316,10 +317,10 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
           ]
       ];
 
-  Element _createCaller() {
+  HtmlElement _createCaller() {
     final element = new DivElement()
       ..classes = ['function-item']
-      ..children = [
+      ..children = <Element>[
         new SpanElement()
           ..classes = ['inclusive']
           ..text = '0%',
@@ -343,7 +344,7 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
   List<HtmlElement> _createCallerHeader() => [
         new DivElement()
           ..classes = ['function-item']
-          ..children = [
+          ..children = <Element>[
             _createHeaderButton(
                 const ['inclusive'],
                 'Callers(%)',
@@ -403,8 +404,10 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
     ];
   }
 
-  bool _filterTree(M.FunctionCallTreeNode node) =>
-      node.profileFunction == _selected;
+  bool _filterTree(nodeDynamic) {
+    M.FunctionCallTreeNode node = nodeDynamic;
+    return node.profileFunction == _selected;
+  }
 
   Future _request({bool clear: false, bool forceFetch: false}) async {
     _progress = null;
@@ -452,9 +455,15 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
     }
     switch (_sortingDirection[table]) {
       case _SortingDirection.ascending:
-        return (a, b) => getter(a).compareTo(getter(b));
+        int sort(M.ProfileFunction a, M.ProfileFunction b) {
+          return getter(a).compareTo(getter(b));
+        }
+        return sort;
       case _SortingDirection.descending:
-        return (a, b) => getter(b).compareTo(getter(a));
+        int sort(M.ProfileFunction a, M.ProfileFunction b) {
+          return getter(b).compareTo(getter(a));
+        }
+        return sort;
     }
   }
 

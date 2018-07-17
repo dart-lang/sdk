@@ -3,9 +3,13 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == fasta ]
+Language/Classes/Getters/override_t02: CompileTimeError
+Language/Classes/Getters/override_t03: CompileTimeError
+Language/Classes/Setters/override_t02: CompileTimeError
 Language/Classes/definition_t24: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: MissingCompileTimeError
+Language/Mixins/Mixin_Application/syntax_t21: CompileTimeError
 Language/Types/Type_Void/syntax_t08: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t09: MissingCompileTimeError
 LayoutTests/*: Skip # TODO(ahe): Make dart:html available.
@@ -58,8 +62,13 @@ Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t02: MissingCompileTimeError
 Language/Classes/Constructors/Constant_Constructors/invalid_constant_initializer_t02: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/static_type_t01: CompileTimeError
+Language/Classes/Constructors/name_t01: MissingCompileTimeError
+Language/Classes/Constructors/name_t02: MissingCompileTimeError
+Language/Classes/Constructors/name_t03: MissingCompileTimeError
 Language/Classes/Getters/static_getter_t01: CompileTimeError
+Language/Classes/Instance_Methods/same_name_setter_t01: CompileTimeError
 Language/Classes/Instance_Methods/same_name_setter_t02: CompileTimeError # Issue 14736
+Language/Classes/Setters/name_t02: CompileTimeError
 Language/Classes/Setters/name_t03: CompileTimeError
 Language/Classes/Setters/name_t04: CompileTimeError
 Language/Classes/Setters/name_t06: CompileTimeError
@@ -89,6 +98,9 @@ Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t
 Language/Classes/Constructors/Constant_Constructors/invalid_constant_initializer_t02: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/initializing_formals_execution_t02: MissingCompileTimeError
+Language/Classes/Constructors/name_t01: MissingCompileTimeError
+Language/Classes/Constructors/name_t02: MissingCompileTimeError
+Language/Classes/Constructors/name_t03: MissingCompileTimeError
 Language/Classes/Getters/same_name_method_t03: MissingCompileTimeError
 Language/Classes/Getters/same_name_method_t04: MissingCompileTimeError
 Language/Classes/Getters/same_name_method_t05: MissingCompileTimeError

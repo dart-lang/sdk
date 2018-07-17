@@ -1,14 +1,34 @@
 // Errors:
 //
-// pkg/front_end/testcases/inference/conflicts_can_happen.dart:25:79: Error: Can't infer the type of 'a': overridden members must all have the same type.
+// pkg/front_end/testcases/inference/conflicts_can_happen.dart:25:163: Error: Can't infer the type of 'a': overridden members must all have the same type.
 // Specify the type explicitly.
-//   get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ a =>
-//                                                                               ^
+//   get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ a =>
+//                                                                                                                                                                   ^
 //
-// pkg/front_end/testcases/inference/conflicts_can_happen.dart:31:79: Error: Can't infer the type of 'a': overridden members must all have the same type.
+// pkg/front_end/testcases/inference/conflicts_can_happen.dart:31:163: Error: Can't infer the type of 'a': overridden members must all have the same type.
 // Specify the type explicitly.
-//   get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ a =>
-//                                                                               ^
+//   get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ a =>
+//                                                                                                                                                                   ^
+//
+// pkg/front_end/testcases/inference/conflicts_can_happen.dart:25:163: Error: The return type of the method 'C1::a' is dynamic, which does not match the return type of the overridden method (test::I1).
+// Change to a subtype of test::I1.
+//   get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ a =>
+//                                                                                                                                                                   ^
+//
+// pkg/front_end/testcases/inference/conflicts_can_happen.dart:25:163: Error: The return type of the method 'C1::a' is dynamic, which does not match the return type of the overridden method (test::I2).
+// Change to a subtype of test::I2.
+//   get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ a =>
+//                                                                                                                                                                   ^
+//
+// pkg/front_end/testcases/inference/conflicts_can_happen.dart:31:163: Error: The return type of the method 'C2::a' is dynamic, which does not match the return type of the overridden method (test::I2).
+// Change to a subtype of test::I2.
+//   get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ a =>
+//                                                                                                                                                                   ^
+//
+// pkg/front_end/testcases/inference/conflicts_can_happen.dart:31:163: Error: The return type of the method 'C2::a' is dynamic, which does not match the return type of the overridden method (test::I1).
+// Change to a subtype of test::I1.
+//   get /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ a =>
+//                                                                                                                                                                   ^
 
 library test;
 import self as self;

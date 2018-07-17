@@ -158,6 +158,7 @@ class SourceClassBuilder extends KernelClassBuilder {
     constructors.forEach((String name, Declaration constructor) {
       Declaration member = scopeBuilder[name];
       if (member == null) return;
+      if (!member.isStatic) return;
       // TODO(ahe): Revisit these messages. It seems like the last two should
       // be `context` parameter to this message.
       addCompileTimeError(templateConflictsWithMember.withArguments(name),

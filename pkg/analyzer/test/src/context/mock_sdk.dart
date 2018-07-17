@@ -157,6 +157,7 @@ abstract class String implements Comparable<String>, Pattern {
   bool get isEmpty => false;
   bool get isNotEmpty => false;
   int get length => 0;
+  int codeUnitAt(int index);
   String substring(int len) => null;
   String toLowerCase();
   String toUpperCase();
@@ -310,6 +311,10 @@ class Map<K, V> extends Object {
 
 class Duration implements Comparable<Duration> {}
 
+class Exception {
+  factory Exception([var message]);
+}
+
 external bool identical(Object a, Object b);
 
 void print(Object object) {}
@@ -328,10 +333,6 @@ class _CompileTimeError {
 class _ConstantExpressionError {
   const _ConstantExpressionError();
   external _throw(error);
-}
-
-class _DuplicatedFieldInitializerError {
-  _DuplicatedFieldInitializerError(String name);
 }
 
 class AbstractClassInstantiationError {

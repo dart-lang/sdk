@@ -39,11 +39,9 @@ CantInferTypeDueToInconsistentOverrides/example: Fail
 CantUseSuperBoundedTypeForInstanceCreation/analyzerCode: Fail
 CantUseSuperBoundedTypeForInstanceCreation/example: Fail
 ColonInPlaceOfIn/example: Fail
-ConflictsWithConstructor/analyzerCode: Fail
 ConflictsWithConstructor/example: Fail
 ConflictsWithFactory/analyzerCode: Fail
 ConflictsWithFactory/example: Fail
-ConflictsWithMember/analyzerCode: Fail
 ConflictsWithMember/example: Fail
 ConflictsWithMemberWarning/analyzerCode: Fail
 ConflictsWithMemberWarning/example: Fail
@@ -51,7 +49,6 @@ ConflictsWithSetter/analyzerCode: Fail
 ConflictsWithSetter/example: Fail
 ConflictsWithSetterWarning/analyzerCode: Fail
 ConflictsWithSetterWarning/example: Fail
-ConflictsWithTypeVariable/analyzerCode: Fail
 ConflictsWithTypeVariable/example: Fail
 ConstAfterFactory/script1: Fail
 ConstAndCovariant/script2: Fail
@@ -86,6 +83,7 @@ ConstEvalZeroDivisor/example: Fail
 ConstFieldWithoutInitializer/example: Fail
 ConstructorNotFound/analyzerCode: Fail
 ConstructorNotFound/example: Fail
+ConstructorNotSync/example: Fail
 ContinueOutsideOfLoop/script1: Fail
 ContinueWithoutLabelInCase/script1: Fail
 CouldNotParseUri/analyzerCode: Fail
@@ -99,7 +97,6 @@ CovariantMember/script2: Fail
 CyclicClassHierarchy/analyzerCode: Fail
 CyclicClassHierarchy/example: Fail
 CyclicTypedef/example: Fail
-DeclaredMemberConflictsWithInheritedMember/analyzerCode: Fail
 DeferredAfterPrefix/example: Fail
 DeferredPrefixDuplicated/example: Fail
 DeferredTypeAnnotation/example: Fail
@@ -175,12 +172,13 @@ FastaUsageShort/example: Fail
 FieldInitializerOutsideConstructor/script1: Fail
 FinalAndCovariant/script2: Fail
 FinalFieldWithoutInitializer/example: Fail
-FinalInstanceVariableAlreadyInitialized/analyzerCode: Fail
 FinalInstanceVariableAlreadyInitialized/example: Fail
+ForInLoopElementTypeNotAssignable/example: Fail
 ForInLoopExactlyOneVariable/analyzerCode: Fail # The analyzer doesn't recover well.
 ForInLoopExactlyOneVariable/statement: Fail # Fasta reports too many errors.
 ForInLoopNotAssignable/analyzerCode: Fail # The analyzer reports a different error.
 ForInLoopNotAssignable/statement: Fail
+ForInLoopTypeNotIterable/example: Fail
 FunctionTypeDefaultValue/example: Fail
 FunctionTypedParameterVar/script1: Fail
 GeneratorReturnsValue/example: Fail
@@ -195,7 +193,6 @@ ImplementsBeforeExtends/script: Fail
 ImplementsBeforeWith/script: Fail
 ImplicitCallOfNonMethod/example: Fail
 ImportAfterPart/script1: Fail
-InheritedMembersConflict/analyzerCode: Fail
 InputFileNotFound/analyzerCode: Fail
 InputFileNotFound/example: Fail
 IntegerLiteralIsOutOfRange/example: Fail
@@ -217,12 +214,9 @@ InvalidVoid/script1: Fail
 InvalidVoid/script2: Fail
 LibraryDirectiveNotFirst/script2: Fail
 LibraryDirectiveNotFirst/script3: Fail
-ListLiteralTooManyTypeArguments/analyzerCode: Fail
 ListLiteralTooManyTypeArguments/example: Fail
-ListLiteralTypeArgumentMismatch/analyzerCode: Fail
-ListLiteralTypeArgumentMismatch/example: Fail
-LoadLibraryTakesNoArguments/analyzerCode: Fail
 LoadLibraryTakesNoArguments/example: Fail
+MapLiteralTypeArgumentMismatch/example: Fail
 MemberWithSameNameAsClass/analyzerCode: Fail
 MemberWithSameNameAsClass/example: Fail
 MetadataTypeArguments/analyzerCode: Fail
@@ -250,12 +244,16 @@ NoSuchNamedParameter/example: Fail
 NoUnnamedConstructorInObject/analyzerCode: Fail
 NoUnnamedConstructorInObject/example: Fail
 NonAsciiIdentifier/expression: Fail
+NonConstConstructor/example: Fail
+NonConstFactory/example: Fail
 NonInstanceTypeVariableUse/example: Fail
 NonPartOfDirectiveInPart/script1: Fail
+NotAConstantExpression/example: Fail
 NotAPrefixInTypeAnnotation/example: Fail
 NotAType/example: Fail
 NotAnLvalue/analyzerCode: Fail
 NotAnLvalue/example: Fail
+NotConstantExpression/example: Fail
 OperatorMinusParameterMismatch/example: Fail
 OperatorParameterMismatch0/analyzerCode: Fail
 OperatorParameterMismatch0/example: Fail
@@ -319,7 +317,6 @@ SourceOutlineSummary/analyzerCode: Fail
 SourceOutlineSummary/example: Fail
 StackOverflow/example: Fail
 StaticAfterConst/script1: Fail
-SuperAsExpression/analyzerCode: Fail
 SuperAsExpression/example: Fail
 SuperAsIdentifier/analyzerCode: Fail
 SuperAsIdentifier/example: Fail
@@ -339,7 +336,6 @@ SupertypeIsIllegal/example: Fail
 SupertypeIsTypeVariable/analyzerCode: Fail
 SupertypeIsTypeVariable/example: Fail
 SwitchCaseFallThrough/example: Fail
-ThisAccessInFieldInitializer/analyzerCode: Fail
 ThisAccessInFieldInitializer/example: Fail
 ThisAsIdentifier/analyzerCode: Fail
 ThisAsIdentifier/example: Fail
@@ -354,7 +350,6 @@ TypeArgumentsOnTypeVariable/script1: Fail
 TypeNotFound/example: Fail
 TypeVariableDuplicatedName/example: Fail
 TypeVariableInStaticContext/example: Fail
-TypeVariableSameNameAsEnclosing/analyzerCode: Fail
 TypeVariableSameNameAsEnclosing/example: Fail
 TypedefNotFunction/example: Fail
 UnexpectedDollarInString/script1: Fail

@@ -35,27 +35,42 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
     await super.test_annotation_onFormalParameter_redirectingFactory();
   }
 
-  @failingTest
-  @override
-  test_annotation_onVariableList_topLevelVariable() =>
-      super.test_annotation_onVariableList_topLevelVariable();
-
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_closure_generic() async {
-    // Bad state: Not found T in main() → dynamic
-    // https://github.com/dart-lang/sdk/issues/33722
-    await super.test_closure_generic();
+  test_closure_generic() {
+    // Assertion error: 'element != null': is not true.
+    return super.test_closure_generic();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_local_function_generic() async {
-    // Bad state: Not found T in main() → void
-    // https://github.com/dart-lang/sdk/issues/33722
-    await super.test_local_function_generic();
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/33858')
+  test_invalid_fieldInitializer_this() async {
+    await super.test_invalid_fieldInitializer_this();
+  }
+
+  @override
+  @failingTest
+  test_local_type_parameter_reference_function_named_parameter_type() {
+    // Stack overflow
+    return super
+        .test_local_type_parameter_reference_function_named_parameter_type();
+  }
+
+  @override
+  @failingTest
+  test_local_type_parameter_reference_function_normal_parameter_type() {
+    // Stack overflow
+    return super
+        .test_local_type_parameter_reference_function_normal_parameter_type();
+  }
+
+  @override
+  @failingTest
+  test_local_type_parameter_reference_function_optional_parameter_type() {
+    // Stack overflow
+    return super
+        .test_local_type_parameter_reference_function_optional_parameter_type();
   }
 
   @override
@@ -89,48 +104,6 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_unresolved_instanceCreation_name_11() async {
-    await super.test_unresolved_instanceCreation_name_11();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_unresolved_instanceCreation_name_21() async {
-    await super.test_unresolved_instanceCreation_name_21();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_unresolved_instanceCreation_name_22() async {
-    await super.test_unresolved_instanceCreation_name_22();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_unresolved_instanceCreation_name_31() async {
-    await super.test_unresolved_instanceCreation_name_31();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_unresolved_instanceCreation_name_32() async {
-    await super.test_unresolved_instanceCreation_name_32();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_unresolved_instanceCreation_name_33() async {
-    await super.test_unresolved_instanceCreation_name_33();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_unresolved_methodInvocation_noTarget() async {
     await super.test_unresolved_methodInvocation_noTarget();
   }
@@ -138,41 +111,8 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_unresolved_methodInvocation_target_resolved() async {
-    await super.test_unresolved_methodInvocation_target_resolved();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_unresolved_methodInvocation_target_unresolved() async {
     await super.test_unresolved_methodInvocation_target_unresolved();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_unresolved_postfix_operand() async {
-    // Bad state: No data for a at 11
-    await super.test_unresolved_postfix_operand();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_unresolved_postfix_operator() async {
-//    Actual: 'dynamic'
-//    Which: is different.
-//    Expected: A
-    await super.test_unresolved_postfix_operator();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_unresolved_prefix_operand() async {
-    // Bad state: No data for a at 13
-    await super.test_unresolved_prefix_operand();
   }
 }
 

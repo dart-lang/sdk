@@ -2,18 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+import 'package:kernel/ast.dart'
+    show Catch, DartType, FunctionType, Node, TypeParameter;
+
 import 'package:kernel/ast.dart' show Catch, DartType, FunctionType, Node;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
 import '../../scanner/token.dart' show Token;
-
 import '../kernel/kernel_shadow_ast.dart'
     show
         ExpressionJudgment,
         InitializerJudgment,
+        LoadLibraryJudgment,
+        LoadLibraryTearOffJudgment,
         StatementJudgment,
         SwitchCaseJudgment;
+
+import '../kernel/kernel_type_variable_builder.dart'
+    show KernelTypeVariableBuilder;
 
 /// Callback interface used by [TypeInferrer] to report the results of type
 /// inference to a client.
@@ -59,6 +66,21 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
 
   void awaitExpression(ExpressionJudgment judgment, Location location,
       Token awaitKeyword, void expression, DartType inferredType);
+
+  Object binderForFunctionDeclaration(
+      StatementJudgment judgment, Location location, String name);
+
+  Object binderForStatementLabel(
+      StatementJudgment judgment, int fileOffset, String name);
+
+  Object binderForSwitchLabel(
+      SwitchCaseJudgment judgment, int fileOffset, String name);
+
+  Object binderForTypeVariable(
+      KernelTypeVariableBuilder builder, int fileOffset, String name);
+
+  Object binderForVariableDeclaration(
+      StatementJudgment judgment, int fileOffset, String name);
 
   void block(StatementJudgment judgment, Location location, Token leftBracket,
       List<void> statements, Token rightBracket);
@@ -191,11 +213,12 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
 
   void functionDeclaration(covariant Object binder, FunctionType inferredType);
 
-  Object binderForFunctionDeclaration(
-      StatementJudgment judgment, Location location, String name);
-
   void functionExpression(
       ExpressionJudgment judgment, Location location, DartType inferredType);
+
+  void functionType(Location location, DartType type);
+
+  void functionTypedFormalParameter(Location location, DartType type);
 
   void ifNull(ExpressionJudgment judgment, Location location, void leftOperand,
       Token operator, void rightOperand, DartType inferredType);
@@ -240,11 +263,6 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
 
   void labeledStatement(List<Object> labels, void statement);
 
-  Object statementLabel(covariant Object binder, Token label, Token colon);
-
-  Object binderForStatementLabel(
-      StatementJudgment judgment, int fileOffset, String name);
-
   void listLiteral(
       ExpressionJudgment judgment,
       Location location,
@@ -254,6 +272,12 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
       void elements,
       Token rightBracket,
       DartType inferredType);
+
+  void loadLibrary(LoadLibraryJudgment judgment, Location location,
+      Reference library, FunctionType calleeType, DartType inferredType);
+
+  void loadLibraryTearOff(LoadLibraryTearOffJudgment judgment,
+      Location location, Reference library, DartType inferredType);
 
   void logicalExpression(
       ExpressionJudgment judgment,
@@ -336,6 +360,8 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   void returnStatement(StatementJudgment judgment, Location location,
       Token returnKeyword, void expression, Token semicolon);
 
+  Object statementLabel(covariant Object binder, Token label, Token colon);
+
   void staticAssign(
       ExpressionJudgment judgment,
       Location location,
@@ -356,6 +382,11 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
       Substitution substitution,
       DartType inferredType);
 
+  void storeClassReference(
+      Location location, Reference reference, DartType rawType);
+
+  void storePrefixInfo(Location location, PrefixInfo prefixInfo);
+
   void stringConcatenation(
       ExpressionJudgment judgment, Location location, DartType inferredType);
 
@@ -374,9 +405,6 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
       Token keyword, void expression, Token colon, List<void> statements);
 
   Object switchLabel(covariant Object binder, Token label, Token colon);
-
-  Object binderForSwitchLabel(
-      SwitchCaseJudgment judgment, int fileOffset, String name);
 
   void switchStatement(
       StatementJudgment judgment,
@@ -417,6 +445,18 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   void typeLiteral(ExpressionJudgment judgment, Location location,
       Reference expressionType, DartType inferredType);
 
+  void typeReference(
+      Location location,
+      Token leftBracket,
+      List<void> typeArguments,
+      Token rightBracket,
+      Reference reference,
+      covariant Object binder,
+      DartType type);
+
+  void typeVariableDeclaration(
+      Location location, covariant Object binder, TypeParameter typeParameter);
+
   void variableAssign(
       ExpressionJudgment judgment,
       Location location,
@@ -428,11 +468,10 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   void variableDeclaration(
       covariant Object binder, DartType statementType, DartType inferredType);
 
-  Object binderForVariableDeclaration(
-      StatementJudgment judgment, int fileOffset, String name);
-
   void variableGet(ExpressionJudgment judgment, Location location,
       bool isInCascade, covariant Object variableBinder, DartType inferredType);
+
+  void voidType(Location location, Token token, DartType type);
 
   void whileStatement(
       StatementJudgment judgment,
@@ -445,11 +484,6 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
 
   void yieldStatement(StatementJudgment judgment, Location location,
       Token yieldKeyword, Token star, void expression, Token semicolon);
-
-  void storePrefixInfo(Location location, PrefixInfo prefixInfo);
-
-  void storeClassReference(
-      Location location, Reference reference, DartType rawType);
 }
 
 /// Kernel implementation of TypeInferenceListener; does nothing.
@@ -487,6 +521,26 @@ class KernelTypeInferenceListener
   @override
   void awaitExpression(ExpressionJudgment judgment, location,
       Token awaitKeyword, void expression, DartType inferredType) {}
+
+  @override
+  void binderForFunctionDeclaration(
+      StatementJudgment judgment, location, String name) {}
+
+  @override
+  void binderForStatementLabel(
+      StatementJudgment judgment, int fileOffset, String name) {}
+
+  @override
+  void binderForSwitchLabel(
+      SwitchCaseJudgment judgment, int fileOffset, String name) {}
+
+  @override
+  void binderForTypeVariable(
+      KernelTypeVariableBuilder builder, int fileOffset, String name) {}
+
+  @override
+  void binderForVariableDeclaration(
+      StatementJudgment judgment, int fileOffset, String name) {}
 
   @override
   void block(StatementJudgment judgment, location, Token leftBracket,
@@ -633,12 +687,12 @@ class KernelTypeInferenceListener
   void functionDeclaration(covariant void binder, FunctionType inferredType) {}
 
   @override
-  void binderForFunctionDeclaration(
-      StatementJudgment judgment, location, String name) {}
-
-  @override
   void functionExpression(
       ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  void functionType(int location, DartType type) {}
+
+  void functionTypedFormalParameter(int location, DartType type) {}
 
   @override
   void ifNull(ExpressionJudgment judgment, location, void leftOperand,
@@ -692,13 +746,6 @@ class KernelTypeInferenceListener
   void labeledStatement(List<Object> labels, void statement) {}
 
   @override
-  void statementLabel(covariant void binder, Token label, Token colon) {}
-
-  @override
-  void binderForStatementLabel(
-      StatementJudgment judgment, int fileOffset, String name) {}
-
-  @override
   void listLiteral(
       ExpressionJudgment judgment,
       location,
@@ -708,6 +755,14 @@ class KernelTypeInferenceListener
       void elements,
       Token rightBracket,
       DartType inferredType) {}
+
+  @override
+  void loadLibrary(LoadLibraryJudgment judgment, location, library,
+      FunctionType calleeType, DartType inferredType) {}
+
+  @override
+  void loadLibraryTearOff(LoadLibraryTearOffJudgment judgment, location,
+      library, DartType inferredType) {}
 
   @override
   void logicalExpression(
@@ -800,6 +855,9 @@ class KernelTypeInferenceListener
       Token returnKeyword, void expression, Token semicolon) {}
 
   @override
+  void statementLabel(covariant void binder, Token label, Token colon) {}
+
+  @override
   void staticAssign(ExpressionJudgment judgment, location, writeMember,
       DartType writeContext, combiner, DartType inferredType) {}
 
@@ -848,10 +906,6 @@ class KernelTypeInferenceListener
   void switchLabel(covariant void binder, Token label, Token colon) {}
 
   @override
-  void binderForSwitchLabel(
-      SwitchCaseJudgment judgment, int fileOffset, String name) {}
-
-  @override
   void switchStatement(
       StatementJudgment judgment,
       location,
@@ -887,6 +941,14 @@ class KernelTypeInferenceListener
       DartType inferredType) {}
 
   @override
+  void typeReference(location, Token leftBracket, List<void> typeArguments,
+      Token rightBracket, reference, covariant void binder, DartType type) {}
+
+  @override
+  void typeVariableDeclaration(
+      location, covariant void binder, TypeParameter typeParameter) {}
+
+  @override
   void variableAssign(
       ExpressionJudgment judgment,
       location,
@@ -900,12 +962,11 @@ class KernelTypeInferenceListener
       covariant void binder, DartType statementType, DartType inferredType) {}
 
   @override
-  void binderForVariableDeclaration(
-      StatementJudgment judgment, int fileOffset, String name) {}
-
-  @override
   void variableGet(ExpressionJudgment judgment, location, bool isInCascade,
       expressionVariable, DartType inferredType) {}
+
+  @override
+  void voidType(location, Token token, DartType type) {}
 
   @override
   void whileStatement(

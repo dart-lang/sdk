@@ -359,7 +359,7 @@ class MergedObjectVertex {
     var next = _graph._mergedDomNext;
     var cids = _graph._cids;
 
-    var domChildren = [];
+    var domChildren = <MergedObjectVertex>[];
     var prev = SENTINEL;
     var child = _graph._mergedDomHead[_id];
     // Walk the list of children and look for the representative objects, i.e.

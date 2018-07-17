@@ -96,7 +96,7 @@ class IsolateViewElement extends HtmlElement implements Renderable {
     assert(eval != null);
     assert(libraries != null);
     IsolateViewElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<IsolateViewElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -129,7 +129,7 @@ class IsolateViewElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
     _subscription.cancel();
   }
 
@@ -137,8 +137,8 @@ class IsolateViewElement extends HtmlElement implements Renderable {
     final uptime = new DateTime.now().difference(_isolate.startTime);
     final libraries = _isolate.libraries.toList();
     final List<M.Thread> threads = _isolate.threads;
-    children = [
-      navBar([
+    children = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue),
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
@@ -159,15 +159,15 @@ class IsolateViewElement extends HtmlElement implements Renderable {
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h2()..text = 'Isolate ${_isolate.name}',
           new BRElement(),
           new DivElement()
             ..classes = ['flex-row']
-            ..children = [
+            ..children = <Element>[
               new DivElement()..style.flex = '1',
               new DivElement()
-                ..children = [
+                ..children = <Element>[
                   new IsolateRunStateElement(_isolate, _events,
                       queue: _r.queue),
                   new IsolateLocationElement(_isolate, _events, _scripts,
@@ -195,10 +195,10 @@ class IsolateViewElement extends HtmlElement implements Renderable {
           new HRElement(),
           new DivElement()
             ..classes = ['memberList']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'started at',
@@ -208,7 +208,7 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                 ],
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'uptime',
@@ -218,13 +218,13 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                 ],
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'root library',
                   new DivElement()
                     ..classes = ['memberValue']
-                    ..children = [
+                    ..children = <Element>[
                       _isolate.rootLibrary == null
                           ? (new SpanElement()..text = 'loading...')
                           : new LibraryRefElement(
@@ -241,7 +241,7 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                           ..text = 'entry',
                         new DivElement()
                           ..classes = ['memberValue']
-                          ..children = [
+                          ..children = <Element>[
                             new FunctionRefElement(_isolate, _isolate.entry,
                                 queue: _r.queue)
                           ]
@@ -249,7 +249,7 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                     : const [],
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'isolate id',
@@ -259,7 +259,7 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                 ],
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'service protocol extensions',
@@ -269,7 +269,7 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                 ],
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'allocated zone handle count',
@@ -279,7 +279,7 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                 ],
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'allocated scoped handle count',
@@ -289,20 +289,20 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                 ],
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'object store',
                   new DivElement()
                     ..classes = ['memberValue']
-                    ..children = [
+                    ..children = <Element>[
                       new AnchorElement(href: Uris.objectStore(_isolate))
                         ..text = 'object store'
                     ]
                 ],
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'zone capacity high watermark'
@@ -316,17 +316,17 @@ class IsolateViewElement extends HtmlElement implements Renderable {
               new BRElement(),
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'libraries (${libraries.length})',
                   new DivElement()
                     ..classes = ['memberValue']
-                    ..children = [
+                    ..children = <Element>[
                       new CurlyBlockElement(queue: _r.queue)
                         ..content = libraries
-                            .map((l) => new DivElement()
-                              ..children = [
+                            .map<Element>((l) => new DivElement()
+                              ..children = <Element>[
                                 new LibraryRefElement(_isolate, l,
                                     queue: _r.queue)
                               ])
@@ -335,15 +335,15 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                 ],
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'threads (${threads.length})',
                   new DivElement()
                     ..classes = ['memberValue']
-                    ..children = [
+                    ..children = <Element>[
                       new CurlyBlockElement(queue: _r.queue)
-                        ..content = threads.map(_populateThreadInfo)
+                        ..content = threads.map<Element>(_populateThreadInfo)
                     ]
                 ]
             ],
@@ -368,10 +368,10 @@ class IsolateViewElement extends HtmlElement implements Renderable {
   DivElement _populateThreadInfo(M.Thread t) {
     return new DivElement()
       ..classes = ['indent']
-      ..children = [
+      ..children = <Element>[
         new SpanElement()..text = '${t.id} ',
         new CurlyBlockElement(queue: _r.queue)
-          ..content = [
+          ..content = <Element>[
             new DivElement()
               ..classes = ['indent']
               ..text = 'kind ${t.kindString}',

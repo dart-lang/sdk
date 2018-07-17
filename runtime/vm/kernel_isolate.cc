@@ -25,15 +25,9 @@
 
 namespace dart {
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #define Z (T->zone())
 
 DEFINE_FLAG(bool, trace_kernel, false, "Trace Kernel service requests.");
-DEFINE_FLAG(bool,
-            show_kernel_isolate,
-            false,
-            "Show Kernel service isolate as normal isolate.");
 DEFINE_FLAG(bool,
             suppress_fe_warnings,
             false,
@@ -237,6 +231,16 @@ void KernelIsolate::Run() {
   Dart::thread_pool()->Run(new RunKernelTask());
 }
 
+void KernelIsolate::Shutdown() {
+  Isolate::KillIfExists(isolate_, Isolate::kInternalKillMsg);
+  {
+    MonitorLocker ml(monitor_);
+    while (isolate_ != NULL) {
+      ml.Wait();
+    }
+  }
+}
+
 void KernelIsolate::InitCallback(Isolate* I) {
   Thread* T = Thread::Current();
   ASSERT(I == T->isolate());
@@ -279,11 +283,13 @@ void KernelIsolate::SetKernelIsolate(Isolate* isolate) {
     isolate->set_is_kernel_isolate(true);
   }
   isolate_ = isolate;
+  ml.NotifyAll();
 }
 
 void KernelIsolate::SetLoadPort(Dart_Port port) {
   MonitorLocker ml(monitor_);
   kernel_port_ = port;
+  ml.NotifyAll();
 }
 
 void KernelIsolate::FinishedInitializing() {
@@ -863,7 +869,5 @@ void KernelIsolate::NotifyAboutIsolateShutdown(const Isolate* isolate) {
   // Send the message.
   Dart_PostCObject(kernel_port, &message);
 }
-
-#endif  // DART_PRECOMPILED_RUNTIME
 
 }  // namespace dart

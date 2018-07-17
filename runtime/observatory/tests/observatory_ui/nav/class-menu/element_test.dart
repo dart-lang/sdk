@@ -20,7 +20,7 @@ main() {
   });
   test('elements created after attachment', () async {
     final e = new NavClassMenuElement(i_ref, c_ref);
-    e.content = [document.createElement('content')];
+    e.content = <Element>[document.createElement('content')];
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');

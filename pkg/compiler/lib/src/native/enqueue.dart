@@ -22,7 +22,7 @@ class NativeEnqueuer {
   void onInstantiatedType(InterfaceType type) {}
 
   /// Initial entry point to native enqueuer.
-  WorldImpact processNativeClasses(Iterable<LibraryEntity> libraries) =>
+  WorldImpact processNativeClasses(Iterable<Uri> libraries) =>
       const WorldImpact();
 
   /// Registers the [nativeBehavior]. Adds the liveness of its instantiated
@@ -191,7 +191,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
 
   Iterable<ClassEntity> get liveNativeClasses => _registeredClasses;
 
-  WorldImpact processNativeClasses(Iterable<LibraryEntity> libraries) {
+  WorldImpact processNativeClasses(Iterable<Uri> libraries) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     Iterable<ClassEntity> nativeClasses =
         _nativeClassFinder.computeNativeClasses(libraries);
@@ -227,7 +227,7 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
       this._nativeData)
       : super(options, elementEnvironment, commonElements, dartTypes);
 
-  WorldImpact processNativeClasses(Iterable<LibraryEntity> libraries) {
+  WorldImpact processNativeClasses(Iterable<Uri> libraries) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     _unusedClasses.addAll(_nativeClasses);
 

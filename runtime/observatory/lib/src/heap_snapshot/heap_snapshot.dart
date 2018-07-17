@@ -136,16 +136,16 @@ class HeapSnapshot implements M.HeapSnapshot {
 class HeapSnapshotDominatorNode implements M.HeapSnapshotDominatorNode {
   final ObjectVertex v;
   final S.Isolate isolate;
-  S.HeapObject _preloaded;
+  S.ServiceObject _preloaded;
 
   bool get isStack => v.isStack;
 
-  Future<S.HeapObject> get object {
+  Future<S.ServiceObject> get object {
     if (_preloaded != null) {
       return new Future.value(_preloaded);
     } else {
       return isolate.getObjectByAddress(v.address).then((S.ServiceObject obj) {
-        return _preloaded = obj as S.HeapObject;
+        return _preloaded = obj;
       });
     }
   }

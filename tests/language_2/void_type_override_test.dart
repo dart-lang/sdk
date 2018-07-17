@@ -23,13 +23,13 @@ class A<T> {
 }
 
 class B implements A<Object> {
-  void   //# 00: compile-time error
+  void   //# 00: ok
   /*     //# 00: continued
   var
   */     //# 00: continued
   x;
 
-  void   //# 00b: compile-time error
+  void   //# 00b: ok
   /*     //# 00b: continued
   var
   */     //# 00b: continued
@@ -41,9 +41,8 @@ class B implements A<Object> {
   */     //# 00c: continued
   z;
 
-  // Overriding an Object function with a void function is an error.
-  void  //# 01: compile-time error
-  foo() => null;
+  void  //# 01: ok
+  foo() {}
 
   int bar() => 499;
   void gee(void x) {}

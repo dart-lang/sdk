@@ -604,7 +604,12 @@ void ThreadLocalData::RemoveThreadLocal(ThreadLocalKey key) {
 // This function is executed on the thread that is exiting. It is invoked
 // by |OnDartThreadExit| (see below for notes on TLS destructors on Windows).
 void ThreadLocalData::RunDestructors() {
-  ASSERT(thread_locals_ != NULL);
+  // If an OS thread is created but ThreadLocalData::InitOnce has not yet been
+  // called, this method still runs. If this happens, there's nothing to clean
+  // up here. See issue 33826.
+  if (thread_locals_ == NULL) {
+    return;
+  }
   ASSERT(mutex_ != NULL);
   MutexLocker ml(mutex_, false);
   for (intptr_t i = 0; i < thread_locals_->length(); i++) {

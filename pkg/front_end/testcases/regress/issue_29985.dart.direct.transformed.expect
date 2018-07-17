@@ -5,9 +5,9 @@
 //   🔛
 //   ^
 //
-// pkg/front_end/testcases/regress/issue_29985.dart:7:1: Error: Expected ';' before this.
-// }
-// ^
+// pkg/front_end/testcases/regress/issue_29985.dart:6:3: Error: Expected ';' after this.
+//   🔛
+//   ^^
 
 library;
 import self as self;

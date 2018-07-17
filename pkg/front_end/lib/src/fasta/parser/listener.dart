@@ -996,7 +996,7 @@ class Listener implements UnescapeErrorListener {
   /// - type variables
   /// - return type
   /// - formal parameters
-  void endFunctionTypedFormalParameter() {
+  void endFunctionTypedFormalParameter(Token nameToken) {
     logEvent("FunctionTypedFormalParameter");
   }
 

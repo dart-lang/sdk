@@ -32,7 +32,7 @@ enum GuardClassKind { unknown, single, dynamic }
 
 abstract class Field extends Object implements FieldRef {
   /// [optional] The value of this field, if the field is static.
-  InstanceRef get staticValue;
+  ObjectRef get staticValue;
 
   /// [optional] The location of this field in the source code.
   SourceLocation get location;

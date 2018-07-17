@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart'
     show
+        Arguments,
         DartType,
         DynamicType,
         FunctionNode,
@@ -37,13 +38,15 @@ class LoadLibraryBuilder extends Declaration {
 
   Uri get fileUri => parent.fileUri;
 
-  LoadLibrary createLoadLibrary(int charOffset, Forest forest) {
-    return forest.loadLibrary(importDependency)..fileOffset = charOffset;
+  LoadLibrary createLoadLibrary(
+      int charOffset, Forest forest, Arguments arguments) {
+    return forest.loadLibrary(importDependency, arguments)
+      ..fileOffset = charOffset;
   }
 
   Procedure createTearoffMethod(Forest forest) {
     if (tearoff != null) return tearoff;
-    LoadLibrary expression = createLoadLibrary(charOffset, forest);
+    LoadLibrary expression = createLoadLibrary(charOffset, forest, null);
     String prefix = expression.import.name;
     tearoff = new Procedure(
         new Name('__loadLibrary_$prefix', parent.target),

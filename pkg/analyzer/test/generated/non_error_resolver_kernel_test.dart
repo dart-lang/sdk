@@ -55,6 +55,21 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
+  test_argumentTypeNotAssignable_fieldFormalParameterElement_member() {
+    // Bad state: Not found #lib1::TimestampedObject::E in null
+    return super
+        .test_argumentTypeNotAssignable_fieldFormalParameterElement_member();
+  }
+
+  @override
+  @failingTest
+  test_argumentTypeNotAssignable_optionalNew() {
+    // NoSuchMethodError: The method 'encloseElement' was called on null.
+    return super.test_argumentTypeNotAssignable_optionalNew();
+  }
+
+  @override
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_beforeConstructor() async {
     return super.test_commentReference_beforeConstructor();
@@ -192,16 +207,16 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
-  test_invocationOfNonFunction_Object() async {
-    return super.test_invocationOfNonFunction_Object();
+  test_invocationOfNonFunction_functionTypeTypeParameter() {
+    // Bad state: Not found #lib2::C::T in null
+    return super.test_invocationOfNonFunction_functionTypeTypeParameter();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_loadLibraryDefined() async {
-    return super.test_loadLibraryDefined();
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
+  test_invocationOfNonFunction_Object() async {
+    return super.test_invocationOfNonFunction_Object();
   }
 
   @override

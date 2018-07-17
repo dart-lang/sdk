@@ -527,11 +527,12 @@ class ResourceHolder : ValueObject {
 
 static void AcceptCompilation(Thread* thread) {
   TransitionVMToNative transition(thread);
-  if (KernelIsolate::AcceptCompilation().status !=
-      Dart_KernelCompilationStatus_Ok) {
-    FATAL(
+  Dart_KernelCompilationResult result = KernelIsolate::AcceptCompilation();
+  if (result.status != Dart_KernelCompilationStatus_Ok) {
+    FATAL1(
         "An error occurred in the CFE while accepting the most recent"
-        " compilation results.");
+        " compilation results: %s",
+        result.error);
   }
 }
 
@@ -694,6 +695,12 @@ void IsolateReloadContext::Reload(bool force_reload,
     if (!tmp.IsError()) {
       Library& lib = Library::Handle(thread->zone());
       lib ^= tmp.raw();
+      // If main method disappeared or were not there to begin with then
+      // KernelLoader will return null. In this case lookup library by
+      // URL.
+      if (lib.IsNull()) {
+        lib = Library::LookupLibrary(thread, root_lib_url);
+      }
       isolate()->object_store()->set_root_library(lib);
       FinalizeLoading();
       result = Object::null();

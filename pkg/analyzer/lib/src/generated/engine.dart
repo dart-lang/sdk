@@ -1387,7 +1387,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * A flag indicating whether declaration casts are allowed in [strongMode]
    * (they are always allowed in Dart 1.0 mode).
    *
-   * This option is experimental and subject to change.
+   * This option is deprecated and will be removed in a future release.
    */
   bool declarationCasts = true;
 
@@ -2567,8 +2567,9 @@ class ObsoleteSourceAnalysisException extends AnalysisException {
    * Initialize a newly created exception to represent the removal of the given
    * [source].
    */
-  ObsoleteSourceAnalysisException(Source source) : super("The source '${source
-            .fullName}' was removed while it was being analyzed") {
+  ObsoleteSourceAnalysisException(Source source)
+      : super(
+            "The source '${source.fullName}' was removed while it was being analyzed") {
     this._source = source;
   }
 

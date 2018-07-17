@@ -60,7 +60,6 @@ const Register CODE_REG = EDI;
 const Register PP = kNoRegister;     // No object pool pointer.
 const Register SPREG = ESP;          // Stack pointer register.
 const Register FPREG = EBP;          // Frame pointer register.
-const Register ICREG = ECX;          // IC data register.
 const Register ARGS_DESC_REG = EDX;  // Arguments descriptor register.
 const Register THR = ESI;            // Caches current thread in generated code.
 const Register CALLEE_SAVED_TEMP = EBX;

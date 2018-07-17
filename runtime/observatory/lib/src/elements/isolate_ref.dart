@@ -29,7 +29,7 @@ class IsolateRefElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(events != null);
     IsolateRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<IsolateRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._events = events;
     return e;
@@ -52,13 +52,13 @@ class IsolateRefElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
     _updatesSubscription.cancel();
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new AnchorElement(href: Uris.inspect(isolate))
         ..text = 'Isolate ${isolate.number} (${isolate.name})'
         ..classes = ['isolate-ref']

@@ -795,9 +795,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endFunctionTypedFormalParameter() {
+  void endFunctionTypedFormalParameter(Token nameToken) {
     end('FunctionTypedFormalParameter');
-    super.endFunctionTypedFormalParameter();
+    super.endFunctionTypedFormalParameter(nameToken);
   }
 
   @override

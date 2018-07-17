@@ -2,10 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("../../build/dart/copy_tree.gni")
 import("../../build/dart/dart_action.gni")
 import("observatory_sources.gni")
 
 prebuilt_dart2js_action("build_observatory") {
+  visibility = [ ":copy_main_dart_js" ]
+
   script = "web/main.dart"
 
   # dart2js produces a .deps file, but it is not in a format that is understood
@@ -38,29 +41,136 @@ prebuilt_dart2js_action("build_observatory") {
   ]
 }
 
-# TODO(zra): Investigate using GN's copy() with set_sources_assignment_filter
-# instead of using a python script.
-action("deploy_observatory") {
+# The rules here down to "deploy_observatory" copy files into place such that
+# they can be packaged into a tar file. These rules do the following copies:
+#
+# web/* ->
+#     $target_out_dir/observatory/deployed/web
+# $target_gen_dir/observatory/web/main.dart.js ->
+#     $target_out_dir/observatory/deployed/web/main.dart.js
+# ../../third_party/observatory_pub_packages/packages/$PACKAGE/lib/* ->
+#     $target_out_dir/observatory/deployed/web/packages/$PACKAGE
+# lib/* ->
+#     $target_out_dir/observatory/deployed/web/packages/observatory
+#
+# Files matching "observatory_ignore_patterns" are excluded.
+
+# Files matching these patterns are filtered out of the Observatory assets.
+observatory_ignore_patterns = [
+  # "\$sdk", this is the first element concatenated into the string below.
+  "*.concat.js",
+  "*.dart",
+  "*.log",
+  "*.map",
+  "*.precompiled.js",
+  "*.scriptUrls",
+  "*_buildLogs*",
+  "*~",
+  "CustomElements.*",
+  "HTMLImports.*",
+  "MutationObserver.*",
+  "ShadowDOM.*",
+  "bower.json",
+  "dart_support.*",
+  "interop_support.*",
+  "package.json",
+  "unittest*",
+  "webcomponents-lite.js",
+  "webcomponents.*",
+]
+
+# The ignore_patterns entry in the scopes accepted by copy_trees() is a
+# string of comma delimited patterns.
+observatory_ignore_string = "\$sdk"
+foreach(pattern, observatory_ignore_patterns) {
+  observatory_ignore_string = "$observatory_ignore_string,$pattern"
+}
+
+copy_tree_specs = []
+
+copy_tree_specs += [
+  {
+    target = "copy_web_package"
+    visibility = [ ":deploy_observatory" ]
+    source = "web"
+    dest = "$target_out_dir/observatory/deployed/web"
+    ignore_patterns = observatory_ignore_string
+  },
+]
+
+copy_tree_specs += [
+  {
+    target = "copy_observatory_package"
+    visibility = [ ":deploy_observatory" ]
+    source = "lib"
+    dest = "$target_out_dir/observatory/deployed/web/packages/observatory"
+    ignore_patterns = observatory_ignore_string
+  },
+]
+
+# All the contents of third_party/observatory_pub_packages should be
+# accounted for here. Uncommented entries are those packages that have
+# files that pass the observatory_ignore_patterns filters.
+observatory_pub_packages = [
+  "browser",
+  "charted",
+  "intl",
+
+  # Dependent packages that have no files that pass the above filter.
+  # "collection",
+  # "logging",
+  # "matcher",
+  # "meta",
+  # "observable",
+  # "path",
+  # "quiver",
+  # "stack_trace",
+  # "usage",
+
+  # Only needed for testing.
+  # "unittest",
+]
+
+foreach(package, observatory_pub_packages) {
+  copy_tree_specs += [
+    {
+      target = "copy_${package}_package"
+      visibility = [ ":deploy_observatory" ]
+      source =
+          "../../third_party/observatory_pub_packages/packages/$package/lib"
+      dest = "$target_out_dir/observatory/deployed/web/packages/$package"
+      ignore_patterns = observatory_ignore_string
+    },
+  ]
+}
+
+# This is not a rule, rather, it generates rules with names of the form:
+#   "copy_$package_package" for the packages in observatory_pub_packages.
+copy_trees("copy_observatory_packages") {
+  sources = copy_tree_specs
+}
+
+copy("copy_main_dart_js") {
+  visibility = [ ":deploy_observatory" ]
   deps = [
     ":build_observatory",
   ]
-
-  script = "../../tools/observatory_tool.py"
-
-  inputs = [
+  sources = [
     "$target_gen_dir/observatory/web/main.dart.js",
   ]
-
-  args = [
-    rebase_path("$target_out_dir/observatory/deployed"),
-    rebase_path("web"),
-    rebase_path("lib"),
-    rebase_path("$target_gen_dir/observatory/web/main.dart.js"),
-    rebase_path("../../third_party/observatory_pub_packages/packages"),
-  ]
-
   outputs = [
     "$target_out_dir/observatory/deployed/web/main.dart.js",
+  ]
+}
+
+group("deploy_observatory") {
+  deps = [
+    ":copy_browser_package",
+    ":copy_charted_package",
+    ":copy_intl_package",
+    ":copy_main_dart_js",
+    ":copy_observatory_package",
+    ":copy_web_package",
   ]
 }
 
@@ -72,10 +182,6 @@ template("observatory_archive") {
   action(target_name) {
     deps = [
       ":deploy_observatory",
-    ]
-
-    inputs = [
-      "$target_out_dir/observatory/deployed/web/main.dart.js",
     ]
 
     output_name = target_name

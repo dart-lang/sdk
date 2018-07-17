@@ -2085,7 +2085,7 @@ class A {
   test_forEach_genericFunctionType() async {
     Source source = addSource(r'''
 main() {
-  for (Null Function<T>(T, Null) e in []) {
+  for (Null Function<T>(T, Null) e in <dynamic>[]) {
     e;
   }
 }''');
@@ -3570,6 +3570,32 @@ main() {
     verify([source]);
   }
 
+  Future test_issue32114() async {
+    addNamedSource('/a.dart', '''
+class O {}
+
+typedef T Func<T extends O>(T e);
+''');
+    addNamedSource('/b.dart', '''
+import 'a.dart';
+export 'a.dart' show Func;
+
+abstract class A<T extends O> {
+  Func<T> get func;
+}
+''');
+    final Source source = addSource('''
+import 'b.dart';
+
+class B extends A {
+  Func get func => (x) => x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_issue_24191() async {
     Source source = addSource('''
 import 'dart:async';
@@ -4940,6 +4966,21 @@ h(x) {}
     verify([source]);
   }
 
+  test_parametricCallFunction() async {
+    Source source = addSource(r'''
+f() {
+  var c = new C();
+  c<String>().codeUnits;
+}
+
+class C {
+  T call<T>() => null;
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_prefixCollidesWithTopLevelMembers() async {
     addNamedSource("/lib.dart", r'''
 library lib;
@@ -6065,6 +6106,17 @@ main() {
     assertNoErrors(source);
   }
 
+  Future test_useDynamicWithPrefix() async {
+    final Source source = addSource('''
+import 'dart:core' as core;
+
+core.dynamic dynamicVariable;
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_wrongNumberOfParametersForOperator1() async {
     await _check_wrongNumberOfParametersForOperator1("<");
     await _check_wrongNumberOfParametersForOperator1(">");
@@ -6362,43 +6414,6 @@ f() async* {
 f() sync* {
   yield 0;
 }''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  Future test_issue32114() async {
-    addNamedSource('/a.dart', '''
-class O {}
-
-typedef T Func<T extends O>(T e);
-''');
-    addNamedSource('/b.dart', '''
-import 'a.dart';
-export 'a.dart' show Func;
-
-abstract class A<T extends O> {
-  Func<T> get func;
-}
-''');
-    final Source source = addSource('''
-import 'b.dart';
-
-class B extends A {
-  Func get func => (x) => x;
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  Future test_useDynamicWithPrefix() async {
-    final Source source = addSource('''
-import 'dart:core' as core;
-
-core.dynamic dynamicVariable;
-''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);

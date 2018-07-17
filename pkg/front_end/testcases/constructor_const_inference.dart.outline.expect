@@ -1,0 +1,19 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class _Y<T extends core::Object = dynamic> extends core::Object {
+  const constructor •() → void
+    ;
+}
+class A<T extends core::Object = dynamic> extends core::Object {
+  field self::_Y<self::A::T> x;
+  constructor •(self::_Y<self::A::T> x) → void
+    ;
+}
+class B<T extends core::Object = dynamic> extends self::A<self::B::T> {
+  constructor •() → void
+    ;
+}
+static method main() → dynamic
+  ;

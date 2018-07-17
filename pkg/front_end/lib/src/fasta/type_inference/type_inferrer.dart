@@ -42,6 +42,7 @@ import 'package:kernel/ast.dart'
         SuperPropertySet,
         Supertype,
         ThisExpression,
+        TreeNode,
         TypeParameter,
         TypeParameterType,
         Typedef,
@@ -84,6 +85,9 @@ import '../kernel/kernel_shadow_ast.dart'
         SyntheticExpressionJudgment,
         VariableDeclarationJudgment,
         getExplicitTypeArguments;
+
+import '../kernel/kernel_type_variable_builder.dart'
+    show KernelTypeVariableBuilder;
 
 import '../names.dart' show callName;
 
@@ -335,6 +339,13 @@ abstract class TypeInferrer {
   /// performed--this is used for testing.
   Uri get uri;
 
+  Object binderForTypeVariable(
+      KernelTypeVariableBuilder builder, int fileOffset, String name);
+
+  void functionType(int offset, DartType type);
+
+  void functionTypedFormalParameter(int offset, DartType type);
+
   /// Performs full type inference on the given field initializer.
   void inferFieldInitializer<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
@@ -378,7 +389,15 @@ abstract class TypeInferrer {
 
   void storePrefix(Token token, PrefixBuilder prefix);
 
+  void storeTypeReference(
+      int offset, TreeNode reference, Object binder, DartType type);
+
   void storeTypeUse(int offset, Node node);
+
+  void typeVariableDeclaration(
+      int offset, Object binder, TypeParameter typeParameter);
+
+  void voidType(int offset, Token token, DartType type);
 }
 
 /// Implementation of [TypeInferrer] which doesn't do any type inference.
@@ -396,6 +415,14 @@ class TypeInferrerDisabled extends TypeInferrer {
 
   @override
   Uri get uri => null;
+
+  @override
+  void binderForTypeVariable(
+      KernelTypeVariableBuilder builder, int fileOffset, String name) {}
+
+  void functionType(int offset, DartType type) {}
+
+  void functionTypedFormalParameter(int offset, DartType type) {}
 
   @override
   void inferFieldInitializer<Expression, Statement, Initializer, Type>(
@@ -440,7 +467,18 @@ class TypeInferrerDisabled extends TypeInferrer {
   void storePrefix(Token token, PrefixBuilder prefix) {}
 
   @override
+  void storeTypeReference(
+      int offset, TreeNode reference, Object binder, DartType type) {}
+
+  @override
   void storeTypeUse(int offset, Node node) {}
+
+  @override
+  void typeVariableDeclaration(
+      int offset, Object binder, TypeParameter typeParameter) {}
+
+  @override
+  void voidType(int offset, Token token, DartType type) {}
 }
 
 /// Derived class containing generic implementations of [TypeInferrer].
@@ -506,6 +544,20 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Gets the type promoter that should be used to promote types during
   /// inference.
   TypePromoter get typePromoter;
+
+  @override
+  Object binderForTypeVariable(
+      KernelTypeVariableBuilder builder, int fileOffset, String name) {
+    return listener.binderForTypeVariable(builder, fileOffset, name);
+  }
+
+  void functionType(int offset, DartType type) {
+    listener.functionType(offset, type);
+  }
+
+  void functionTypedFormalParameter(int offset, DartType type) {
+    listener.functionTypedFormalParameter(offset, type);
+  }
 
   bool isAssignable(DartType expectedType, DartType actualType) {
     return typeSchemaEnvironment.isSubtypeOf(expectedType, actualType) ||
@@ -1695,7 +1747,13 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   @override
   void storePrefix(Token token, PrefixBuilder prefix) {
-    listener.storePrefixInfo(token.offset, prefix.importIndex);
+    listener.storePrefixInfo(token.offset, prefix?.importIndex);
+  }
+
+  @override
+  void storeTypeReference(
+      int offset, TreeNode reference, Object binder, DartType type) {
+    listener.typeReference(offset, null, null, null, reference, binder, type);
   }
 
   @override
@@ -1710,10 +1768,22 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       // TODO(paulberry): handle this case.
     } else if (node is InvalidType) {
       // TODO(paulberry): handle this case.
+      listener.storeClassReference(offset, null, const DynamicType());
     } else {
       // TODO(paulberry): handle this case.
       return unhandled("${node.runtimeType}", "storeTypeUse", offset, uri);
     }
+  }
+
+  @override
+  void typeVariableDeclaration(
+      int offset, Object binder, TypeParameter typeParameter) {
+    return listener.typeVariableDeclaration(offset, binder, typeParameter);
+  }
+
+  @override
+  void voidType(int offset, Token token, DartType type) {
+    listener.voidType(offset, token, type);
   }
 
   DartType wrapFutureOrType(DartType type) {

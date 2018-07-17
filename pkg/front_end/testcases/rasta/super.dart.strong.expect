@@ -1,5 +1,9 @@
 // Errors:
 //
+// pkg/front_end/testcases/rasta/super.dart:26:8: Error: Can't declare a member that conflicts with an inherited one.
+//   void n() {}
+//        ^
+//
 // pkg/front_end/testcases/rasta/super.dart:43:5: Error: '+' is not a prefix operator.
 // Try removing '+'.
 //     +super;

@@ -14,10 +14,6 @@ convert/chunked_conversion_utf86_test: RuntimeError
 convert/chunked_conversion_utf87_test: RuntimeError
 convert/utf82_test: RuntimeError
 html/debugger_test: CompileTimeError
-math/double_pow_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-typed_data/int32x4_arithmetic_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-typed_data/int32x4_arithmetic_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-typed_data/int64_list_load_store_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 
 [ $runtime == chrome && ($compiler == dartdevc || $compiler == dartdevk) ]
 html/element_animate_test/timing_dict: RuntimeError # Issue 29922
@@ -102,6 +98,7 @@ html/worker_api_test: RuntimeError # Issue 29922
 isolate/*: SkipByDesign # No support for dart:isolate in dart4web (http://dartbug.com/30538)
 js/null_test: RuntimeError # Issue 30652
 math/double_pow_test: RuntimeError # Issue 29922
+math/double_pow_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 math/low_test: RuntimeError # Issue 29922
 math/random_big_test: RuntimeError # Issue 29922
 mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
@@ -115,6 +112,9 @@ mirrors/reflected_type_typevars_test: RuntimeError # Issue 29922
 mirrors/regress_14304_test: RuntimeError # Issue 29922
 profiler/metrics_num_test: Skip # Because of an int / double type test.
 typed_data/int32x4_arithmetic_test/int64: RuntimeError # Issue 29922
+typed_data/int32x4_arithmetic_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+typed_data/int32x4_arithmetic_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 typed_data/int64_list_load_store_test: RuntimeError # Issue 29922
+typed_data/int64_list_load_store_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 29922
 typed_data/unmodifiable_typed_data_test: RuntimeError # Issue 10275

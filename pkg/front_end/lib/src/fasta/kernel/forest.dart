@@ -158,7 +158,7 @@ abstract class Forest {
   /// associated with the argument at the given [index].
   DartType getTypeAt(covariant typeArguments, int index);
 
-  Expression loadLibrary(covariant dependency);
+  Expression loadLibrary(covariant dependency, Arguments arguments);
 
   Expression checkLibraryIsLoaded(covariant dependency);
 

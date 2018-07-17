@@ -67,6 +67,8 @@
 % - Clarify that it is an error to use FutureOr<T> as a superinterface etc.
 % - Eliminate the notion of static warnings, all program faults are now errors.
 % - It is no longer an error for a getter to have return type `void`.
+% - Specify that each redirection of a constructor is checked, statically and
+%   dynamically.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -1028,7 +1030,7 @@ It is a compile-time error if a formal parameter is declared as a constant varia
   .
 \end{grammar}
 
-Formal parameter lists allow an optional trailing comma after the last parameter ($`,\!'?$).
+Formal parameter lists allow an optional trailing comma after the last parameter (\gcomma{}?).
 A parameter list with such a trailing comma is equivalent in all ways to the same parameter list without the trailing comma.
 All parameter lists in this specification are shown without a trailing comma, but the rules and semantics apply equally to the corresponding parameter list with a trailing comma.
 
@@ -1720,17 +1722,79 @@ See the section on instance creation (\ref{instanceCreation}).
 If a generative constructor $c$ is not a redirecting constructor and no body is provided, then $c$ implicitly has an empty body \code{\{\}}.
 
 
-\paragraph{Redirecting Constructors}
-\LMLabel{redirectingConstructors}
+\paragraph{Redirecting Generative Constructors}
+\LMLabel{redirectingGenerativeConstructors}
 
 \LMHash{}
 A generative constructor may be {\em redirecting}, in which case its only action is to invoke another generative constructor.
-A redirecting constructor has no body; instead, it has a redirect clause that specifies which constructor the invocation is redirected to, and with what arguments.
+A redirecting constructor has no body;
+instead, it has a redirect clause that specifies which constructor the invocation is redirected to, and with which arguments.
 
 \begin{grammar}
 {\bf redirection:}`{\escapegrammar :}' \THIS{} (`{\escapegrammar .}' identifier)? arguments
   .
 \end{grammar}
+
+\def\ConstMetavar{\mbox{\CONST{}?}}
+
+\LMHash{}
+Assume that
+\code{$C$<$X_1\ \EXTENDS\ B_1 \ldots,\ X_m\ \EXTENDS\ B_m$>}
+is the name and formal type parameters of the enclosing class,
+$\ConstMetavar$ stands for either \CONST{} or nothing,
+$N$ is $C$ or $C.\id_0$ for some identifier $\id_0$,
+and \id{} is an identifier.
+Consider a declaration of a redirecting generative constructor $k$ of one of the forms
+
+\code{$\ConstMetavar$ $N$($T_1\ x_1 \ldots,\ T_n\ x_n,\ $[$T_{n+1}\ x_{n+1} = d_1 \ldots,\ T_{n+k}\ x_{n+k} = d_k$]): $R$;}
+
+\code{$\ConstMetavar$ $N$($T_1\ x_1 \ldots,\ T_n\ x_n,\ $\{$T_{n+1}\ x_{n+1} = d_1 \ldots,\ T_{n+k}\ x_{n+k} = d_k$\}): $R$;}
+
+\noindent
+where $R$ is of one of the forms
+
+\code{$\THIS{}$($e_1 \ldots,\ e_p,\ x_1$: $e_{p+1}, \ldots,\ x_q$: $e_{p+q}$)}
+
+\code{$\THIS{}.\id$($e_1 \ldots,\ e_p,\ x_1$: $e_{p+1}, \ldots,\ x_q$: $e_{p+q}$)}
+
+\LMHash{}
+The {\em redirectee constructor} for this declaration is then the constructor denoted by
+\code{$C$<$X_1 \ldots,\ X_m$>} respectively \code{$C$<$X_1 \ldots,\ X_m$>.\id}.
+It is a compile-time error if the static argument list type (\ref{actualArgumentLists}) of
+\code{($e_1 \ldots,\ e_p,\ x_1$: $e_{p+1}, \ldots,\ x_q$: $e_{p+q}$)}
+is not an assignable match for the formal parameter list of the redirectee.
+
+\commentary{
+Note that the case where no named parameters are passed is covered by letting $q$ be zero,
+and the case where $C$ is a non-generic class is covered by letting $m$ be zero,
+in which case the formal type parameter list and actual type argument lists are omitted (\ref{generics}).
+}
+
+\rationale{
+We require an assignable match rather than the stricter subtype match
+because a generative redirecting constructor $k$ invokes its redirectee $k'$
+in a manner which resembles function invocation in general.
+For instance, $k$ could accept an argument \code{x}
+and pass on an expression $e_j$ using \code{x} such as \code{x.f(42)} to $k'$,
+and it would be surprising
+if $e_j$ were subject to more strict constraints than the ones applied to
+actual arguments to function invocations in general.
+}
+
+\LMHash{}
+When $\ConstMetavar$ is \CONST{},
+it is a compile-time error if the redirectee is not a constant constructor.
+Moreover, when $\ConstMetavar$ is \CONST{}, each
+$e_i,\ i \in 1 .. p+q$,
+must be a potentially constant expression (\ref{constantConstructors}).
+
+\LMHash{}
+It is a dynamic error if an actual argument passed in an invocation of a redirecting generative constructor $k$
+is not a subtype of the actual type 
+\ref{actualTypeOfADeclaration}) of the corresponding formal parameter in the declaration of $k$.
+It is a dynamic error if an actual argument passed to the redirectee $k'$ of a redirecting generative constructor
+is not a subtype of the actual type
+(\ref{actualTypeOfADeclaration}) of the corresponding formal parameter in the declaration of the redirectee.
 
 
 \paragraph{Initializer Lists}
@@ -1953,13 +2017,56 @@ A {\em redirecting factory constructor} specifies a call to a constructor of ano
   .
 \end{grammar}
 
+Assume that
+\code{$C$<$X_1\ \EXTENDS\ B_1 \ldots,\ X_m\ \EXTENDS\ B_m$>}
+is the name and formal type parameters of the enclosing class,
+$\ConstMetavar$ is \CONST{} or empty,
+$N$ is $C$ or $C.\id_0$ for some identifier $\id_0$,
+$T$ is a type name, and \id{} is an identifier,
+then consider a declaration of a redirecting factory constructor $k$ of one of the forms
+
+\begin{dartCode}
+$\ConstMetavar$ \FACTORY{}
+    $N$($T_1\ x_1 \ldots,\ T_n\ x_n,\ $[$T_{n+1}\ x_{n+1} = d_1 \ldots,\ T_{n+k}\ x_{n+k} = d_k$]) = $R$;
+
+$\ConstMetavar$ \FACTORY{}
+    $N$($T_1\ x_1 \ldots,\ T_n\ x_n,\ $\{$T_{n+1}\ x_{n+1} = d_1 \ldots,\ T_{n+k}\ x_{n+k} = d_k$\}) = $R$;
+\end{dartCode}
+
+\noindent
+where $R$ is of one of the forms
+\code{$T$<$S_1 \ldots,\ S_p$>} or
+\code{$T$<$S_1 \ldots,\ S_p$>.\id}.
+The {\em redirectee constructor} for this declaration is then the constructor denoted by $R$.
+
 \LMHash{}
-Calling a redirecting factory constructor $k$ causes the constructor $k'$ denoted by $type$ (respectively, $type.identifier$) to be called with the actual arguments passed to $k$, and returns the result of $k'$ as the result of $k$.
-The resulting constructor call is governed by the same rules as an instance creation expression using \NEW{} (\ref{instanceCreation}).
+Let $\argumentList{T}$ be the static argument list type (\ref{actualArgumentLists})
+\code{($T_1 \ldots,\ T_{n+k}$)}
+when $k$ takes no named arguments, and
+\code{($T_1 \ldots,\ T_n,\ T_{n+1}\ x_{n+1},\ \ldots,\ T_{n+k}\ x_{n+k}$)}
+when $k$ takes some named arguments.
+It is a compile-time error if $\argumentList{T}$
+is not a subtype match for the formal parameter list of the redirectee.
+
+\rationale{
+We require a subtype match
+(rather than the more forgiving assignable match which is used with a generative redirecting constructor),
+because a factory redirecting constructor $k$ always invokes its redirectee $k'$
+with exactly the same actual arguments that $k$ received.
+This means that a downcast on an actual argument
+``between'' $k$ and $k'$
+would either be unused because the actual argument has the type required by $k'$,
+or it would amount to a dynamic error which is simply delayed a single step.
+}
+
+\LMHash{}
+Moreover, when $\ConstMetavar$ is \CONST{}
+the redirectee must be a constant constructor.
 
 \commentary{
-It follows that if \metavar{type} or \code{\metavar{type}.\id} are not defined, or do not refer to a class or constructor, a dynamic error occurs, as with any other undefined constructor call.
-The same holds if $k$ is called with fewer required parameters or more positional parameters than $k'$ expects, or if $k$ is called with a named parameter that is not declared by $k'$.
+Note that the non-generic case is covered by letting $m$ or $p$ or both be zero,
+in which case the formal type parameter list of the class $C$
+and/or the actual type argument list of the redirectee constructor is omitted (\ref{generics}).
 }
 
 \LMHash{}
@@ -1970,14 +2077,7 @@ Hence, default values are disallowed.
 }
 
 \LMHash{}
-It is a run-time error if a redirecting factory constructor redirects to itself, either directly or indirectly via a sequence of redirections. %does not redirect to a non-redirecting factory constructor or to a generative constructor in a finite number of steps.
-
-% Make this a run-time error so deferred loading works
-
-\rationale{
-If a redirecting factory $F_1$ redirects to another redirecting factory $F_2$ and $F_2$ then redirects to $F_1$, then both $F_1$ and $F_2$ are ill-defined.
-Such cycles are therefore illegal.
-}
+It is a compile-time error if a redirecting factory constructor redirects to itself, either directly or indirectly via a sequence of redirections.
 
 \LMHash{}
 It is a compile-time error if $type$ does not denote a class accessible in the current scope;
@@ -1992,7 +2092,7 @@ At first glance, one might think that ordinary factory constructors could simply
 However, redirecting factories have several advantages:
 \begin{itemize}
 \item An abstract class may provide a constant constructor that utilizes the constant constructor of another class.
-\item A redirecting factory constructors avoids the need for forwarders to repeat the default values for formal parameters in their signatures.
+\item A redirecting factory constructor avoids the need for forwarders to repeat the default values for formal parameters in their signatures.
 %\item A generic factory class that aggregates factory constructors for types it does not implement can still have its type arguments passed correctly.
 \end{itemize}
 
@@ -2033,6 +2133,25 @@ This implies that the resulting object conforms to the interface of the immediat
 
 \LMHash{}
 It is a compile-time error if any of the type arguments to $k'$ are not subtypes of the bounds of the corresponding formal type parameters of $type$.
+
+\LMHash{}
+For the dynamic semantics,
+assume that $k$ is a redirecting factory constructor
+and $k'$ is the redirectee of $k$.
+
+\LMHash{}
+When the redirectee $k'$ is a factory constructor,
+execution of $k$ amounts to execution of $k'$ with the actual arguments passed to $k$.
+The result of the execution of $k'$ is the result of $k$.
+
+\LMHash{}
+When the redirectee $k'$ is a generative constructor,
+let $o$ be a fresh instance (\ref{generativeConstructors})
+of the class that contains $k'$.
+Execution of $k$ then amounts to execution of $k'$ to initialize $o$,
+governed by the same rules as an instance creation expression (\ref{instanceCreation}).
+If $k$ completed normally then the execution of $k'$ completes normally returning $o$,
+otherwise $k'$ completes by throwing the exception and stack trace thrown by $k$.
 
 
 \subsubsection{Constant Constructors}
@@ -2350,7 +2469,7 @@ The controlling language is in the relevant sections of the specification.
   When we speak of members here, we mean accessible instance or static variables, getters, setters, and methods (\ref{classes}).
 \item You cannot have two members with the same name in the same class - be they declared or inherited (\ref{scoping}, \ref{classes}).
 \item Static members are never inherited.
-\item It is an error if you have an static member named $m$ in your class and an instance member of the same name (\ref{instanceMethods}, \ref{getters}, \ref{setters}).
+\item It is an error if you have an static member named $m$ in your class and an instance member of the same name (\ref{classMemborConflicts}).
 \item It is an error if you have a static setter $v=$, and an instance member $v$ (\ref{setters}).
 \item It is an error if you have a static getter $v$ and an instance setter $v=$ (\ref{getters}).
 \item If you define an instance member named $m$, and your superclass has an instance member of the same name, they override each other.
@@ -2767,7 +2886,7 @@ An {\em enumerated type}, or {\em enum}, is used to represent a fixed number of 
 
 \LMHash{}
 The declaration of an enum of the form
-\code{$m$ \ENUM{} E \{$m_0\,\,id_0, \ldots,\ m_{n-1}\,\,id_{n-1}$\}}
+\code{$m$ \ENUM{} E \{$m_0\,\,\id_0, \ldots,\ m_{n-1}\,\,\id_{n-1}$\}}
 has the same effect as a class declaration
 
 \begin{dartCode}
@@ -2777,8 +2896,8 @@ $m$ \CLASS{} E \{
   $m_0$ \STATIC{} \CONST{} E id$_0$ = \CONST{} E(0);
   $\ldots$
   $m_{n-1}$ \STATIC{} \CONST{} E id$_{n-1}$ = const E(n - 1);
-  \STATIC{} \CONST{} List<E> values = const <E>[id$_0, \ldots, $ id$_{n-1}$];
-  String toString() => \{ 0: `E.id$_0$', $\ldots$, n-1: `E.id$_{n-1}$'\}[index]
+  \STATIC{} \CONST{} List<E> values = const <E>[\id$_0, \ldots, $ \id$_{n-1}$];
+  String toString() => \{ 0: `E.\id$_0$', $\ldots$, n-1: `E.\id$_{n-1}$'\}[index]
 \}
 \end{dartCode}
 
@@ -3977,7 +4096,7 @@ The \$ sign may be followed by either:
 \end{itemize}
 
 \LMHash{}
-The form \code{\$id} is equivalent to the form \code{\$\{id\}}.
+The form \code{\$\id} is equivalent to the form \code{\$\{\id\}}.
 An interpolated string, $s$, with content `\code{$s_0$\$\{$e_1$\}$s_1\ldots{}s_{n-1}\$\{e_n\}s_{n}$}' (where any of $s_0, \ldots, s_n$ can be empty)
 is evaluated by evaluating each expression $e_i$ ($1 \le i \le n$) in to a string $r_i$ in the order they occur in the source text, as follows:
 \begin{itemize}
@@ -4002,20 +4121,20 @@ a valid declaration name or a valid library name in a Dart program.
 \end{grammar}
 
 \LMHash{}
-A symbol literal \code{\#$id$} where $id$ is an identifier
+A symbol literal \code{\#\id} where \id{} is an identifier
 that does not begin with an underscore ('\code{\_}'),
-evaluates to an instance of \code{Symbol} representing the identifier $id$.
-All occurences of \code{\#$id$} evaluate to the same instance
+evaluates to an instance of \code{Symbol} representing the identifier \id.
+All occurences of \code{\#\id} evaluate to the same instance
 \commentary{(symbol instances are canonicalized)},
 and no other symbol literals evaluate to that \code{Symbol} instance
 or to a \code{Symbol} instance that is equal
 (according to the \code{==} operator \ref{equality}) to that instance.
 
 \LMHash{}
-A symbol literal \code{\#$id$.$id_2$\ldots$id_n$}
-where $id$ \ldots $id_n$ are identifiers,
+A symbol literal \code{\#$\id.\id_2\ldots\id_n$}
+where $\id{} \ldots \id_n$ are identifiers,
 evaluates to an instance of \code{Symbol} representing that particular sequence of identifiers.
-All occurences of \code{\#$id$.$id_2$\ldots$id_n$} with the same sequence of identifiers
+All occurences of \code{\#$\id.\id_2\ldots\id_n$} with the same sequence of identifiers
 evaluate to the same instance,
 and no other symbol literals evaluate to that \code{Symbol} instance
 or to a \code{Symbol} instance that is \code{==} to that instance.
@@ -4030,9 +4149,9 @@ and no other symbol literals evaluate to that \code{Symbol} instance
 or to a \code{Symbol} instance that is \code{==} to that instance.
 
 \LMHash{}
-A symbol literal \code{\#\_$id$}, evaluates to an instance of \code{Symbol}
+A symbol literal \code{\#\_\id}, evaluates to an instance of \code{Symbol}
 representing the private identifier \code{\_\id} of the containing library.
-All occurences of \code{\#\_$id$} {\em in the same library} evaluate to the same instance,
+All occurences of \code{\#\_\id} {\em in the same library} evaluate to the same instance,
 and no other symbol literals evaluate to that \code{Symbol} instance
 or to a \code{Symbol} instance that is \code{==} to that instance.
 
@@ -4854,7 +4973,7 @@ Function invocation occurs in the following cases:
 when a function expression (\ref{functionExpressions}) is invoked (\ref{functionExpressionInvocation}),
 when a method (\ref{methodInvocation}), getter (\ref{topLevelGetterInvocation}, \ref{propertyExtraction}) or setter (\ref{assignment}) is invoked,
 or when a constructor is invoked
-(either via instance creation (\ref{instanceCreation}), constructor redirection (\ref{redirectingConstructors}) or super initialization).
+(either via instance creation (\ref{instanceCreation}), constructor redirection (\ref{redirectingGenerativeConstructors}), or super initialization).
 The various kinds of function invocation differ as to how the function to be invoked, $f$, is determined, as well as whether \THIS{} (\ref{this}) is bound.
 Once $f$ has been determined,
 formal type parameters of $f$ are bound to the corresponding actual type arguments,
@@ -4989,11 +5108,11 @@ We choose to direct any exceptions that occur at this time to the cancellation f
 %When a stream is canceled, the implementation must wait for the cancelation future returned by \code{cancell()} to complete before proceeding.
 
 
-\subsubsection{Actual Argument List Evaluation}
-\LMLabel{actualArguments}
+\subsubsection{Actual Argument Lists}
+\LMLabel{actualArgumentLists}
 
 \LMHash{}
-Function invocation involves evaluation of the list of actual arguments to the function and binding of the results to the function's formal parameters.
+Actual argument lists have the following syntax:
 
 \begin{grammar}
 {\bf arguments:}`(' (argumentList \gcomma{}?)? `)'
@@ -5008,9 +5127,78 @@ Function invocation involves evaluation of the list of actual arguments to the f
 \end{grammar}
 
 \LMHash{}
-Argument lists allow an optional trailing comma after the last argument ($`,\!'?$).
-An argument list with such a trailing comma is equivalent in all ways to the same argument list without the trailing comma.
-All argument lists in this specification are shown without a trailing comma, but the rules and semantics apply equally to the corresponding argument list with a trailing comma.
+Argument lists allow an optional trailing comma after the last argument (\gcomma{}?).
+An argument list with such a trailing comma is equivalent in all ways to the same parameter list without the trailing comma.
+All argument lists in this specification are shown without a trailing comma,
+but the rules and semantics apply equally to the corresponding argument list with a trailing comma.
+
+\LMHash{}
+Let $L$ be an argument list of the form
+\code{($e_1 \ldots,\ e_m,\ y_{m+1}$: $e_{m+1} \ldots,\ y_{m+p}$: $e_{m+p}$)}
+and assume that the static type of $e_i$ is $S_i$, $i \in 1 .. m+p$.
+The {\em static argument list type} of $L$ is then
+\code{($S_1 \ldots,\ S_m,\ S_{m+1}\ y_{m+1} \ldots,\ S_{m+p}\ y_{m+p}$)}.
+
+\LMHash{}
+Let $\argumentList{S}$ be the static argument list type
+
+\code{($S_1 \ldots,\ S_m,\ S_{m+1}\ y_{m+1} \ldots,\ S_{m+p}\ y_{m+p}$)}
+
+\noindent
+and let $\parameterList{P}$ be the formal parameter list
+
+\code{($T_1\ x_1 \ldots,\ T_n\ x_n,\ $[$T_{n+1}\ x_{n+1} = d_1, \ldots,\ T_{n+k}\ x_{n+k} = d_k$])}
+
+\noindent
+where each parameter may be marked \COVARIANT{} (\commentary{not shown, but allowed}).
+
+\LMHash{}
+We say that $\argumentList{S}$ {\em is a subtype match} for $\parameterList{P}$
+if{}f $p = 0$, $n \leq m \leq n+k$, and $S_i$ is a subtype of $T_i$ for all $i \in 1 .. m$.
+We say that $\argumentList{S}$ {\em is an assignable match} for $\parameterList{P}$
+if{}f $p = 0$, $n \leq m \leq n+k$, and $S_i$ is assignable to $T_i$ for all $i \in 1 .. m$.
+
+\LMHash{}
+Let $\argumentList{S}$ be the static argument list type
+
+\code{($S_1 \ldots,\ S_m,\ S_{m+1}\ y_{m+1} \ldots,\ S_{m+p}\ y_{m+p}$)}
+
+\noindent
+and let $\parameterList{P}$ be the formal parameter list
+
+\code{($T_1\ x_1 \ldots,\ T_n\ x_n,\ $\{$T_{n+1}\ x_{n+1} = d_1, \ldots,\ T_{n+k}\ x_{n+k} = d_k$\})}
+
+\noindent
+where each parameter may be marked \COVARIANT{} (\commentary{not shown, but allowed}).
+
+\LMHash{}
+We say that $\argumentList{S}$ {\em is a subtype match} for $\parameterList{P}$
+if{}f $m = n$,
+$\{y_{m+1}\ldots,\ y_{m+p}\} \subseteq \{x_{n+1}\ldots,\ x_{n+k}\}$,
+$S_i$ is a subtype of $T_i$ for all $i \in 1 .. m$,
+and $S_i$ is a subtype of $T_j$ whenever $y_i = x_j$ and
+$j \in n + 1 .. n + k$, for all
+$i \in m + 1 .. m + p$.
+We say that $\argumentList{S}$ {\em is an assignable match} for $\parameterList{P}$
+if{}f $m = n$,
+$\{y_{m+1}\ldots,\ y_{m+p}\} \subseteq \{x_{n+1}\ldots,\ x_{n+k}\}$,
+$S_i$ is assignable to $T_i$ for all $i \in 1 .. m$,
+and $S_i$ is assignable to $T_j$ whenever $y_i = x_j$ and
+$j \in n + 1 .. n + k$, for all
+$i \in m + 1 .. m + p$.
+
+\commentary{
+In short, an actual argument list is a match for a formal parameter list
+whenever the former can safely be passed to the latter.
+}
+
+
+\subsubsection{Actual Argument List Evaluation}
+\LMLabel{actualArguments}
+
+\LMHash{}
+Function invocation involves evaluation of the list of actual arguments to the function,
+and binding of the results to the function's formal parameters.
 
 \LMHash{}
 When parsing an argument list, an ambiguity may arise because the same source code could be one generic function invocation, and it could be two or more relational expressions and/or shift expressions.
@@ -8179,8 +8367,8 @@ There are obviously situations where code does not fall through, and yet does no
 It is a compile-time error if all of the following conditions hold:
 \begin{itemize}
 \item The switch statement does not have a default clause.
-\item The static type of $e$ is an enumerated typed with elements $id_1, \ldots, id_n$.
-\item The sets $\{e_1, \ldots, e_k\} $ and $\{id_1, \ldots, id_n\}$ are not the same.
+\item The static type of $e$ is an enumerated type with elements $\id_1, \ldots, \id_n$.
+\item The sets $\{e_1, \ldots, e_k\} $ and $\{\id_1, \ldots, \id_n\}$ are not the same.
 \end{itemize}
 
 \commentary{
@@ -9007,9 +9195,9 @@ Then, for each combinator clause $C_i, i \in 1 .. n$ in $I$:
 \begin{itemize}
 \item If $C_i$ is of the form
 
-\code{\SHOW{} $id_1, \ldots,\ id_k$}
+\code{\SHOW{} $\id_1, \ldots,\ \id_k$}
 
-then let $NS_i = \SHOW{}([id_1, \ldots,\ id_k], NS_{i-1}$)
+then let $NS_i = \SHOW{}([\id_1, \ldots,\ \id_k], NS_{i-1}$)
 
 where $show(l,n)$ takes a list of identifiers $l$ and a namespace $n$, and produces a namespace that maps each name in $l$ to the same element that $n$ does.
 Furthermore, for each name $x$ in $l$, if $n$ defines the name $x=$ then the new namespace maps $x=$ to the same element that $n$ does.
@@ -9017,9 +9205,9 @@ Otherwise the resulting mapping is undefined.
 
 \item If $C_i$ is of the form
 
-\code{\HIDE{} $id_1, \ldots,\ id_k$}
+\code{\HIDE{} $\id_1, \ldots,\ \id_k$}
 
-then let $NS_i = \HIDE{}([id_1, \ldots,\ id_k], NS_{i-1}$)
+then let $NS_i = \HIDE{}([\id_1, \ldots,\ \id_k], NS_{i-1}$)
 
 where $hide(l, n)$ takes a list of identifiers $l$ and a namespace $n$, and produces a namespace that is identical to $n$ except that for each name $k$ in $l$, $k$ and $k=$ are undefined.
 \end{itemize}
@@ -9178,12 +9366,12 @@ If the URI that is the value of $s_1$ has not yet been accessed by an import or 
 Let $NS_0$ be the exported namespace of $B$.
 Then, for each combinator clause $C_i, i \in 1 .. n$ in $E$:
 \begin{itemize}
-\item If $C_i$ is of the form \code{\SHOW{} $id_1, \ldots,\ id_k$} then let
+\item If $C_i$ is of the form \code{\SHOW{} $\id_1, \ldots,\ \id_k$} then let
 
-$NS_i = \SHOW{}([id_1, \ldots,\ id_k], NS_{i-1}$).
-\item If $C_i$ is of the form \code{\HIDE{} $id_1, \ldots,\ id_k$}
+$NS_i = \SHOW{}([\id_1, \ldots,\ \id_k], NS_{i-1}$).
+\item If $C_i$ is of the form \code{\HIDE{} $\id_1, \ldots,\ \id_k$}
 
-then let $NS_i = \HIDE{}([id_1, \ldots,\ id_k], NS_{i-1}$).
+then let $NS_i = \HIDE{}([\id_1, \ldots,\ \id_k], NS_{i-1}$).
 \end{itemize}
 
 \LMHash{}

@@ -65,7 +65,7 @@ var tests = <IsolateTest>[
     valueOfField(String name) async {
       var field = rootLib.variables.singleWhere((v) => v.name == name);
       await field.load();
-      return field.staticValue;
+      return field.staticValue as Instance;
     }
 
     var r1Ref = await valueOfField('r1');
@@ -109,7 +109,7 @@ var tests = <IsolateTest>[
     valueOfField(String name) async {
       var field = rootLib.variables.singleWhere((v) => v.name == name);
       await field.load();
-      return field.staticValue;
+      return field.staticValue as Instance;
     }
 
     var r1Ref = await valueOfField('r1_named');
@@ -153,7 +153,7 @@ var tests = <IsolateTest>[
     valueOfField(String name) async {
       var field = rootLib.variables.singleWhere((v) => v.name == name);
       await field.load();
-      return field.staticValue;
+      return field.staticValue as Instance;
     }
 
     var r1Ref = await valueOfField('r1');

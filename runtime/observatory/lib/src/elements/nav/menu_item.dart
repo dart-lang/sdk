@@ -16,7 +16,7 @@ class NavMenuItemElement extends HtmlElement implements Renderable {
 
   String _label;
   String _link;
-  Iterable<Element> _content = const [];
+  Iterable<Element> _content = const <Element>[];
 
   String get label => _label;
   String get link => _link;
@@ -33,7 +33,7 @@ class NavMenuItemElement extends HtmlElement implements Renderable {
       {String link, RenderingQueue queue}) {
     assert(label != null);
     NavMenuItemElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<NavMenuItemElement>(e, queue: queue);
     e._label = label;
     e._link = link;
     return e;
@@ -51,14 +51,14 @@ class NavMenuItemElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new LIElement()
         ..classes = ['nav-menu-item']
-        ..children = [
+        ..children = <Element>[
           new AnchorElement(href: link)..text = label,
           new UListElement()..children = _content
         ]

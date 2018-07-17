@@ -467,10 +467,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     _checkForAbstractSuperMemberReference(realTarget, node.methodName);
     _checkForNullAwareHints(node, node.operator);
     DartType staticInvokeType = node.staticInvokeType;
-    if (staticInvokeType is InterfaceType) {
-      MethodElement methodElement = staticInvokeType.lookUpMethod(
-          FunctionElement.CALL_METHOD_NAME, _currentLibrary);
-      _checkForDeprecatedMemberUse(methodElement, node);
+    Element callElement = staticInvokeType?.element;
+    if (callElement is MethodElement &&
+        callElement.name == FunctionElement.CALL_METHOD_NAME) {
+      _checkForDeprecatedMemberUse(callElement, node);
     }
     return super.visitMethodInvocation(node);
   }
@@ -793,9 +793,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       } else if (displayName == FunctionElement.CALL_METHOD_NAME &&
           node is MethodInvocation &&
           node.staticInvokeType is InterfaceType) {
-        displayName = "${resolutionMap
-            .staticInvokeTypeForInvocationExpression(node)
-            .displayName}.${element.displayName}";
+        displayName =
+            "${resolutionMap.staticInvokeTypeForInvocationExpression(node).displayName}.${element.displayName}";
       }
       _errorReporter.reportErrorForNode(
           HintCode.DEPRECATED_MEMBER_USE, node, [displayName]);
@@ -4706,8 +4705,7 @@ class InstanceFieldResolverVisitor extends ResolverVisitor {
       typeAnalyzer.thisType = enclosingClass?.type;
       if (enclosingClass == null) {
         AnalysisEngine.instance.logger.logInformation(
-            "Missing element for class declaration ${node.name
-                .name} in ${definingLibrary.source.fullName}",
+            "Missing element for class declaration ${node.name.name} in ${definingLibrary.source.fullName}",
             new CaughtException(new AnalysisException(), null));
         // Don't try to re-resolve the initializers if we cannot set up the
         // right name scope for resolution.
@@ -7443,8 +7441,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     try {
       if (classElement == null) {
         AnalysisEngine.instance.logger.logInformation(
-            "Missing element for class declaration ${node.name
-                .name} in ${definingLibrary.source.fullName}",
+            "Missing element for class declaration ${node.name.name} in ${definingLibrary.source.fullName}",
             new CaughtException(new AnalysisException(), null));
         super.visitClassDeclaration(node);
       } else {
@@ -7572,8 +7569,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     try {
       if (classElement == null) {
         AnalysisEngine.instance.logger.logInformation(
-            "Missing element for enum declaration ${node.name
-                .name} in ${definingLibrary.source.fullName}",
+            "Missing element for enum declaration ${node.name.name} in ${definingLibrary.source.fullName}",
             new CaughtException(new AnalysisException(), null));
         super.visitEnumDeclaration(node);
       } else {
@@ -7689,8 +7685,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     try {
       if (functionElement == null) {
         AnalysisEngine.instance.logger.logInformation(
-            "Missing element for top-level function ${node.name
-                .name} in ${definingLibrary.source.fullName}",
+            "Missing element for top-level function ${node.name.name} in ${definingLibrary.source.fullName}",
             new CaughtException(new AnalysisException(), null));
       } else {
         nameScope = new FunctionScope(nameScope, functionElement);
@@ -7766,8 +7761,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       ParameterElement parameterElement = node.element;
       if (parameterElement == null) {
         AnalysisEngine.instance.logger.logInformation(
-            "Missing element for function typed formal parameter ${node
-                .identifier.name} in ${definingLibrary.source.fullName}",
+            "Missing element for function typed formal parameter ${node.identifier.name} in ${definingLibrary.source.fullName}",
             new CaughtException(new AnalysisException(), null));
       } else {
         nameScope = new EnclosedScope(nameScope);
@@ -7868,8 +7862,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       ExecutableElement methodElement = node.element;
       if (methodElement == null) {
         AnalysisEngine.instance.logger.logInformation(
-            "Missing element for method ${node.name.name} in ${definingLibrary
-                .source.fullName}",
+            "Missing element for method ${node.name.name} in ${definingLibrary.source.fullName}",
             new CaughtException(new AnalysisException(), null));
       } else {
         nameScope = new FunctionScope(nameScope, methodElement);

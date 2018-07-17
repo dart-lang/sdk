@@ -10,7 +10,6 @@ fake_thing_test: RuntimeError # Issue 13010
 *: Skip
 
 [ $compiler == dart2js && $checked && !$strong ]
-error_safeToString_test: RuntimeError # Fix for Issue 33627 disabled native class sharing
 native_method_inlining_test: RuntimeError
 
 [ $compiler == dart2js && $fasta ]
@@ -24,5 +23,4 @@ subclassing_super_field_2_test: RuntimeError
 optimization_hints_test: RuntimeError, OK # Test relies on unminified names.
 
 [ $compiler == dart2js && $strong ]
-error_safeToString_test: RuntimeError # Fix for Issue 33627 disabled native class sharing
 native_checked_fields_frog_test: RuntimeError

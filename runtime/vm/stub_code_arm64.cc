@@ -1930,19 +1930,16 @@ void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 }
 
 // Stub for compiling a function and jumping to the compiled code.
-// R5: IC-Data (for methods).
 // R4: Arguments descriptor.
 // R0: Function.
 void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
-  // Preserve arg desc. and IC data object.
+  // Preserve arg desc.
   __ EnterStubFrame();
-  __ Push(R5);  // Save IC Data.
   __ Push(R4);  // Save arg. desc.
   __ Push(R0);  // Pass function.
   __ CallRuntime(kCompileFunctionRuntimeEntry, 1);
   __ Pop(R0);  // Restore argument.
   __ Pop(R4);  // Restore arg desc.
-  __ Pop(R5);  // Restore IC Data.
   __ LeaveStubFrame();
 
   // When using the interpreter, the function's code may now point to the
@@ -1953,15 +1950,10 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
 }
 
 // Stub for interpreting a function call.
-// R5: IC-Data (for methods).
 // R4: Arguments descriptor.
 // R0: Function.
 void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
 #if defined(DART_USE_INTERPRETER)
-  const intptr_t thread_offset = NativeArguments::thread_offset();
-  const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
-  const intptr_t argv_offset = NativeArguments::argv_offset();
-  const intptr_t retval_offset = NativeArguments::retval_offset();
 
   __ SetPrologueOffset();
   __ EnterStubFrame();
@@ -1978,60 +1970,37 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
   }
 #endif
 
-  // Setup space on stack for result of the interpreted function call.
-  __ Push(ZR);
+  // Adjust arguments count for type arguments vector.
+  __ LoadFieldFromOffset(R2, R4, ArgumentsDescriptor::count_offset());
+  __ SmiUntag(R2);
+  __ LoadFieldFromOffset(R1, R4, ArgumentsDescriptor::type_args_len_offset());
+  __ cmp(R1, Operand(0));
+  __ csinc(R2, R2, R2, EQ);  // R2 <- (R1 == 0) ? R2 : R2 + 1.
 
-  // Set callee-saved R23 to point to return value slot.
-  __ mov(R23, SP);
+  // Compute argv.
+  __ add(R3, ZR, Operand(R2, LSL, 3));
+  __ add(R3, FP, Operand(R3));
+  __ AddImmediate(R3, kParamEndSlotFromFp * kWordSize);
 
-  // Push first 3 arguments of the interpreted function call.
-  __ Push(R0);  // Function.
-  __ Push(R5);  // ICData/MegamorphicCache.
-  __ Push(R4);  // Arguments descriptor array.
+  // Indicate decreasing memory addresses of arguments with negative argc.
+  __ neg(R2, R2);
 
-  // Adjust arguments count.
-  __ LoadFieldFromOffset(R3, R4, ArgumentsDescriptor::type_args_len_offset());
-  __ AddImmediate(TMP, R2, 1);  // Include the type arguments.
-  __ cmp(R3, Operand(0));
-  __ csinc(R2, R2, TMP, EQ);  // R2 <- (R3 == 0) ? R2 : TMP + 1 (R2 : R2 + 2).
+  // Align frame before entering C++ world. No shadow stack space required.
+  __ ReserveAlignedFrameSpace(0 * kWordSize);
 
-  // Push 4th Dart argument of the interpreted function call.
-  // R2: Smi-tagged arguments array length.
-  PushArrayOfArguments(assembler);  // May call into the runtime.
-  const intptr_t kNumArgs = 4;
-
-  // Reserve space for arguments and align frame before entering C++ world.
-  // NativeArguments are passed in registers.
-  ASSERT(sizeof(NativeArguments) == 4 * kWordSize);
-  __ ReserveAlignedFrameSpace(sizeof(NativeArguments));
-
-  // Pass NativeArguments structure by value and call runtime.
-  // Registers R0, R1, R2, and R3 are used.
-
-  ASSERT(thread_offset == 0 * kWordSize);
-  __ mov(R0, THR);  // Set thread in NativeArgs.
-
-  ASSERT(argc_tag_offset == 1 * kWordSize);
-  __ LoadImmediate(R1, kNumArgs);  // Set argc in NativeArguments.
-
-  ASSERT(argv_offset == 2 * kWordSize);
-  __ AddImmediate(R2, R23, -kWordSize);  // Set argv in NativeArguments.
-
-  ASSERT(retval_offset == 3 * kWordSize);
-  __ mov(R3, R23);  // Set retval in NativeArguments.
-
-  __ StoreToOffset(R0, SP, thread_offset);
-  __ StoreToOffset(R1, SP, argc_tag_offset);
-  __ StoreToOffset(R2, SP, argv_offset);
-  __ StoreToOffset(R3, SP, retval_offset);
-  __ mov(R0, SP);  // Pass the pointer to the NativeArguments.
+  // Pass arguments in registers.
+  // R0: Function.
+  __ mov(R1, R4);  // Arguments descriptor.
+  // R2: Negative argc.
+  // R3: Argv.
+  __ mov(R4, THR);  // Thread.
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
   __ StoreToOffset(FP, THR, Thread::top_exit_frame_info_offset());
 
   // Mark that the thread is executing VM code.
-  __ LoadImmediate(R5, kInterpretCallRuntimeEntry.GetEntryPoint());
+  __ LoadFromOffset(R5, THR, Thread::interpret_call_entry_point_offset());
   __ StoreToOffset(R5, THR, Thread::vm_tag_offset());
 
   // We are entering runtime code, so the C stack pointer must be restored from
@@ -2052,9 +2021,6 @@ void StubCode::GenerateInterpretCallStub(Assembler* assembler) {
 
   // Reset exit frame information in Isolate structure.
   __ StoreToOffset(ZR, THR, Thread::top_exit_frame_info_offset());
-
-  // Load result of interpreted function call into R0.
-  __ LoadFromOffset(R0, R23, 0);
 
   __ LeaveStubFrame();
   __ ret();

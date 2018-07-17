@@ -94,12 +94,6 @@ io/named_pipe_script_test: Pass, RuntimeError # Issue 28737
 [ $runtime == none && !$strong ]
 io/process_exit_negative_test: Fail, OK # Must be run to exit with non-zero exit code.
 
-# These tests spawn a process that imports using a http URL, since
-# spawned processes now run in Dart2 mode the tests fail as http URL imports
-# is not supported by the front end.
-[ $runtime == vm && ($compiler == app_jit || $compiler == none) ]
-http_launch_test: RuntimeError # Issue 33388
-
 [ $system == linux && ($runtime == flutter || $runtime == vm) ]
 io/http_basic_test: Pass, Slow, Timeout # Issue 28046, These tests might be slow on an opt counter threshold bot. They also time out on the bot occasionally => flaky test issue 28046
 io/http_launch_test: Pass, Slow, Timeout # Issue 28046, These tests might be slow on an opt counter threshold bot. They also time out on the bot occasionally => flaky test issue 28046
@@ -179,7 +173,10 @@ package/scenarios/invalid/same_package_twice_test: Pass # Issue 24119
 deferred_transitive_import_error_test: Crash
 fragmentation_test: Pass, Crash # Issue 31421
 io/addlatexhash_test: Pass, Crash # Issue 31252
+io/many_directory_operations_test: SkipSlow
+io/many_file_operations_test: SkipSlow
 io/raw_datagram_read_all_test: Pass, Fail # Timing dependent.
-io/skipping_dart2js_compilations_test: Pass, Slow # Slow.
-io/test_runner_test: Pass, Slow # Slow.
+io/skipping_dart2js_compilations_test: SkipSlow
+io/test_runner_test: SkipSlow
 package/*: SkipByDesign # Launches VMs in interesting ways.
+typed_data_isolate_test: SkipSlow

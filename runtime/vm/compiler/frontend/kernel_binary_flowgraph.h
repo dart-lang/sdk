@@ -8,6 +8,7 @@
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/compiler/frontend/bytecode_reader.h"
+#include "vm/compiler/frontend/constant_evaluator.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/frontend/scope_builder.h"
@@ -17,169 +18,6 @@
 
 namespace dart {
 namespace kernel {
-
-// There are several cases when we are compiling constant expressions:
-//
-//   * constant field initializers:
-//      const FieldName = <expr>;
-//
-//   * constant expressions:
-//      const [<expr>, ...]
-//      const {<expr> : <expr>, ...}
-//      const Constructor(<expr>, ...)
-//
-//   * constant default parameters:
-//      f(a, [b = <expr>])
-//      f(a, {b: <expr>})
-//
-//   * constant values to compare in a [SwitchCase]
-//      case <expr>:
-//
-// In all cases `<expr>` must be recursively evaluated and canonicalized at
-// compile-time.
-class StreamingConstantEvaluator {
- public:
-  explicit StreamingConstantEvaluator(StreamingFlowGraphBuilder* builder);
-
-  virtual ~StreamingConstantEvaluator() {}
-
-  bool IsCached(intptr_t offset);
-
-  RawInstance* EvaluateExpression(intptr_t offset, bool reset_position = true);
-  Instance& EvaluateListLiteral(intptr_t offset, bool reset_position = true);
-  Instance& EvaluateMapLiteral(intptr_t offset, bool reset_position = true);
-  Instance& EvaluateConstructorInvocation(intptr_t offset,
-                                          bool reset_position = true);
-  RawObject* EvaluateExpressionSafe(intptr_t offset);
-
- private:
-  bool IsAllowedToEvaluate();
-  void EvaluateAsExpression();
-  void EvaluateVariableGet(bool is_specialized);
-  void EvaluatePropertyGet();
-  void EvaluateDirectPropertyGet();
-  void EvaluateStaticGet();
-  void EvaluateMethodInvocation();
-  void EvaluateDirectMethodInvocation();
-  void EvaluateSuperMethodInvocation();
-  void EvaluateStaticInvocation();
-  void EvaluateConstructorInvocationInternal();
-  void EvaluateNot();
-  void EvaluateLogicalExpression();
-  void EvaluateConditionalExpression();
-  void EvaluateStringConcatenation();
-  void EvaluateSymbolLiteral();
-  void EvaluateTypeLiteral();
-  void EvaluateListLiteralInternal();
-  void EvaluateMapLiteralInternal();
-  void EvaluateLet();
-  void EvaluatePartialTearoffInstantiation();
-  void EvaluateBigIntLiteral();
-  void EvaluateStringLiteral();
-  void EvaluateIntLiteral(uint8_t payload);
-  void EvaluateIntLiteral(bool is_negative);
-  void EvaluateDoubleLiteral();
-  void EvaluateBoolLiteral(bool value);
-  void EvaluateNullLiteral();
-  void EvaluateConstantExpression();
-
-  void EvaluateGetStringLength(intptr_t expression_offset,
-                               TokenPosition position);
-
-  const Object& RunFunction(const TokenPosition position,
-                            const Function& function,
-                            intptr_t argument_count,
-                            const Instance* receiver,
-                            const TypeArguments* type_args);
-
-  const Object& RunFunction(const TokenPosition position,
-                            const Function& function,
-                            const Array& arguments,
-                            const Array& names);
-
-  const Object& RunMethodCall(const TokenPosition position,
-                              const Function& function,
-                              const Instance* receiver);
-
-  RawObject* EvaluateConstConstructorCall(const Class& type_class,
-                                          const TypeArguments& type_arguments,
-                                          const Function& constructor,
-                                          const Object& argument);
-
-  const TypeArguments* TranslateTypeArguments(const Function& target,
-                                              Class* target_klass);
-
-  void AssertBool() {
-    if (!result_.IsBool()) {
-      translation_helper_.ReportError("Expected boolean expression.");
-    }
-  }
-
-  bool EvaluateBooleanExpressionHere();
-
-  bool GetCachedConstant(intptr_t kernel_offset, Instance* value);
-  void CacheConstantValue(intptr_t kernel_offset, const Instance& value);
-
-  StreamingFlowGraphBuilder* builder_;
-  Isolate* isolate_;
-  Zone* zone_;
-  TranslationHelper& translation_helper_;
-  TypeTranslator& type_translator_;
-
-  const Script& script_;
-  Instance& result_;
-};
-
-class KernelFingerprintHelper : public KernelReaderHelper {
- public:
-  KernelFingerprintHelper(Zone* zone,
-                          TranslationHelper* translation_helper,
-                          const Script& script,
-                          const ExternalTypedData& data,
-                          intptr_t data_program_offset)
-      : KernelReaderHelper(zone,
-                           translation_helper,
-                           script,
-                           data,
-                           data_program_offset),
-        hash_(0) {}
-
-  virtual ~KernelFingerprintHelper() {}
-  uint32_t CalculateFieldFingerprint();
-  uint32_t CalculateFunctionFingerprint();
-
-  static uint32_t CalculateHash(uint32_t current, uint32_t val) {
-    return current * 31 + val;
-  }
-
- private:
-  void BuildHash(uint32_t val);
-  void CalculateConstructorFingerprint();
-  void CalculateArgumentsFingerprint();
-  void CalculateVariableDeclarationFingerprint();
-  void CalculateStatementListFingerprint();
-  void CalculateListOfExpressionsFingerprint();
-  void CalculateListOfDartTypesFingerprint();
-  void CalculateListOfVariableDeclarationsFingerprint();
-  void CalculateStringReferenceFingerprint();
-  void CalculateListOfStringsFingerprint();
-  void CalculateTypeParameterFingerprint();
-  void CalculateTypeParametersListFingerprint();
-  void CalculateCanonicalNameFingerprint();
-  void CalculateInitializerFingerprint();
-  void CalculateDartTypeFingerprint();
-  void CalculateOptionalDartTypeFingerprint();
-  void CalculateInterfaceTypeFingerprint(bool simple);
-  void CalculateFunctionTypeFingerprint(bool simple);
-  void CalculateGetterNameFingerprint();
-  void CalculateSetterNameFingerprint();
-  void CalculateMethodNameFingerprint();
-  void CalculateExpressionFingerprint();
-  void CalculateStatementFingerprint();
-  void CalculateFunctionNodeFingerprint();
-
-  uint32_t hash_;
-};
 
 class StreamingFlowGraphBuilder : public KernelReaderHelper {
  public:
@@ -196,8 +34,11 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
             data_program_offset),
         flow_graph_builder_(flow_graph_builder),
         active_class_(&flow_graph_builder->active_class_),
-        constant_evaluator_(this),
         type_translator_(this, active_class_, /* finalize= */ true),
+        constant_evaluator_(this,
+                            &type_translator_,
+                            active_class_,
+                            flow_graph_builder),
         current_script_id_(-1),
         record_for_script_id_(-1),
         record_token_positions_into_(NULL),
@@ -223,8 +64,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                            data_program_offset),
         flow_graph_builder_(NULL),
         active_class_(active_class),
-        constant_evaluator_(this),
         type_translator_(this, active_class_, /* finalize= */ true),
+        constant_evaluator_(this, &type_translator_, active_class_, nullptr),
         current_script_id_(-1),
         record_for_script_id_(-1),
         record_token_positions_into_(NULL),
@@ -250,8 +91,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                            data_program_offset),
         flow_graph_builder_(NULL),
         active_class_(active_class),
-        constant_evaluator_(this),
         type_translator_(this, active_class_, /* finalize= */ true),
+        constant_evaluator_(this, &type_translator_, active_class_, nullptr),
         current_script_id_(-1),
         record_for_script_id_(-1),
         record_token_positions_into_(NULL),
@@ -344,7 +185,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   LocalVariable* MakeTemporary();
 
   LocalVariable* LookupVariable(intptr_t kernel_offset);
-  Function& FindMatchingFunctionAnyArgs(const Class& klass, const String& name);
   Function& FindMatchingFunction(const Class& klass,
                                  const String& name,
                                  int type_args_len,
@@ -576,8 +416,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
 
   FlowGraphBuilder* flow_graph_builder_;
   ActiveClass* const active_class_;
-  StreamingConstantEvaluator constant_evaluator_;
   TypeTranslator type_translator_;
+  ConstantEvaluator constant_evaluator_;
   intptr_t current_script_id_;
   intptr_t record_for_script_id_;
   GrowableArray<intptr_t>* record_token_positions_into_;
@@ -589,76 +429,9 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
   ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper_;
 
-  friend class ConstantHelper;
   friend class KernelLoader;
-  friend class SimpleExpressionConverter;
-  friend class StreamingConstantEvaluator;
-};
 
-// Helper class that reads a kernel Constant from binary.
-class ConstantHelper {
- public:
-  ConstantHelper(ActiveClass* active_class,
-                 StreamingFlowGraphBuilder* builder,
-                 TypeTranslator* type_translator,
-                 TranslationHelper* translation_helper,
-                 Zone* zone,
-                 NameIndex skip_vmservice_library)
-      : skip_vmservice_library_(skip_vmservice_library),
-        active_class_(active_class),
-        builder_(*builder),
-        type_translator_(*type_translator),
-        const_evaluator_(&builder_),
-        translation_helper_(*translation_helper),
-        zone_(zone),
-        temp_type_(AbstractType::Handle(zone)),
-        temp_type_arguments_(TypeArguments::Handle(zone)),
-        temp_type_arguments2_(TypeArguments::Handle(zone)),
-        temp_type_arguments3_(TypeArguments::Handle(zone)),
-        temp_object_(Object::Handle(zone)),
-        temp_array_(Array::Handle(zone)),
-        temp_instance_(Instance::Handle(zone)),
-        temp_field_(Field::Handle(zone)),
-        temp_class_(Class::Handle(zone)),
-        temp_function_(Function::Handle(zone)),
-        temp_closure_(Closure::Handle(zone)),
-        temp_context_(Context::Handle(zone)),
-        temp_integer_(Integer::Handle(zone)) {}
-
-  // Reads the constant table from the binary.
-  //
-  // This method assumes the Reader is positioned already at the constant table
-  // and an active class scope is setup.
-  const Array& ReadConstantTable();
-
- private:
-  void InstantiateTypeArguments(const Class& receiver_class,
-                                TypeArguments* type_arguments);
-
-  // If [index] has `dart:vm_service` as a parent and we are skipping the VM
-  // service library, this method returns `true`, otherwise `false`.
-  bool ShouldSkipConstant(NameIndex index);
-
-  NameIndex skip_vmservice_library_;
-  ActiveClass* const active_class_;
-  StreamingFlowGraphBuilder& builder_;
-  TypeTranslator& type_translator_;
-  StreamingConstantEvaluator const_evaluator_;
-  TranslationHelper translation_helper_;
-  Zone* zone_;
-  AbstractType& temp_type_;
-  TypeArguments& temp_type_arguments_;
-  TypeArguments& temp_type_arguments2_;
-  TypeArguments& temp_type_arguments3_;
-  Object& temp_object_;
-  Array& temp_array_;
-  Instance& temp_instance_;
-  Field& temp_field_;
-  Class& temp_class_;
-  Function& temp_function_;
-  Closure& temp_closure_;
-  Context& temp_context_;
-  Integer& temp_integer_;
+  DISALLOW_COPY_AND_ASSIGN(StreamingFlowGraphBuilder);
 };
 
 }  // namespace kernel

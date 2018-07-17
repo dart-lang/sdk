@@ -43,6 +43,7 @@ main() async {
   }
   print(error);
   Expect.isTrue(error.toString().contains("Cannot open file") ||
+      error.toString().contains("file not found") ||
       error.toString().contains("No such file or directory") ||
       error.toString().contains("The system cannot find the file specified"));
   Expect.isTrue(error.toString().contains("DOES_NOT_EXIST"));

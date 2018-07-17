@@ -204,10 +204,8 @@ class DartUtils {
   static Dart_Handle NewError(const char* format, ...);
   static Dart_Handle NewInternalError(const char* message);
 
-  static Dart_Handle BuiltinLib() {
-    IsolateData* isolate_data =
-        reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
-    return isolate_data->builtin_lib();
+  static Dart_Handle LookupBuiltinLib() {
+    return Dart_LookupLibrary(NewString(kBuiltinLibURL));
   }
 
   static bool SetOriginalWorkingDirectory();

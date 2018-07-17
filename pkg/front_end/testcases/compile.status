@@ -117,6 +117,8 @@ runtime_checks_new/mixin_forwarding_stub_field: RuntimeError # Test exercises st
 runtime_checks_new/mixin_forwarding_stub_getter: RuntimeError # Test exercises strong mode semantics
 runtime_checks_new/mixin_forwarding_stub_setter: RuntimeError # Test exercises strong mode semantics
 runtime_checks_new/stub_checked_via_target: RuntimeError # Test exercises strong mode semantics
+constructor_const_inference: RuntimeError # Test exercises strong mode semantics.  See also Issue #33813.
+redirecting_factory_const_inference: RuntimeError # Test exercises strong mode semantics.  See also Issue #33813.
 
 ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 rasta/duplicated_mixin: RuntimeError # Expected, this file has no main method.

@@ -19,6 +19,10 @@ OSThread* OSThread::thread_list_head_ = NULL;
 Mutex* OSThread::thread_list_lock_ = NULL;
 bool OSThread::creation_enabled_ = false;
 
+#if defined(HAS_C11_THREAD_LOCAL)
+thread_local Thread* OSThread::current_vm_thread_ = NULL;
+#endif
+
 OSThread::OSThread()
     : BaseThread(true),
       id_(OSThread::GetCurrentThreadId()),
@@ -269,8 +273,18 @@ void OSThread::RemoveThreadFromList(OSThread* thread) {
   }
 }
 
-void OSThread::SetCurrent(OSThread* current) {
-  OSThread::SetThreadLocal(thread_key_, reinterpret_cast<uword>(current));
+void OSThread::SetCurrentTLS(BaseThread* value) {
+  // Provides thread-local destructors.
+  SetThreadLocal(thread_key_, reinterpret_cast<uword>(value));
+
+#if defined(HAS_C11_THREAD_LOCAL)
+  // Allows the C compiler more freedom to optimize.
+  if ((value != NULL) && !value->is_os_thread()) {
+    current_vm_thread_ = static_cast<Thread*>(value);
+  } else {
+    current_vm_thread_ = NULL;
+  }
+#endif
 }
 
 OSThreadIterator::OSThreadIterator() {

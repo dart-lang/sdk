@@ -581,7 +581,7 @@ TEST_CASE(DartAPI_PropagateCompileTimeError) {
   EXPECT(Dart_IsError(result));
 
   if (FLAG_use_dart_frontend) {
-    EXPECT_SUBSTRING("Expected ';' before this.", Dart_GetError(result));
+    EXPECT_SUBSTRING("Expected ';' after this.", Dart_GetError(result));
   } else {
     EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
   }
@@ -593,7 +593,7 @@ TEST_CASE(DartAPI_PropagateCompileTimeError) {
   result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
   EXPECT(Dart_IsError(result));
   if (FLAG_use_dart_frontend) {
-    EXPECT_SUBSTRING("Expected ';' before this.", Dart_GetError(result));
+    EXPECT_SUBSTRING("Expected ';' after this.", Dart_GetError(result));
   } else {
     EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
   }
@@ -605,7 +605,7 @@ TEST_CASE(DartAPI_PropagateCompileTimeError) {
   result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
   EXPECT(Dart_IsError(result));
   if (FLAG_use_dart_frontend) {
-    EXPECT_SUBSTRING("Expected ';' before this.", Dart_GetError(result));
+    EXPECT_SUBSTRING("Expected ';' after this.", Dart_GetError(result));
   } else {
     EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
   }
@@ -6853,7 +6853,7 @@ TEST_CASE(DartAPI_Multiroot_FailWhenUriIsWrong) {
       "foo1:///main.dart",
       /* multiroot_filepaths= */ "/bar,/baz",
       /* multiroot_scheme= */ "foo");
-  EXPECT_ERROR(lib, "Compilation failed foo1");
+  EXPECT_ERROR(lib, "Compilation failed FileSystemException(uri=foo1:");
 }
 
 void NewNativePort_send123(Dart_Port dest_port_id, Dart_CObject* message) {

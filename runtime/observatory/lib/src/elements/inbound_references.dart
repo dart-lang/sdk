@@ -38,7 +38,7 @@ class InboundReferencesElement extends HtmlElement implements Renderable {
     assert(references != null);
     assert(objects != null);
     InboundReferencesElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<InboundReferencesElement>(e, queue: queue);
     e._isolate = isolate;
     e._object = object;
     e._references = references;
@@ -57,7 +57,7 @@ class InboundReferencesElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
@@ -73,7 +73,7 @@ class InboundReferencesElement extends HtmlElement implements Renderable {
               e.control.disabled = false;
             }
           });
-    children = [curlyBlock];
+    children = <Element>[curlyBlock];
     _r.waitFor([curlyBlock.onRendered.first]);
   }
 
@@ -86,7 +86,7 @@ class InboundReferencesElement extends HtmlElement implements Renderable {
     if (_inbounds == null) {
       return const [];
     }
-    return _inbounds.elements.map(_createItem).toList();
+    return _inbounds.elements.map<Element>(_createItem).toList();
   }
 
   Element _createItem(M.InboundReference reference) {

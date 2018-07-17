@@ -13,8 +13,9 @@
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
-#include "vm/compiler/frontend/kernel_binary_flowgraph.h"
+#include "vm/compiler/frontend/kernel_fingerprints.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
+#include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/intrinsifier.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/compiler_stats.h"
@@ -3809,12 +3810,13 @@ TokenPosition Class::ComputeEndTokenPos() const {
     ASSERT(library_kernel_offset > 0);
     const intptr_t class_offset = kernel_offset();
 
-    kernel::TranslationHelper helper(thread);
-    helper.InitFromScript(scr);
-    kernel::StreamingFlowGraphBuilder builder_(&helper, scr, zone, kernel_data,
-                                               0, /* active_class = */ NULL);
-    builder_.SetOffset(class_offset);
-    kernel::ClassHelper class_helper(&builder_);
+    kernel::TranslationHelper translation_helper(thread);
+    translation_helper.InitFromScript(scr);
+
+    kernel::KernelReaderHelper kernel_reader_helper(zone, &translation_helper,
+                                                    scr, kernel_data, 0);
+    kernel_reader_helper.SetOffset(class_offset);
+    kernel::ClassHelper class_helper(&kernel_reader_helper);
     class_helper.ReadUntilIncluding(kernel::ClassHelper::kEndPosition);
     if (class_helper.end_position_.IsReal()) return class_helper.end_position_;
 
@@ -7423,27 +7425,27 @@ RawFunction* Function::ImplicitClosureFunction() const {
   if (thread->isolate()->strong() && !is_static() && kernel_offset() > 0) {
     const Script& function_script = Script::Handle(zone, script());
     kernel::TranslationHelper translation_helper(thread);
-    kernel::StreamingFlowGraphBuilder builder(
-        &translation_helper, function_script, zone,
-        ExternalTypedData::Handle(zone, KernelData()),
-        KernelDataProgramOffset(),
-        /* active_class = */ NULL);
     translation_helper.InitFromScript(function_script);
-    builder.SetOffset(kernel_offset());
 
-    builder.ReadUntilFunctionNode();
+    kernel::KernelReaderHelper kernel_reader_helper(
+        zone, &translation_helper, function_script,
+        ExternalTypedData::Handle(zone, KernelData()),
+        KernelDataProgramOffset());
 
-    kernel::FunctionNodeHelper fn_helper(&builder);
+    kernel_reader_helper.SetOffset(kernel_offset());
+    kernel_reader_helper.ReadUntilFunctionNode();
+
+    kernel::FunctionNodeHelper fn_helper(&kernel_reader_helper);
 
     // Check the positional parameters, including the optional positional ones.
     fn_helper.ReadUntilExcluding(
         kernel::FunctionNodeHelper::kPositionalParameters);
-    intptr_t num_pos_params = builder.ReadListLength();
+    intptr_t num_pos_params = kernel_reader_helper.ReadListLength();
     ASSERT(num_pos_params ==
            num_fixed_params - 1 + (has_opt_pos_params ? num_opt_params : 0));
     const Type& object_type = Type::Handle(zone, Type::ObjectType());
     for (intptr_t i = 0; i < num_pos_params; ++i) {
-      kernel::VariableDeclarationHelper var_helper(&builder);
+      kernel::VariableDeclarationHelper var_helper(&kernel_reader_helper);
       var_helper.ReadUntilExcluding(kernel::VariableDeclarationHelper::kEnd);
       if (var_helper.IsCovariant() || var_helper.IsGenericCovariantImpl()) {
         closure_function.SetParameterTypeAt(i + 1, object_type);
@@ -7453,10 +7455,10 @@ RawFunction* Function::ImplicitClosureFunction() const {
 
     // Check the optional named parameters.
     fn_helper.ReadUntilExcluding(kernel::FunctionNodeHelper::kNamedParameters);
-    intptr_t num_named_params = builder.ReadListLength();
+    intptr_t num_named_params = kernel_reader_helper.ReadListLength();
     ASSERT(num_named_params == (has_opt_pos_params ? 0 : num_opt_params));
     for (intptr_t i = 0; i < num_named_params; ++i) {
-      kernel::VariableDeclarationHelper var_helper(&builder);
+      kernel::VariableDeclarationHelper var_helper(&kernel_reader_helper);
       var_helper.ReadUntilExcluding(kernel::VariableDeclarationHelper::kEnd);
       if (var_helper.IsCovariant() || var_helper.IsGenericCovariantImpl()) {
         closure_function.SetParameterTypeAt(num_pos_params + 1 + i,
@@ -8314,7 +8316,11 @@ RawScript* Field::Script() const {
 
 RawExternalTypedData* Field::KernelData() const {
   const Object& obj = Object::Handle(this->raw_ptr()->owner_);
-  if (obj.IsClass()) {
+  // During background JIT compilation field objects are copied
+  // and copy points to the original field via the owner field.
+  if (obj.IsField()) {
+    return Field::Cast(obj).KernelData();
+  } else if (obj.IsClass()) {
     Library& library = Library::Handle(Class::Cast(obj).library());
     return library.kernel_data();
   }
@@ -8324,13 +8330,38 @@ RawExternalTypedData* Field::KernelData() const {
 
 intptr_t Field::KernelDataProgramOffset() const {
   const Object& obj = Object::Handle(raw_ptr()->owner_);
-  if (obj.IsClass()) {
+  // During background JIT compilation field objects are copied
+  // and copy points to the original field via the owner field.
+  if (obj.IsField()) {
+    return Field::Cast(obj).KernelDataProgramOffset();
+  } else if (obj.IsClass()) {
     Library& lib = Library::Handle(Class::Cast(obj).library());
     return lib.kernel_offset();
   }
   ASSERT(obj.IsPatchClass());
   return PatchClass::Cast(obj).library_kernel_offset();
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+void Field::GetCovarianceAttributes(bool* is_covariant,
+                                    bool* is_generic_covariant) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = Thread::Current()->zone();
+  auto& script = Script::Handle(zone, Script());
+
+  kernel::TranslationHelper translation_helper(thread);
+  translation_helper.InitFromScript(script);
+
+  kernel::KernelReaderHelper kernel_reader_helper(
+      zone, &translation_helper, script,
+      ExternalTypedData::Handle(zone, KernelData()), KernelDataProgramOffset());
+  kernel_reader_helper.SetOffset(kernel_offset());
+  kernel::FieldHelper field_helper(&kernel_reader_helper);
+  field_helper.ReadUntilIncluding(kernel::FieldHelper::kFlags);
+  *is_covariant = field_helper.IsCovariant();
+  *is_generic_covariant = field_helper.IsGenericCovariantImpl();
+}
+#endif
 
 // Called at finalization time
 void Field::SetFieldType(const AbstractType& value) const {
@@ -15025,8 +15056,6 @@ RawCode* Code::FinalizeBytecode(const void* bytecode_data,
   code.SetPrologueOffset(bytecode_size);  // TODO(regis): Correct?
   INC_STAT(Thread::Current(), total_code_size,
            code.comments().comments_.Length());
-  // TODO(regis): Until we support exception handling.
-  code.set_exception_handlers(Object::empty_exception_handlers());
   return code.raw();
 }
 #endif  // defined(DART_USE_INTERPRETER)

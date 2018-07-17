@@ -25,9 +25,9 @@
 //   )
 //   ^
 //
-// pkg/front_end/testcases/regress/issue_29976.dart:9:1: Error: Expected ';' before this.
-// }
-// ^
+// pkg/front_end/testcases/regress/issue_29976.dart:8:3: Error: Expected ';' after this.
+//   )
+//   ^
 
 library;
 import self as self;

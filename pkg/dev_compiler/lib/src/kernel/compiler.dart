@@ -4839,8 +4839,7 @@ class ProgramCompiler extends Object
 
     // Convert `function(...) { ... }` to `(...) => ...`
     // This is for readability, but it also ensures correct `this` binding.
-    return JS.ArrowFun(f.params, body,
-        typeParams: f.typeParams, returnType: f.returnType);
+    return JS.ArrowFun(f.params, body);
   }
 
   @override

@@ -29,6 +29,8 @@ class BuildingTranslationHelper : public TranslationHelper {
 
  private:
   KernelLoader* loader_;
+
+  DISALLOW_COPY_AND_ASSIGN(BuildingTranslationHelper);
 };
 
 template <typename VmType>
@@ -318,6 +320,8 @@ class KernelLoader : public ValueObject {
 
   GrowableArray<const Function*> functions_;
   GrowableArray<const Field*> fields_;
+
+  DISALLOW_COPY_AND_ASSIGN(KernelLoader);
 };
 
 }  // namespace kernel

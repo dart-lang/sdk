@@ -598,6 +598,20 @@ class Expect {
     _fail("Test error: $message");
   }
 
+  /// Checks that [object] has type [T].
+  static void type<T>(Object object, [String reason]) {
+    if (object is T) return;
+    String msg = _getMessage(reason);
+    _fail("Expect.type($object is $T$msg) fails, was ${object.runtimeType}");
+  }
+
+  /// Checks that [object] does not have type [T].
+  static void notType<T>(Object object, [String reason]) {
+    if (object is! T) return;
+    String msg = _getMessage(reason);
+    _fail("Expect.type($object is! $T$msg) fails, was ${object.runtimeType}");
+  }
+
   static String _getMessage(String reason) =>
       (reason == null) ? "" : ", '$reason'";
 

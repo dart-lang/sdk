@@ -5,8 +5,6 @@
 #ifndef RUNTIME_VM_KERNEL_ISOLATE_H_
 #define RUNTIME_VM_KERNEL_ISOLATE_H_
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 
@@ -30,6 +28,7 @@ class KernelIsolate : public AllStatic {
   static const int kNotifyIsolateShutdown;
 
   static void Run();
+  static void Shutdown();
 
   static bool NameEquals(const char* name);
   static bool Exists();
@@ -88,7 +87,5 @@ class KernelIsolate : public AllStatic {
 };
 
 }  // namespace dart
-
-#endif  // DART_PRECOMPILED_RUNTIME
 
 #endif  // RUNTIME_VM_KERNEL_ISOLATE_H_

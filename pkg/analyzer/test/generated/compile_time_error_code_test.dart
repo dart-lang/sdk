@@ -585,16 +585,6 @@ class B {
     verify([source]);
   }
 
-  test_builtInIdentifierAsType_dynamicMissingPrefix() async {
-    Source source = addSource(r"""
-import 'dart:core' as core;
-
-dynamic x;
-""");
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
-  }
-
   test_builtInIdentifierAsMixinName_classTypeAlias() async {
     Source source = addSource(r'''
 class A {}
@@ -619,6 +609,16 @@ class as = A with B;''');
       HintCode.UNUSED_IMPORT
     ]);
     verify([source]);
+  }
+
+  test_builtInIdentifierAsType_dynamicMissingPrefix() async {
+    Source source = addSource(r"""
+import 'dart:core' as core;
+
+dynamic x;
+""");
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
   }
 
   test_builtInIdentifierAsType_formalParameter_field() async {
@@ -731,7 +731,13 @@ class A {
 }''');
     await computeAnalysisResult(source);
     assertErrors(
-        source, [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD]);
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.CONFLICTS_WITH_CONSTRUCTOR,
+                CompileTimeErrorCode.CONFLICTS_WITH_MEMBER
+              ]
+            : [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD]);
     verify([source]);
   }
 
@@ -743,7 +749,13 @@ class A {
 }''');
     await computeAnalysisResult(source);
     assertErrors(
-        source, [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD]);
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.CONFLICTS_WITH_CONSTRUCTOR,
+                CompileTimeErrorCode.CONFLICTS_WITH_MEMBER
+              ]
+            : [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD]);
     verify([source]);
   }
 
@@ -755,7 +767,13 @@ class A {
 }''');
     await computeAnalysisResult(source);
     assertErrors(
-        source, [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD]);
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.CONFLICTS_WITH_CONSTRUCTOR,
+                CompileTimeErrorCode.CONFLICTS_WITH_MEMBER
+              ]
+            : [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD]);
     verify([source]);
   }
 
@@ -818,7 +836,11 @@ class B extends A {
   m() {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.DECLARED_MEMBER_CONFLICTS_WITH_INHERITED]
+            : [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
     verify([source]);
   }
 
@@ -831,7 +853,11 @@ class B extends A {
   m() {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.DECLARED_MEMBER_CONFLICTS_WITH_INHERITED]
+            : [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
     verify([source]);
   }
 
@@ -844,7 +870,11 @@ class B extends A {
   int m;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.DECLARED_MEMBER_CONFLICTS_WITH_INHERITED]
+            : [CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER]);
     verify([source]);
   }
 
@@ -857,7 +887,11 @@ class B extends A {
   get m => 0;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.DECLARED_MEMBER_CONFLICTS_WITH_INHERITED]
+            : [CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER]);
     verify([source]);
   }
 
@@ -2515,8 +2549,13 @@ class A {
   A() : x = 0, x = 1 {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES]
+            : [
+                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
+              ]);
     verify([source]);
   }
 
@@ -2527,10 +2566,17 @@ class A {
   A() : x = 0, x = 1, x = 2 {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
-      CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES,
+                CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES
+              ]
+            : [
+                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
+                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
+              ]);
     verify([source]);
   }
 
@@ -2542,10 +2588,17 @@ class A {
   A() : x = 0, x = 1, y = 0, y = 1 {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
-      CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES,
+                CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES
+              ]
+            : [
+                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
+                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
+              ]);
     verify([source]);
   }
 
@@ -2556,8 +2609,14 @@ class A {
   A(this.x) : x = 1 {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES]
+            : [
+                CompileTimeErrorCode
+                    .FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER
+              ]);
     verify([source]);
   }
 
@@ -2658,8 +2717,13 @@ class A {
   A() : x = 0, x = 0 {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES]
+            : [
+                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
+              ]);
     verify([source]);
   }
 
@@ -2678,8 +2742,14 @@ class A {
   A(this.x) : x = 0 {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES]
+            : [
+                CompileTimeErrorCode
+                    .FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER
+              ]);
     verify([source]);
   }
 
@@ -2788,41 +2858,32 @@ main() { f<S Function<S>(S)>(null); }''');
     verify([source]);
   }
 
-  @failingTest
   test_genericFunctionTypeArgument_inference_function() async {
-    // TODO(mfairhurst) how should these inference errors be reported?
     Source source = addSource(r'''
-T f<T>(T) => null;
+T f<T>(T t) => null;
 main() { f(<S>(S s) => s); }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT]);
+    assertErrors(source, [StrongModeCode.COULD_NOT_INFER]);
     verify([source]);
   }
 
-  @failingTest
   test_genericFunctionTypeArgument_inference_functionType() async {
-    // TODO(mfairhurst) how should these inference errors be reported?
     Source source = addSource(r'''
 T Function<T>(T) f;
 main() { f(<S>(S s) => s); }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT]);
+    assertErrors(source, [StrongModeCode.COULD_NOT_INFER]);
     verify([source]);
   }
 
-  @failingTest
   test_genericFunctionTypeArgument_inference_method() async {
-    // TODO(mfairhurst) how should these inference errors be reported?
     Source source = addSource(r'''
 class C {
-  T f<T>(T) => null;
+  T f<T>(T t) => null;
 }
 main() { new C().f(<S>(S s) => s); }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT]);
+    assertErrors(source, [StrongModeCode.COULD_NOT_INFER]);
     verify([source]);
   }
 

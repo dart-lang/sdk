@@ -57,7 +57,7 @@ class MemoryProfileElement extends HtmlElement implements Renderable {
     assert(snapshots != null);
     assert(objects != null);
     MemoryProfileElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<MemoryProfileElement>(e, queue: queue);
     e._isolate = isolate;
     e._editor = editor;
     e._allocations = allocations;
@@ -78,7 +78,7 @@ class MemoryProfileElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
@@ -103,10 +103,10 @@ class MemoryProfileElement extends HtmlElement implements Renderable {
 
     final ButtonElement bReload = new ButtonElement();
     final ButtonElement bGC = new ButtonElement();
-    children = [
+    children = <Element>[
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h1()
             ..nodes = [
               new Text(_isolate.name),
@@ -134,7 +134,7 @@ class MemoryProfileElement extends HtmlElement implements Renderable {
                 }),
               new SpanElement()
                 ..classes = ['tab_buttons']
-                ..children = [
+                ..children = <Element>[
                   new ButtonElement()
                     ..text = 'Allocations'
                     ..disabled = _analysis == _Analysis.allocations

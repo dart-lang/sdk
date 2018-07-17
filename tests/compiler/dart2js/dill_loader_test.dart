@@ -4,17 +4,18 @@
 
 import 'memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/elements/entities.dart'
     show LibraryEntity, ClassEntity;
-import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
-import "package:expect/expect.dart";
-import 'package:front_end/src/api_prototype/front_end.dart';
-import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
 import 'package:compiler/src/kernel/dart2js_target.dart';
-import 'package:kernel/target/targets.dart' show TargetFlags;
+import 'package:compiler/src/library_loader.dart';
+import 'package:expect/expect.dart';
+import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
+import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
+import 'package:kernel/target/targets.dart' show TargetFlags;
 
 /// Test that the compiler can successfully read in .dill kernel files rather
 /// than just string source files.
@@ -43,7 +44,9 @@ main() {
         diagnosticHandler: diagnostics,
         outputProvider: output);
     await compiler.setupSdk();
-    await compiler.libraryLoader.loadLibrary(entryPoint);
+    LoadedLibraries loadedLibraries =
+        await compiler.libraryLoader.loadLibraries(entryPoint);
+    compiler.frontendStrategy.registerLoadedLibraries(loadedLibraries);
 
     Expect.equals(0, diagnostics.errors.length);
     Expect.equals(0, diagnostics.warnings.length);
