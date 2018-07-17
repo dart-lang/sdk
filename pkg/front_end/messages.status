@@ -10,7 +10,6 @@ AbstractRedirectedClassInstantiation/analyzerCode: Fail
 AbstractRedirectedClassInstantiation/example: Fail
 AccessError/analyzerCode: Fail
 AccessError/example: Fail
-AmbiguousSupertypes/analyzerCode: Fail
 AmbiguousSupertypes/example: Fail
 AnnotationOnEnumConstant/example: Fail
 ArgumentTypeNotAssignable/example: Fail

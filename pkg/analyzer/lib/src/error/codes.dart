@@ -195,6 +195,9 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try removing the export of one of the libraries, or "
               "explicitly hiding the name in one of the export directives.");
 
+  static const CompileTimeErrorCode AMBIGUOUS_SUPERTYPES =
+      const CompileTimeErrorCode.fromFasta('AMBIGUOUS_SUPERTYPES');
+
   /**
    * 15 Metadata: The constant expression given in an annotation is type checked
    * and evaluated in the scope surrounding the declaration being annotated.

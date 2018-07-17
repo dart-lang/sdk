@@ -64,6 +64,7 @@ const List<ErrorCode> errorCodeValues = const [
   CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
   CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD,
   CompileTimeErrorCode.AMBIGUOUS_EXPORT,
+  CompileTimeErrorCode.AMBIGUOUS_SUPERTYPES,
   CompileTimeErrorCode.ANNOTATION_WITH_NON_CLASS,
   CompileTimeErrorCode.ARGUMENT_DEFINITION_TEST_NON_PARAMETER,
   CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT,

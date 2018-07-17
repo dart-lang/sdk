@@ -2449,6 +2449,8 @@ CantInferTypeDueToCircularity:
 AmbiguousSupertypes:
   template: "'#name' can't implement both '#type' and '#type2'"
   severity: ERROR
+  analyzerCode: AMBIGUOUS_SUPERTYPES
+  dart2jsCode: "*fatal*"
 
 CantUseSuperBoundedTypeForInstanceCreation:
   template: "Can't use a super-bounded type for instance creation. Got '#type'."
