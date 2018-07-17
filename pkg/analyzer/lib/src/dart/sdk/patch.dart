@@ -34,6 +34,7 @@ class SdkPatcher {
       AnalysisErrorListener errorListener,
       Source source,
       CompilationUnit unit) {
+    // TODO(brianwilkerson) Remove the 'strongMode' parameter.
     // Process URI.
     String libraryUriStr;
     bool isLibraryDefiningUnit;

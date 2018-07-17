@@ -712,10 +712,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   bool get hasBeenInferred {
-    if (_unlinkedClass != null) {
-      return context.analysisOptions.strongMode;
-    }
-    return _hasBeenInferred;
+    return _unlinkedClass != null || _hasBeenInferred;
   }
 
   void set hasBeenInferred(bool hasBeenInferred) {
@@ -765,10 +762,8 @@ class ClassElementImpl extends AbstractClassElementImpl
    * Specification (section 10.4).
    */
   bool get hasNoSuchMethod {
-    MethodElement method = context.analysisOptions.strongMode
-        ? lookUpConcreteMethod(
-            FunctionElement.NO_SUCH_METHOD_METHOD_NAME, library)
-        : lookUpMethod(FunctionElement.NO_SUCH_METHOD_METHOD_NAME, library);
+    MethodElement method = lookUpConcreteMethod(
+        FunctionElement.NO_SUCH_METHOD_METHOD_NAME, library);
     ClassElement definingClass = method?.enclosingElement;
     return definingClass != null && !definingClass.type.isObject;
   }
@@ -4422,8 +4417,7 @@ abstract class ExecutableElementImpl extends ElementImpl
           .resolveLinkedType(this, serializedExecutable.inferredReturnTypeSlot);
       _declaredReturnType = enclosingUnit.resynthesizerContext.resolveTypeRef(
           this, serializedExecutable.returnType,
-          defaultVoid: isSetter && context.analysisOptions.strongMode,
-          declaredType: true);
+          defaultVoid: isSetter, declaredType: true);
     }
     return _returnType ?? _declaredReturnType;
   }

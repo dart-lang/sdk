@@ -2227,9 +2227,8 @@ class ComputeLibraryCycleTask extends SourceBasedAnalysisTask {
     // and the invalidation code (invalidateLibraryCycles) will ensure that
     // element model results will be re-used here only if they are still valid.
     LibraryElement library = getRequiredInput(LIBRARY_ELEMENT_INPUT);
-    if (context.analysisOptions.strongMode &&
-        !LibraryElementImpl.hasResolutionCapability(
-            library, LibraryResolutionCapability.resolvedTypeNames)) {
+    if (!LibraryElementImpl.hasResolutionCapability(
+        library, LibraryResolutionCapability.resolvedTypeNames)) {
       List<LibraryElement> component = library.libraryCycle;
       Set<LibraryElement> filter = component.toSet();
       Set<CompilationUnitElement> deps = new Set<CompilationUnitElement>();
@@ -3149,14 +3148,12 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
     //
     // Infer instance members.
     //
-    if (context.analysisOptions.strongMode) {
-      var inheritanceManager = new InheritanceManager(
-          resolutionMap.elementDeclaredByCompilationUnit(unit).library);
-      InstanceMemberInferrer inferrer = new InstanceMemberInferrer(
-          typeProvider, (_) => inheritanceManager,
-          typeSystem: context.typeSystem);
-      inferrer.inferCompilationUnit(unit.element);
-    }
+    var inheritanceManager = new InheritanceManager(
+        resolutionMap.elementDeclaredByCompilationUnit(unit).library);
+    InstanceMemberInferrer inferrer = new InstanceMemberInferrer(
+        typeProvider, (_) => inheritanceManager,
+        typeSystem: context.typeSystem);
+    inferrer.inferCompilationUnit(unit.element);
     //
     // Record outputs.
     //
@@ -3763,7 +3760,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
         new Parser(_source, errorListener, useFasta: options.useFastaParser);
     parser.parseFunctionBodies =
         options.analyzeFunctionBodiesPredicate(_source);
-    parser.parseGenericMethodComments = options.strongMode;
+    parser.parseGenericMethodComments = true;
     parser.enableOptionalNewAndConst = options.previewDart2;
     CompilationUnit unit = parser.parseCompilationUnit(tokenStream);
     unit.lineInfo = lineInfo;
@@ -3772,13 +3769,8 @@ class ParseDartTask extends SourceBasedAnalysisTask {
       var resourceProvider =
           (context.sourceFactory.dartSdk as FolderBasedDartSdk)
               .resourceProvider;
-      new SdkPatcher().patch(
-          resourceProvider,
-          context.analysisOptions.strongMode,
-          context.analysisOptions.patchPaths,
-          errorListener,
-          _source,
-          unit);
+      new SdkPatcher().patch(resourceProvider, true,
+          context.analysisOptions.patchPaths, errorListener, _source, unit);
     }
 
     bool hasNonPartOfDirective = false;
@@ -4036,11 +4028,7 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
     //
     // Record outputs.
     //
-    if (context.analysisOptions.strongMode) {
-      outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT] = visitor.staticVariables;
-    } else {
-      outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT] = VariableElement.EMPTY_LIST;
-    }
+    outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT] = visitor.staticVariables;
     outputs[RESOLVED_UNIT7] = unit;
     outputs[CREATED_RESOLVED_UNIT7] = true;
   }
@@ -4565,17 +4553,15 @@ class ResolveInstanceFieldsInUnitTask extends SourceBasedAnalysisTask {
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
 
     CompilationUnitElement unitElement = unit.element;
-    if (context.analysisOptions.strongMode) {
-      //
-      // Resolve references.
-      //
-      InstanceFieldResolverVisitor visitor = new InstanceFieldResolverVisitor(
-          libraryElement,
-          unitElement.source,
-          typeProvider,
-          AnalysisErrorListener.NULL_LISTENER);
-      visitor.resolveCompilationUnit(unit);
-    }
+    //
+    // Resolve references.
+    //
+    InstanceFieldResolverVisitor visitor = new InstanceFieldResolverVisitor(
+        libraryElement,
+        unitElement.source,
+        typeProvider,
+        AnalysisErrorListener.NULL_LISTENER);
+    visitor.resolveCompilationUnit(unit);
     //
     // Record outputs.
     //
@@ -5330,7 +5316,7 @@ class ScanDartTask extends SourceBasedAnalysisTask {
           errorListener);
       scanner.setSourceStart(fragment.line, fragment.column);
       scanner.preserveComments = context.analysisOptions.preserveComments;
-      scanner.scanGenericMethodComments = context.analysisOptions.strongMode;
+      scanner.scanGenericMethodComments = true;
       scanner.scanLazyAssignmentOperators =
           context.analysisOptions.enableLazyAssignmentOperators;
 
@@ -5347,7 +5333,7 @@ class ScanDartTask extends SourceBasedAnalysisTask {
       Scanner scanner =
           new Scanner(source, new CharSequenceReader(content), errorListener);
       scanner.preserveComments = context.analysisOptions.preserveComments;
-      scanner.scanGenericMethodComments = context.analysisOptions.strongMode;
+      scanner.scanGenericMethodComments = true;
       scanner.scanLazyAssignmentOperators =
           context.analysisOptions.enableLazyAssignmentOperators;
 

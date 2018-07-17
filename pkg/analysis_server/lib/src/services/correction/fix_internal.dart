@@ -268,11 +268,7 @@ class FixProcessor {
 
   TypeSystem get typeSystem {
     if (_typeSystem == null) {
-      if (driver.analysisOptions.strongMode) {
-        _typeSystem = new StrongTypeSystemImpl(typeProvider);
-      } else {
-        _typeSystem = new TypeSystemImpl(typeProvider);
-      }
+      _typeSystem = new StrongTypeSystemImpl(typeProvider);
     }
     return _typeSystem;
   }
@@ -1910,7 +1906,6 @@ class FixProcessor {
     ClassElement targetClassElement = targetClass.element;
     utils.targetClassElement = targetClassElement;
     List<ExecutableElement> elements = ErrorVerifier.computeMissingOverrides(
-            driver.analysisOptions.strongMode,
             typeProvider,
             typeSystem,
             new InheritanceManager(unitLibraryElement),

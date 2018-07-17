@@ -25,6 +25,9 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
  * implement [sdkLibraries], [sdkVersion], [uris] and [fromFileUri].
  */
 class SummaryBasedDartSdk implements DartSdk {
+  /**
+   * TODO(brianwilkerson) Remove this field.
+   */
   final bool strongMode;
   SummaryDataStore _dataStore;
   InSummaryUriResolver _uriResolver;

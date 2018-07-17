@@ -1096,14 +1096,7 @@ class Function {}
 class A extends Function {}
 ''');
     await computeAnalysisResult(source);
-    if (analysisOptions.strongMode) {
-      assertErrors(source, [HintCode.DEPRECATED_EXTENDS_FUNCTION]);
-    } else {
-      assertErrors(source, [
-        HintCode.DEPRECATED_EXTENDS_FUNCTION,
-        StaticWarningCode.FUNCTION_WITHOUT_CALL
-      ]);
-    }
+    assertErrors(source, [HintCode.DEPRECATED_EXTENDS_FUNCTION]);
     verify([source]);
   }
 
@@ -1125,14 +1118,7 @@ class A extends Function {}
 class A extends Object with Function {}
 ''');
     await computeAnalysisResult(source);
-    if (analysisOptions.strongMode) {
-      assertErrors(source, [HintCode.DEPRECATED_MIXIN_FUNCTION]);
-    } else {
-      assertErrors(source, [
-        HintCode.DEPRECATED_MIXIN_FUNCTION,
-        StaticWarningCode.FUNCTION_WITHOUT_CALL
-      ]);
-    }
+    assertErrors(source, [HintCode.DEPRECATED_MIXIN_FUNCTION]);
     verify([source]);
   }
 

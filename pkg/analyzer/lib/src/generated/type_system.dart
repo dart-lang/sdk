@@ -2148,6 +2148,8 @@ abstract class TypeSystem {
  * Implementation of [TypeSystem] using the rules in the Dart specification.
  */
 class TypeSystemImpl extends TypeSystem {
+  // TODO(brianwilkerson) Remove this class and update references to it to use
+  // StrongTypeSystemImpl.
   final TypeProvider typeProvider;
 
   TypeSystemImpl(this.typeProvider);

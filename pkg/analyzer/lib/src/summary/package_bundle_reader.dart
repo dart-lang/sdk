@@ -317,8 +317,8 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
    * Subclasses must call this method in their constructors.
    */
   void createResynthesizer() {
-    _resynthesizer = new StoreBasedSummaryResynthesizer(context,
-        context.sourceFactory, context.analysisOptions.strongMode, _dataStore);
+    _resynthesizer = new StoreBasedSummaryResynthesizer(
+        context, context.sourceFactory, true, _dataStore);
   }
 
   /**

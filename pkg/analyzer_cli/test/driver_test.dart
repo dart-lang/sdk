@@ -913,15 +913,6 @@ class OptionsTest extends BaseTest {
     expect(analysisOptions.enableSuperMixins, isTrue);
   }
 
-  test_basic_strongMode() async {
-    await _driveBasic();
-    expect(analysisOptions.strongMode, isTrue);
-    // https://github.com/dart-lang/sdk/issues/26129
-    AnalysisContext sdkContext =
-        driver.analysisDriver.sourceFactory.dartSdk.context;
-    expect(sdkContext.analysisOptions.strongMode, isTrue);
-  }
-
   test_includeDirective() async {
     String testDir = path.join(
         testDirectory, 'data', 'options_include_directive_tests_project');
@@ -945,13 +936,6 @@ class OptionsTest extends BaseTest {
     await drive('data/options_tests_project/test_file.dart',
         args: ['--preview-dart-2']);
     expect(analysisOptions.useFastaParser, isFalse);
-  }
-
-  test_strongSdk() async {
-    String testDir = path.join(testDirectory, 'data', 'strong_sdk');
-    await drive(path.join(testDir, 'main.dart'));
-    expect(analysisOptions.strongMode, isTrue);
-    expect(outSink.toString(), contains('No issues found'));
   }
 
   test_todo() async {
@@ -1038,10 +1022,6 @@ class OptionsTest_UseCFE extends OptionsTest {
   @override
   @failingTest
   test_basic_language() => callFailingTest(super.test_basic_language);
-
-  @override
-  @failingTest
-  test_basic_strongMode() => callFailingTest(super.test_basic_strongMode);
 
   @override
   @failingTest

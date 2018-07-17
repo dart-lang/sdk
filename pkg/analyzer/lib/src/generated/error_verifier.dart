@@ -3983,6 +3983,19 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  void _checkForGenericFunctionType(TypeAnnotation node) {
+    if (node == null) {
+      return;
+    }
+    DartType type = node.type;
+    if (type is FunctionType && type.typeFormals.isNotEmpty) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND,
+          node,
+          [type]);
+    }
+  }
+
   /**
    * If the current function is async, async*, or sync*, verify that its
    * declared return type is assignable to Future, Stream, or Iterable,
@@ -4182,19 +4195,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         type.typeArguments.any((t) => t.isDynamic)) {
       _errorReporter.reportErrorForNode(
           StrongModeCode.IMPLICIT_DYNAMIC_TYPE, node, [type]);
-    }
-  }
-
-  void _checkForGenericFunctionType(TypeAnnotation node) {
-    if (node == null) {
-      return;
-    }
-    DartType type = node.type;
-    if (type is FunctionType && type.typeFormals.isNotEmpty) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND,
-          node,
-          [type]);
     }
   }
 
@@ -5198,11 +5198,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
 
     Set<ExecutableElement> missingOverrides = computeMissingOverrides(
-        _options.strongMode,
-        _typeProvider,
-        _typeSystem,
-        _inheritanceManager,
-        _enclosingClass);
+        _typeProvider, _typeSystem, _inheritanceManager, _enclosingClass);
     if (missingOverrides.isEmpty) {
       return;
     }
@@ -6988,7 +6984,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * superclasses.
    */
   static Set<ExecutableElement> computeMissingOverrides(
-      bool strongMode,
       TypeProvider typeProvider,
       TypeSystem typeSystem,
       InheritanceManager inheritanceManager,
@@ -7050,25 +7045,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         // method, so skip it.
         if ((elt is MethodElement && !elt.isAbstract) ||
             (elt is PropertyAccessorElement && !elt.isAbstract)) {
-          // Since we are comparing two function types, we need to do the
-          // appropriate type substitutions first ().
-          FunctionType foundConcreteFT =
-              inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(
-                  concreteType, memberName, enclosingType);
-          FunctionType requiredMemberFT =
-              inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(
-                  requiredMemberType, memberName, enclosingType);
-
-          // Strong mode does override checking for types in CodeChecker, so
+          // Override checking for types is done in CodeChecker, so
           // we can skip it here. Doing it here leads to unnecessary duplicate
           // error messages in subclasses that inherit from one that has an
           // override error.
           //
           // See: https://github.com/dart-lang/sdk/issues/25232
-          if (strongMode ||
-              typeSystem.isSubtypeOf(foundConcreteFT, requiredMemberFT)) {
-            continue;
-          }
+          continue;
         }
       }
       // The not qualifying concrete executable element was found, add it to the

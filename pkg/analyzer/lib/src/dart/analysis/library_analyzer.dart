@@ -403,18 +403,16 @@ class LibraryAnalyzer {
 
     RecordingErrorListener errorListener = _getErrorListener(file);
 
-    if (_analysisOptions.strongMode) {
-      AnalysisOptionsImpl options = _analysisOptions as AnalysisOptionsImpl;
-      CodeChecker checker = new CodeChecker(
-          _typeProvider,
-          new StrongTypeSystemImpl(_typeProvider,
-              implicitCasts: options.implicitCasts,
-              declarationCasts: options.declarationCasts,
-              nonnullableTypes: options.nonnullableTypes),
-          errorListener,
-          options);
-      checker.visitCompilationUnit(unit);
-    }
+    AnalysisOptionsImpl options = _analysisOptions as AnalysisOptionsImpl;
+    CodeChecker checker = new CodeChecker(
+        _typeProvider,
+        new StrongTypeSystemImpl(_typeProvider,
+            implicitCasts: options.implicitCasts,
+            declarationCasts: options.declarationCasts,
+            nonnullableTypes: options.nonnullableTypes),
+        errorListener,
+        options);
+    checker.visitCompilationUnit(unit);
 
     ErrorReporter errorReporter = _getErrorReporter(file);
 

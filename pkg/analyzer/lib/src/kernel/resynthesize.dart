@@ -53,9 +53,9 @@ class KernelResynthesizer implements ElementResynthesizer {
   AnalysisContext get context => _analysisContext;
 
   /**
-   * Return `true` if strong mode analysis should be used.
+   * TODO(brianwilkerson) Remove this getter.
    */
-  bool get strongMode => _analysisContext.analysisOptions.strongMode;
+  bool get strongMode => true;
 
   /**
    * Return the `Type` type.

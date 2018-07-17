@@ -630,7 +630,7 @@ class FileState {
     AnalysisOptions analysisOptions = _fsState._analysisOptions;
     CharSequenceReader reader = new CharSequenceReader(content);
     Scanner scanner = new Scanner(source, reader, errorListener);
-    scanner.scanGenericMethodComments = analysisOptions.strongMode;
+    scanner.scanGenericMethodComments = true;
     Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
       return scanner.tokenize();
     });
@@ -639,7 +639,7 @@ class FileState {
     bool useFasta = analysisOptions.useFastaParser;
     Parser parser = new Parser(source, errorListener, useFasta: useFasta);
     parser.enableOptionalNewAndConst = analysisOptions.previewDart2;
-    parser.parseGenericMethodComments = analysisOptions.strongMode;
+    parser.parseGenericMethodComments = true;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
 

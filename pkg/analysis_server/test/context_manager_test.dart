@@ -1877,7 +1877,8 @@ linter:
     String libPath = '$projPath/${ContextManagerTest.LIB_NAME}';
     newFile('$libPath/_embedder.yaml', content: r'''
 analyzer:
-  strong-mode: true
+  language:
+    enablePreviewDart2: true
   errors:
     missing_return: false
 linter:
@@ -1907,7 +1908,7 @@ linter:
 
     // Verify options were set.
     expect(analysisOptions.enableSuperMixins, isTrue);
-    expect(analysisOptions.strongMode, isTrue);
+    expect(analysisOptions.previewDart2, isTrue);
     expect(errorProcessors, hasLength(2));
     expect(lints, hasLength(2));
 
@@ -2080,7 +2081,9 @@ linter:
 
     // Verify options.
     // * from `_embedder.yaml`:
-    expect(analysisOptions.strongMode, isTrue);
+    // TODO(brianwilkerson) Figure out what to use in place of 'strongMode' and
+    // why 'enableSuperMixins' is assumed to come from two different sources.
+//    expect(analysisOptions.strongMode, isTrue);
     expect(analysisOptions.enableSuperMixins, isTrue);
     // * from analysis options:
     expect(analysisOptions.enableSuperMixins, isTrue);
@@ -2224,9 +2227,11 @@ analyzer:
     AnalysisResult result = await callbacks.currentDriver.getResult(file.path);
 
     // Not strong mode - both in the context and the SDK context.
-    AnalysisContext sdkContext = sourceFactory.dartSdk.context;
-    expect(analysisOptions.strongMode, isFalse);
-    expect(sdkContext.analysisOptions.strongMode, isFalse);
+//    AnalysisContext sdkContext = sourceFactory.dartSdk.context;
+    // TODO(brianwilkerson) Figure out whether there is an option other than
+    // 'strongMode' that will apply to the SDK context.
+//    expect(analysisOptions.strongMode, isFalse);
+//    expect(sdkContext.analysisOptions.strongMode, isFalse);
     expect(result.errors, isEmpty);
 
     // Update the options file - turn on 'strong-mode'.
@@ -2240,9 +2245,11 @@ analyzer:
     result = await callbacks.currentDriver.getResult(file.path);
 
     // Not strong mode - both in the context and the SDK context.
-    sdkContext = sourceFactory.dartSdk.context;
-    expect(analysisOptions.strongMode, isTrue);
-    expect(sdkContext.analysisOptions.strongMode, isTrue);
+//    sdkContext = sourceFactory.dartSdk.context;
+    // TODO(brianwilkerson) Figure out whether there is an option other than
+    // 'strongMode' that will apply to the SDK context.
+//    expect(analysisOptions.strongMode, isTrue);
+//    expect(sdkContext.analysisOptions.strongMode, isTrue);
     // The code is strong-mode clean.
     // Verify that TypeSystem was reset.
     expect(result.errors, isEmpty);
@@ -2435,20 +2442,6 @@ analyzer:
     }
     expect(callbacks.currentContextRoots, hasLength(2));
     expect(callbacks.currentContextRoots, unorderedEquals([a, c]));
-  }
-
-  test_strong_mode_analysis_option() async {
-    // Create files.
-    newFile('$projPath/$optionsFileName', content: r'''
-analyzer:
-  strong-mode: true
-''');
-    String libPath = '$projPath/${ContextManagerTest.LIB_NAME}';
-    newFile('$libPath/main.dart');
-    // Setup context.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    // Verify that analysis options was parsed and strong-mode set.
-    expect(analysisOptions.strongMode, true);
   }
 
   test_watchEvents() async {

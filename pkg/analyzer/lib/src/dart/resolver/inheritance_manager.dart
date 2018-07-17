@@ -516,9 +516,7 @@ class InheritanceManager {
       int numOfPositionalParameters,
       List<String> namedParameters) {
     DynamicTypeImpl dynamicType = DynamicTypeImpl.instance;
-    DartType bottomType = _library.context.analysisOptions.strongMode
-        ? BottomTypeImpl.instance
-        : dynamicType;
+    DartType bottomType = BottomTypeImpl.instance;
     SimpleIdentifier nameIdentifier = astFactory
         .simpleIdentifier(new StringToken(TokenType.IDENTIFIER, name, 0));
     ExecutableElementImpl executable;

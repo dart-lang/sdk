@@ -10657,8 +10657,7 @@ class TestSummaryResynthesizer extends SummaryResynthesizer {
 
   TestSummaryResynthesizer(AnalysisContext context, this.unlinkedSummaries,
       this.linkedSummaries, this.allowMissingFiles)
-      : super(context, context.sourceFactory,
-            context.analysisOptions.strongMode) {
+      : super(context, context.sourceFactory, true) {
     // Clear after resynthesizing TypeProvider in super().
     unlinkedSummariesRequested.clear();
     linkedSummariesRequested.clear();

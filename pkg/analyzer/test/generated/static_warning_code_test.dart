@@ -1500,11 +1500,7 @@ f() {
 class A implements Function {
 }''');
     await computeAnalysisResult(source);
-    if (analysisOptions.strongMode) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
-    }
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1513,11 +1509,7 @@ class A implements Function {
 class M {}
 class A = Object with M implements Function;''');
     await computeAnalysisResult(source);
-    if (analysisOptions.strongMode) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
-    }
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1528,11 +1520,7 @@ abstract class A implements Function {
 class B extends A {
 }''');
     await computeAnalysisResult(source);
-    if (analysisOptions.strongMode) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
-    }
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1542,11 +1530,7 @@ abstract class A implements Function {}
 class M {}
 class B = A with M;''');
     await computeAnalysisResult(source);
-    if (analysisOptions.strongMode) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
-    }
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1557,11 +1541,7 @@ abstract class A implements Function {
 class B implements A {
 }''');
     await computeAnalysisResult(source);
-    if (analysisOptions.strongMode) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
-    }
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1571,11 +1551,7 @@ abstract class A implements Function {}
 class M {}
 class B = Object with M implements A;''');
     await computeAnalysisResult(source);
-    if (analysisOptions.strongMode) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
-    }
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1584,11 +1560,7 @@ class B = Object with M implements A;''');
 abstract class A implements Function {}
 class B extends Object with A {}''');
     await computeAnalysisResult(source);
-    if (analysisOptions.strongMode) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
-    }
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1597,11 +1569,7 @@ class B extends Object with A {}''');
 abstract class A implements Function {}
 class B = Object with A;''');
     await computeAnalysisResult(source);
-    if (analysisOptions.strongMode) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StaticWarningCode.FUNCTION_WITHOUT_CALL]);
-    }
+    assertNoErrors(source);
     verify([source]);
   }
 

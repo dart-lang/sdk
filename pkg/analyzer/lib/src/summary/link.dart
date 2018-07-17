@@ -114,6 +114,7 @@ Map<String, LinkedLibraryBuilder> link(
     GetUnitCallback getUnit,
     GetDeclaredVariable getDeclaredVariable,
     bool strong) {
+  // TODO(brianwilkerson) Remove the parameter 'strong'.
   Map<String, LinkedLibraryBuilder> linkedLibraries =
       setupForLink(libraryUris, getUnit, getDeclaredVariable);
   relink(linkedLibraries, getDependency, getUnit, strong);
@@ -3306,9 +3307,9 @@ abstract class LibraryElementForLink<
   LibraryCycleForLink get libraryCycleForLink;
 
   @override
-  FunctionElement get loadLibraryFunction =>
-      _loadLibraryFunction ??= LibraryElementImpl
-          .createLoadLibraryFunctionForLibrary(_linker.typeProvider, this);
+  FunctionElement get loadLibraryFunction => _loadLibraryFunction ??=
+      LibraryElementImpl.createLoadLibraryFunctionForLibrary(
+          _linker.typeProvider, this);
 
   @override
   String get name {

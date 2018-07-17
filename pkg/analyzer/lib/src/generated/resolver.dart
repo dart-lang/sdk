@@ -5107,9 +5107,9 @@ class ResolverVisitor extends ScopedVisitor {
   DartType _enclosingSwitchStatementExpressionType;
 
   /**
-   * Are we running in strong mode or not.
+   * TODO(brianwilkerson) Remove this field.
    */
-  bool strongMode;
+  final bool strongMode = true;
 
   /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
@@ -5136,7 +5136,6 @@ class ResolverVisitor extends ScopedVisitor {
       : super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     AnalysisOptions options = definingLibrary.context.analysisOptions;
-    this.strongMode = options.strongMode;
     this.elementResolver = new ElementResolver(this,
         reportConstEvaluationErrors: reportConstEvaluationErrors);
     this.typeSystem = definingLibrary.context.typeSystem;
@@ -9801,7 +9800,7 @@ class TypeResolverVisitor extends ScopedVisitor {
   /**
    * True if we're analyzing in strong mode.
    */
-  bool _strongMode;
+  final bool _strongMode = true;
 
   /**
    * Type type system in use for this resolver pass.
@@ -9848,7 +9847,6 @@ class TypeResolverVisitor extends ScopedVisitor {
             nameScope: nameScope) {
     _dynamicType = typeProvider.dynamicType;
     _undefinedType = typeProvider.undefinedType;
-    _strongMode = definingLibrary.context.analysisOptions.strongMode;
     _typeSystem = TypeSystem.create(definingLibrary.context);
     _typeNameResolver = new TypeNameResolver(
         _typeSystem, typeProvider, definingLibrary, source, errorListener);

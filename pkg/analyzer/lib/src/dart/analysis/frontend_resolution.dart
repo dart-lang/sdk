@@ -172,8 +172,7 @@ class FrontEndCompiler {
         new TargetLibrariesSpecification('none', dartLibraries), packages);
     var errorListener = new _ErrorListener();
     var compilerOptions = new CompilerOptions()
-      ..target = new _AnalyzerTarget(
-          new TargetFlags(strongMode: analysisOptions.strongMode))
+      ..target = new _AnalyzerTarget(new TargetFlags(strongMode: true))
       ..reportMessages = false
       ..logger = logger
       ..fileSystem = new _FileSystemAdaptor(fsState, pathContext)

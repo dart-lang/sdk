@@ -68,8 +68,7 @@ analyzer:
       expect(getProcessor(invalid_assignment).severity, ErrorSeverity.ERROR);
       expect(getProcessor(missing_return).severity, isNull);
       expect(getProcessor(unused_local_variable), isNull);
-      expect(getProcessor(use_of_void_result),
-          context.analysisOptions.strongMode ? isNotNull : isNull);
+      expect(getProcessor(use_of_void_result), isNotNull);
     });
 
     test('upgrades static type warnings to errors in strong mode', () {

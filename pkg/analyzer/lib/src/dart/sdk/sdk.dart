@@ -163,7 +163,8 @@ abstract class AbstractDartSdk implements DartSdk {
   @override
   PackageBundle getLinkedBundle() {
     if (_useSummary) {
-      bool strongMode = _analysisOptions?.strongMode ?? false;
+      // TODO(brianwilkerson) 'strongMode' should probably always be 'true'.
+      bool strongMode = _analysisOptions != null;
       _sdkBundle ??= getSummarySdkBundle(strongMode);
       return _sdkBundle;
     }

@@ -679,7 +679,6 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
         a.lint == b.lint &&
         AnalysisOptionsImpl.compareLints(a.lintRules, b.lintRules) &&
         a.preserveComments == b.preserveComments &&
-        a.strongMode == b.strongMode &&
         a.useFastaParser == b.useFastaParser;
   }
 
