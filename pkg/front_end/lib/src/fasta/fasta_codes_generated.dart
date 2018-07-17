@@ -6756,7 +6756,7 @@ const Template<Message Function(String string, Token token)>
 const Code<Message Function(String string, Token token)> codeUnmatchedToken =
     const Code<Message Function(String string, Token token)>(
         "UnmatchedToken", templateUnmatchedToken,
-        dart2jsCode: "UNMATCHED_TOKEN");
+        analyzerCode: "EXPECTED_TOKEN", dart2jsCode: "UNMATCHED_TOKEN");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsUnmatchedToken(String string, Token token) {

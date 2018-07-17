@@ -306,12 +306,12 @@ class AstValidator extends UnifyingAstVisitor<Object> {
       int parentStart = parent.offset;
       int parentEnd = parentStart + parent.length;
       if (nodeStart < parentStart) {
-        _errors.add("Invalid source start ($nodeStart) for ${node
-            .runtimeType} inside ${parent.runtimeType} ($parentStart)");
+        _errors.add(
+            "Invalid source start ($nodeStart) for ${node.runtimeType} inside ${parent.runtimeType} ($parentStart)");
       }
       if (nodeEnd > parentEnd) {
-        _errors.add("Invalid source end ($nodeEnd) for ${node
-            .runtimeType} inside ${parent.runtimeType} ($parentStart)");
+        _errors.add(
+            "Invalid source end ($nodeEnd) for ${node.runtimeType} inside ${parent.runtimeType} ($parentStart)");
       }
     }
   }
@@ -4883,16 +4883,18 @@ class Wrong<T> {
     createParser('(a, {b: 0)');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    listener
-        .assertErrors([expectedError(ScannerErrorCode.EXPECTED_TOKEN, 9, 1)]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)]
+        : [expectedError(ScannerErrorCode.EXPECTED_TOKEN, 9, 1)]);
   }
 
   void test_missingTerminatorForParameterGroup_optional() {
     createParser('(a, [b = 0)');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    listener
-        .assertErrors([expectedError(ScannerErrorCode.EXPECTED_TOKEN, 10, 1)]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)]
+        : [expectedError(ScannerErrorCode.EXPECTED_TOKEN, 10, 1)]);
   }
 
   void test_missingTypedefParameters_nonVoid() {
@@ -5883,7 +5885,7 @@ void main() {
     if (usingFastaParser) {
       listener.assertErrors([
         expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1),
-        expectedError(ScannerErrorCode.EXPECTED_TOKEN, 10, 1)
+        expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)
       ]);
     } else {
       listener.assertErrors([
@@ -5902,7 +5904,7 @@ void main() {
     if (usingFastaParser) {
       listener.assertErrors([
         expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1),
-        expectedError(ScannerErrorCode.EXPECTED_TOKEN, 10, 1)
+        expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)
       ]);
     } else {
       listener.assertErrors([
@@ -14120,6 +14122,37 @@ class C {}
     expect(clause.implementsKeyword, isNotNull);
   }
 
+  void test_parseInstanceCreation_keyword_33647() {
+    enableOptionalNewAndConst = true;
+    CompilationUnit unit = parseCompilationUnit('''
+var c = new Future<int>.sync(() => 3).then<int>((e) => e);
+''');
+    expect(unit, isNotNull);
+    TopLevelVariableDeclaration v = unit.declarations[0];
+    MethodInvocation init = v.variables.variables[0].initializer;
+    expect(init.methodName.name, 'then');
+    NodeList<TypeAnnotation> typeArg = init.typeArguments.arguments;
+    expect(typeArg, hasLength(1));
+    expect(typeArg[0].beginToken.lexeme, 'int');
+  }
+
+  void test_parseInstanceCreation_noKeyword_33647() {
+    enableOptionalNewAndConst = true;
+    // Old parser produces errors
+    if (usingFastaParser) {
+      CompilationUnit unit = parseCompilationUnit('''
+var c = Future<int>.sync(() => 3).then<int>((e) => e);
+''');
+      expect(unit, isNotNull);
+      TopLevelVariableDeclaration v = unit.declarations[0];
+      MethodInvocation init = v.variables.variables[0].initializer;
+      expect(init.methodName.name, 'then');
+      NodeList<TypeAnnotation> typeArg = init.typeArguments.arguments;
+      expect(typeArg, hasLength(1));
+      expect(typeArg[0].beginToken.lexeme, 'int');
+    }
+  }
+
   void test_parseInstanceCreation_noKeyword_noPrefix() {
     enableOptionalNewAndConst = true;
     createParser('f() => C<E>.n();');
@@ -14169,37 +14202,6 @@ void main() {final c = C<int, int Function(String)>();}
     MethodInvocation creation = variable.initializer;
     expect(creation.methodName.name, 'C');
     expect(creation.typeArguments.toSource(), '<int, int Function(String)>');
-  }
-
-  void test_parseInstanceCreation_keyword_33647() {
-    enableOptionalNewAndConst = true;
-    CompilationUnit unit = parseCompilationUnit('''
-var c = new Future<int>.sync(() => 3).then<int>((e) => e);
-''');
-    expect(unit, isNotNull);
-    TopLevelVariableDeclaration v = unit.declarations[0];
-    MethodInvocation init = v.variables.variables[0].initializer;
-    expect(init.methodName.name, 'then');
-    NodeList<TypeAnnotation> typeArg = init.typeArguments.arguments;
-    expect(typeArg, hasLength(1));
-    expect(typeArg[0].beginToken.lexeme, 'int');
-  }
-
-  void test_parseInstanceCreation_noKeyword_33647() {
-    enableOptionalNewAndConst = true;
-    // Old parser produces errors
-    if (usingFastaParser) {
-      CompilationUnit unit = parseCompilationUnit('''
-var c = Future<int>.sync(() => 3).then<int>((e) => e);
-''');
-      expect(unit, isNotNull);
-      TopLevelVariableDeclaration v = unit.declarations[0];
-      MethodInvocation init = v.variables.variables[0].initializer;
-      expect(init.methodName.name, 'then');
-      NodeList<TypeAnnotation> typeArg = init.typeArguments.arguments;
-      expect(typeArg, hasLength(1));
-      expect(typeArg[0].beginToken.lexeme, 'int');
-    }
   }
 
   void test_parseLibraryIdentifier_builtin() {

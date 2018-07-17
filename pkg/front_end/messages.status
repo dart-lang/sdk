@@ -357,7 +357,6 @@ UnexpectedDollarInString/script2: Fail
 UnexpectedDollarInString/script3: Fail
 UnexpectedDollarInString/script4: Fail
 UnexpectedToken/script1: Fail
-UnmatchedToken/analyzerCode: Fail
 UnmatchedToken/script1: Fail
 UnmatchedToken/script3: Fail
 UnresolvedPrefixInTypeAnnotation/example: Fail

@@ -892,6 +892,7 @@ UnexpectedToken:
 
 UnmatchedToken:
   template: "Can't find '#string' to match '#lexeme'."
+  analyzerCode: EXPECTED_TOKEN
   dart2jsCode: UNMATCHED_TOKEN
   script:
     - "main("
