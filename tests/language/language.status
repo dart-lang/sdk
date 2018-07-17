@@ -534,5 +534,5 @@ static_closure_identical_test: Pass, Fail # Closure identity
 vm/optimized_stacktrace_test: Pass, Slow
 vm/regress_27201_test: Pass, Crash # Requires deferred libraries
 
-[ $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $compiler != none || $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $runtime != vm ]
+[ ($compiler != dartk && $compiler != dartkb && $compiler != dartkp && $compiler != none) || ($compiler != dartk && $compiler != dartkb && $compiler != dartkp && $runtime != vm) ]
 assert_initializer_test/*: Skip # not implemented yet, experiment is VM only.

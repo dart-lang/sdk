@@ -232,7 +232,7 @@ LibTest/collection/Maps/forEach_A01_t05: CompileTimeError
 LibTest/collection/Maps/forEach_A01_t06: CompileTimeError
 LibTest/collection/Maps/forEach_A02_t01: CompileTimeError
 
-[ $compiler == dartk || $compiler == dartkb && $strong ]
+[ ($compiler == dartk || $compiler == dartkb) && $strong ]
 Language/Classes/Constructors/Constant_Constructors/potentially_constant_expression_t01: Crash
 Language/Expressions/Additive_Expressions/syntax_t01: RuntimeError
 Language/Expressions/Assignment/null_aware_assignment_static_type_t01: RuntimeError
