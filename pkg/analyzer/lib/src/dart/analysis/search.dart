@@ -367,11 +367,7 @@ class Search {
     String id;
     if (type != null) {
       name = type.name;
-      id = type.librarySource.uri.toString() +
-          ';' +
-          type.source.uri.toString() +
-          ';' +
-          name;
+      id = '${type.librarySource.uri};${type.source.uri};$name';
     } else {
       name = subtype.name;
       id = subtype.id;
@@ -379,8 +375,11 @@ class Search {
 
     await _driver.discoverAvailableFiles();
 
-    List<SubtypeResult> results = [];
+    final List<SubtypeResult> results = [];
+
+    // Note, this is a defensive copy.
     List<FileState> knownFiles = _driver.fsState.knownFiles.toList();
+
     for (FileState file in knownFiles) {
       if (file.subtypedNames.contains(name)) {
         AnalysisDriverUnitIndex index = await _driver.getIndex(file.path);
@@ -389,10 +388,11 @@ class Search {
             if (subtype.supertypes.contains(id)) {
               FileState library = file.library ?? file;
               results.add(new SubtypeResult(
-                  library.uriStr,
-                  library.uriStr + ';' + file.uriStr + ';' + subtype.name,
-                  subtype.name,
-                  subtype.members));
+                library.uriStr,
+                '${library.uriStr};${file.uriStr};${subtype.name}',
+                subtype.name,
+                subtype.members,
+              ));
             }
           }
         }

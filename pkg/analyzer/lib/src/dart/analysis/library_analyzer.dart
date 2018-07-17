@@ -220,7 +220,11 @@ class LibraryAnalyzer {
             if (unit.element.source != null) {
               var reporter = new FastaErrorReporter(_getErrorReporter(file));
               var fileResult = libraryResult.files[file.fileUri];
-              fileResult?.errors?.forEach(reporter.reportCompilationMessage);
+              if (fileResult?.errors != null) {
+                for (var error in fileResult.errors) {
+                  reporter.reportCompilationMessage(error);
+                }
+              }
             }
           });
         });
@@ -1039,6 +1043,7 @@ class _ConstantWalker extends DependencyWalker<_ConstantNode> {
 class _NameOrSource {
   final String name;
   final Source source;
+
   _NameOrSource(this.name, this.source);
 }
 

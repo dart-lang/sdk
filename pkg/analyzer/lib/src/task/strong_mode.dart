@@ -313,15 +313,15 @@ class InstanceMemberInferrer {
         //
         // Then infer the types for the members.
         //
-        classElement.fields.forEach((field) {
+        for (FieldElement field in classElement.fields) {
           _inferField(inheritanceManager, field);
-        });
-        classElement.accessors.forEach((accessor) {
+        }
+        for (PropertyAccessorElement accessor in classElement.accessors) {
           _inferAccessor(inheritanceManager, accessor);
-        });
-        classElement.methods.forEach((method) {
+        }
+        for (MethodElement method in classElement.methods) {
           _inferExecutable(inheritanceManager, method);
-        });
+        }
         //
         // Infer initializing formal parameter types. This must happen after
         // field types are inferred.
