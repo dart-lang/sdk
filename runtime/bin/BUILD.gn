@@ -929,6 +929,7 @@ template("dart_executable") {
     }
 
     sources = [
+                "dart_embedder_api_impl.cc",
                 "error_exit.cc",
                 "error_exit.h",
                 "main.cc",

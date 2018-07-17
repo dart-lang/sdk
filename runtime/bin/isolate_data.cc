@@ -15,7 +15,6 @@ IsolateData::IsolateData(const char* url,
     : script_url((url != NULL) ? strdup(url) : NULL),
       package_root(NULL),
       packages_file(NULL),
-      builtin_lib_(NULL),
       loader_(NULL),
       app_snapshot_(app_snapshot),
       dependencies_(NULL),
@@ -32,10 +31,6 @@ IsolateData::IsolateData(const char* url,
 }
 
 void IsolateData::OnIsolateShutdown() {
-  if (builtin_lib_ != NULL) {
-    Dart_DeletePersistentHandle(builtin_lib_);
-    builtin_lib_ = NULL;
-  }
 }
 
 IsolateData::~IsolateData() {

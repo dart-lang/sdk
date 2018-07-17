@@ -41,7 +41,7 @@ struct ResourcesEntry {
   int length_;
 };
 
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DART2_ONLY_MODE)
 ResourcesEntry __service_bin_resources_[] = {{NULL, NULL, 0}};
 #else
 extern ResourcesEntry __service_bin_resources_[];
@@ -185,7 +185,8 @@ bool VmService::Setup(const char* server_ip,
   // Prepare builtin and its dependent libraries for use to resolve URIs.
   // Set up various closures, e.g: printing, timers etc.
   // Set up 'package root' for URI resolution.
-  result = DartUtils::PrepareForScriptLoading(true, false);
+  result = DartUtils::PrepareForScriptLoading(/*is_service_isolate=*/true,
+                                              trace_loading);
   SHUTDOWN_ON_ERROR(result);
 
   if (running_precompiled) {
@@ -260,12 +261,6 @@ bool VmService::Setup(const char* server_ip,
   result =
       Dart_SetField(library, DartUtils::NewString("_isFuchsia"), is_fuchsia);
   SHUTDOWN_ON_ERROR(result);
-
-  if (trace_loading) {
-    result = Dart_SetField(library, DartUtils::NewString("_traceLoading"),
-                           Dart_True());
-    SHUTDOWN_ON_ERROR(result);
-  }
 
   if (deterministic) {
     result = Dart_SetField(library, DartUtils::NewString("_deterministic"),

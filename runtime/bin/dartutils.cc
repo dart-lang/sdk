@@ -385,18 +385,16 @@ Dart_Handle DartUtils::MakeUint8Array(const uint8_t* buffer, intptr_t len) {
 }
 
 Dart_Handle DartUtils::SetWorkingDirectory() {
-  IsolateData* isolate_data =
-      reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
-  Dart_Handle builtin_lib = isolate_data->builtin_lib();
   Dart_Handle directory = NewString(original_working_directory);
-  return SingleArgDart_Invoke(builtin_lib, "_setWorkingDirectory", directory);
+  return SingleArgDart_Invoke(LookupBuiltinLib(), "_setWorkingDirectory",
+                              directory);
 }
 
 Dart_Handle DartUtils::ResolveUriInWorkingDirectory(Dart_Handle script_uri) {
   const int kNumArgs = 1;
   Dart_Handle dart_args[kNumArgs];
   dart_args[0] = script_uri;
-  return Dart_Invoke(DartUtils::BuiltinLib(),
+  return Dart_Invoke(DartUtils::LookupBuiltinLib(),
                      NewString("_resolveInWorkingDirectory"), kNumArgs,
                      dart_args);
 }
@@ -405,16 +403,16 @@ Dart_Handle DartUtils::LibraryFilePath(Dart_Handle library_uri) {
   const int kNumArgs = 1;
   Dart_Handle dart_args[kNumArgs];
   dart_args[0] = library_uri;
-  return Dart_Invoke(DartUtils::BuiltinLib(), NewString("_libraryFilePath"),
-                     kNumArgs, dart_args);
+  return Dart_Invoke(DartUtils::LookupBuiltinLib(),
+                     NewString("_libraryFilePath"), kNumArgs, dart_args);
 }
 
 Dart_Handle DartUtils::ResolveScript(Dart_Handle url) {
   const int kNumArgs = 1;
   Dart_Handle dart_args[kNumArgs];
   dart_args[0] = url;
-  return Dart_Invoke(DartUtils::BuiltinLib(), NewString("_resolveScriptUri"),
-                     kNumArgs, dart_args);
+  return Dart_Invoke(DartUtils::LookupBuiltinLib(),
+                     NewString("_resolveScriptUri"), kNumArgs, dart_args);
 }
 
 static bool CheckMagicNumber(const uint8_t* buffer,
@@ -569,16 +567,16 @@ Dart_Handle DartUtils::SetupPackageRoot(const char* package_root,
     const int kNumArgs = 1;
     Dart_Handle dart_args[kNumArgs];
     dart_args[0] = result;
-    result = Dart_Invoke(DartUtils::BuiltinLib(), NewString("_setPackageRoot"),
-                         kNumArgs, dart_args);
+    result = Dart_Invoke(DartUtils::LookupBuiltinLib(),
+                         NewString("_setPackageRoot"), kNumArgs, dart_args);
   } else if (packages_config != NULL) {
     result = NewString(packages_config);
     RETURN_IF_ERROR(result);
     const int kNumArgs = 1;
     Dart_Handle dart_args[kNumArgs];
     dart_args[0] = result;
-    result = Dart_Invoke(DartUtils::BuiltinLib(), NewString("_setPackagesMap"),
-                         kNumArgs, dart_args);
+    result = Dart_Invoke(DartUtils::LookupBuiltinLib(),
+                         NewString("_setPackagesMap"), kNumArgs, dart_args);
   }
   return result;
 }
@@ -612,13 +610,6 @@ Dart_Handle DartUtils::PrepareForScriptLoading(bool is_service_isolate,
   Dart_Handle cli_lib = Builtin::LoadAndCheckLibrary(Builtin::kCLILibrary);
   RETURN_IF_ERROR(cli_lib);
   Builtin::SetNativeResolver(Builtin::kCLILibrary);
-
-  // Setup the builtin library in a persistent handle attached the isolate
-  // specific data as we seem to lookup and use builtin lib a lot.
-  IsolateData* isolate_data =
-      reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
-  ASSERT(isolate_data != NULL);
-  isolate_data->set_builtin_lib(builtin_lib);
 
   // We need to ensure that all the scripts loaded so far are finalized
   // as we are about to invoke some Dart code below to setup closures.
