@@ -1607,6 +1607,8 @@ ConflictsWithMemberWarning:
 ConflictsWithSetter:
   template: "Conflicts with setter '#name'."
   severity: ERROR
+  analyzerCode: CONFLICTS_WITH_MEMBER
+  dart2jsCode: "*fatal*"
 
 ConflictsWithSetterWarning:
   template: "Conflicts with setter '#name'."

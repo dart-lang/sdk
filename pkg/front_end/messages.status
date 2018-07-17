@@ -44,7 +44,6 @@ ConflictsWithFactory/example: Fail
 ConflictsWithMember/example: Fail
 ConflictsWithMemberWarning/analyzerCode: Fail
 ConflictsWithMemberWarning/example: Fail
-ConflictsWithSetter/analyzerCode: Fail
 ConflictsWithSetter/example: Fail
 ConflictsWithSetterWarning/analyzerCode: Fail
 ConflictsWithSetterWarning/example: Fail
