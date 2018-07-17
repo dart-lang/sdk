@@ -157,7 +157,7 @@ class B {
   }
 
   @override
-  @failingTest
+  @assertFailingTest
   test_getResult_functionTypeFormalParameter_withTypeParameter() {
     // Failed assertion: 'element != null': is not true.
     return super.test_getResult_functionTypeFormalParameter_withTypeParameter();
