@@ -135,6 +135,7 @@ vars = {
   "test_tag": "1.0.0",
   "tuple_tag": "v1.0.1",
   "typed_data_tag": "1.1.3",
+  "unittest_rev": "2b8375bc98bb9dc81c539c91aaea6adce12e1072",
   "usage_tag": "3.4.0",
   "utf_tag": "0.9.0+4",
   "watcher_rev": "908d74c6ed0889fa9bd7939c72bcc287e4f581fd",
@@ -346,6 +347,12 @@ deps = {
       Var("dart_git") + "tuple.git" + "@" + Var("tuple_tag"),
   Var("dart_root") + "/third_party/pkg/typed_data":
       Var("dart_git") + "typed_data.git" + "@" + Var("typed_data_tag"),
+  # Unittest is an early version, 0.11.x, of the package "test"
+  # Do not use it in any new tests. Fetched from chromium_git to avoid
+  # race condition in cache with pkg/test.
+  Var("dart_root") + "/third_party/pkg/unittest":
+      Var("chromium_git") + "/external/github.com/dart-lang/test.git" +
+      "@" + Var("unittest_rev"),
   Var("dart_root") + "/third_party/pkg/usage":
       Var("dart_git") + "usage.git" + "@" + Var("usage_tag"),
   Var("dart_root") + "/third_party/pkg/utf":
@@ -412,22 +419,6 @@ hooks = [
       "--platform=win32",
       "--directory",
       Var('dart_root') + "/third_party/drt_resources",
-    ],
-  },
-  {
-    "name": "unittest",
-    # Unittest is an early version, 0.11.6, of the package "test"
-    # Do not use it in any new tests.
-    "pattern": ".",
-    "action": [
-      "download_from_google_storage",
-      "--no_auth",
-      "--no_resume",
-      "--bucket",
-      "dart-dependencies",
-      "--extract",
-      "-s",
-      Var('dart_root') + "/third_party/pkg/unittest.tar.gz.sha1",
     ],
   },
   {
