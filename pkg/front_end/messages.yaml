@@ -218,6 +218,7 @@ ExpectedStatement:
   statement: "void;"
 
 ExpectedButGot:
+  # Also see ExpectedAfterButGot
   template: "Expected '#string' before this."
   # Consider the second example below: the parser expects a ')' before 'y', but
   # a ',' would also have worked. We don't have enough information to give a
@@ -227,6 +228,32 @@ ExpectedButGot:
   script:
     - "main() => true ? 1;"
     - "main() => foo(x: 1 y: 2);"
+
+ExpectedAfterButGot:
+  # Also see ExpectedButGot
+  template: "Expected '#string' after this."
+  # This is an alternative to ExpectedButGot when it's better for the error to be
+  # associated with the last consumed token rather than the token being parsed.
+  # Doing so can make it cognitively easier for the user to understand and fix.
+  #
+  # For example, this is ok...
+  #
+  #    x = 7
+  #    class Foo {
+  #    ^^^^^
+  #        Expected ';' before this
+  #
+  # but this is easier for the user...
+  #
+  #    x = 7
+  #        ^
+  #        Expected ';' after this
+  #    class Foo {
+  #
+  analyzerCode: EXPECTED_TOKEN
+  dart2jsCode: MISSING_TOKEN_AFTER_THIS
+  script:
+    - "main() { return true }"
 
 MultipleLibraryDirectives:
   template: "Only one library directive may be declared in a file."

@@ -2587,7 +2587,7 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
             expectedError(
                 CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 10, 8),
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 19, 1),
-            expectedError(ParserErrorCode.EXPECTED_TOKEN, 21, 4)
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 19, 1)
           ]
         : [
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0),
@@ -3069,11 +3069,11 @@ class Foo {
             ? [
                 expectedError(
                     ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 9, 5),
-                expectedError(ParserErrorCode.EXPECTED_TOKEN, 15, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 5),
                 expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 15, 1),
                 expectedError(
                     ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 17, 5),
-                expectedError(ParserErrorCode.EXPECTED_TOKEN, 23, 1)
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 17, 5)
               ]
             : [
                 expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 15, 1),
@@ -3091,7 +3091,7 @@ class Foo {
                 expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 10, 1),
                 expectedError(
                     ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 12, 5),
-                expectedError(ParserErrorCode.EXPECTED_TOKEN, 18, 1)
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 5)
               ]
             : [
                 expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 10, 1),
@@ -3131,11 +3131,11 @@ class Foo {
             ? [
                 expectedError(
                     ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 0, 5),
-                expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 5),
                 expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 6, 1),
                 expectedError(
                     ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 8, 5),
-                expectedError(ParserErrorCode.EXPECTED_TOKEN, 13, 0),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 5),
               ]
             : [
                 expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 6, 1),
@@ -3172,7 +3172,7 @@ class Foo {
                 expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 1),
                 expectedError(
                     ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 2, 5),
-                expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 0),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 2, 5),
               ]
             : [
                 expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 1),
@@ -3187,7 +3187,7 @@ class Foo {
             ? [
                 expectedError(
                     ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 0, 1),
-                expectedError(ParserErrorCode.EXPECTED_TOKEN, 1, 0)
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 1)
               ]
             : [expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 1)]);
   }
@@ -3814,7 +3814,7 @@ class Wrong<T> {
       // TODO(danrubel): Investigate better recovery.
       ExpressionStatement statement = result;
       listener
-          .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)]);
+          .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 3)]);
       expect(statement.expression.toSource(), 'get');
     } else {
       FunctionDeclarationStatement statement = result;
@@ -3829,7 +3829,7 @@ class Wrong<T> {
     // Fasta considers `get` to be an identifier in this situation.
     parseStatement("int get x { return _x; }", expectedEndOffset: 8);
     listener.assertErrors(usingFastaParser
-        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1)]
+        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 3)]
         : [expectedError(ParserErrorCode.GETTER_IN_FUNCTION, 4, 3)]);
   }
 
@@ -3837,7 +3837,7 @@ class Wrong<T> {
     // Fasta considers `get` to be an identifier in this situation.
     parseStatement("get x => _x;", expectedEndOffset: 4);
     listener.assertErrors(usingFastaParser
-        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)]
+        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 3)]
         : [expectedError(ParserErrorCode.GETTER_IN_FUNCTION, 0, 3)]);
   }
 
@@ -3845,7 +3845,7 @@ class Wrong<T> {
     // Fasta considers `get` to be an identifier in this situation.
     parseStatement("int get x => _x;", expectedEndOffset: 8);
     listener.assertErrors(usingFastaParser
-        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1)]
+        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 3)]
         : [expectedError(ParserErrorCode.GETTER_IN_FUNCTION, 4, 3)]);
   }
 
@@ -3950,7 +3950,7 @@ class Wrong<T> {
     expectNotNullIfNoErrors(statement);
     listener.assertErrors(usingFastaParser
         ? [
-            expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
             expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1),
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1)
           ]
@@ -3966,9 +3966,9 @@ class Wrong<T> {
     expectNotNullIfNoErrors(statement);
     listener.assertErrors(usingFastaParser
         ? [
-            expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
             expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 1),
-            expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1)
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1)
           ]
         : [
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 5, 1),
@@ -4327,7 +4327,7 @@ class Wrong<T> {
   void test_localFunctionDeclarationModifier_factory() {
     parseCompilationUnit("class C { m() { factory f() {} } }",
         errors: usingFastaParser
-            ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 24, 1)]
+            ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 16, 7)]
             : [
                 expectedError(
                     ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, 16, 7)
@@ -4587,7 +4587,7 @@ class Wrong<T> {
     // error message is in this case.
     parseStatement("int f { return x;}", expectedEndOffset: 6);
     listener
-        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 1)]);
+        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)]);
   }
 
   void test_missingFunctionParameters_local_nonVoid_expression() {
@@ -4603,7 +4603,7 @@ class Wrong<T> {
   void test_missingFunctionParameters_local_void_block() {
     parseStatement("void f { return x;}", expectedEndOffset: 7);
     listener.assertErrors(usingFastaParser
-        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1)]
+        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 5, 1)]
         : [expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 5, 1)]);
   }
 
@@ -4657,7 +4657,7 @@ class Wrong<T> {
         ? [
             expectedError(
                 ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 0, 3),
-            expectedError(ParserErrorCode.EXPECTED_TOKEN, 3, 1)
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 3)
           ]
         : [
             expectedError(ParserErrorCode.MISSING_IDENTIFIER, 3, 1),
@@ -5517,7 +5517,7 @@ main() {
 ''',
         errors: usingFastaParser
             ? [
-                expectedError(ParserErrorCode.EXPECTED_TOKEN, 51, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 49, 1),
                 expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 51, 1),
               ]
             : [
@@ -5578,7 +5578,7 @@ main() {
   void test_unexpectedToken_endOfFieldDeclarationStatement() {
     parseStatement("String s = (null));", expectedEndOffset: 17);
     listener.assertErrors(usingFastaParser
-        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 17, 1)]
+        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 16, 1)]
         : [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 17, 1)]);
   }
 
@@ -5627,7 +5627,7 @@ void main() {
   var x = "''', errors: [
       expectedError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 24, 1),
       expectedError(ScannerErrorCode.EXPECTED_TOKEN, 25, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 25, 0)
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 24, 1)
     ]);
   }
 
@@ -11228,7 +11228,7 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
             ? [
                 expectedError(
                     ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 0, 6),
-                expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 0)
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 6)
               ]
             : [expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 6)]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
@@ -11474,9 +11474,8 @@ class C {
   void test_incompleteForEach() {
     ForStatement statement = parseStatement('for (String item i) {}');
     listener.assertErrors([
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 17, 1),
-      expectedError(
-          ParserErrorCode.EXPECTED_TOKEN, usingFastaParser ? 18 : 17, 1)
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 4),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 17, 1)
     ]);
     expect(statement, new TypeMatcher<ForStatement>());
     expect(statement.toSource(), 'for (String item; i;) {}');
@@ -11489,7 +11488,7 @@ class C {
   void test_incompleteLocalVariable_atTheEndOfBlock() {
     Statement statement = parseStatement('String v }', expectedEndOffset: 9);
     listener
-        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1)]);
+        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1)]);
     expect(statement, new TypeMatcher<VariableDeclarationStatement>());
     expect(statement.toSource(), 'String v;');
   }
@@ -11508,7 +11507,7 @@ class C {
     Statement statement =
         parseStatement('String v String v2;', expectedEndOffset: 9);
     listener
-        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 6)]);
+        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1)]);
     expect(statement, new TypeMatcher<VariableDeclarationStatement>());
     expect(statement.toSource(), 'String v;');
   }
@@ -11517,7 +11516,7 @@ class C {
     Statement statement =
         parseStatement('String v if (true) {}', expectedEndOffset: 9);
     listener
-        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 2)]);
+        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1)]);
     expect(statement, new TypeMatcher<VariableDeclarationStatement>());
     expect(statement.toSource(), 'String v;');
   }
@@ -11525,7 +11524,7 @@ class C {
   void test_incompleteLocalVariable_beforeNextBlock() {
     Statement statement = parseStatement('String v {}', expectedEndOffset: 9);
     listener
-        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1)]);
+        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1)]);
     expect(statement, new TypeMatcher<VariableDeclarationStatement>());
     expect(statement.toSource(), 'String v;');
   }
@@ -11534,7 +11533,7 @@ class C {
     Statement statement =
         parseStatement('List<String> v {}', expectedEndOffset: 15);
     listener
-        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 15, 1)]);
+        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 13, 1)]);
     expect(statement, new TypeMatcher<VariableDeclarationStatement>());
     expect(statement.toSource(), 'List<String> v;');
   }
@@ -11990,7 +11989,7 @@ class C {
                 expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 4),
                 expectedError(
                     ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 7, 4),
-                expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 4),
                 expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 11, 1),
                 expectedError(
                     ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 12, 2)

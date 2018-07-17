@@ -1,8 +1,8 @@
 // Errors:
 //
-// pkg/front_end/testcases/regress/issue_31188.dart:7:18: Error: Expected ';' before this.
+// pkg/front_end/testcases/regress/issue_31188.dart:7:17: Error: Expected ';' after this.
 // type T = Map<A, B>
-//                  ^
+//                 ^
 //
 // pkg/front_end/testcases/regress/issue_31188.dart:7:18: Error: Expected a declaration, but got '>'.
 // type T = Map<A, B>

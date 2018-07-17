@@ -2136,6 +2136,26 @@ const MessageCode messageEqualityCannotBeEqualityOperand = const MessageCode(
     tip: r"""Try re-writing the expression.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)> templateExpectedAfterButGot =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""Expected '#string' after this.""",
+        withArguments: _withArgumentsExpectedAfterButGot);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeExpectedAfterButGot =
+    const Code<Message Function(String string)>(
+        "ExpectedAfterButGot", templateExpectedAfterButGot,
+        analyzerCode: "EXPECTED_TOKEN",
+        dart2jsCode: "MISSING_TOKEN_AFTER_THIS");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExpectedAfterButGot(String string) {
+  return new Message(codeExpectedAfterButGot,
+      message: """Expected '${string}' after this.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExpectedAnInitializer = messageExpectedAnInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

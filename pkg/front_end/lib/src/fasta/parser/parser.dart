@@ -88,7 +88,12 @@ import 'type_info.dart'
         noType,
         noTypeParamOrArg;
 
-import 'util.dart' show findNonSyntheticToken, isOneOf, optional;
+import 'util.dart'
+    show
+        findPreviousNonZeroLengthToken,
+        findNonZeroLengthToken,
+        isOneOf,
+        optional;
 
 /// An event generating parser of Dart programs. This parser expects all tokens
 /// in a linked list (aka a token stream).
@@ -2427,9 +2432,15 @@ class Parser {
     // from the handleError method in element_listener.dart.
     Token next = token.next;
     if (optional(';', next)) return next;
-    Message message = fasta.templateExpectedButGot.withArguments(';');
-    Token newToken = new SyntheticToken(TokenType.SEMICOLON, next.charOffset);
-    return rewriteAndRecover(token, message, newToken).next;
+
+    // Find a token on the same line as where the ';' should be inserted.
+    // Reporting the error on this token makes it easier
+    // for users to understand and fix the error.
+    reportRecoverableError(findPreviousNonZeroLengthToken(token),
+        fasta.templateExpectedAfterButGot.withArguments(';'));
+
+    return rewriter.insertToken(
+        token, new SyntheticToken(TokenType.SEMICOLON, next.charOffset));
   }
 
   /// Report an error at the token after [token] that has the given [message].
@@ -5668,7 +5679,7 @@ class Parser {
       reportErrorToken(token);
     } else {
       // Find a non-synthetic token on which to report the error.
-      token = findNonSyntheticToken(token);
+      token = findNonZeroLengthToken(token);
       listener.handleRecoverableError(message, token, token);
     }
   }
@@ -5679,7 +5690,7 @@ class Parser {
       reportErrorToken(token);
     } else {
       // Find a non-synthetic token on which to report the error.
-      token = findNonSyntheticToken(token);
+      token = findNonZeroLengthToken(token);
       listener.handleRecoverableError(
           template.withArguments(token), token, token);
     }

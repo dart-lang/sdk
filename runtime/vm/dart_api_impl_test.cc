@@ -581,7 +581,7 @@ TEST_CASE(DartAPI_PropagateCompileTimeError) {
   EXPECT(Dart_IsError(result));
 
   if (FLAG_use_dart_frontend) {
-    EXPECT_SUBSTRING("Expected ';' before this.", Dart_GetError(result));
+    EXPECT_SUBSTRING("Expected ';' after this.", Dart_GetError(result));
   } else {
     EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
   }
@@ -593,7 +593,7 @@ TEST_CASE(DartAPI_PropagateCompileTimeError) {
   result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
   EXPECT(Dart_IsError(result));
   if (FLAG_use_dart_frontend) {
-    EXPECT_SUBSTRING("Expected ';' before this.", Dart_GetError(result));
+    EXPECT_SUBSTRING("Expected ';' after this.", Dart_GetError(result));
   } else {
     EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
   }
@@ -605,7 +605,7 @@ TEST_CASE(DartAPI_PropagateCompileTimeError) {
   result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
   EXPECT(Dart_IsError(result));
   if (FLAG_use_dart_frontend) {
-    EXPECT_SUBSTRING("Expected ';' before this.", Dart_GetError(result));
+    EXPECT_SUBSTRING("Expected ';' after this.", Dart_GetError(result));
   } else {
     EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
   }
