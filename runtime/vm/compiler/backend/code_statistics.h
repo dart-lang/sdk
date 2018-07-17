@@ -15,11 +15,11 @@ class CombinedCodeStatistics {
  public:
   // clang-format off
   enum EntryCounter {
-#define DO(type) kTag##type,
+#define DO(type, attrs) kTag##type,
     FOR_EACH_INSTRUCTION(DO)
 #undef DO
 
-#define DO(type) kTag##type##SlowPath,
+#define DO(type, attrs) kTag##type##SlowPath,
     FOR_EACH_INSTRUCTION(DO)
 #undef DO
 

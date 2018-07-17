@@ -911,7 +911,7 @@ bool GraphEntryInstr::IsCompiledForOsr() const {
 
 // ==== Support for visiting flow graphs.
 
-#define DEFINE_ACCEPT(ShortName)                                               \
+#define DEFINE_ACCEPT(ShortName, Attrs)                                        \
   void ShortName##Instr::Accept(FlowGraphVisitor* visitor) {                   \
     visitor->Visit##ShortName(this);                                           \
   }
@@ -1208,6 +1208,16 @@ bool Instruction::HasUnmatchedInputRepresentations() const {
   }
 
   return false;
+}
+
+const intptr_t Instruction::kInstructionAttrs[Instruction::kNumInstructions] = {
+#define INSTR_ATTRS(type, attrs) InstrAttrs::attrs,
+    FOR_EACH_INSTRUCTION(INSTR_ATTRS)
+#undef INSTR_ATTRS
+};
+
+bool Instruction::CanTriggerGC() const {
+  return (kInstructionAttrs[tag()] & InstrAttrs::kNoGC) == 0;
 }
 
 void Definition::ReplaceWith(Definition* other,

@@ -225,6 +225,19 @@ DEFINE_RUNTIME_ENTRY(ArgumentErrorUnboxedInt64, 0) {
   Exceptions::ThrowArgumentError(value);
 }
 
+static void EnsureNewOrRemembered(Isolate* isolate,
+                                  Thread* thread,
+                                  const Object& result) {
+  // For write barrier elimination, we need to ensure that the allocation ends
+  // up in the new space if Heap::IsGuaranteedNewSpaceAllocation is true for
+  // this size or else the object needs to go into the store buffer.
+  if (!isolate->heap()->new_space()->Contains(
+          reinterpret_cast<uword>(result.raw()))) {
+    result.raw()->SetRememberedBit();
+    thread->StoreBufferAddObject(result.raw());
+  }
+}
+
 // Allocation of a fixed length array of given element type.
 // This runtime entry is never called for allocating a List of a generic type,
 // because a prior run time call instantiates the element type if necessary.
@@ -254,6 +267,7 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
       ASSERT(element_type.IsNull() ||
              ((element_type.Length() >= 1) && element_type.IsInstantiated()));
       array.SetTypeArguments(element_type);  // May be null.
+      EnsureNewOrRemembered(isolate, thread, array);
       return;
     }
   }
@@ -310,6 +324,10 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
          (type_arguments.IsInstantiated() &&
           (type_arguments.Length() >= cls.NumTypeArguments())));
   instance.SetTypeArguments(type_arguments);
+
+  if (Heap::IsAllocatableInNewSpace(cls.instance_size())) {
+    EnsureNewOrRemembered(isolate, thread, instance);
+  }
 }
 
 // Instantiate type.
@@ -441,7 +459,12 @@ DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
 // Return value: newly allocated context.
 DEFINE_RUNTIME_ENTRY(AllocateContext, 1) {
   const Smi& num_variables = Smi::CheckedHandle(zone, arguments.ArgAt(0));
-  arguments.SetReturn(Context::Handle(Context::New(num_variables.Value())));
+  const Context& context = Context::Handle(Context::New(num_variables.Value()));
+  arguments.SetReturn(context);
+  if (Heap::IsAllocatableInNewSpace(
+          Context::InstanceSize(num_variables.Value()))) {
+    EnsureNewOrRemembered(isolate, thread, context);
+  }
 }
 
 // Make a copy of the given context, including the values of the captured

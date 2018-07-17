@@ -591,6 +591,7 @@ void StoreInstanceFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   instance()->PrintTo(f);
   f->Print(", ");
   value()->PrintTo(f);
+  if (!ShouldEmitStoreBarrier()) f->Print(", barrier removed");
 }
 
 void IfThenElseInstr::PrintOperandsTo(BufferFormatter* f) const {
