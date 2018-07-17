@@ -78,12 +78,10 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
   }
 
   _prepareCompletion(String search, String sourceCode,
-      {bool atStart: false, bool atEnd: false, int delta: 0}) async {
+      {bool atEnd: false, int delta: 0}) async {
     testCode = sourceCode.replaceAll('////', '');
     int offset = findOffset(search);
-    if (atStart) {
-      delta = 0;
-    } else if (atEnd) {
+    if (atEnd) {
       delta = search.length;
     }
     await _prepareCompletionAt(offset + delta, testCode);
@@ -1065,6 +1063,10 @@ main() {
   }
 
   test_emptyIdentifierAndIterable() async {
+    // Analyzer parser produces
+    //    for (_s_ in _s_) ;
+    // Fasta parser produces
+    //    for (in; ;) ;
     await _prepareCompletion(
         'in)',
         '''
@@ -1455,6 +1457,11 @@ main() {
     // This ought to be the same as test_semicolonFnBody() but the definition
     // of f() removes an error and it appears to be a different case.
     // Suggestions for unifying the two are welcome.
+
+    // Analyzer parser produces
+    //   int; f();
+    // Fasta parser produces
+    //   int f; ();
     await _prepareCompletion(
         'f()',
         '''
