@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/scanner/error_token.dart'
+    show UnmatchedToken;
+
 import '../../scanner/token.dart'
     show
         BeginToken,
@@ -92,16 +95,27 @@ class TokenStreamRewriter {
     return previousToken;
   }
 
-  /// Move [endGroup] (a synthetic `)`, `]`, `}`, or `>` token) after [token]
-  /// in the token stream and return [endGroup].
+  /// Move [endGroup] (a synthetic `)`, `]`, `}`, or `>` token) and associated
+  /// error token after [token] in the token stream and return [endGroup].
   Token moveSynthetic(Token token, Token endGroup) {
     assert(endGroup.beforeSynthetic != null);
+    Token errorToken;
+    if (endGroup.next is UnmatchedToken) {
+      errorToken = endGroup.next;
+    }
 
+    // Remove endGroup from its current location
+    endGroup.beforeSynthetic.setNext((errorToken ?? endGroup).next);
+
+    // Insert endGroup into its new location
     Token next = token.next;
-    endGroup.beforeSynthetic.setNext(endGroup.next);
     token.setNext(endGroup);
-    endGroup.setNext(next);
+    (errorToken ?? endGroup).setNext(next);
     endGroup.offset = next.offset;
+    if (errorToken != null) {
+      errorToken.offset = next.offset;
+    }
+
     return endGroup;
   }
 

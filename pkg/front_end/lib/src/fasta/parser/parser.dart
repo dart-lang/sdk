@@ -1184,9 +1184,7 @@ class Parser {
             token = rewriter.insertTokenAfter(token, comma).next;
             continue;
           } else {
-            reportRecoverableError(
-                next, fasta.templateExpectedButGot.withArguments(')'));
-            token = begin.endGroup;
+            token = ensureCloseParen(token, begin);
           }
         }
         break;
@@ -2372,6 +2370,11 @@ class Parser {
     Token next = token.next;
     if (optional(')', next)) {
       return next;
+    }
+    if (openParen.endGroup.isSynthetic) {
+      // Scanner has already reported a missing `)` error,
+      // but placed the `)` in the wrong location, so move it.
+      return rewriter.moveSynthetic(token, openParen.endGroup);
     }
 
     // TODO(danrubel): Pass in context for better error message.
@@ -3874,9 +3877,6 @@ class Parser {
       Token next = token.next;
       reportRecoverableError(
           next, fasta.templateExpectedToken.withArguments('('));
-      // TODO(danrubel): Consider removing the 2nd error message.
-      reportRecoverableError(
-          next, fasta.templateExpectedToken.withArguments(')'));
       rewriter.insertParens(token, false);
     }
     Token begin = token.next;
@@ -3896,12 +3896,8 @@ class Parser {
     token = token.next;
     assert(optional('(', token));
     BeginToken begin = token;
-    token = parseExpression(token).next;
-    if (!identical(begin.endGroup, token)) {
-      reportRecoverableError(
-          token, fasta.templateExpectedButGot.withArguments(')'));
-      token = begin.endGroup;
-    }
+    token = parseExpression(token);
+    token = ensureCloseParen(token, begin);
     assert(optional(')', token));
     return token;
   }
@@ -4464,10 +4460,7 @@ class Parser {
                   new SyntheticToken(TokenType.COMMA, next.offset))
               .next;
         } else {
-          reportRecoverableError(
-              next, fasta.templateExpectedButGot.withArguments(')'));
-          // Scanner guarantees a closing parenthesis
-          token = begin.endGroup;
+          token = ensureCloseParen(token, begin);
           break;
         }
       }
@@ -4968,12 +4961,8 @@ class Parser {
     Token inKeyword = token.next;
     assert(optional('in', inKeyword) || optional(':', inKeyword));
     listener.beginForInExpression(inKeyword.next);
-    token = parseExpression(inKeyword).next;
-    if (!optional(')', token)) {
-      reportRecoverableError(
-          token, fasta.templateExpectedButGot.withArguments(')'));
-      token = leftParenthesis.endGroup;
-    }
+    token = parseExpression(inKeyword);
+    token = ensureCloseParen(token, leftParenthesis);
     listener.endForInExpression(token);
     listener.beginForInBody(token.next);
     LoopState savedLoopState = loopState;

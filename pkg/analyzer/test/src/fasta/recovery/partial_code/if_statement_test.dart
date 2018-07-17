@@ -18,11 +18,7 @@ class IfStatementTest extends PartialCodeTest {
         new TestDescriptor(
           'keyword',
           'if',
-          [
-            ParserErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.EXPECTED_TOKEN
-          ],
+          [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
           "if (_s_)",
         ),
         new TestDescriptor(
