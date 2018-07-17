@@ -950,11 +950,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
                   builder.charOffset, const <TypeParameter>[]) !=
               null) {
         String superclass = classBuilder.supertype.fullNameForErrors;
-        String message = superTarget == null
-            ? "'$superclass' doesn't have an unnamed constructor."
-            : "The unnamed constructor in '$superclass' requires arguments.";
         initializer = buildInvalidInitializer(
-            deprecated_buildCompileTimeError(message, builder.charOffset),
+            buildCompileTimeError(
+                fasta.templateSuperclassHasNoDefaultConstructor
+                    .withArguments(superclass),
+                builder.charOffset,
+                constructor.name.name.length),
             builder.charOffset);
       } else {
         initializer = buildSuperInitializer(
