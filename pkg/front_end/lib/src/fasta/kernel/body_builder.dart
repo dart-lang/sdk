@@ -1106,8 +1106,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       expression.extend();
     } else {
       VariableDeclaration variable = new VariableDeclarationJudgment.forValue(
-          expression, functionNestingLevel);
-      push(new CascadeJudgment(variable));
+          expression, functionNestingLevel)
+        ..fileOffset = expression.fileOffset;
+      push(new CascadeJudgment(variable)..fileOffset = expression.fileOffset);
       push(new VariableUseGenerator(this, token, variable));
     }
   }

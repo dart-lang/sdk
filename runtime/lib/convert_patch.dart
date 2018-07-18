@@ -1075,7 +1075,7 @@ abstract class _ChunkedJsonParser<T> {
    * This function scans through the string literal for escapes, and copies
    * slices of non-escape characters using [addSliceToString].
    */
-  int parseStringToBuffer(position) {
+  int parseStringToBuffer(int position) {
     int end = chunkEnd;
     int start = position;
     while (true) {
