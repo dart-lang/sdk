@@ -10,9 +10,7 @@ import 'package:expect/expect.dart';
 abstract class A {
   set x(v) {}
   set z(v) {}
-  set y(v) {
-    return 'hi';
-  }
+  set y(v) => 'hi';
 }
 
 class S extends A {
