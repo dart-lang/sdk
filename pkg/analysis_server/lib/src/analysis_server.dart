@@ -1126,15 +1126,19 @@ class AnalysisServer {
   ByteStore _createByteStore() {
     const int M = 1024 * 1024 /*1 MiB*/;
     const int G = 1024 * 1024 * 1024 /*1 GiB*/;
+
+    const int memoryCacheSize = 128 * M;
+
     if (resourceProvider is PhysicalResourceProvider) {
       Folder stateLocation =
           resourceProvider.getStateLocation('.analysis-driver');
       if (stateLocation != null) {
         return new MemoryCachingByteStore(
-            new EvictingFileByteStore(stateLocation.path, G), 64 * M);
+            new EvictingFileByteStore(stateLocation.path, G), memoryCacheSize);
       }
     }
-    return new MemoryCachingByteStore(new NullByteStore(), 64 * M);
+
+    return new MemoryCachingByteStore(new NullByteStore(), memoryCacheSize);
   }
 
   /**
