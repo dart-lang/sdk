@@ -48,8 +48,10 @@ class ThisAccessGenerator extends KernelGenerator {
     String keyword = isSuper ? "super" : "this";
     int offset = offsetForToken(token);
     return helper.buildInvalidInitializer(
-        helper.deprecated_buildCompileTimeError(
-            "Can't use '$keyword' here, did you mean '$keyword()'?", offset),
+        helper.buildCompileTimeError(
+            templateThisOrSuperAccessInFieldInitializer.withArguments(keyword),
+            offset,
+            keyword.length),
         offset);
   }
 
@@ -60,8 +62,8 @@ class ThisAccessGenerator extends KernelGenerator {
     int offset = offsetForToken(send.token);
     if (isInitializer && send is SendAccessGenerator) {
       if (isNullAware) {
-        helper.deprecated_addCompileTimeError(
-            operatorOffset, "Expected '.'\nTry removing '?'.");
+        helper.addCompileTimeError(
+            messageInvalidUseOfNullAwareAccess, operatorOffset, 2);
       }
       return buildConstructorInitializer(offset, name, arguments);
     }

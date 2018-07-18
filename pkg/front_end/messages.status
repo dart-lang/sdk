@@ -207,6 +207,7 @@ InvalidInitializer/example: Fail
 InvalidInlineFunctionType/analyzerCode: Fail
 InvalidPackageUri/analyzerCode: Fail
 InvalidPackageUri/example: Fail
+InvalidUseOfNullAwareAccess/example: Fail
 InvalidVoid/analyzerCode: Fail
 InvalidVoid/script1: Fail
 InvalidVoid/script2: Fail
@@ -337,6 +338,7 @@ SwitchCaseFallThrough/example: Fail
 ThisAccessInFieldInitializer/example: Fail
 ThisAsIdentifier/analyzerCode: Fail
 ThisAsIdentifier/example: Fail
+ThisOrSuperAccessInFieldInitializer/example: Fail
 TooFewArguments/example: Fail
 TooManyArguments/example: Fail
 TopLevelOperator/script1: Fail

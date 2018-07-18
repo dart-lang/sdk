@@ -12,10 +12,12 @@ import '../constant_context.dart' show ConstantContext;
 import '../fasta_codes.dart'
     show
         LocatedMessage,
+        messageInvalidUseOfNullAwareAccess,
         messageLoadLibraryTakesNoArguments,
         messageNotAConstantExpression,
         messageSuperAsExpression,
-        templateNotConstantExpression;
+        templateNotConstantExpression,
+        templateThisOrSuperAccessInFieldInitializer;
 
 import '../messages.dart' show Message, noLength;
 

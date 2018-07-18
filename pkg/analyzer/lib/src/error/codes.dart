@@ -1557,6 +1557,9 @@ class CompileTimeErrorCode extends ErrorCode {
           "methods or before non-final instance fields.",
           correction: "Try removing the 'covariant' keyword.");
 
+  static const CompileTimeErrorCode INVALID_USE_OF_NULL_AWARE_ACCESS =
+      const CompileTimeErrorCode.fromFasta('INVALID_USE_OF_NULL_AWARE_ACCESS');
+
   /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at
    * the specified URI is not a library declaration.

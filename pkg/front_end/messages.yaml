@@ -2106,6 +2106,11 @@ ThisAccessInFieldInitializer:
   analyzerCode: THIS_ACCESS_FROM_INITIALIZER
   dart2jsCode: "*fatal*"
 
+ThisOrSuperAccessInFieldInitializer:
+  template: "Can't access '#string' in a field initializer."
+  analyzerCode: THIS_ACCESS_FROM_INITIALIZER
+  dart2jsCode: "*fatal*"
+
 ThisAsIdentifier:
   template: "Expected identifier, but got 'this'."
 
@@ -2378,6 +2383,12 @@ InvalidCastTopLevelFunction:
   tip: "Change the type of the function or the context in which it is used."
   analyzerCode: INVALID_CAST_FUNCTION
   dart2jsCode: "*ignored*"
+
+InvalidUseOfNullAwareAccess:
+  template: "Cannot use '?.' here."
+  tip: "Try using '.'."
+  analyzerCode: INVALID_USE_OF_NULL_AWARE_ACCESS
+  dart2jsCode: "*fatal*"
 
 UndefinedGetter:
   template: "The getter '#name' isn't defined for the class '#type'."

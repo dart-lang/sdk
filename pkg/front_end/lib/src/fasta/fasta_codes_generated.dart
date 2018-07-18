@@ -4287,6 +4287,18 @@ const MessageCode messageInvalidUnicodeEscape = const MessageCode(
         r"""An escape sequence starting with '\u' must be followed by 4 hexidecimal digits or from 1 to 6 digits between '{' and '}'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidUseOfNullAwareAccess =
+    messageInvalidUseOfNullAwareAccess;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidUseOfNullAwareAccess = const MessageCode(
+    "InvalidUseOfNullAwareAccess",
+    analyzerCode: "INVALID_USE_OF_NULL_AWARE_ACCESS",
+    dart2jsCode: "*fatal*",
+    message: r"""Cannot use '?.' here.""",
+    tip: r"""Try using '.'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidVoid = messageInvalidVoid;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6374,6 +6386,29 @@ const Code<Null> codeThisAsIdentifier = messageThisAsIdentifier;
 const MessageCode messageThisAsIdentifier = const MessageCode(
     "ThisAsIdentifier",
     message: r"""Expected identifier, but got 'this'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)>
+    templateThisOrSuperAccessInFieldInitializer =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""Can't access '#string' in a field initializer.""",
+        withArguments: _withArgumentsThisOrSuperAccessInFieldInitializer);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)>
+    codeThisOrSuperAccessInFieldInitializer =
+    const Code<Message Function(String string)>(
+        "ThisOrSuperAccessInFieldInitializer",
+        templateThisOrSuperAccessInFieldInitializer,
+        analyzerCode: "THIS_ACCESS_FROM_INITIALIZER",
+        dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsThisOrSuperAccessInFieldInitializer(String string) {
+  return new Message(codeThisOrSuperAccessInFieldInitializer,
+      message: """Can't access '${string}' in a field initializer.""",
+      arguments: {'string': string});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
