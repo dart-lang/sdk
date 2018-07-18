@@ -26,6 +26,11 @@ isolate_import_test/01: Skip # Flutter Issue 9114
 issue_21398_parent_isolate2_test/01: Skip # Flutter Issue 9114
 simple_message_test/01: Skip # Flutter Issue 9114
 
+[ $runtime != none ]
+kill2_test: RuntimeError # Uppercase constants removed
+kill_self_synchronously_test: RuntimeError # Uppercase constants removed
+kill_test: RuntimeError # Uppercase constants removed
+
 [ $csp ]
 browser/package_resolve_browser_hook_test: SkipByDesign # Test written in a way that violates CSP.
 deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not work from an isolate in CSP-mode

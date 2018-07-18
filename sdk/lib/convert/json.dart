@@ -66,8 +66,6 @@ class JsonCyclicError extends JsonUnsupportedObjectError {
  *     var decoded = json.decode('["foo", { "bar": 499 }]');
  */
 const JsonCodec json = const JsonCodec();
-@Deprecated("Use json instead")
-const JsonCodec JSON = json;
 
 /**
  * Converts [value] to a JSON string.

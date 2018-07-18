@@ -131,23 +131,6 @@ class DateTime implements Comparable<DateTime> {
   static const int sunday = 7;
   static const int daysPerWeek = 7;
 
-  @Deprecated("Use monday instead")
-  static const int MONDAY = monday;
-  @Deprecated("Use tuesday instead")
-  static const int TUESDAY = tuesday;
-  @Deprecated("Use wednesday instead")
-  static const int WEDNESDAY = wednesday;
-  @Deprecated("Use thursday instead")
-  static const int THURSDAY = thursday;
-  @Deprecated("Use friday instead")
-  static const int FRIDAY = friday;
-  @Deprecated("Use saturday instead")
-  static const int SATURDAY = saturday;
-  @Deprecated("Use sunday instead")
-  static const int SUNDAY = sunday;
-  @Deprecated("Use daysPerWeek instead")
-  static const int DAYS_PER_WEEK = daysPerWeek;
-
   // Month constants that are returned by the [month] getter.
   static const int january = 1;
   static const int february = 2;
@@ -162,33 +145,6 @@ class DateTime implements Comparable<DateTime> {
   static const int november = 11;
   static const int december = 12;
   static const int monthsPerYear = 12;
-
-  @Deprecated("Use january instead")
-  static const int JANUARY = january;
-  @Deprecated("Use february instead")
-  static const int FEBRUARY = february;
-  @Deprecated("Use march instead")
-  static const int MARCH = march;
-  @Deprecated("Use april instead")
-  static const int APRIL = april;
-  @Deprecated("Use may instead")
-  static const int MAY = may;
-  @Deprecated("Use june instead")
-  static const int JUNE = june;
-  @Deprecated("Use july instead")
-  static const int JULY = july;
-  @Deprecated("Use august instead")
-  static const int AUGUST = august;
-  @Deprecated("Use september instead")
-  static const int SEPTEMBER = september;
-  @Deprecated("Use october instead")
-  static const int OCTOBER = october;
-  @Deprecated("Use november instead")
-  static const int NOVEMBER = november;
-  @Deprecated("Use december instead")
-  static const int DECEMBER = december;
-  @Deprecated("Use monthsPerYear instead")
-  static const int MONTHS_PER_YEAR = monthsPerYear;
 
   /**
    * The value of this DateTime.

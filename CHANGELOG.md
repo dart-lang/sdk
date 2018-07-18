@@ -30,6 +30,8 @@
 #### Other Tools
 
 ### Core library changes
+* Remove deprecated UPPER_CASE constant names. Use the lower-case names only
+  from now on. Example `HTML_ESCAPE` is now only `htmlEscape`.
 * `dart:collection`, `dart:core`:
   * Re-enable `Iterable.whereType`. The method was disabled because code
     was still being compiled in Dart 1 mode, and the function was
