@@ -1839,6 +1839,8 @@ OperatorWithOptionalFormals:
 
 PlatformPrivateLibraryAccess:
   template: "Can't access platform private library."
+  analyzerCode: IMPORT_INTERNAL_LIBRARY
+  dart2jsCode: "*fatal*"
 
 TypedefNotFunction:
   template: "Can't create typedef from non-function type."

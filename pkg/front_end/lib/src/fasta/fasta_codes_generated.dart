@@ -5818,6 +5818,8 @@ const Code<Null> codePlatformPrivateLibraryAccess =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePlatformPrivateLibraryAccess = const MessageCode(
     "PlatformPrivateLibraryAccess",
+    analyzerCode: "IMPORT_INTERNAL_LIBRARY",
+    dart2jsCode: "*fatal*",
     message: r"""Can't access platform private library.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

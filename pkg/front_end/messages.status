@@ -292,7 +292,6 @@ PatchInjectionFailed/analyzerCode: Fail
 PatchInjectionFailed/example: Fail
 PatchNonExternal/analyzerCode: Fail
 PatchNonExternal/example: Fail
-PlatformPrivateLibraryAccess/analyzerCode: Fail
 PlatformPrivateLibraryAccess/example: Fail
 PositionalAfterNamedArgument/example: Fail
 PrefixAfterCombinator/example: Fail

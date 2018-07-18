@@ -1041,13 +1041,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_importInternalLibrary() async {
-    // Expected 1 errors of type CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY, found 0
-    await super.test_importInternalLibrary();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30959')
   test_importOfNonLibrary() async {
     return super.test_importOfNonLibrary();
