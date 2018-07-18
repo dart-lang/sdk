@@ -844,6 +844,10 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
     return _classes.getData(cls).definition;
   }
 
+  ir.Typedef _getTypedefNode(covariant IndexedTypedef typedef) {
+    return _typedefs.getData(typedef).node;
+  }
+
   @override
   ImportEntity getImport(ir.LibraryDependency node) {
     ir.Library library = node.parent;
@@ -1437,6 +1441,11 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
   @override
   ClassDefinition getClassDefinition(ClassEntity cls) {
     return _getClassDefinition(cls);
+  }
+
+  @override
+  ir.Typedef getTypedefNode(TypedefEntity typedef) {
+    return _getTypedefNode(typedef);
   }
 
   /// Returns the element type of a async/sync*/async* function.

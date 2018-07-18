@@ -15,6 +15,7 @@ import 'constants/values.dart'
         ConstantValue,
         ConstructedConstantValue,
         DeferredConstantValue,
+        TypeConstantValue,
         DeferredGlobalConstantValue,
         InstantiationConstantValue;
 import 'elements/types.dart';
@@ -192,6 +193,10 @@ abstract class DeferredLoadTask extends CompilerTask {
   /// Returns every [ImportEntity] that imports [element] into [library].
   Iterable<ImportEntity> memberImportsTo(
       MemberEntity element, LibraryEntity library);
+
+  /// Returns every [ImportEntity] that imports [element] into [library].
+  Iterable<ImportEntity> typedefImportsTo(
+      TypedefEntity element, LibraryEntity library);
 
   /// Collects all direct dependencies of [element].
   ///
@@ -410,18 +415,9 @@ abstract class DeferredLoadTask extends CompilerTask {
         }
       }
       constant.getDependencies().forEach((ConstantValue dependency) {
-        if (dependency is DeferredConstantValue) {
-          /// New deferred-imports are only discovered when we are visiting the
-          /// main output unit (size == 0) or code reachable from a deferred
-          /// import (size == 1). After that, we are rediscovering the
-          /// same nodes we have already seen.
-          if (newSet.length <= 1) {
-            queue.addConstant(
-                dependency, importSets.singleton(dependency.import));
-          }
-        } else {
-          _updateConstantRecursive(dependency, oldSet, newSet, queue);
-        }
+        // Constants are not allowed to refer to deferred constants, so
+        // no need to check for a deferred type literal here.
+        _updateConstantRecursive(dependency, oldSet, newSet, queue);
       });
     } else {
       assert(
@@ -505,16 +501,21 @@ abstract class DeferredLoadTask extends CompilerTask {
     // dependencies are already visited as dependencies of the enclosing member.
   }
 
+  /// Whether to enqueue a deferred dependency.
+  ///
+  /// Due to the nature of the algorithm, some dependencies may be visited more
+  /// than once. However, we know that new deferred-imports are only discovered
+  /// when we are visiting the main output unit (size == 0) or code reachable
+  /// from a deferred import (size == 1). After that, we are rediscovering the
+  /// same nodes we have already seen.
+  _shouldAddDeferredDependency(ImportSet newSet) => newSet.length <= 1;
+
   void _processDependencies(LibraryEntity library, Dependencies dependencies,
       ImportSet oldSet, ImportSet newSet, WorkQueue queue) {
     for (ClassEntity cls in dependencies.classes) {
       Iterable<ImportEntity> imports = classImportsTo(cls, library);
       if (_isExplicitlyDeferred(imports)) {
-        /// New deferred-imports are only discovered when we are visiting the
-        /// main output unit (size == 0) or code reachable from a deferred
-        /// import (size == 1). After that, we are rediscovering the
-        /// same nodes we have already seen.
-        if (newSet.length <= 1) {
+        if (_shouldAddDeferredDependency(newSet)) {
           for (ImportEntity deferredImport in imports) {
             queue.addClass(cls, importSets.singleton(deferredImport));
           }
@@ -527,11 +528,7 @@ abstract class DeferredLoadTask extends CompilerTask {
     for (MemberEntity member in dependencies.members) {
       Iterable<ImportEntity> imports = memberImportsTo(member, library);
       if (_isExplicitlyDeferred(imports)) {
-        /// New deferred-imports are only discovered when we are visiting the
-        /// main output unit (size == 0) or code reachable from a deferred
-        /// import (size == 1). After that, we are rediscovering the
-        /// same nodes we have already seen.
-        if (newSet.length <= 1) {
+        if (_shouldAddDeferredDependency(newSet)) {
           for (ImportEntity deferredImport in imports) {
             queue.addMember(member, importSets.singleton(deferredImport));
           }
@@ -546,14 +543,36 @@ abstract class DeferredLoadTask extends CompilerTask {
     }
 
     for (ConstantValue dependency in dependencies.constants) {
+      // TODO(sigmund): either delete DeferredConstantValue or use it to
+      // represent deferred TypeConstantValues below.
       if (dependency is DeferredConstantValue) {
-        if (newSet.length <= 1) {
+        if (_shouldAddDeferredDependency(newSet)) {
           queue.addConstant(
               dependency, importSets.singleton(dependency.import));
         }
-      } else {
-        _updateConstantRecursive(dependency, oldSet, newSet, queue);
+        continue;
       }
+
+      if (dependency is TypeConstantValue) {
+        var type = dependency.representedType;
+        var imports = const <ImportEntity>[];
+        if (type is InterfaceType) {
+          imports = classImportsTo(type.element, library);
+        } else if (type is TypedefType) {
+          imports = typedefImportsTo(type.element, library);
+        }
+        if (_isExplicitlyDeferred(imports)) {
+          if (_shouldAddDeferredDependency(newSet)) {
+            for (ImportEntity deferredImport in imports) {
+              queue.addConstant(
+                  dependency, importSets.singleton(deferredImport));
+            }
+          }
+          continue;
+        }
+      }
+
+      _updateConstantRecursive(dependency, oldSet, newSet, queue);
     }
   }
 
