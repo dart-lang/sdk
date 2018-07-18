@@ -90,7 +90,8 @@ export DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
 BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
 
 ENTRY_POINTS="--entry-points ${BIN_DIR}/gen/runtime/bin/precompiler_entry_points.json \
-              --entry-points ${SDK_DIR}/pkg/vm/lib/transformations/type_flow/entry_points_extra.json"
+              --entry-points ${SDK_DIR}/pkg/vm/lib/transformations/type_flow/entry_points_extra.json \
+              --entry-points ${SDK_DIR}/pkg/vm/lib/transformations/type_flow/entry_points_extra_standalone.json"
 
 # Step 1: Generate Kernel binary from the input Dart source.
 "$BIN_DIR"/dart                                                                \

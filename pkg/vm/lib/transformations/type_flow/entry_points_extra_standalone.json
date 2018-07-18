@@ -1,0 +1,9 @@
+{
+  "roots": [
+    {
+      "library": "dart:_builtin",
+      "name": "_resolveScriptUri",
+      "action": "call"
+    }
+  ]
+}

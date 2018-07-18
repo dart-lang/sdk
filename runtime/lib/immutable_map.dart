@@ -10,7 +10,6 @@
 class _ImmutableMap<K, V> implements Map<K, V> {
   final _ImmutableList _kvPairs;
 
-  @pragma("vm.entry_point")
   const _ImmutableMap._create(_ImmutableList keyValuePairs)
       : _kvPairs = keyValuePairs;
 

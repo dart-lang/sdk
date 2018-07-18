@@ -116,8 +116,6 @@ class CastError extends Error {}
  * Error thrown when attempting to throw [:null:].
  */
 class NullThrownError extends Error {
-  @pragma("vm.entry_point")
-  NullThrownError();
   String toString() => "Throw of null.";
 }
 
@@ -141,7 +139,6 @@ class ArgumentError extends Error {
    * If the `message` is not a [String], it is assumed to be a value instead
    * of a message.
    */
-  @pragma("vm.entry_point")
   ArgumentError([this.message])
       : invalidValue = null,
         _hasValue = false,
@@ -160,7 +157,6 @@ class ArgumentError extends Error {
    * names differ from the interface, it might be more useful to use the
    * interface method's argument name (or just rename arguments to match).
    */
-  @pragma("vm.entry_point")
   ArgumentError.value(value, [this.name, this.message])
       : invalidValue = value,
         _hasValue = true;
@@ -206,7 +202,6 @@ class RangeError extends ArgumentError {
   /**
    * Create a new [RangeError] with the given [message].
    */
-  @pragma("vm.entry_point")
   RangeError(var message)
       : start = null,
         end = null,
@@ -239,7 +234,6 @@ class RangeError extends ArgumentError {
    * invalid value, and the [message] can override the default error
    * description.
    */
-  @pragma("vm.entry_point")
   RangeError.range(num invalidValue, int minValue, int maxValue,
       [String name, String message])
       : start = minValue,
@@ -487,7 +481,6 @@ class NoSuchMethodError extends Error {
  */
 class UnsupportedError extends Error {
   final String message;
-  @pragma("vm.entry_point")
   UnsupportedError(this.message);
   String toString() => "Unsupported operation: $message";
 }
@@ -545,7 +538,6 @@ class ConcurrentModificationError extends Error {
 }
 
 class OutOfMemoryError implements Error {
-  @pragma("vm.entry_point")
   const OutOfMemoryError();
   String toString() => "Out of Memory";
 
@@ -553,7 +545,6 @@ class OutOfMemoryError implements Error {
 }
 
 class StackOverflowError implements Error {
-  @pragma("vm.entry_point")
   const StackOverflowError();
   String toString() => "Stack Overflow";
 
@@ -569,7 +560,6 @@ class StackOverflowError implements Error {
  */
 class CyclicInitializationError extends Error {
   final String variableName;
-  @pragma("vm.entry_point")
   CyclicInitializationError([this.variableName]);
   String toString() => variableName == null
       ? "Reading static variable during its initialization"

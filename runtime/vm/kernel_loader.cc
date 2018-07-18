@@ -1218,17 +1218,6 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     intptr_t constructor_offset = helper_.ReaderOffset() - correction_offset_;
     ActiveMemberScope active_member_scope(&active_class_, NULL);
     ConstructorHelper constructor_helper(&helper_);
-    constructor_helper.ReadUntilExcluding(ConstructorHelper::kAnnotations);
-    intptr_t annotation_count = helper_.ReadListLength();
-    bool has_pragma_annotation;
-    {
-      String& native_name_unused = String::Handle();
-      bool is_potential_native_unused;
-      ReadProcedureAnnotations(annotation_count, &native_name_unused,
-                               &is_potential_native_unused,
-                               &has_pragma_annotation);
-    }
-    constructor_helper.SetJustRead(ConstructorHelper::kAnnotations);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kFunction);
 
     const String& name =
@@ -1255,7 +1244,6 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     functions_.Add(&function);
     function.set_kernel_offset(constructor_offset);
     function.set_result_type(T.ReceiverType(klass));
-    function.set_has_pragma(has_pragma_annotation);
 
     FunctionNodeHelper function_node_helper(&helper_);
     function_node_helper.ReadUntilExcluding(
@@ -1272,8 +1260,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     constructor_helper.SetJustRead(ConstructorHelper::kFunction);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kEnd);
 
-    if ((FLAG_enable_mirrors || has_pragma_annotation) &&
-        annotation_count > 0) {
+    if (FLAG_enable_mirrors && constructor_helper.annotation_count_ > 0) {
       library.AddFunctionMetadata(function, TokenPosition::kNoSource,
                                   constructor_offset);
     }

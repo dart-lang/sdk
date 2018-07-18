@@ -129,7 +129,6 @@ class _SignalController {
       native "Process_ClearSignalHandler";
 }
 
-@pragma("vm.entry_point")
 Function _getWatchSignalInternal() => _ProcessUtils._watchSignalInternal;
 
 @patch
