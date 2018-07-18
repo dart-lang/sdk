@@ -46,7 +46,7 @@ package/scenarios/invalid/same_package_twice_test: CompileTimeError
 package/scenarios/invalid/invalid_utf8_test: CompileTimeError # Issue 32085
 package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError # Issue 32085
 
-[ $arch == simarm64 && ($compiler == dartk || $compiler == dartkb) && $strong ]
+[ $arch == simarm64 && $strong && ($compiler == dartk || $compiler == dartkb) ]
 io/http_bind_test: Pass, Slow
 
 [ $builder_tag == optimization_counter_threshold && ($compiler == dartk || $compiler == dartkb) ]
@@ -54,88 +54,6 @@ map_insert_remove_oom_test: Skip # Heap limit too low.
 
 [ $compiler == app_jitk && ($mode == debug || $mode == release) ]
 dart_developer_disabled_env_test: RuntimeError
-
-[ ($compiler == dartk || $compiler == dartkb) && $mode == debug && $runtime == vm && $strong ]
-io/file_lock_test: Slow, Pass
-io/raw_socket_test: Crash
-io/socket_exception_test: Pass, Crash
-io/socket_finalizer_test: Pass, Crash
-io/socket_info_ipv4_test: Pass, Crash
-io/socket_info_ipv6_test: Pass, Crash
-io/socket_port_test: Pass, Crash
-
-[ ($compiler == dartk || $compiler == dartkb) && $mode == debug && $hot_reload ]
-io/web_socket_ping_test: Crash, Pass
-
-[ ($compiler == dartk || $compiler == dartkb) && $runtime == vm && $strong ]
-io/http_client_request_test: Pass, Timeout
-io/http_compression_test: RuntimeError
-io/platform_resolved_executable_test/03: Pass, RuntimeError
-io/platform_resolved_executable_test/04: Pass, RuntimeError
-io/secure_builtin_roots_test: Pass, Timeout
-io/socket_finalizer_test: Pass, Timeout
-no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
-regress_29350_test: MissingCompileTimeError
-regress_29350_test/none: Pass # Issue 31537
-
-[ ($compiler == dartk || $compiler == dartkb) && $system == windows ]
-io/secure_builtin_roots_test: Skip # Issues 32137 and 32138.
-io/test_extension_fail_test: RuntimeError, Pass # Issue 32137.
-io/test_extension_test: RuntimeError, Pass # Issue 32137.
-io/wait_for_event_isolate_test: Skip # Issues 32137 and 32138.
-
-[ ($compiler == dartk || $compiler == dartkb) && $system == windows && $strong ]
-io/compile_all_test: Pass, Fail # Possibly related to issue 32373
-map_insert_remove_oom_test: Skip # Heap limit too low.
-
-[ ($compiler == dartk || $compiler == dartkb) && $hot_reload ]
-io/http_no_reason_phrase_test: Pass, Crash
-io/http_outgoing_size_test: Pass, Crash
-
-[ ($compiler == dartk || $compiler == dartkb) && $hot_reload_rollback ]
-io/directory_chdir_test: Skip # Timeout
-io/echo_server_stream_test: Pass, Slow
-
-# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
-# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
-# batch mode.
-[ ($compiler == dartk || $compiler == dartkb) && $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
-fragmentation_test: Timeout, Pass
-io/dart_std_io_pipe_test: Timeout, Pass
-io/directory_list_sync_test: Timeout, Pass # Please triage.
-io/file_blocking_lock_test: Pass, Crash # Please triage.
-io/file_lock_test: Slow, Pass
-io/platform_test: RuntimeError # Please triage.
-io/process_sync_test: Timeout, Pass
-io/test_extension_fail_test: RuntimeError # Please traige.
-io/test_extension_test: RuntimeError # Please traige.
-map_insert_remove_oom_test: Skip # Heap limit too low.
-package/scenarios/packages_file_strange_formatting/empty_lines_test: CompileTimeError # Please triage.
-package/scenarios/packages_file_strange_formatting/mixed_line_ends_test: CompileTimeError # Please triage.
-package/scenarios/packages_option_only/packages_option_only_test: CompileTimeError # Please triage.
-
-# ===== Skip dartk and darkp in !$strong mode ====
-[ ($compiler == dartk || $compiler == dartkb) && !$strong ]
-*: SkipByDesign
-
-[ ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
-io/addlatexhash_test: Skip # Timeout
-io/http_advanced_test: Skip # Timeout
-io/http_auth_digest_test: Crash
-io/http_auth_test: Skip # Timeout
-io/http_basic_test: Pass, Crash # Sporadic crash, issue 33824
-io/http_proxy_advanced_test: Skip # Timeout
-io/http_read_test: Skip # Timeout
-io/non_utf8_directory_test: Pass, Timeout
-io/non_utf8_file_test: Pass, Timeout
-io/non_utf8_link_test: Pass, Timeout
-io/pipe_server_test: Skip # Timeout
-io/socket_close_test: Skip # Timeout
-io/socket_many_connections_test: Skip # Timeout
-io/test_extension_fail_test: RuntimeError
-io/test_extension_test: RuntimeError
-io/web_socket_compression_test: Skip # Timeout
-io/web_socket_test: Skip # Timeout
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 io/compile_all_test: Crash # Issue 32373
@@ -196,6 +114,39 @@ io/http_parser_test: CompileTimeError
 io/secure_socket_argument_test: CompileTimeError
 io/web_socket_protocol_processor_test: CompileTimeError
 
+[ $mode == debug && $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
+io/file_lock_test: Slow, Pass
+io/raw_socket_test: Crash
+io/socket_exception_test: Pass, Crash
+io/socket_finalizer_test: Pass, Crash
+io/socket_info_ipv4_test: Pass, Crash
+io/socket_info_ipv6_test: Pass, Crash
+io/socket_port_test: Pass, Crash
+
+[ $mode == debug && $hot_reload && ($compiler == dartk || $compiler == dartkb) ]
+io/web_socket_ping_test: Crash, Pass
+
+[ $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
+io/http_client_request_test: Pass, Timeout
+io/http_compression_test: RuntimeError
+io/platform_resolved_executable_test/03: Pass, RuntimeError
+io/platform_resolved_executable_test/04: Pass, RuntimeError
+io/secure_builtin_roots_test: Pass, Timeout
+io/socket_finalizer_test: Pass, Timeout
+no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
+regress_29350_test: MissingCompileTimeError
+regress_29350_test/none: Pass # Issue 31537
+
+[ $system == windows && $strong && ($compiler == dartk || $compiler == dartkb) ]
+io/compile_all_test: Pass, Fail # Possibly related to issue 32373
+map_insert_remove_oom_test: Skip # Heap limit too low.
+
+[ $system == windows && ($compiler == dartk || $compiler == dartkb) ]
+io/secure_builtin_roots_test: Skip # Issues 32137 and 32138.
+io/test_extension_fail_test: RuntimeError, Pass # Issue 32137.
+io/test_extension_test: RuntimeError, Pass # Issue 32137.
+io/wait_for_event_isolate_test: Skip # Issues 32137 and 32138.
+
 [ $system != windows && $strong && ($compiler == dartk || $compiler == dartkb || $compiler == dartkp) ]
 io/named_pipe_script_test: RuntimeError # Issue 33842
 
@@ -205,5 +156,54 @@ package/package_isolate_test: CompileTimeError
 [ $fasta && !$strong ]
 regress_29350_test/none: MissingCompileTimeError
 
+[ $hot_reload && ($compiler == dartk || $compiler == dartkb) ]
+io/http_no_reason_phrase_test: Pass, Crash
+io/http_outgoing_size_test: Pass, Crash
+
+[ $hot_reload_rollback && ($compiler == dartk || $compiler == dartkb) ]
+io/directory_chdir_test: Skip # Timeout
+io/echo_server_stream_test: Pass, Slow
+
+# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
+# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
+# batch mode.
+[ $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) && ($compiler == dartk || $compiler == dartkb) ]
+fragmentation_test: Timeout, Pass
+io/dart_std_io_pipe_test: Timeout, Pass
+io/directory_list_sync_test: Timeout, Pass # Please triage.
+io/file_blocking_lock_test: Pass, Crash # Please triage.
+io/file_lock_test: Slow, Pass
+io/platform_test: RuntimeError # Please triage.
+io/process_sync_test: Timeout, Pass
+io/test_extension_fail_test: RuntimeError # Please traige.
+io/test_extension_test: RuntimeError # Please traige.
+map_insert_remove_oom_test: Skip # Heap limit too low.
+package/scenarios/packages_file_strange_formatting/empty_lines_test: CompileTimeError # Please triage.
+package/scenarios/packages_file_strange_formatting/mixed_line_ends_test: CompileTimeError # Please triage.
+package/scenarios/packages_option_only/packages_option_only_test: CompileTimeError # Please triage.
+
+# ===== Skip dartk and darkp in !$strong mode ====
+[ !$strong && ($compiler == dartk || $compiler == dartkb) ]
+*: SkipByDesign
+
 [ !$strong && ($compiler == dartk || $compiler == dartkb || $compiler == dartkp || $runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign # standalone_2 is only supported in strong mode.
+
+[ ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
+io/addlatexhash_test: Skip # Timeout
+io/http_advanced_test: Skip # Timeout
+io/http_auth_digest_test: Crash
+io/http_auth_test: Skip # Timeout
+io/http_basic_test: Pass, Crash # Sporadic crash, issue 33824
+io/http_proxy_advanced_test: Skip # Timeout
+io/http_read_test: Skip # Timeout
+io/non_utf8_directory_test: Pass, Timeout
+io/non_utf8_file_test: Pass, Timeout
+io/non_utf8_link_test: Pass, Timeout
+io/pipe_server_test: Skip # Timeout
+io/socket_close_test: Skip # Timeout
+io/socket_many_connections_test: Skip # Timeout
+io/test_extension_fail_test: RuntimeError
+io/test_extension_test: RuntimeError
+io/web_socket_compression_test: Skip # Timeout
+io/web_socket_test: Skip # Timeout
