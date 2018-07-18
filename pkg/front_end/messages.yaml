@@ -2495,6 +2495,12 @@ ForInLoopExactlyOneVariable:
   severity: ERROR
   statement: "for (var x, y in []) {}"
 
+ForInLoopWithConstVariable:
+  template: "A for-in loop-variable can't be 'const'."
+  tip: "Try removing the 'const' modifier."
+  analyzerCode: FOR_IN_WITH_CONST_VARIABLE
+  dart2jsCode: "*fatal*"
+
 ForInLoopElementTypeNotAssignable:
   template: "A value of type '#type' can't be assigned to a variable of type '#type2'."
   tip: "Try changing the type of the variable."

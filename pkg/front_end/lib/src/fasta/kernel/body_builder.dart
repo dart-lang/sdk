@@ -3360,8 +3360,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       declaresVariable = true;
       variable = lvalue;
       if (variable.isConst) {
-        deprecated_addCompileTimeError(
-            variable.fileOffset, "A for-in loop-variable can't be 'const'.");
+        addCompileTimeError(fasta.messageForInLoopWithConstVariable,
+            variable.fileOffset, variable.name.length);
       }
     } else if (lvalue is Generator) {
       /// We are in this case, where `lvalue` isn't a [VariableDeclaration]:

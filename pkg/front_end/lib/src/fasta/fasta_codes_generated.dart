@@ -3031,6 +3031,18 @@ Message _withArgumentsForInLoopTypeNotIterable(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeForInLoopWithConstVariable =
+    messageForInLoopWithConstVariable;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageForInLoopWithConstVariable = const MessageCode(
+    "ForInLoopWithConstVariable",
+    analyzerCode: "FOR_IN_WITH_CONST_VARIABLE",
+    dart2jsCode: "*fatal*",
+    message: r"""A for-in loop-variable can't be 'const'.""",
+    tip: r"""Try removing the 'const' modifier.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFunctionTypeDefaultValue = messageFunctionTypeDefaultValue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

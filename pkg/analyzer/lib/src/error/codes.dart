@@ -2460,6 +2460,9 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: 'Try making the free variable in the function type part'
               ' of the larger declaration signature');
 
+  static const CompileTimeErrorCode FOR_IN_WITH_CONST_VARIABLE =
+      const CompileTimeErrorCode.fromFasta('FOR_IN_WITH_CONST_VARIABLE');
+
   /**
    * It is a compile-time error if a generic function type is used as an actual
    * type argument.
