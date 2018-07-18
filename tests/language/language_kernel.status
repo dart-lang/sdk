@@ -10,6 +10,8 @@ function_type_parameter_negative_test: Fail
 prefix5_negative_test: Fail
 
 [ $fasta ]
+bad_constructor_test/04: MissingCompileTimeError
+bad_constructor_test/06: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError

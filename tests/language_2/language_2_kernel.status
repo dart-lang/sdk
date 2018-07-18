@@ -1053,10 +1053,15 @@ closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 factory2_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
+field_override_test/00: MissingCompileTimeError # Override checks are performed differently in strong mode.
+field_override_test/01: MissingCompileTimeError # Override checks are performed differently in strong mode.
+generic_methods_overriding_test/01: MissingCompileTimeError # Override checks are performed differently in strong mode.
 getter_override2_test/02: MissingCompileTimeError
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
 invalid_override_in_mixin_test/01: MissingCompileTimeError
+issue31596_override_test/07: MissingCompileTimeError # Override checks are performed differently in strong mode.
+issue31596_override_test/08: MissingCompileTimeError # Override checks are performed differently in strong mode.
 map_literal1_test/01: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
@@ -1072,6 +1077,147 @@ override_field_method1_negative_test: Fail
 override_field_method2_negative_test: Fail
 override_field_method4_negative_test: Fail
 override_field_method5_negative_test: Fail
+override_inheritance_field_test/43: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_field_test/44: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_field_test/45: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_field_test/47: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_field_test/48: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_field_test/49: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_field_test/50: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_field_test/53: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_field_test/54: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/012: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/016: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/020: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/024: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/026: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/027: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/030: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/031: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/044: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/048: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/052: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/056: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/058: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/059: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/062: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/063: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/068: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/072: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/076: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/080: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/084: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/088: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/089: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/093: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/097: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/101: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/105: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/109: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/113: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/114: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/118: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/122: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/126: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/130: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/134: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/138: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/139: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/143: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/147: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/151: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/155: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/159: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/163: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/164: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/166: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/167: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/170: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/171: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/173: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/174: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/176: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/177: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/180: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/181: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/184: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/185: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/188: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/189: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/191: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/192: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/194: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/195: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/198: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/199: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/212: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/216: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/220: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/224: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/226: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/227: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/230: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/231: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/238: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/239: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/240: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/241: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/242: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/243: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/247: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/251: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/255: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/259: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/263: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/267: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/268: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/272: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/274: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/275: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/276: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/280: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/283: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/284: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/285: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/286: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/290: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/294: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/298: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/302: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/306: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/310: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/311: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/315: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/317: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/318: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/319: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/323: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/326: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/327: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/331: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/335: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/336: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/338: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/339: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/342: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/343: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/345: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/346: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/348: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/349: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/352: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/353: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/356: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/357: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/360: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/361: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/362: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/363: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/364: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/366: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/367: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/370: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_method2_test/371: MissingCompileTimeError # Override checks are performed differently in strong mode.
 override_inheritance_mixed_test/01: MissingCompileTimeError
 override_inheritance_mixed_test/02: MissingCompileTimeError
 override_inheritance_mixed_test/03: MissingCompileTimeError
@@ -1087,6 +1233,10 @@ override_inheritance_no_such_method_test/07: MissingCompileTimeError
 override_inheritance_no_such_method_test/09: MissingCompileTimeError
 override_inheritance_no_such_method_test/10: MissingCompileTimeError
 override_inheritance_no_such_method_test/12: MissingCompileTimeError
+override_inheritance_setter_test/001: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_setter_test/002: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_setter_test/004: MissingCompileTimeError # Override checks are performed differently in strong mode.
+override_inheritance_setter_test/006: MissingCompileTimeError # Override checks are performed differently in strong mode.
 override_method_with_field_test/01: MissingCompileTimeError
 prefix_import_collision_test/01: MissingCompileTimeError
 prefix_shadow_test/01: MissingCompileTimeError
