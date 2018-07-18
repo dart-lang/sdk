@@ -729,6 +729,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       return leftHandSide.propertyName;
     } else if (leftHandSide is IndexExpressionImpl) {
       return leftHandSide.leftBracket;
+    } else if (leftHandSide is ParenthesizedExpression) {
+      return leftHandSide.rightParenthesis;
     } else {
       throw new StateError(
           'Unexpected LHS (${leftHandSide.runtimeType}) $leftHandSide');

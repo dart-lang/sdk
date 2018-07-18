@@ -233,6 +233,10 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'ARGUMENT_DEFINITION_TEST_NON_PARAMETER', "'{0}' isn't a parameter.");
 
+  static const CompileTimeErrorCode ASSIGNMENT_TO_PARENTHESIZED_EXPRESSION =
+      const CompileTimeErrorCode.fromFasta(
+          'ASSIGNMENT_TO_PARENTHESIZED_EXPRESSION');
+
   /**
    * 17.6.3 Asynchronous For-in: It is a compile-time error if an asynchronous
    * for-in statement appears inside a synchronous function.

@@ -11,13 +11,15 @@ import '../constant_context.dart' show ConstantContext;
 
 import '../fasta_codes.dart'
     show
+        Message,
         LocatedMessage,
-        messageInvalidUseOfNullAwareAccess,
         messageLoadLibraryTakesNoArguments,
         messageNotAConstantExpression,
-        messageSuperAsExpression,
+        messageCannotAssignToParenthesizedExpression,
         templateNotConstantExpression,
-        templateThisOrSuperAccessInFieldInitializer;
+        messageSuperAsExpression,
+        templateThisOrSuperAccessInFieldInitializer,
+        messageInvalidUseOfNullAwareAccess;
 
 import '../messages.dart' show Message, noLength;
 
@@ -85,6 +87,7 @@ import 'kernel_ast_api.dart'
         IndexAssignmentJudgment,
         InvalidPropertyGetJudgment,
         InvalidVariableWriteJudgment,
+        InvalidWriteJudgment,
         LoadLibraryTearOffJudgment,
         MethodInvocationJudgment,
         NullAwarePropertyGetJudgment,

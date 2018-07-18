@@ -239,6 +239,8 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   void intLiteral(ExpressionJudgment judgment, Location location, Token literal,
       num value, DartType inferredType);
 
+  void invalidAssignment(ExpressionJudgment judgment, Location location);
+
   void invalidInitializer(InitializerJudgment judgment, Location location);
 
   void isExpression(
@@ -718,6 +720,9 @@ class KernelTypeInferenceListener
   @override
   void intLiteral(ExpressionJudgment judgment, location, Token literal,
       num value, DartType inferredType) {}
+
+  @override
+  void invalidAssignment(ExpressionJudgment judgment, int location) {}
 
   @override
   void invalidInitializer(InitializerJudgment judgment, location) {}

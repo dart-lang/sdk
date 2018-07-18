@@ -86,6 +86,12 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
     expect(actual.baseElement, same(expectedBase));
   }
 
+  void assertTopGetRef(String search, String name, String type) {
+    var ref = findNode.simple(search);
+    assertElement(ref, findElement.topGet(name));
+    assertType(ref, type);
+  }
+
   void assertType(Expression expression, String expected) {
     DartType actual = expression.staticType;
     expect(actual?.toString(), expected);
@@ -3253,6 +3259,31 @@ var b = new C<num, String>.named(4, 'five');
 
       Expression argument = value.argumentList.arguments[0];
       _assertArgumentToParameter(argument, namedConstructor.parameters[0]);
+    }
+  }
+
+  test_invalid_assign_notLValue_parenthesized() async {
+    addTestFile(r'''
+int a, b;
+double c = 0.0;
+main() {
+  (a + b) = c;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var parenthesized = findNode.parenthesized('(a + b)');
+    assertType(parenthesized, 'int');
+
+    assertTopGetRef('a + b', 'a', 'int');
+    assertTopGetRef('b)', 'b', 'int');
+    assertTopGetRef('c;', 'c', 'double');
+
+    var assignment = findNode.assignment('= c');
+    if (useCFE) {
+      assertElementNull(assignment);
+      assertTypeDynamic(assignment);
     }
   }
 
@@ -8910,6 +8941,10 @@ class FindNode {
 
   MethodInvocation methodInvocation(String search) {
     return _node(search).getAncestor((n) => n is MethodInvocation);
+  }
+
+  ParenthesizedExpression parenthesized(String search) {
+    return _node(search).getAncestor((n) => n is ParenthesizedExpression);
   }
 
   PartDirective part(String search) {

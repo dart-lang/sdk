@@ -67,6 +67,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.AMBIGUOUS_SUPERTYPES,
   CompileTimeErrorCode.ANNOTATION_WITH_NON_CLASS,
   CompileTimeErrorCode.ARGUMENT_DEFINITION_TEST_NON_PARAMETER,
+  CompileTimeErrorCode.ASSIGNMENT_TO_PARENTHESIZED_EXPRESSION,
   CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT,
   CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
   CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME,

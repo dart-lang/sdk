@@ -377,8 +377,17 @@ class ParenthesizedExpressionGenerator extends KernelReadOnlyAccessGenerator {
 
   String get debugName => "ParenthesizedExpressionGenerator";
 
+  @override
+  ComplexAssignmentJudgment startComplexAssignment(Expression rhs) {
+    return new IllegalAssignmentJudgment(rhs,
+        assignmentOffset: offsetForToken(token));
+  }
+
   Expression makeInvalidWrite(Expression value) {
-    return helper.deprecated_buildCompileTimeError(
-        "Can't assign to a parenthesized expression.", offsetForToken(token));
+    var error = helper.buildCompileTimeError(
+        messageCannotAssignToParenthesizedExpression,
+        offsetForToken(token),
+        lengthForToken(token));
+    return new InvalidWriteJudgment(error, expression);
   }
 }

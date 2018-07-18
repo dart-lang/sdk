@@ -442,6 +442,17 @@ Message _withArgumentsCandidateFoundIsDefaultConstructor(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeCannotAssignToParenthesizedExpression =
+    messageCannotAssignToParenthesizedExpression;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageCannotAssignToParenthesizedExpression =
+    const MessageCode("CannotAssignToParenthesizedExpression",
+        analyzerCode: "ASSIGNMENT_TO_PARENTHESIZED_EXPRESSION",
+        dart2jsCode: "*fatal*",
+        message: r"""Can't assign to a parenthesized expression.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)> templateCannotReadPackagesFile =
     const Template<Message Function(String string)>(
         messageTemplate: r"""Unable to read '.packages' file:

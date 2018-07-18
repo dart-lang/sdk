@@ -1546,7 +1546,12 @@ class IfJudgment extends IfStatement implements StatementJudgment {
 /// Concrete shadow object representing an assignment to a target for which
 /// assignment is not allowed.
 class IllegalAssignmentJudgment extends ComplexAssignmentJudgment {
-  IllegalAssignmentJudgment(ExpressionJudgment rhs) : super(rhs) {
+  /// The offset at which the invalid assignment should be stored.
+  /// If `-1`, then there is no separate location for invalid assignment.
+  final int assignmentOffset;
+
+  IllegalAssignmentJudgment(ExpressionJudgment rhs, {this.assignmentOffset: -1})
+      : super(rhs) {
     rhs.parent = this;
   }
 
@@ -1562,6 +1567,9 @@ class IllegalAssignmentJudgment extends ComplexAssignmentJudgment {
       DartType typeContext) {
     if (write != null) {
       inferrer.inferExpression(factory, write, const UnknownType(), false);
+    }
+    if (assignmentOffset != -1) {
+      inferrer.listener.invalidAssignment(this, assignmentOffset);
     }
     inferrer.inferExpression(factory, rhs, const UnknownType(), false);
     _replaceWithDesugared();
@@ -2930,6 +2938,29 @@ class InvalidVariableWriteJudgment extends SyntheticExpressionJudgment {
       DartType typeContext) {
     inferrer.listener.variableAssign(this, fileOffset, _variable.type,
         _variable.createBinder(inferrer), null, _variable.type);
+    return super.infer(inferrer, factory, typeContext);
+  }
+}
+
+/// Synthetic judgment class representing an attempt to assign to the
+/// [expression] which is not assignable.
+class InvalidWriteJudgment extends SyntheticExpressionJudgment {
+  final ExpressionJudgment expression;
+
+  InvalidWriteJudgment(kernel.Expression desugared, this.expression)
+      : super(desugared);
+
+  @override
+  Expression infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory,
+      DartType typeContext) {
+    // When a compound assignment, the expression is already wrapping in
+    // VariableDeclaration in _makeRead(). Otherwise, temporary associate
+    // the expression with this node.
+    expression.parent ??= this;
+
+    inferrer.inferExpression(factory, expression, const UnknownType(), false);
     return super.infer(inferrer, factory, typeContext);
   }
 }

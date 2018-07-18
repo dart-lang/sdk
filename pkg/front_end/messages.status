@@ -22,6 +22,7 @@ AwaitAsIdentifier/example: Fail
 AwaitNotAsync/example: Fail
 BuiltInIdentifierAsType/example: Fail
 BuiltInIdentifierInDeclaration/example: Fail
+CannotAssignToParenthesizedExpression/example: Fail
 CannotReadPackagesFile/analyzerCode: Fail
 CannotReadPackagesFile/example: Fail
 CannotReadSdkSpecification/analyzerCode: Fail

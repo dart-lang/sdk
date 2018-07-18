@@ -2242,6 +2242,11 @@ RedirectingConstructorWithBody:
   script:
     - "class C { C() : this.x() {} }"
 
+CannotAssignToParenthesizedExpression:
+  template: "Can't assign to a parenthesized expression."
+  analyzerCode: ASSIGNMENT_TO_PARENTHESIZED_EXPRESSION
+  dart2jsCode: "*fatal*"
+
 NotAnLvalue:
   template: "Can't assign to this."
 

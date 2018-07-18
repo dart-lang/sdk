@@ -328,6 +328,11 @@ class ResolutionStorer
           num value, DartType inferredType) =>
       genericExpression("intLiteral", location, inferredType);
 
+  @override
+  void invalidAssignment(ExpressionJudgment judgment, int location) {
+    _store(location, inferredType: const DynamicType());
+  }
+
   void invalidInitializer(InitializerJudgment judgment, int location) {}
 
   void isExpression(ExpressionJudgment judgment, int location, void expression,
