@@ -200,11 +200,19 @@
 //     use(super.m -= 42);
 //               ^
 //
+// pkg/front_end/testcases/super_rasta_copy.dart:138:15: Error: This expression has type 'void' and can't be used.
+//     use(super.m());
+//               ^
+//
 // pkg/front_end/testcases/super_rasta_copy.dart:139:11: Error: Too many positional arguments: 0 allowed, 1 given.
 //     super.m(87);
 //           ^
 //
 // pkg/front_end/testcases/super_rasta_copy.dart:140:15: Error: Too many positional arguments: 0 allowed, 1 given.
+//     use(super.m(87));
+//               ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:140:15: Error: This expression has type 'void' and can't be used.
 //     use(super.m(87));
 //               ^
 
@@ -362,9 +370,13 @@ Try correcting the name to the name of an existing method, or defining a method 
     super.{self::A::[]}(87).call();
     self::use(super.{self::A::[]}(87).call());
     super.{self::A::m}();
-    self::use(super.{self::A::m}());
+    self::use(let dynamic _ = null in let final dynamic #t35 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/super_rasta_copy.dart:138:15: Error: This expression has type 'void' and can't be used.
+    use(super.m());
+              ^" in let final dynamic #t36 = super.{self::A::m}() in null);
     super.{self::A::m}(87);
-    self::use(super.{self::A::m}(87));
+    self::use(let dynamic _ = null in let final dynamic #t37 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/super_rasta_copy.dart:140:15: Error: This expression has type 'void' and can't be used.
+    use(super.m(87));
+              ^" in let final dynamic #t38 = super.{self::A::m}(87) in null);
     super.{self::A::a} = 42;
     self::use(super.{self::A::a} = 42);
     super.{self::A::b} = 42;
@@ -384,31 +396,31 @@ Try correcting the name to the name of an existing method, or defining a method 
     super.{self::B::i} = 42;
     self::use(super.{self::B::i} = 42);
     super.{self::A::[]=}(87, 42);
-    self::use(let final core::int #t35 = 87 in let final core::int #t36 = 42 in let final void #t37 = super.{self::A::[]=}(#t35, #t36) in #t36);
+    self::use(let final core::int #t39 = 87 in let final core::int #t40 = 42 in let final void #t41 = super.{self::A::[]=}(#t39, #t40) in #t40);
     super.m = 42;
     self::use(super.m = 42);
     super.{self::A::a}.{core::Object::==}(null) ?{dynamic} super.{self::A::a} = 42 : null;
-    self::use(let final dynamic #t38 = super.{self::A::a} in #t38.{core::Object::==}(null) ?{dynamic} super.{self::A::a} = 42 : #t38);
+    self::use(let final dynamic #t42 = super.{self::A::a} in #t42.{core::Object::==}(null) ?{dynamic} super.{self::A::a} = 42 : #t42);
     super.{self::B::b}.{core::Object::==}(null) ?{dynamic} super.{self::A::b} = 42 : null;
-    self::use(let final dynamic #t39 = super.{self::B::b} in #t39.{core::Object::==}(null) ?{dynamic} super.{self::A::b} = 42 : #t39);
+    self::use(let final dynamic #t43 = super.{self::B::b} in #t43.{core::Object::==}(null) ?{dynamic} super.{self::A::b} = 42 : #t43);
     super.{self::A::c}.{core::Object::==}(null) ?{dynamic} super.{self::B::c} = 42 : null;
-    self::use(let final dynamic #t40 = super.{self::A::c} in #t40.{core::Object::==}(null) ?{dynamic} super.{self::B::c} = 42 : #t40);
+    self::use(let final dynamic #t44 = super.{self::A::c} in #t44.{core::Object::==}(null) ?{dynamic} super.{self::B::c} = 42 : #t44);
     super.{self::B::d}.{core::Object::==}(null) ?{dynamic} super.{self::A::d} = 42 : null;
-    self::use(let final dynamic #t41 = super.{self::B::d} in #t41.{core::Object::==}(null) ?{dynamic} super.{self::A::d} = 42 : #t41);
+    self::use(let final dynamic #t45 = super.{self::B::d} in #t45.{core::Object::==}(null) ?{dynamic} super.{self::A::d} = 42 : #t45);
     super.{self::A::e}.{core::Object::==}(null) ?{dynamic} super.e = 42 : null;
-    self::use(let final dynamic #t42 = super.{self::A::e} in #t42.{core::Object::==}(null) ?{dynamic} super.e = 42 : #t42);
+    self::use(let final dynamic #t46 = super.{self::A::e} in #t46.{core::Object::==}(null) ?{dynamic} super.e = 42 : #t46);
     super.{self::A::f}.{core::Object::==}(null) ?{dynamic} super.f = 42 : null;
-    self::use(let final dynamic #t43 = super.{self::A::f} in #t43.{core::Object::==}(null) ?{dynamic} super.f = 42 : #t43);
+    self::use(let final dynamic #t47 = super.{self::A::f} in #t47.{core::Object::==}(null) ?{dynamic} super.f = 42 : #t47);
     super.g.{core::Object::==}(null) ?{dynamic} super.{self::A::g} = 42 : null;
-    self::use(let final dynamic #t44 = super.g in #t44.{core::Object::==}(null) ?{dynamic} super.{self::A::g} = 42 : #t44);
+    self::use(let final dynamic #t48 = super.g in #t48.{core::Object::==}(null) ?{dynamic} super.{self::A::g} = 42 : #t48);
     super.{self::A::h}.{core::Object::==}(null) ?{dynamic} super.{self::A::h} = 42 : null;
-    self::use(let final dynamic #t45 = super.{self::A::h} in #t45.{core::Object::==}(null) ?{dynamic} super.{self::A::h} = 42 : #t45);
+    self::use(let final dynamic #t49 = super.{self::A::h} in #t49.{core::Object::==}(null) ?{dynamic} super.{self::A::h} = 42 : #t49);
     super.{self::A::i}.{core::Object::==}(null) ?{dynamic} super.{self::B::i} = 42 : null;
-    self::use(let final dynamic #t46 = super.{self::A::i} in #t46.{core::Object::==}(null) ?{dynamic} super.{self::B::i} = 42 : #t46);
-    let final core::int #t47 = 87 in super.{self::A::[]}(#t47).{core::Object::==}(null) ?{dynamic} let final core::int #t48 = 42 in let final void #t49 = super.{self::A::[]=}(#t47, #t48) in #t48 : null;
-    self::use(let final core::int #t50 = 87 in let final dynamic #t51 = super.{self::A::[]}(#t50) in #t51.{core::Object::==}(null) ?{dynamic} let final core::int #t52 = 42 in let final void #t53 = super.{self::A::[]=}(#t50, #t52) in #t52 : #t51);
+    self::use(let final dynamic #t50 = super.{self::A::i} in #t50.{core::Object::==}(null) ?{dynamic} super.{self::B::i} = 42 : #t50);
+    let final core::int #t51 = 87 in super.{self::A::[]}(#t51).{core::Object::==}(null) ?{dynamic} let final core::int #t52 = 42 in let final void #t53 = super.{self::A::[]=}(#t51, #t52) in #t52 : null;
+    self::use(let final core::int #t54 = 87 in let final dynamic #t55 = super.{self::A::[]}(#t54) in #t55.{core::Object::==}(null) ?{dynamic} let final core::int #t56 = 42 in let final void #t57 = super.{self::A::[]=}(#t54, #t56) in #t56 : #t55);
     super.{self::A::m}.{core::Object::==}(null) ?{core::Object} super.m = 42 : null;
-    self::use(let final () → void #t54 = super.{self::A::m} in #t54.{core::Object::==}(null) ?{core::Object} super.m = 42 : #t54);
+    self::use(let final () → void #t58 = super.{self::A::m} in #t58.{core::Object::==}(null) ?{core::Object} super.m = 42 : #t58);
     super.{self::A::a} = super.{self::A::a}.+(42);
     self::use(super.{self::A::a} = super.{self::A::a}.+(42));
     super.{self::A::b} = super.{self::B::b}.+(42);
@@ -427,13 +439,13 @@ Try correcting the name to the name of an existing method, or defining a method 
     self::use(super.{self::A::h} = super.{self::A::h}.+(42));
     super.{self::B::i} = super.{self::A::i}.+(42);
     self::use(super.{self::B::i} = super.{self::A::i}.+(42));
-    let final core::int #t55 = 87 in super.{self::A::[]=}(#t55, super.{self::A::[]}(#t55).+(42));
-    self::use(let final core::int #t56 = 87 in let final dynamic #t57 = super.{self::A::[]}(#t56).+(42) in let final void #t58 = super.{self::A::[]=}(#t56, #t57) in #t57);
-    super.m = let final dynamic #t59 = super.{self::A::m} in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/super_rasta_copy.dart:208:13: Error: The method '+' isn't defined for the class '() \u8594 void'.
+    let final core::int #t59 = 87 in super.{self::A::[]=}(#t59, super.{self::A::[]}(#t59).+(42));
+    self::use(let final core::int #t60 = 87 in let final dynamic #t61 = super.{self::A::[]}(#t60).+(42) in let final void #t62 = super.{self::A::[]=}(#t60, #t61) in #t61);
+    super.m = let final dynamic #t63 = super.{self::A::m} in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/super_rasta_copy.dart:208:13: Error: The method '+' isn't defined for the class '() \u8594 void'.
 Try correcting the name to the name of an existing method, or defining a method named '+'.
     super.m += 42;
             ^";
-    self::use(super.m = let final dynamic #t60 = super.{self::A::m} in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/super_rasta_copy.dart:209:17: Error: The method '+' isn't defined for the class '() \u8594 void'.
+    self::use(super.m = let final dynamic #t64 = super.{self::A::m} in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/super_rasta_copy.dart:209:17: Error: The method '+' isn't defined for the class '() \u8594 void'.
 Try correcting the name to the name of an existing method, or defining a method named '+'.
     use(super.m += 42);
                 ^");
@@ -455,13 +467,13 @@ Try correcting the name to the name of an existing method, or defining a method 
     self::use(super.{self::A::h} = super.{self::A::h}.-(42));
     super.{self::B::i} = super.{self::A::i}.-(42);
     self::use(super.{self::B::i} = super.{self::A::i}.-(42));
-    let final core::int #t61 = 87 in super.{self::A::[]=}(#t61, super.{self::A::[]}(#t61).-(42));
-    self::use(let final core::int #t62 = 87 in let final dynamic #t63 = super.{self::A::[]}(#t62).-(42) in let final void #t64 = super.{self::A::[]=}(#t62, #t63) in #t63);
-    super.m = let final dynamic #t65 = super.{self::A::m} in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/super_rasta_copy.dart:231:13: Error: The method '-' isn't defined for the class '() \u8594 void'.
+    let final core::int #t65 = 87 in super.{self::A::[]=}(#t65, super.{self::A::[]}(#t65).-(42));
+    self::use(let final core::int #t66 = 87 in let final dynamic #t67 = super.{self::A::[]}(#t66).-(42) in let final void #t68 = super.{self::A::[]=}(#t66, #t67) in #t67);
+    super.m = let final dynamic #t69 = super.{self::A::m} in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/super_rasta_copy.dart:231:13: Error: The method '-' isn't defined for the class '() \u8594 void'.
 Try correcting the name to the name of an existing method, or defining a method named '-'.
     super.m -= 42;
             ^";
-    self::use(super.m = let final dynamic #t66 = super.{self::A::m} in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/super_rasta_copy.dart:232:17: Error: The method '-' isn't defined for the class '() \u8594 void'.
+    self::use(super.m = let final dynamic #t70 = super.{self::A::m} in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/super_rasta_copy.dart:232:17: Error: The method '-' isn't defined for the class '() \u8594 void'.
 Try correcting the name to the name of an existing method, or defining a method named '-'.
     use(super.m -= 42);
                 ^");

@@ -95,6 +95,7 @@ kernel/test/*: RuntimeError, OK # Issue 26103. Timers are not supported.
 [ $runtime == vm ]
 analysis_server/test/benchmarks_test: Pass, Slow
 analysis_server/test/completion_test: Pass, Slow
+analysis_server/test/context_manager_test: Fail
 analysis_server/test/domain_completion_test: Pass, Slow
 analysis_server/test/edit/refactoring_test: Pass, Slow
 analysis_server/test/integration/*: Pass, Slow
@@ -113,7 +114,10 @@ analysis_server/test/src/plugin/plugin_manager_test: Pass, Slow
 analyzer/test/file_system/physical_resource_provider_test: Pass, Fail # Issue 25472
 analyzer/test/generated/hint_code_driver_test: Pass, Slow
 analyzer/test/generated/non_error_resolver_kernel_test: Pass, Slow
+analyzer/test/generated/static_type_warning_code_kernel_test: Fail
+analyzer/test/generated/static_warning_code_kernel_test: Fail
 analyzer/test/generated/strong_mode_driver_test: Pass, Slow
+analyzer/test/generated/strong_mode_kernel_test: Fail
 analyzer/test/src/dart/analysis/driver_resolution_kernel_test: Pass, Slow
 analyzer/test/src/dart/analysis/driver_resolution_test: Pass, Slow
 analyzer/test/src/dart/analysis/driver_test: Pass, Slow

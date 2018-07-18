@@ -1,3 +1,9 @@
+// Errors:
+//
+// pkg/front_end/testcases/inference_new/infer_use_of_void.dart:17:59: Error: This expression has type 'void' and can't be used.
+//     new C(). /*info:USE_OF_VOID_RESULT*/ /*@target=C::f*/ f();
+//                                                           ^
+
 library test;
 import self as self;
 import "dart:core" as core;

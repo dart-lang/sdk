@@ -39,6 +39,7 @@ import '../../base/instrumentation.dart'
 
 import '../fasta_codes.dart'
     show
+        messageVoidExpression,
         noLength,
         templateCantInferTypeDueToCircularity,
         templateCantUseSuperBoundedTypeForInstanceCreation,
@@ -439,7 +440,8 @@ class CascadeJudgment extends Let implements ExpressionJudgment {
       variable.type = inferredType;
     }
     for (var judgment in cascadeJudgments) {
-      inferrer.inferExpression(factory, judgment, const UnknownType(), false);
+      inferrer.inferExpression(factory, judgment, const UnknownType(), false,
+          isVoidAllowed: true);
     }
     inferrer.listener.cascadeExpression(this, fileOffset, inferredType);
     return null;
@@ -1176,7 +1178,8 @@ class ForInJudgment extends ForInStatement implements StatementJudgment {
             this.variable.type,
             syntheticAssignment.rhs,
             syntheticAssignment.rhs.fileOffset,
-            template: templateForInLoopElementTypeNotAssignable);
+            template: templateForInLoopElementTypeNotAssignable,
+            isVoidAllowed: true);
         if (syntheticAssignment is PropertyAssignmentJudgment) {
           syntheticAssignment._handleWriteContravariance(
               inferrer, inferrer.thisType);
@@ -1479,6 +1482,10 @@ class IfNullJudgment extends Let implements ExpressionJudgment {
       inferrer.inferExpression(factory, rightJudgment, typeContext, _forceLub);
     }
     var rhsType = rightJudgment.inferredType;
+    if (rhsType is VoidType) {
+      inferrer.helper?.addProblem(
+          messageVoidExpression, rightJudgment.fileOffset, noLength);
+    }
     // - Let T = greatest closure of K with respect to `?` if K is not `_`, else
     //   UP(t0, t1)
     // - Then the inferred type is T.
@@ -2471,7 +2478,7 @@ class ReturnJudgment extends ReturnStatement implements StatementJudgment {
       Factory<Expression, Statement, Initializer, Type> factory) {
     var judgment = this.judgment;
     var closureContext = inferrer.closureContext;
-    var typeContext = !closureContext.isGenerator
+    DartType typeContext = !closureContext.isGenerator
         ? closureContext.returnOrYieldContext
         : const UnknownType();
     DartType inferredType;
@@ -2485,8 +2492,8 @@ class ReturnJudgment extends ReturnStatement implements StatementJudgment {
     // inferred type of the closure.  TODO(paulberry): is this what we want
     // for Fasta?
     if (judgment != null) {
-      closureContext.handleReturn(
-          inferrer, inferredType, expression, fileOffset);
+      closureContext.handleReturn(inferrer, inferredType, expression,
+          fileOffset, !identical(returnKeyword?.lexeme, "return"));
     }
     inferrer.listener
         .returnStatement(this, fileOffset, returnKeyword, null, semicolon);
@@ -3218,7 +3225,8 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
       Factory<Expression, Statement, Initializer, Type> factory,
       kernel.Expression expression,
       DartType typeContext,
-      bool typeNeeded) {
+      bool typeNeeded,
+      {bool isVoidAllowed: false}) {
     // `null` should never be used as the type context.  An instance of
     // `UnknownType` should be used instead.
     assert(typeContext != null);
@@ -3244,7 +3252,34 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
       // so that the type hierarchy will be simpler (which may speed up "is"
       // checks).
       expression.infer(this, factory, typeContext);
-      return expression.inferredType;
+      DartType inferredType = expression.inferredType;
+      if (inferredType is VoidType && !isVoidAllowed) {
+        TreeNode parent = expression.parent;
+        if (parent is ReturnStatement ||
+            parent is ExpressionStatement ||
+            parent is AsExpression) {
+          return inferredType;
+        } else if (parent is ForStatement &&
+            parent.updates.contains(expression)) {
+          return inferredType;
+        } else if (parent is VariableDeclaration) {
+          TreeNode grandParent = parent.parent;
+          if (grandParent is ForStatement &&
+              parent.name == null &&
+              grandParent.variables.contains(parent)) {
+            return inferredType;
+          }
+        } else if (parent is ConditionalExpression) {
+          if (parent.then == expression || parent.otherwise == expression) {
+            return inferredType;
+          }
+        } else if (parent is DeferredCheckJudgment) {
+          return inferredType;
+        }
+        helper?.addProblem(
+            messageVoidExpression, expression.fileOffset, noLength);
+      }
+      return inferredType;
     } else {
       // Encountered an expression type for which type inference is not yet
       // implemented, so just infer dynamic for now.

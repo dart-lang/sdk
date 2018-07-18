@@ -788,8 +788,11 @@ class KernelIndexedAccessGenerator extends KernelGenerator
   @override
   Expression _finish(
       Expression body, ComplexAssignmentJudgment complexAssignment) {
+    int offset = offsetForToken(token);
     return super._finish(
-        makeLet(receiverVariable, makeLet(indexVariable, body)),
+        makeLet(
+            receiverVariable, makeLet(indexVariable, body)..fileOffset = offset)
+          ..fileOffset = offset,
         complexAssignment);
   }
 
@@ -1049,7 +1052,9 @@ class KernelSuperIndexedAccessGenerator extends KernelGenerator
   @override
   Expression _finish(
       Expression body, ComplexAssignmentJudgment complexAssignment) {
-    return super._finish(makeLet(indexVariable, body), complexAssignment);
+    return super._finish(
+        makeLet(indexVariable, body)..fileOffset = offsetForToken(token),
+        complexAssignment);
   }
 
   @override

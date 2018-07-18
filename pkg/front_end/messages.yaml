@@ -2646,3 +2646,19 @@ GenericFunctionTypeInBound:
   severity: ERROR
   script: |
     class Hest<X extends Y Function<Y>(Y)> {}
+
+VoidExpression:
+  template: "This expression has type 'void' and can't be used."
+  severity: ERROR_LEGACY_WARNING
+  statement: |
+    {
+      void x;
+      var y = x;
+    }
+
+ReturnFromVoidFunction:
+  template: "Can't return a value from a void function."
+  severity: ERROR_LEGACY_WARNING
+  analyzerCode: RETURN_OF_INVALID_TYPE
+  dart2jsCode: "*fatal*"
+  declaration: "void foo() { return 1; }"
