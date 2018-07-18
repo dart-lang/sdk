@@ -95,7 +95,6 @@ LibTest/core/double/toStringAsPrecision_A01_t02: RuntimeError # Uppercase consta
 LibTest/core/int/compareTo_A01_t02: RuntimeError # Uppercase constants removed
 LibTest/core/int/operator_division_A01_t02: RuntimeError # Uppercase constants removed
 LibTest/isolate/RawReceivePort/handler_A01_t01: RuntimeError # Uppercase constants removed
-LibTest/isolate/SendPort/send_A01_t01: Timeout # Uppercase constants removed
 LibTest/isolate/SendPort/send_A01_t02: CompileTimeError # Uppercase constants removed
 LibTest/isolate/SendPort/send_A01_t03: CompileTimeError # Uppercase constants removed
 LibTest/math/MutableRectangle/operator_equality_A02_t01: CompileTimeError # Uppercase constants removed
