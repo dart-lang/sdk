@@ -1,3 +1,7 @@
+# 0.1.58
+
+* roll-back to explicit uses of `new` and `const` to be compatible w/ VMs running `--no-preview-dart-2`
+
 # 0.1.57
 
 * fix to `lines_longer_than_80_chars` to handle CRLF endings
