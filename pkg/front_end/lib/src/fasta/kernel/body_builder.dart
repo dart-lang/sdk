@@ -3742,8 +3742,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       target = namedTarget;
       if (target == null) {
         if (switchScope == null) {
-          push(deprecated_buildCompileTimeErrorStatement(
-              "Can't find label '$name'.", continueKeyword.next.charOffset));
+          push(buildCompileTimeErrorStatement(
+              fasta.templateLabelNotFound.withArguments(name),
+              continueKeyword.next.charOffset));
           return;
         }
         switchScope.forwardDeclareLabel(identifier.name,

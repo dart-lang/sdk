@@ -59,13 +59,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_async_used_as_identifier_in_continue_statement() async {
-    // Bad state: No reference information for async at 42
-    await super.test_async_used_as_identifier_in_continue_statement();
-  }
-
-  @override
-  @failingTest
   test_bug_23176() async {
     // This test fails because the kernel driver element model produces a
     // different element model result than the regular parser produces. Once these
@@ -1438,13 +1431,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_labelUndefined_break() async {
     // Bad state: No reference information for x at 8
     await super.test_labelUndefined_break();
-  }
-
-  @override
-  @failingTest
-  test_labelUndefined_continue() async {
-    // Bad state: No reference information for x at 8
-    await super.test_labelUndefined_continue();
   }
 
   @override
