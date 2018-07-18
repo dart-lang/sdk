@@ -334,13 +334,10 @@ SuperclassMethodArgumentMismatch/analyzerCode: Fail
 SuperclassMethodArgumentMismatch/example: Fail
 SupertypeIsFunction/analyzerCode: Fail
 SupertypeIsFunction/example: Fail
-SupertypeIsIllegal/analyzerCode: Fail
 SupertypeIsIllegal/example: Fail
-SupertypeIsTypeVariable/analyzerCode: Fail
 SupertypeIsTypeVariable/example: Fail
 SwitchCaseFallThrough/example: Fail
 ThisAccessInFieldInitializer/example: Fail
-ThisAsIdentifier/analyzerCode: Fail
 ThisAsIdentifier/example: Fail
 ThisOrSuperAccessInFieldInitializer/example: Fail
 TooFewArguments/example: Fail

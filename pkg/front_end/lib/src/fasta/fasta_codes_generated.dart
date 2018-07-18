@@ -6375,9 +6375,10 @@ const Template<Message Function(String name)> templateSupertypeIsIllegal =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeSupertypeIsIllegal =
     const Code<Message Function(String name)>(
-  "SupertypeIsIllegal",
-  templateSupertypeIsIllegal,
-);
+        "SupertypeIsIllegal", templateSupertypeIsIllegal,
+        analyzerCode: "EXTENDS_NON_CLASS",
+        dart2jsCode: "*fatal*",
+        severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSupertypeIsIllegal(String name) {
@@ -6396,9 +6397,10 @@ const Template<Message Function(String name)> templateSupertypeIsTypeVariable =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeSupertypeIsTypeVariable =
     const Code<Message Function(String name)>(
-  "SupertypeIsTypeVariable",
-  templateSupertypeIsTypeVariable,
-);
+        "SupertypeIsTypeVariable", templateSupertypeIsTypeVariable,
+        analyzerCode: "EXTENDS_NON_CLASS",
+        dart2jsCode: "*fatal*",
+        severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSupertypeIsTypeVariable(String name) {
@@ -6471,6 +6473,9 @@ const Code<Null> codeThisAsIdentifier = messageThisAsIdentifier;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageThisAsIdentifier = const MessageCode(
     "ThisAsIdentifier",
+    analyzerCode: "INVALID_REFERENCE_TO_THIS",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
     message: r"""Expected identifier, but got 'this'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

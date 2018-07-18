@@ -2078,9 +2078,15 @@ OperatorMinusParameterMismatch:
 
 SupertypeIsIllegal:
   template: "The type '#name' can't be used as supertype."
+  severity: ERROR
+  analyzerCode: EXTENDS_NON_CLASS
+  dart2jsCode: "*fatal*"
 
 SupertypeIsTypeVariable:
   template: "The type variable '#name' can't be used as supertype."
+  severity: ERROR
+  analyzerCode: EXTENDS_NON_CLASS
+  dart2jsCode: "*fatal*"
 
 PartOfLibraryNameMismatch:
   template: "Using '#uri' as part of '#name' but its 'part of' declaration says '#name2'."
@@ -2131,6 +2137,9 @@ ThisOrSuperAccessInFieldInitializer:
 
 ThisAsIdentifier:
   template: "Expected identifier, but got 'this'."
+  severity: ERROR
+  analyzerCode: INVALID_REFERENCE_TO_THIS
+  dart2jsCode: "*fatal*"
 
 SuperAsIdentifier:
   template: "Expected identifier, but got 'super'."

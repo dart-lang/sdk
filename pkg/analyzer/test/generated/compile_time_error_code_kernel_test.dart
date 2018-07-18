@@ -703,13 +703,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_extendsNonClass_dynamic() async {
-    // Expected 1 errors of type CompileTimeErrorCode.EXTENDS_NON_CLASS, found 0
-    await super.test_extendsNonClass_dynamic();
-  }
-
-  @override
-  @failingTest
   test_extraPositionalArguments_const_super() async {
     // Bad state: No type information for 0 at 65
     await super.test_extraPositionalArguments_const_super();
@@ -1307,13 +1300,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_invalidReferenceToThis_factoryConstructor() async {
-    // Expected 1 errors of type CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, found 0
-    await super.test_invalidReferenceToThis_factoryConstructor();
-  }
-
-  @override
-  @failingTest
   test_invalidReferenceToThis_instanceVariableInitializer_inConstructor() async {
     // Expected 1 errors of type CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, found 0
     await super
@@ -1330,37 +1316,9 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_invalidReferenceToThis_staticMethod() async {
-    // Expected 1 errors of type CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, found 0
-    await super.test_invalidReferenceToThis_staticMethod();
-  }
-
-  @override
-  @failingTest
-  test_invalidReferenceToThis_staticVariableInitializer() async {
-    // Expected 1 errors of type CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, found 0
-    await super.test_invalidReferenceToThis_staticVariableInitializer();
-  }
-
-  @override
-  @failingTest
   test_invalidReferenceToThis_superInitializer() async {
     // Expected 1 errors of type CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, found 0
     await super.test_invalidReferenceToThis_superInitializer();
-  }
-
-  @override
-  @failingTest
-  test_invalidReferenceToThis_topLevelFunction() async {
-    // Expected 1 errors of type CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, found 0
-    await super.test_invalidReferenceToThis_topLevelFunction();
-  }
-
-  @override
-  @failingTest
-  test_invalidReferenceToThis_variableInitializer() async {
-    // Expected 1 errors of type CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, found 0
-    await super.test_invalidReferenceToThis_variableInitializer();
   }
 
   @override
