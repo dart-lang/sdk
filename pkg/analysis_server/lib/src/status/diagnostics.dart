@@ -1254,7 +1254,7 @@ class ServiceProtocol {
   final WebSocket socket;
 
   int _id = 0;
-  Map<String, Completer> _completers = {};
+  Map<String, Completer<Map>> _completers = {};
 
   ServiceProtocol._(this.socket) {
     socket.listen(_handleMessage);
@@ -1262,7 +1262,7 @@ class ServiceProtocol {
 
   Future<Map> call(String method, [Map args]) {
     String id = '${++_id}';
-    Completer completer = new Completer();
+    Completer<Map> completer = new Completer();
     _completers[id] = completer;
     Map m = {'id': id, 'method': method};
     if (args != null) m['params'] = args;
