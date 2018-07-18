@@ -2434,20 +2434,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_returnInGenerator_asyncStar() async {
-    // AnalysisException: Element mismatch in /test.dart at /test.dart
-    await super.test_returnInGenerator_asyncStar();
-  }
-
-  @override
-  @failingTest
-  test_returnInGenerator_syncStar() async {
-    // AnalysisException: Element mismatch in /test.dart at /test.dart
-    await super.test_returnInGenerator_syncStar();
-  }
-
-  @override
-  @failingTest
   test_superInInvalidContext_binaryExpression() async {
     // Expected 1 errors of type CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, found 0
     await super.test_superInInvalidContext_binaryExpression();

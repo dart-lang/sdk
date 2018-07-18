@@ -3496,6 +3496,62 @@ class C {
     assertType(thisRef, 'C');
   }
 
+  test_invalid_generator_async_return_blockBody() async {
+    addTestFile(r'''
+int a = 0;
+f() async* {
+  return a;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var aRef = findNode.simple('a;');
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_invalid_generator_async_return_expressionBody() async {
+    addTestFile(r'''
+int a = 0;
+f() async* => a;
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var aRef = findNode.simple('a;');
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_invalid_generator_sync_return_blockBody() async {
+    addTestFile(r'''
+int a = 0;
+f() sync* {
+  return a;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var aRef = findNode.simple('a;');
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_invalid_generator_sync_return_expressionBody() async {
+    addTestFile(r'''
+int a = 0;
+f() sync* => a;
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var aRef = findNode.simple('a;');
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
   test_invalid_instanceCreation_abstract() async {
     addTestFile(r'''
 abstract class C<T> {

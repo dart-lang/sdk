@@ -3101,6 +3101,31 @@ class ThrowJudgment extends Throw implements ExpressionJudgment {
   }
 }
 
+/// Synthetic judgment class representing a statement that is not allowed at
+/// the location it was found, and should be replaced with an error.
+class InvalidStatementJudgment extends ExpressionStatement
+    implements StatementJudgment {
+  final kernel.Expression desugaredError;
+  final StatementJudgment statement;
+
+  InvalidStatementJudgment(this.desugaredError, this.statement)
+      : super(new NullLiteral());
+
+  @override
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
+    inferrer.inferStatement(factory, statement);
+
+    // If this judgment is a part of a Block, replace it there.
+    // Otherwise, the parent would be a FunctionNode, but not yet.
+    if (parent is Block) {
+      parent.replaceChild(this, new ExpressionStatement(desugaredError));
+      parent = null;
+    }
+  }
+}
+
 /// Concrete shadow object representing a catch clause.
 class CatchJudgment extends Catch {
   final Token onKeyword;

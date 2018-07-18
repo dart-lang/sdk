@@ -93,6 +93,7 @@ export 'kernel_shadow_ast.dart'
         IndexAssignmentJudgment,
         InvalidConstructorInvocationJudgment,
         InvalidPropertyGetJudgment,
+        InvalidStatementJudgment,
         InvalidVariableWriteJudgment,
         InvalidWriteJudgment,
         ShadowInvalidFieldInitializer,

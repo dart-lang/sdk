@@ -703,6 +703,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
     _typeInferrer.inferFunctionBody(
         this, factory, _computeReturnTypeContext(member), asyncModifier, body);
+
+    // We finished the invalid body inference, desugar it into its error.
+    if (body is InvalidStatementJudgment) {
+      InvalidStatementJudgment judgment = body;
+      body = new ExpressionStatement(judgment.desugaredError);
+    }
+
     if (builder.kind == ProcedureKind.Setter) {
       bool oneParameter = formals != null &&
           formals.required.length == 1 &&
@@ -3933,7 +3940,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleInvalidStatement(Token token, Message message) {
     Statement statement = pop();
-    push(wrapInCompileTimeErrorStatement(statement, message));
+    var error = buildCompileTimeError(message, statement.fileOffset, noLength);
+    push(new InvalidStatementJudgment(error, statement));
   }
 
   @override
