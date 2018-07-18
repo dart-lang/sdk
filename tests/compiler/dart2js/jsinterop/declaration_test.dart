@@ -400,12 +400,56 @@ main() => new A(1);
 ''', errors: const [
     MessageKind.JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS
   ]),
+  const Test('Function-typed return type', '''
+@JS()
+library lib;
+
+import 'package:js/js.dart';
+
+@JS('func')
+external int Function() func();
+
+main() {
+  func();
+}
+'''),
+  const Test('Non-external field.', '''
+@JS()
+library lib;
+
+import 'package:js/js.dart';
+
+@JS()
+@anonymous
+class B {
+  int Function() callback;
+}
+
+@JS('makeB')
+external B makeB();
+
+main() {
+  makeB().callback();
+}
+'''),
 ];
 
-void main() {
+void main(List<String> args) {
   asyncTest(() async {
     for (Test test in TESTS) {
-      await runTest(test);
+      bool run = true;
+      if (args.isNotEmpty) {
+        run = false;
+        for (String arg in args) {
+          if (test.name.contains(arg)) {
+            run = true;
+            break;
+          }
+        }
+      }
+      if (run) {
+        await runTest(test);
+      }
     }
   });
 }

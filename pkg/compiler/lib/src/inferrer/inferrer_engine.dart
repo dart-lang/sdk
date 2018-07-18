@@ -379,8 +379,10 @@ abstract class InferrerEngineImpl extends InferrerEngine {
         mappedType = types.nullType;
       } else if (type.isDynamic) {
         return types.dynamicType;
-      } else {
+      } else if (type.isInterfaceType) {
         mappedType = types.nonNullSubtype(type.element);
+      } else {
+        mappedType = types.dynamicType;
       }
       returnType = types.computeLUB(returnType, mappedType);
       if (returnType == types.dynamicType) {
