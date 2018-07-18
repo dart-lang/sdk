@@ -22,7 +22,6 @@ class ResolutionData {
   final bool isPrefixReference;
   final bool isTypeReference;
   final bool isWriteReference;
-  final DartType literalType;
   final Node loadLibrary;
   final int prefixInfo;
   final Node reference;
@@ -39,7 +38,6 @@ class ResolutionData {
       this.isPrefixReference = false,
       this.isTypeReference = false,
       this.isWriteReference = false,
-      this.literalType,
       this.loadLibrary,
       this.prefixInfo,
       this.reference,
@@ -63,7 +61,7 @@ class ResolutionStorer
 
   void asExpression(ExpressionJudgment judgment, int location, void expression,
       Token asOperator, void literalType, DartType inferredType) {
-    _store(location, literalType: inferredType, inferredType: inferredType);
+    _store(location, inferredType: inferredType);
   }
 
   void assertInitializer(
@@ -147,19 +145,16 @@ class ResolutionStorer
       Token stackTraceParameter,
       Token rightParenthesis,
       void body,
-      DartType guardType,
       covariant VariableDeclarationBinder exceptionBinder,
       DartType exceptionType,
       covariant VariableDeclarationBinder stackTraceBinder,
       DartType stackTraceType) {
-    _store(location, literalType: guardType);
-
     if (exceptionBinder != null) {
-      _store(exceptionBinder.fileOffset, literalType: exceptionType);
+      _store(exceptionBinder.fileOffset, inferredType: exceptionType);
     }
 
     if (stackTraceBinder != null) {
-      _store(stackTraceBinder.fileOffset, literalType: stackTraceType);
+      _store(stackTraceBinder.fileOffset, inferredType: stackTraceType);
     }
   }
 
@@ -335,15 +330,9 @@ class ResolutionStorer
 
   void invalidInitializer(InitializerJudgment judgment, int location) {}
 
-  void isExpression(
-      ExpressionJudgment judgment,
-      int location,
-      void expression,
-      Token isOperator,
-      void literalType,
-      DartType testedType,
-      DartType inferredType) {
-    _store(location, literalType: testedType, inferredType: inferredType);
+  void isExpression(ExpressionJudgment judgment, int location, void expression,
+      Token isOperator, void literalType, DartType inferredType) {
+    _store(location, inferredType: inferredType);
   }
 
   void isNotExpression(
@@ -353,9 +342,8 @@ class ResolutionStorer
       Token isOperator,
       Token notOperator,
       void literalType,
-      DartType type,
       DartType inferredType) {
-    _store(location, literalType: type, inferredType: inferredType);
+    _store(location, inferredType: inferredType);
   }
 
   void labeledStatement(List<Object> labels, void statement) {}
@@ -648,10 +636,9 @@ class ResolutionStorer
         inferredType: inferredType);
   }
 
-  void variableDeclaration(covariant VariableDeclarationBinder binder,
-      DartType statementType, DartType inferredType) {
-    _store(binder.fileOffset,
-        literalType: statementType, inferredType: inferredType);
+  void variableDeclaration(
+      covariant VariableDeclarationBinder binder, DartType inferredType) {
+    _store(binder.fileOffset, inferredType: inferredType);
   }
 
   void variableGet(
@@ -694,7 +681,6 @@ class ResolutionStorer
       bool isPrefixReference = false,
       bool isTypeReference = false,
       bool isWriteReference = false,
-      DartType literalType,
       Node loadLibrary,
       int prefixInfo,
       Node reference,
@@ -715,7 +701,6 @@ class ResolutionStorer
         isPrefixReference: isPrefixReference,
         isTypeReference: isTypeReference,
         isWriteReference: isWriteReference,
-        literalType: literalType,
         loadLibrary: loadLibrary,
         prefixInfo: prefixInfo,
         reference: reference,

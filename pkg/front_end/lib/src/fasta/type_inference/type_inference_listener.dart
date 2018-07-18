@@ -111,7 +111,6 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
       Token stackTraceParameter,
       Token rightParenthesis,
       void body,
-      DartType guardType,
       covariant Object exceptionBinder,
       DartType exceptionType,
       covariant Object stackTraceBinder,
@@ -248,7 +247,6 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
       void expression,
       Token isOperator,
       void literalType,
-      DartType testedType,
       DartType inferredType);
 
   void isNotExpression(
@@ -258,7 +256,6 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
       Token isOperator,
       Token notOperator,
       void literalType,
-      DartType type,
       DartType inferredType);
 
   void labeledStatement(List<Object> labels, void statement);
@@ -465,8 +462,7 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
       Reference combiner,
       DartType inferredType);
 
-  void variableDeclaration(
-      covariant Object binder, DartType statementType, DartType inferredType);
+  void variableDeclaration(covariant Object binder, DartType inferredType);
 
   void variableGet(ExpressionJudgment judgment, Location location,
       bool isInCascade, covariant Object variableBinder, DartType inferredType);
@@ -571,7 +567,6 @@ class KernelTypeInferenceListener
       Token stackTraceParameter,
       Token rightParenthesis,
       void body,
-      DartType guardType,
       covariant void exceptionBinder,
       DartType exceptionType,
       covariant void stackTraceBinder,
@@ -722,14 +717,8 @@ class KernelTypeInferenceListener
   void invalidInitializer(InitializerJudgment judgment, location) {}
 
   @override
-  void isExpression(
-      ExpressionJudgment judgment,
-      location,
-      void expression,
-      Token isOperator,
-      void literalType,
-      DartType testedType,
-      DartType inferredType) {}
+  void isExpression(ExpressionJudgment judgment, location, void expression,
+      Token isOperator, void literalType, DartType inferredType) {}
 
   @override
   void isNotExpression(
@@ -739,7 +728,6 @@ class KernelTypeInferenceListener
       Token isOperator,
       Token notOperator,
       void literalType,
-      DartType type,
       DartType inferredType) {}
 
   @override
@@ -958,8 +946,7 @@ class KernelTypeInferenceListener
       DartType inferredType) {}
 
   @override
-  void variableDeclaration(
-      covariant void binder, DartType statementType, DartType inferredType) {}
+  void variableDeclaration(covariant void binder, DartType inferredType) {}
 
   @override
   void variableGet(ExpressionJudgment judgment, location, bool isInCascade,

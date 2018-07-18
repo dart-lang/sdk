@@ -167,18 +167,16 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     SimpleIdentifier exception = node.exceptionParameter;
     if (exception != null) {
       LocalVariableElementImpl element = exception.staticElement;
-      DartType type = _translateType(_get(exception).literalType);
+      DartType type = _translateType(_get(exception).inferredType);
       element.type = type;
-      exception.staticElement = element;
       exception.staticType = type;
     }
 
     SimpleIdentifier stackTrace = node.stackTraceParameter;
     if (stackTrace != null) {
       LocalVariableElementImpl element = stackTrace.staticElement;
-      DartType type = _translateType(_get(stackTrace).literalType);
+      DartType type = _translateType(_get(stackTrace).inferredType);
       element.type = type;
-      stackTrace.staticElement = element;
       stackTrace.staticType = type;
     }
 

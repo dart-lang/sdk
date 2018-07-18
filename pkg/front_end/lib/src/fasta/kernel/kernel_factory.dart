@@ -152,7 +152,6 @@ class KernelFactory
       Token stackTraceParameter,
       Token rightParenthesis,
       Statement body,
-      DartType guardType,
       covariant VariableDeclaration exceptionBinder,
       DartType exceptionType,
       covariant VariableDeclaration stackTraceBinder,
@@ -357,7 +356,6 @@ class KernelFactory
       Expression expression,
       Token isOperator,
       void literalType,
-      DartType testedType,
       DartType inferredType) {
     return judgment;
   }
@@ -370,7 +368,6 @@ class KernelFactory
       Token isOperator,
       Token notOperator,
       void literalType,
-      DartType testedType,
       DartType inferredType) {
     return judgment;
   }
@@ -685,8 +682,8 @@ class KernelFactory
   }
 
   @override
-  Statement variableDeclaration(covariant VariableDeclaration binder,
-      DartType statementType, DartType inferredType) {
+  Statement variableDeclaration(
+      covariant VariableDeclaration binder, DartType inferredType) {
     return binder;
   }
 

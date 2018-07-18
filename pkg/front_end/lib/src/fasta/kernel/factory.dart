@@ -98,7 +98,6 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       Token stackTraceParameter,
       Token rightParenthesis,
       Statement body,
-      DartType guardType,
       covariant Object exceptionBinder,
       DartType exceptionType,
       covariant Object stackTraceBinder,
@@ -241,7 +240,6 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       Expression expression,
       Token isOperator,
       Type literalType,
-      DartType testedType,
       DartType inferredType);
 
   Expression isNotExpression(
@@ -251,7 +249,6 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       Token isOperator,
       Token notOperator,
       Type literalType,
-      DartType testedType,
       DartType inferredType);
 
   Statement labeledStatement(List<Object> labels, Statement statement);
@@ -458,8 +455,7 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       Node combiner,
       DartType inferredType);
 
-  Statement variableDeclaration(
-      covariant Object binder, DartType statementType, DartType inferredType);
+  Statement variableDeclaration(covariant Object binder, DartType inferredType);
 
   Expression variableGet(ExpressionJudgment judgment, int fileOffset,
       bool isInCascade, covariant Object variableBinder, DartType inferredType);

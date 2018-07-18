@@ -1746,8 +1746,8 @@ class IsJudgment extends IsExpression implements ExpressionJudgment {
       DartType typeContext) {
     inferrer.inferExpression(factory, judgment, const UnknownType(), false);
     inferredType = inferrer.coreTypes.boolClass.rawType;
-    inferrer.listener.isExpression(
-        this, fileOffset, null, isOperator, null, type, inferredType);
+    inferrer.listener
+        .isExpression(this, fileOffset, null, isOperator, null, inferredType);
     return null;
   }
 }
@@ -1773,12 +1773,10 @@ class IsNotJudgment extends Not implements ExpressionJudgment {
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    IsExpression isExpression = this.operand;
-
     inferrer.inferExpression(factory, judgment, const UnknownType(), false);
     inferredType = inferrer.coreTypes.boolClass.rawType;
-    inferrer.listener.isNotExpression(this, fileOffset, null, isOperator,
-        notOperator, null, isExpression.type, inferredType);
+    inferrer.listener.isNotExpression(
+        this, fileOffset, null, isOperator, notOperator, null, inferredType);
     return null;
   }
 }
@@ -3101,7 +3099,6 @@ class CatchJudgment extends Catch {
         null, // stackTrace
         rightParenthesis,
         null, // body
-        guard,
         exceptionJudgment?.createBinder(inferrer),
         exceptionJudgment?.type,
         stackTraceJudgment?.createBinder(inferrer),
@@ -3544,7 +3541,7 @@ class VariableDeclarationJudgment extends VariableDeclaration
       }
     }
     inferrer.listener.variableDeclaration(
-        createBinder(inferrer), type, _implicitlyTyped ? inferredType : type);
+        createBinder(inferrer), _implicitlyTyped ? inferredType : type);
   }
 
   Object createBinder(ShadowTypeInferrer inferrer) =>

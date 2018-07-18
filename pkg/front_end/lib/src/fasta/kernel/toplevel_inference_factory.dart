@@ -119,7 +119,6 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       Token stackTraceParameter,
       Token rightParenthesis,
       void body,
-      DartType guardType,
       covariant void exceptionBinder,
       DartType exceptionType,
       covariant void stackTraceBinder,
@@ -280,7 +279,6 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       void expression,
       Token isOperator,
       void literalType,
-      DartType testedType,
       DartType inferredType) {}
 
   @override
@@ -291,7 +289,6 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       Token isOperator,
       Token notOperator,
       void literalType,
-      DartType testedType,
       DartType inferredType) {}
 
   @override
@@ -524,8 +521,7 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       DartType inferredType) {}
 
   @override
-  void variableDeclaration(
-      covariant void binder, DartType statementType, DartType inferredType) {}
+  void variableDeclaration(covariant void binder, DartType inferredType) {}
 
   @override
   void variableGet(ExpressionJudgment judgment, int fileOffset,
