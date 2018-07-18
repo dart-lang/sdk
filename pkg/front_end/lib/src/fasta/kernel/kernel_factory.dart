@@ -476,7 +476,7 @@ class KernelFactory
 
   @override
   Expression propertyGet(ExpressionJudgment judgment, int fileOffset,
-      Node member, DartType inferredType) {
+      bool forSyntheticToken, Node member, DartType inferredType) {
     return judgment;
   }
 
@@ -657,6 +657,7 @@ class KernelFactory
   @override
   void typeReference(
       int fileOffset,
+      bool forSyntheticToken,
       Token leftBracket,
       List<void> typeArguments,
       Token rightBracket,
@@ -691,6 +692,7 @@ class KernelFactory
   Expression variableGet(
       ExpressionJudgment judgment,
       int fileOffset,
+      bool forSyntheticToken,
       bool isInCascade,
       covariant VariableDeclaration variableBinder,
       DartType inferredType) {

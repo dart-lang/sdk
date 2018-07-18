@@ -398,9 +398,9 @@ class KernelPropertyAccessGenerator extends KernelGenerator
   }
 
   @override
-  Expression _makeSimpleRead() =>
-      new PropertyGetJudgment(receiver, name, getter)
-        ..fileOffset = offsetForToken(token);
+  Expression _makeSimpleRead() => new PropertyGetJudgment(receiver, name,
+      interfaceTarget: getter, forSyntheticToken: token.isSynthetic)
+    ..fileOffset = offsetForToken(token);
 
   @override
   Expression _makeSimpleWrite(Expression value, bool voidContext,
@@ -413,8 +413,9 @@ class KernelPropertyAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    var read = new PropertyGetJudgment(receiverAccess(), name, getter)
-      ..fileOffset = offsetForToken(token);
+    var read =
+        new PropertyGetJudgment(receiverAccess(), name, interfaceTarget: getter)
+          ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
     return read;
   }
@@ -455,9 +456,9 @@ class KernelThisPropertyAccessGenerator extends KernelGenerator
     if (getter == null) {
       helper.warnUnresolvedGet(name, offsetForToken(token));
     }
-    var read =
-        new PropertyGetJudgment(forest.thisExpression(token), name, getter)
-          ..fileOffset = offsetForToken(token);
+    var read = new PropertyGetJudgment(forest.thisExpression(token), name,
+        interfaceTarget: getter, forSyntheticToken: token.isSynthetic)
+      ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
     return read;
   }
@@ -539,8 +540,9 @@ class KernelNullAwarePropertyAccessGenerator extends KernelGenerator
 
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    var read = new PropertyGetJudgment(receiverAccess(), name, getter)
-      ..fileOffset = offsetForToken(token);
+    var read =
+        new PropertyGetJudgment(receiverAccess(), name, interfaceTarget: getter)
+          ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
     return read;
   }
@@ -1441,7 +1443,7 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
   @override
   Expression buildSimpleRead() {
     Expression error = buildError(forest.argumentsEmpty(token), isGetter: true);
-    return new UnresolvedVariableGetJudgment(error)
+    return new UnresolvedVariableGetJudgment(error, token.isSynthetic)
       ..fileOffset = token.charOffset;
   }
 
@@ -1450,7 +1452,8 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
     var type = super.buildTypeWithBuiltArguments(arguments,
         nonInstanceAccessIsError: nonInstanceAccessIsError,
         typeInferrer: typeInferrer);
-    typeInferrer.storeTypeReference(token.offset, null, null, type);
+    typeInferrer.storeTypeReference(
+        token.offset, token.isSynthetic, null, null, type);
     return type;
   }
 

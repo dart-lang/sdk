@@ -469,9 +469,12 @@ class ResolutionStorer
         inferredType: inferredType);
   }
 
-  void propertyGet(ExpressionJudgment judgment, int location, Node member,
-      DartType inferredType) {
-    _store(location, reference: member, inferredType: inferredType);
+  void propertyGet(ExpressionJudgment judgment, int location,
+      bool forSyntheticToken, Node member, DartType inferredType) {
+    _store(location,
+        reference: member,
+        inferredType: inferredType,
+        isSynthetic: forSyntheticToken);
   }
 
   void propertyGetCall(
@@ -602,6 +605,7 @@ class ResolutionStorer
 
   void typeReference(
       int location,
+      bool forSyntheticToken,
       Token leftBracket,
       List<void> typeArguments,
       Token rightBracket,
@@ -609,6 +613,7 @@ class ResolutionStorer
       covariant TypeVariableBinder binder,
       DartType type) {
     _store(location,
+        isSynthetic: forSyntheticToken,
         reference: reference,
         declaration: binder?.fileOffset,
         inferredType: type,
@@ -644,6 +649,7 @@ class ResolutionStorer
   void variableGet(
       ExpressionJudgment judgment,
       int location,
+      bool forSyntheticToken,
       bool isInCascade,
       covariant VariableDeclarationBinder variableBinder,
       DartType inferredType) {
@@ -651,7 +657,9 @@ class ResolutionStorer
       return;
     }
     _store(location,
-        declaration: variableBinder?.fileOffset, inferredType: inferredType);
+        isSynthetic: forSyntheticToken,
+        declaration: variableBinder?.fileOffset,
+        inferredType: inferredType);
   }
 
   void voidType(int location, Token token, DartType type) {
@@ -679,6 +687,7 @@ class ResolutionStorer
       bool isExplicitCall = false,
       bool isImplicitCall = false,
       bool isPrefixReference = false,
+      bool isSynthetic = false,
       bool isTypeReference = false,
       bool isWriteReference = false,
       Node loadLibrary,
@@ -687,10 +696,12 @@ class ResolutionStorer
       bool replace = false,
       DartType writeContext}) {
     _validateLocation(location);
-    if (!replace && _data.containsKey(location)) {
-      throw new StateError('Data already stored for offset $location');
+    var encodedLocation = 2 * location + (isSynthetic ? 1 : 0);
+    if (!replace && _data.containsKey(encodedLocation)) {
+      throw new StateError('Data already stored for (offset=$location, '
+          'isSynthetic=$isSynthetic)');
     }
-    _data[location] = new ResolutionData(
+    _data[encodedLocation] = new ResolutionData(
         argumentTypes: argumentTypes,
         combiner: combiner,
         declaration: declaration,
@@ -716,8 +727,9 @@ class ResolutionStorer
     _typeVariableDeclarations[typeParameter] = fileOffset;
   }
 
-  void _unstore(int location) {
-    _data.remove(location) == null;
+  void _unstore(int location, {bool isSynthetic: false}) {
+    var encodedLocation = 2 * location + (isSynthetic ? 1 : 0);
+    _data.remove(encodedLocation) == null;
   }
 
   void _validateLocation(int location) {

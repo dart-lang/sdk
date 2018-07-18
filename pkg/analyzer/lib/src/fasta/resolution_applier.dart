@@ -502,7 +502,9 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
     if (node.methodName.name == 'call' && invokeElement == null) {
       // Don't resolve explicit call() invocation of function types.
-    } else if (_get(node.methodName, failIfAbsent: false) != null) {
+    } else if (_get(node.methodName.token,
+            isSynthetic: node.methodName.isSynthetic, failIfAbsent: false) !=
+        null) {
       node.methodName.accept(this);
     } else {
       node.methodName.staticElement = invokeElement;
@@ -599,7 +601,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var data = _get(node);
+    var data = _get(node, isSynthetic: node.token.isSynthetic);
     if (data.prefixInfo != null) {
       node.staticElement = _translatePrefixInfo(data.prefixInfo);
     } else if (data.declaration != null) {
@@ -703,12 +705,15 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     }
   }
 
-  ResolutionData _get(SyntacticEntity entity, {bool failIfAbsent: true}) {
+  ResolutionData _get(SyntacticEntity entity,
+      {bool failIfAbsent = true, bool isSynthetic = false}) {
     int entityOffset = entity.offset;
-    var data = _data[entityOffset];
+    var encodedLocation = 2 * entityOffset + (isSynthetic ? 1 : 0);
+    var data = _data[encodedLocation];
     if (failIfAbsent && data == null) {
       String fileName = _enclosingLibraryElement.source.fullName;
-      throw new StateError('No data for $entity at $entityOffset in $fileName');
+      throw new StateError('No data for $entity at (offset=$entityOffset, '
+          'isSynthetic=$isSynthetic) in $fileName');
     }
     return data;
   }

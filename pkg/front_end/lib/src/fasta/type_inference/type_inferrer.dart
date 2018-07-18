@@ -427,8 +427,8 @@ abstract class TypeInferrer {
 
   void storePrefix(Token token, PrefixBuilder prefix);
 
-  void storeTypeReference(
-      int offset, TreeNode reference, Object binder, DartType type);
+  void storeTypeReference(int offset, bool forSyntheticToken,
+      TreeNode reference, Object binder, DartType type);
 
   void storeTypeUse(int offset, Node node);
 
@@ -505,8 +505,8 @@ class TypeInferrerDisabled extends TypeInferrer {
   void storePrefix(Token token, PrefixBuilder prefix) {}
 
   @override
-  void storeTypeReference(
-      int offset, TreeNode reference, Object binder, DartType type) {}
+  void storeTypeReference(int offset, bool forSyntheticToken,
+      TreeNode reference, Object binder, DartType type) {}
 
   @override
   void storeTypeUse(int offset, Node node) {}
@@ -1709,6 +1709,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       ExpressionJudgment expression,
       ExpressionJudgment receiver,
       int fileOffset,
+      bool forSyntheticToken,
       DartType typeContext,
       {VariableDeclaration receiverVariable,
       PropertyGet desugaredGet,
@@ -1751,8 +1752,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (identical(interfaceMember, 'call')) {
       listener.propertyGetCall(expression, expression.fileOffset, inferredType);
     } else {
-      listener.propertyGet(
-          expression, expression.fileOffset, interfaceMember, inferredType);
+      listener.propertyGet(expression, expression.fileOffset, forSyntheticToken,
+          interfaceMember, inferredType);
     }
     expression.inferredType = inferredType;
   }
@@ -1896,9 +1897,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   @override
-  void storeTypeReference(
-      int offset, TreeNode reference, Object binder, DartType type) {
-    listener.typeReference(offset, null, null, null, reference, binder, type);
+  void storeTypeReference(int offset, bool forSyntheticToken,
+      TreeNode reference, Object binder, DartType type) {
+    listener.typeReference(
+        offset, forSyntheticToken, null, null, null, reference, binder, type);
   }
 
   @override

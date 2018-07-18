@@ -634,8 +634,8 @@ abstract class TypeUseGenerator implements Generator {
           offsetForToken(token),
           helper.uri);
     }
-    typeInferrer?.storeTypeReference(
-        token.charOffset, declarationTarget, declarationBinder, type);
+    typeInferrer?.storeTypeReference(token.charOffset, token.isSynthetic,
+        declarationTarget, declarationBinder, type);
     if (type is TypeParameterType) {
       return helper.validatedTypeVariableUse(
           type, offsetForToken(token), nonInstanceAccessIsError);

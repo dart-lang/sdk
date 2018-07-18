@@ -372,8 +372,8 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       DartType inferredType) {}
 
   @override
-  void propertyGet(ExpressionJudgment judgment, int fileOffset, Node member,
-      DartType inferredType) {}
+  void propertyGet(ExpressionJudgment judgment, int fileOffset,
+      bool forSyntheticToken, Node member, DartType inferredType) {}
 
   @override
   void propertyGetCall(
@@ -500,6 +500,7 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
   @override
   void typeReference(
       int fileOffset,
+      bool forSyntheticToken,
       Token leftBracket,
       List<void> typeArguments,
       Token rightBracket,
@@ -524,8 +525,13 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
   void variableDeclaration(covariant void binder, DartType inferredType) {}
 
   @override
-  void variableGet(ExpressionJudgment judgment, int fileOffset,
-      bool isInCascade, covariant void variableBinder, DartType inferredType) {}
+  void variableGet(
+      ExpressionJudgment judgment,
+      int fileOffset,
+      bool forSyntheticToken,
+      bool isInCascade,
+      covariant void variableBinder,
+      DartType inferredType) {}
 
   @override
   void whileStatement(

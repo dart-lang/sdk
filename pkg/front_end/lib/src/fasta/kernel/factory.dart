@@ -321,7 +321,7 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
       DartType inferredType);
 
   Expression propertyGet(ExpressionJudgment judgment, int fileOffset,
-      Node member, DartType inferredType);
+      bool forSyntheticToken, Node member, DartType inferredType);
 
   Expression propertyGetCall(
       ExpressionJudgment judgment, int fileOffset, DartType inferredType);
@@ -437,6 +437,7 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
 
   Type typeReference(
       int fileOffset,
+      bool forSyntheticToken,
       Token leftBracket,
       List<Type> typeArguments,
       Token rightBracket,
@@ -457,8 +458,13 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
 
   Statement variableDeclaration(covariant Object binder, DartType inferredType);
 
-  Expression variableGet(ExpressionJudgment judgment, int fileOffset,
-      bool isInCascade, covariant Object variableBinder, DartType inferredType);
+  Expression variableGet(
+      ExpressionJudgment judgment,
+      int fileOffset,
+      bool forSyntheticToken,
+      bool isInCascade,
+      covariant Object variableBinder,
+      DartType inferredType);
 
   Statement whileStatement(
       StatementJudgment judgment,

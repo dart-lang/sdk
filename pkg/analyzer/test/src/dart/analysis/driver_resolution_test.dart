@@ -1668,6 +1668,19 @@ num v = 0;
     }
   }
 
+  test_binary_operator_with_synthetic_operands() async {
+    addTestFile('''
+void main() {
+  var list = *;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    // Note: no further expectations.  We don't care how the error is recovered
+    // from, provided it is recovered from in a way that doesn't crash the
+    // analyzer/FE integration.
+  }
+
   test_binaryExpression() async {
     String content = r'''
 main() {
@@ -1764,6 +1777,32 @@ main() {
     expect(expression.rightOperand.staticType, typeProvider.intType);
     expect(expression.staticElement.name, '==');
     expect(expression.staticType, typeProvider.boolType);
+  }
+
+  test_cascade_get_with_numeric_getter_name() async {
+    addTestFile('''
+void f(x) {
+  x..42;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    // Note: no further expectations.  We don't care how the error is recovered
+    // from, provided it is recovered from in a way that doesn't crash the
+    // analyzer/FE integration.
+  }
+
+  test_cascade_method_call_with_synthetic_method_name() async {
+    addTestFile('''
+void f(x) {
+  x..(42);
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    // Note: no further expectations.  We don't care how the error is recovered
+    // from, provided it is recovered from in a way that doesn't crash the
+    // analyzer/FE integration.
   }
 
   test_cascadeExpression() async {
@@ -2612,6 +2651,22 @@ main(B b) {
     if (useCFE) {
       expect(invocation.methodName.staticElement, same(mElement));
     }
+  }
+
+  test_function_call_with_synthetic_arguments() async {
+    addTestFile('''
+void f(x) {}
+class C {
+  m() {
+    f(,);
+  }
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    // Note: no further expectations.  We don't care how the error is recovered
+    // from, provided it is recovered from in a way that doesn't crash the
+    // analyzer/FE integration.
   }
 
   test_functionExpressionInvocation() async {
@@ -3837,6 +3892,20 @@ void main() {
     expect(fInvocation.methodName.staticType.toString(), fTypeString);
     expect(fInvocation.staticType, same(doubleType));
     expect(fInvocation.staticInvokeType.toString(), fTypeString);
+  }
+
+  test_local_function_call_with_incomplete_closure_argument() async {
+    addTestFile('''
+void main() {
+  f(x) => null;
+  f(=> 42);
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    // Note: no further expectations.  We don't care how the error is recovered
+    // from, provided it is recovered from in a way that doesn't crash the
+    // analyzer/FE integration.
   }
 
   test_local_function_generic() async {

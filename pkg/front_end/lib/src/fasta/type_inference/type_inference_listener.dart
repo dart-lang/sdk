@@ -334,7 +334,7 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
       DartType inferredType);
 
   void propertyGet(ExpressionJudgment judgment, Location location,
-      Reference member, DartType inferredType);
+      bool forSyntheticToken, Reference member, DartType inferredType);
 
   void propertyGetCall(
       ExpressionJudgment judgment, Location location, DartType inferredType);
@@ -444,6 +444,7 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
 
   void typeReference(
       Location location,
+      bool forSyntheticToken,
       Token leftBracket,
       List<void> typeArguments,
       Token rightBracket,
@@ -464,8 +465,13 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
 
   void variableDeclaration(covariant Object binder, DartType inferredType);
 
-  void variableGet(ExpressionJudgment judgment, Location location,
-      bool isInCascade, covariant Object variableBinder, DartType inferredType);
+  void variableGet(
+      ExpressionJudgment judgment,
+      Location location,
+      bool forSyntheticToken,
+      bool isInCascade,
+      covariant Object variableBinder,
+      DartType inferredType);
 
   void voidType(Location location, Token token, DartType type);
 
@@ -813,8 +819,8 @@ class KernelTypeInferenceListener
       DartType writeContext, combiner, DartType inferredType) {}
 
   @override
-  void propertyGet(
-      ExpressionJudgment judgment, location, member, DartType inferredType) {}
+  void propertyGet(ExpressionJudgment judgment, location,
+      bool forSyntheticToken, member, DartType inferredType) {}
 
   @override
   void propertyGetCall(
@@ -929,8 +935,15 @@ class KernelTypeInferenceListener
       DartType inferredType) {}
 
   @override
-  void typeReference(location, Token leftBracket, List<void> typeArguments,
-      Token rightBracket, reference, covariant void binder, DartType type) {}
+  void typeReference(
+      location,
+      bool forSyntheticToken,
+      Token leftBracket,
+      List<void> typeArguments,
+      Token rightBracket,
+      reference,
+      covariant void binder,
+      DartType type) {}
 
   @override
   void typeVariableDeclaration(
@@ -949,8 +962,13 @@ class KernelTypeInferenceListener
   void variableDeclaration(covariant void binder, DartType inferredType) {}
 
   @override
-  void variableGet(ExpressionJudgment judgment, location, bool isInCascade,
-      expressionVariable, DartType inferredType) {}
+  void variableGet(
+      ExpressionJudgment judgment,
+      location,
+      bool forSyntheticToken,
+      bool isInCascade,
+      expressionVariable,
+      DartType inferredType) {}
 
   @override
   void voidType(location, Token token, DartType type) {}

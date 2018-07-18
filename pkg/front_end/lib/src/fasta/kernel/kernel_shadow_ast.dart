@@ -2254,7 +2254,7 @@ class NullAwarePropertyGetJudgment extends Let implements ExpressionJudgment {
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     inferrer.inferPropertyGet(
-        factory, this, receiverJudgment, fileOffset, typeContext,
+        factory, this, receiverJudgment, fileOffset, false, typeContext,
         receiverVariable: variable, desugaredGet: _desugaredGet);
     if (inferrer.strongMode) {
       body.staticType = inferredType;
@@ -2387,12 +2387,16 @@ class PropertyAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
 class PropertyGetJudgment extends PropertyGet implements ExpressionJudgment {
   DartType inferredType;
 
-  PropertyGetJudgment(Expression receiver, Name name, [Member interfaceTarget])
+  final bool forSyntheticToken;
+
+  PropertyGetJudgment(Expression receiver, Name name,
+      {Member interfaceTarget, this.forSyntheticToken = false})
       : super(receiver, name, interfaceTarget);
 
   PropertyGetJudgment.byReference(
       Expression receiver, Name name, Reference interfaceTargetReference)
-      : super.byReference(receiver, name, interfaceTargetReference);
+      : forSyntheticToken = false,
+        super.byReference(receiver, name, interfaceTargetReference);
 
   ExpressionJudgment get receiverJudgment => receiver;
 
@@ -2401,8 +2405,8 @@ class PropertyGetJudgment extends PropertyGet implements ExpressionJudgment {
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    inferrer.inferPropertyGet(
-        factory, this, receiverJudgment, fileOffset, typeContext,
+    inferrer.inferPropertyGet(factory, this, receiverJudgment, fileOffset,
+        forSyntheticToken, typeContext,
         desugaredGet: this);
     return null;
   }
@@ -2755,7 +2759,8 @@ class SuperPropertyGetJudgment extends SuperPropertyGet
       inferrer.instrumentation?.record(inferrer.uri, fileOffset, 'target',
           new InstrumentationValueForMember(interfaceTarget));
     }
-    inferrer.inferPropertyGet(factory, this, null, fileOffset, typeContext,
+    inferrer.inferPropertyGet(
+        factory, this, null, fileOffset, false, typeContext,
         interfaceMember: interfaceTarget, propertyName: name);
     if (desugaredError != null) {
       parent.replaceChild(this, desugaredError);
@@ -2943,7 +2948,8 @@ class InvalidPropertyGetJudgment extends SyntheticExpressionJudgment {
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
     var inferredType = member?.getterType ?? const DynamicType();
-    inferrer.listener.propertyGet(this, fileOffset, member, inferredType);
+    inferrer.listener
+        .propertyGet(this, fileOffset, false, member, inferredType);
     return super.infer(inferrer, factory, typeContext);
   }
 }
@@ -3667,8 +3673,8 @@ class UnresolvedVariableUnaryJudgment extends SyntheticExpressionJudgment {
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    inferrer.listener
-        .variableGet(this, token.offset, false, null, const DynamicType());
+    inferrer.listener.variableGet(this, token.offset, token.isSynthetic, false,
+        null, const DynamicType());
     inferrer.listener.variableAssign(
         this, fileOffset, const DynamicType(), null, null, inferredType);
     return super.infer(inferrer, factory, typeContext);
@@ -3678,15 +3684,19 @@ class UnresolvedVariableUnaryJudgment extends SyntheticExpressionJudgment {
 /// Synthetic judgment class representing an attempt to read an unresolved
 /// variable.
 class UnresolvedVariableGetJudgment extends SyntheticExpressionJudgment {
-  UnresolvedVariableGetJudgment(kernel.Expression desugared) : super(desugared);
+  final bool forSyntheticToken;
+
+  UnresolvedVariableGetJudgment(
+      kernel.Expression desugared, this.forSyntheticToken)
+      : super(desugared);
 
   @override
   Expression infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    inferrer.listener
-        .variableGet(this, fileOffset, false, null, const DynamicType());
+    inferrer.listener.variableGet(
+        this, fileOffset, forSyntheticToken, false, null, const DynamicType());
     return super.infer(inferrer, factory, typeContext);
   }
 }
@@ -3736,7 +3746,7 @@ class VariableGetJudgment extends VariableGet implements ExpressionJudgment {
       type = inferrer.instantiateTearOff(type, typeContext, this);
     }
     inferredType = type;
-    inferrer.listener.variableGet(this, fileOffset, _isInCascade(),
+    inferrer.listener.variableGet(this, fileOffset, false, _isInCascade(),
         variable.createBinder(inferrer), inferredType);
     return null;
   }
