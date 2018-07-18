@@ -8,7 +8,7 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:front_end/src/byte_store/byte_store.dart';
-import 'package:front_end/src/byte_store/crc32.dart';
+import 'package:front_end/src/byte_store/fletcher16.dart';
 import 'package:path/path.dart';
 
 /**
@@ -213,34 +213,29 @@ class FileByteStore implements ByteStore {
  * version and the checksum to data.
  */
 class FileByteStoreValidator {
-  static const List<int> _VERSION = const [0x01, 0x00, 0x00, 0x00];
+  static const List<int> _VERSION = const [0x01, 0x00];
 
   /**
    * If the [rawBytes] have the valid version and checksum, extract and
-   * return the data from it.  Otherwise return `null`.
+   * return the data from it. Otherwise return `null`.
    */
   List<int> getData(List<int> rawBytes) {
     // There must be at least the version and the checksum in the raw bytes.
-    if (rawBytes.length < 8) {
+    if (rawBytes.length < 4) {
       return null;
     }
-    int len = rawBytes.length - 8;
+    int len = rawBytes.length - 4;
 
     // Check the version.
-    if (rawBytes[len + 0] != _VERSION[0] ||
-        rawBytes[len + 1] != _VERSION[1] ||
-        rawBytes[len + 2] != _VERSION[2] ||
-        rawBytes[len + 3] != _VERSION[3]) {
+    if (rawBytes[len + 0] != _VERSION[0] || rawBytes[len + 1] != _VERSION[1]) {
       return null;
     }
 
-    // Check the CRC32 of the data.
+    // Check the checksum of the data.
     List<int> data = rawBytes.sublist(0, len);
-    int crc = getCrc32(data);
-    if (rawBytes[len + 4] != crc & 0xFF ||
-        rawBytes[len + 5] != (crc >> 8) & 0xFF ||
-        rawBytes[len + 6] != (crc >> 16) & 0xFF ||
-        rawBytes[len + 7] != (crc >> 24) & 0xFF) {
+    int checksum = fletcher16(data);
+    if (rawBytes[len + 2] != checksum & 0xFF ||
+        rawBytes[len + 3] != (checksum >> 8) & 0xFF) {
       return null;
     }
 
@@ -254,7 +249,7 @@ class FileByteStoreValidator {
    */
   List<int> wrapData(List<int> data) {
     int len = data.length;
-    var bytes = new Uint8List(len + 8);
+    var bytes = new Uint8List(len + 4);
 
     // Put the data.
     bytes.setRange(0, len, data);
@@ -262,15 +257,11 @@ class FileByteStoreValidator {
     // Put the version.
     bytes[len + 0] = _VERSION[0];
     bytes[len + 1] = _VERSION[1];
-    bytes[len + 2] = _VERSION[2];
-    bytes[len + 3] = _VERSION[3];
 
-    // Put the CRC32 of the data.
-    int crc = getCrc32(data);
-    bytes[len + 4] = crc & 0xFF;
-    bytes[len + 5] = (crc >> 8) & 0xFF;
-    bytes[len + 6] = (crc >> 16) & 0xFF;
-    bytes[len + 7] = (crc >> 24) & 0xFF;
+    // Put the checksum of the data.
+    int checksum = fletcher16(data);
+    bytes[len + 2] = checksum & 0xFF;
+    bytes[len + 3] = (checksum >> 8) & 0xFF;
 
     return bytes;
   }
