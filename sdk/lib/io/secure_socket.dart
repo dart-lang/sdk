@@ -1256,6 +1256,7 @@ class TlsException implements IOException {
   final String message;
   final OSError osError;
 
+  @pragma("vm.entry_point")
   const TlsException([String message = "", OSError osError = null])
       : this._("TlsException", message, osError);
 
@@ -1281,6 +1282,7 @@ class TlsException implements IOException {
  * a secure network connection.
  */
 class HandshakeException extends TlsException {
+  @pragma("vm.entry_point")
   const HandshakeException([String message = "", OSError osError = null])
       : super._("HandshakeException", message, osError);
 }
@@ -1291,6 +1293,7 @@ class HandshakeException extends TlsException {
  * certificate.
  */
 class CertificateException extends TlsException {
+  @pragma("vm.entry_point")
   const CertificateException([String message = "", OSError osError = null])
       : super._("CertificateException", message, osError);
 }

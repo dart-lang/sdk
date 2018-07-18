@@ -21,10 +21,12 @@ class _ScheduleImmediate {
   static _ScheduleImmediateClosure _closure;
 }
 
+@pragma("vm.entry_point")
 void _setScheduleImmediateClosure(_ScheduleImmediateClosure closure) {
   _ScheduleImmediate._closure = closure;
 }
 
+@pragma("vm.entry_point")
 void _ensureScheduleImmediate() {
   _AsyncRun._scheduleImmediate(_startMicrotaskLoop);
 }

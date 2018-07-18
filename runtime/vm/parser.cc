@@ -4006,6 +4006,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                     method->has_external,
                     method->has_native,  // May change.
                     current_class(), method->decl_begin_pos));
+  func.set_has_pragma(IsPragmaAnnotation(method->metadata_pos));
 
   ASSERT(innermost_function().IsNull());
   innermost_function_ = func.raw();
