@@ -36,7 +36,7 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   }
 
   @override
-  @failingTest
+  @assertFailingTest
   test_closure_generic() {
     // Assertion error: 'element != null': is not true.
     return super.test_closure_generic();
