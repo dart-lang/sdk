@@ -1021,10 +1021,6 @@ class OptionsTest_UseCFE extends OptionsTest {
 
   @override
   @failingTest
-  test_basic_language() => callFailingTest(super.test_basic_language);
-
-  @override
-  @failingTest
   test_includeDirective() => callFailingTest(super.test_includeDirective);
 
   @override

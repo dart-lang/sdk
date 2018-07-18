@@ -135,13 +135,6 @@ class B {
     // Skipped by design.
   }
 
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_getErrors() async {
-    await super.test_getErrors();
-  }
-
   @override
   @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/33719')

@@ -75,6 +75,7 @@ import 'kernel_ast_api.dart'
         SyntheticExpressionJudgment,
         TreeNode,
         TypeParameterType,
+        UnresolvedTargetInvocationJudgment,
         UnresolvedVariableUnaryJudgment,
         VariableDeclaration;
 
@@ -818,8 +819,9 @@ abstract class UnresolvedNameGenerator implements ErroneousExpressionGenerator {
 
   @override
   Expression doInvocation(int charOffset, Arguments arguments) {
-    return new SyntheticExpressionJudgment(
-        buildError(arguments, offset: charOffset));
+    return new UnresolvedTargetInvocationJudgment(
+        buildError(arguments, offset: charOffset), arguments)
+      ..fileOffset = arguments.fileOffset;
   }
 
   @override

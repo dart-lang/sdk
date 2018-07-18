@@ -42,5 +42,5 @@ import self as self;
 import "dart:core" as core;
 
 static method main() → void {
-  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#f, 32, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>["x${(let dynamic _ = null in throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#x, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))).*("'")}"]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#f, 32, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>["x${(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#x, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))).*("'")}"]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
 }
