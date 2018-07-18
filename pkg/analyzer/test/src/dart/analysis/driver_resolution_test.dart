@@ -3678,6 +3678,122 @@ main() {
     assertType(aRef, 'int');
   }
 
+  test_invalid_invocation_arguments_instance_method() async {
+    addTestFile(r'''
+class C {
+  void m() {}
+}
+var a = 0;
+main(C c) {
+  c.m(a);
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var m = findElement.method('m');
+
+    var invocation = findNode.methodInvocation('m(a)');
+    assertElement(invocation.methodName, m);
+    assertType(invocation.methodName, '() → void');
+    assertType(invocation, 'void');
+
+    var aRef = invocation.argumentList.arguments[0];
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_invalid_invocation_arguments_static_method() async {
+    addTestFile(r'''
+class C {
+  static void m() {}
+}
+var a = 0;
+main() {
+  C.m(a);
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var m = findElement.method('m');
+
+    var invocation = findNode.methodInvocation('m(a)');
+    assertElement(invocation.methodName, m);
+    assertType(invocation.methodName, '() → void');
+    assertType(invocation, 'void');
+
+    var aRef = invocation.argumentList.arguments[0];
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_invalid_invocation_arguments_static_redirectingConstructor() async {
+    addTestFile(r'''
+class C {
+  factory C() = C.named;
+  C.named();
+}
+
+int a;
+main() {
+  new C(a);
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var classElement = findElement.class_('C');
+
+    var creation = findNode.instanceCreation('new C(a)');
+    _assertConstructorInvocation(creation, classElement);
+
+    var aRef = creation.argumentList.arguments[0];
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_invalid_invocation_arguments_static_topLevelFunction() async {
+    addTestFile(r'''
+void f() {}
+var a = 0;
+main() {
+  f(a);
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var f = findElement.function('f');
+
+    var invocation = findNode.methodInvocation('f(a)');
+    assertElement(invocation.methodName, f);
+    assertType(invocation.methodName, '() → void');
+    assertType(invocation, 'void');
+
+    var aRef = invocation.argumentList.arguments[0];
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_invalid_invocation_arguments_static_topLevelVariable() async {
+    addTestFile(r'''
+void Function() f;
+var a = 0;
+main() {
+  f(a);
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var f = findElement.topGet('f');
+
+    var invocation = findNode.methodInvocation('f(a)');
+    assertElement(invocation.methodName, f);
+    assertType(invocation.methodName, '() → void');
+    assertType(invocation, 'void');
+
+    var aRef = invocation.argumentList.arguments[0];
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
   test_invalid_methodInvocation_simpleIdentifier() async {
     addTestFile(r'''
 int foo = 0;

@@ -759,6 +759,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   void resolveRedirectingFactoryTargets() {
     for (StaticInvocation invocation in redirectingFactoryInvocations) {
+      // If the invocation was invalid, it has already been desugared into
+      // an exception throwing expression. There is nothing to resolve anymore.
+      if (invocation.parent == null) {
+        continue;
+      }
+
       Procedure initialTarget = invocation.target;
       Expression replacementNode;
 
@@ -2788,7 +2794,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
               error, target, arguments)
             ..fileOffset = charOffset;
         } else {
-          return new SyntheticExpressionJudgment(error);
+          return new StaticInvocationJudgment(
+              target, forest.castArguments(arguments),
+              desugaredError: error)
+            ..fileOffset = charOffset;
         }
       }
     }
