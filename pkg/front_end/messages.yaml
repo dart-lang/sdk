@@ -630,6 +630,16 @@ ExternalField:
   script:
     - "class C { external var f; }"
 
+InitializerOutsideConstructor:
+  template: "Only constructors can have initializers, and '#name' is not a constructor."
+  analyzerCode: INITIALIZER_OUTSIDE_CONSTRUCTOR
+  dart2jsCode: "*fatal*"
+
+ConstConstructorWithNonConstSuper:
+  template: "Constant constructor can't call non-constant super constructors."
+  analyzerCode: CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER
+  dart2jsCode: "*fatal*"
+
 ExtraneousModifier:
   template: "Can't have modifier '#lexeme' here."
   tip: "Try removing '#lexeme'."

@@ -949,6 +949,18 @@ const MessageCode messageConstConstructorWithBody = const MessageCode(
     tip: r"""Try removing either the 'const' keyword or the body.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstConstructorWithNonConstSuper =
+    messageConstConstructorWithNonConstSuper;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstConstructorWithNonConstSuper = const MessageCode(
+    "ConstConstructorWithNonConstSuper",
+    analyzerCode: "CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER",
+    dart2jsCode: "*fatal*",
+    message:
+        r"""Constant constructor can't call non-constant super constructors.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstEvalContext = messageConstEvalContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3406,6 +3418,31 @@ const MessageCode messageInitializedVariableInForEach = const MessageCode(
     message: r"""The loop variable in a for-each loop can't be initialized.""",
     tip:
         r"""Try removing the initializer, or using a different kind of loop.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateInitializerOutsideConstructor = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Only constructors can have initializers, and '#name' is not a constructor.""",
+    withArguments: _withArgumentsInitializerOutsideConstructor);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeInitializerOutsideConstructor =
+    const Code<Message Function(String name)>(
+        "InitializerOutsideConstructor", templateInitializerOutsideConstructor,
+        analyzerCode: "INITIALIZER_OUTSIDE_CONSTRUCTOR",
+        dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInitializerOutsideConstructor(String name) {
+  return new Message(codeInitializerOutsideConstructor,
+      message:
+          """Only constructors can have initializers, and '${name}' is not a constructor.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

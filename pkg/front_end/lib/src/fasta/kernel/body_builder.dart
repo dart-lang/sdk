@@ -657,8 +657,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     if (member is KernelConstructorBuilder && !member.isExternal) {
       member.addInitializer(initializer, _typeInferrer);
     } else {
-      deprecated_addCompileTimeError(
-          token.charOffset, "Can't have initializers: ${member.name}");
+      addCompileTimeError(
+          fasta.templateInitializerOutsideConstructor
+              .withArguments(member.name),
+          token.charOffset,
+          member.name.length);
     }
   }
 
@@ -1766,8 +1769,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("ReturnStatement");
     Expression expression = hasExpression ? popForValue() : null;
     if (expression != null && inConstructor) {
-      push(deprecated_buildCompileTimeErrorStatement(
-          "Can't return from a constructor.", beginToken.charOffset));
+      push(buildCompileTimeErrorStatement(
+          fasta.messageConstructorWithReturnType, beginToken.charOffset));
     } else {
       push(forest.returnStatement(beginToken, expression, endToken));
     }
@@ -4126,8 +4129,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       [int charOffset = -1]) {
     if (member.isConst && !constructor.isConst) {
       return buildInvalidInitializer(
-          deprecated_buildCompileTimeError(
-              "Super constructor isn't const.", charOffset),
+          buildCompileTimeError(fasta.messageConstConstructorWithNonConstSuper,
+              charOffset, member.name.length),
           charOffset);
     }
     needsImplicitSuperInitializer = false;

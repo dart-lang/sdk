@@ -1348,6 +1348,9 @@ class CompileTimeErrorCode extends ErrorCode {
           "in a constructor can't be static.",
           correction: "Try removing the initialization.");
 
+  static const CompileTimeErrorCode INITIALIZER_OUTSIDE_CONSTRUCTOR =
+      const CompileTimeErrorCode.fromFasta('INITIALIZER_OUTSIDE_CONSTRUCTOR');
+
   /**
    * 7.6.1 Generative Constructors: An initializing formal has the form
    * <i>this.id</i>. It is a compile-time error if <i>id</i> is not the name of

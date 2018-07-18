@@ -182,20 +182,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_constConstructorWithNonConstSuper_explicit() async {
-    // UnimplementedError: For ShadowInvalidInitializer
-    await super.test_constConstructorWithNonConstSuper_explicit();
-  }
-
-  @override
-  @failingTest
-  test_constConstructorWithNonConstSuper_implicit() async {
-    // UnimplementedError: For ShadowInvalidInitializer
-    await super.test_constConstructorWithNonConstSuper_implicit();
-  }
-
-  @override
-  @failingTest
   test_constConstructorWithNonFinalField_mixin() async {
     // Expected 1 errors of type CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN, found 0;
     //          1 errors of type CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, found 0

@@ -54,6 +54,7 @@ ConstAndFinal/script1: Fail
 ConstAndVar/script1: Fail
 ConstConstructorInSubclassOfMixinApplication/example: Fail
 ConstConstructorNonFinalField/example: Fail
+ConstConstructorWithNonConstSuper/example: Fail
 ConstEvalContext/analyzerCode: Fail # This is just used for displaying the context.
 ConstEvalContext/example: Fail # This is just used for displaying the context.
 ConstEvalDuplicateKey/dart2jsCode: Fail
@@ -194,6 +195,7 @@ ImplementsBeforeExtends/script: Fail
 ImplementsBeforeWith/script: Fail
 ImplicitCallOfNonMethod/example: Fail
 ImportAfterPart/script1: Fail
+InitializerOutsideConstructor/example: Fail
 InputFileNotFound/analyzerCode: Fail
 InputFileNotFound/example: Fail
 IntegerLiteralIsOutOfRange/example: Fail
