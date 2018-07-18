@@ -60,7 +60,7 @@ class PreferConstLiteralsToCreateImmutables extends LintRule
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = _Visitor(this);
+    final visitor = new _Visitor(this);
     registry.addListLiteral(this, visitor);
     registry.addMapLiteral(this, visitor);
   }
@@ -124,7 +124,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // put a fake const keyword and check if there's const error
     final oldKeyword = literal.constKeyword;
-    literal.constKeyword = KeywordToken(Keyword.CONST, node.offset);
+    literal.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
     try {
       hasConstError = hasErrorWithConstantVerifier(literal);
     } finally {

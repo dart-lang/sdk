@@ -58,7 +58,7 @@ class TypeAnnotatePublicApis extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = _Visitor(this);
+    final visitor = new _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
     registry.addFunctionTypeAlias(this, visitor);
@@ -71,7 +71,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final _VisitorHelper v;
 
-  _Visitor(this.rule) : v = _VisitorHelper(rule);
+  _Visitor(this.rule) : v = new _VisitorHelper(rule);
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     if (node.fields.type == null) {

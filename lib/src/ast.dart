@@ -186,7 +186,7 @@ bool isVar(Token token) => isKeyword(token, Keyword.VAR);
 /// Uses [processor] to visit all of the children of [element].
 /// If [processor] returns `true`, then children of a child are visited too.
 void visitChildren(Element element, ElementProcessor processor) {
-  element.visitChildren(_ElementVisitorAdapter(processor));
+  element.visitChildren(new _ElementVisitorAdapter(processor));
 }
 
 bool _checkForSimpleGetter(MethodDeclaration getter, Expression expression) {
@@ -298,9 +298,9 @@ class _ElementVisitorAdapter extends GeneralizingElementVisitor {
 
 bool hasErrorWithConstantVerifier(AstNode node) {
   final cu = getCompilationUnit(node);
-  final listener = HasConstErrorListener();
-  node.accept(ConstantVerifier(
-      ErrorReporter(listener, cu.element.source),
+  final listener = new HasConstErrorListener();
+  node.accept(new ConstantVerifier(
+      new ErrorReporter(listener, cu.element.source),
       cu.element.library,
       cu.element.context.typeProvider,
       cu.element.context.declaredVariables));
@@ -309,11 +309,11 @@ bool hasErrorWithConstantVerifier(AstNode node) {
 
 bool hasErrorWithConstantVisitor(AstNode node) {
   final cu = getCompilationUnit(node);
-  final listener = HasConstErrorListener();
-  node.accept(ConstantVisitor(
-      ConstantEvaluationEngine(cu.element.context.typeProvider,
+  final listener = new HasConstErrorListener();
+  node.accept(new ConstantVisitor(
+      new ConstantEvaluationEngine(cu.element.context.typeProvider,
           cu.element.context.declaredVariables),
-      ErrorReporter(listener, cu.element.source)));
+      new ErrorReporter(listener, cu.element.source)));
   return listener.hasConstError;
 }
 
@@ -327,7 +327,7 @@ class HasConstErrorListener extends AnalysisErrorListener {
     hasConstError = hasConstError || errorCodes.contains(error.errorCode);
   }
 
-  static const List<CompileTimeErrorCode> errorCodes = [
+  static const List<CompileTimeErrorCode> errorCodes = const [
     CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
     CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
     CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING,

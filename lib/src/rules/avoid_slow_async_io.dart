@@ -50,13 +50,13 @@ Future<Null> someFunction() async {
 
 ''';
 
-const List<String> _fileMethodNames = <String>[
+const List<String> _fileMethodNames = const <String>[
   'lastModified',
   'exists',
   'stat'
 ];
 
-const List<String> _fileSystemEntityMethodNames = <String>[
+const List<String> _fileSystemEntityMethodNames = const <String>[
   'isDirectory',
   'isFile',
   'isLink',
@@ -73,7 +73,7 @@ class AvoidSlowAsyncIo extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = _Visitor(this);
+    final visitor = new _Visitor(this);
     registry.addMethodInvocation(this, visitor);
   }
 }

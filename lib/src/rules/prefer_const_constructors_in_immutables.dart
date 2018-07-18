@@ -63,7 +63,7 @@ class PreferConstConstructorsInImmutables extends LintRule
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = _Visitor(this);
+    final visitor = new _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
   }
 }
@@ -131,7 +131,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     bool hasConstError;
 
     // put a fake const keyword and check if there's const error
-    node.constKeyword = KeywordToken(Keyword.CONST, node.offset);
+    node.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
     try {
       hasConstError = hasErrorWithConstantVerifier(node);
     } finally {

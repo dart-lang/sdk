@@ -66,7 +66,7 @@ class UseStringBuffers extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = _Visitor(this);
+    final visitor = new _Visitor(this);
     registry.addDoStatement(this, visitor);
     registry.addForEachStatement(this, visitor);
     registry.addForStatement(this, visitor);
@@ -120,32 +120,32 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitDoStatement(DoStatement node) {
-    final visitor = _UseStringBufferVisitor(rule);
+    final visitor = new _UseStringBufferVisitor(rule);
     node.body.accept(visitor);
   }
 
   @override
   void visitForEachStatement(ForEachStatement node) {
-    final visitor = _UseStringBufferVisitor(rule);
+    final visitor = new _UseStringBufferVisitor(rule);
     node.body.accept(visitor);
   }
 
   @override
   void visitForStatement(ForStatement node) {
-    final visitor = _UseStringBufferVisitor(rule);
+    final visitor = new _UseStringBufferVisitor(rule);
     node.body.accept(visitor);
   }
 
   @override
   void visitWhileStatement(WhileStatement node) {
-    final visitor = _UseStringBufferVisitor(rule);
+    final visitor = new _UseStringBufferVisitor(rule);
     node.body.accept(visitor);
   }
 }
 
 class _UseStringBufferVisitor extends SimpleAstVisitor {
   final LintRule rule;
-  final localElements = Set<Element>();
+  final localElements = new Set<Element>();
 
   _UseStringBufferVisitor(this.rule);
 
@@ -163,7 +163,7 @@ class _UseStringBufferVisitor extends SimpleAstVisitor {
         rule.reportLint(node);
       }
       if (node.operator.type == TokenType.EQ) {
-        final visitor = _IdentifierIsPrefixVisitor(rule, identifier);
+        final visitor = new _IdentifierIsPrefixVisitor(rule, identifier);
         node.rightHandSide.accept(visitor);
       }
     }

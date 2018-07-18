@@ -21,13 +21,13 @@ main() {
 Future validate(String dir) async {
   List<String> violations = <String>[];
   await for (FileSystemEntity entity
-      in Directory(dir).list(recursive: true, followLinks: false)) {
+      in new Directory(dir).list(recursive: true, followLinks: false)) {
     if (entity is File && entity.path.endsWith('.dart')) {
       RandomAccessFile file = await entity.open();
       List<int> bytes = await file.read(40);
-      String header = String.fromCharCodes(bytes);
+      String header = new String.fromCharCodes(bytes);
       if (!header.startsWith(
-          RegExp('// Copyright \\(c\\) 20[0-9][0-9], the Dart project'))) {
+          new RegExp('// Copyright \\(c\\) 20[0-9][0-9], the Dart project'))) {
         violations.add(entity.path);
       }
     }

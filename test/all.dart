@@ -16,7 +16,7 @@ import 'validate_headers_test.dart' as validate_headers;
 
 main() {
   // Redirect output.
-  outSink = MockIOSink();
+  outSink = new MockIOSink();
 
   ast_test.main();
   engine_test.main();

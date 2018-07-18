@@ -52,7 +52,7 @@ class SlashForDocComments extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = _Visitor(this);
+    final visitor = new _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addClassTypeAlias(this, visitor);
     registry.addConstructorDeclaration(this, visitor);

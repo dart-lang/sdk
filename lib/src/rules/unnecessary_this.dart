@@ -60,7 +60,7 @@ class UnnecessaryThis extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    var visitor = _Visitor(this);
+    var visitor = new _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
 }
@@ -109,6 +109,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    _UnnecessaryThisVisitor(rule, node).visitCompilationUnit(node);
+    new _UnnecessaryThisVisitor(rule, node).visitCompilationUnit(node);
   }
 }

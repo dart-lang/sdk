@@ -28,22 +28,22 @@ defineTests() {
     });
 
     group('reporter', () {
-      var lineInfo = LineInfo([3, 6, 9]);
+      var lineInfo = new LineInfo([3, 6, 9]);
 
-      var type = MockErrorType()..displayName = 'test';
+      var type = new MockErrorType()..displayName = 'test';
 
-      var code = TestErrorCode('mock_code', 'MSG')..type = type;
+      var code = new TestErrorCode('mock_code', 'MSG')..type = type;
 
-      var source = MockSource()..fullName = '/foo/bar/baz.dart';
+      var source = new MockSource()..fullName = '/foo/bar/baz.dart';
 
-      var error = AnalysisError(source, 10, 3, code);
+      var error = new AnalysisError(source, 10, 3, code);
 
-      var info = AnalysisErrorInfoImpl([error], lineInfo);
+      var info = new AnalysisErrorInfoImpl([error], lineInfo);
 
-      var out = CollectingSink();
+      var out = new CollectingSink();
 
       var reporter =
-          SimpleFormatter([info], null, out, fileCount: 1, elapsedMs: 13)
+          new SimpleFormatter([info], null, out, fileCount: 1, elapsedMs: 13)
             ..write();
 
       test('count', () {
@@ -58,7 +58,7 @@ defineTests() {
 
       test('stats', () {
         out.buffer.clear();
-        SimpleFormatter([info], null, out,
+        new SimpleFormatter([info], null, out,
             fileCount: 1, showStatistics: true, elapsedMs: 13)
           ..write();
         expect(out.buffer.toString(),
@@ -76,24 +76,24 @@ mock_code                               1
     });
 
     group('reporter', () {
-      var lineInfo = LineInfo([3, 6, 9]);
+      var lineInfo = new LineInfo([3, 6, 9]);
 
-      var type = MockErrorType()..displayName = 'test';
+      var type = new MockErrorType()..displayName = 'test';
 
-      var code = TestErrorCode('MockError', 'MSG')
-        ..errorSeverity = ErrorSeverity('MockErrorSeverity', 0, '', '')
+      var code = new TestErrorCode('MockError', 'MSG')
+        ..errorSeverity = new ErrorSeverity('MockErrorSeverity', 0, '', '')
         ..type = type;
 
-      var source = MockSource()..fullName = '/foo/bar/baz.dart';
+      var source = new MockSource()..fullName = '/foo/bar/baz.dart';
 
-      var error = AnalysisError(source, 12, 13, code);
+      var error = new AnalysisError(source, 12, 13, code);
 
-      var info = AnalysisErrorInfoImpl([error], lineInfo);
+      var info = new AnalysisErrorInfoImpl([error], lineInfo);
 
-      var out = CollectingSink();
+      var out = new CollectingSink();
 
       group('filtered', () {
-        var reporter = SimpleFormatter([info], _RejectingFilter(), out,
+        var reporter = new SimpleFormatter([info], new _RejectingFilter(), out,
             fileCount: 1, elapsedMs: 13)
           ..write();
 
@@ -114,7 +114,7 @@ mock_code                               1
       group('machine-ouptut', () {
         test('write', () {
           out.buffer.clear();
-          SimpleFormatter([info], null, out,
+          new SimpleFormatter([info], null, out,
               fileCount: 1, machineOutput: true, elapsedMs: 13)
             ..write();
 

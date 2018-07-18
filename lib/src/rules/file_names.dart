@@ -44,7 +44,7 @@ class FileNames extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = _Visitor(this);
+    final visitor = new _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
 }

@@ -54,13 +54,13 @@ class NoDuplicateCaseValues extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = _Visitor(this);
+    final visitor = new _Visitor(this);
     registry.addSwitchStatement(this, visitor);
   }
 
   void reportLintWithDescription(AstNode node, String description) {
     if (node != null) {
-      reporter.reportErrorForNode(_LintCode(name, description), node, []);
+      reporter.reportErrorForNode(new _LintCode(name, description), node, []);
     }
   }
 }
@@ -68,8 +68,8 @@ class NoDuplicateCaseValues extends LintRule implements NodeLintRule {
 class _LintCode extends LintCode {
   static final registry = <String, LintCode>{};
 
-  factory _LintCode(String name, String message) =>
-      registry.putIfAbsent(name + message, () => _LintCode._(name, message));
+  factory _LintCode(String name, String message) => registry.putIfAbsent(
+      name + message, () => new _LintCode._(name, message));
 
   _LintCode._(String name, String message) : super(name, message);
 }
@@ -95,16 +95,16 @@ class _Visitor extends SimpleAstVisitor<void> {
     DeclaredVariables declaredVariables = context.declaredVariables;
 
     Map<DartObjectImpl, Expression> values =
-        HashMap<DartObjectImpl, Expression>(
+        new HashMap<DartObjectImpl, Expression>(
             equals: (DartObjectImpl key1, DartObjectImpl key2) {
       DartObjectImpl equals = key1.isIdentical(typeProvider, key2);
       return equals.isBool && equals.toBoolValue();
     });
 
-    final ConstantVisitor constantVisitor = ConstantVisitor(
-        ConstantEvaluationEngine(typeProvider, declaredVariables,
+    final ConstantVisitor constantVisitor = new ConstantVisitor(
+        new ConstantEvaluationEngine(typeProvider, declaredVariables,
             typeSystem: typeSystem),
-        ErrorReporter(
+        new ErrorReporter(
             AnalysisErrorListener.NULL_LISTENER, rule.reporter.source));
 
     for (SwitchMember member in node.members) {

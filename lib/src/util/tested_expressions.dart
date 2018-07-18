@@ -17,7 +17,7 @@ void _addNodeComparisons(Expression node, Set<Expression> comparisons) {
 }
 
 Set<Expression> _extractComparisons(BinaryExpression node) {
-  final Set<Expression> comparisons = HashSet<Expression>.identity();
+  final Set<Expression> comparisons = new HashSet<Expression>.identity();
   if (_isComparison(node)) {
     comparisons.add(node);
   }
@@ -94,7 +94,7 @@ class TestedExpressions {
         ? [binaryExpression.leftOperand, binaryExpression.rightOperand]
         : [testingExpression];
     _contradictions = _findContradictoryComparisons(
-        LinkedHashSet.from(facts),
+        new LinkedHashSet.from(facts),
         binaryExpression != null
             ? binaryExpression.operator.type
             : TokenType.AMPERSAND_AMPERSAND);
@@ -124,7 +124,7 @@ class TestedExpressions {
     final Iterable<Expression> binaryExpressions =
         comparisons.where((e) => e is BinaryExpression).toSet();
     LinkedHashSet<ContradictoryComparisons> contradictions =
-        LinkedHashSet.identity();
+        new LinkedHashSet.identity();
 
     if (testingExpression is SimpleIdentifier) {
       SimpleIdentifier identifier = testingExpression;
@@ -133,7 +133,7 @@ class TestedExpressions {
       if (negations.any(sameIdentifier)) {
         SimpleIdentifier otherIdentifier = negations.firstWhere(sameIdentifier);
         contradictions
-            .add(ContradictoryComparisons(otherIdentifier, identifier));
+            .add(new ContradictoryComparisons(otherIdentifier, identifier));
       }
     }
 
@@ -172,7 +172,7 @@ class TestedExpressions {
 
         if (isNegationOrComparison && sameOperands) {
           contradictions
-              .add(ContradictoryComparisons(otherExpression, expression));
+              .add(new ContradictoryComparisons(otherExpression, expression));
         }
       });
     });
@@ -194,7 +194,7 @@ class TestedExpressions {
 
         LinkedHashSet<ContradictoryComparisons> set =
             _findContradictoryComparisons(
-                HashSet.from([ex.leftOperand, ex.rightOperand]),
+                new HashSet.from([ex.leftOperand, ex.rightOperand]),
                 ex.operator.type);
         expressions.addAll(set);
       };

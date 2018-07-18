@@ -53,7 +53,7 @@ class OmitLocalVariableTypes extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = _Visitor(this);
+    final visitor = new _Visitor(this);
     registry.addForEachStatement(this, visitor);
     registry.addForStatement(this, visitor);
     registry.addVariableDeclarationStatement(this, visitor);

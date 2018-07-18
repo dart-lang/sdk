@@ -16,17 +16,17 @@ _InterfaceTypePredicate _buildImplementsDefinitionPredicate(
         interface.element.library.name == definition.library;
 
 List<InterfaceType> _findImplementedInterfaces(InterfaceType type,
-        {List<InterfaceType> acc = const []}) =>
+        {List<InterfaceType> acc: const []}) =>
     acc.contains(type)
         ? acc
         : type.interfaces.fold(
             <InterfaceType>[type],
-            (List<InterfaceType> acc, InterfaceType e) => List.from(acc)
+            (List<InterfaceType> acc, InterfaceType e) => new List.from(acc)
               ..addAll(_findImplementedInterfaces(e, acc: acc)));
 
 DartType _findIterableTypeArgument(
     InterfaceTypeDefinition definition, InterfaceType type,
-    {List<InterfaceType> accumulator = const []}) {
+    {List<InterfaceType> accumulator: const []}) {
   if (type == null ||
       type.isObject ||
       type.isDynamic ||

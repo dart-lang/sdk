@@ -31,7 +31,7 @@ const Map<String, LibraryInfo> libraries = const {
 ''';
 
   static const _MockSdkLibrary LIB_CORE =
-      _MockSdkLibrary('dart:core', '/lib/core/core.dart', '''
+      const _MockSdkLibrary('dart:core', '/lib/core/core.dart', '''
 library dart.core;
 
 import 'dart:async';
@@ -159,7 +159,7 @@ abstract class RegExp {
 ''');
 
   static const _MockSdkLibrary LIB_ASYNC =
-      _MockSdkLibrary('dart:async', '/lib/async/async.dart', '''
+      const _MockSdkLibrary('dart:async', '/lib/async/async.dart', '''
 library dart.async;
 
 import 'dart:math';
@@ -173,16 +173,16 @@ class Future<T> {
 }
 
 class FutureOr<T> {}
-''', <_MockSdkFile>[
-    _MockSdkFile('/lib/async/stream.dart', r'''
+''', const <_MockSdkFile>[
+    const _MockSdkFile('/lib/async/stream.dart', r'''
 part of dart.async;
 class Stream<T> {}
 abstract class StreamTransformer<S, T> {}
 ''')
   ]);
 
-  static const _MockSdkLibrary LIB_COLLECTION =
-      _MockSdkLibrary('dart:collection', '/lib/collection/collection.dart', '''
+  static const _MockSdkLibrary LIB_COLLECTION = const _MockSdkLibrary(
+      'dart:collection', '/lib/collection/collection.dart', '''
 library dart.collection;
 
 abstract class HashMap<K, V> implements Map<K, V> {}
@@ -190,7 +190,7 @@ abstract class LinkedHashMap<K, V> implements HashMap<K, V> {}
 ''');
 
   static const _MockSdkLibrary LIB_CONVERT =
-      _MockSdkLibrary('dart:convert', '/lib/convert/convert.dart', '''
+      const _MockSdkLibrary('dart:convert', '/lib/convert/convert.dart', '''
 library dart.convert;
 
 import 'dart:async';
@@ -200,7 +200,7 @@ class JsonDecoder extends Converter<String, Object> {}
 ''');
 
   static const _MockSdkLibrary LIB_IO =
-      _MockSdkLibrary('dart:io', '/lib/io/io.dart', '''
+      const _MockSdkLibrary('dart:io', '/lib/io/io.dart', '''
 library dart.io;
 
 abstract class File implements FileSystemEntity {
@@ -234,7 +234,7 @@ abstract class FileSystemEntity {
 ''');
 
   static const _MockSdkLibrary LIB_MATH =
-      _MockSdkLibrary('dart:math', '/lib/math/math.dart', '''
+      const _MockSdkLibrary('dart:math', '/lib/math/math.dart', '''
 library dart.math;
 const double E = 2.718281828459045;
 const double PI = 3.1415926535897932;
@@ -251,13 +251,13 @@ class Random {
 }
 ''');
 
-  static const _MockSdkLibrary LIB_HTML =
-      _MockSdkLibrary('dart:html', '/lib/html/dartium/html_dartium.dart', '''
+  static const _MockSdkLibrary LIB_HTML = const _MockSdkLibrary(
+      'dart:html', '/lib/html/dartium/html_dartium.dart', '''
 library dart.html;
 class HtmlElement {}
 ''');
 
-  static const List<SdkLibrary> LIBRARIES = [
+  static const List<SdkLibrary> LIBRARIES = const [
     LIB_CORE,
     LIB_ASYNC,
     LIB_COLLECTION,
@@ -293,8 +293,8 @@ class HtmlElement {}
   @override
   AnalysisContextImpl get context {
     if (_analysisContext == null) {
-      _analysisContext = _SdkAnalysisContext(this);
-      SourceFactory factory = SourceFactory([DartUriResolver(this)]);
+      _analysisContext = new _SdkAnalysisContext(this);
+      SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
       _analysisContext.sourceFactory = factory;
     }
     return _analysisContext;
@@ -306,7 +306,7 @@ class HtmlElement {}
   @override
   String get sdkVersion => throw unimplemented;
 
-  UnimplementedError get unimplemented => UnimplementedError();
+  UnimplementedError get unimplemented => new UnimplementedError();
 
   @override
   List<String> get uris =>
@@ -357,7 +357,7 @@ class HtmlElement {}
       } else {
         bytes = _computeLinkedBundleBytes();
       }
-      _bundle = PackageBundle.fromBuffer(bytes);
+      _bundle = new PackageBundle.fromBuffer(bytes);
     }
     return _bundle;
   }
@@ -374,7 +374,7 @@ class HtmlElement {}
 
   @override
   Source mapDartUri(String dartUri) {
-    const Map<String, String> uriToPath = {
+    const Map<String, String> uriToPath = const {
       'dart:core': '/lib/core/core.dart',
       'dart:html': '/lib/html/dartium/html_dartium.dart',
       'dart:async': '/lib/async/async.dart',
@@ -388,7 +388,7 @@ class HtmlElement {}
     String path = uriToPath[dartUri];
     if (path != null) {
       resource.File file = provider.getResource(provider.convertPath(path));
-      Uri uri = Uri(scheme: 'dart', path: dartUri.substring(5));
+      Uri uri = new Uri(scheme: 'dart', path: dartUri.substring(5));
       return file.createSource(uri);
     }
 
@@ -402,7 +402,7 @@ class HtmlElement {}
     List<Source> librarySources = sdkLibraries
         .map((SdkLibrary library) => mapDartUri(library.shortName))
         .toList();
-    return SummaryBuilder(
+    return new SummaryBuilder(
             librarySources, context, context.analysisOptions.strongMode)
         .build();
   }
@@ -427,25 +427,25 @@ class _MockSdkLibrary implements SdkLibrary {
       [this.parts = const <_MockSdkFile>[]]);
 
   @override
-  String get category => throw UnimplementedError();
+  String get category => throw new UnimplementedError();
 
   @override
-  bool get isDart2JsLibrary => throw UnimplementedError();
+  bool get isDart2JsLibrary => throw new UnimplementedError();
 
   @override
-  bool get isDocumented => throw UnimplementedError();
+  bool get isDocumented => throw new UnimplementedError();
 
   @override
-  bool get isImplementation => throw UnimplementedError();
+  bool get isImplementation => throw new UnimplementedError();
 
   @override
   bool get isInternal => shortName.startsWith('dart:_');
 
   @override
-  bool get isShared => throw UnimplementedError();
+  bool get isShared => throw new UnimplementedError();
 
   @override
-  bool get isVmLibrary => throw UnimplementedError();
+  bool get isVmLibrary => throw new UnimplementedError();
 }
 
 /// An [AnalysisContextImpl] that only contains sources for a Dart SDK.
@@ -459,7 +459,7 @@ class _SdkAnalysisContext extends AnalysisContextImpl {
     if (factory == null) {
       return super.createCacheFromSourceFactory(factory);
     }
-    return AnalysisCache(
+    return new AnalysisCache(
         <CachePartition>[AnalysisEngine.instance.partitionManager.forSdk(sdk)]);
   }
 }

@@ -36,7 +36,7 @@ class A {
 ''';
 
 Element _getElementFromAssignmentStatement(Statement node) {
-  final visitor = _AssignmentStatementVisitor();
+  final visitor = new _AssignmentStatementVisitor();
   node.accept(visitor);
   return visitor.element;
 }
@@ -58,7 +58,7 @@ class JoinReturnWithAssignment extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = _Visitor(this);
+    final visitor = new _Visitor(this);
     registry.addBlock(this, visitor);
   }
 }

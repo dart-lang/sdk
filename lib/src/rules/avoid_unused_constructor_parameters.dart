@@ -41,7 +41,7 @@ class AvoidUnusedConstructorParameters extends LintRule
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = _Visitor(this);
+    final visitor = new _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
   }
 }
@@ -72,7 +72,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.redirectedConstructor != null) return;
     if (node.externalKeyword != null) return;
 
-    final _constructorVisitor = _ConstructorVisitor(rule, node);
+    final _constructorVisitor = new _ConstructorVisitor(rule, node);
     node?.body?.visitChildren(_constructorVisitor);
     node?.initializers?.forEach((i) => i.visitChildren(_constructorVisitor));
 

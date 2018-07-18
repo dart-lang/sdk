@@ -57,7 +57,7 @@ class UnnecessaryOverrides extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = _Visitor(this);
+    final visitor = new _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }
 }
@@ -149,7 +149,7 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
     } else if (first.isNamed) {
       return second.isNamed;
     }
-    throw ArgumentError('Unhandled kind of parameter.');
+    throw new ArgumentError('Unhandled kind of parameter.');
   }
 }
 
@@ -164,16 +164,16 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     if (node.operatorKeyword != null) {
-      final visitor = _UnnecessaryOperatorOverrideVisitor(rule);
+      final visitor = new _UnnecessaryOperatorOverrideVisitor(rule);
       visitor.visitMethodDeclaration(node);
     } else if (node.isGetter) {
-      final visitor = _UnnecessaryGetterOverrideVisitor(rule);
+      final visitor = new _UnnecessaryGetterOverrideVisitor(rule);
       visitor.visitMethodDeclaration(node);
     } else if (node.isSetter) {
-      final visitor = _UnnecessarySetterOverrideVisitor(rule);
+      final visitor = new _UnnecessarySetterOverrideVisitor(rule);
       visitor.visitMethodDeclaration(node);
     } else {
-      final visitor = _UnnecessaryMethodOverrideVisitor(rule);
+      final visitor = new _UnnecessaryMethodOverrideVisitor(rule);
       visitor.visitMethodDeclaration(node);
     }
   }

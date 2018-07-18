@@ -47,7 +47,7 @@ const loggedAnalyzerErrorExitCode = 63;
 /// Facade for managing access to `analyzer` package APIs.
 class Analyzer {
   /// Shared instance.
-  static Analyzer facade = Analyzer();
+  static Analyzer facade = new Analyzer();
 
   /// Returns currently registered lint rules.
   Iterable<LintRule> get registeredRules => Registry.ruleRegistry;
@@ -77,7 +77,7 @@ Future<Iterable<AnalysisErrorInfo>> lintFiles(
     DartLinter linter, List<File> filesToLint) async {
   // Setup an error watcher to track whether an error was logged to stderr so
   // we can set the exit code accordingly.
-  ErrorWatchingSink errorWatcher = ErrorWatchingSink(errorSink);
+  ErrorWatchingSink errorWatcher = new ErrorWatchingSink(errorSink);
   errorSink = errorWatcher;
 
   final errors = await linter.lintFiles(filesToLint);

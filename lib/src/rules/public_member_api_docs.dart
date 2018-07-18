@@ -76,7 +76,7 @@ class PublicMemberApiDocs extends LintRule {
             group: Group.style);
 
   @override
-  AstVisitor getVisitor() => _Visitor(this);
+  AstVisitor getVisitor() => new _Visitor(this);
 }
 
 class _Visitor extends GeneralizingAstVisitor {
@@ -188,7 +188,7 @@ class _Visitor extends GeneralizingAstVisitor {
     LibraryElement library = node == null
         ? null
         : resolutionMap.elementDeclaredByCompilationUnit(node)?.library;
-    manager = library == null ? null : InheritanceManager(library);
+    manager = library == null ? null : new InheritanceManager(library);
 
     Map<String, FunctionDeclaration> getters = <String, FunctionDeclaration>{};
     Map<String, FunctionDeclaration> setters = <String, FunctionDeclaration>{};

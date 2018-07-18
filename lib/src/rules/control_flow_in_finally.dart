@@ -93,7 +93,7 @@ class ControlFlowInFinally extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = _Visitor(this);
+    final visitor = new _Visitor(this);
     registry.addBreakStatement(this, visitor);
     registry.addContinueStatement(this, visitor);
     registry.addReturnStatement(this, visitor);

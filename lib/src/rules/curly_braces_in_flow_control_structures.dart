@@ -60,7 +60,7 @@ class CurlyBracesInFlowControlStructures extends LintRule
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = _Visitor(this);
+    final visitor = new _Visitor(this);
     registry.addDoStatement(this, visitor);
     registry.addForEachStatement(this, visitor);
     registry.addForStatement(this, visitor);

@@ -34,7 +34,7 @@ class AvoidTypesAsParameterNames extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = _Visitor(this);
+    final visitor = new _Visitor(this);
     registry.addFormalParameterList(this, visitor);
   }
 }
@@ -52,7 +52,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // that for now.
     for (final parameter in node.parameters) {
       if (parameter.element.hasImplicitType &&
-          (parameter.identifier.name.startsWith(RegExp('[A-Z]')) ||
+          (parameter.identifier.name.startsWith(new RegExp('[A-Z]')) ||
               ['num', 'int', 'double', 'bool', 'dynamic']
                   .contains(parameter.identifier.name))) {
         rule.reportLint(parameter.identifier);

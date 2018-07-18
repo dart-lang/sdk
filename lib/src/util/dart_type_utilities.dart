@@ -49,7 +49,7 @@ class DartTypeUtilities {
     }
 
     final interfaceTypes = <InterfaceType>[];
-    recursiveCall(type, Set<ClassElement>(), interfaceTypes);
+    recursiveCall(type, new Set<ClassElement>(), interfaceTypes);
     return interfaceTypes;
   }
 
@@ -189,7 +189,7 @@ class DartTypeUtilities {
   /// predicate returns true, if not provided, all is included.
   static Iterable<AstNode> traverseNodesInDFS(AstNode node,
       {AstNodePredicate excludeCriteria}) {
-    LinkedHashSet<AstNode> nodes = LinkedHashSet();
+    LinkedHashSet<AstNode> nodes = new LinkedHashSet();
     void recursiveCall(node) {
       if (node is AstNode &&
           (excludeCriteria == null || !excludeCriteria(node))) {

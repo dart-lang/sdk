@@ -17,14 +17,14 @@ import 'package:linter/src/formatter.dart';
 import 'package:linter/src/rules.dart';
 
 Future main(List<String> args) async {
-  await runLinter(args, LinterOptions()..previewDart2 = true);
+  await runLinter(args, new LinterOptions()..previewDart2 = true);
 }
 
 const processFileFailedExitCode = 65;
 const unableToProcessExitCode = 64;
 
 String getRoot(List<String> paths) =>
-    paths.length == 1 && Directory(paths[0]).existsSync() ? paths[0] : null;
+    paths.length == 1 && new Directory(paths[0]).existsSync() ? paths[0] : null;
 
 bool isLinterErrorCode(int code) =>
     code == unableToProcessExitCode || code == processFileFailedExitCode;
@@ -47,7 +47,7 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
   // Force the rule registry to be populated.
   registerLintRules();
 
-  var parser = ArgParser(allowTrailingOptions: true);
+  var parser = new ArgParser(allowTrailingOptions: true);
 
   parser
     ..addFlag('help',
@@ -100,7 +100,7 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
 
   var configFile = options['config'];
   if (configFile != null) {
-    var config = LintConfig.parse(readFile(configFile));
+    var config = new LintConfig.parse(readFile(configFile));
     lintOptions.configure(config);
   }
 
@@ -160,15 +160,15 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
     return;
   }
 
-  final linter = DartLinter(lintOptions);
+  final linter = new DartLinter(lintOptions);
 
   try {
-    final timer = Stopwatch()..start();
+    final timer = new Stopwatch()..start();
     List<AnalysisErrorInfo> errors = await lintFiles(linter, filesToLint);
     timer.stop();
 
     var commonRoot = getRoot(options.rest);
-    ReportFormatter(errors, lintOptions.filter, outSink,
+    new ReportFormatter(errors, lintOptions.filter, outSink,
         elapsedMs: timer.elapsedMilliseconds,
         fileCount: linter.numSourcesAnalyzed,
         fileRoot: commonRoot,

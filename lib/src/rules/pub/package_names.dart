@@ -29,7 +29,7 @@ class PubPackageNames extends LintRule {
             group: Group.pub);
 
   @override
-  PubspecVisitor getPubspecVisitor() => Visitor(this);
+  PubspecVisitor getPubspecVisitor() => new Visitor(this);
 }
 
 class Visitor extends PubspecVisitor {

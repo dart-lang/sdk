@@ -49,7 +49,7 @@ class AvoidPositionalBooleanParameters extends LintRule
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = _Visitor(this);
+    final visitor = new _Visitor(this);
     registry.addCompilationUnit(this, visitor);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
@@ -68,7 +68,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitCompilationUnit(CompilationUnit node) {
     LibraryElement library =
         resolutionMap.elementDeclaredByCompilationUnit(node)?.library;
-    manager = library == null ? null : InheritanceManager(library);
+    manager = library == null ? null : new InheritanceManager(library);
   }
 
   @override

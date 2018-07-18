@@ -77,7 +77,7 @@ class PreferInitializingFormals extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = _Visitor(this);
+    final visitor = new _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
   }
 }
@@ -90,8 +90,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     final parameters = _getParameters(node);
-    final parametersUsedOnce = Set<Element>();
-    final parametersUsedMoreThanOnce = Set<Element>();
+    final parametersUsedOnce = new Set<Element>();
+    final parametersUsedMoreThanOnce = new Set<Element>();
 
     bool isAssignmentExpressionToLint(AssignmentExpression assignment) {
       final leftElement = _getLeftElement(assignment);

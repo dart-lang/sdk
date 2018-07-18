@@ -53,7 +53,7 @@ class PreferSingleQuotes extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry) {
-    final visitor = _Visitor(this);
+    final visitor = new _Visitor(this);
     registry.addSimpleStringLiteral(this, visitor);
     registry.addStringInterpolation(this, visitor);
   }
@@ -71,7 +71,7 @@ class _ImmediateChildrenVisitor extends UnifyingAstVisitor {
   }
 
   static List<AstNode> childrenOf(AstNode node) {
-    final visitor = _ImmediateChildrenVisitor();
+    final visitor = new _ImmediateChildrenVisitor();
     node.visitChildren(visitor);
     return visitor._children;
   }
@@ -105,7 +105,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   /// Strings interpolations can contain other string nodes. Check like this.
   bool containsString(StringInterpolation string) {
-    final checkHasString = _IsOrContainsStringVisitor();
+    final checkHasString = new _IsOrContainsStringVisitor();
     return string.elements.any((child) => child.accept(checkHasString));
   }
 

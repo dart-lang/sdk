@@ -51,7 +51,7 @@ class PreferForeach extends LintRule {
             details: _details,
             group: Group.style,
             maturity: Maturity.experimental) {
-    _visitor = _Visitor(this);
+    _visitor = new _Visitor(this);
   }
 
   @override
@@ -125,7 +125,7 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   visitForEachStatement(ForEachStatement node) {
-    final visitor = _PreferForEachVisitor(rule);
+    final visitor = new _PreferForEachVisitor(rule);
     node.accept(visitor);
   }
 }
