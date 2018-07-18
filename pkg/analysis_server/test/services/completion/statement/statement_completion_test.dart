@@ -1391,7 +1391,17 @@ main() {
         (s) => _afterLast(s, '  '));
   }
 
+  @failingTest
   test_noCloseParenWithSemicolon() async {
+    // TODO(danrubel):
+    // Fasta scanner produces an error message which is converted into
+    // an Analyzer error message before the fasta parser gets a chance
+    // to move it along with the associated synthetic ')' to a more
+    // appropriate location. This means that some statement completions,
+    // which are expecting errors in a particular location, don't work.
+    // Fixing this properly means modifying the scanner not to generate
+    // closing ')', then updating the parser to handle that situation.
+    // This is a fair amount of work and won't be tackled today.
     String before = '''
 main() {
   var s = 'sample'.substring(3;
@@ -1410,6 +1420,12 @@ main() {
     await _prepareCompletion('ing(3;', before, atEnd: true);
     _assertHasChange('Insert a newline at the end of the current line', after,
         (s) => _afterLast(s, '  '));
+
+    // The old Analyzer parser passes this test, but will be turned off soon.
+    // It is preferable to throw only if the old analyzer is being used,
+    // but there does not seem to be a reliable way to determine that here.
+    // TODO(danrubel): remove this once fasta parser is enabled by default.
+    throw 'remove this once fasta parser is enabled by default';
   }
 
   test_semicolonFn() async {
@@ -1453,6 +1469,7 @@ main() {
         (s) => _afterLast(s, '()'));
   }
 
+  @failingTest
   test_semicolonFnBodyWithDef() async {
     // This ought to be the same as test_semicolonFnBody() but the definition
     // of f() removes an error and it appears to be a different case.
@@ -1462,6 +1479,8 @@ main() {
     //   int; f();
     // Fasta parser produces
     //   int f; ();
+    // Neither of these is ideal.
+    // TODO(danrubel): Improve parser recovery in this situation.
     await _prepareCompletion(
         'f()',
         '''
@@ -1481,6 +1500,12 @@ main() {
 f() {}
 ''',
         (s) => _afterLast(s, '  '));
+
+    // The old Analyzer parser passes this test, but will be turned off soon.
+    // It is preferable to throw only if the old analyzer is being used,
+    // but there does not seem to be a reliable way to determine that here.
+    // TODO(danrubel): remove this once fasta parser is enabled by default.
+    throw 'remove this once fasta parser is enabled by default';
   }
 
   test_semicolonFnExpr() async {

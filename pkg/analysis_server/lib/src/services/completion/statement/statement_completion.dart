@@ -452,6 +452,12 @@ class StatementCompletionProcessor {
     }
     DoStatement statement = node;
     SourceBuilder sb = _sourceBuilderAfterKeyword(statement.doKeyword);
+    // I modified the code and ran the tests with both the old and new parser.
+    // Apparently the old parser sometimes sticks something other than 'while'
+    // into the whileKeyword field, which causes statement completion to throw
+    // an exception further downstream.
+    // TODO(danrubel): change `statement.whileKeyword?.lexeme == "while"`
+    // to `statement.whileKeyword != null` once the fasta parser is the default.
     bool hasWhileKeyword = statement.whileKeyword?.lexeme == "while" &&
         !statement.whileKeyword.isSynthetic;
     int exitDelta = 0;
