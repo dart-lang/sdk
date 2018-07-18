@@ -141,6 +141,7 @@ ExtendingEnum/analyzerCode: Fail
 ExtendingEnum/example: Fail
 ExtendingRestricted/example: Fail
 ExternalConstructorWithBody/script1: Fail
+ExternalConstructorWithFieldInitializers/example: Fail
 ExternalFactoryRedirection/example: Fail
 ExternalFactoryWithBody/script1: Fail
 ExtraneousModifier/script1: Fail

@@ -583,9 +583,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             Initializer initializer;
             if (member.isExternal) {
               initializer = buildInvalidInitializer(
-                  deprecated_buildCompileTimeError(
-                      "An external constructor can't initialize fields.",
-                      formal.charOffset),
+                  buildCompileTimeError(
+                      fasta.messageExternalConstructorWithFieldInitializers,
+                      formal.charOffset,
+                      formal.name.length),
                   formal.charOffset);
             } else {
               initializer = buildFieldInitializer(true, formal.name,

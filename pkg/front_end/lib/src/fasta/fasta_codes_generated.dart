@@ -2631,6 +2631,19 @@ const MessageCode messageExternalConstructorWithBody = const MessageCode(
         r"""Try removing the body of the constructor, or removing the keyword 'external'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExternalConstructorWithFieldInitializers =
+    messageExternalConstructorWithFieldInitializers;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExternalConstructorWithFieldInitializers =
+    const MessageCode("ExternalConstructorWithFieldInitializers",
+        analyzerCode: "EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS",
+        dart2jsCode: "*fatal*",
+        message: r"""An external constructor can't initialize fields.""",
+        tip:
+            r"""Try removing the field initializers, or removing the keyword 'external'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExternalEnum = messageExternalEnum;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

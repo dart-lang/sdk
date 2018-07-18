@@ -1004,6 +1004,11 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try specifying a different superclass, or "
               "removing the extends clause.");
 
+  static const CompileTimeErrorCode
+      EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS =
+      const CompileTimeErrorCode.fromFasta(
+          'EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS');
+
   /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt;
    * h</i> or if <i>m &gt; n</i>.

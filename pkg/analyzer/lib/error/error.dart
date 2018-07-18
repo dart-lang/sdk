@@ -130,6 +130,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
   CompileTimeErrorCode.EXTENDS_ENUM,
   CompileTimeErrorCode.EXTENDS_NON_CLASS,
+  CompileTimeErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS,
   CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS,
   CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED,
   CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,

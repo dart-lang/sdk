@@ -608,6 +608,12 @@ ExternalConstructorWithBody:
   script:
     - "class C { external C() {} }"
 
+ExternalConstructorWithFieldInitializers:
+  template: "An external constructor can't initialize fields."
+  tip: "Try removing the field initializers, or removing the keyword 'external'."
+  analyzerCode: EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS
+  dart2jsCode: "*fatal*"
+
 ExternalFactoryWithBody:
   template: "External factories can't have a body."
   tip: "Try removing the body of the factory, or removing the keyword 'external'."
