@@ -2650,6 +2650,8 @@ GenericFunctionTypeInBound:
 VoidExpression:
   template: "This expression has type 'void' and can't be used."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: USE_OF_VOID_RESULT
+  dart2jsCode: "*fatal*"
   statement: |
     {
       void x;

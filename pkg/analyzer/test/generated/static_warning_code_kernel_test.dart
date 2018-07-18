@@ -593,50 +593,8 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
-  test_generalizedVoid_throwVoidValueError() async {
-    return super.test_generalizedVoid_throwVoidValueError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfInForeachIterableError() async {
-    return super.test_generalizedVoid_useOfInForeachIterableError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidAsIndexAssignError() async {
-    return super.test_generalizedVoid_useOfVoidAsIndexAssignError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidAsIndexError() async {
-    return super.test_generalizedVoid_useOfVoidAsIndexError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidAssignedToDynamicError() async {
-    return super.test_generalizedVoid_useOfVoidAssignedToDynamicError();
-  }
-
-  @override
-  @failingTest
   test_generalizedVoid_useOfVoidByIndexingError() async {
     return super.test_generalizedVoid_useOfVoidByIndexingError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidCallMethodError() async {
-    return super.test_generalizedVoid_useOfVoidCallMethodError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidCallMethodWithNullError() async {
-    return super.test_generalizedVoid_useOfVoidCallMethodWithNullError();
   }
 
   @override
@@ -653,12 +611,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
-  test_generalizedVoid_useOfVoidInConditionalConditionError() async {
-    return super.test_generalizedVoid_useOfVoidInConditionalConditionError();
-  }
-
-  @override
-  @failingTest
   test_generalizedVoid_useOfVoidInConditionalLhsError() async {
     return super.test_generalizedVoid_useOfVoidInConditionalLhsError();
   }
@@ -671,62 +623,14 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
-  test_generalizedVoid_useOfVoidInDoWhileConditionError() async {
-    return super.test_generalizedVoid_useOfVoidInDoWhileConditionError();
-  }
-
-  @override
-  @failingTest
   test_generalizedVoid_useOfVoidInForeachVariableError() async {
     return super.test_generalizedVoid_useOfVoidInForeachVariableError();
   }
 
   @override
   @failingTest
-  test_generalizedVoid_useOfVoidInIsTestError() async {
-    return super.test_generalizedVoid_useOfVoidInIsTestError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidInListLiteralError() async {
-    return super.test_generalizedVoid_useOfVoidInListLiteralError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidInMapLiteralKeyError() async {
-    return super.test_generalizedVoid_useOfVoidInMapLiteralKeyError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidInMapLiteralValueError() async {
-    return super.test_generalizedVoid_useOfVoidInMapLiteralValueError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidInNullOperatorLhsError() async {
-    return super.test_generalizedVoid_useOfVoidInNullOperatorLhsError();
-  }
-
-  @override
-  @failingTest
   test_generalizedVoid_useOfVoidInSpecialAssignmentError() async {
     return super.test_generalizedVoid_useOfVoidInSpecialAssignmentError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidInSwitchExpressionError() async {
-    return super.test_generalizedVoid_useOfVoidInSwitchExpressionError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidInWhileConditionError() async {
-    return super.test_generalizedVoid_useOfVoidInWhileConditionError();
   }
 
   @override
@@ -745,12 +649,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @failingTest
   test_generalizedVoid_useOfVoidReturnInNonVoidFunctionError() async {
     return super.test_generalizedVoid_useOfVoidReturnInNonVoidFunctionError();
-  }
-
-  @override
-  @failingTest
-  test_generalizedVoid_useOfVoidWhenArgumentError() async {
-    return super.test_generalizedVoid_useOfVoidWhenArgumentError();
   }
 
   @override
@@ -1598,38 +1496,9 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
     return super.test_useOfVoidResult_assignmentExpression_method();
   }
 
-  @failingTest
-  @override
-  test_useOfVoidResult_inForLoop_error() async {
-    return super.test_useOfVoidResult_inForLoop_error();
-  }
-
   @override
   test_useOfVoidResult_inForLoop_ok() async {
     return super.test_useOfVoidResult_inForLoop_ok();
-  }
-
-  @failingTest
-  @override
-  test_useOfVoidResult_variableDeclaration_function_error() async {
-    return super.test_useOfVoidResult_variableDeclaration_function_error();
-  }
-
-  @override
-  test_useOfVoidResult_variableDeclaration_function_ok() async {
-    return super.test_useOfVoidResult_variableDeclaration_function_ok();
-  }
-
-  @failingTest
-  @override
-  test_useOfVoidResult_variableDeclaration_method2() async {
-    return super.test_useOfVoidResult_variableDeclaration_method2();
-  }
-
-  @failingTest
-  @override
-  test_useOfVoidResult_variableDeclaration_method_error() async {
-    return super.test_useOfVoidResult_variableDeclaration_method_error();
   }
 
   @override

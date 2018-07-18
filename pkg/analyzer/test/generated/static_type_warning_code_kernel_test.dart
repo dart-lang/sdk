@@ -420,13 +420,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_returnOfInvalidType_void() async {
-    // Expected 1 errors of type StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, found 0
-    await super.test_returnOfInvalidType_void();
-  }
-
-  @override
-  @failingTest
   test_typeArgumentNotMatchingBounds_classTypeAlias() async {
     // Expected 1 errors of type StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, found 0
     await super.test_typeArgumentNotMatchingBounds_classTypeAlias();

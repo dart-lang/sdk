@@ -1584,7 +1584,11 @@ void main() {
 void f(void x) {}
 ''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (useCFE) {
+      assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+    } else {
+      assertNoErrors(source);
+    }
   }
 
   test_generalizedVoid_assignToVoid_notStrong_error() async {
@@ -1883,7 +1887,11 @@ void main() {
 }
 ''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (useCFE) {
+      assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+    } else {
+      assertNoErrors(source);
+    }
   }
 
   test_generalizedVoid_useOfVoidInMapLiteralKeyError() async {
@@ -1905,7 +1913,11 @@ void main() {
 }
 ''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (useCFE) {
+      assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+    } else {
+      assertNoErrors(source);
+    }
   }
 
   test_generalizedVoid_useOfVoidInMapLiteralValueError() async {
@@ -1927,7 +1939,11 @@ void main() {
 }
 ''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (useCFE) {
+      assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+    } else {
+      assertNoErrors(source);
+    }
   }
 
   test_generalizedVoid_useOfVoidInNullOperatorLhsError() async {
@@ -1949,7 +1965,11 @@ void main() {
 }
 ''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (useCFE) {
+      assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+    } else {
+      assertNoErrors(source);
+    }
   }
 
   test_generalizedVoid_useOfVoidInSpecialAssignmentError() async {
@@ -2051,7 +2071,11 @@ void main() {
 }
 ''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (useCFE) {
+      assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+    } else {
+      assertNoErrors(source);
+    }
   }
 
   test_importDuplicatedLibraryNamed() async {
@@ -4377,7 +4401,11 @@ class A {
   }
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (useCFE) {
+      assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+    } else {
+      assertNoErrors(source);
+    }
     verify([source]);
   }
 
@@ -4403,7 +4431,11 @@ class A {
   }
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (useCFE) {
+      assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+    } else {
+      assertNoErrors(source);
+    }
     verify([source]);
   }
 
@@ -4445,7 +4477,11 @@ class A {
   }
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (useCFE) {
+      assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+    } else {
+      assertNoErrors(source);
+    }
     verify([source]);
   }
 

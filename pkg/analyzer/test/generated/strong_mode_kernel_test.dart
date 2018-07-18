@@ -484,22 +484,9 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
 
   @override
   @failingTest
-  test_returnOfInvalidType_object_void() async {
-    await super.test_returnOfInvalidType_object_void();
-  }
-
-  @override
-  @failingTest
   test_setterWithDynamicTypeIsError() async {
     // Expected 2 errors of type StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, found 0
     await super.test_setterWithDynamicTypeIsError();
-  }
-
-  @override
-  @failingTest
-  test_setterWithNoVoidType() async {
-    // Expected 1 errors of type StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, found 0
-    await super.test_setterWithNoVoidType();
   }
 
   @override

@@ -6966,6 +6966,8 @@ const Code<Null> codeVoidExpression = messageVoidExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageVoidExpression = const MessageCode("VoidExpression",
+    analyzerCode: "USE_OF_VOID_RESULT",
+    dart2jsCode: "*fatal*",
     severity: Severity.errorLegacyWarning,
     message: r"""This expression has type 'void' and can't be used.""");
 
