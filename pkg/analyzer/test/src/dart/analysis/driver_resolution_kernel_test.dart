@@ -29,13 +29,6 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   }
 
   @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33800')
-  test_annotation_onFormalParameter_redirectingFactory() async {
-    await super.test_annotation_onFormalParameter_redirectingFactory();
-  }
-
-  @override
   @assertFailingTest
   test_closure_generic() {
     // Assertion error: 'element != null': is not true.

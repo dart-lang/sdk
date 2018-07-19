@@ -370,23 +370,39 @@ const a = 1;
   test_annotation_onFormalParameter_redirectingFactory() async {
     addTestFile(r'''
 class C {
-  factory C(@a p) = C.named;
-  C.named(p);
+  factory C(@a @b x, y, {@c z}) = C.named;
+  C.named(int p);
 }
 
 const a = 1;
+const b = 2;
+const c = 2;
 ''');
     await resolveTestFile();
 
-    var parameter = findNode.simpleParameter('p) = C.');
+    void assertTopGetAnnotation(Annotation annotation, String name) {
+      var getter = findElement.topGet(name);
+      expect(annotation.element, getter);
 
-    expect(parameter.metadata, hasLength(1));
-    Annotation annotation = parameter.metadata[0];
-    expect(annotation.element, findElement.topGet('a'));
+      SimpleIdentifier ref = annotation.name;
+      assertElement(ref, getter);
+      assertType(ref, 'int');
+    }
 
-    SimpleIdentifier aRef = annotation.name;
-    assertElement(aRef, findElement.topGet('a'));
-    assertType(aRef, 'int');
+    {
+      var parameter = findNode.simpleParameter('x, ');
+
+      expect(parameter.metadata, hasLength(2));
+      assertTopGetAnnotation(parameter.metadata[0], 'a');
+      assertTopGetAnnotation(parameter.metadata[1], 'b');
+    }
+
+    {
+      var parameter = findNode.simpleParameter('z}');
+
+      expect(parameter.metadata, hasLength(1));
+      assertTopGetAnnotation(parameter.metadata[0], 'c');
+    }
   }
 
   test_annotation_onVariableList_constructor() async {

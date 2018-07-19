@@ -783,6 +783,15 @@ class LibraryAnalyzer {
                   redirectedConstructor.returnType,
                   redirectName);
               // TODO(scheglov) Add support for type parameterized redirects.
+              // Annotations are stored separately for each formal parameter.
+              for (var parameter in member.parameters.parameters) {
+                if (parameter.metadata.isNotEmpty) {
+                  var resolution = resolutions.next();
+                  var applier = _createResolutionApplier(
+                      context, resolution, unit.localDeclarations);
+                  parameter.metadata.accept(applier);
+                }
+              }
             } else {
               var resolution = resolutions.next();
               var applier = _createResolutionApplier(
