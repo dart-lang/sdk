@@ -1436,6 +1436,37 @@ class FunctionExpressionJudgment extends FunctionExpression
   }
 }
 
+/// Concrete shadow object representing a super initializer in kernel form.
+class InvalidSuperInitializerJudgment extends LocalInitializer
+    implements InitializerJudgment {
+  final Constructor target;
+  final ArgumentsJudgment argumentsJudgment;
+
+  InvalidSuperInitializerJudgment(
+      this.target, this.argumentsJudgment, VariableDeclaration variable)
+      : super(variable);
+
+  @override
+  void infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory) {
+    var substitution = Substitution.fromSupertype(inferrer.classHierarchy
+        .getClassAsInstanceOf(
+            inferrer.thisType.classNode, target.enclosingClass));
+    inferrer.inferInvocation(
+        factory,
+        null,
+        fileOffset,
+        substitution
+            .substituteType(target.function.functionType.withoutTypeParameters),
+        inferrer.thisType,
+        argumentsJudgment,
+        skipTypeArgumentInference: true);
+    inferrer.listener
+        .superInitializer(this, fileOffset, null, null, null, null);
+  }
+}
+
 /// Concrete shadow object representing an if-null expression.
 ///
 /// An if-null expression of the form `a ?? b` is represented as the kernel

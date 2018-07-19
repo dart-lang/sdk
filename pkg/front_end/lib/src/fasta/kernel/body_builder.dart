@@ -4053,6 +4053,15 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       ..fileOffset = charOffset;
   }
 
+  Initializer buildInvalidSuperInitializer(
+      Constructor target, ArgumentsJudgment arguments, Expression expression,
+      [int charOffset = -1]) {
+    needsImplicitSuperInitializer = false;
+    return new InvalidSuperInitializerJudgment(
+        target, arguments, new VariableDeclaration.forValue(expression))
+      ..fileOffset = charOffset;
+  }
+
   Initializer buildDuplicatedInitializer(Field field, Expression value,
       String name, int offset, int previousInitializerOffset) {
     var error = buildCompileTimeError(
@@ -4145,7 +4154,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       bool isSynthetic, Constructor constructor, Arguments arguments,
       [int charOffset = -1]) {
     if (member.isConst && !constructor.isConst) {
-      return buildInvalidInitializer(
+      return buildInvalidSuperInitializer(
+          constructor,
+          forest.castArguments(arguments),
           buildCompileTimeError(fasta.messageConstConstructorWithNonConstSuper,
               charOffset, member.name.length),
           charOffset);

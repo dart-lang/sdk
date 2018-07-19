@@ -490,7 +490,8 @@ class _ExprBuilder {
       return invocation;
     }
 
-    if (k is kernel.ShadowInvalidInitializer) {
+    if (k is kernel.ShadowInvalidInitializer ||
+        k is kernel.InvalidSuperInitializerJudgment) {
       return null;
     }
 

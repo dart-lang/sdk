@@ -2035,6 +2035,23 @@ void main() {
     expect(expression.elseExpression.staticType, typeProvider.doubleType);
   }
 
+  test_const_constructor_calls_non_const_super() async {
+    addTestFile('''
+class A {
+  final a;
+  A(this.a);
+}
+class B extends A {
+  const B() : super(5);
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    // Note: no further expectations.  We don't care how the error is recovered
+    // from, provided it is recovered from in a way that doesn't crash the
+    // analyzer/FE integration.
+  }
+
   test_constructor_context() async {
     addTestFile(r'''
 class C {
