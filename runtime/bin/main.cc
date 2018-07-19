@@ -453,7 +453,10 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
                                                 Dart_IsolateFlags* flags,
                                                 char** error,
                                                 int* exit_code) {
-  const char* kernel_snapshot_uri = dfe.frontend_filename();
+  const char* kernel_snapshot_uri = NULL;
+  if (Options::gen_snapshot_kind() != kAppJIT) {
+    kernel_snapshot_uri = dfe.frontend_filename();
+  }
   const char* uri =
       kernel_snapshot_uri != NULL ? kernel_snapshot_uri : script_uri;
 
