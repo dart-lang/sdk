@@ -17,6 +17,7 @@ library dart2js.messages;
 import 'package:front_end/src/fasta/scanner.dart' show ErrorToken, Token;
 import 'generated/shared_messages.dart' as shared_messages;
 import '../constants/expressions.dart' show ConstantExpression;
+import '../commandline_options.dart';
 import 'invariant.dart' show failedAt;
 import 'spannable.dart' show CURRENT_ELEMENT_SPANNABLE;
 
@@ -90,6 +91,8 @@ enum MessageKind {
   RETHROW_OUTSIDE_CATCH,
   RETURN_IN_GENERATIVE_CONSTRUCTOR,
   RETURN_IN_GENERATOR,
+  RUNTIME_TYPE_TO_STRING_OBJECT,
+  RUNTIME_TYPE_TO_STRING_SUBTYPE,
   STRING_EXPECTED,
   UNDEFINED_GETTER,
   UNDEFINED_INSTANCE_GETTER_BUT_SETTER,
@@ -609,6 +612,25 @@ become a compile-time error in the future."""),
           "Overriding 'noSuchMethod' causes the compiler to generate "
           "more code and prevents the compiler from doing some optimizations.",
           howToFix: "Consider removing this 'noSuchMethod' implementation."),
+
+      MessageKind.RUNTIME_TYPE_TO_STRING_OBJECT: const MessageTemplate(
+          MessageKind.RUNTIME_TYPE_TO_STRING_OBJECT,
+          "Using '.runtimeType.toString()' causes the compiler to generate "
+          "more code because it needs to preserve type arguments on all "
+          "generic classes, even if they are not necessary elsewhere.",
+          howToFix: "If used only for debugging, consider using option "
+              "${Flags.laxRuntimeTypeToString} to reduce the code size "
+              "impact."),
+
+      MessageKind.RUNTIME_TYPE_TO_STRING_SUBTYPE: const MessageTemplate(
+          MessageKind.RUNTIME_TYPE_TO_STRING_SUBTYPE,
+          "Using '.runtimeType.toString()' here causes the compiler to "
+          "generate more code because it needs to preserve type arguments on "
+          "all generic subtypes of '#{receiverType}', even if they are not "
+          "necessary elsewhere.",
+          howToFix: "If used only for debugging, consider using option "
+              "${Flags.laxRuntimeTypeToString} to reduce the code size "
+              "impact."),
     }); // End of TEMPLATES.
 
   String toString() => template;

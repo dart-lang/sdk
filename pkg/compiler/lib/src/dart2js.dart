@@ -682,6 +682,12 @@ safe to use:
     Note: a well-typed program is not guaranteed to have valid inputs. For
     example, an int index argument may be null or out of range.
 
+  --lax-runtime-type-to-string
+    Omits reified class type arguments when these are only needed for `toString`
+    on `runtimeType`. This is useful if `runtimeType.toString()` is only used
+    for debugging. Note that semantics of other uses of `.runtimeType`, for
+    instance `a.runtimeType == b.runtimeType`, is not affected by this flag.
+
 The following options are only used for compiler development and may
 be removed in a future version:
 

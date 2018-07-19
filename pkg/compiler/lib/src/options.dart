@@ -189,7 +189,7 @@ class CompilerOptions implements DiagnosticOptions {
   bool omitImplicitChecks = false;
 
   /// Whether to omit class type arguments only needed for `toString` on
-  /// `RuntimeType`.
+  /// `Object.runtimeType`.
   bool laxRuntimeTypeToString = false;
 
   /// What should the compiler do with type assertions of assignments.

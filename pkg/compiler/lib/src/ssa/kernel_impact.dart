@@ -639,6 +639,27 @@ class KernelImpactBuilder extends ir.Visitor {
     if (node.name.name == Identifiers.runtimeType_) {
       if (_options.strongMode) {
         RuntimeTypeUse runtimeTypeUse = computeRuntimeTypeUse(elementMap, node);
+        if (_options.omitImplicitChecks) {
+          switch (runtimeTypeUse.kind) {
+            case RuntimeTypeUseKind.string:
+              if (!_options.laxRuntimeTypeToString) {
+                if (runtimeTypeUse.receiverType == commonElements.objectType) {
+                  reporter.reportHintMessage(
+                      computeSourceSpanFromTreeNode(node),
+                      MessageKind.RUNTIME_TYPE_TO_STRING_OBJECT);
+                } else {
+                  reporter.reportHintMessage(
+                      computeSourceSpanFromTreeNode(node),
+                      MessageKind.RUNTIME_TYPE_TO_STRING_SUBTYPE,
+                      {'receiverType': '${runtimeTypeUse.receiverType}.'});
+                }
+              }
+              break;
+            case RuntimeTypeUseKind.equals:
+            case RuntimeTypeUseKind.unknown:
+              break;
+          }
+        }
         impactBuilder.registerRuntimeTypeUse(runtimeTypeUse);
       } else {
         impactBuilder.registerRuntimeTypeUse(new RuntimeTypeUse(
