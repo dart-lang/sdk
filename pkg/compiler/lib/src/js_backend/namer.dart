@@ -521,6 +521,21 @@ class Namer {
   final Map<String, jsAst.Name> internalGlobals =
       new HashMap<String, jsAst.Name>();
 
+  Map<String, String> createMinifiedGlobalNameMap() {
+    var map = <String, String>{};
+    userGlobals.forEach((entity, jsName) {
+      // Non-finalized names are not present in the output program
+      if (jsName is TokenName && !jsName.isFinalized) return;
+      map[jsName.name] = entity.name;
+    });
+    internalGlobals.forEach((name, jsName) {
+      // Non-finalized names are not present in the output program
+      if (jsName is TokenName && !jsName.isFinalized) return;
+      map[jsName.name] = name;
+    });
+    return map;
+  }
+
   /// Used disambiguated names in the instance namespace, issued by
   /// [_disambiguateMember], [_disambiguateInternalMember],
   /// [_disambiguateOperator], and [reservePublicMemberName].
@@ -531,6 +546,29 @@ class Namer {
       new HashMap<MemberEntity, jsAst.Name>();
   final Map<String, jsAst.Name> userInstanceOperators =
       new HashMap<String, jsAst.Name>();
+
+  Map<String, String> createMinifiedInstanceNameMap() {
+    var map = <String, String>{};
+    internalInstanceMembers.forEach((entity, jsName) {
+      // Non-finalized names are not present in the output program
+      if (jsName is TokenName && !jsName.isFinalized) return;
+      map[jsName.name] = entity.name;
+    });
+    userInstanceMembers.forEach((name, jsName) {
+      // Non-finalized names are not present in the output program
+      if (jsName is TokenName && !jsName.isFinalized) return;
+      map[jsName.name] = name;
+    });
+
+    // TODO(sigmund): reverse the operator names back to the original Dart
+    // names.
+    userInstanceOperators.forEach((name, jsName) {
+      // Non-finalized names are not present in the output program
+      if (jsName is TokenName && !jsName.isFinalized) return;
+      map[jsName.name] = name;
+    });
+    return map;
+  }
 
   /// Used to disambiguate names for constants in [constantName].
   final NamingScope constantScope = new NamingScope();

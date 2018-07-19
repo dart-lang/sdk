@@ -10,7 +10,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:compiler/compiler_new.dart';
-import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/dart2js.dart' as dart2js;
 import 'package:compiler/src/filenames.dart';
 import 'package:expect/expect.dart';
@@ -32,7 +31,7 @@ Future createTemp(Uri entryPoint, Map<String, String> memorySourceFiles,
   return entryPoint;
 }
 
-Future<Compiler> runWithD8(
+Future<D8Result> runWithD8(
     {Uri entryPoint,
     Map<String, String> memorySourceFiles: const <String, String>{},
     List<String> options: const <String>[],
@@ -70,5 +69,13 @@ Future<Compiler> runWithD8(
     Expect.stringEquals(expectedOutput.trim(),
         runResult.stdout.replaceAll('\r\n', '\n').trim());
   }
-  return result.compiler;
+  return new D8Result(result, runResult, output);
+}
+
+class D8Result {
+  final CompilationResult compilationResult;
+  final ProcessResult runResult;
+  final String outputPath;
+
+  D8Result(this.compilationResult, this.runResult, this.outputPath);
 }
