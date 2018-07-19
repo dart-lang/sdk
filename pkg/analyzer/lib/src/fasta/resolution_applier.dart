@@ -813,6 +813,9 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   Element _translateReference(ResolutionData data) {
+    if (data.isPrefixReference) {
+      return _translatePrefixInfo(data.prefixInfo);
+    }
     return _typeContext.translateReference(data.reference,
         isWriteReference: data.isWriteReference,
         isTypeReference: data.isTypeReference,

@@ -238,7 +238,6 @@ abstract class Generator implements ExpressionGenerator {
       assert(forest.argumentsTypeArguments(arguments).isEmpty);
       forest.argumentsSetTypeArguments(arguments, typeArguments);
     }
-    helper.storeTypeUse(offsetForToken(token), const InvalidType());
     var error = helper.throwNoSuchMethodError(
         forest.literalNull(token),
         name == "" ? plainNameForRead : "${plainNameForRead}.$name",

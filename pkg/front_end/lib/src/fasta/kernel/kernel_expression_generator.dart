@@ -73,43 +73,44 @@ import 'kernel_api.dart' show NameSystem, printNodeOn, printQualifiedNameOn;
 
 import 'kernel_ast_api.dart'
     show
+        ComplexAssignmentJudgment,
         Constructor,
         DartType,
         Field,
-        Initializer,
-        Let,
-        Member,
-        Name,
-        Procedure,
-        PropertySet,
-        ComplexAssignmentJudgment,
         IllegalAssignmentJudgment,
         IndexAssignmentJudgment,
+        Initializer,
         InvalidPropertyGetJudgment,
+        InvalidType,
         InvalidVariableWriteJudgment,
         InvalidWriteJudgment,
+        Let,
         LoadLibraryTearOffJudgment,
+        Member,
         MethodInvocationJudgment,
+        Name,
         NullAwarePropertyGetJudgment,
+        Procedure,
         PropertyAssignmentJudgment,
         PropertyGetJudgment,
+        PropertySet,
         StaticAssignmentJudgment,
-        SuperMethodInvocationJudgment,
-        SuperPropertyGetJudgment,
-        VariableAssignmentJudgment,
-        SyntheticExpressionJudgment,
-        VariableDeclarationJudgment,
-        VariableGetJudgment,
         StaticSet,
         SuperMethodInvocation,
+        SuperMethodInvocationJudgment,
+        SuperPropertyGetJudgment,
         SuperPropertySet,
+        SyntheticExpressionJudgment,
         Throw,
         TreeNode,
         TypeParameter,
-        UnresolvedVariableGetJudgment,
         UnresolvedVariableAssignmentJudgment,
+        UnresolvedVariableGetJudgment,
+        VariableAssignmentJudgment,
         VariableDeclaration,
+        VariableDeclarationJudgment,
         VariableGet,
+        VariableGetJudgment,
         VariableSet;
 
 import 'kernel_builder.dart'
@@ -1572,6 +1573,13 @@ class KernelUnexpectedQualifiedUseGenerator extends KernelGenerator
   KernelUnexpectedQualifiedUseGenerator(ExpressionGeneratorHelper helper,
       Token token, this.prefixGenerator, this.isUnresolved)
       : super(helper, token);
+
+  Expression invokeConstructor(List<DartType> typeArguments, String name,
+      Arguments arguments, Token nameToken, Constness constness) {
+    helper.storeTypeUse(offsetForToken(token), const InvalidType());
+    return super.invokeConstructor(
+        typeArguments, name, arguments, nameToken, constness);
+  }
 }
 
 Expression makeLet(VariableDeclaration variable, Expression body) {

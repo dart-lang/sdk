@@ -3751,6 +3751,30 @@ main() {
     assertType(aRef, 'int');
   }
 
+  test_invalid_instanceCreation_prefixAsType() async {
+    addTestFile(r'''
+import 'dart:math' as p;
+int a;
+main() {
+  new p(a);
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    ImportElement import = findNode.import('dart:math').element;
+
+    var pRef = findNode.simple('p(a)');
+    if (useCFE) {
+      assertElement(pRef, import.prefix);
+      assertTypeDynamic(pRef);
+    }
+
+    var aRef = findNode.simple('a);');
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
   test_invalid_invocation_arguments_instance_method() async {
     addTestFile(r'''
 class C {
