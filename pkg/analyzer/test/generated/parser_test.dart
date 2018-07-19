@@ -4143,6 +4143,11 @@ class Wrong<T> {
     ]);
   }
 
+  void test_invalidPropertyAccess_this() {
+    parseExpression('x.this',
+        errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 2, 4)]);
+  }
+
   void test_invalidStarAfterAsync() {
     createParser('foo() async* => 0;');
     CompilationUnit unit = parser.parseCompilationUnit2();

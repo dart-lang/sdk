@@ -24,16 +24,22 @@ class IfStatementTest extends PartialCodeTest {
         new TestDescriptor(
           'leftParen',
           'if (',
-          [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+          [ParserErrorCode.MISSING_IDENTIFIER, ScannerErrorCode.EXPECTED_TOKEN],
           "if (_s_)",
-          allFailing: true,
+          failing: [
+            'assert',
+            'block',
+            'labeled',
+            'localFunctionNonVoid',
+            'localFunctionVoid',
+            'return'
+          ],
         ),
         new TestDescriptor(
           'condition',
           'if (a',
-          [ParserErrorCode.EXPECTED_TOKEN],
+          [ScannerErrorCode.EXPECTED_TOKEN],
           "if (a)",
-          allFailing: true,
         ),
       ],
       PartialCodeTest.statementSuffixes,

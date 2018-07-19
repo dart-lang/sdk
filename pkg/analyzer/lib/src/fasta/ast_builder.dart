@@ -46,6 +46,7 @@ import 'package:front_end/src/fasta/messages.dart'
         messageStaticConstructor,
         messageTypedefNotFunction,
         templateDuplicateLabelInSwitchStatement,
+        templateExpectedIdentifier,
         templateExpectedType;
 import 'package:front_end/src/fasta/quote.dart';
 import 'package:front_end/src/fasta/scanner/token_constants.dart';
@@ -491,8 +492,15 @@ class AstBuilder extends StackListener {
         ..operator = dot;
       push(identifierOrInvoke);
     } else {
-      unhandled("${identifierOrInvoke.runtimeType}", "property access",
-          dot.charOffset, uri);
+      // This same error is reported in BodyBuilder.doDotOrCascadeExpression
+      Token token = identifierOrInvoke.beginToken;
+      // TODO(danrubel): Consider specializing the error message based
+      // upon the type of expression. e.g. "x.this" -> templateThisAsIdentifier
+      handleRecoverableError(
+          templateExpectedIdentifier.withArguments(token), token, token);
+      SimpleIdentifier identifier =
+          ast.simpleIdentifier(token, isDeclaration: false);
+      push(ast.propertyAccess(receiver, dot, identifier));
     }
   }
 
