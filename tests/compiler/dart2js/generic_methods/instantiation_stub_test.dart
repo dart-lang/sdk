@@ -87,11 +87,11 @@ main() {
           "Expected: $expectedStubs\n Actual: $actualStubs");
     }
 
-    checkStubs(closedWorld.commonElements.instantiation1Class,
+    checkStubs(closedWorld.commonElements.getInstantiationClass(1),
         [r'call$1', r'$signature']);
-    checkStubs(closedWorld.commonElements.instantiation2Class,
+    checkStubs(closedWorld.commonElements.getInstantiationClass(2),
         [r'call$2', r'$signature']);
-    checkStubs(closedWorld.commonElements.instantiation3Class,
+    checkStubs(closedWorld.commonElements.getInstantiationClass(3),
         [r'call$3', r'call$4', r'$signature']);
   });
 }

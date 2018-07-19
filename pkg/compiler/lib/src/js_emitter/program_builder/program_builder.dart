@@ -718,9 +718,7 @@ class ProgramBuilder {
       callStubs.add(_buildStubMethod(name, function));
     }
 
-    if (cls == _commonElements.instantiation1Class ||
-        cls == _commonElements.instantiation2Class ||
-        cls == _commonElements.instantiation3Class) {
+    if (_commonElements.isInstantiationClass(cls)) {
       callStubs.addAll(_generateInstantiationStubs(cls));
     }
 
