@@ -11,8 +11,6 @@ sdk_summary = "$target_gen_dir/ddc_sdk.sum"
 sdk_dill = "$target_gen_dir/kernel/ddc_sdk.dill"
 
 application_snapshot("dartdevc") {
-  dart_version = 2
-
   main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
 
   training_args = [
@@ -35,8 +33,6 @@ application_snapshot("dartdevc") {
 }
 
 application_snapshot("dartdevk") {
-  dart_version = 2
-
   main_dart = "../../pkg/dev_compiler/bin/dartdevk.dart"
 
   training_args = [
@@ -93,7 +89,7 @@ template("dart2js_compile") {
     # dart_action() needs kernel service snapshot to run in Dart 2 mode.
     # This can't be added as a dependency to dart_action() itself as it will
     # create a circular dependency.
-    deps += [ "../../utils/kernel-service:copy_kernel_service_snapshot" ]
+    deps += [ "../../utils/kernel-service:kernel-service" ]
 
     inputs = sdk_lib_files + compiler_files + dev_compiler_files + [
                "$root_out_dir/dart2js_platform.dill",

@@ -51,12 +51,8 @@ group("runtime") {
     "runtime/bin:sample_extension",
     "runtime/bin:test_extension",
     "runtime/vm:kernel_platform_files($host_toolchain)",
-
-    # TODO(rmacnak): Link this into 'dart'.
-    "utils/kernel-service:copy_kernel_service_snapshot",
     "utils/kernel-service:kernel-service",
   ]
-
   if (target_supports_aot) {
     deps += [ "runtime/bin:precompiler_entry_points_json" ]
   }
