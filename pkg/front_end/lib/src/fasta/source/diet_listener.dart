@@ -35,6 +35,9 @@ import '../fasta_codes.dart'
 
 import '../kernel/kernel_body_builder.dart' show KernelBodyBuilder;
 
+import '../kernel/kernel_procedure_builder.dart'
+    show KernelRedirectingFactoryBuilder;
+
 import '../parser.dart' show Assert, MemberKind, Parser, optional;
 
 import '../problems.dart' show DebugAbort, internalProblem, unexpected;
@@ -451,8 +454,32 @@ class DietListener extends StackListener {
     Token metadata = pop();
     checkEmpty(beginToken.charOffset);
     if (bodyToken == null || optional("=", bodyToken.endGroup.next)) {
-      // TODO(ahe): Don't skip this. We need to compile metadata and
-      // redirecting factory bodies.
+      // TODO(dmitryas): Consider building redirecting factory bodies here.
+      KernelRedirectingFactoryBuilder factory =
+          lookupConstructor(beginToken, name);
+      parseMetadata(factory, metadata, factory.target);
+
+      if (factory.formals != null) {
+        List<int> metadataOffsets = new List<int>(factory.formals.length);
+        for (int i = 0; i < factory.formals.length; ++i) {
+          List<MetadataBuilder> metadata = factory.formals[i].metadata;
+          if (metadata != null && metadata.length > 0) {
+            // [parseMetadata] is using [Parser.parseMetadataStar] under the
+            // hood, so we only need the offset of the first annotation.
+            metadataOffsets[i] = metadata[0].charOffset;
+          } else {
+            metadataOffsets[i] = -1;
+          }
+        }
+        List<Token> metadataTokens =
+            tokensForOffsets(beginToken, endToken, metadataOffsets);
+        for (int i = 0; i < factory.formals.length; ++i) {
+          Token metadata = metadataTokens[i];
+          if (metadata == null) continue;
+          parseMetadata(
+              factory.formals[i], metadata, factory.formals[i].target);
+        }
+      }
       return;
     }
     buildFunctionBody(bodyToken, lookupConstructor(beginToken, name),
@@ -804,5 +831,27 @@ class DietListener extends StackListener {
       return listener.finishMetadata(parent);
     }
     return null;
+  }
+
+  /// Returns list of [Token]s found between [start] (inclusive) and [end]
+  /// (non-inclusive) that correspond to [offsets].  If there's no token between
+  /// [start] and [end] for the given offset, the corresponding item in the
+  /// resulting list is set to null.  [offsets] are assumed to be in ascending
+  /// order.
+  List<Token> tokensForOffsets(Token start, Token end, List<int> offsets) {
+    List<Token> result =
+        new List<Token>.filled(offsets.length, null, growable: false);
+    for (int i = 0; start != end && i < offsets.length;) {
+      int offset = offsets[i];
+      if (offset < start.charOffset) {
+        ++i;
+      } else if (offset == start.charOffset) {
+        result[i] = start;
+        start = start.next;
+      } else {
+        start = start.next;
+      }
+    }
+    return result;
   }
 }
