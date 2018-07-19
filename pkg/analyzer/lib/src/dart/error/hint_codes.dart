@@ -398,10 +398,10 @@ class HintCode extends ErrorCode {
    */
   static const HintCode MISSING_RETURN = const HintCode(
       'MISSING_RETURN',
-      "This function declares a return type of '{0}', but doesn't end with a "
+      "This function has a return type of '{0}', but doesn't end with a "
       "return statement.",
-      correction:
-          "Try adding a return statement, or changing the return type to 'void'.");
+      correction: "Try adding a return statement, "
+          "or changing the return type to 'void'.");
 
   /**
    * Generate a hint for classes that inherit from classes annotated with

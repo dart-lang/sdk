@@ -295,6 +295,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     FieldEntity field = _elementMap.getField(node.field);
     _locals.updateField(field, rhsType);
     _inferrer.recordTypeOfField(field, rhsType);
+    return null;
   }
 
   @override
@@ -311,6 +312,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     if (_inferrer.checkIfExposesThis(constructor)) {
       _markThisAsExposed();
     }
+    return null;
   }
 
   @override
@@ -327,11 +329,13 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     if (_inferrer.checkIfExposesThis(constructor)) {
       _markThisAsExposed();
     }
+    return null;
   }
 
   @override
   visitLocalInitializer(ir.LocalInitializer node) {
     visit(node.variable);
+    return null;
   }
 
   void handleParameters(ir.FunctionNode node) {
@@ -426,16 +430,19 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       visit(statement);
       if (_locals.aborts) break;
     }
+    return null;
   }
 
   @override
   visitExpressionStatement(ir.ExpressionStatement node) {
     visit(node.expression);
+    return null;
   }
 
   @override
   visitEmptyStatement(ir.EmptyStatement node) {
     // Nothing to do.
+    return null;
   }
 
   @override
@@ -461,6 +468,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     _locals.seenReturnOrThrow = true;
     saved.mergeDiamondFlow(thenLocals, _locals);
     _locals = saved;
+    return null;
   }
 
   @override
@@ -474,6 +482,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     } else {
       _breaksFor[target].add(new LocalsHandler.deepCopyOf(_locals));
     }
+    return null;
   }
 
   @override
@@ -489,6 +498,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       _locals.mergeAfterBreaks(_getBreaks(jumpTarget));
       _clearBreaksAndContinues(jumpTarget);
     }
+    return null;
   }
 
   @override
@@ -544,11 +554,13 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       _locals = saved;
     }
     _clearBreaksAndContinues(jumpTarget);
+    return null;
   }
 
   @override
   visitSwitchCase(ir.SwitchCase node) {
     visit(node.body);
+    return null;
   }
 
   @override
@@ -558,6 +570,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // Do a deep-copy of the locals, because the code following the
     // break will change them.
     _continuesFor[target].add(new LocalsHandler.deepCopyOf(_locals));
+    return null;
   }
 
   @override
@@ -1594,6 +1607,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       saved.mergeDiamondFlow(_locals, null);
       _locals = saved;
     }
+    return null;
   }
 
   @override
@@ -1606,6 +1620,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     saved.mergeDiamondFlow(_locals, null);
     _locals = saved;
     visit(node.finalizer);
+    return null;
   }
 
   @override
@@ -1632,6 +1647,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       _locals.update(local, _types.dynamicType, node, const DynamicType());
     }
     visit(node.body);
+    return null;
   }
 
   @override

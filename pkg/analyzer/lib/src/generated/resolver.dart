@@ -408,7 +408,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       inDeprecatedMember = true;
     }
     try {
-      _checkForMissingReturn(node.returnType, node.functionExpression.body);
+      _checkForMissingReturn(
+          node.returnType, node.functionExpression.body, element, node);
       return super.visitFunctionDeclaration(node);
     } finally {
       inDeprecatedMember = wasInDeprecatedMember;
@@ -453,7 +454,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     try {
       // This was determined to not be a good hint, see: dartbug.com/16029
       //checkForOverridingPrivateMember(node);
-      _checkForMissingReturn(node.returnType, node.body);
+      _checkForMissingReturn(node.returnType, node.body, element, node);
       _checkForUnnecessaryNoSuchMethod(node);
       return super.visitMethodDeclaration(node);
     } finally {
@@ -1174,56 +1175,52 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * @return `true` if and only if a hint code is generated on the passed node
    * See [HintCode.MISSING_RETURN].
    */
-  void _checkForMissingReturn(TypeAnnotation returnType, FunctionBody body) {
-    // Check that the method or function has a return type, and a function body
-    if (returnType == null || body == null) {
-      return;
-    }
-    // Check that the body is a BlockFunctionBody
+  void _checkForMissingReturn(TypeAnnotation returnNode, FunctionBody body,
+      ExecutableElement element, AstNode functionNode) {
     if (body is BlockFunctionBody) {
+      // Prefer the type from the element model, in case we've inferred one.
+      DartType returnType = element?.returnType ?? returnNode?.type;
+      AstNode errorNode = returnNode ?? functionNode;
+
+      // Skip the check if we're missing a return type (e.g. erroneous code).
       // Generators are never required to have a return statement.
-      if (body.isGenerator) {
+      if (returnType == null || body.isGenerator) {
         return;
       }
 
       if (_typeSystem is StrongTypeSystemImpl) {
-        // Check that the type is resolvable, and is not "void"
-        DartType returnTypeType = returnType.type;
-        if (returnTypeType == null) {
-          return;
-        }
-
         var flattenedType = body.isAsynchronous
-            ? returnTypeType.flattenFutures(_typeSystem)
-            : returnTypeType;
+            ? returnType.flattenFutures(_typeSystem)
+            : returnType;
+
+        // dynamic/Null/void are allowed to omit a return.
         if (flattenedType.isDynamic ||
             flattenedType.isDartCoreNull ||
             flattenedType.isVoid) {
           return;
         }
-        // Check the block for a return statement, if not, create the hint
+        // Otherwise issue a warning if the block doesn't have a return.
         if (!ExitDetector.exits(body)) {
-          _errorReporter.reportErrorForNode(HintCode.MISSING_RETURN, returnType,
-              [returnTypeType.displayName]);
+          _errorReporter.reportErrorForNode(
+              HintCode.MISSING_RETURN, errorNode, [returnType.displayName]);
         }
+        return;
       }
+
       // TODO(leafp): Delete this non-strong mode path
       // Check that the type is resolvable and not "void"
-      DartType returnTypeType = returnType.type;
-      if (returnTypeType == null ||
-          returnTypeType.isVoid ||
-          (body.isAsynchronous && _isFutureVoid(returnTypeType))) {
+      if (returnType.isVoid ||
+          (body.isAsynchronous && _isFutureVoid(returnType))) {
         return;
       }
       // For async, give no hint if the return type does not matter, i.e.
       // dynamic, Future<Null> or Future<dynamic>.
       if (body.isAsynchronous) {
-        if (returnTypeType.isDynamic) {
+        if (returnType.isDynamic) {
           return;
         }
-        if (returnTypeType is InterfaceType &&
-            returnTypeType.isDartAsyncFuture) {
-          DartType futureArgument = returnTypeType.typeArguments[0];
+        if (returnType is InterfaceType && returnType.isDartAsyncFuture) {
+          DartType futureArgument = returnType.typeArguments[0];
           if (futureArgument.isDynamic ||
               futureArgument.isDartCoreNull ||
               futureArgument.isVoid ||
@@ -1235,7 +1232,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       // Check the block for a return statement, if not, create the hint
       if (!ExitDetector.exits(body)) {
         _errorReporter.reportErrorForNode(
-            HintCode.MISSING_RETURN, returnType, [returnTypeType.displayName]);
+            HintCode.MISSING_RETURN, errorNode, [returnType.displayName]);
       }
     }
   }

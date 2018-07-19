@@ -2374,6 +2374,20 @@ class A {
     verify([source]);
   }
 
+  test_missingReturn_method_inferred() async {
+    Source source = addSource(r'''
+abstract class A {
+  int m();
+}
+class B extends A {
+  m() {}
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_RETURN]);
+    verify([source]);
+  }
+
   test_mustBeImmutable_direct() async {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';

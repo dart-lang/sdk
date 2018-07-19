@@ -904,7 +904,7 @@ class OptionsTest extends BaseTest {
     ]);
     expect(processorFor(missing_return).severity, ErrorSeverity.ERROR);
     expect(bulletToDash(outSink),
-        contains("error - This function declares a return type of 'int'"));
+        contains("error - This function has a return type of 'int'"));
     expect(outSink.toString(), contains("1 error and 1 warning found."));
   }
 
