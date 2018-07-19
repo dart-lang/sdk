@@ -618,3 +618,19 @@ NullAwareExpression getNullAwareExpression(ir.TreeNode node) {
   }
   return null;
 }
+
+/// Returns the initializer for [field].
+///
+/// If [field] is an instance field with a null literal initializer `null` is
+/// returned, otherwise the initializer of the [ir.Field] is returned.
+ir.Node getFieldInitializer(
+    KernelToElementMapForBuilding elementMap, FieldEntity field) {
+  MemberDefinition definition = elementMap.getMemberDefinition(field);
+  ir.Field node = definition.node;
+  if (node.isInstanceMember &&
+      !node.isFinal &&
+      node.initializer is ir.NullLiteral) {
+    return null;
+  }
+  return node.initializer;
+}

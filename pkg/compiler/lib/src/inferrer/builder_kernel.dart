@@ -23,7 +23,6 @@ import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 import '../world.dart';
 import 'inferrer_engine.dart';
-import 'kernel_inferrer_engine.dart';
 import 'locals_handler.dart';
 import 'type_graph_nodes.dart';
 import 'type_system.dart';
