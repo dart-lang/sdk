@@ -1048,6 +1048,10 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try removing the extra positional arguments, "
               "or specifying the name for named arguments.");
 
+  static const CompileTimeErrorCode FACTORY_REDIRECTS_TO_ABSTRACT_CLASS =
+      const CompileTimeErrorCode.fromFasta(
+          'FACTORY_REDIRECTS_TO_ABSTRACT_CLASS');
+
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It
    * is a compile time error if more than one initializer corresponding to a

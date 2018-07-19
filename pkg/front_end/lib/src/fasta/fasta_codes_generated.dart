@@ -69,6 +69,8 @@ const Code<Message Function(String name)>
     const Code<Message Function(String name)>(
         "AbstractRedirectedClassInstantiation",
         templateAbstractRedirectedClassInstantiation,
+        analyzerCode: "FACTORY_REDIRECTS_TO_ABSTRACT_CLASS",
+        dart2jsCode: "*fatal*",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -767,6 +769,8 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)> codeConflictsWithMemberWarning =
     const Code<Message Function(String name)>(
         "ConflictsWithMemberWarning", templateConflictsWithMemberWarning,
+        analyzerCode: "CONFLICTS_WITH_MEMBER",
+        dart2jsCode: "*fatal*",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

@@ -1265,6 +1265,8 @@ AbstractClassInstantiation:
 AbstractRedirectedClassInstantiation:
   template: "Factory redirects to class '#name', which is abstract and can't be instantiated."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: FACTORY_REDIRECTS_TO_ABSTRACT_CLASS
+  dart2jsCode: "*fatal*"
 
 MissingImplementationNotAbstract:
   template: |
@@ -1622,6 +1624,8 @@ ConflictsWithMember:
 ConflictsWithMemberWarning:
   template: "Conflicts with member '#name'."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: CONFLICTS_WITH_MEMBER
+  dart2jsCode: "*fatal*"
 
 ConflictsWithSetter:
   template: "Conflicts with setter '#name'."

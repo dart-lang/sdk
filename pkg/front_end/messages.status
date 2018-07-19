@@ -6,7 +6,6 @@ AbstractClassInstantiation/example: Fail
 AbstractClassMember/script5: Fail
 AbstractClassMember/script6: Fail
 AbstractNotSync/example: Fail
-AbstractRedirectedClassInstantiation/analyzerCode: Fail
 AbstractRedirectedClassInstantiation/example: Fail
 AccessError/analyzerCode: Fail
 AccessError/example: Fail
@@ -42,7 +41,6 @@ ConflictsWithConstructor/example: Fail
 ConflictsWithFactory/analyzerCode: Fail
 ConflictsWithFactory/example: Fail
 ConflictsWithMember/example: Fail
-ConflictsWithMemberWarning/analyzerCode: Fail
 ConflictsWithMemberWarning/example: Fail
 ConflictsWithSetter/example: Fail
 ConflictsWithSetterWarning/analyzerCode: Fail
