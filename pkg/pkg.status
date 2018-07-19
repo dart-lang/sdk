@@ -32,7 +32,7 @@ dev_compiler/test/sourcemap/testfiles/*: SkipByDesign # Skip dev_compiler codege
 dev_compiler/test/worker/*: Skip # test needs fixes
 front_end/test/fasta/analyze_test: Pass, Slow
 front_end/test/fasta/ast_builder_test: Pass, Slow
-front_end/test/fasta/bootstrap_test: Pass, Slow
+front_end/test/fasta/bootstrap_test: Skip # Issue 33811
 front_end/test/fasta/compile_test: Pass, ExtraSlow
 front_end/test/fasta/outline_test: Pass, Slow
 front_end/test/fasta/rasta/*: SkipByDesign # Anything in rasta is input to fasta unit tests and shouldn't be run as tests.
