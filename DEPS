@@ -127,7 +127,6 @@ vars = {
   "stack_trace_tag": "1.9.2",
   "stream_channel_tag": "1.6.4",
   "string_scanner_tag": "1.0.2",
-  "sunflower_rev": "879b704933413414679396b129f5dfa96f7a0b1e",
   "test_descriptor_tag": "1.1.1",
   "test_process_tag": "1.0.3",
   "term_glyph_tag": "1.0.0",
@@ -328,10 +327,6 @@ deps = {
   Var("dart_root") + "/third_party/pkg/string_scanner":
       Var("dart_git") + "string_scanner.git" +
       "@" + Var("string_scanner_tag"),
-  Var("dart_root") + "/third_party/sunflower":
-      Var("chromium_git") +
-      "/external/github.com/dart-lang/sample-sunflower.git" +
-      "@" + Var("sunflower_rev"),
   Var("dart_root") + "/third_party/pkg/term_glyph":
       Var("dart_git") + "term_glyph.git" + "@" + Var("term_glyph_tag"),
   Var("dart_root") + "/third_party/pkg/test":

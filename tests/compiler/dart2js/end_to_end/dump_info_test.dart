@@ -32,14 +32,13 @@ void main() {
   out1.createSync();
   Directory out2 = new Directory.fromUri(tmpDir.uri.resolve('with'));
   out2.createSync();
-  Directory sunflowerDir =
-      new Directory.fromUri(Uri.base.resolve('third_party/sunflower'));
+  Directory appDir =
+      new Directory.fromUri(Uri.base.resolve('samples-dev/swarm'));
 
-  print("Copying '${sunflowerDir.path}' to '${tmpDir.path}'.");
-  copyDirectory(sunflowerDir, tmpDir);
+  print("Copying '${appDir.path}' to '${tmpDir.path}'.");
+  copyDirectory(appDir, tmpDir);
   try {
-    var command =
-        dart2JsCommand(['--out=without/out.js', 'web/sunflower.dart']);
+    var command = dart2JsCommand(['--out=without/out.js', 'swarm.dart']);
     print('Run $command');
     var result = Process.runSync(Platform.resolvedExecutable, command,
         workingDirectory: tmpDir.path);
@@ -52,8 +51,8 @@ void main() {
     String output1 = new File.fromUri(tmpDir.uri.resolve('without/out.js'))
         .readAsStringSync();
 
-    command = dart2JsCommand(
-        ['--out=with/out.js', 'web/sunflower.dart', '--dump-info']);
+    command =
+        dart2JsCommand(['--out=with/out.js', 'swarm.dart', '--dump-info']);
     print('Run $command');
     result = Process.runSync(Platform.resolvedExecutable, command,
         workingDirectory: tmpDir.path);
