@@ -1442,7 +1442,7 @@ test_pack:lib/''');
     return pumpEventQueue().then((_) {
       expect(file.exists, isFalse);
       expect(projFolder.exists, isTrue);
-      return expect(callbacks.currentFilePaths, hasLength(0));
+      expect(callbacks.currentFilePaths, hasLength(0));
     });
   }
 
@@ -1463,7 +1463,7 @@ test_pack:lib/''');
     return pumpEventQueue().then((_) {
       expect(file.exists, isFalse);
       expect(projFolder.exists, isFalse);
-      return expect(callbacks.currentFilePaths, hasLength(0));
+      expect(callbacks.currentFilePaths, hasLength(0));
     });
   }
 
