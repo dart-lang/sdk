@@ -189,7 +189,12 @@ class _AllowedCommentVisitor extends SimpleAstVisitor {
     if (content.startsWith('///')) {
       lines.add(content.substring(3));
     } else if (content.startsWith('//')) {
-      lines.add(content.substring(2));
+      final commentContent = content.substring(2);
+      if (commentContent.trimLeft().startsWith('ignore:')) {
+        allowedLines.add(lineInfo.getLocation(comment.offset).lineNumber);
+      } else {
+        lines.add(content.substring(2));
+      }
     } else if (content.startsWith('/*')) {
       // remove last slash before finding slash
       lines.addAll(content
