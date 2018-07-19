@@ -301,9 +301,10 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
 
     if (worldImpact.genericInstantiations.isNotEmpty) {
-      registerImpact(_impacts.genericInstantiation);
       for (GenericInstantiation instantiation
           in worldImpact.genericInstantiations) {
+        registerImpact(_impacts
+            .getGenericInstantiation(instantiation.typeArguments.length));
         _rtiNeedBuilder.registerGenericInstantiation(instantiation);
       }
     }

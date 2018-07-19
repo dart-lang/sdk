@@ -1115,17 +1115,38 @@ class CommonElements {
   FunctionEntity get hashCodeForNativeObject =>
       _findHelperFunction('hashCodeForNativeObject');
 
-  ClassEntity get instantiation1Class => _findHelperClass('Instantiation1');
-  ClassEntity get instantiation2Class => _findHelperClass('Instantiation2');
-  ClassEntity get instantiation3Class => _findHelperClass('Instantiation3');
-  FunctionEntity get instantiate1 => _findHelperFunction('instantiate1');
-  FunctionEntity get instantiate2 => _findHelperFunction('instantiate2');
-  FunctionEntity get instantiate3 => _findHelperFunction('instantiate3');
+  // TODO(johnniwinther,sra): Support arbitrary type argument count.
+  void _checkTypeArgumentCount(int typeArgumentCount) {
+    assert(typeArgumentCount > 0);
+    if (typeArgumentCount > 20) {
+      failedAt(
+          NO_LOCATION_SPANNABLE,
+          "Unsupported instantiation argument count: "
+          "${typeArgumentCount}");
+    }
+  }
+
+  ClassEntity getInstantiationClass(int typeArgumentCount) {
+    _checkTypeArgumentCount(typeArgumentCount);
+    return _findHelperClass('Instantiation$typeArgumentCount');
+  }
+
+  FunctionEntity getInstantiateFunction(int typeArgumentCount) {
+    _checkTypeArgumentCount(typeArgumentCount);
+    return _findHelperFunction('instantiate$typeArgumentCount');
+  }
+
   FunctionEntity get instantiatedGenericFunctionType =>
       _findHelperFunction('instantiatedGenericFunctionType');
 
   FunctionEntity get extractFunctionTypeObjectFromInternal =>
       _findHelperFunction('extractFunctionTypeObjectFromInternal');
+
+  bool isInstantiationClass(ClassEntity cls) {
+    return cls.library == _jsHelperLibrary &&
+        cls.name != 'Instantiation' &&
+        cls.name.startsWith('Instantiation');
+  }
 
   // From dart:_internal
 
