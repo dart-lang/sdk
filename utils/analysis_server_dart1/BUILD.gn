@@ -4,7 +4,8 @@
 
 import("../application_snapshot.gni")
 
-application_snapshot_dart1("analysis_server_dart1") {
+application_snapshot("analysis_server_dart1") {
+  dart_version = 1
   main_dart = "../../pkg/analysis_server/bin/server.dart"
   training_args = [ "--help" ]
 }
