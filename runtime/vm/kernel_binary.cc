@@ -30,7 +30,7 @@ const char* Reader::TagName(Tag tag) {
 }
 
 const char* kKernelInvalidFilesize =
-    "File size is too small to a valid kernel file";
+    "File size is too small to be a valid kernel file";
 const char* kKernelInvalidMagicIdentifier = "Invalid magic identifier";
 const char* kKernelInvalidBinaryFormatVersion =
     "Invalid kernel binary format version";
