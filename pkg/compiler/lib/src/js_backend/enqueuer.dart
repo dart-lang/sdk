@@ -31,8 +31,6 @@ import '../util/util.dart' show Setlet;
 /// [Enqueuer] which is specific to code generation.
 class CodegenEnqueuer extends EnqueuerImpl {
   final String name;
-  final EnqueuerStrategy strategy;
-
   Set<ClassEntity> _recentClasses = new Setlet<ClassEntity>();
   bool _recentConstants = false;
   final CodegenWorldBuilderImpl _worldBuilder;
@@ -57,7 +55,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   static const ImpactUseCase IMPACT_USE =
       const ImpactUseCase('CodegenEnqueuer');
 
-  CodegenEnqueuer(this.task, this._options, this.strategy, this._worldBuilder,
+  CodegenEnqueuer(this.task, this._options, this._worldBuilder,
       this._workItemBuilder, this.listener)
       : this.name = 'codegen enqueuer' {
     _impactVisitor = new EnqueuerImplImpactVisitor(this);
@@ -110,7 +108,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
 
   bool checkNoEnqueuedInvokedInstanceMethods(
       ElementEnvironment elementEnvironment) {
-    return strategy.checkEnqueuerConsistency(this, elementEnvironment);
+    return checkEnqueuerConsistency(elementEnvironment);
   }
 
   void checkClass(ClassEntity cls) {
@@ -244,7 +242,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
         // TODO(johnniwinther): Find an optimal process order.
         WorkItem work = _queue.removeLast();
         if (!_processedEntities.contains(work.element)) {
-          strategy.processWorkItem(f, work);
+          f(work);
           // TODO(johnniwinther): Register the processed element here. This
           // is currently a side-effect of calling `work.run`.
           _processedEntities.add(work.element);
