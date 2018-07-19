@@ -798,6 +798,8 @@ InvalidSyncModifier:
 InvalidVoid:
   template: "Type 'void' can't be used here because it isn't a return type."
   tip: "Try removing 'void' keyword or replace it with 'var', 'final', or a type."
+  severity: ERROR
+  analyzerCode: INVALID_USE_OF_VOID
   dart2jsCode: VOID_NOT_ALLOWED
   script:
     - "void x; main() {}"
@@ -1138,6 +1140,7 @@ FinalFieldWithoutInitializer:
 
 MetadataTypeArguments:
   template: "An annotation (metadata) can't use type arguments."
+  analyzerCode: ANNOTATION_WITH_TYPE_ARGUMENTS
   dart2jsCode: "*ignored*"
 
 ConstructorNotFound:
@@ -1587,6 +1590,9 @@ CyclicClassHierarchy:
 
 ExtendingEnum:
   template: "'#name' is an enum and can't be extended or implemented."
+  severity: ERROR
+  analyzerCode: EXTENDS_ENUM
+  dart2jsCode: "*fatal*"
 
 ExtendingRestricted:
   template: "'#name' is restricted and can't be extended or implemented."

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.error.error;
-
 import 'dart:collection';
 
 import 'package:analyzer/error/listener.dart';
@@ -66,6 +64,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.AMBIGUOUS_EXPORT,
   CompileTimeErrorCode.AMBIGUOUS_SUPERTYPES,
   CompileTimeErrorCode.ANNOTATION_WITH_NON_CLASS,
+  CompileTimeErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS,
   CompileTimeErrorCode.ARGUMENT_DEFINITION_TEST_NON_PARAMETER,
   CompileTimeErrorCode.ASSIGNMENT_TO_PARENTHESIZED_EXPRESSION,
   CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT,
@@ -182,6 +181,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.INVALID_URI,
   CompileTimeErrorCode.INVALID_USE_OF_COVARIANT,
   CompileTimeErrorCode.INVALID_USE_OF_NULL_AWARE_ACCESS,
+  CompileTimeErrorCode.INVALID_USE_OF_VOID,
   CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
   CompileTimeErrorCode.LABEL_UNDEFINED,
   CompileTimeErrorCode.LOAD_LIBRARY_TAKES_NO_ARGUMENTS,

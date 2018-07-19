@@ -2567,9 +2567,10 @@ const Template<Message Function(String name)> templateExtendingEnum =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeExtendingEnum =
     const Code<Message Function(String name)>(
-  "ExtendingEnum",
-  templateExtendingEnum,
-);
+        "ExtendingEnum", templateExtendingEnum,
+        analyzerCode: "EXTENDS_ENUM",
+        dart2jsCode: "*fatal*",
+        severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExtendingEnum(String name) {
@@ -4381,7 +4382,9 @@ const Code<Null> codeInvalidVoid = messageInvalidVoid;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidVoid = const MessageCode("InvalidVoid",
+    analyzerCode: "INVALID_USE_OF_VOID",
     dart2jsCode: "VOID_NOT_ALLOWED",
+    severity: Severity.error,
     message:
         r"""Type 'void' can't be used here because it isn't a return type.""",
     tip:
@@ -4546,6 +4549,7 @@ const Code<Null> codeMetadataTypeArguments = messageMetadataTypeArguments;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMetadataTypeArguments = const MessageCode(
     "MetadataTypeArguments",
+    analyzerCode: "ANNOTATION_WITH_TYPE_ARGUMENTS",
     dart2jsCode: "*ignored*",
     message: r"""An annotation (metadata) can't use type arguments.""");
 

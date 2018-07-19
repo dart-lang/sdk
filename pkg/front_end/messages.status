@@ -136,7 +136,6 @@ ExpectedUri/example: Fail
 ExportAfterPart/script1: Fail
 ExpressionNotMetadata/analyzerCode: Fail
 ExpressionNotMetadata/example: Fail
-ExtendingEnum/analyzerCode: Fail
 ExtendingEnum/example: Fail
 ExtendingRestricted/example: Fail
 ExternalConstructorWithBody/script1: Fail
@@ -210,7 +209,6 @@ InvalidInlineFunctionType/analyzerCode: Fail
 InvalidPackageUri/analyzerCode: Fail
 InvalidPackageUri/example: Fail
 InvalidUseOfNullAwareAccess/example: Fail
-InvalidVoid/analyzerCode: Fail
 InvalidVoid/script1: Fail
 InvalidVoid/script2: Fail
 LibraryDirectiveNotFirst/script2: Fail
@@ -220,7 +218,6 @@ LoadLibraryTakesNoArguments/example: Fail
 MapLiteralTypeArgumentMismatch/example: Fail
 MemberWithSameNameAsClass/analyzerCode: Fail
 MemberWithSameNameAsClass/example: Fail
-MetadataTypeArguments/analyzerCode: Fail
 MetadataTypeArguments/example: Fail
 MethodNotFound/dart2jsCode: Fail
 MethodNotFound/example: Fail

@@ -221,6 +221,9 @@ class CompileTimeErrorCode extends ErrorCode {
               "correcting the name to match a defined class, or "
               "defining a class with the given name.");
 
+  static const CompileTimeErrorCode ANNOTATION_WITH_TYPE_ARGUMENTS =
+      const CompileTimeErrorCode.fromFasta('ANNOTATION_WITH_TYPE_ARGUMENTS');
+
   /**
    * 12.33 Argument Definition Test: It is a compile time error if <i>v</i> does
    * not denote a formal parameter.
@@ -1575,6 +1578,9 @@ class CompileTimeErrorCode extends ErrorCode {
 
   static const CompileTimeErrorCode INVALID_USE_OF_NULL_AWARE_ACCESS =
       const CompileTimeErrorCode.fromFasta('INVALID_USE_OF_NULL_AWARE_ACCESS');
+
+  static const CompileTimeErrorCode INVALID_USE_OF_VOID =
+      const CompileTimeErrorCode.fromFasta('INVALID_USE_OF_VOID');
 
   /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at
