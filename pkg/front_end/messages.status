@@ -43,7 +43,6 @@ ConflictsWithFactory/example: Fail
 ConflictsWithMember/example: Fail
 ConflictsWithMemberWarning/example: Fail
 ConflictsWithSetter/example: Fail
-ConflictsWithSetterWarning/analyzerCode: Fail
 ConflictsWithSetterWarning/example: Fail
 ConflictsWithTypeVariable/example: Fail
 ConstAfterFactory/script1: Fail
@@ -191,6 +190,7 @@ ImplementsBeforeExtends/script: Fail
 ImplementsBeforeWith/script: Fail
 ImplicitCallOfNonMethod/example: Fail
 ImportAfterPart/script1: Fail
+InitializerForStaticField/example: Fail
 InitializerOutsideConstructor/example: Fail
 InputFileNotFound/analyzerCode: Fail
 InputFileNotFound/example: Fail
@@ -203,7 +203,6 @@ InvalidCastLocalFunction/example: Fail
 InvalidCastNewExpr/example: Fail
 InvalidCastStaticMethod/example: Fail
 InvalidCastTopLevelFunction/example: Fail
-InvalidInitializer/analyzerCode: Fail
 InvalidInitializer/example: Fail
 InvalidInlineFunctionType/analyzerCode: Fail
 InvalidPackageUri/analyzerCode: Fail
@@ -264,14 +263,12 @@ OverrideMismatchNamedParameter/example: Fail
 OverrideMoreRequiredArguments/example: Fail
 OverrideTypeMismatchParameter/example: Fail
 OverrideTypeMismatchReturnType/example: Fail
-OverrideTypeVariablesMismatch/analyzerCode: Fail
 OverrideTypeVariablesMismatch/example: Fail
 PackageNotFound/analyzerCode: Fail
 PackageNotFound/example: Fail
 PartOfLibraryNameMismatch/dart2jsCode: Fail
 PartOfLibraryNameMismatch/example: Fail
 PartOfSelf/dart2jsCode: Fail
-PartOfTwoLibraries/analyzerCode: Fail # Issue 33227
 PartOfUriMismatch/dart2jsCode: Fail
 PartOfUriMismatch/example: Fail
 PartOfUseUri/dart2jsCode: Fail

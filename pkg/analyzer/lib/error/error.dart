@@ -173,6 +173,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME,
   CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS,
   CompileTimeErrorCode.INVALID_IDENTIFIER_IN_ASYNC,
+  CompileTimeErrorCode.INVALID_INITIALIZER,
   CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR,
   CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
   CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS,

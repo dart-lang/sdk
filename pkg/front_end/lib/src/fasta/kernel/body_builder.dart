@@ -4143,8 +4143,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
     } else {
       return buildInvalidInitializer(
-          deprecated_buildCompileTimeError(
-              "'$name' isn't an instance field of this class.", offset),
+          buildCompileTimeError(
+              fasta.templateInitializerForStaticField.withArguments(name),
+              offset,
+              name.length),
           offset);
     }
   }

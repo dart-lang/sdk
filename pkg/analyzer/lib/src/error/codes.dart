@@ -1480,6 +1480,9 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try using a different name, or "
               "remove the modifier on the function body.");
 
+  static const CompileTimeErrorCode INVALID_INITIALIZER =
+      const CompileTimeErrorCode.fromFasta('INVALID_INITIALIZER');
+
   /**
    * 9. Functions: It is a compile-time error if an async, async* or sync*
    * modifier is attached to the body of a setter or constructor.

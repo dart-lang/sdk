@@ -630,6 +630,11 @@ ExternalField:
   script:
     - "class C { external var f; }"
 
+InitializerForStaticField:
+  template: "'#name' isn't an instance field of this class."
+  analyzerCode: INITIALIZER_FOR_STATIC_FIELD
+  dart2jsCode: "*fatal*"
+
 InitializerOutsideConstructor:
   template: "Only constructors can have initializers, and '#name' is not a constructor."
   analyzerCode: INITIALIZER_OUTSIDE_CONSTRUCTOR
@@ -808,6 +813,9 @@ InvalidVoid:
 InvalidInitializer:
   template: "Not a valid initializer."
   tip: "To initialize a field, use the syntax 'name = value'."
+  severity: ERROR
+  analyzerCode: INVALID_INITIALIZER
+  dart2jsCode: "*fatal*"
 
 MissingExponent:
   template: "Numbers in exponential notation should always contain an exponent (an integer number with an optional sign)."
@@ -1642,6 +1650,8 @@ ConflictsWithSetter:
 ConflictsWithSetterWarning:
   template: "Conflicts with setter '#name'."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: CONFLICTS_WITH_MEMBER
+  dart2jsCode: "*fatal*"
 
 ConflictsWithTypeVariable:
   template: "Conflicts with type variable '#name'."
@@ -1737,6 +1747,8 @@ IllegalMixin:
 OverrideTypeVariablesMismatch:
   template: "Declared type variables of '#name' doesn't match those on overridden method '#name2'."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS
+  dart2jsCode: "*fatal*"
 
 OverriddenMethodCause:
   template: "This is the overriden method ('#name')."
@@ -1922,6 +1934,8 @@ PartOfTwoLibraries:
   template: "A file can't be part of more than one library."
   tip: "Try moving the shared declarations into the libraries, or into a new library."
   severity: ERROR
+  analyzerCode: PART_OF_DIFFERENT_LIBRARY
+  dart2jsCode: "*fatal*"
   script:
     main.dart: "library lib; import 'lib.dart'; part 'part.dart';"
     lib.dart: "library lib; part 'part.dart';"

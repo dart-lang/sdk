@@ -812,6 +812,8 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)> codeConflictsWithSetterWarning =
     const Code<Message Function(String name)>(
         "ConflictsWithSetterWarning", templateConflictsWithSetterWarning,
+        analyzerCode: "CONFLICTS_WITH_MEMBER",
+        dart2jsCode: "*fatal*",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3426,6 +3428,26 @@ const MessageCode messageInitializedVariableInForEach = const MessageCode(
         r"""Try removing the initializer, or using a different kind of loop.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateInitializerForStaticField =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""'#name' isn't an instance field of this class.""",
+        withArguments: _withArgumentsInitializerForStaticField);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeInitializerForStaticField =
+    const Code<Message Function(String name)>(
+        "InitializerForStaticField", templateInitializerForStaticField,
+        analyzerCode: "INITIALIZER_FOR_STATIC_FIELD", dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInitializerForStaticField(String name) {
+  return new Message(codeInitializerForStaticField,
+      message: """'${name}' isn't an instance field of this class.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String
@@ -4285,6 +4307,9 @@ const Code<Null> codeInvalidInitializer = messageInvalidInitializer;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidInitializer = const MessageCode(
     "InvalidInitializer",
+    analyzerCode: "INVALID_INITIALIZER",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
     message: r"""Not a valid initializer.""",
     tip: r"""To initialize a field, use the syntax 'name = value'.""");
 
@@ -5565,6 +5590,8 @@ const Code<Message Function(String name, String name2)>
     codeOverrideTypeVariablesMismatch =
     const Code<Message Function(String name, String name2)>(
         "OverrideTypeVariablesMismatch", templateOverrideTypeVariablesMismatch,
+        analyzerCode: "INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS",
+        dart2jsCode: "*fatal*",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5652,6 +5679,8 @@ const Code<Null> codePartOfTwoLibraries = messagePartOfTwoLibraries;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePartOfTwoLibraries = const MessageCode(
     "PartOfTwoLibraries",
+    analyzerCode: "PART_OF_DIFFERENT_LIBRARY",
+    dart2jsCode: "*fatal*",
     severity: Severity.error,
     message: r"""A file can't be part of more than one library.""",
     tip:
