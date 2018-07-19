@@ -8723,12 +8723,6 @@ bool Field::HasPrecompiledInitializer() const {
          raw_ptr()->initializer_.precompiled_->IsFunction();
 }
 
-void Field::SetSavedInitialStaticValue(const Instance& value) const {
-  ASSERT(IsOriginal());
-  ASSERT(!HasPrecompiledInitializer());
-  StorePointer(&raw_ptr()->initializer_.saved_value_, value.raw());
-}
-
 void Field::EvaluateInitializer() const {
   ASSERT(IsOriginal());
   ASSERT(is_static());

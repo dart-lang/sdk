@@ -978,6 +978,20 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
       RawObject* value = *(call_base + 1);
       if (cid != kDynamicCid && cid != kInstanceCid && cid != kVoidCid &&
           value != null_value) {
+        RawSubtypeTestCache* cache = field->ptr()->type_test_cache_;
+        if (cache->GetClassId() != kSubtypeTestCacheCid) {
+          // Allocate new cache.
+          call_top[1] = null_value;  // Result.
+          Exit(thread, *FP, call_top + 2, *pc);
+          NativeArguments native_args(thread, 0, call_top + 1, call_top + 1);
+          if (!InvokeRuntime(thread, this, DRT_AllocateSubtypeTestCache,
+                             native_args)) {
+            *invoked = true;
+            return false;
+          }
+          cache = reinterpret_cast<RawSubtypeTestCache*>(call_top[1]);
+          field->ptr()->type_test_cache_ = cache;
+        }
         // Push arguments of type test.
         // Type checked value is at call_base + 1.
         // Provide type arguments of instance as instantiator.
@@ -994,7 +1008,7 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
         call_base[4] = field_type;
         call_base[5] = field->ptr()->name_;
         if (!AssertAssignable(thread, *pc, *FP, call_base + 5, call_base + 1,
-                              SubtypeTestCache::RawCast(null_value))) {
+                              cache)) {
           *invoked = true;
           return false;
         }

@@ -1041,7 +1041,6 @@ class RawField : public RawObject {
   } initializer_;
   RawSmi* guarded_list_length_;
   RawArray* dependent_code_;
-  VISIT_TO(RawObject*, dependent_code_);
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
@@ -1059,7 +1058,12 @@ class RawField : public RawObject {
     UNREACHABLE();
     return NULL;
   }
-
+#if defined(DART_USE_INTERPRETER)
+  RawSubtypeTestCache* type_test_cache_;  // For type test in implicit setter.
+  VISIT_TO(RawObject*, type_test_cache_);
+#else
+  VISIT_TO(RawObject*, dependent_code_);
+#endif
   TokenPosition token_pos_;
   TokenPosition end_token_pos_;
   classid_t guarded_cid_;

@@ -11,6 +11,7 @@ namespace dart {
   V(AllocateArray)                                                             \
   V(AllocateContext)                                                           \
   V(AllocateObject)                                                            \
+  V(AllocateSubtypeTestCache)                                                  \
   V(BreakpointRuntimeHandler)                                                  \
   V(SingleStepHandler)                                                         \
   V(CloneContext)                                                              \

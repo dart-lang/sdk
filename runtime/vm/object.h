@@ -3362,11 +3362,6 @@ class Field : public Object {
   void SetPrecompiledInitializer(const Function& initializer) const;
   bool HasPrecompiledInitializer() const;
 
-  RawInstance* SavedInitialStaticValue() const {
-    return raw_ptr()->initializer_.saved_value_;
-  }
-  void SetSavedInitialStaticValue(const Instance& value) const;
-
   // For static fields only. Constructs a closure that gets/sets the
   // field value.
   RawInstance* GetterClosure() const;

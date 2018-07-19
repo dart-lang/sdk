@@ -454,6 +454,16 @@ DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
   UNREACHABLE();
 }
 
+// Allocate a new SubtypeTestCache for use in interpreted implicit setters.
+// Return value: newly allocated SubtypeTestCache.
+DEFINE_RUNTIME_ENTRY(AllocateSubtypeTestCache, 0) {
+#if defined(DART_USE_INTERPRETER)
+  arguments.SetReturn(SubtypeTestCache::Handle(zone, SubtypeTestCache::New()));
+#else
+  UNREACHABLE();
+#endif  // defined(DART_USE_INTERPRETER)
+}
+
 // Allocate a new context large enough to hold the given number of variables.
 // Arg0: number of variables.
 // Return value: newly allocated context.
