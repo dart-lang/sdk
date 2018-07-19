@@ -416,22 +416,22 @@ abstract class AbstractClassElementImpl extends ElementImpl
  */
 class AuxiliaryElements {
   /**
-   * The element based on propagated type information, or `null` if the AST
-   * structure has not been resolved or if the node could not be resolved.
-   */
-  final ExecutableElement propagatedElement;
-
-  /**
    * The element based on static type information, or `null` if the AST
    * structure has not been resolved or if the node could not be resolved.
    */
   final ExecutableElement staticElement;
 
   /**
-   * Initialize a newly created pair to have both the [staticElement] and the
-   * [propagatedElement].
+   * Initialize a newly created pair to have both the [staticElement] and
+   * `null`.
    */
-  AuxiliaryElements(this.staticElement, this.propagatedElement);
+  AuxiliaryElements(this.staticElement, ExecutableElement propagatedElement);
+
+  /**
+   * The element based on propagated type information, or `null` if the AST
+   * structure has not been resolved or if the node could not be resolved.
+   */
+  ExecutableElement get propagatedElement => null;
 }
 
 /**

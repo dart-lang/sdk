@@ -499,21 +499,6 @@ class ElementResolverTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
-  test_visitBinaryExpression_plus_propagatedElement() async {
-    // var i = 1;
-    // var j;
-    // i + j
-    InterfaceType numType = _typeProvider.numType;
-    SimpleIdentifier left = AstTestFactory.identifier3("i");
-    left.propagatedType = numType;
-    BinaryExpression expression = AstTestFactory.binaryExpression(
-        left, TokenType.PLUS, AstTestFactory.identifier3("j"));
-    _resolveNode(expression);
-    expect(expression.staticElement, isNull);
-    expect(expression.propagatedElement, getMethod(numType, "+"));
-    _listener.assertNoErrors();
-  }
-
   test_visitBreakStatement_withLabel() async {
     // loop: while (true) {
     //   break loop;
@@ -673,8 +658,8 @@ class ElementResolverTest extends EngineTestCase {
 
   test_visitExportDirective_noCombinators() async {
     ExportDirective directive = AstTestFactory.exportDirective2(null);
-    directive.element = ElementFactory
-        .exportFor(ElementFactory.library(_definingLibrary.context, "lib"));
+    directive.element = ElementFactory.exportFor(
+        ElementFactory.library(_definingLibrary.context, "lib"));
     _resolveNode(directive);
     _listener.assertNoErrors();
   }
@@ -822,8 +807,8 @@ class ElementResolverTest extends EngineTestCase {
     ConstructorName name = AstTestFactory.constructorName(
         AstTestFactory.typeName(classA), constructorName);
     name.staticElement = constructor;
-    InstanceCreationExpression creation = AstTestFactory
-        .instanceCreationExpression(Keyword.NEW, name, [
+    InstanceCreationExpression creation =
+        AstTestFactory.instanceCreationExpression(Keyword.NEW, name, [
       AstTestFactory.namedExpression2(parameterName, AstTestFactory.integer(0))
     ]);
     _resolveNode(creation);
@@ -1135,8 +1120,8 @@ class ElementResolverTest extends EngineTestCase {
     ConstructorElementImpl subConstructor =
         ElementFactory.constructorElement2(subclass, null);
     subclass.constructors = <ConstructorElement>[subConstructor];
-    SuperConstructorInvocation invocation = AstTestFactory
-        .superConstructorInvocation([
+    SuperConstructorInvocation invocation =
+        AstTestFactory.superConstructorInvocation([
       AstTestFactory.namedExpression2(parameterName, AstTestFactory.integer(0))
     ]);
     AstTestFactory.classDeclaration(null, 'C', null, null, null, null, [

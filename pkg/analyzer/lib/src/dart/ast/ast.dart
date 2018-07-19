@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -24,7 +25,6 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
 
 /**
  * Two or more string literals that are implicitly concatenated because of being
@@ -365,16 +365,6 @@ class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   List<ParameterElement> _correspondingStaticParameters;
 
   /**
-   * A list containing the elements representing the parameters corresponding to
-   * each of the arguments in this list, or `null` if the AST has not been
-   * resolved or if the function or method being invoked could not be determined
-   * based on propagated type information. The list must be the same length as
-   * the number of arguments, but can contain `null` entries if a given argument
-   * does not correspond to a formal parameter.
-   */
-  List<ParameterElement> _correspondingPropagatedParameters;
-
-  /**
    * Initialize a newly created list of arguments. The list of [arguments] can
    * be `null` if there are no arguments.
    */
@@ -396,8 +386,7 @@ class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
     ..addAll(_arguments)
     ..add(rightParenthesis);
 
-  List<ParameterElement> get correspondingPropagatedParameters =>
-      _correspondingPropagatedParameters;
+  List<ParameterElement> get correspondingPropagatedParameters => null;
 
   @override
   void set correspondingPropagatedParameters(
@@ -406,7 +395,6 @@ class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
       throw new ArgumentError(
           "Expected ${_arguments.length} parameters, not ${parameters.length}");
     }
-    _correspondingPropagatedParameters = parameters;
   }
 
   List<ParameterElement> get correspondingStaticParameters =>
@@ -430,33 +418,6 @@ class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   @override
   void visitChildren(AstVisitor visitor) {
     _arguments.accept(visitor);
-  }
-
-  /**
-   * If
-   * * the given [expression] is a child of this list,
-   * * the AST structure has been resolved,
-   * * the function being invoked is known based on propagated type information,
-   *   and
-   * * the expression corresponds to one of the parameters of the function being
-   *   invoked,
-   * then return the parameter element representing the parameter to which the
-   * value of the given expression will be bound. Otherwise, return `null`.
-   */
-  ParameterElement _getPropagatedParameterElementFor(Expression expression) {
-    if (_correspondingPropagatedParameters == null ||
-        _correspondingPropagatedParameters.length != _arguments.length) {
-      // Either the AST structure has not been resolved, the invocation of which
-      // this list is a part could not be resolved, or the argument list was
-      // modified after the parameters were set.
-      return null;
-    }
-    int index = _arguments.indexOf(expression);
-    if (index < 0) {
-      // The expression isn't a child of this node.
-      return null;
-    }
-    return _correspondingPropagatedParameters[index];
   }
 
   /**
@@ -767,15 +728,6 @@ class AssignmentExpressionImpl extends ExpressionImpl
   MethodElement staticElement;
 
   /**
-   * The element associated with the operator based on the propagated type of
-   * the left-hand-side, or `null` if the AST structure has not been resolved,
-   * if the operator is not a compound operator, or if the operator could not be
-   * resolved.
-   */
-  @override
-  MethodElement propagatedElement;
-
-  /**
    * Initialize a newly created assignment expression.
    */
   AssignmentExpressionImpl(ExpressionImpl leftHandSide, this.operator,
@@ -802,13 +754,7 @@ class AssignmentExpressionImpl extends ExpressionImpl
   Token get beginToken => _leftHandSide.beginToken;
 
   @override
-  MethodElement get bestElement {
-    MethodElement element = propagatedElement;
-    if (element == null) {
-      element = staticElement;
-    }
-    return element;
-  }
+  MethodElement get bestElement => staticElement;
 
   @override
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()
@@ -831,45 +777,17 @@ class AssignmentExpressionImpl extends ExpressionImpl
   int get precedence => 1;
 
   @override
+  MethodElement get propagatedElement => null;
+
+  @override
+  set propagatedElement(MethodElement element) {}
+
+  @override
   Expression get rightHandSide => _rightHandSide;
 
   @override
   void set rightHandSide(Expression expression) {
     _rightHandSide = _becomeParentOf(expression as ExpressionImpl);
-  }
-
-  /**
-   * If the AST structure has been resolved, and the function being invoked is
-   * known based on propagated type information, then return the parameter
-   * element representing the parameter to which the value of the right operand
-   * will be bound. Otherwise, return `null`.
-   */
-  ParameterElement get _propagatedParameterElementForRightHandSide {
-    ExecutableElement executableElement = null;
-    if (propagatedElement != null) {
-      executableElement = propagatedElement;
-    } else {
-      Expression left = _leftHandSide;
-      if (left is Identifier) {
-        Element leftElement = left.propagatedElement;
-        if (leftElement is ExecutableElement) {
-          executableElement = leftElement;
-        }
-      } else if (left is PropertyAccess) {
-        Element leftElement = left.propertyName.propagatedElement;
-        if (leftElement is ExecutableElement) {
-          executableElement = leftElement;
-        }
-      }
-    }
-    if (executableElement == null) {
-      return null;
-    }
-    List<ParameterElement> parameters = executableElement.parameters;
-    if (parameters.length < 1) {
-      return null;
-    }
-    return parameters[0];
   }
 
   /**
@@ -971,6 +889,9 @@ abstract class AstNodeImpl implements AstNode {
     return root;
   }
 
+  Token findPrevious(Token target) =>
+      util.findPrevious(beginToken, target) ?? parent?.findPrevious(target);
+
   @override
   E getAncestor<E extends AstNode>(Predicate<AstNode> predicate) {
     // TODO(brianwilkerson) It is a bug that this method can return `this`.
@@ -988,9 +909,6 @@ abstract class AstNodeImpl implements AstNode {
     }
     return _propertyMap[name] as E;
   }
-
-  Token findPrevious(Token target) =>
-      util.findPrevious(beginToken, target) ?? parent?.findPrevious(target);
 
   @override
   void setProperty(String name, Object value) {
@@ -1122,15 +1040,6 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
   MethodElement staticElement;
 
   /**
-   * The element associated with the operator based on the propagated type of
-   * the left operand, or `null` if the AST structure has not been resolved, if
-   * the operator is not user definable, or if the operator could not be
-   * resolved.
-   */
-  @override
-  MethodElement propagatedElement;
-
-  /**
    * Initialize a newly created binary expression.
    */
   BinaryExpressionImpl(
@@ -1143,13 +1052,7 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
   Token get beginToken => _leftOperand.beginToken;
 
   @override
-  MethodElement get bestElement {
-    MethodElement element = propagatedElement;
-    if (element == null) {
-      element = staticElement;
-    }
-    return element;
-  }
+  MethodElement get bestElement => staticElement;
 
   @override
   Iterable<SyntacticEntity> get childEntities =>
@@ -1170,28 +1073,17 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
   int get precedence => operator.type.precedence;
 
   @override
+  MethodElement get propagatedElement => null;
+
+  @override
+  set propagatedElement(MethodElement element) {}
+
+  @override
   Expression get rightOperand => _rightOperand;
 
   @override
   void set rightOperand(Expression expression) {
     _rightOperand = _becomeParentOf(expression as ExpressionImpl);
-  }
-
-  /**
-   * If the AST structure has been resolved, and the function being invoked is
-   * known based on propagated type information, then return the parameter
-   * element representing the parameter to which the value of the right operand
-   * will be bound. Otherwise, return `null`.
-   */
-  ParameterElement get _propagatedParameterElementForRightOperand {
-    if (propagatedElement == null) {
-      return null;
-    }
-    List<ParameterElement> parameters = propagatedElement.parameters;
-    if (parameters.length < 1) {
-      return null;
-    }
-    return parameters[0];
   }
 
   /**
@@ -4128,35 +4020,15 @@ abstract class ExpressionImpl extends AstNodeImpl implements Expression {
   DartType staticType;
 
   /**
-   * The propagated type of this expression, or `null` if type propagation has
-   * not been performed on the AST structure.
-   */
-  @override
-  DartType propagatedType;
-
-  /**
    * Return the best parameter element information available for this
    * expression. If type propagation was able to find a better parameter element
    * than static analysis, that type will be returned. Otherwise, the result of
    * static analysis will be returned.
    */
-  ParameterElement get bestParameterElement {
-    ParameterElement propagatedElement = propagatedParameterElement;
-    if (propagatedElement != null) {
-      return propagatedElement;
-    }
-    return staticParameterElement;
-  }
+  ParameterElement get bestParameterElement => staticParameterElement;
 
   @override
-  DartType get bestType {
-    if (propagatedType != null) {
-      return propagatedType;
-    } else if (staticType != null) {
-      return staticType;
-    }
-    return DynamicTypeImpl.instance;
-  }
+  DartType get bestType => staticType ?? DynamicTypeImpl.instance;
 
   /**
    * An expression _e_ is said to _occur in a constant context_,
@@ -4213,29 +4085,13 @@ abstract class ExpressionImpl extends AstNodeImpl implements Expression {
   bool get isAssignable => false;
 
   @override
-  ParameterElement get propagatedParameterElement {
-    AstNode parent = this.parent;
-    if (parent is ArgumentListImpl) {
-      return parent._getPropagatedParameterElementFor(this);
-    } else if (parent is IndexExpressionImpl) {
-      if (identical(parent.index, this)) {
-        return parent._propagatedParameterElementForIndex;
-      }
-    } else if (parent is BinaryExpressionImpl) {
-      if (identical(parent.rightOperand, this)) {
-        return parent._propagatedParameterElementForRightOperand;
-      }
-    } else if (parent is AssignmentExpressionImpl) {
-      if (identical(parent.rightHandSide, this)) {
-        return parent._propagatedParameterElementForRightHandSide;
-      }
-    } else if (parent is PrefixExpressionImpl) {
-      return parent._propagatedParameterElementForOperand;
-    } else if (parent is PostfixExpressionImpl) {
-      return parent._propagatedParameterElementForOperand;
-    }
-    return null;
-  }
+  ParameterElement get propagatedParameterElement => null;
+
+  @override
+  DartType get propagatedType => null;
+
+  @override
+  set propagatedType(DartType type) {}
 
   @override
   ParameterElement get staticParameterElement {
@@ -5468,14 +5324,6 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   ExecutableElement staticElement;
 
   /**
-   * The element associated with the function being invoked based on propagated
-   * type information, or `null` if the AST structure has not been resolved or
-   * the function could not be resolved.
-   */
-  @override
-  ExecutableElement propagatedElement;
-
-  /**
    * Initialize a newly created function expression invocation.
    */
   FunctionExpressionInvocationImpl(ExpressionImpl function,
@@ -5488,13 +5336,7 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   Token get beginToken => _function.beginToken;
 
   @override
-  ExecutableElement get bestElement {
-    ExecutableElement element = propagatedElement;
-    if (element == null) {
-      element = staticElement;
-    }
-    return element;
-  }
+  ExecutableElement get bestElement => staticElement;
 
   @override
   Iterable<SyntacticEntity> get childEntities =>
@@ -5513,6 +5355,12 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 
   @override
   int get precedence => 15;
+
+  @override
+  ExecutableElement get propagatedElement => null;
+
+  @override
+  set propagatedElement(ExecutableElement element) {}
 
   @override
   E accept<E>(AstVisitor<E> visitor) =>
@@ -6310,18 +6158,8 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
   MethodElement staticElement;
 
   /**
-   * The element associated with the operator based on the propagated type of
-   * the target, or `null` if the AST structure has not been resolved or if the
-   * operator could not be resolved.
-   */
-
-  @override
-  MethodElement propagatedElement;
-
-  /**
    * If this expression is both in a getter and setter context, the
-   * [AuxiliaryElements] will be set to hold onto the static and propagated
-   * information. The auxiliary element will hold onto the elements from the
+   * [AuxiliaryElements] will be set to hold onto the static element from the
    * getter context.
    */
   AuxiliaryElements auxiliaryElements = null;
@@ -6352,13 +6190,7 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
   }
 
   @override
-  MethodElement get bestElement {
-    MethodElement element = propagatedElement;
-    if (element == null) {
-      element = staticElement;
-    }
-    return element;
-  }
+  MethodElement get bestElement => staticElement;
 
   @override
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()
@@ -6389,6 +6221,12 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
   int get precedence => 15;
 
   @override
+  MethodElement get propagatedElement => null;
+
+  @override
+  set propagatedElement(MethodElement element) {}
+
+  @override
   Expression get realTarget {
     if (isCascaded) {
       AstNode ancestor = parent;
@@ -6409,23 +6247,6 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
   @override
   void set target(Expression expression) {
     _target = _becomeParentOf(expression as ExpressionImpl);
-  }
-
-  /**
-   * If the AST structure has been resolved, and the function being invoked is
-   * known based on propagated type information, then return the parameter
-   * element representing the parameter to which the value of the index
-   * expression will be bound. Otherwise, return `null`.
-   */
-  ParameterElement get _propagatedParameterElementForIndex {
-    if (propagatedElement == null) {
-      return null;
-    }
-    List<ParameterElement> parameters = propagatedElement.parameters;
-    if (parameters.length < 1) {
-      return null;
-    }
-    return parameters[0];
   }
 
   /**
@@ -6889,9 +6710,6 @@ abstract class InvocationExpressionImpl extends ExpressionImpl
   TypeArgumentListImpl _typeArguments;
 
   @override
-  DartType propagatedInvokeType;
-
-  @override
   DartType staticInvokeType;
 
   /**
@@ -6909,6 +6727,12 @@ abstract class InvocationExpressionImpl extends ExpressionImpl
   void set argumentList(ArgumentList argumentList) {
     _argumentList = _becomeParentOf(argumentList as ArgumentListImpl);
   }
+
+  @override
+  DartType get propagatedInvokeType => null;
+
+  @override
+  set propagatedInvokeType(DartType type) {}
 
   @override
   TypeArgumentList get typeArguments => _typeArguments;
@@ -8697,15 +8521,6 @@ class PostfixExpressionImpl extends ExpressionImpl
   Token operator;
 
   /**
-   * The element associated with this the operator based on the propagated type
-   * of the operand, or `null` if the AST structure has not been resolved, if
-   * the operator is not user definable, or if the operator could not be
-   * resolved.
-   */
-  @override
-  MethodElement propagatedElement;
-
-  /**
    * The element associated with the operator based on the static type of the
    * operand, or `null` if the AST structure has not been resolved, if the
    * operator is not user definable, or if the operator could not be resolved.
@@ -8724,13 +8539,7 @@ class PostfixExpressionImpl extends ExpressionImpl
   Token get beginToken => _operand.beginToken;
 
   @override
-  MethodElement get bestElement {
-    MethodElement element = propagatedElement;
-    if (element == null) {
-      element = staticElement;
-    }
-    return element;
-  }
+  MethodElement get bestElement => staticElement;
 
   @override
   Iterable<SyntacticEntity> get childEntities =>
@@ -8750,22 +8559,11 @@ class PostfixExpressionImpl extends ExpressionImpl
   @override
   int get precedence => 15;
 
-  /**
-   * If the AST structure has been resolved, and the function being invoked is
-   * known based on propagated type information, then return the parameter
-   * element representing the parameter to which the value of the operand will
-   * be bound. Otherwise, return `null`.
-   */
-  ParameterElement get _propagatedParameterElementForOperand {
-    if (propagatedElement == null) {
-      return null;
-    }
-    List<ParameterElement> parameters = propagatedElement.parameters;
-    if (parameters.length < 1) {
-      return null;
-    }
-    return parameters[0];
-  }
+  @override
+  MethodElement get propagatedElement => null;
+
+  @override
+  set propagatedElement(MethodElement element) {}
 
   /**
    * If the AST structure has been resolved, and the function being invoked is
@@ -8888,12 +8686,7 @@ class PrefixedIdentifierImpl extends IdentifierImpl
   }
 
   @override
-  Element get propagatedElement {
-    if (_identifier == null) {
-      return null;
-    }
-    return _identifier.propagatedElement;
-  }
+  Element get propagatedElement => null;
 
   @override
   Element get staticElement {
@@ -8938,13 +8731,6 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
   MethodElement staticElement;
 
   /**
-   * The element associated with the operator based on the propagated type of
-   * the operand, or `null` if the AST structure has not been resolved, if the
-   * operator is not user definable, or if the operator could not be resolved.
-   */
-  MethodElement propagatedElement;
-
-  /**
    * Initialize a newly created prefix expression.
    */
   PrefixExpressionImpl(this.operator, ExpressionImpl operand) {
@@ -8955,13 +8741,7 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
   Token get beginToken => operator;
 
   @override
-  MethodElement get bestElement {
-    MethodElement element = propagatedElement;
-    if (element == null) {
-      element = staticElement;
-    }
-    return element;
-  }
+  MethodElement get bestElement => staticElement;
 
   @override
   Iterable<SyntacticEntity> get childEntities =>
@@ -8981,22 +8761,11 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
   @override
   int get precedence => 14;
 
-  /**
-   * If the AST structure has been resolved, and the function being invoked is
-   * known based on propagated type information, then return the parameter
-   * element representing the parameter to which the value of the operand will
-   * be bound. Otherwise, return `null`.
-   */
-  ParameterElement get _propagatedParameterElementForOperand {
-    if (propagatedElement == null) {
-      return null;
-    }
-    List<ParameterElement> parameters = propagatedElement.parameters;
-    if (parameters.length < 1) {
-      return null;
-    }
-    return parameters[0];
-  }
+  @override
+  MethodElement get propagatedElement => null;
+
+  @override
+  set propagatedElement(MethodElement element) {}
 
   /**
    * If the AST structure has been resolved, and the function being invoked is
@@ -9502,16 +9271,8 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   Element _staticElement;
 
   /**
-   * The element associated with this identifier based on propagated type
-   * information, or `null` if the AST structure has not been resolved or if
-   * this identifier could not be resolved.
-   */
-  Element _propagatedElement;
-
-  /**
    * If this expression is both in a getter and setter context, the
-   * [AuxiliaryElements] will be set to hold onto the static and propagated
-   * information. The auxiliary element will hold onto the elements from the
+   * [AuxiliaryElements] will be set to hold onto the static element from the
    * getter context.
    */
   AuxiliaryElements auxiliaryElements = null;
@@ -9525,12 +9286,7 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   Token get beginToken => token;
 
   @override
-  Element get bestElement {
-    if (_propagatedElement == null) {
-      return _staticElement;
-    }
-    return _propagatedElement;
-  }
+  Element get bestElement => _staticElement;
 
   @override
   Iterable<SyntacticEntity> get childEntities =>
@@ -9564,12 +9320,10 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   int get precedence => 16;
 
   @override
-  Element get propagatedElement => _propagatedElement;
+  Element get propagatedElement => null;
 
   @override
-  void set propagatedElement(Element element) {
-    _propagatedElement = element;
-  }
+  void set propagatedElement(Element element) {}
 
   @override
   Element get staticElement => _staticElement;

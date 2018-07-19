@@ -468,14 +468,11 @@ class ResolutionCopierTest extends EngineTestCase {
         ]);
 
     AdjacentStrings fromNode = createNode();
-    DartType propagatedType = ElementFactory.classElement2("A").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("B").type;
     fromNode.staticType = staticType;
 
     AdjacentStrings toNode = createNode();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
@@ -494,14 +491,11 @@ class ResolutionCopierTest extends EngineTestCase {
   void test_visitAsExpression() {
     AsExpression fromNode = AstTestFactory.asExpression(
         AstTestFactory.identifier3("x"), AstTestFactory.typeName4("A"));
-    DartType propagatedType = ElementFactory.classElement2("A").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("B").type;
     fromNode.staticType = staticType;
     AsExpression toNode = AstTestFactory.asExpression(
         AstTestFactory.identifier3("x"), AstTestFactory.typeName4("A"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
@@ -510,11 +504,6 @@ class ResolutionCopierTest extends EngineTestCase {
         AstTestFactory.identifier3("a"),
         TokenType.PLUS_EQ,
         AstTestFactory.identifier3("b"));
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    MethodElement propagatedElement =
-        ElementFactory.methodElement("+", propagatedType);
-    fromNode.propagatedElement = propagatedElement;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     MethodElement staticElement = ElementFactory.methodElement("+", staticType);
     fromNode.staticElement = staticElement;
@@ -524,8 +513,6 @@ class ResolutionCopierTest extends EngineTestCase {
         TokenType.PLUS_EQ,
         AstTestFactory.identifier3("b"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedElement, same(propagatedElement));
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticElement, same(staticElement));
     expect(toNode.staticType, same(staticType));
   }
@@ -535,11 +522,6 @@ class ResolutionCopierTest extends EngineTestCase {
         AstTestFactory.identifier3("a"),
         TokenType.PLUS,
         AstTestFactory.identifier3("b"));
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    MethodElement propagatedElement =
-        ElementFactory.methodElement("+", propagatedType);
-    fromNode.propagatedElement = propagatedElement;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     MethodElement staticElement = ElementFactory.methodElement("+", staticType);
     fromNode.staticElement = staticElement;
@@ -549,35 +531,27 @@ class ResolutionCopierTest extends EngineTestCase {
         TokenType.PLUS,
         AstTestFactory.identifier3("b"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedElement, same(propagatedElement));
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticElement, same(staticElement));
     expect(toNode.staticType, same(staticType));
   }
 
   void test_visitBooleanLiteral() {
     BooleanLiteral fromNode = AstTestFactory.booleanLiteral(true);
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     BooleanLiteral toNode = AstTestFactory.booleanLiteral(true);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
   void test_visitCascadeExpression() {
     CascadeExpression fromNode = AstTestFactory.cascadeExpression(
         AstTestFactory.identifier3("a"), [AstTestFactory.identifier3("b")]);
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     CascadeExpression toNode = AstTestFactory.cascadeExpression(
         AstTestFactory.identifier3("a"), [AstTestFactory.identifier3("b")]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
@@ -596,8 +570,6 @@ class ResolutionCopierTest extends EngineTestCase {
         AstTestFactory.identifier3("c"),
         AstTestFactory.identifier3("a"),
         AstTestFactory.identifier3("b"));
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     ConditionalExpression toNode = AstTestFactory.conditionalExpression(
@@ -605,7 +577,6 @@ class ResolutionCopierTest extends EngineTestCase {
         AstTestFactory.identifier3("a"),
         AstTestFactory.identifier3("b"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
@@ -643,13 +614,10 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitDoubleLiteral() {
     DoubleLiteral fromNode = AstTestFactory.doubleLiteral(1.0);
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     DoubleLiteral toNode = AstTestFactory.doubleLiteral(1.0);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
@@ -669,8 +637,6 @@ class ResolutionCopierTest extends EngineTestCase {
     MethodElement element = ElementFactory.methodElement(
         "m", ElementFactory.classElement2("C").type);
     fromNode.element = element;
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     FunctionExpression toNode = AstTestFactory.functionExpression2(
@@ -678,30 +644,27 @@ class ResolutionCopierTest extends EngineTestCase {
         AstTestFactory.emptyFunctionBody());
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.element, same(element));
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
   void test_visitFunctionExpressionInvocation() {
-    FunctionExpressionInvocation fromNode = AstTestFactory
-        .functionExpressionInvocation(AstTestFactory.identifier3("f"));
-    MethodElement propagatedElement = ElementFactory.methodElement(
-        "m", ElementFactory.classElement2("C").type);
-    fromNode.propagatedElement = propagatedElement;
+    FunctionExpressionInvocation fromNode =
+        AstTestFactory.functionExpressionInvocation(
+            AstTestFactory.identifier3("f"));
     MethodElement staticElement = ElementFactory.methodElement(
         "m", ElementFactory.classElement2("C").type);
     fromNode.staticElement = staticElement;
-    FunctionExpressionInvocation toNode = AstTestFactory
-        .functionExpressionInvocation(AstTestFactory.identifier3("f"));
+    FunctionExpressionInvocation toNode =
+        AstTestFactory.functionExpressionInvocation(
+            AstTestFactory.identifier3("f"));
     ClassElement elementT = ElementFactory.classElement2('T');
-    fromNode.typeArguments = AstTestFactory
-        .typeArgumentList(<TypeAnnotation>[AstTestFactory.typeName(elementT)]);
-    toNode.typeArguments = AstTestFactory
-        .typeArgumentList(<TypeAnnotation>[AstTestFactory.typeName4('T')]);
+    fromNode.typeArguments = AstTestFactory.typeArgumentList(
+        <TypeAnnotation>[AstTestFactory.typeName(elementT)]);
+    toNode.typeArguments = AstTestFactory.typeArgumentList(
+        <TypeAnnotation>[AstTestFactory.typeName4('T')]);
 
     _copyAndVerifyInvocation(fromNode, toNode);
 
-    expect(toNode.propagatedElement, same(propagatedElement));
     expect(toNode.staticElement, same(staticElement));
   }
 
@@ -718,16 +681,11 @@ class ResolutionCopierTest extends EngineTestCase {
   void test_visitIndexExpression() {
     IndexExpression fromNode = AstTestFactory.indexExpression(
         AstTestFactory.identifier3("a"), AstTestFactory.integer(0));
-    MethodElement propagatedElement = ElementFactory.methodElement(
-        "m", ElementFactory.classElement2("C").type);
     MethodElement staticElement = ElementFactory.methodElement(
         "m", ElementFactory.classElement2("C").type);
     AuxiliaryElements auxiliaryElements =
-        new AuxiliaryElements(staticElement, propagatedElement);
+        new AuxiliaryElements(staticElement, null);
     fromNode.auxiliaryElements = auxiliaryElements;
-    fromNode.propagatedElement = propagatedElement;
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     fromNode.staticElement = staticElement;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
@@ -735,8 +693,6 @@ class ResolutionCopierTest extends EngineTestCase {
         AstTestFactory.identifier3("a"), AstTestFactory.integer(0));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.auxiliaryElements, same(auxiliaryElements));
-    expect(toNode.propagatedElement, same(propagatedElement));
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticElement, same(staticElement));
     expect(toNode.staticType, same(staticType));
   }
@@ -745,8 +701,6 @@ class ResolutionCopierTest extends EngineTestCase {
     InstanceCreationExpression fromNode =
         AstTestFactory.instanceCreationExpression2(
             Keyword.NEW, AstTestFactory.typeName4("C"));
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     ConstructorElement staticElement = ElementFactory.constructorElement2(
         ElementFactory.classElement2("C"), null);
     fromNode.staticElement = staticElement;
@@ -756,72 +710,56 @@ class ResolutionCopierTest extends EngineTestCase {
         AstTestFactory.instanceCreationExpression2(
             Keyword.NEW, AstTestFactory.typeName4("C"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticElement, same(staticElement));
     expect(toNode.staticType, same(staticType));
   }
 
   void test_visitIntegerLiteral() {
     IntegerLiteral fromNode = AstTestFactory.integer(2);
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     IntegerLiteral toNode = AstTestFactory.integer(2);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
   void test_visitIsExpression() {
     IsExpression fromNode = AstTestFactory.isExpression(
         AstTestFactory.identifier3("x"), false, AstTestFactory.typeName4("A"));
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     IsExpression toNode = AstTestFactory.isExpression(
         AstTestFactory.identifier3("x"), false, AstTestFactory.typeName4("A"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
   void test_visitLibraryIdentifier() {
     LibraryIdentifier fromNode =
         AstTestFactory.libraryIdentifier([AstTestFactory.identifier3("lib")]);
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     LibraryIdentifier toNode =
         AstTestFactory.libraryIdentifier([AstTestFactory.identifier3("lib")]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
   void test_visitListLiteral() {
     ListLiteral fromNode = AstTestFactory.listLiteral();
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     ListLiteral toNode = AstTestFactory.listLiteral();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
   void test_visitMapLiteral() {
     MapLiteral fromNode = AstTestFactory.mapLiteral2();
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     MapLiteral toNode = AstTestFactory.mapLiteral2();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
@@ -829,50 +767,41 @@ class ResolutionCopierTest extends EngineTestCase {
     MethodInvocation fromNode = AstTestFactory.methodInvocation2("m");
     MethodInvocation toNode = AstTestFactory.methodInvocation2("m");
     ClassElement elementT = ElementFactory.classElement2('T');
-    fromNode.typeArguments = AstTestFactory
-        .typeArgumentList(<TypeAnnotation>[AstTestFactory.typeName(elementT)]);
-    toNode.typeArguments = AstTestFactory
-        .typeArgumentList(<TypeAnnotation>[AstTestFactory.typeName4('T')]);
+    fromNode.typeArguments = AstTestFactory.typeArgumentList(
+        <TypeAnnotation>[AstTestFactory.typeName(elementT)]);
+    toNode.typeArguments = AstTestFactory.typeArgumentList(
+        <TypeAnnotation>[AstTestFactory.typeName4('T')]);
     _copyAndVerifyInvocation(fromNode, toNode);
   }
 
   void test_visitNamedExpression() {
     NamedExpression fromNode =
         AstTestFactory.namedExpression2("n", AstTestFactory.integer(0));
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     NamedExpression toNode =
         AstTestFactory.namedExpression2("n", AstTestFactory.integer(0));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
   void test_visitNullLiteral() {
     NullLiteral fromNode = AstTestFactory.nullLiteral();
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     NullLiteral toNode = AstTestFactory.nullLiteral();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
   void test_visitParenthesizedExpression() {
     ParenthesizedExpression fromNode =
         AstTestFactory.parenthesizedExpression(AstTestFactory.integer(0));
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     ParenthesizedExpression toNode =
         AstTestFactory.parenthesizedExpression(AstTestFactory.integer(0));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
@@ -887,13 +816,13 @@ class ResolutionCopierTest extends EngineTestCase {
   }
 
   void test_visitPartOfDirective() {
-    PartOfDirective fromNode = AstTestFactory
-        .partOfDirective(AstTestFactory.libraryIdentifier2(["lib"]));
+    PartOfDirective fromNode = AstTestFactory.partOfDirective(
+        AstTestFactory.libraryIdentifier2(["lib"]));
     LibraryElement element = new LibraryElementImpl.forNode(
         null, AstTestFactory.libraryIdentifier2(["lib"]));
     fromNode.element = element;
-    PartOfDirective toNode = AstTestFactory
-        .partOfDirective(AstTestFactory.libraryIdentifier2(["lib"]));
+    PartOfDirective toNode = AstTestFactory.partOfDirective(
+        AstTestFactory.libraryIdentifier2(["lib"]));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.element, same(element));
   }
@@ -902,11 +831,6 @@ class ResolutionCopierTest extends EngineTestCase {
     String variableName = "x";
     PostfixExpression fromNode = AstTestFactory.postfixExpression(
         AstTestFactory.identifier3(variableName), TokenType.PLUS_PLUS);
-    MethodElement propagatedElement = ElementFactory.methodElement(
-        "+", ElementFactory.classElement2("C").type);
-    fromNode.propagatedElement = propagatedElement;
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     MethodElement staticElement = ElementFactory.methodElement(
         "+", ElementFactory.classElement2("C").type);
     fromNode.staticElement = staticElement;
@@ -915,32 +839,22 @@ class ResolutionCopierTest extends EngineTestCase {
     PostfixExpression toNode = AstTestFactory.postfixExpression(
         AstTestFactory.identifier3(variableName), TokenType.PLUS_PLUS);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedElement, same(propagatedElement));
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticElement, same(staticElement));
     expect(toNode.staticType, same(staticType));
   }
 
   void test_visitPrefixedIdentifier() {
     PrefixedIdentifier fromNode = AstTestFactory.identifier5("p", "f");
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     PrefixedIdentifier toNode = AstTestFactory.identifier5("p", "f");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
   void test_visitPrefixExpression() {
     PrefixExpression fromNode = AstTestFactory.prefixExpression(
         TokenType.PLUS_PLUS, AstTestFactory.identifier3("x"));
-    MethodElement propagatedElement = ElementFactory.methodElement(
-        "+", ElementFactory.classElement2("C").type);
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedElement = propagatedElement;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     MethodElement staticElement = ElementFactory.methodElement(
         "+", ElementFactory.classElement2("C").type);
@@ -949,8 +863,6 @@ class ResolutionCopierTest extends EngineTestCase {
     PrefixExpression toNode = AstTestFactory.prefixExpression(
         TokenType.PLUS_PLUS, AstTestFactory.identifier3("x"));
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedElement, same(propagatedElement));
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticElement, same(staticElement));
     expect(toNode.staticType, same(staticType));
   }
@@ -958,14 +870,11 @@ class ResolutionCopierTest extends EngineTestCase {
   void test_visitPropertyAccess() {
     PropertyAccess fromNode =
         AstTestFactory.propertyAccess2(AstTestFactory.identifier3("x"), "y");
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     PropertyAccess toNode =
         AstTestFactory.propertyAccess2(AstTestFactory.identifier3("x"), "y");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
@@ -983,63 +892,47 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitRethrowExpression() {
     RethrowExpression fromNode = AstTestFactory.rethrowExpression();
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     RethrowExpression toNode = AstTestFactory.rethrowExpression();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
   void test_visitSimpleIdentifier() {
     SimpleIdentifier fromNode = AstTestFactory.identifier3("x");
-    MethodElement propagatedElement = ElementFactory.methodElement(
-        "m", ElementFactory.classElement2("C").type);
     MethodElement staticElement = ElementFactory.methodElement(
         "m", ElementFactory.classElement2("C").type);
     AuxiliaryElements auxiliaryElements =
-        new AuxiliaryElements(staticElement, propagatedElement);
+        new AuxiliaryElements(staticElement, null);
     fromNode.auxiliaryElements = auxiliaryElements;
-    fromNode.propagatedElement = propagatedElement;
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     fromNode.staticElement = staticElement;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     SimpleIdentifier toNode = AstTestFactory.identifier3("x");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.auxiliaryElements, same(auxiliaryElements));
-    expect(toNode.propagatedElement, same(propagatedElement));
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticElement, same(staticElement));
     expect(toNode.staticType, same(staticType));
   }
 
   void test_visitSimpleStringLiteral() {
     SimpleStringLiteral fromNode = AstTestFactory.string2("abc");
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     SimpleStringLiteral toNode = AstTestFactory.string2("abc");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
   void test_visitStringInterpolation() {
     StringInterpolation fromNode =
         AstTestFactory.string([AstTestFactory.interpolationString("a", "'a'")]);
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     StringInterpolation toNode =
         AstTestFactory.string([AstTestFactory.interpolationString("a", "'a'")]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
@@ -1057,49 +950,37 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitSuperExpression() {
     SuperExpression fromNode = AstTestFactory.superExpression();
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     SuperExpression toNode = AstTestFactory.superExpression();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
   void test_visitSymbolLiteral() {
     SymbolLiteral fromNode = AstTestFactory.symbolLiteral(["s"]);
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     SymbolLiteral toNode = AstTestFactory.symbolLiteral(["s"]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
   void test_visitThisExpression() {
     ThisExpression fromNode = AstTestFactory.thisExpression();
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     ThisExpression toNode = AstTestFactory.thisExpression();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
   void test_visitThrowExpression() {
     ThrowExpression fromNode = AstTestFactory.throwExpression();
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
     ThrowExpression toNode = AstTestFactory.throwExpression();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
   }
 
@@ -1114,20 +995,14 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void _copyAndVerifyInvocation(
       InvocationExpression fromNode, InvocationExpression toNode) {
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     DartType staticType = ElementFactory.classElement2("C").type;
     fromNode.staticType = staticType;
 
-    DartType propagatedInvokeType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedInvokeType = propagatedInvokeType;
     DartType staticInvokeType = ElementFactory.classElement2("C").type;
     fromNode.staticInvokeType = staticInvokeType;
 
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticType, same(staticType));
-    expect(toNode.propagatedInvokeType, same(propagatedInvokeType));
     expect(toNode.staticInvokeType, same(staticInvokeType));
     List<TypeAnnotation> fromTypeArguments = toNode.typeArguments.arguments;
     List<TypeAnnotation> toTypeArguments = fromNode.typeArguments.arguments;
@@ -1611,8 +1486,8 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitCompilationUnit_directive() {
     _assertSource(
         "library l;",
-        AstTestFactory
-            .compilationUnit3([AstTestFactory.libraryDirective2("l")]));
+        AstTestFactory.compilationUnit3(
+            [AstTestFactory.libraryDirective2("l")]));
   }
 
   void test_visitCompilationUnit_directive_declaration() {
@@ -1920,8 +1795,8 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitExpressionFunctionBody_async() {
     _assertSource(
         "async => a;",
-        AstTestFactory
-            .asyncExpressionFunctionBody(AstTestFactory.identifier3("a")));
+        AstTestFactory.asyncExpressionFunctionBody(
+            AstTestFactory.identifier3("a")));
   }
 
   void test_visitExpressionFunctionBody_simple() {
@@ -2107,8 +1982,8 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitFormalParameterList_r() {
     _assertSource(
         "(a)",
-        AstTestFactory
-            .formalParameterList([AstTestFactory.simpleFormalParameter3("a")]));
+        AstTestFactory.formalParameterList(
+            [AstTestFactory.simpleFormalParameter3("a")]));
   }
 
   void test_visitFormalParameterList_rn() {
@@ -2441,8 +2316,8 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitFunctionExpressionInvocation_minimal() {
     _assertSource(
         "f()",
-        AstTestFactory
-            .functionExpressionInvocation(AstTestFactory.identifier3("f")));
+        AstTestFactory.functionExpressionInvocation(
+            AstTestFactory.identifier3("f")));
   }
 
   void test_visitFunctionExpressionInvocation_typeArguments() {
@@ -2502,8 +2377,9 @@ class ToSourceVisitor2Test extends EngineTestCase {
   }
 
   void test_visitFunctionTypedFormalParameter_type_covariant() {
-    FunctionTypedFormalParameterImpl expected = AstTestFactory
-        .functionTypedFormalParameter(AstTestFactory.typeName4("T"), "f");
+    FunctionTypedFormalParameterImpl expected =
+        AstTestFactory.functionTypedFormalParameter(
+            AstTestFactory.typeName4("T"), "f");
     expected.covariantKeyword =
         TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
     _assertSource("covariant T f()", expected);
@@ -2691,8 +2567,8 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitInterpolationExpression_expression() {
     _assertSource(
         "\${a}",
-        AstTestFactory
-            .interpolationExpression(AstTestFactory.identifier3("a")));
+        AstTestFactory.interpolationExpression(
+            AstTestFactory.identifier3("a")));
   }
 
   void test_visitInterpolationExpression_identifier() {
@@ -3054,8 +2930,8 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitParenthesizedExpression() {
     _assertSource(
         "(a)",
-        AstTestFactory
-            .parenthesizedExpression(AstTestFactory.identifier3("a")));
+        AstTestFactory.parenthesizedExpression(
+            AstTestFactory.identifier3("a")));
   }
 
   void test_visitPartDirective() {
@@ -3072,13 +2948,13 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitPartOfDirective() {
     _assertSource(
         "part of l;",
-        AstTestFactory
-            .partOfDirective(AstTestFactory.libraryIdentifier2(["l"])));
+        AstTestFactory.partOfDirective(
+            AstTestFactory.libraryIdentifier2(["l"])));
   }
 
   void test_visitPartOfDirective_withMetadata() {
-    PartOfDirective directive = AstTestFactory
-        .partOfDirective(AstTestFactory.libraryIdentifier2(["l"]));
+    PartOfDirective directive = AstTestFactory.partOfDirective(
+        AstTestFactory.libraryIdentifier2(["l"]));
     directive.metadata.add(
         AstTestFactory.annotation(AstTestFactory.identifier3("deprecated")));
     _assertSource("@deprecated part of l;", directive);
@@ -3206,8 +3082,8 @@ class ToSourceVisitor2Test extends EngineTestCase {
         "'a\${e}b'",
         AstTestFactory.string([
           AstTestFactory.interpolationString("'a", "a"),
-          AstTestFactory
-              .interpolationExpression(AstTestFactory.identifier3("e")),
+          AstTestFactory.interpolationExpression(
+              AstTestFactory.identifier3("e")),
           AstTestFactory.interpolationString("b'", "b")
         ]));
   }
@@ -3265,8 +3141,8 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitSwitchDefault_multipleStatements() {
     _assertSource(
         "default: {} {}",
-        AstTestFactory
-            .switchDefault2([AstTestFactory.block(), AstTestFactory.block()]));
+        AstTestFactory.switchDefault2(
+            [AstTestFactory.block(), AstTestFactory.block()]));
   }
 
   void test_visitSwitchDefault_noLabels() {
@@ -3454,8 +3330,8 @@ class ToSourceVisitor2Test extends EngineTestCase {
   }
 
   void test_visitVariableDeclarationList_final_withMetadata() {
-    VariableDeclarationList declarationList = AstTestFactory
-        .variableDeclarationList2(Keyword.FINAL, [
+    VariableDeclarationList declarationList =
+        AstTestFactory.variableDeclarationList2(Keyword.FINAL, [
       AstTestFactory.variableDeclaration("a"),
       AstTestFactory.variableDeclaration("b")
     ]);
@@ -3996,8 +3872,8 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitCompilationUnit_directive() {
     _assertSource(
         "library l;",
-        AstTestFactory
-            .compilationUnit3([AstTestFactory.libraryDirective2("l")]));
+        AstTestFactory.compilationUnit3(
+            [AstTestFactory.libraryDirective2("l")]));
   }
 
   void test_visitCompilationUnit_directive_declaration() {
@@ -4305,8 +4181,8 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitExpressionFunctionBody_async() {
     _assertSource(
         "async => a;",
-        AstTestFactory
-            .asyncExpressionFunctionBody(AstTestFactory.identifier3("a")));
+        AstTestFactory.asyncExpressionFunctionBody(
+            AstTestFactory.identifier3("a")));
   }
 
   void test_visitExpressionFunctionBody_simple() {
@@ -4492,8 +4368,8 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitFormalParameterList_r() {
     _assertSource(
         "(a)",
-        AstTestFactory
-            .formalParameterList([AstTestFactory.simpleFormalParameter3("a")]));
+        AstTestFactory.formalParameterList(
+            [AstTestFactory.simpleFormalParameter3("a")]));
   }
 
   void test_visitFormalParameterList_rn() {
@@ -4826,8 +4702,8 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitFunctionExpressionInvocation_minimal() {
     _assertSource(
         "f()",
-        AstTestFactory
-            .functionExpressionInvocation(AstTestFactory.identifier3("f")));
+        AstTestFactory.functionExpressionInvocation(
+            AstTestFactory.identifier3("f")));
   }
 
   void test_visitFunctionExpressionInvocation_typeArguments() {
@@ -4887,8 +4763,9 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitFunctionTypedFormalParameter_type_covariant() {
-    FunctionTypedFormalParameterImpl expected = AstTestFactory
-        .functionTypedFormalParameter(AstTestFactory.typeName4("T"), "f");
+    FunctionTypedFormalParameterImpl expected =
+        AstTestFactory.functionTypedFormalParameter(
+            AstTestFactory.typeName4("T"), "f");
     expected.covariantKeyword =
         TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
     _assertSource("covariant T f()", expected);
@@ -5076,8 +4953,8 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitInterpolationExpression_expression() {
     _assertSource(
         "\${a}",
-        AstTestFactory
-            .interpolationExpression(AstTestFactory.identifier3("a")));
+        AstTestFactory.interpolationExpression(
+            AstTestFactory.identifier3("a")));
   }
 
   void test_visitInterpolationExpression_identifier() {
@@ -5439,8 +5316,8 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitParenthesizedExpression() {
     _assertSource(
         "(a)",
-        AstTestFactory
-            .parenthesizedExpression(AstTestFactory.identifier3("a")));
+        AstTestFactory.parenthesizedExpression(
+            AstTestFactory.identifier3("a")));
   }
 
   void test_visitPartDirective() {
@@ -5457,13 +5334,13 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitPartOfDirective() {
     _assertSource(
         "part of l;",
-        AstTestFactory
-            .partOfDirective(AstTestFactory.libraryIdentifier2(["l"])));
+        AstTestFactory.partOfDirective(
+            AstTestFactory.libraryIdentifier2(["l"])));
   }
 
   void test_visitPartOfDirective_withMetadata() {
-    PartOfDirective directive = AstTestFactory
-        .partOfDirective(AstTestFactory.libraryIdentifier2(["l"]));
+    PartOfDirective directive = AstTestFactory.partOfDirective(
+        AstTestFactory.libraryIdentifier2(["l"]));
     directive.metadata.add(
         AstTestFactory.annotation(AstTestFactory.identifier3("deprecated")));
     _assertSource("@deprecated part of l;", directive);
@@ -5582,8 +5459,8 @@ class ToSourceVisitorTest extends EngineTestCase {
         "'a\${e}b'",
         AstTestFactory.string([
           AstTestFactory.interpolationString("'a", "a"),
-          AstTestFactory
-              .interpolationExpression(AstTestFactory.identifier3("e")),
+          AstTestFactory.interpolationExpression(
+              AstTestFactory.identifier3("e")),
           AstTestFactory.interpolationString("b'", "b")
         ]));
   }
@@ -5641,8 +5518,8 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitSwitchDefault_multipleStatements() {
     _assertSource(
         "default: {} {}",
-        AstTestFactory
-            .switchDefault2([AstTestFactory.block(), AstTestFactory.block()]));
+        AstTestFactory.switchDefault2(
+            [AstTestFactory.block(), AstTestFactory.block()]));
   }
 
   void test_visitSwitchDefault_noLabels() {
@@ -5830,8 +5707,8 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitVariableDeclarationList_final_withMetadata() {
-    VariableDeclarationList declarationList = AstTestFactory
-        .variableDeclarationList2(Keyword.FINAL, [
+    VariableDeclarationList declarationList =
+        AstTestFactory.variableDeclarationList2(Keyword.FINAL, [
       AstTestFactory.variableDeclaration("a"),
       AstTestFactory.variableDeclaration("b")
     ]);
