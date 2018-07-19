@@ -446,8 +446,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         function.propagatedType, node.typeArguments, node);
 
     node.staticInvokeType = staticInvokeType;
-    node.propagatedInvokeType =
-        _propagatedInvokeTypeIfBetter(propagatedInvokeType, staticInvokeType);
+    node.propagatedInvokeType = null;
 
     List<ParameterElement> parameters =
         _computeCorrespondingParameters(node.argumentList, staticInvokeType);
@@ -655,12 +654,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         }
         staticElement = _resolveElement(typeReference, methodName);
       } else {
-        DartType staticType = _resolver.strongMode
-            ? _getStaticTypeOrFunctionType(target)
-            : _getStaticType(target);
+        DartType staticType = _getStaticTypeOrFunctionType(target);
 
-        if (_resolver.strongMode &&
-            staticType is FunctionType &&
+        if (staticType is FunctionType &&
             methodName.name == FunctionElement.CALL_METHOD_NAME) {
           if (target is SimpleIdentifier) {
             methodName.staticElement = target.staticElement;
@@ -696,8 +692,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     methodName.staticType = staticType;
 
     DartType propagatedType = _getInvokeType(propagatedElement);
-    methodName.propagatedType =
-        _propagatedInvokeTypeIfBetter(propagatedType, staticType);
+    methodName.propagatedType = null;
 
     //
     // Instantiate generic function or method if needed.
@@ -722,8 +717,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     // as they are used in propagatedType downwards inference of lambda
     // parameters. So we don't want to clear the propagatedInvokeType variable.
     //
-    node.propagatedInvokeType =
-        _propagatedInvokeTypeIfBetter(propagatedInvokeType, staticInvokeType);
+    node.propagatedInvokeType = null;
 
     ArgumentList argumentList = node.argumentList;
     if (staticInvokeType != null) {
@@ -1607,17 +1601,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Return `true` if the given [element] is or inherits from a class marked
-   * with `@proxy`.
-   *
-   * See [ClassElement.isOrInheritsProxy].
-   */
-  bool _hasProxy(Element element) =>
-      !_resolver.strongMode &&
-      element is ClassElement &&
-      element.isOrInheritsProxy;
-
-  /**
    * Check for a generic method & apply type arguments if any were passed.
    */
   DartType _instantiateGenericMethod(
@@ -1637,17 +1620,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (parameterizableType is ParameterizedType) {
       NodeList<TypeAnnotation> arguments = typeArguments?.arguments;
       if (arguments != null && arguments.length != parameters.length) {
-        if (_resolver.strongMode) {
-          _resolver.errorReporter.reportErrorForNode(
-              StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
-              node,
-              [parameterizableType, parameters.length, arguments?.length ?? 0]);
-        } else {
-          _resolver.errorReporter.reportErrorForNode(
-              HintCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
-              node,
-              [parameterizableType, parameters.length, arguments?.length ?? 0]);
-        }
+        _resolver.errorReporter.reportErrorForNode(
+            StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
+            node,
+            [parameterizableType, parameters.length, arguments?.length ?? 0]);
         // Wrong number of type arguments. Ignore them.
         arguments = null;
       }
@@ -1695,15 +1671,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       return true;
     } else if (type is InterfaceType) {
       ClassElement classElement = type.element;
-      // 16078 from Gilad: If the type is a Functor with the @proxy annotation,
-      // treat it as an executable type.
-      // example code: NonErrorResolverTest.
-      // test_invocationOfNonFunction_proxyOnFunctionClass()
-      if (!_resolver.strongMode &&
-          classElement.isProxy &&
-          type.isSubtypeOf(_resolver.typeProvider.functionType)) {
-        return true;
-      }
       MethodElement methodElement = classElement.lookUpMethod(
           FunctionElement.CALL_METHOD_NAME, _definingLibrary);
       return methodElement != null;
@@ -1907,25 +1874,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Determines if the [propagatedType] of the invoke is better (more specific)
-   * than the [staticType]. If so it will be returned, otherwise returns null.
-   */
-  // TODO(jmesserly): can we refactor Resolver.recordPropagatedTypeIfBetter to
-  // get some code sharing? Right now, this method is to support
-  // `staticInvokeType` and `propagatedInvokeType`, and the one in Resolver is
-  // for `staticType` and `propagatedType` on Expression.
-  DartType _propagatedInvokeTypeIfBetter(
-      DartType propagatedType, DartType staticType) {
-    if (_resolver.strongMode || propagatedType == null) {
-      return null;
-    }
-    if (staticType == null || propagatedType.isMoreSpecificThan(staticType)) {
-      return propagatedType;
-    }
-    return null;
-  }
-
-  /**
    * Record that the given [node] is undefined, causing an error to be reported
    * if appropriate. The [declaringElement] is the element inside which no
    * declaration was found. If this element is a proxy, no error will be
@@ -1935,9 +1883,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    */
   void _recordUndefinedNode(Element declaringElement, ErrorCode errorCode,
       AstNode node, List<Object> arguments) {
-    if (!_hasProxy(declaringElement)) {
-      _resolver.errorReporter.reportErrorForNode(errorCode, node, arguments);
-    }
+    _resolver.errorReporter.reportErrorForNode(errorCode, node, arguments);
   }
 
   /**
@@ -1950,10 +1896,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    */
   void _recordUndefinedOffset(Element declaringElement, ErrorCode errorCode,
       int offset, int length, List<Object> arguments) {
-    if (!_hasProxy(declaringElement)) {
-      _resolver.errorReporter
-          .reportErrorForOffset(errorCode, offset, length, arguments);
-    }
+    _resolver.errorReporter
+        .reportErrorForOffset(errorCode, offset, length, arguments);
   }
 
   /**
@@ -1966,9 +1910,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    */
   void _recordUndefinedToken(Element declaringElement, ErrorCode errorCode,
       Token token, List<Object> arguments) {
-    if (!_hasProxy(declaringElement)) {
-      _resolver.errorReporter.reportErrorForToken(errorCode, token, arguments);
-    }
+    _resolver.errorReporter.reportErrorForToken(errorCode, token, arguments);
   }
 
   void _resolveAnnotationConstructorInvocationArguments(

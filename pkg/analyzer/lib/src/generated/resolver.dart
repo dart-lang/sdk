@@ -5104,11 +5104,6 @@ class ResolverVisitor extends ScopedVisitor {
   DartType _enclosingSwitchStatementExpressionType;
 
   /**
-   * TODO(brianwilkerson) Remove this field.
-   */
-  final bool strongMode = true;
-
-  /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
    *
    * The [definingLibrary] is the element for the library containing the node
@@ -5390,33 +5385,9 @@ class ResolverVisitor extends ScopedVisitor {
    */
   void recordPropagatedTypeIfBetter(Expression expression, DartType type,
       [bool hasOldPropagatedType = false]) {
-    // Ensure that propagated type invalid.
-    if (strongMode ||
-        type == null ||
-        type.isBottom ||
-        type.isDynamic ||
-        type.isDartCoreNull) {
-      if (!hasOldPropagatedType) {
-        expression.propagatedType = null;
-      }
-      return;
-    }
-    // Ensure that propagated type is more specific than the static type.
-    DartType staticType = expression.staticType;
-    if (type == staticType || !type.isMoreSpecificThan(staticType)) {
+    if (!hasOldPropagatedType) {
       expression.propagatedType = null;
-      return;
     }
-    // Ensure that the new propagated type is more specific than the old one.
-    if (hasOldPropagatedType) {
-      DartType oldPropagatedType = expression.propagatedType;
-      if (oldPropagatedType != null &&
-          !type.isMoreSpecificThan(oldPropagatedType)) {
-        return;
-      }
-    }
-    // OK
-    expression.propagatedType = type;
   }
 
   /**
@@ -6265,7 +6236,7 @@ class ResolverVisitor extends ScopedVisitor {
       if (targs.length == 1 && !targs[0].isDynamic) {
         listT = typeProvider.listType.instantiate([targs[0]]);
       }
-    } else if (strongMode) {
+    } else {
       listT = typeAnalyzer.inferListType(node, downwards: true);
     }
     if (listT != null) {
@@ -6289,7 +6260,7 @@ class ResolverVisitor extends ScopedVisitor {
       if (targs.length == 2 && targs.any((t) => !t.isDynamic)) {
         mapT = typeProvider.mapType.instantiate([targs[0], targs[1]]);
       }
-    } else if (strongMode) {
+    } else {
       mapT = typeAnalyzer.inferMapType(node, downwards: true);
     }
     if (mapT != null) {
@@ -6780,7 +6751,7 @@ class ResolverVisitor extends ScopedVisitor {
   void _inferArgumentTypesForInstanceCreate(InstanceCreationExpression node) {
     ConstructorName constructor = node.constructorName;
     TypeName classTypeName = constructor?.type;
-    if (classTypeName == null || !strongMode) {
+    if (classTypeName == null) {
       return;
     }
 
@@ -6840,11 +6811,6 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   void _inferArgumentTypesForInvocation(InvocationExpression node) {
-    if (!strongMode) {
-      // Use propagated type inference for lambdas if not in strong mode.
-      _inferFunctionExpressionsParametersTypes(node.argumentList);
-      return;
-    }
     DartType inferred = _inferArgumentTypesForGeneric(
         node, node.function.staticType, node.typeArguments);
     InferenceContext.setType(
@@ -6870,78 +6836,6 @@ class ResolverVisitor extends ScopedVisitor {
       // To get this right, we'd have to delay reporting until we have the
       // complete type including return type.
       inferenceContext.recordInference(node.parent, type);
-    }
-  }
-
-  /**
-   * If given "mayBeClosure" is [FunctionExpression] without explicit parameters types and its
-   * required type is [FunctionType], then infer parameters types from [FunctionType].
-   */
-  void _inferFunctionExpressionParametersTypes(
-      Expression mayBeClosure, DartType mayByFunctionType) {
-    // TODO(mfairhurst): remove this code and callers. It's doing
-    // "propagated type" inference for the Dart 1 type system.
-    assert(!strongMode);
-    // prepare closure
-    if (mayBeClosure is! FunctionExpression) {
-      return;
-    }
-    FunctionExpression closure = mayBeClosure as FunctionExpression;
-    // prepare expected closure type
-    if (mayByFunctionType is! FunctionType) {
-      return;
-    }
-    FunctionType expectedClosureType = mayByFunctionType as FunctionType;
-    // If the expectedClosureType is not more specific than the static type,
-    // return.
-    DartType staticClosureType =
-        resolutionMap.elementDeclaredByFunctionExpression(closure)?.type;
-    if (staticClosureType != null &&
-        !FunctionTypeImpl.relate(
-            expectedClosureType,
-            staticClosureType,
-            (s, t) => true,
-            new TypeSystemImpl(typeProvider).instantiateToBounds,
-            parameterRelation: (t, s) =>
-                (t.type as TypeImpl).isMoreSpecificThan(s.type))) {
-      return;
-    }
-    // set propagated type for the closure
-    if (!strongMode) {
-      closure.propagatedType = expectedClosureType;
-    }
-    // set inferred types for parameters
-    NodeList<FormalParameter> parameters = closure.parameters.parameters;
-    List<ParameterElement> expectedParameters = expectedClosureType.parameters;
-    for (int i = 0;
-        i < parameters.length && i < expectedParameters.length;
-        i++) {
-      FormalParameter parameter = parameters[i];
-      ParameterElement element = parameter.element;
-      DartType currentType = _overrideManager.getBestType(element);
-      // may be override the type
-      DartType expectedType = expectedParameters[i].type;
-      if (currentType == null || expectedType.isMoreSpecificThan(currentType)) {
-        _overrideManager.setType(element, expectedType);
-      }
-    }
-  }
-
-  /**
-   * Try to infer types of parameters of the [FunctionExpression] arguments.
-   */
-  void _inferFunctionExpressionsParametersTypes(ArgumentList argumentList) {
-    NodeList<Expression> arguments = argumentList.arguments;
-    int length = arguments.length;
-    for (int i = 0; i < length; i++) {
-      Expression argument = arguments[i];
-      ParameterElement parameter = argument.propagatedParameterElement;
-      if (parameter == null) {
-        parameter = argument.staticParameterElement;
-      }
-      if (parameter != null) {
-        _inferFunctionExpressionParametersTypes(argument, parameter.type);
-      }
     }
   }
 
