@@ -3717,7 +3717,8 @@ class CodeGenerator extends Object
   }
 
   JS.Expression _emitMethodCall(Expression target, MethodInvocation node) {
-    var args = _emitArgumentList(node.argumentList);
+    var argumentList = node.argumentList;
+    var args = _emitArgumentList(argumentList);
     var typeArgs = _emitInvokeTypeArguments(node);
 
     var type = getStaticType(target);
@@ -3734,12 +3735,14 @@ class CodeGenerator extends Object
             _emitTargetAccess(jsTarget, jsName, element, node.methodName);
         jsName = null;
       }
-      return _emitDynamicInvoke(
-          jsTarget, typeArgs, jsName, args, node.argumentList);
+      return _emitDynamicInvoke(jsTarget, typeArgs, jsName, args, argumentList);
     }
 
     JS.Expression jsTarget = _emitTarget(target, element, isStatic);
-    if (_isObjectMemberCall(target, name)) {
+
+    // Handle Object methods that are supported by `null`.
+    if (_isObjectMethodCall(name, argumentList.arguments) &&
+        isNullable(target)) {
       assert(typeArgs == null); // Object methods don't take type args.
       return runtimeCall('#(#, #)', [name, jsTarget, args]);
     }
@@ -5168,16 +5171,6 @@ class CodeGenerator extends Object
     }
   }
 
-  /// Everything in Dart is an Object and supports the 4 members on Object,
-  /// so we have to use a runtime helper to handle values such as `null` and
-  /// native types.
-  ///
-  /// For example `null.toString()` is legal in Dart, so we need to generate
-  /// that as `dart.toString(obj)`.
-  bool _isObjectMemberCall(Expression target, String memberName) {
-    return isObjectMember(memberName) && isNullable(target);
-  }
-
   List<JS.Expression> _getTypeArgs(Element member, DartType instantiated) {
     DartType type;
     if (member is ExecutableElement) {
@@ -5225,8 +5218,8 @@ class CodeGenerator extends Object
     }
 
     JS.Expression result;
-    if (_isObjectMemberCall(receiver, memberName)) {
-      if (_isObjectMethod(memberName)) {
+    if (isObjectMember(memberName) && isNullable(receiver)) {
+      if (_isObjectMethodTearoff(memberName)) {
         result = runtimeCall('bind(#, #)', [jsTarget, jsName]);
       } else {
         result = runtimeCall('#(#)', [memberName, jsTarget]);
@@ -6152,10 +6145,7 @@ class CodeGenerator extends Object
   }
 
   /// Return true if this is one of the methods/properties on all Dart Objects
-  /// (toString, hashCode, noSuchMethod, runtimeType).
-  ///
-  /// Operator == is excluded, as it is handled as part of the equality binary
-  /// operator.
+  /// (toString, hashCode, noSuchMethod, runtimeType, ==).
   bool isObjectMember(String name) {
     // We could look these up on Object, but we have hard coded runtime helpers
     // so it's not really providing any benefit.
@@ -6170,8 +6160,17 @@ class CodeGenerator extends Object
     return false;
   }
 
-  bool _isObjectMethod(String name) =>
+  bool _isObjectMethodTearoff(String name) =>
       name == 'toString' || name == 'noSuchMethod';
+
+  bool _isObjectMethodCall(String name, List<Expression> args) {
+    if (name == 'toString') {
+      return args.isEmpty;
+    } else if (name == 'noSuchMethod') {
+      return args.length == 1 && args[0] is! NamedExpression;
+    }
+    return false;
+  }
 
   // TODO(leafp): Various analyzer pieces computed similar things.
   // Share this logic somewhere?

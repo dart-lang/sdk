@@ -3647,7 +3647,7 @@ class ProgramCompiler extends Object
         // If the receiver is nullable, use a helper so calls like
         // `null.hashCode` and `null.runtimeType` will work.
         // Also method tearoffs like `null.toString`.
-        if (_isObjectMethod(memberName)) {
+        if (_isObjectMethodTearoff(memberName)) {
           return runtimeCall('bind(#, #)', [jsReceiver, jsName]);
         }
         return runtimeCall('#(#)', [memberName, jsReceiver]);
@@ -3768,8 +3768,9 @@ class ProgramCompiler extends Object
     }
 
     var jsName = _emitMemberName(name, member: target);
-    if (isObjectMember(name)) {
-      assert(arguments.types.isEmpty); // Object methods don't take type args.
+
+    // Handle Object methods that are supported by `null`.
+    if (_isObjectMethodCall(name, arguments)) {
       if (isNullable(receiver)) {
         // If the receiver is nullable, use a helper so calls like
         // `null.toString()` will work.
@@ -5055,5 +5056,16 @@ bool isObjectMember(String name) {
   return false;
 }
 
-bool _isObjectMethod(String name) =>
+bool _isObjectMethodTearoff(String name) =>
     name == 'toString' || name == 'noSuchMethod';
+
+bool _isObjectMethodCall(String name, Arguments args) {
+  if (name == 'toString') {
+    return args.positional.isEmpty && args.named.isEmpty && args.types.isEmpty;
+  } else if (name == 'noSuchMethod') {
+    return args.positional.length == 1 &&
+        args.named.isEmpty &&
+        args.types.isEmpty;
+  }
+  return false;
+}
