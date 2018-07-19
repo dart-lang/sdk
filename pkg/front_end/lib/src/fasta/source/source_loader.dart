@@ -254,7 +254,7 @@ class SourceLoader<L> extends Loader<L> {
 
   KernelTarget get target => super.target;
 
-  DietListener createDietListener(LibraryBuilder library) {
+  DietListener createDietListener(SourceLibraryBuilder library) {
     return new DietListener(library, hierarchy, coreTypes, typeInferenceEngine);
   }
 

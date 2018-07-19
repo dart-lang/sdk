@@ -16,7 +16,6 @@ import 'package:front_end/src/base/libraries_specification.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/builder/builder.dart';
-import 'package:front_end/src/fasta/builder/library_builder.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
@@ -52,13 +51,13 @@ class FileCompilationResult {
   /// The file system URI of the file.
   final Uri fileUri;
 
-  /// The list of resolution for each code block, e.g function body.
-  final List<CollectedResolution> resolutions;
+  /// The collected resolution for the file.
+  final CollectedResolution resolution;
 
   /// The list of all FrontEnd errors in the file.
   final List<CompilationMessage> errors;
 
-  FileCompilationResult(this.fileUri, this.resolutions, this.errors);
+  FileCompilationResult(this.fileUri, this.resolution, this.errors);
 }
 
 /// The wrapper around FrontEnd compiler that can be used incrementally.
@@ -256,7 +255,7 @@ class FrontEndCompiler {
         // Add results for new libraries.
         for (var library in _component.libraries) {
           if (!_results.containsKey(library.importUri)) {
-            Map<Uri, List<CollectedResolution>> libraryResolutions =
+            Map<Uri, CollectedResolution> libraryResolutions =
                 kernelTarget.resolutions[library.fileUri];
 
             var files = <Uri, FileCompilationResult>{};
@@ -265,7 +264,7 @@ class FrontEndCompiler {
               if (libraryResolutions != null) {
                 files[fileUri] = new FileCompilationResult(
                     fileUri,
-                    libraryResolutions[fileUri] ?? [],
+                    libraryResolutions[fileUri] ?? new CollectedResolution(),
                     _errorListener.fileUriToErrors[fileUri] ?? []);
               }
             }
@@ -385,30 +384,27 @@ class LibraryCompilationResult {
 
 /// The [DietListener] that record resolution information.
 class _AnalyzerDietListener extends DietListener {
-  final Map<Uri, List<CollectedResolution>> _resolutions;
+  final Map<Uri, ResolutionStorer> _storerMap = {};
 
   _AnalyzerDietListener(
       SourceLibraryBuilder library,
       ClassHierarchy hierarchy,
       CoreTypes coreTypes,
       TypeInferenceEngine typeInferenceEngine,
-      this._resolutions)
-      : super(library, hierarchy, coreTypes, typeInferenceEngine);
+      Map<Uri, CollectedResolution> resolutions)
+      : super(library, hierarchy, coreTypes, typeInferenceEngine) {
+    for (var fileUri in resolutions.keys) {
+      var resolution = resolutions[fileUri];
+      _storerMap[fileUri] = new ResolutionStorer(
+          resolution.kernelData, resolution.typeVariableDeclarations);
+    }
+  }
 
   StackListener createListener(
       ModifierBuilder builder, Scope memberScope, bool isInstanceMember,
       [Scope formalParameterScope,
       TypeInferenceListener<int, Node, int> listener]) {
-    ResolutionStorer storer;
-    var fileResolutions = _resolutions[builder.fileUri];
-    if (fileResolutions == null) {
-      fileResolutions = <CollectedResolution>[];
-      _resolutions[builder.fileUri] = fileResolutions;
-    }
-    var resolution = new CollectedResolution();
-    fileResolutions.add(resolution);
-    storer = new ResolutionStorer(
-        resolution.kernelData, resolution.typeVariableDeclarations);
+    ResolutionStorer storer = _storerMap[builder.fileUri];
     return super.createListener(
         builder, memberScope, isInstanceMember, formalParameterScope, storer);
   }
@@ -416,7 +412,7 @@ class _AnalyzerDietListener extends DietListener {
 
 /// The [KernelTarget] that records resolution information.
 class _AnalyzerKernelTarget extends KernelTarget {
-  final Map<Uri, Map<Uri, List<CollectedResolution>>> resolutions = {};
+  final Map<Uri, Map<Uri, CollectedResolution>> resolutions = {};
 
   _AnalyzerKernelTarget(front_end.FileSystem fileSystem, DillTarget dillTarget,
       UriTranslator uriTranslator, MetadataCollector metadataCollector)
@@ -436,16 +432,21 @@ class _AnalyzerKernelTarget extends KernelTarget {
 
 /// The [SourceLoader] that record resolution information.
 class _AnalyzerSourceLoader<L> extends SourceLoader<L> {
-  final Map<Uri, Map<Uri, List<CollectedResolution>>> _resolutions;
+  final Map<Uri, Map<Uri, CollectedResolution>> _resolutions;
 
   _AnalyzerSourceLoader(front_end.FileSystem fileSystem,
       TargetImplementation target, this._resolutions)
       : super(fileSystem, true, target);
 
   @override
-  _AnalyzerDietListener createDietListener(LibraryBuilder library) {
-    var libraryResolutions = <Uri, List<CollectedResolution>>{};
+  _AnalyzerDietListener createDietListener(SourceLibraryBuilder library) {
+    var libraryResolutions = <Uri, CollectedResolution>{};
+    libraryResolutions[library.fileUri] = new CollectedResolution();
+    for (var part in library.parts) {
+      libraryResolutions[part.fileUri] = new CollectedResolution();
+    }
     _resolutions[library.fileUri] = libraryResolutions;
+
     return new _AnalyzerDietListener(
         library, hierarchy, coreTypes, typeInferenceEngine, libraryResolutions);
   }

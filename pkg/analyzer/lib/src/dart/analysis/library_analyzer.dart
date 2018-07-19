@@ -210,10 +210,9 @@ class LibraryAnalyzer {
 
         _logger.run('Apply resolution', () {
           units.forEach((file, unit) {
-            var resolutions = libraryResult.files[file.fileUri].resolutions;
-            var resolutionProvider = new _ResolutionProvider(resolutions);
+            var resolution = libraryResult.files[file.fileUri].resolution;
 
-            _resolveFile2(file, unit, resolutionProvider);
+            _resolveFile2(file, unit, resolution);
             _computePendingMissingRequiredParameters(file, unit);
 
             // Invalid part URIs can result in an element with a null source
@@ -442,16 +441,6 @@ class LibraryAnalyzer {
         new InheritanceManager(_libraryElement),
         _analysisOptions.enableSuperMixins);
     unit.accept(errorVerifier);
-  }
-
-  /// Create a new [ResolutionApplier] for the given front-end [resolution].
-  /// The [context] element is used to associate synthetic elements and access
-  /// type parameters from the enclosing scopes.
-  ResolutionApplier _createResolutionApplier(ElementImpl context,
-      CollectedResolution resolution, Map<int, AstNode> localDeclarations) {
-    return new _ResolutionApplierContext(_resynthesizer, _typeProvider,
-            _libraryElement, resolution, context, localDeclarations)
-        .applier;
   }
 
   /**
@@ -740,7 +729,7 @@ class LibraryAnalyzer {
   }
 
   void _resolveFile2(FileState file, CompilationUnitImpl unit,
-      _ResolutionProvider resolutions) {
+      CollectedResolution resolution) {
     CompilationUnitElement unitElement = unit.element;
     new DeclarationResolver(enableKernelDriver: true, applyKernelTypes: true)
         .resolve(unit, unitElement);
@@ -752,25 +741,24 @@ class LibraryAnalyzer {
 //          file.source, _typeProvider, AnalysisErrorListener.NULL_LISTENER));
 //    }
 
+    var applierContext = new _ResolutionApplierContext(_resynthesizer,
+        _typeProvider, _libraryElement, resolution, unit.localDeclarations);
+    var applier = applierContext.applier;
+
     for (var directive in unit.directives) {
       if (directive.metadata.isNotEmpty) {
-        var resolution = resolutions.next();
-        var applier =
-            _createResolutionApplier(null, resolution, unit.localDeclarations);
         applier.applyToAnnotations(directive);
       }
     }
     for (var declaration in unit.declarations) {
       if (declaration is ClassDeclaration) {
         if (declaration.metadata.isNotEmpty) {
-          var resolution = resolutions.next();
-          var applier = _createResolutionApplier(
-              null, resolution, unit.localDeclarations);
           applier.applyToAnnotations(declaration);
         }
         for (var member in declaration.members) {
           if (member is ConstructorDeclaration) {
             var context = member.element as ConstructorElementImpl;
+            applierContext.setContext(context);
             ConstructorName redirectName = member.redirectedConstructor;
             if (redirectName != null) {
               var redirectedConstructor = context.redirectedConstructor;
@@ -786,16 +774,10 @@ class LibraryAnalyzer {
               // Annotations are stored separately for each formal parameter.
               for (var parameter in member.parameters.parameters) {
                 if (parameter.metadata.isNotEmpty) {
-                  var resolution = resolutions.next();
-                  var applier = _createResolutionApplier(
-                      context, resolution, unit.localDeclarations);
                   parameter.metadata.accept(applier);
                 }
               }
             } else {
-              var resolution = resolutions.next();
-              var applier = _createResolutionApplier(
-                  context, resolution, unit.localDeclarations);
               member.initializers.accept(applier);
               member.parameters.accept(applier);
               member.body.accept(applier);
@@ -805,18 +787,14 @@ class LibraryAnalyzer {
             List<VariableDeclaration> fields = member.fields.variables;
             var element = fields[0].element;
             var context = (element.initializer ?? element) as ElementImpl;
-            var resolution = resolutions.next();
-            var applier = _createResolutionApplier(
-                context, resolution, unit.localDeclarations);
+            applierContext.setContext(context);
             for (var field in fields.reversed) {
               field.initializer?.accept(applier);
             }
             applier.applyToAnnotations(member);
           } else if (member is MethodDeclaration) {
             ExecutableElementImpl context = member.element;
-            var resolution = resolutions.next();
-            var applier = _createResolutionApplier(
-                context, resolution, unit.localDeclarations);
+            applierContext.setContext(context);
             member.parameters?.accept(applier);
             member.body.accept(applier);
             applier.applyToAnnotations(member);
@@ -830,9 +808,7 @@ class LibraryAnalyzer {
         // No bodies to resolve.
       } else if (declaration is FunctionDeclaration) {
         var context = declaration.element as ExecutableElementImpl;
-        var resolution = resolutions.next();
-        var applier = _createResolutionApplier(
-            context, resolution, unit.localDeclarations);
+        applierContext.setContext(context);
         declaration.functionExpression.parameters?.accept(applier);
         declaration.functionExpression.body.accept(applier);
         applier.applyToAnnotations(declaration);
@@ -844,9 +820,7 @@ class LibraryAnalyzer {
         List<VariableDeclaration> variables = declaration.variables.variables;
         var element = variables[0].element;
         var context = (element.initializer ?? element) as ElementImpl;
-        var resolution = resolutions.next();
-        var applier = _createResolutionApplier(
-            context, resolution, unit.localDeclarations);
+        applierContext.setContext(context);
         for (var variable in variables.reversed) {
           variable.initializer?.accept(applier);
         }
@@ -1072,22 +1046,8 @@ class _ResolutionApplierContext implements TypeContext {
 
   ResolutionApplier applier;
 
-  _ResolutionApplierContext(
-      this.resynthesizer,
-      this.typeProvider,
-      this.libraryElement,
-      this.resolution,
-      this.context,
-      this.localDeclarations) {
-    for (Element element = context;
-        element != null;
-        element = element.enclosingElement) {
-      if (element is ClassElement) {
-        enclosingClassElement = element;
-        break;
-      }
-    }
-
+  _ResolutionApplierContext(this.resynthesizer, this.typeProvider,
+      this.libraryElement, this.resolution, this.localDeclarations) {
     applier =
         new ResolutionApplier(libraryElement, this, resolution.kernelData);
   }
@@ -1116,6 +1076,18 @@ class _ResolutionApplierContext implements TypeContext {
   void exitLocalFunction(FunctionTypedElementImpl element) {
     assert(identical(context, element));
     context = contextStack.removeLast();
+  }
+
+  void setContext(ElementImpl context) {
+    this.context = context;
+    for (Element element = context;
+        element != null;
+        element = element.enclosingElement) {
+      if (element is ClassElement) {
+        enclosingClassElement = element;
+        break;
+      }
+    }
   }
 
   @override
@@ -1206,14 +1178,4 @@ class _ResolutionApplierContext implements TypeContext {
       return resynthesizer.getType(context, kernelType);
     }
   }
-}
-
-/// [Iterator] like object that provides [CollectedResolution]s.
-class _ResolutionProvider {
-  final List<CollectedResolution> resolutions;
-  int index = 0;
-
-  _ResolutionProvider(this.resolutions);
-
-  CollectedResolution next() => resolutions[index++];
 }
