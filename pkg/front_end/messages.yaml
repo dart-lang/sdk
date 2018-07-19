@@ -1579,6 +1579,9 @@ DuplicatedImportInType:
 
 CyclicClassHierarchy:
   template: "'#name' is a supertype of itself via '#string'."
+  severity: ERROR
+  analyzerCode: RECURSIVE_INTERFACE_INHERITANCE
+  dart2jsCode: "*fatal*"
 
 ExtendingEnum:
   template: "'#name' is an enum and can't be extended or implemented."
@@ -2501,10 +2504,10 @@ CantUseSuperBoundedTypeForInstanceCreation:
   severity: ERROR
 
 MixinInferenceNoMatchingClass:
-  template: |
-    Type parameters could not be inferred for the mixin '#name' because
-    '#name2' does not implement the mixin's supertype constraint '#type'.
+  template: "Type parameters could not be inferred for the mixin '#name' because '#name2' does not implement the mixin's supertype constraint '#type'."
   severity: ERROR
+  analyzerCode: MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION
+  dart2jsCode: "*fatal*"
 
 ImplicitCallOfNonMethod:
   template: "Cannot invoke an instance of '#type' because it declares 'call' to be something other than a method."

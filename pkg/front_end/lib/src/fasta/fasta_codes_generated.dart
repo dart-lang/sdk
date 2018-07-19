@@ -1546,9 +1546,10 @@ const Template<Message Function(String name, String string)>
 const Code<Message Function(String name, String string)>
     codeCyclicClassHierarchy =
     const Code<Message Function(String name, String string)>(
-  "CyclicClassHierarchy",
-  templateCyclicClassHierarchy,
-);
+        "CyclicClassHierarchy", templateCyclicClassHierarchy,
+        analyzerCode: "RECURSIVE_INTERFACE_INHERITANCE",
+        dart2jsCode: "*fatal*",
+        severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCyclicClassHierarchy(String name, String string) {
@@ -4815,8 +4816,7 @@ const Template<
             _type)> templateMixinInferenceNoMatchingClass = const Template<
         Message Function(String name, String name2, DartType _type)>(
     messageTemplate:
-        r"""Type parameters could not be inferred for the mixin '#name' because
-'#name2' does not implement the mixin's supertype constraint '#type'.""",
+        r"""Type parameters could not be inferred for the mixin '#name' because '#name2' does not implement the mixin's supertype constraint '#type'.""",
     withArguments: _withArgumentsMixinInferenceNoMatchingClass);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4824,6 +4824,8 @@ const Code<Message Function(String name, String name2, DartType _type)>
     codeMixinInferenceNoMatchingClass =
     const Code<Message Function(String name, String name2, DartType _type)>(
         "MixinInferenceNoMatchingClass", templateMixinInferenceNoMatchingClass,
+        analyzerCode: "MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION",
+        dart2jsCode: "*fatal*",
         severity: Severity.error);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4836,8 +4838,7 @@ Message _withArgumentsMixinInferenceNoMatchingClass(
 
   return new Message(codeMixinInferenceNoMatchingClass,
       message:
-          """Type parameters could not be inferred for the mixin '${name}' because
-'${name2}' does not implement the mixin's supertype constraint '${type}'.""",
+          """Type parameters could not be inferred for the mixin '${name}' because '${name2}' does not implement the mixin's supertype constraint '${type}'.""",
       arguments: {'name': name, 'name2': name2, 'type': _type});
 }
 

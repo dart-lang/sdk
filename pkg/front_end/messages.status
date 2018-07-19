@@ -94,7 +94,6 @@ CovariantAndStatic/script1: Fail
 CovariantAndStatic/script2: Fail
 CovariantMember/script1: Fail
 CovariantMember/script2: Fail
-CyclicClassHierarchy/analyzerCode: Fail
 CyclicClassHierarchy/example: Fail
 CyclicTypedef/example: Fail
 DeferredAfterPrefix/example: Fail
@@ -235,7 +234,6 @@ MissingMain/analyzerCode: Fail
 MissingMain/example: Fail
 MissingPartOf/dart2jsCode: Fail
 MissingPrefixInDeferredImport/example: Fail
-MixinInferenceNoMatchingClass/analyzerCode: Fail
 MixinInferenceNoMatchingClass/example: Fail
 MultipleExtends/script: Fail
 MultipleImplements/script: Fail

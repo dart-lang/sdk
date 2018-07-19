@@ -2221,13 +2221,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_recursiveInterfaceInheritance_extends() async {
-    // Expected 2 errors of type CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, found 0
-    await super.test_recursiveInterfaceInheritance_extends();
-  }
-
-  @override
-  @failingTest
   test_recursiveInterfaceInheritance_extends_implements() async {
     // AnalysisException: Element mismatch in /test.dart at /test.dart
     await super.test_recursiveInterfaceInheritance_extends_implements();
