@@ -193,7 +193,7 @@ class _AllowedCommentVisitor extends SimpleAstVisitor {
       if (commentContent.trimLeft().startsWith('ignore:')) {
         allowedLines.add(lineInfo.getLocation(comment.offset).lineNumber);
       } else {
-        lines.add(content.substring(2));
+        lines.add(commentContent);
       }
     } else if (content.startsWith('/*')) {
       // remove last slash before finding slash
