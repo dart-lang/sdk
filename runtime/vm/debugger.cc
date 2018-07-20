@@ -2860,11 +2860,17 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
                                             TokenPosition token_pos,
                                             TokenPosition last_token_pos,
                                             intptr_t requested_line,
-                                            intptr_t requested_column) {
+                                            intptr_t requested_column,
+                                            const Function& function) {
   Function& func = Function::Handle();
-  if (!FindBestFit(script, token_pos, last_token_pos, &func)) {
-    return NULL;
+  if (function.IsNull()) {
+    if (!FindBestFit(script, token_pos, last_token_pos, &func)) {
+      return NULL;
+    }
+  } else {
+    func = function.raw();
   }
+
   if (!func.IsNull()) {
     // There may be more than one function object for a given function
     // in source code. There may be implicit closure functions, and
@@ -2971,7 +2977,7 @@ Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function,
   const Script& script = Script::Handle(target_function.script());
   BreakpointLocation* bpt_location = SetBreakpoint(
       script, target_function.token_pos(), target_function.end_token_pos(), -1,
-      -1 /* no requested line/col */);
+      -1 /* no requested line/col */, target_function);
   if (bpt_location == NULL) {
     return NULL;
   }
@@ -2990,8 +2996,9 @@ Breakpoint* Debugger::SetBreakpointAtActivation(const Instance& closure,
   }
   const Function& func = Function::Handle(Closure::Cast(closure).function());
   const Script& script = Script::Handle(func.script());
-  BreakpointLocation* bpt_location = SetBreakpoint(
-      script, func.token_pos(), func.end_token_pos(), -1, -1 /* no line/col */);
+  BreakpointLocation* bpt_location =
+      SetBreakpoint(script, func.token_pos(), func.end_token_pos(), -1,
+                    -1 /* no line/col */, func);
   return bpt_location->AddPerClosure(this, closure, for_over_await);
 }
 
@@ -3108,7 +3115,7 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
   ASSERT(first_token_idx <= last_token_idx);
   while ((bpt == NULL) && (first_token_idx <= last_token_idx)) {
     bpt = SetBreakpoint(script, first_token_idx, last_token_idx, line_number,
-                        column_number);
+                        column_number, Function::Handle());
     first_token_idx.Next();
   }
   if ((bpt == NULL) && FLAG_verbose_debug) {
