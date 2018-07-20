@@ -1365,14 +1365,22 @@ var x = const C(2);
   test_constEvalThrowsException_unaryBitNot_null() async {
     Source source = addSource("const C = ~null;");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else {
+      assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+    }
     // no verify(), '~null' is not resolved
   }
 
   test_constEvalThrowsException_unaryNegated_null() async {
     Source source = addSource("const C = -null;");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else {
+      assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+    }
     // no verify(), '-null' is not resolved
   }
 
@@ -1384,15 +1392,21 @@ var x = const C(2);
   }
 
   test_constEvalTypeBool_binary() async {
-    await _check_constEvalTypeBool_withParameter_binary("p && ''");
+    await _check_constEvalTypeBool_withParameter_binary("p && ''",
+        cfeErrors: [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
     await _check_constEvalTypeBool_withParameter_binary("p || ''");
   }
 
   test_constEvalTypeBool_binary_leftTrue() async {
     Source source = addSource("const C = (true || 0);");
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticTypeWarningCode.NON_BOOL_OPERAND, HintCode.DEAD_CODE]);
+    if (useCFE) {
+      assertErrors(source,
+          [HintCode.DEAD_CODE, StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    } else {
+      assertErrors(
+          source, [StaticTypeWarningCode.NON_BOOL_OPERAND, HintCode.DEAD_CODE]);
+    }
     verify([source]);
   }
 
@@ -1498,8 +1512,12 @@ f(p) {
   const C = p;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+    } else {
+      assertErrors(source,
+          [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    }
     verify([source]);
   }
 
@@ -1705,7 +1723,11 @@ class T {
 }
 f() { return const T(0, 1, c: 2, d: 3); }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_WITH_NON_CONST]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+    } else {
+      assertErrors(source, [CompileTimeErrorCode.CONST_WITH_NON_CONST]);
+    }
     verify([source]);
   }
 
@@ -1721,12 +1743,16 @@ main() {
 }
 ''');
     await computeAnalysisResult(source);
-    // TODO(a14n): the error CONST_WITH_NON_CONSTANT_ARGUMENT is redundant and
-    // ought to be suppressed.
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_WITH_NON_CONST,
-      CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT
-    ]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+    } else {
+      // TODO(a14n): the error CONST_WITH_NON_CONSTANT_ARGUMENT is redundant and
+      // ought to be suppressed.
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_WITH_NON_CONST,
+        CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT
+      ]);
+    }
     verify([source]);
   }
 
@@ -1743,12 +1769,16 @@ main() {
 }
 ''');
     await computeAnalysisResult(source);
-    // TODO(a14n): the error CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE is
-    // redundant and ought to be suppressed.
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_WITH_NON_CONST,
-      CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-    ]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+    } else {
+      // TODO(a14n): the error CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE is
+      // redundant and ought to be suppressed.
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_WITH_NON_CONST,
+        CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+      ]);
+    }
     verify([source]);
   }
 
@@ -1762,8 +1792,12 @@ var v = 42;
 main() {
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT]);
+    }
     verify([source]);
   }
 
@@ -1773,13 +1807,17 @@ class A {
   const A(a);
 }
 f(p) { return const A(p); }''');
-    // TODO(paulberry): the error INVALID_CONSTAT is redundant and ought to be
-    // suppressed.
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
-      CompileTimeErrorCode.INVALID_CONSTANT
-    ]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+    } else {
+      // TODO(paulberry): the error INVALID_CONSTANT is redundant and ought to be
+      // suppressed.
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
+        CompileTimeErrorCode.INVALID_CONSTANT
+      ]);
+    }
     verify([source]);
   }
 
@@ -1803,7 +1841,11 @@ void f() {
 }''');
     await computeAnalysisResult(source1);
     await computeAnalysisResult(source2);
-    assertErrors(source2, [CompileTimeErrorCode.CONST_WITH_NON_TYPE]);
+    if (useCFE) {
+      assertErrors(source2, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else {
+      assertErrors(source2, [CompileTimeErrorCode.CONST_WITH_NON_TYPE]);
+    }
     verify([source1]);
   }
 
@@ -1816,8 +1858,12 @@ f() {
   return const A.noSuchConstructor();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR]);
+    }
     // no verify(), 'noSuchConstructor' is not resolved
   }
 
@@ -1830,8 +1876,12 @@ f() {
   return const A();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else {
+      assertErrors(source,
+          [CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT]);
+    }
     verify([source]);
   }
 
@@ -2169,8 +2219,13 @@ class B extends A {
   static int get x => 0;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
+    if (useCFE) {
+      assertErrors(source,
+          [CompileTimeErrorCode.DECLARED_MEMBER_CONFLICTS_WITH_INHERITED]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
+    }
     verify([source]);
   }
 
@@ -2183,8 +2238,15 @@ class B extends A {
   static int get x => 0;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
+    if (useCFE) {
+      assertErrors(source, [
+        CompileTimeErrorCode.DECLARED_MEMBER_CONFLICTS_WITH_INHERITED,
+        StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+      ]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
+    }
     verify([source]);
   }
 
@@ -2197,8 +2259,13 @@ class B extends A {
   static x() {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
+    if (useCFE) {
+      assertErrors(source,
+          [CompileTimeErrorCode.DECLARED_MEMBER_CONFLICTS_WITH_INHERITED]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
+    }
     verify([source]);
   }
 
@@ -2211,8 +2278,13 @@ abstract class B extends A {
   static x() {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
+    if (useCFE) {
+      assertErrors(source,
+          [CompileTimeErrorCode.DECLARED_MEMBER_CONFLICTS_WITH_INHERITED]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
+    }
     verify([source]);
   }
 
@@ -2225,8 +2297,13 @@ class B extends A {
   static set x(value) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
+    if (useCFE) {
+      assertErrors(source,
+          [CompileTimeErrorCode.DECLARED_MEMBER_CONFLICTS_WITH_INHERITED]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
+    }
     verify([source]);
   }
 
@@ -2239,8 +2316,15 @@ class B extends A {
   static set x(value) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
+    if (useCFE) {
+      assertErrors(source, [
+        CompileTimeErrorCode.DECLARED_MEMBER_CONFLICTS_WITH_INHERITED,
+        StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+      ]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
+    }
     verify([source]);
   }
 
@@ -2282,7 +2366,12 @@ part 'part.dart';
   test_exportInternalLibrary() async {
     Source source = addSource("export 'dart:_interceptors';");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY]);
+    if (useCFE) {
+      // CFE has a single error for both import and export.
+      assertErrors(source, [CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY]);
+    } else {
+      assertErrors(source, [CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY]);
+    }
     verify([source]);
   }
 
@@ -2463,7 +2552,14 @@ class C = int with M;''');
 class M {}
 class C = Null with M;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    if (useCFE) {
+      assertErrors(source, [
+        CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+      ]);
+    } else {
+      assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    }
     verify([source]);
   }
 
@@ -2505,7 +2601,14 @@ class C = String with M;''');
 enum E { ONE }
 class A extends E {}''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_ENUM]);
+    if (useCFE) {
+      assertErrors(source, [
+        CompileTimeErrorCode.EXTENDS_ENUM,
+        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+      ]);
+    } else {
+      assertErrors(source, [CompileTimeErrorCode.EXTENDS_ENUM]);
+    }
     verify([source]);
   }
 
@@ -2514,7 +2617,11 @@ class A extends E {}''');
 int A;
 class B extends A {}''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_NON_CLASS]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.UNDEFINED_CLASS]);
+    } else {
+      assertErrors(source, [CompileTimeErrorCode.EXTENDS_NON_CLASS]);
+    }
     verify([source]);
   }
 
@@ -2560,8 +2667,12 @@ main() {
   const A(0);
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS]);
+    } else {
+      assertErrors(source,
+          [CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED]);
+    }
     verify([source]);
   }
 
@@ -2586,8 +2697,14 @@ class A {
   A(this.x) : x = 3 {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER]);
+    if (useCFE) {
+      assertErrors(
+          source, [CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER
+      ]);
+    }
     verify([source]);
   }
 
@@ -2676,8 +2793,13 @@ class A {
   factory A(this.x) => null;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR]);
+    if (useCFE) {
+      assertErrors(
+          source, [CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR]);
+    }
     verify([source]);
   }
 
@@ -3154,14 +3276,19 @@ class C = B with M implements a.A;'''
   test_implementsDisallowedClass_class_String_num() async {
     Source source = addSource("class A implements String, num {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      useCFE
-          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
-      useCFE
-          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
-    ]);
+    if (useCFE) {
+      assertErrors(source, [
+        CompileTimeErrorCode.AMBIGUOUS_SUPERTYPES,
+        CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+        CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+        StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+      ]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+      ]);
+    }
     verify([source]);
   }
 
@@ -3267,14 +3394,19 @@ class A {}
 class M {}
 class C = A with M implements String, num;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      useCFE
-          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
-      useCFE
-          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
-    ]);
+    if (useCFE) {
+      assertErrors(source, [
+        CompileTimeErrorCode.AMBIGUOUS_SUPERTYPES,
+        CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+        CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+        StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+      ]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+      ]);
+    }
     verify([source]);
   }
 
@@ -3392,7 +3524,9 @@ class A {
   final y = x;
 }''');
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.THIS_ACCESS_FROM_INITIALIZER]);
+    } else if (enableKernelDriver) {
       assertErrors(source,
           [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER]);
     } else {
@@ -3587,8 +3721,12 @@ class A {
   A(this.x) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD]);
+    } else {
+      assertErrors(source,
+          [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]);
+    }
     verify([source]);
   }
 
@@ -3601,8 +3739,12 @@ class B extends A {
   B(this.x) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD]);
+    } else {
+      assertErrors(source,
+          [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]);
+    }
     verify([source]);
   }
 
@@ -3612,8 +3754,12 @@ class A {
   A([this.x]) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD]);
+    } else {
+      assertErrors(source,
+          [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]);
+    }
     verify([source]);
   }
 
@@ -3624,8 +3770,12 @@ class A {
   A(this.x) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD]);
+    } else {
+      assertErrors(source,
+          [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD]);
+    }
     verify([source]);
   }
 
@@ -3636,8 +3786,12 @@ class A {
   A([this.x]) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD]);
+    }
     verify([source]);
   }
 
@@ -3652,8 +3806,12 @@ class A {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY]);
+    }
     verify([source]);
   }
 
@@ -3668,8 +3826,12 @@ class A {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY]);
+    }
     verify([source]);
   }
 
@@ -3682,8 +3844,12 @@ class A {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC]);
+    }
     verify([source]);
   }
 
@@ -3696,8 +3862,12 @@ class A {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC]);
+    }
     verify([source]);
   }
 
@@ -3710,8 +3880,12 @@ class A {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC]);
+    }
     verify([source]);
   }
 
@@ -3759,7 +3933,11 @@ import 'lib.dart' as p;
 main() {
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+    } else {
+      assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
+    }
     verify([source]);
   }
 
@@ -3784,7 +3962,11 @@ final V = 0;
 main() {
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+    } else {
+      assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
+    }
     verify([source]);
   }
 
@@ -3975,8 +4157,12 @@ class A {
   A() async {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NON_SYNC_CONSTRUCTOR]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR]);
+    }
     verify([source]);
   }
 
@@ -3986,8 +4172,12 @@ class A {
   A() async* {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NON_SYNC_CONSTRUCTOR]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR]);
+    }
     verify([source]);
   }
 
@@ -3997,8 +4187,12 @@ class A {
   A() sync* {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NON_SYNC_CONSTRUCTOR]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR]);
+    }
     verify([source]);
   }
 
@@ -4229,8 +4423,12 @@ class Foo {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.THIS_ACCESS_FROM_INITIALIZER]);
+    } else {
+      assertErrors(source,
+          [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER]);
+    }
     verify([source]);
   }
 
@@ -4281,11 +4479,15 @@ f() {
     // (due to an error) should not crash the analyzer (see dartbug.com/23383)
     Source source = addSource("const int i = (1 ? 'alpha' : 'beta').length;");
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-      CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
-      StaticTypeWarningCode.NON_BOOL_CONDITION
-    ]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+        StaticTypeWarningCode.NON_BOOL_CONDITION
+      ]);
+    }
     verify([source]);
   }
 
@@ -4575,8 +4777,13 @@ class M<T> extends A<T> {}
 class C extends Object with M {}
 ''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS]);
+    if (useCFE) {
+      assertErrors(source,
+          [CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS]);
+    }
   }
 
   @failingTest // Does not work with old task model
@@ -4591,10 +4798,17 @@ class M<T> extends A<T> {}
 class C extends Object with M implements A<B> {}
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS,
-      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES
-    ]);
+    if (useCFE) {
+      assertErrors(source, [
+        CompileTimeErrorCode.AMBIGUOUS_SUPERTYPES,
+        CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION
+      ]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS,
+        CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES
+      ]);
+    }
   }
 
   test_mixinInference_noMatchingClass_namedMixinApplication() async {
@@ -4608,8 +4822,13 @@ class M<T> extends A<T> {}
 class C = Object with M;
 ''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS]);
+    if (useCFE) {
+      assertErrors(source,
+          [CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS]);
+    }
   }
 
   test_mixinInference_noMatchingClass_noSuperclassConstraint() async {
@@ -4942,8 +5161,12 @@ int A;
 class B {}
 class C extends A with B {}''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.UNDEFINED_CLASS]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS]);
+    }
     verify([source]);
   }
 
@@ -4953,8 +5176,12 @@ int A;
 class B {}
 class C = A with B;''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.UNDEFINED_CLASS]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS]);
+    }
     verify([source]);
   }
 
@@ -5043,8 +5270,13 @@ class B extends A {
   B() {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT]);
+    if (useCFE) {
+      assertErrors(
+          source, [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT]);
+    }
     verify([source]);
   }
 
@@ -5282,8 +5514,12 @@ class A {
 main() {
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR]);
+    }
     verify([source]);
   }
 
@@ -5296,8 +5532,12 @@ class A {
 main() {
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR]);
+    }
     verify([source]);
   }
 
@@ -5400,16 +5640,21 @@ f(int p, int q) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+    } else {
+      assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION]);
+    }
     verify([source]);
   }
 
   test_nonConstCaseExpressionFromDeferredLibrary() async {
-    await resolveWithErrors(<String>[
-      r'''
+    await resolveWithErrors(
+        <String>[
+          r'''
 library lib1;
 const int c = 1;''',
-      r'''
+          r'''
 library root;
 import 'lib1.dart' deferred as a;
 main (int p) {
@@ -5418,17 +5663,22 @@ main (int p) {
       break;
   }
 }'''
-    ], <ErrorCode>[
-      CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY
-    ]);
+        ],
+        useCFE
+            ? <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]
+            : <ErrorCode>[
+                CompileTimeErrorCode
+                    .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY
+              ]);
   }
 
   test_nonConstCaseExpressionFromDeferredLibrary_nested() async {
-    await resolveWithErrors(<String>[
-      r'''
+    await resolveWithErrors(
+        <String>[
+          r'''
 library lib1;
 const int c = 1;''',
-      r'''
+          r'''
 library root;
 import 'lib1.dart' deferred as a;
 main (int p) {
@@ -5437,9 +5687,13 @@ main (int p) {
       break;
   }
 }'''
-    ], <ErrorCode>[
-      CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY
-    ]);
+        ],
+        useCFE
+            ? <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]
+            : <ErrorCode>[
+                CompileTimeErrorCode
+                    .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY
+              ]);
   }
 
   test_nonConstListElement() async {
@@ -5448,40 +5702,54 @@ f(a) {
   return const [a];
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+    } else {
+      assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
+    }
     verify([source]);
   }
 
   test_nonConstListElementFromDeferredLibrary() async {
-    await resolveWithErrors(<String>[
-      r'''
+    await resolveWithErrors(
+        <String>[
+          r'''
 library lib1;
 const int c = 1;''',
-      r'''
+          r'''
 library root;
 import 'lib1.dart' deferred as a;
 f() {
   return const [a.c];
 }'''
-    ], <ErrorCode>[
-      CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY
-    ]);
+        ],
+        useCFE
+            ? <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]
+            : <ErrorCode>[
+                CompileTimeErrorCode
+                    .NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY
+              ]);
   }
 
   test_nonConstListElementFromDeferredLibrary_nested() async {
-    await resolveWithErrors(<String>[
-      r'''
+    await resolveWithErrors(
+        <String>[
+          r'''
 library lib1;
 const int c = 1;''',
-      r'''
+          r'''
 library root;
 import 'lib1.dart' deferred as a;
 f() {
   return const [a.c + 1];
 }'''
-    ], <ErrorCode>[
-      CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY
-    ]);
+        ],
+        useCFE
+            ? <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]
+            : <ErrorCode>[
+                CompileTimeErrorCode
+                    .NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY
+              ]);
   }
 
   test_nonConstMapAsExpressionStatement_begin() async {
@@ -5490,24 +5758,47 @@ f() {
   {'a' : 0, 'b' : 1}.length;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source,
-        usingFastaParser
-            ? [
-                // TODO(danrubel): Consider improving recovery
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.UNEXPECTED_TOKEN,
-                ParserErrorCode.UNEXPECTED_TOKEN,
-                ParserErrorCode.UNEXPECTED_TOKEN,
-              ]
-            : [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT]);
+    if (useCFE) {
+      assertErrors(source, [
+        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.UNEXPECTED_TOKEN,
+        ParserErrorCode.UNEXPECTED_TOKEN,
+        ParserErrorCode.UNEXPECTED_TOKEN,
+        StaticTypeWarningCode.UNDEFINED_GETTER,
+        StaticTypeWarningCode.UNDEFINED_GETTER,
+        StaticTypeWarningCode.UNDEFINED_GETTER,
+        StaticTypeWarningCode.UNDEFINED_GETTER,
+      ]);
+    } else {
+      assertErrors(
+          source,
+          usingFastaParser
+              ? [
+                  // TODO(danrubel): Consider improving recovery
+                  ParserErrorCode.EXPECTED_TOKEN,
+                  ParserErrorCode.EXPECTED_TOKEN,
+                  ParserErrorCode.EXPECTED_TOKEN,
+                  ParserErrorCode.EXPECTED_TOKEN,
+                  ParserErrorCode.MISSING_IDENTIFIER,
+                  ParserErrorCode.MISSING_IDENTIFIER,
+                  ParserErrorCode.MISSING_IDENTIFIER,
+                  ParserErrorCode.MISSING_IDENTIFIER,
+                  ParserErrorCode.UNEXPECTED_TOKEN,
+                  ParserErrorCode.UNEXPECTED_TOKEN,
+                  ParserErrorCode.UNEXPECTED_TOKEN,
+                ]
+              : [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT]);
+    }
     verify([source]);
   }
 
@@ -5517,22 +5808,43 @@ f() {
   {'a' : 0, 'b' : 1};
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source,
-        usingFastaParser
-            ? [
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.UNEXPECTED_TOKEN,
-                ParserErrorCode.UNEXPECTED_TOKEN,
-                ParserErrorCode.UNEXPECTED_TOKEN,
-              ]
-            : [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT]);
+    if (useCFE) {
+      assertErrors(source, [
+        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.UNEXPECTED_TOKEN,
+        ParserErrorCode.UNEXPECTED_TOKEN,
+        ParserErrorCode.UNEXPECTED_TOKEN,
+        StaticTypeWarningCode.UNDEFINED_GETTER,
+        StaticTypeWarningCode.UNDEFINED_GETTER,
+        StaticTypeWarningCode.UNDEFINED_GETTER
+      ]);
+    } else {
+      assertErrors(
+          source,
+          usingFastaParser
+              ? [
+                  ParserErrorCode.EXPECTED_TOKEN,
+                  ParserErrorCode.EXPECTED_TOKEN,
+                  ParserErrorCode.EXPECTED_TOKEN,
+                  ParserErrorCode.EXPECTED_TOKEN,
+                  ParserErrorCode.MISSING_IDENTIFIER,
+                  ParserErrorCode.MISSING_IDENTIFIER,
+                  ParserErrorCode.MISSING_IDENTIFIER,
+                  ParserErrorCode.UNEXPECTED_TOKEN,
+                  ParserErrorCode.UNEXPECTED_TOKEN,
+                  ParserErrorCode.UNEXPECTED_TOKEN,
+                ]
+              : [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT]);
+    }
     verify([source]);
   }
 
@@ -5542,40 +5854,52 @@ f(a) {
   return const {a : 0};
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+    } else {
+      assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
+    }
     verify([source]);
   }
 
   test_nonConstMapKeyFromDeferredLibrary() async {
-    await resolveWithErrors(<String>[
-      r'''
+    await resolveWithErrors(
+        <String>[
+          r'''
 library lib1;
 const int c = 1;''',
-      r'''
+          r'''
 library root;
 import 'lib1.dart' deferred as a;
 f() {
   return const {a.c : 0};
 }'''
-    ], <ErrorCode>[
-      CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY
-    ]);
+        ],
+        useCFE
+            ? <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]
+            : <ErrorCode>[
+                CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY
+              ]);
   }
 
   test_nonConstMapKeyFromDeferredLibrary_nested() async {
-    await resolveWithErrors(<String>[
-      r'''
+    await resolveWithErrors(
+        <String>[
+          r'''
 library lib1;
 const int c = 1;''',
-      r'''
+          r'''
 library root;
 import 'lib1.dart' deferred as a;
 f() {
   return const {a.c + 1 : 0};
 }'''
-    ], <ErrorCode>[
-      CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY
-    ]);
+        ],
+        useCFE
+            ? <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]
+            : <ErrorCode>[
+                CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY
+              ]);
   }
 
   test_nonConstMapValue() async {
@@ -5584,40 +5908,54 @@ f(a) {
   return const {'a' : a};
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+    } else {
+      assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
+    }
     verify([source]);
   }
 
   test_nonConstMapValueFromDeferredLibrary() async {
-    await resolveWithErrors(<String>[
-      r'''
+    await resolveWithErrors(
+        <String>[
+          r'''
 library lib1;
 const int c = 1;''',
-      r'''
+          r'''
 library root;
 import 'lib1.dart' deferred as a;
 f() {
   return const {'a' : a.c};
 }'''
-    ], <ErrorCode>[
-      CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY
-    ]);
+        ],
+        useCFE
+            ? <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]
+            : <ErrorCode>[
+                CompileTimeErrorCode
+                    .NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY
+              ]);
   }
 
   test_nonConstMapValueFromDeferredLibrary_nested() async {
-    await resolveWithErrors(<String>[
-      r'''
+    await resolveWithErrors(
+        <String>[
+          r'''
 library lib1;
 const int c = 1;''',
-      r'''
+          r'''
 library root;
 import 'lib1.dart' deferred as a;
 f() {
   return const {'a' : a.c + 1};
 }'''
-    ], <ErrorCode>[
-      CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY
-    ]);
+        ],
+        useCFE
+            ? <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]
+            : <ErrorCode>[
+                CompileTimeErrorCode
+                    .NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY
+              ]);
   }
 
   test_nonConstValueInInitializer_assert_condition() async {
@@ -5626,8 +5964,12 @@ class A {
   const A(int i) : assert(i.isNegative);
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
+    }
     verify([source]);
   }
 
@@ -5637,8 +5979,12 @@ class A {
   const A(int i) : assert(i < 0, 'isNegative = ${i.isNegative}');
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
+    }
     verify([source]);
   }
 
@@ -5649,10 +5995,14 @@ class A {
   const A(String p) : a = p && true;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
-      StaticTypeWarningCode.NON_BOOL_OPERAND
-    ]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+        StaticTypeWarningCode.NON_BOOL_OPERAND
+      ]);
+    }
     verify([source]);
   }
 
@@ -5663,10 +6013,14 @@ class A {
   const A(String p) : a = true && p;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
-      StaticTypeWarningCode.NON_BOOL_OPERAND
-    ]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+        StaticTypeWarningCode.NON_BOOL_OPERAND
+      ]);
+    }
     verify([source]);
   }
 
@@ -5706,8 +6060,12 @@ class A {
   const A() : a = C;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
+    }
     verify([source]);
   }
 
@@ -5724,10 +6082,14 @@ var b = const B();''');
     // TODO(scheglov): the error CONST_EVAL_THROWS_EXCEPTION is redundant and
     // ought to be suppressed. Or not?
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER,
-      CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION
-    ]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER,
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION
+      ]);
+    }
     verify([source]);
   }
 
@@ -5744,10 +6106,17 @@ class MyClass {
     await computeAnalysisResult(sourceA);
     assertNoErrors(sourceA);
     await computeAnalysisResult(sourceB);
-    assertErrors(sourceB, [
-      CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE,
-      StaticWarningCode.UNDEFINED_IDENTIFIER
-    ]);
+    if (useCFE) {
+      assertErrors(sourceB, [
+        StaticTypeWarningCode.UNDEFINED_GETTER,
+        StaticTypeWarningCode.UNDEFINED_GETTER
+      ]);
+    } else {
+      assertErrors(sourceB, [
+        CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE,
+        StaticWarningCode.UNDEFINED_IDENTIFIER
+      ]);
+    }
   }
 
   test_nonConstValueInInitializer_redirecting() async {
@@ -5758,8 +6127,12 @@ class A {
   const A() : this.named(C);
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
+    }
     verify([source]);
   }
 
@@ -5773,8 +6146,12 @@ class B extends A {
   const B() : super(C);
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
+    }
     verify([source]);
   }
 
@@ -5861,7 +6238,11 @@ class B extends A {
   B() : super.named();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SUPER_METHOD]);
+    } else {
+      assertErrors(source, [CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR]);
+    }
     verify([source]);
   }
 
@@ -5874,7 +6255,12 @@ class B extends A {
   B();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR]);
+    if (useCFE) {
+      assertErrors(
+          source, [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    } else {
+      assertErrors(source, [CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR]);
+    }
     verify([source]);
   }
 
@@ -5886,7 +6272,12 @@ class A {
 class B extends A {
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR]);
+    if (useCFE) {
+      assertErrors(
+          source, [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    } else {
+      assertErrors(source, [CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR]);
+    }
     verify([source]);
   }
 
@@ -6410,10 +6801,15 @@ class A {
   A.b() : this.a();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT,
-      CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT
-    ]);
+    if (useCFE) {
+      assertErrors(
+          source, [CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT,
+        CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT
+      ]);
+    }
     verify([source]);
   }
 
@@ -6654,9 +7050,14 @@ class D implements A {}''');
   test_recursiveInterfaceInheritanceBaseCaseExtends() async {
     Source source = addSource("class A extends A {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS
-    ]);
+    if (useCFE) {
+      assertErrors(
+          source, [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS
+      ]);
+    }
     verify([source]);
   }
 
@@ -6668,11 +7069,18 @@ class C extends C {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS,
-      StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
-      StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE
-    ]);
+    if (useCFE) {
+      assertErrors(source, [
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+        StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+      ]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS,
+        StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE
+      ]);
+    }
     verify([source]);
   }
 
@@ -6807,7 +7215,15 @@ main() {
 }
 print(x) {}''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION]);
+    if (useCFE) {
+      assertErrors(source, [
+        CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+        CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION
+      ]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION]);
+    }
   }
 
   test_referencedBeforeDeclaration_hideInBlock_local() async {
@@ -6862,7 +7278,15 @@ void testTypeRef() {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION]);
+    if (useCFE) {
+      assertErrors(source, [
+        CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+        CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION
+      ]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION]);
+    }
   }
 
   test_referencedBeforeDeclaration_type_localVariable() async {
@@ -7133,10 +7557,15 @@ main() {
   F foo(G g) => g;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
-      CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
-    ]);
+    if (useCFE) {
+      assertErrors(
+          source, [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
+        CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
+      ]);
+    }
     verify([source]);
   }
 
@@ -7173,10 +7602,15 @@ main() {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
-      CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
-    ]);
+    if (useCFE) {
+      assertErrors(
+          source, [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
+        CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
+      ]);
+    }
     verify([source]);
   }
 
@@ -7238,10 +7672,15 @@ class C {
 typedef B A();
 typedef A B();''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
-      CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
-    ]);
+    if (useCFE) {
+      assertErrors(
+          source, [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
+        CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
+      ]);
+    }
     verify([source]);
   }
 
@@ -7311,7 +7750,11 @@ f() {
   return const A();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.UNDEFINED_CLASS]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else {
+      assertErrors(source, [CompileTimeErrorCode.UNDEFINED_CLASS]);
+    }
     verify([source]);
   }
 
@@ -7322,8 +7765,12 @@ class B extends A {
   B() : super.named();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SUPER_METHOD]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER]);
+    }
     // no verify(), "super.named()" is not resolved
   }
 
@@ -7336,8 +7783,12 @@ class B extends A {
   B() : super();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SUPER_METHOD]);
+    } else {
+      assertErrors(source,
+          [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
+    }
     verify([source]);
   }
 
@@ -7350,8 +7801,13 @@ class B extends A {
   B();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
+    if (useCFE) {
+      assertErrors(
+          source, [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT]);
+    } else {
+      assertErrors(source,
+          [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
+    }
     verify([source]);
   }
 
@@ -7437,10 +7893,17 @@ part 'unknown.dart';''');
   test_uriWithInterpolation_constant() async {
     Source source = addSource("import 'stuff_\$platform.dart';");
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.URI_WITH_INTERPOLATION,
-      StaticWarningCode.UNDEFINED_IDENTIFIER
-    ]);
+    if (useCFE) {
+      assertErrors(source, [
+        CompileTimeErrorCode.URI_WITH_INTERPOLATION,
+        ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION
+      ]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.URI_WITH_INTERPOLATION,
+        StaticWarningCode.UNDEFINED_IDENTIFIER
+      ]);
+    }
     // We cannot verify resolution with an unresolvable
     // URI: 'stuff_$platform.dart'
   }
@@ -7651,7 +8114,7 @@ f() {
 
   Future<Null> _check_constEvalThrowsException_binary_null(
       String expr, bool resolved,
-      {List<StaticTypeWarningCode> cfeErrors}) async {
+      {List<ErrorCode> cfeErrors}) async {
     Source source = addSource("const C = $expr;");
     await computeAnalysisResult(source);
     if (useCFE && cfeErrors != null) {
@@ -7664,18 +8127,22 @@ f() {
     }
   }
 
-  Future<Null> _check_constEvalTypeBool_withParameter_binary(
-      String expr) async {
+  Future<Null> _check_constEvalTypeBool_withParameter_binary(String expr,
+      {List<ErrorCode> cfeErrors}) async {
     Source source = addSource('''
 class A {
   final a;
   const A(bool p) : a = $expr;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
-      StaticTypeWarningCode.NON_BOOL_OPERAND
-    ]);
+    if (useCFE && cfeErrors != null) {
+      assertErrors(source, cfeErrors);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+        StaticTypeWarningCode.NON_BOOL_OPERAND
+      ]);
+    }
     verify([source]);
   }
 
