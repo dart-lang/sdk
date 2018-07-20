@@ -55,8 +55,8 @@ class Context extends ChainContext {
   ];
 
   @override
-  void cleanUp(TestDescription description, Result result) {
-    cleanupHelper?.outDir?.deleteSync(recursive: true);
+  Future<void> cleanUp(TestDescription description, Result result) async {
+    await cleanupHelper?.outDir?.delete(recursive: true);
   }
 
   TestData cleanupHelper;
@@ -343,7 +343,7 @@ void checkIsEqual(List<int> a, List<int> b) {
   }
   for (int i = 0; i < length; ++i) {
     if (a[i] != b[i]) {
-      Expect.fail("Data differs at byte ${i+1}.");
+      Expect.fail("Data differs at byte ${i + 1}.");
     }
   }
   Expect.equals(a.length, b.length);

@@ -596,7 +596,8 @@ main() {
       f() async* {
         try {
           list.add(0);
-          yield list.add(1);
+          list.add(1);
+          yield null;
           list.add(2);
         } finally {
           exits.complete(3);

@@ -93,7 +93,7 @@ class LibraryContext {
       }
 
       logger.run('Append library files', () {
-        return appendLibraryFiles(targetLibrary);
+        appendLibraryFiles(targetLibrary);
       });
 
       Set<String> libraryUrisToLink = new Set<String>();
