@@ -133,6 +133,18 @@ DEFINE_FLAG_HANDLER(PrecompilationModeHandler,
                     precompilation,
                     "Precompilation mode");
 
+static void UnsafeModeHandler(bool value) {
+  if (value) {
+    FLAG_omit_strong_type_checks = true;
+    FLAG_use_strong_mode_types = false;
+  }
+}
+
+DEFINE_FLAG_HANDLER(UnsafeModeHandler,
+                    experimental_unsafe_mode_use_at_your_own_risk,
+                    "Omit runtime strong mode type checks and disable "
+                    "optimizations based on types.");
+
 #ifndef DART_PRECOMPILED_RUNTIME
 
 bool UseKernelFrontEndFor(ParsedFunction* parsed_function) {
