@@ -192,6 +192,9 @@ abstract class KernelToElementMapForImpact extends KernelToElementMap {
   /// Returns the [ir.Library] corresponding to [library].
   ir.Library getLibraryNode(LibraryEntity library);
 
+  /// Returns the node that defines [typedef].
+  ir.Typedef getTypedefNode(covariant TypedefEntity typedef);
+
   /// Returns the definition information for [member].
   MemberDefinition getMemberDefinition(covariant MemberEntity member);
 

@@ -32,7 +32,6 @@ prebuilt_dart2js_action("build_observatory") {
                                ])  # Dependencies
 
   args = [
-    "--no-preview-dart-2",
     "-DOBS_VER=${version_string}",
     "-o",
     rebase_path(output),

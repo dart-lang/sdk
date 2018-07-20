@@ -1,3 +1,9 @@
+// Errors:
+//
+// pkg/front_end/testcases/inference/infer_variable_void.dart:9:55: Error: This expression has type 'void' and can't be used.
+// var /*@topType=void*/ x = /*info:USE_OF_VOID_RESULT*/ f();
+//                                                       ^
+
 library test;
 import self as self;
 

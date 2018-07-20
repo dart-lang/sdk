@@ -340,24 +340,8 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   @override
   jsAst.Expression visitInstantiation(InstantiationConstantValue constant,
       [_]) {
-    // TODO(johnniwinther,sra): Support arbitrary type argument count.
-    ClassEntity cls;
-    switch (constant.typeArguments.length) {
-      case 1:
-        cls = _commonElements.instantiation1Class;
-        break;
-      case 2:
-        cls = _commonElements.instantiation2Class;
-        break;
-      case 3:
-        cls = _commonElements.instantiation3Class;
-        break;
-      default:
-        failedAt(
-            NO_LOCATION_SPANNABLE,
-            "Unsupported instantiation argument count: "
-            "${constant.typeArguments.length}");
-    }
+    ClassEntity cls =
+        _commonElements.getInstantiationClass(constant.typeArguments.length);
     List<jsAst.Expression> fields = <jsAst.Expression>[
       constantReferenceGenerator(constant.function),
       _reifiedTypeArguments(constant, constant.typeArguments)

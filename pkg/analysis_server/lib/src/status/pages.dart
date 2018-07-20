@@ -38,7 +38,9 @@ abstract class Page {
     } else {
       buf.writeln('<div>');
     }
-    await gen();
+    // TODO(brianwilkerson) Determine if await is necessary, if so, change the
+    // return type of [gen] to `Future<void>`.
+    await (gen() as dynamic);
     buf.writeln('</div>');
   }
 
@@ -60,7 +62,9 @@ abstract class Page {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     buf.clear();
-    await generatePage(params);
+    // TODO(brianwilkerson) Determine if await is necessary, if so, change the
+    // return type of [generatePage] to `Future<void>`.
+    await (generatePage(params) as dynamic);
     return buf.toString();
   }
 

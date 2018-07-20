@@ -8,6 +8,15 @@ import 'messages.dart' as msg;
 
 Severity rewriteSeverity(
     Severity severity, msg.Code<Object> code, Uri fileUri) {
+  if (code == msg.codeVoidExpression) {
+    // TODO(ahe): Remove this special case when
+    // [https://github.com/dart-lang/dartdoc/issues/1724] is fixed.
+    String path = fileUri.path;
+    if (path.endsWith("/third_party/pkg/dartdoc/lib/src/model.dart") ||
+        path.endsWith("/third_party/pkg/dartdoc/lib/src/io_utils.dart")) {
+      return Severity.ignored;
+    }
+  }
   if (severity != Severity.ignored) return severity;
   String path = fileUri.path;
   String fastaPath = "/pkg/front_end/lib/src/fasta/";

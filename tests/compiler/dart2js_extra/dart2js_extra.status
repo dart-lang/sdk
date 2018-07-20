@@ -8,6 +8,7 @@ bounds_check4b_test: RuntimeError # Issue 32741
 class_test: Fail
 constant_javascript_semantics4_test: Fail, OK
 generic_class_is_test: Fail # Issue 32004
+many_instantiations_test/01: Crash # Issue 33819
 no_such_method_test: Fail # Wrong Invocation.memberName.
 statements_test: Fail
 typed_locals_test: Pass, Fail

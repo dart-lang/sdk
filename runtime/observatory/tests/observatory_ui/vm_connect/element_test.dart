@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/vm_connect_target.dart';
 import 'package:observatory/src/elements/vm_connect.dart';
@@ -76,7 +77,7 @@ main() {
       final list = <TargetMock>[const TargetMock(name: 't-1')];
       final targets = new TargetRepositoryMock(
           list: list,
-          add: expectAsync((String val) {
+          add: expectAsync1((String val) {
             expect(val, equals(address));
           }, count: 1, reason: 'should be invoked'));
       final e = new VMConnectElement(
@@ -92,7 +93,7 @@ main() {
       final list = <TargetMock>[const TargetMock(name: 't-1')];
       final targets = new TargetRepositoryMock(
           list: list,
-          setCurrent: expectAsync((TargetMock t) {
+          setCurrent: expectAsync1((M.Target t) {
             expect(t, equals(list[0]));
           }, count: 1, reason: 'should be invoked'));
       final e =
@@ -107,7 +108,7 @@ main() {
       final list = <TargetMock>[const TargetMock(name: 't-1')];
       final targets = new TargetRepositoryMock(
           list: list,
-          delete: expectAsync((TargetMock t) {
+          delete: expectAsync1((M.Target t) {
             expect(t, equals(list[0]));
           }, count: 1, reason: 'should be invoked'));
       final e =

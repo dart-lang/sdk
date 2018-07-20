@@ -224,7 +224,6 @@ mirrors/operator_test: RuntimeError
 mirrors/redirecting_factory_different_type_test/02: MissingCompileTimeError
 mirrors/redirecting_factory_different_type_test/none: RuntimeError
 mirrors/redirecting_factory_reflection_test: RuntimeError
-mirrors/top_level_accessors_test/01: MissingCompileTimeError
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revealed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
@@ -333,9 +332,6 @@ mirrors/mirrors_nsm_test/none: CompileTimeError
 mirrors/native_class_test: CompileTimeError
 mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
 mirrors/redirecting_factory_different_type_test/02: MissingCompileTimeError
-
-[ $fasta && $strong ]
-mirrors/top_level_accessors_test/01: MissingCompileTimeError
 
 [ $fasta && !$strong ]
 isolate/isolate_import_test/01: MissingCompileTimeError

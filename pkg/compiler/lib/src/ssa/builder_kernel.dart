@@ -3670,7 +3670,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     add(argumentsInstruction);
 
     List<HInstruction> argumentNames = <HInstruction>[];
-    for (String argumentName in selector.namedArguments) {
+    for (String argumentName
+        in selector.callStructure.getOrderedNamedArguments()) {
       ConstantValue argumentNameConstant =
           constantSystem.createString(argumentName);
       argumentNames.add(graph.addConstant(argumentNameConstant, closedWorld));
@@ -4363,7 +4364,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
     int typeArgumentCount = node.typeArguments.length;
     bool targetCanThrow = false; // TODO(sra): Is this true?
-    FunctionEntity target = _instantiator(typeArgumentCount);
+    FunctionEntity target =
+        _commonElements.getInstantiateFunction(typeArgumentCount);
     if (target == null) {
       reporter.internalError(
           _elementMap.getSpannable(targetElement, node),
@@ -4381,14 +4383,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
       ..clearAllSideEffects();
 
     push(instruction);
-  }
-
-  FunctionEntity _instantiator(int count) {
-    // TODO(johnniwinther,sra): Support arbitrary type argument count.
-    if (count == 1) return _commonElements.instantiate1;
-    if (count == 2) return _commonElements.instantiate2;
-    if (count == 3) return _commonElements.instantiate3;
-    return null;
   }
 
   @override
