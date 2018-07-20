@@ -3907,6 +3907,37 @@ main() {
     assertType(aRef, 'int');
   }
 
+  test_invalid_invocation_prefixAsMethodName() async {
+    addTestFile(r'''
+import 'dart:math' as p;
+int a;
+main() {
+  p(a);
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    ImportElement import = findNode.import('dart:math').element;
+
+    var invocation = findNode.methodInvocation('p(a)');
+    expect(invocation.staticType, isDynamicType);
+    if (useCFE) {
+      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/33682
+      expect(invocation.staticInvokeType.toString(), '() → dynamic');
+    } else {
+      expect(invocation.staticInvokeType, isDynamicType);
+    }
+
+    var pRef = invocation.methodName;
+    assertElement(pRef, import.prefix);
+    assertType(pRef, useCFE ? null : 'dynamic');
+
+    var aRef = findNode.simple('a);');
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
   test_invalid_methodInvocation_simpleIdentifier() async {
     addTestFile(r'''
 int foo = 0;

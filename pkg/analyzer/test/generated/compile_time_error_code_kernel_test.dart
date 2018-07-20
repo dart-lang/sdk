@@ -2055,20 +2055,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_prefix_unqualified_invocation_in_method() async {
-    // Bad state: No reference information for p at 46
-    await super.test_prefix_unqualified_invocation_in_method();
-  }
-
-  @override
-  @failingTest
-  test_prefix_unqualified_invocation_not_in_method() async {
-    // Bad state: No reference information for p at 32
-    await super.test_prefix_unqualified_invocation_not_in_method();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30857')
   test_prefixCollidesWithTopLevelMembers_functionTypeAlias() async {
     return super.test_prefixCollidesWithTopLevelMembers_functionTypeAlias();

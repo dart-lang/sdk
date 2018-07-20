@@ -2642,7 +2642,9 @@ class StaticInvocationJudgment extends StaticInvocation
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    var calleeType = target.function.functionType;
+    FunctionType calleeType = target != null
+        ? target.function.functionType
+        : new FunctionType([], const DynamicType());
     var inferenceResult = inferrer.inferInvocation(factory, typeContext,
         fileOffset, calleeType, calleeType.returnType, argumentJudgments);
     var inferredType = inferenceResult.type;
