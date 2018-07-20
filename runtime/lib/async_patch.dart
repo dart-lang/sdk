@@ -120,6 +120,7 @@ void _asyncStarListenHelper(var object, var awaiter) {
   object._awaiter = awaiter;
 }
 
+@pragma("vm.entry_point")
 void _asyncStarMoveNextHelper(var stream) {
   if (stream is! _StreamImpl) {
     return;
@@ -288,6 +289,7 @@ class _StreamImpl<T> {
   Function _generator;
 }
 
+@pragma("vm.entry_point")
 void _completeOnAsyncReturn(Completer completer, Object value) {
   completer.complete(value);
 }
@@ -297,9 +299,11 @@ void _completeOnAsyncReturn(Completer completer, Object value) {
 Object _asyncStackTraceHelper(Function async_op)
     native "StackTrace_asyncStackTraceHelper";
 
+@pragma("vm.entry_point")
 void _clearAsyncThreadStackTrace()
     native "StackTrace_clearAsyncThreadStackTrace";
 
+@pragma("vm.entry_point")
 void _setAsyncThreadStackTrace(StackTrace stackTrace)
     native "StackTrace_setAsyncThreadStackTrace";
 

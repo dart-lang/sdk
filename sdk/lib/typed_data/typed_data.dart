@@ -455,6 +455,7 @@ abstract class ByteData implements TypedData {
    * Creates a [ByteData] of the specified length (in elements), all of
    * whose bytes are initially zero.
    */
+  @pragma("vm.entry_point")
   external factory ByteData(int length);
 
   /**

@@ -23,12 +23,14 @@ class Error {
 }
 
 class _AssertionError extends Error implements AssertionError {
+  @pragma("vm.entry_point")
   _AssertionError._create(
       this._failedAssertion, this._url, this._line, this._column, this.message);
 
   // AssertionError_throwNew in errors.cc fishes the assertion source code
   // out of the script. It expects a Dart stack frame from class
   // _AssertionError. Thus we need a Dart stub that calls the native code.
+  @pragma("vm.entry_point")
   static _throwNew(int assertionStart, int assertionEnd, Object message) {
     _doThrowNew(assertionStart, assertionEnd, message);
   }
@@ -36,6 +38,7 @@ class _AssertionError extends Error implements AssertionError {
   static _doThrowNew(int assertionStart, int assertionEnd, Object message)
       native "AssertionError_throwNew";
 
+  @pragma("vm.entry_point")
   static _evaluateAssertion(condition) {
     if (identical(condition, true) || identical(condition, false)) {
       return condition;
@@ -77,6 +80,7 @@ class _AssertionError extends Error implements AssertionError {
 }
 
 class _TypeError extends _AssertionError implements TypeError {
+  @pragma("vm.entry_point")
   _TypeError._create(String url, int line, int column, String errorMsg)
       : super._create("is assignable", url, line, column, errorMsg);
 
@@ -99,6 +103,7 @@ class _TypeError extends _AssertionError implements TypeError {
 }
 
 class _CastError extends Error implements CastError {
+  @pragma("vm.entry_point")
   _CastError._create(this._url, this._line, this._column, this._errorMsg);
 
   // A CastError is allocated by TypeError._throwNew() when dst_name equals
@@ -116,6 +121,7 @@ class _CastError extends Error implements CastError {
 @patch
 class FallThroughError {
   @patch
+  @pragma("vm.entry_point")
   FallThroughError._create(String url, int line)
       : _url = url,
         _line = line;
@@ -134,6 +140,7 @@ class FallThroughError {
 }
 
 class _InternalError {
+  @pragma("vm.entry_point")
   const _InternalError(this._msg);
   String toString() => "InternalError: '${_msg}'";
   final String _msg;
@@ -155,6 +162,7 @@ class CyclicInitializationError {
 
 @patch
 class AbstractClassInstantiationError {
+  @pragma("vm.entry_point")
   AbstractClassInstantiationError._create(
       this._className, this._url, this._line);
 
@@ -252,6 +260,7 @@ class NoSuchMethodError {
   // _throwNew above, taking a TypeArguments object rather than an unpacked list
   // of types, as well as a list of all arguments and a list of names, rather
   // than a separate list of positional arguments and a map of named arguments.
+  @pragma("vm.entry_point")
   NoSuchMethodError._withType(
       this._receiver,
       String memberName,
@@ -576,6 +585,7 @@ class _CompileTimeError extends Error {
   String toString() => _errorMsg;
 }
 
+@pragma("vm.entry_point")
 dynamic _classRangeAssert(int position, dynamic instance, _Type type, int cid,
     int lowerLimit, int upperLimit) {
   if ((cid < lowerLimit || cid > upperLimit) && instance != null) {
@@ -585,6 +595,7 @@ dynamic _classRangeAssert(int position, dynamic instance, _Type type, int cid,
   return instance;
 }
 
+@pragma("vm.entry_point")
 dynamic _classIdEqualsAssert(
     int position, dynamic instance, _Type type, int cid, int otherCid) {
   if (cid != otherCid && instance != null) {

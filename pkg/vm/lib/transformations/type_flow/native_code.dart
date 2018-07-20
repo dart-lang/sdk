@@ -38,6 +38,7 @@ abstract class EntryPointsListener {
 class PragmaEntryPointsVisitor extends RecursiveVisitor {
   final EntryPointsListener entryPoints;
   final CoreTypes coreTypes;
+  Class currentClass = null;
 
   PragmaEntryPointsVisitor(this.coreTypes, this.entryPoints);
 
@@ -76,6 +77,7 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
     if (_annotationsDefineRoot(klass.annotations)) {
       entryPoints.addAllocatedClass(klass);
     }
+    currentClass = klass;
     klass.visitChildren(this);
   }
 
@@ -85,6 +87,15 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
       entryPoints.addRawCall(proc.isInstanceMember
           ? new InterfaceSelector(proc, callKind: CallKind.Method)
           : new DirectSelector(proc, callKind: CallKind.Method));
+    }
+  }
+
+  @override
+  visitConstructor(Constructor ctor) {
+    if (_annotationsDefineRoot(ctor.annotations)) {
+      entryPoints
+          .addRawCall(new DirectSelector(ctor, callKind: CallKind.Method));
+      entryPoints.addAllocatedClass(currentClass);
     }
   }
 }
