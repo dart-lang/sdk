@@ -27,6 +27,12 @@
     'kernel': {
       'filepath': '^pkg/kernel',
     },
+    'dart2js': {
+      'filepath': (
+        '^pkg/compiler|'
+        '^tests/compiler'
+      )
+    },
     'package_vm': {
       'filepath': '^pkg/vm',
     },
@@ -72,5 +78,6 @@
     'observatory': [ 'rmacnak@google.com' ],
     'package_vm': [ 'alexmarkov@google.com' ],
     'runtime': [ 'vm-dev@dartlang.org' ],
+    'dart2js': [ 'johnniwinther@google.com', 'sigmund@google.com' ],
   },
 }
