@@ -125,13 +125,17 @@ class CompilerContext {
   /// `CompilerContext.current.options`.
   static Future<T> runWithOptions<T>(
       ProcessedOptions options, Future<T> action(CompilerContext c)) {
-    return new CompilerContext(options).runInContext(action);
+    return new CompilerContext(options)
+        .runInContext<T>((CompilerContext c) async {
+      await options.validateOptions();
+      return action(c);
+    });
   }
 
   static Future<T> runWithDefaultOptions<T>(
       Future<T> action(CompilerContext c)) {
     return new CompilerContext(new ProcessedOptions(new CompilerOptions()))
-        .runInContext(action);
+        .runInContext<T>(action);
   }
 
   static bool get enableColors {

@@ -391,11 +391,11 @@ ProcessedOptions analyzeCommandLine(
   return new ProcessedOptions(compilerOptions, inputs, output);
 }
 
-dynamic withGlobalOptions(
+Future<T> withGlobalOptions<T>(
     String programName,
     List<String> arguments,
     bool areRestArgumentsInputs,
-    dynamic f(CompilerContext context, List<String> restArguments)) {
+    Future<T> f(CompilerContext context, List<String> restArguments)) {
   bool verbose = false;
   for (String argument in arguments) {
     if (argument == "--") break;
@@ -416,7 +416,7 @@ dynamic withGlobalOptions(
     problem = e;
   }
 
-  return CompilerContext.runWithOptions(options, (c) {
+  return CompilerContext.runWithOptions<T>(options, (c) {
     if (problem != null) {
       print(computeUsage(programName, verbose).message);
       print(c.formatWithoutLocation(problem.message, Severity.error));

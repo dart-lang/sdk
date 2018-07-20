@@ -23,7 +23,6 @@ io/http_parser_test: CompileTimeError
 io/http_redirect_test: RuntimeError
 io/http_reuse_server_port_test: RuntimeError
 io/http_server_response_test: RuntimeError
-io/named_pipe_script_test: RuntimeError # Issue 33842
 io/platform_test: RuntimeError
 io/regress_10026_test: RuntimeError
 io/secure_socket_argument_test: CompileTimeError
@@ -35,6 +34,9 @@ io/web_socket_protocol_processor_test: CompileTimeError
 io/zlib_test: RuntimeError
 oom_error_stacktrace_test: RuntimeError
 out_of_memory_test: RuntimeError
+
+[ $compiler == fasta ]
+io/arguments_test: CompileTimeError
 
 [ $fasta ]
 deferred_transitive_import_error_test: CompileTimeError
@@ -146,9 +148,6 @@ io/secure_builtin_roots_test: Skip # Issues 32137 and 32138.
 io/test_extension_fail_test: RuntimeError, Pass # Issue 32137.
 io/test_extension_test: RuntimeError, Pass # Issue 32137.
 io/wait_for_event_isolate_test: Skip # Issues 32137 and 32138.
-
-[ $system != windows && $strong && ($compiler == dartk || $compiler == dartkb || $compiler == dartkp) ]
-io/named_pipe_script_test: RuntimeError # Issue 33842
 
 [ $fasta && $strong ]
 package/package_isolate_test: CompileTimeError
