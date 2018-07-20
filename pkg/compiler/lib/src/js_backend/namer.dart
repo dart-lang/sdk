@@ -542,6 +542,8 @@ class Namer {
   final NamingScope instanceScope = new NamingScope();
   final Map<String, jsAst.Name> userInstanceMembers =
       new HashMap<String, jsAst.Name>();
+  final Map<String, String> userInstanceMembersOriginalName =
+      new HashMap<String, String>();
   final Map<MemberEntity, jsAst.Name> internalInstanceMembers =
       new HashMap<MemberEntity, jsAst.Name>();
   final Map<String, jsAst.Name> userInstanceOperators =
@@ -557,7 +559,8 @@ class Namer {
     userInstanceMembers.forEach((name, jsName) {
       // Non-finalized names are not present in the output program
       if (jsName is TokenName && !jsName.isFinalized) return;
-      map[jsName.name] = name;
+      var originalName = userInstanceMembersOriginalName[name];
+      map[jsName.name] = originalName ?? name;
     });
 
     // TODO(sigmund): reverse the operator names back to the original Dart
@@ -1199,6 +1202,7 @@ class Namer {
       newName = getFreshName(instanceScope, proposedName,
           sanitizeForAnnotations: true);
       userInstanceMembers[key] = newName;
+      userInstanceMembersOriginalName[key] = '$originalName';
     }
     return _newReference(newName);
   }
@@ -1221,6 +1225,8 @@ class Namer {
       String name = proposeName();
       newName = getFreshName(instanceScope, name, sanitizeForAnnotations: true);
       userInstanceMembers[key] = newName;
+      // TODO(sigmund): consider plumbing the original name instead.
+      userInstanceMembersOriginalName[key] = name;
     }
     return _newReference(newName);
   }
@@ -1241,6 +1247,7 @@ class Namer {
     assert(!userInstanceMembers.containsKey(key));
     assert(!instanceScope.isUsed(disambiguatedName));
     userInstanceMembers[key] = new StringBackedName(disambiguatedName);
+    userInstanceMembersOriginalName[key] = originalName;
     instanceScope.registerUse(disambiguatedName);
   }
 

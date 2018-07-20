@@ -36,17 +36,18 @@ Future<D8Result> runWithD8(
     Map<String, String> memorySourceFiles: const <String, String>{},
     List<String> options: const <String>[],
     String expectedOutput,
-    bool printJs: false}) async {
+    bool printJs: false,
+    bool printSteps: false}) async {
   entryPoint ??= Uri.parse('memory:main.dart');
   Uri mainFile =
-      await createTemp(entryPoint, memorySourceFiles, printSteps: true);
+      await createTemp(entryPoint, memorySourceFiles, printSteps: printSteps);
   String output = uriPathToNative(mainFile.resolve('out.js').path);
   List<String> dart2jsArgs = [
     mainFile.toString(),
     '-o$output',
     '--packages=${Platform.packageConfig}',
   ]..addAll(options);
-  print('Running: dart2js ${dart2jsArgs.join(' ')}');
+  if (printSteps) print('Running: dart2js ${dart2jsArgs.join(' ')}');
 
   CompilationResult result = await dart2js.internalMain(dart2jsArgs);
   Expect.isTrue(result.isSuccess);
@@ -59,11 +60,11 @@ Future<D8Result> runWithD8(
     'sdk/lib/_internal/js_runtime/lib/preambles/d8.js',
     output
   ];
-  print('Running: d8 ${d8Args.join(' ')}');
+  if (printSteps) print('Running: d8 ${d8Args.join(' ')}');
   ProcessResult runResult = Process.runSync(d8executable, d8Args);
   String out = '${runResult.stderr}\n${runResult.stdout}';
-  print('d8 output:');
-  print(out);
+  if (printSteps) print('d8 output:');
+  if (printSteps) print(out);
   if (expectedOutput != null) {
     Expect.equals(0, runResult.exitCode);
     Expect.stringEquals(expectedOutput.trim(),

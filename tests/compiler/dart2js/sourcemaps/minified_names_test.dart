@@ -19,6 +19,7 @@ void main(List<String> args) {
   ArgResults argResults = argParser.parse(args);
   Directory dataDir =
       new Directory.fromUri(Platform.script.resolve('minified'));
+  print('Input folder: ${dataDir.uri}');
   asyncTest(() async {
     bool continuing = false;
     await for (FileSystemEntity entity in dataDir.list()) {
@@ -29,9 +30,7 @@ void main(List<String> args) {
           !continuing) {
         continue;
       }
-      print('----------------------------------------------------------------');
-      print('Checking ${entity.uri}');
-      print('----------------------------------------------------------------');
+      print('\ninput $name');
       await runTest(await new File.fromUri(entity.uri).readAsString());
       if (argResults['continued']) continuing = true;
     }
@@ -85,19 +84,19 @@ Future runTest(String code) async {
   Expect.isNotNull(nameMatch, "Could not find the expected deobfuscated name.");
   var expectedName = nameMatch.group(1);
   var test = new MinifiedNameTest(pattern, kind, expectedName, code);
-  print(test.code);
+  print('expectations: ${pattern.pattern} $kind $expectedName');
   await checkExpectation(test, false);
   await checkExpectation(test, true);
 }
 
 checkExpectation(MinifiedNameTest test, bool minified) async {
-  print('-- ${minified ? 'minified' : 'not-minified'}  '
-      '-----------------------------------------------');
+  print('-- ${minified ? 'minified' : 'not-minified'}:');
   D8Result result = await runWithD8(
       memorySourceFiles: {'main.dart': test.code},
       options: minified ? [Flags.minify] : []);
   String stdout = result.runResult.stdout;
   String error = _extractError(stdout);
+  print('   error: $error');
   Expect.isNotNull(error, 'Couldn\'t find the error message in $stdout');
 
   var match = test.pattern.firstMatch(error);
@@ -106,6 +105,7 @@ checkExpectation(MinifiedNameTest test, bool minified) async {
       'Error didn\'t match the test pattern'
       '\nerror: $error\npattern:${test.pattern}');
   var name = match.group(1);
+  print('   obfuscated-name: $name');
   Expect.isNotNull(name, 'Error didn\'t contain a name\nerror: $error');
 
   var sourceMap = '${result.outputPath}.map';
@@ -116,15 +116,17 @@ checkExpectation(MinifiedNameTest test, bool minified) async {
   var minifiedNames = extensions['minified_names'];
   Expect.isNotNull(minifiedNames, "Source-map doesn't contain minified-names");
 
+  var actualName;
   if (test.isGlobal) {
-    var actualName = json['names'][minifiedNames['global'][name]];
-    Expect.equals(test.expectedName, actualName);
+    actualName = json['names'][minifiedNames['global'][name]];
   } else if (test.isInstance) {
-    var actualName = json['names'][minifiedNames['instance'][name]];
-    Expect.equals(test.expectedName, actualName);
+    actualName = json['names'][minifiedNames['instance'][name]];
   } else {
     Expect.fail('unexpected');
   }
+  print('   actual-name: $actualName');
+  Expect.equals(test.expectedName, actualName);
+  print('   PASS!!');
 }
 
 String _extractError(String stdout) {
