@@ -98,10 +98,9 @@ class CodegenEnqueuer extends EnqueuerImpl {
   }
 
   void _registerInstantiatedType(InterfaceType type,
-      {bool mirrorUsage: false, bool nativeUsage: false}) {
+      {bool nativeUsage: false}) {
     task.measure(() {
-      _worldBuilder.registerTypeInstantiation(type, _applyClassUse,
-          byMirrors: mirrorUsage);
+      _worldBuilder.registerTypeInstantiation(type, _applyClassUse);
       listener.registerInstantiatedType(type, nativeUsage: nativeUsage);
     });
   }
@@ -176,9 +175,6 @@ class CodegenEnqueuer extends EnqueuerImpl {
     switch (typeUse.kind) {
       case TypeUseKind.INSTANTIATION:
         _registerInstantiatedType(type);
-        break;
-      case TypeUseKind.MIRROR_INSTANTIATION:
-        _registerInstantiatedType(type, mirrorUsage: true);
         break;
       case TypeUseKind.NATIVE_INSTANTIATION:
         _registerInstantiatedType(type, nativeUsage: true);

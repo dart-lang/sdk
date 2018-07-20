@@ -155,7 +155,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       DartType type = typeUse.type;
       switch (typeUse.kind) {
         case TypeUseKind.INSTANTIATION:
-        case TypeUseKind.MIRROR_INSTANTIATION:
         case TypeUseKind.NATIVE_INSTANTIATION:
           break;
         case TypeUseKind.IS_CHECK:

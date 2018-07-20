@@ -204,23 +204,15 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   // subclass and through subtype instantiated types/classes.
   // TODO(johnniwinther): Support unknown type arguments for generic types.
   void registerTypeInstantiation(
-      InterfaceType type, ClassUsedCallback classUsed,
-      {bool byMirrors: false}) {
+      InterfaceType type, ClassUsedCallback classUsed) {
     ClassEntity cls = type.element;
     bool isNative = _nativeBasicData.isNativeClass(cls);
     _instantiatedTypes.add(type);
-    if (!cls.isAbstract
-        // We can't use the closed-world assumption with native abstract
-        // classes; a native abstract class may have non-abstract subclasses
-        // not declared to the program.  Instances of these classes are
-        // indistinguishable from the abstract class.
-        ||
-        isNative
-        // Likewise, if this registration comes from the mirror system,
-        // all bets are off.
-        // TODO(herhut): Track classes required by mirrors separately.
-        ||
-        byMirrors) {
+    // We can't use the closed-world assumption with native abstract
+    // classes; a native abstract class may have non-abstract subclasses
+    // not declared to the program.  Instances of these classes are
+    // indistinguishable from the abstract class.
+    if (!cls.isAbstract || isNative) {
       _directlyInstantiatedClasses.add(cls);
       _processInstantiatedClass(cls, classUsed);
     }

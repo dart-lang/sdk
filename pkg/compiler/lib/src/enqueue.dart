@@ -258,17 +258,14 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   void _registerInstantiatedType(InterfaceType type,
       {ConstructorEntity constructor,
-      bool mirrorUsage: false,
       bool nativeUsage: false,
       bool globalDependency: false,
       bool isRedirection: false}) {
     task.measure(() {
       _worldBuilder.registerTypeInstantiation(type, _applyClassUse,
-          constructor: constructor,
-          byMirrors: mirrorUsage,
-          isRedirection: isRedirection);
+          constructor: constructor, isRedirection: isRedirection);
       listener.registerInstantiatedType(type,
-          isGlobal: globalDependency && !mirrorUsage, nativeUsage: nativeUsage);
+          isGlobal: globalDependency, nativeUsage: nativeUsage);
     });
   }
 
@@ -360,10 +357,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     switch (typeUse.kind) {
       case TypeUseKind.INSTANTIATION:
         _registerInstantiatedType(type, globalDependency: false);
-        break;
-      case TypeUseKind.MIRROR_INSTANTIATION:
-        _registerInstantiatedType(type,
-            mirrorUsage: true, globalDependency: false);
         break;
       case TypeUseKind.NATIVE_INSTANTIATION:
         _registerInstantiatedType(type,

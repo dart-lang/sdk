@@ -345,7 +345,6 @@ abstract class DeferredLoadTask extends CompilerTask {
               }
               break;
             case TypeUseKind.INSTANTIATION:
-            case TypeUseKind.MIRROR_INSTANTIATION:
             case TypeUseKind.NATIVE_INSTANTIATION:
             case TypeUseKind.IS_CHECK:
             case TypeUseKind.AS_CAST:
