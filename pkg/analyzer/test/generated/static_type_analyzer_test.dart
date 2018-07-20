@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.static_type_analyzer_test;
-
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -372,8 +370,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   void test_visitAdjacentStrings() {
     // "a" "b"
-    Expression node = AstTestFactory
-        .adjacentStrings([_resolvedString("a"), _resolvedString("b")]);
+    Expression node = AstTestFactory.adjacentStrings(
+        [_resolvedString("a"), _resolvedString("b")]);
     expect(_analyze(node), same(_typeProvider.stringType));
     _listener.assertNoErrors();
   }
@@ -480,8 +478,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
         _typeProvider.futureType.instantiate(<DartType>[intType]);
     InterfaceType futureFutureIntType =
         _typeProvider.futureType.instantiate(<DartType>[futureIntType]);
-    Expression node = AstTestFactory
-        .awaitExpression(_resolvedVariable(futureFutureIntType, 'e'));
+    Expression node = AstTestFactory.awaitExpression(
+        _resolvedVariable(futureFutureIntType, 'e'));
     expect(_analyze(node), same(futureIntType));
     _listener.assertNoErrors();
   }
@@ -533,19 +531,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
-  void test_visitBinaryExpression_minusID_propagated() {
-    // a - b
-    BinaryExpression node = AstTestFactory.binaryExpression(
-        _propagatedVariable(_typeProvider.intType, 'a'),
-        TokenType.MINUS,
-        _propagatedVariable(_typeProvider.doubleType, 'b'));
-    node.propagatedElement = getMethod(_typeProvider.numType, "+");
-    _analyze(node);
-    expect(node.propagatedType,
-        previewDart2 ? isNull : same(_typeProvider.doubleType));
-    _listener.assertNoErrors();
-  }
-
   void test_visitBinaryExpression_notEquals() {
     // 2 != 3
     Expression node = AstTestFactory.binaryExpression(
@@ -569,19 +554,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
         _resolvedInteger(1), TokenType.PLUS, _resolvedInteger(2));
     node.staticElement = getMethod(_typeProvider.numType, "+");
     expect(_analyze(node), same(_typeProvider.intType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitBinaryExpression_plusII_propagated() {
-    // a + b
-    BinaryExpression node = AstTestFactory.binaryExpression(
-        _propagatedVariable(_typeProvider.intType, 'a'),
-        TokenType.PLUS,
-        _propagatedVariable(_typeProvider.intType, 'b'));
-    node.propagatedElement = getMethod(_typeProvider.numType, "+");
-    _analyze(node);
-    expect(node.propagatedType,
-        previewDart2 ? isNull : same(_typeProvider.intType));
     _listener.assertNoErrors();
   }
 
@@ -1083,8 +1055,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     ConstructorElementImpl constructor =
         ElementFactory.constructorElement2(classElement, constructorName);
     classElement.constructors = <ConstructorElement>[constructor];
-    InstanceCreationExpression node = AstTestFactory
-        .instanceCreationExpression2(
+    InstanceCreationExpression node =
+        AstTestFactory.instanceCreationExpression2(
             null,
             AstTestFactory.typeName(classElement),
             [AstTestFactory.identifier3(constructorName)]);
@@ -1195,8 +1167,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _analyzer = _createAnalyzer(strongMode: true);
     // [0, a, 1] // where 'a' is not resolved
     Identifier identifier = AstTestFactory.identifier3('a');
-    Expression node = AstTestFactory
-        .listLiteral([_resolvedInteger(0), identifier, _resolvedInteger(1)]);
+    Expression node = AstTestFactory.listLiteral(
+        [_resolvedInteger(0), identifier, _resolvedInteger(1)]);
     DartType resultType = _analyze(node);
     _assertType2(
         _typeProvider.listType.instantiate(<DartType>[_typeProvider.intType]),
@@ -1456,9 +1428,9 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   void test_visitThisExpression() {
     // this
-    InterfaceType thisType = ElementFactory
-        .classElement("B", ElementFactory.classElement2("A").type)
-        .type;
+    InterfaceType thisType =
+        ElementFactory.classElement("B", ElementFactory.classElement2("A").type)
+            .type;
     Expression node = AstTestFactory.thisExpression();
     expect(_analyze3(node, thisType), same(thisType));
     _listener.assertNoErrors();
@@ -1648,25 +1620,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   }
 
   DartType _flatten(DartType type) => type.flattenFutures(_typeSystem);
-
-  /**
-   * Return a simple identifier that has been resolved to a variable element with the given type.
-   *
-   * @param type the type of the variable being represented
-   * @param variableName the name of the variable
-   * @return a simple identifier that has been resolved to a variable element with the given type
-   */
-  SimpleIdentifier _propagatedVariable(
-      InterfaceType type, String variableName) {
-    SimpleIdentifier identifier = AstTestFactory.identifier3(variableName);
-    VariableElementImpl element =
-        ElementFactory.localVariableElement(identifier);
-    element.type = type;
-    identifier.staticType = _typeProvider.dynamicType;
-    identifier.propagatedElement = element;
-    identifier.propagatedType = type;
-    return identifier;
-  }
 
   /**
    * Return a boolean literal with the given [value] that has been resolved to

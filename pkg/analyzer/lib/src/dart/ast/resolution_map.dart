@@ -101,25 +101,29 @@ class ResolutionMapImpl implements ResolutionMap {
       node.parameterElements;
 
   @override
+  // TODO(brianwilkerson) Remove this method.
   ExecutableElement propagatedElementForFunctionExpressionInvocation(
           FunctionExpressionInvocation node) =>
-      node.propagatedElement;
+      null;
 
   @override
-  Element propagatedElementForIdentifier(Identifier node) =>
-      node.propagatedElement;
+  // TODO(brianwilkerson) Remove this method.
+  Element propagatedElementForIdentifier(Identifier node) => null;
 
   @override
+  // TODO(brianwilkerson) Remove this method.
   MethodElement propagatedElementForMethodReference(
           MethodReferenceExpression node) =>
-      node.propagatedElement;
+      null;
 
   @override
+  // TODO(brianwilkerson) Remove this method.
   ParameterElement propagatedParameterElementForExpression(Expression node) =>
-      node.propagatedParameterElement;
+      null;
 
   @override
-  DartType propagatedTypeForExpression(Expression node) => node.propagatedType;
+  // TODO(brianwilkerson) Remove this method.
+  DartType propagatedTypeForExpression(Expression node) => null;
 
   @override
   ConstructorElement staticElementForConstructorReference(

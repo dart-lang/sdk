@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.element_resolver_test;
-
 import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -461,7 +459,6 @@ class ElementResolverTest extends EngineTestCase {
         expression.staticElement,
         stringElement.lookUpMethod(
             TokenType.EQ_EQ.lexeme, stringElement.library));
-    expect(expression.propagatedElement, isNull);
     _listener.assertNoErrors();
   }
 
@@ -480,7 +477,6 @@ class ElementResolverTest extends EngineTestCase {
         expression.staticElement,
         stringElement.lookUpMethod(
             TokenType.EQ_EQ.lexeme, stringElement.library));
-    expect(expression.propagatedElement, isNull);
     _listener.assertNoErrors();
   }
 
@@ -495,7 +491,6 @@ class ElementResolverTest extends EngineTestCase {
         left, TokenType.PLUS, AstTestFactory.identifier3("j"));
     _resolveNode(expression);
     expect(expression.staticElement, getMethod(numType, "+"));
-    expect(expression.propagatedElement, isNull);
     _listener.assertNoErrors();
   }
 

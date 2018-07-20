@@ -42,16 +42,12 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
     properties['name'] = _getName(node);
     if (node is ArgumentListImpl) {
       properties['static parameter types'] = node.correspondingStaticParameters;
-      properties['propagated parameter types'] =
-          node.correspondingPropagatedParameters;
     } else if (node is Annotation) {
       properties['element'] = node.element;
       properties['element annotation'] = node.elementAnnotation;
     } else if (node is BinaryExpression) {
       properties['static element'] = node.staticElement;
       properties['static type'] = node.staticType;
-      properties['propagated element'] = node.propagatedElement;
-      properties['propagated type'] = node.propagatedType;
     } else if (node is ClassDeclaration) {
       properties['element'] = node.element;
       properties['abstract keyword'] = node.abstractKeyword;
@@ -90,9 +86,6 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       properties['static element'] = node.staticElement;
       properties['static invoke type'] = node.staticInvokeType;
       properties['static type'] = node.staticType;
-      properties['propagated element'] = node.propagatedElement;
-      properties['propagated invoke type'] = node.propagatedInvokeType;
-      properties['propagated type'] = node.propagatedType;
     } else if (node is GenericFunctionType) {
       properties['type'] = node.type;
     } else if (node is ImportDirective) {
@@ -102,12 +95,9 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
     } else if (node is IndexExpression) {
       properties['static element'] = node.staticElement;
       properties['static type'] = node.staticType;
-      properties['propagated element'] = node.propagatedElement;
-      properties['propagated type'] = node.propagatedType;
     } else if (node is InstanceCreationExpression) {
       properties['static element'] = node.staticElement;
       properties['static type'] = node.staticType;
-      properties['propagated type'] = node.propagatedType;
     } else if (node is LibraryDirective) {
       properties['element'] = node.element;
     } else if (node is MethodDeclaration) {
@@ -119,8 +109,6 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
     } else if (node is MethodInvocation) {
       properties['static invoke type'] = node.staticInvokeType;
       properties['static type'] = node.staticType;
-      properties['propagated invoke type'] = node.propagatedInvokeType;
-      properties['propagated type'] = node.propagatedType;
     } else if (node is PartDirective) {
       properties['element'] = node.element;
       properties['uriSource'] = node.uriSource;
@@ -129,20 +117,14 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
     } else if (node is PostfixExpression) {
       properties['static element'] = node.staticElement;
       properties['static type'] = node.staticType;
-      properties['propagated element'] = node.propagatedElement;
-      properties['propagated type'] = node.propagatedType;
     } else if (node is PrefixExpression) {
       properties['static element'] = node.staticElement;
       properties['static type'] = node.staticType;
-      properties['propagated element'] = node.propagatedElement;
-      properties['propagated type'] = node.propagatedType;
     } else if (node is RedirectingConstructorInvocation) {
       properties['static element'] = node.staticElement;
     } else if (node is SimpleIdentifier) {
       properties['static element'] = node.staticElement;
       properties['static type'] = node.staticType;
-      properties['propagated element'] = node.propagatedElement;
-      properties['propagated type'] = node.propagatedType;
     } else if (node is SimpleStringLiteral) {
       properties['value'] = node.value;
     } else if (node is SuperConstructorInvocation) {
@@ -155,15 +137,12 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       properties['element'] = node.element;
     } else if (node is Expression) {
       properties['static type'] = node.staticType;
-      properties['propagated type'] = node.propagatedType;
     } else if (node is FunctionBody) {
       properties['isAsynchronous'] = node.isAsynchronous;
       properties['isGenerator'] = node.isGenerator;
     } else if (node is Identifier) {
       properties['static element'] = node.staticElement;
       properties['static type'] = node.staticType;
-      properties['propagated element'] = node.propagatedElement;
-      properties['propagated type'] = node.propagatedType;
     }
 
     return properties;

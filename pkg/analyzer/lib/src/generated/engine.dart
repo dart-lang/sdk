@@ -1444,13 +1444,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool preserveComments = true;
 
-  @override
-  bool get strongMode => true;
-
-  @Deprecated(
-      "The strongMode field is deprecated, and shouldn't be assigned to")
-  set strongMode(bool value) {}
-
   /**
    * A flag indicating whether strong-mode inference hints should be
    * used.  This flag is not exposed in the interface, and should be
@@ -1689,6 +1682,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     }
     return _signature;
   }
+
+  @override
+  bool get strongMode => true;
+
+  @Deprecated(
+      "The strongMode field is deprecated, and shouldn't be assigned to")
+  set strongMode(bool value) {}
 
   @override
   void resetToDefaults() {
@@ -2660,14 +2660,12 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
   @override
   Object visitAssignmentExpression(AssignmentExpression node) {
     node.staticElement = null;
-    node.propagatedElement = null;
     return super.visitAssignmentExpression(node);
   }
 
   @override
   Object visitBinaryExpression(BinaryExpression node) {
     node.staticElement = null;
-    node.propagatedElement = null;
     return super.visitBinaryExpression(node);
   }
 
@@ -2716,7 +2714,6 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
   @override
   Object visitExpression(Expression node) {
     node.staticType = null;
-    node.propagatedType = null;
     return super.visitExpression(node);
   }
 
@@ -2731,14 +2728,12 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
   @override
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.staticElement = null;
-    node.propagatedElement = null;
     return super.visitFunctionExpressionInvocation(node);
   }
 
   @override
   Object visitIndexExpression(IndexExpression node) {
     node.staticElement = null;
-    node.propagatedElement = null;
     return super.visitIndexExpression(node);
   }
 
@@ -2751,14 +2746,12 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
   @override
   Object visitPostfixExpression(PostfixExpression node) {
     node.staticElement = null;
-    node.propagatedElement = null;
     return super.visitPostfixExpression(node);
   }
 
   @override
   Object visitPrefixExpression(PrefixExpression node) {
     node.staticElement = null;
-    node.propagatedElement = null;
     return super.visitPrefixExpression(node);
   }
 
@@ -2774,7 +2767,6 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
     if (eraseDeclarations || !node.inDeclarationContext()) {
       node.staticElement = null;
     }
-    node.propagatedElement = null;
     return super.visitSimpleIdentifier(node);
   }
 

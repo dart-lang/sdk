@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.generated.resolver;
-
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -326,7 +324,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         _checkForDeprecatedMemberUse(parameter, argument);
       }
     }
-    _checkForArgumentTypesNotAssignableInList(node);
     return super.visitArgumentList(node);
   }
 
@@ -613,127 +610,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * This verifies that the passed expression can be assigned to its corresponding parameters.
-   *
-   * This method corresponds to ErrorVerifier.checkForArgumentTypeNotAssignable.
-   *
-   * TODO (jwren) In the ErrorVerifier there are other warnings that we could have a corresponding
-   * hint for: see other callers of ErrorVerifier.checkForArgumentTypeNotAssignable(..).
-   *
-   * @param expression the expression to evaluate
-   * @param expectedStaticType the expected static type of the parameter
-   * @param actualStaticType the actual static type of the argument
-   * @param expectedPropagatedType the expected propagated type of the parameter, may be
-   *          `null`
-   * @param actualPropagatedType the expected propagated type of the parameter, may be `null`
-   * @return `true` if and only if an hint code is generated on the passed node
-   * See [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
-   */
-  bool _checkForArgumentTypeNotAssignable(
-      Expression expression,
-      DartType expectedStaticType,
-      DartType actualStaticType,
-      DartType expectedPropagatedType,
-      DartType actualPropagatedType,
-      ErrorCode hintCode) {
-    //
-    // Warning case: test static type information
-    //
-    if (actualStaticType != null && expectedStaticType != null) {
-      if (!_typeSystem.isAssignableTo(actualStaticType, expectedStaticType)) {
-        // A warning was created in the ErrorVerifier, return false, don't
-        // create a hint when a warning has already been created.
-        return false;
-      }
-    }
-    //
-    // Hint case: test propagated type information
-    //
-    // Compute the best types to use.
-    DartType expectedBestType = expectedPropagatedType ?? expectedStaticType;
-    DartType actualBestType = actualPropagatedType ?? actualStaticType;
-    if (actualBestType != null && expectedBestType != null) {
-      if (!_typeSystem.isAssignableTo(actualBestType, expectedBestType)) {
-        _errorReporter.reportTypeErrorForNode(
-            hintCode, expression, [actualBestType, expectedBestType]);
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * This verifies that the passed argument can be assigned to its corresponding parameter.
-   *
-   * This method corresponds to ErrorCode.checkForArgumentTypeNotAssignableForArgument.
-   *
-   * @param argument the argument to evaluate
-   * @return `true` if and only if an hint code is generated on the passed node
-   * See [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
-   */
-  bool _checkForArgumentTypeNotAssignableForArgument(Expression argument) {
-    if (argument == null) {
-      return false;
-    }
-    ParameterElement staticParameterElement = argument.staticParameterElement;
-    DartType staticParameterType = staticParameterElement?.type;
-    ParameterElement propagatedParameterElement =
-        argument.propagatedParameterElement;
-    DartType propagatedParameterType = propagatedParameterElement?.type;
-    return _checkForArgumentTypeNotAssignableWithExpectedTypes(
-        argument,
-        staticParameterType,
-        propagatedParameterType,
-        HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
-  }
-
-  /**
-   * This verifies that the passed expression can be assigned to its corresponding parameters.
-   *
-   * This method corresponds to ErrorCode.checkForArgumentTypeNotAssignableWithExpectedTypes.
-   *
-   * @param expression the expression to evaluate
-   * @param expectedStaticType the expected static type
-   * @param expectedPropagatedType the expected propagated type, may be `null`
-   * @return `true` if and only if an hint code is generated on the passed node
-   * See [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
-   */
-  bool _checkForArgumentTypeNotAssignableWithExpectedTypes(
-          Expression expression,
-          DartType expectedStaticType,
-          DartType expectedPropagatedType,
-          ErrorCode errorCode) =>
-      _checkForArgumentTypeNotAssignable(
-          expression,
-          expectedStaticType,
-          expression.staticType,
-          expectedPropagatedType,
-          expression.propagatedType,
-          errorCode);
-
-  /**
-   * This verifies that the passed arguments can be assigned to their corresponding parameters.
-   *
-   * This method corresponds to ErrorCode.checkForArgumentTypesNotAssignableInList.
-   *
-   * @param node the arguments to evaluate
-   * @return `true` if and only if an hint code is generated on the passed node
-   * See [HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
-   */
-  bool _checkForArgumentTypesNotAssignableInList(ArgumentList argumentList) {
-    if (argumentList == null) {
-      return false;
-    }
-    bool problemReported = false;
-    for (Expression argument in argumentList.arguments) {
-      if (_checkForArgumentTypeNotAssignableForArgument(argument)) {
-        problemReported = true;
-      }
-    }
-    return problemReported;
-  }
-
-  /**
    * Given some [Element], look at the associated metadata and report the use of the member if
    * it is declared as deprecated.
    *
@@ -845,7 +721,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     // Return if the '/' operator is not defined in core, or if we don't know
-    // its static or propagated type
+    // its static type
     MethodElement methodElement = node.bestElement;
     if (methodElement == null) {
       return false;
@@ -5137,8 +5013,7 @@ class ResolverVisitor extends ScopedVisitor {
     }
     this.inferenceContext = new InferenceContext._(
         typeProvider, typeSystem, strongModeHints, errorReporter);
-    this.typeAnalyzer =
-        new StaticTypeAnalyzer(this, propagateTypes: propagateTypes);
+    this.typeAnalyzer = new StaticTypeAnalyzer(this);
   }
 
   /**
@@ -5162,28 +5037,6 @@ class ResolverVisitor extends ScopedVisitor {
    * @return the object keeping track of which elements have had their types promoted
    */
   TypePromotionManager get promoteManager => _promoteManager;
-
-  /**
-   * Return the propagated element associated with the given expression whose type can be
-   * overridden, or `null` if there is no element whose type can be overridden.
-   *
-   * @param expression the expression with which the element is associated
-   * @return the element associated with the given expression
-   */
-  VariableElement getOverridablePropagatedElement(Expression expression) {
-    Element element = null;
-    if (expression is SimpleIdentifier) {
-      element = expression.propagatedElement;
-    } else if (expression is PrefixedIdentifier) {
-      element = expression.propagatedElement;
-    } else if (expression is PropertyAccess) {
-      element = expression.propertyName.propagatedElement;
-    }
-    if (element is VariableElement) {
-      return element;
-    }
-    return null;
-  }
 
   /**
    * Return the static element associated with the given expression whose type can be overridden, or
@@ -5279,29 +5132,18 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * If it is appropriate to do so, override the current type of the static and propagated elements
+   * If it is appropriate to do so, override the current type of the static element
    * associated with the given expression with the given type. Generally speaking, it is appropriate
    * if the given type is more specific than the current type.
    *
-   * @param expression the expression used to access the static and propagated elements whose types
+   * @param expression the expression used to access the static element whose types
    *          might be overridden
    * @param potentialType the potential type of the elements
    * @param allowPrecisionLoss see @{code overrideVariable} docs
    */
   void overrideExpression(Expression expression, DartType potentialType,
       bool allowPrecisionLoss, bool setExpressionType) {
-    VariableElement element = getOverridableStaticElement(expression);
-    if (element != null) {
-      DartType newBestType =
-          overrideVariable(element, potentialType, allowPrecisionLoss);
-      if (setExpressionType) {
-        recordPropagatedTypeIfBetter(expression, newBestType);
-      }
-    }
-    element = getOverridablePropagatedElement(expression);
-    if (element != null) {
-      overrideVariable(element, potentialType, allowPrecisionLoss);
-    }
+    // TODO(brianwilkerson) Remove this method.
   }
 
   /**
@@ -5373,21 +5215,6 @@ class ResolverVisitor extends ScopedVisitor {
     _enclosingClassDeclaration = node;
     enclosingClass = node.element;
     typeAnalyzer.thisType = enclosingClass?.type;
-  }
-
-  /**
-   * If the given [type] is valid, strongly more specific than the
-   * existing static type of the given [expression], record it as a propagated
-   * type of the given [expression]. Otherwise, reset it to `null`.
-   *
-   * If [hasOldPropagatedType] is `true` then the existing propagated type
-   * should also is checked.
-   */
-  void recordPropagatedTypeIfBetter(Expression expression, DartType type,
-      [bool hasOldPropagatedType = false]) {
-    if (!hasOldPropagatedType) {
-      expression.propagatedType = null;
-    }
   }
 
   /**
@@ -5467,16 +5294,6 @@ class ResolverVisitor extends ScopedVisitor {
       }
     }
     return super.visitArgumentList(node);
-  }
-
-  @override
-  Object visitAsExpression(AsExpression node) {
-    super.visitAsExpression(node);
-    // Since an as-statement doesn't actually change the type, we don't
-    // let it affect the propagated type when it would result in a loss
-    // of precision.
-    overrideExpression(node.expression, node.type.type, false, false);
-    return null;
   }
 
   @override
@@ -5998,8 +5815,6 @@ class ResolverVisitor extends ScopedVisitor {
             }
             if (propagatedType != null) {
               overrideVariable(loopElement, propagatedType, true);
-              recordPropagatedTypeIfBetter(
-                  loopVariable.identifier, propagatedType);
             }
           }
         } else if (identifier != null && iterable != null) {
@@ -6007,7 +5822,6 @@ class ResolverVisitor extends ScopedVisitor {
           if (identifierElement is VariableElement) {
             DartType iteratorElementType = _getIteratorElementType(iterable);
             overrideVariable(identifierElement, iteratorElementType, true);
-            recordPropagatedTypeIfBetter(identifier, iteratorElementType);
           }
         }
         visitStatementInScope(body);
@@ -7004,14 +6818,6 @@ class ResolverVisitor extends ScopedVisitor {
         _propagateFalseState(condition.leftOperand);
         _propagateFalseState(condition.rightOperand);
       }
-    } else if (condition is IsExpression) {
-      if (condition.notOperator != null) {
-        // Since an is-statement doesn't actually change the type, we don't
-        // let it affect the propagated type when it would result in a loss
-        // of precision.
-        overrideExpression(
-            condition.expression, condition.type.type, false, false);
-      }
     } else if (condition is PrefixExpression) {
       if (condition.operator.type == TokenType.BANG) {
         _propagateTrueState(condition.operand);
@@ -7042,14 +6848,6 @@ class ResolverVisitor extends ScopedVisitor {
       if (condition.operator.type == TokenType.AMPERSAND_AMPERSAND) {
         _propagateTrueState(condition.leftOperand);
         _propagateTrueState(condition.rightOperand);
-      }
-    } else if (condition is IsExpression) {
-      if (condition.notOperator == null) {
-        // Since an is-statement doesn't actually change the type, we don't
-        // let it affect the propagated type when it would result in a loss
-        // of precision.
-        overrideExpression(
-            condition.expression, condition.type.type, false, false);
       }
     } else if (condition is PrefixExpression) {
       if (condition.operator.type == TokenType.BANG) {
@@ -8767,9 +8565,6 @@ class TypeOverrideManager {
   /**
    * Update overrides assuming [perBranchOverrides] is the collection of
    * per-branch overrides for *all* branches flowing into a join point.
-   *
-   * If a variable type in any of branches is not the same as its type before
-   * the branching, then its propagated type is reset to `null`.
    */
   void mergeOverrides(List<Map<VariableElement, DartType>> perBranchOverrides) {
     int length = perBranchOverrides.length;
