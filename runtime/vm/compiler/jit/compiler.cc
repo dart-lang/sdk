@@ -1016,6 +1016,7 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
     CompileParsedFunctionHelper helper(parsed_function, optimized, osr_id);
 
     if (Compiler::IsBackgroundCompilation()) {
+      ASSERT(optimized && function.is_background_optimizable());
       if (isolate->IsTopLevelParsing() ||
           (loading_invalidation_gen_at_start !=
            isolate->loading_invalidation_gen())) {
@@ -1781,9 +1782,12 @@ void BackgroundCompiler::Run() {
           } else {
             qelem = function_queue()->Remove();
             const Function& old = Function::Handle(qelem->Function());
+            // If an optimizable method is not optimized, put it back on
+            // the background queue (unless it was passed to foreground).
             if ((!old.HasOptimizedCode() && old.IsOptimizable()) ||
                 FLAG_stress_test_background_compilation) {
-              if (Compiler::CanOptimizeFunction(thread, old)) {
+              if (old.is_background_optimizable() &&
+                  Compiler::CanOptimizeFunction(thread, old)) {
                 QueueElement* repeat_qelem = new QueueElement(old);
                 function_queue()->Add(repeat_qelem);
               }
