@@ -121,15 +121,6 @@ static bool CanUseStrongModeTypes(FlowGraph* flow_graph) {
   return FLAG_use_strong_mode_types && flow_graph->isolate()->strong();
 }
 
-// Test and obtain Smi value.
-static bool IsSmiValue(Value* val, intptr_t* int_val) {
-  if (val->BindsToConstant() && val->BoundConstant().IsSmi()) {
-    *int_val = Smi::Cast(val->BoundConstant()).Value();
-    return true;
-  }
-  return false;
-}
-
 // Test if a call is recursive by looking in the deoptimization environment.
 static bool IsCallRecursive(const Function& function, Definition* call) {
   Environment* env = call->env();
@@ -3195,31 +3186,29 @@ bool FlowGraphInliner::TryReplaceStaticCallWithInline(
     }
     // Finally insert the sequence other definition in place of this one in the
     // graph.
-    if (entry != nullptr) {
-      if (entry->next() != nullptr) {
-        call->previous()->LinkTo(entry->next());
-      }
-      entry->UnuseAllInputs();  // Entry block is not in the graph.
-      if (last != NULL) {
-        BlockEntryInstr* link = call->GetBlock();
-        Instruction* exit = last->GetBlock();
-        if (link != exit) {
-          // Dominance relation and SSA are updated incrementally when
-          // conditionals are inserted. But succ/pred and ordering needs
-          // to be redone. TODO(ajcbik): do this incrementally too.
-          link->ClearDominatedBlocks();
-          for (intptr_t i = 0, n = entry->dominated_blocks().length(); i < n;
-               ++i) {
-            link->AddDominatedBlock(entry->dominated_blocks()[i]);
-          }
-          while (exit->next()) {
-            exit = exit->next();
-          }
-          exit->LinkTo(call);
-          flow_graph->DiscoverBlocks();
-        } else {
-          last->LinkTo(call);
+    if (entry->next() != NULL) {
+      call->previous()->LinkTo(entry->next());
+    }
+    entry->UnuseAllInputs();  // Entry block is not in the graph.
+    if (last != NULL) {
+      BlockEntryInstr* link = call->GetBlock();
+      Instruction* exit = last->GetBlock();
+      if (link != exit) {
+        // Dominance relation and SSA are updated incrementally when
+        // conditionals are inserted. But succ/pred and ordering needs
+        // to be redone. TODO(ajcbik): do this incrementally too.
+        link->ClearDominatedBlocks();
+        for (intptr_t i = 0, n = entry->dominated_blocks().length(); i < n;
+             ++i) {
+          link->AddDominatedBlock(entry->dominated_blocks()[i]);
         }
+        while (exit->next()) {
+          exit = exit->next();
+        }
+        exit->LinkTo(call);
+        flow_graph->DiscoverBlocks();
+      } else {
+        last->LinkTo(call);
       }
     }
     // Remove through the iterator.
@@ -3355,73 +3344,6 @@ static bool InlineMathCFunction(FlowGraph* flow_graph,
       call->deopt_id() != Thread::kNoDeoptId ? call->env() : NULL,
       FlowGraph::kValue);
   return true;
-}
-
-static Instruction* InlineMul(FlowGraph* flow_graph,
-                              Instruction* cursor,
-                              Definition* x,
-                              Definition* y) {
-  BinaryInt64OpInstr* mul = new (Z)
-      BinaryInt64OpInstr(Token::kMUL, new (Z) Value(x), new (Z) Value(y),
-                         Thread::kNoDeoptId, Instruction::kNotSpeculative);
-  return flow_graph->AppendTo(cursor, mul, nullptr, FlowGraph::kValue);
-}
-
-static bool InlineMathIntPow(FlowGraph* flow_graph,
-                             Instruction* call,
-                             TargetEntryInstr** entry,
-                             Instruction** last) {
-  // Invoking the _intPow(x, y) implies that both:
-  // (1) x, y are int
-  // (2) y >= 0.
-  // Thus, try to inline some very obvious cases.
-  // TODO(ajcbik): useful to generalize?
-  intptr_t val = 0;
-  Value* x = call->PushArgumentAt(0)->value();
-  Value* y = call->PushArgumentAt(1)->value();
-  // Use x^0 == 1, x^1 == x, and x^c == x * .. * x for small c.
-  const intptr_t small_exponent = 5;
-  if (IsSmiValue(y, &val)) {
-    if (val == 0) {
-      *last = flow_graph->GetConstant(Smi::ZoneHandle(Smi::New(1)));
-      return true;
-    } else if (val == 1) {
-      *last = x->definition();
-      return true;
-    } else if (1 < val && val <= small_exponent) {
-      // Lazily construct entry only in this case.
-      *entry = new (Z)
-          TargetEntryInstr(flow_graph->allocate_block_id(),
-                           call->GetBlock()->try_index(), Thread::kNoDeoptId);
-      (*entry)->InheritDeoptTarget(Z, call);
-      Definition* x_def = x->definition();
-      Definition* square =
-          InlineMul(flow_graph, *entry, x_def, x_def)->AsDefinition();
-      *last = square;
-      switch (val) {
-        case 2:
-          return true;
-        case 3:
-          *last = InlineMul(flow_graph, *last, x_def, square);
-          return true;
-        case 4:
-          *last = InlineMul(flow_graph, *last, square, square);
-          return true;
-        case 5:
-          *last = InlineMul(flow_graph, *last, square, square);
-          *last = InlineMul(flow_graph, *last, x_def, (*last)->AsDefinition());
-          return true;
-      }
-    }
-  }
-  // Use 0^y == 0 (only for y != 0) and 1^y == 1.
-  if (IsSmiValue(x, &val)) {
-    if (val == 1) {
-      *last = x->definition();
-      return true;
-    }
-  }
-  return false;
 }
 
 bool FlowGraphInliner::TryInlineRecognizedMethod(
@@ -3796,9 +3718,6 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     case MethodRecognizer::kMathAtan2:
       return InlineMathCFunction(flow_graph, call, kind, entry, last);
 
-    case MethodRecognizer::kMathIntPow:
-      return InlineMathIntPow(flow_graph, call, entry, last);
-
     case MethodRecognizer::kObjectConstructor: {
       *entry = new (Z)
           TargetEntryInstr(flow_graph->allocate_block_id(),
@@ -3833,8 +3752,9 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
 
     case MethodRecognizer::kObjectArrayAllocate: {
       Value* num_elements = new (Z) Value(call->ArgumentAt(1));
-      intptr_t length = 0;
-      if (IsSmiValue(num_elements, &length)) {
+      if (num_elements->BindsToConstant() &&
+          num_elements->BoundConstant().IsSmi()) {
+        intptr_t length = Smi::Cast(num_elements->BoundConstant()).Value();
         if (length >= 0 && length <= Array::kMaxElements) {
           Value* type = new (Z) Value(call->ArgumentAt(0));
           *entry = new (Z) TargetEntryInstr(flow_graph->allocate_block_id(),
