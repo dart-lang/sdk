@@ -3117,13 +3117,35 @@ bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
           flow_graph, receiver_cid, target, call,
           call->Receiver()->definition(), call->token_pos(), call->ic_data(),
           &entry, &last, policy)) {
-    // Insert receiver class check if needed.
-    if (MethodRecognizer::PolymorphicTarget(target) ||
-        flow_graph->InstanceCallNeedsClassCheck(call, target.kind())) {
-      Instruction* check = flow_graph->CreateCheckClass(
-          call->Receiver()->definition(), *Cids::Create(Z, *call->ic_data(), 0),
-          call->deopt_id(), call->token_pos());
-      flow_graph->InsertBefore(call, check, call->env(), FlowGraph::kEffect);
+    // Determine if inlining instance methods needs a check.
+    FlowGraph::ToCheck check = FlowGraph::ToCheck::kNoCheck;
+    if (MethodRecognizer::PolymorphicTarget(target)) {
+      check = FlowGraph::ToCheck::kCheckCid;
+    } else {
+      check = flow_graph->CheckForInstanceCall(call, target.kind());
+    }
+
+    // Insert receiver class or null check if needed.
+    switch (check) {
+      case FlowGraph::ToCheck::kCheckCid: {
+        Instruction* check_class =
+            flow_graph->CreateCheckClass(call->Receiver()->definition(),
+                                         *Cids::Create(Z, *call->ic_data(), 0),
+                                         call->deopt_id(), call->token_pos());
+        flow_graph->InsertBefore(call, check_class, call->env(),
+                                 FlowGraph::kEffect);
+        break;
+      }
+      case FlowGraph::ToCheck::kCheckNull: {
+        Instruction* check_null = new (Z) CheckNullInstr(
+            call->Receiver()->CopyWithType(Z), call->function_name(),
+            call->deopt_id(), call->token_pos());
+        flow_graph->InsertBefore(call, check_null, call->env(),
+                                 FlowGraph::kEffect);
+        break;
+      }
+      case FlowGraph::ToCheck::kNoCheck:
+        break;
     }
 
     // Remove the original push arguments.

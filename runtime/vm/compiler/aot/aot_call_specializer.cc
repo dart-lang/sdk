@@ -804,7 +804,8 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
   if (has_one_target) {
     RawFunction::Kind function_kind =
         Function::Handle(Z, unary_checks.GetTargetAt(0)).kind();
-    if (!flow_graph()->InstanceCallNeedsClassCheck(instr, function_kind)) {
+    if (flow_graph()->CheckForInstanceCall(instr, function_kind) ==
+        FlowGraph::ToCheck::kNoCheck) {
       CallTargets* targets = CallTargets::Create(Z, unary_checks);
       ASSERT(targets->HasSingleTarget());
       const Function& target = targets->FirstTarget();
