@@ -3,11 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
-import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
 import 'package:front_end/src/scanner/token.dart';
-import 'package:front_end/src/scanner/errors.dart' as analyzer;
-import 'package:front_end/src/scanner/reader.dart' as analyzer;
-import 'package:front_end/src/scanner/scanner.dart' as analyzer;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -66,65 +62,6 @@ class Foo {
     expect(comment.lexeme, contains('Multi-line comment'));
     expect(comment.type, TokenType.MULTI_LINE_COMMENT);
     expect(comment, new isInstanceOf<CommentToken>());
-  }
-
-  void test_copy() {
-    String source = '/* 1 */ /* 2 */ main() {print("hello"); return;}';
-    int commentCount = 0;
-
-    void assertCopiedToken(Token token1, Token token2) {
-      if (token1 == null) {
-        expect(token2, isNull);
-        return;
-      }
-      expect(token1.lexeme, token2.lexeme);
-      expect(token1.offset, token2.offset, reason: token1.lexeme);
-      var comment1 = token1.precedingComments;
-      var comment2 = token2.precedingComments;
-      while (comment1 != null) {
-        ++commentCount;
-        assertCopiedToken(comment1, comment2);
-        comment1 = comment1.next;
-        comment2 = comment2.next;
-      }
-      expect(comment2, isNull, reason: comment2?.lexeme);
-    }
-
-    var token1 = new StringScanner(source, includeComments: true).tokenize();
-    var analyzerScanner =
-        new TestScanner(new analyzer.CharSequenceReader(source));
-    analyzerScanner.preserveComments = true;
-    var token2 = analyzerScanner.tokenize();
-
-    bool stringTokenFound = false;
-    bool keywordTokenFound = false;
-    bool symbolTokenFound = false;
-    bool beginGroupTokenFound = false;
-
-    while (!token1.isEof) {
-      if (token1 is fasta.StringToken) stringTokenFound = true;
-      if (token1 is KeywordToken) keywordTokenFound = true;
-      if (token1.type == TokenType.OPEN_PAREN) symbolTokenFound = true;
-      if (token1 is BeginToken) beginGroupTokenFound = true;
-
-      var copy1 = token1.copy();
-      expect(copy1, isNotNull);
-
-      var copy2 = token2.copy();
-      expect(copy2, isNotNull);
-
-      assertCopiedToken(copy1, copy2);
-
-      token1 = token1.next;
-      token2 = token2.next;
-    }
-    expect(token2.type, TokenType.EOF);
-
-    expect(commentCount, 2);
-    expect(stringTokenFound, isTrue);
-    expect(keywordTokenFound, isTrue);
-    expect(symbolTokenFound, isTrue);
-    expect(beginGroupTokenFound, isTrue);
   }
 
   void test_isSynthetic() {
@@ -250,16 +187,5 @@ class Foo {
     token = token.next;
     expect(token.lexeme, '"home"');
     expect(token.value(), '"home"');
-  }
-}
-
-class TestScanner extends analyzer.Scanner {
-  TestScanner(analyzer.CharacterReader reader) : super.create(reader);
-
-  @override
-  void reportError(
-      analyzer.ScannerErrorCode errorCode, int offset, List<Object> arguments) {
-    fail('Unexpected error $errorCode while scanning offset $offset\n'
-        '   arguments: $arguments');
   }
 }
