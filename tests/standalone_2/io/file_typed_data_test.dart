@@ -74,7 +74,7 @@ void testWriteUint8ListAndView() {
 void testWriteUint8ClampedListAndView() {
   asyncStart();
   const int LIST_LENGTH = 8;
-  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Uint8ClampedList.BYTES_PER_ELEMENT;
+  const int OFFSET_IN_BYTES_FOR_VIEW = 2 * Uint8ClampedList.bytesPerElement;
   const int VIEW_LENGTH = 4;
   Uint8ClampedList list = new Uint8ClampedList(LIST_LENGTH);
   for (int i = 0; i < LIST_LENGTH; i++) list[i] = i;

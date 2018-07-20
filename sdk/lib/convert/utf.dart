@@ -6,13 +6,9 @@ part of dart.convert;
 
 /** The Unicode Replacement character `U+FFFD` (�). */
 const int unicodeReplacementCharacterRune = 0xFFFD;
-@Deprecated("Use unicodeReplacementCharacterRune instead")
-const int UNICODE_REPLACEMENT_CHARACTER_RUNE = unicodeReplacementCharacterRune;
 
 /** The Unicode Byte Order Marker (BOM) character `U+FEFF`. */
 const int unicodeBomCharacterRune = 0xFEFF;
-@Deprecated("Use unicodeBomCharacterRune instead")
-const int UNICODE_BOM_CHARACTER_RUNE = unicodeBomCharacterRune;
 
 /**
  * An instance of the default implementation of the [Utf8Codec].
@@ -27,8 +23,6 @@ const int UNICODE_BOM_CHARACTER_RUNE = unicodeBomCharacterRune;
  *                                0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
  */
 const Utf8Codec utf8 = const Utf8Codec();
-@Deprecated("Use utf8 instead")
-const Utf8Codec UTF8 = utf8;
 
 /**
  * A [Utf8Codec] encodes strings to utf-8 code units (bytes) and decodes

@@ -297,6 +297,28 @@ wrong_number_type_arguments_test/00: CompileTimeError
 wrong_number_type_arguments_test/01: CompileTimeError
 wrong_number_type_arguments_test/02: CompileTimeError
 
+[ $runtime != none ]
+arithmetic_canonicalization_test: RuntimeError # Uppercase constants removed
+double_nan_comparison_test: RuntimeError # Uppercase constants removed
+double_to_string_as_exponential_test: RuntimeError # Uppercase constants removed
+double_to_string_as_precision_test: RuntimeError # Uppercase constants removed
+double_to_string_test: RuntimeError # Uppercase constants removed
+import_combinators_test: RuntimeError # Uppercase constants removed
+infinity_test: RuntimeError # Uppercase constants removed
+intrinsified_methods_test: RuntimeError # Uppercase constants removed
+is_nan_test: RuntimeError # Uppercase constants removed
+mixin_prefix_test: RuntimeError # Uppercase constants removed
+nan_identical_test: RuntimeError # Uppercase constants removed
+null_test/none: RuntimeError # Uppercase constants removed
+number_identity2_test: RuntimeError # Uppercase constants removed
+ref_before_declaration_test/none: RuntimeError # Uppercase constants removed
+vm/load_to_load_forwarding_vm_test: RuntimeError # Uppercase constants removed
+vm/load_to_load_unaligned_forwarding_vm_test: RuntimeError # Uppercase constants removed
+vm/unaligned_float_access_literal_index_test: RuntimeError # Uppercase constants removed
+vm/unaligned_float_access_register_index_test: RuntimeError # Uppercase constants removed
+vm/unaligned_integer_access_literal_index_test: RuntimeError # Uppercase constants removed
+vm/unaligned_integer_access_register_index_test: RuntimeError # Uppercase constants removed
+
 [ $strong ]
 *: SkipByDesign # tests/language_2 has the strong mode versions of these tests.
 

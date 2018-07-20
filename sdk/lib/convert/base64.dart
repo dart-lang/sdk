@@ -18,8 +18,6 @@ part of dart.convert;
  *     var decoded = base64.decode("YmzDpWLDpnJncsO4ZAo=");
  */
 const Base64Codec base64 = const Base64Codec();
-@Deprecated("Use base64 instead")
-const Base64Codec BASE64 = base64;
 
 /**
  * A [base64url](https://tools.ietf.org/html/rfc4648) encoder and decoder.
@@ -35,8 +33,6 @@ const Base64Codec BASE64 = base64;
  *     var decoded = base64Url.decode("YmzDpWLDpnJncsO4ZAo=");
  */
 const Base64Codec base64Url = const Base64Codec.urlSafe();
-@Deprecated("Use base64Url instead")
-const Base64Codec BASE64URL = base64Url;
 
 /**
  * Encodes [bytes] using [base64](https://tools.ietf.org/html/rfc4648) encoding.
