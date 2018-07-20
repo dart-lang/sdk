@@ -27,7 +27,6 @@ import '../types/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
-import '../util/setlet.dart';
 import '../world.dart';
 import 'builder_kernel.dart';
 import 'closure_tracer.dart';
@@ -326,13 +325,9 @@ class InferrerEngineImpl extends InferrerEngine {
     }
   }
 
-  GlobalTypeInferenceElementData createElementData() {
-    return new KernelGlobalTypeInferenceElementData();
-  }
-
   // TODO(johnniwinther): Make this private again.
   GlobalTypeInferenceElementData dataOfMember(MemberEntity element) =>
-      _memberData.putIfAbsent(element, createElementData);
+      _memberData[element] ??= new KernelGlobalTypeInferenceElementData();
 
   GlobalTypeInferenceElementData lookupDataOfMember(MemberEntity element) =>
       _memberData[element];
@@ -667,18 +662,12 @@ class InferrerEngineImpl extends InferrerEngine {
     processLoopInformation();
   }
 
-  static bool useSorterForTesting = false;
-
   /// Call [analyze] for all live members.
   void analyzeAllElements() {
     Iterable<MemberEntity> processedMembers = closedWorld.processedMembers
         .where((MemberEntity member) => !member.isAbstract);
 
-    Iterable<MemberEntity> members = useSorterForTesting
-        ? sorter.sortMembers(processedMembers)
-        : sortMembers(processedMembers, computeMemberSize);
-
-    members.forEach((MemberEntity member) {
+    processedMembers.forEach((MemberEntity member) {
       progress.showProgress(
           'Added ', addedInGraph, ' elements in inferencing graph.');
       // This also forces the creation of the [ElementTypeInformation] to ensure
@@ -686,14 +675,6 @@ class InferrerEngineImpl extends InferrerEngine {
       types.withMember(member, () => analyze(member));
     });
     reporter.log('Added $addedInGraph elements in inferencing graph.');
-  }
-
-  /// Compute a 'size' of [member] used for sorting member for the type
-  /// inference work-queue. Smallest members are processed first.
-  int computeMemberSize(MemberEntity member) {
-    // TODO(johnniwinther): Find an ordering that can be shared between the
-    // front ends.
-    return 0;
   }
 
   /// Returns the body node for [member].
@@ -1286,35 +1267,6 @@ class InferrerEngineImpl extends InferrerEngine {
   bool assumeDynamic(MemberEntity member) {
     return optimizerHints.assumeDynamic(
         closedWorld.elementEnvironment, commonElements, member);
-  }
-
-  // Sorts the resolved elements by size. We do this for this inferrer
-  // to get the same results for [ListTracer] compared to the
-  // [SimpleTypesInferrer].
-  static Iterable<MemberEntity> sortMembers(
-      Iterable<MemberEntity> members, int computeSize(MemberEntity member)) {
-    Map<int, Set<MemberEntity>> methodSizes =
-        groupMembers(members, computeSize);
-    int max = methodSizes.keys.fold(0, (a, b) => a > b ? a : b);
-    List<MemberEntity> result = <MemberEntity>[];
-    for (int i = 0; i <= max; i++) {
-      Set<MemberEntity> set = methodSizes[i];
-      if (set != null) result.addAll(set);
-    }
-    return result;
-  }
-
-  static Map<int, Set<MemberEntity>> groupMembers(
-      Iterable<MemberEntity> members, int computeSize(MemberEntity member)) {
-    Map<int, Set<MemberEntity>> methodSizes = <int, Set<MemberEntity>>{};
-    members.forEach((MemberEntity element) {
-      // Put the other operators in buckets by size, later to be added in
-      // size order.
-      int size = computeSize(element);
-      Set<MemberEntity> set = methodSizes[size] ??= new Setlet<MemberEntity>();
-      set.add(element);
-    });
-    return methodSizes;
   }
 }
 
