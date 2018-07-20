@@ -268,6 +268,7 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     }
 
     // These are used to do part file analysis across sources.
+    Set<String> dartFiles = new Set<String>();
     Set<FileState> libraryFiles = new Set<FileState>();
     Set<FileState> danglingParts = new Set<FileState>();
 
@@ -375,6 +376,7 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
             // If the file cannot be analyzed, ignore it.
           }
         } else {
+          dartFiles.add(path);
           var file = analysisDriver.fsState.getFileForPath(path);
 
           if (file.isPart) {
@@ -394,6 +396,13 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
           }
         }
       }
+    }
+
+    // We are done analyzing this batch of files.
+    // The next batch should not be affected by a previous batch.
+    // E.g. the same parts in both batches, but with different libraries.
+    for (var path in dartFiles) {
+      analysisDriver.removeFile(path);
     }
 
     // Any dangling parts still in this list were definitely dangling.
