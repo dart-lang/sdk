@@ -25,6 +25,7 @@ cc/CodeImmutability: Fail, OK # Address Sanitizer turns a crash into a failure.
 
 [ $builder_tag == optimization_counter_threshold ]
 dart/appjit_cha_deopt_test: SkipByDesign # Test needs to a particular opt-counter value
+dart/appjit_determinism_test: Skip # Seems to be timing out
 
 [ $compiler == app_jit ]
 dart/snapshot_version_test: Fail, OK # Expects to find script snapshot relative to Dart source.
