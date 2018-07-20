@@ -7,6 +7,7 @@ Language/Classes/definition_t24: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t08: MissingCompileTimeError
+Language/Types/Type_Void/syntax_t09: MissingCompileTimeError
 LayoutTests/*: Skip # TODO(ahe): Make dart:html available.
 LibTest/collection/Maps/*: Skip # Maps class no longer exists.
 LibTest/html/*: Skip # TODO(ahe): Make dart:html available.
@@ -581,8 +582,6 @@ Language/Expressions/Lists/static_type_t04: CompileTimeError
 Language/Expressions/Lists/static_type_t05: CompileTimeError
 Language/Expressions/Lists/value_of_a_constant_list_t02: CompileTimeError
 Language/Expressions/Logical_Boolean_Expressions/evaluation_form_and_t01: CompileTimeError
-Language/Expressions/Logical_Boolean_Expressions/evaluation_form_and_t02: CompileTimeError
-Language/Expressions/Logical_Boolean_Expressions/evaluation_form_or_t02: CompileTimeError
 Language/Expressions/Logical_Boolean_Expressions/static_type_t02: CompileTimeError
 Language/Expressions/Logical_Boolean_Expressions/syntax_t01: CompileTimeError
 Language/Expressions/Logical_Boolean_Expressions/syntax_t10/01: CompileTimeError
@@ -896,7 +895,6 @@ Language/Functions/Formal_Parameters/scope_t01: CompileTimeError
 Language/Functions/async_return_type_t01: CompileTimeError
 Language/Functions/generator_return_type_t01: CompileTimeError
 Language/Functions/generator_return_type_t02: CompileTimeError
-Language/Functions/implicit_return_t01: CompileTimeError
 Language/Functions/syntax_t01: CompileTimeError
 Language/Functions/syntax_t36: CompileTimeError
 Language/Functions/syntax_t37: CompileTimeError
@@ -917,7 +915,6 @@ Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/inheritance_t03: 
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/inheritance_t04: CompileTimeError
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/inheritance_t05: CompileTimeError
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/inheritance_t07: CompileTimeError
-Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/not_overriden_members_t01: CompileTimeError
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/not_overriden_members_t02: CompileTimeError
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_getters_type_t03: CompileTimeError
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_getters_type_t04: CompileTimeError
@@ -1027,7 +1024,6 @@ Language/Statements/Continue/control_transfer_t08: CompileTimeError
 Language/Statements/Continue/control_transfer_t09: CompileTimeError
 Language/Statements/Continue/label_t07: MissingCompileTimeError
 Language/Statements/Do/condition_type_t01: CompileTimeError
-Language/Statements/Do/condition_type_t02: CompileTimeError
 Language/Statements/Do/condition_type_t03: CompileTimeError
 Language/Statements/Do/execution_t03: CompileTimeError
 Language/Statements/Expression_Statements/syntax_t01: CompileTimeError
@@ -1125,13 +1121,8 @@ Language/Types/Static_Types/malformed_type_t04: CompileTimeError
 Language/Types/Static_Types/malformed_type_t05: CompileTimeError
 Language/Types/Static_Types/malformed_type_t06: CompileTimeError
 Language/Types/Type_Declarations/Typedef/syntax_t01: CompileTimeError
-Language/Types/Type_Void/returning_t03: CompileTimeError
-Language/Types/Type_Void/returning_t04: CompileTimeError
-Language/Types/Type_Void/returning_t05: CompileTimeError
 Language/Types/Type_Void/syntax_t08: MissingCompileTimeError
-Language/Types/Type_Void/using_t01: CompileTimeError
-Language/Types/Type_Void/using_t02: CompileTimeError
-Language/Types/Type_Void/using_t03: CompileTimeError
+Language/Types/Type_Void/syntax_t09: MissingCompileTimeError
 Language/Variables/constant_variable_t01: CompileTimeError
 Language/Variables/constant_variable_t02: CompileTimeError
 Language/Variables/constant_variable_t03: CompileTimeError
@@ -1210,9 +1201,6 @@ LibTest/async/Zone/bindUnaryCallback_A01_t02: CompileTimeError
 LibTest/async/Zone/registerBinaryCallback_A01_t01: CompileTimeError
 LibTest/async/Zone/registerCallback_A01_t01: CompileTimeError
 LibTest/async/Zone/registerUnaryCallback_A01_t01: CompileTimeError
-LibTest/async/Zone/runBinaryGuarded_A01_t01: CompileTimeError
-LibTest/async/Zone/runGuarded_A01_t01: CompileTimeError
-LibTest/async/Zone/runUnaryGuarded_A01_t01: CompileTimeError
 LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: CompileTimeError
 LibTest/collection/DoubleLinkedQueue/firstWhere_A02_t01: CompileTimeError
 LibTest/collection/DoubleLinkedQueue/firstWhere_A03_t01: CompileTimeError

@@ -5968,17 +5968,6 @@ const MessageCode messageRequiredParameterWithDefault = const MessageCode(
         r"""Try removing the default value or making the parameter optional.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeReturnFromVoidFunction = messageReturnFromVoidFunction;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageReturnFromVoidFunction = const MessageCode(
-    "ReturnFromVoidFunction",
-    analyzerCode: "RETURN_OF_INVALID_TYPE",
-    dart2jsCode: "*fatal*",
-    severity: Severity.errorLegacyWarning,
-    message: r"""Can't return a value from a void function.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeReturnTypeFunctionExpression =
     messageReturnTypeFunctionExpression;
 
@@ -7078,16 +7067,6 @@ const MessageCode messageVarReturnType = const MessageCode("VarReturnType",
     message: r"""The return type can't be 'var'.""",
     tip:
         r"""Try removing the keyword 'var', or replacing it with the name of the return type.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeVoidExpression = messageVoidExpression;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageVoidExpression = const MessageCode("VoidExpression",
-    analyzerCode: "USE_OF_VOID_RESULT",
-    dart2jsCode: "*fatal*",
-    severity: Severity.errorLegacyWarning,
-    message: r"""This expression has type 'void' and can't be used.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

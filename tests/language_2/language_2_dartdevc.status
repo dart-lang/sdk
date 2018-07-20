@@ -517,6 +517,7 @@ type_variable_bounds_test/05: MissingCompileTimeError
 type_variable_bounds_test/06: MissingCompileTimeError
 type_variable_bounds_test/08: MissingCompileTimeError
 type_variable_bounds_test/11: MissingCompileTimeError
+void_block_return_test/00: MissingCompileTimeError
 wrong_number_type_arguments_test/01: MissingCompileTimeError
 
 [ $compiler == dartdevk && $checked ]
