@@ -1593,6 +1593,9 @@ Fragment FlowGraphBuilder::CheckAssignable(const AbstractType& dst_type,
   if (dst_type.IsMalformed()) {
     return ThrowTypeError();
   }
+  if (FLAG_omit_strong_type_checks) {
+    return Fragment();
+  }
   if (!dst_type.IsDynamicType() && !dst_type.IsObjectType() &&
       !dst_type.IsVoidType()) {
     LocalVariable* top_of_stack = MakeTemporary();
@@ -1605,6 +1608,9 @@ Fragment FlowGraphBuilder::CheckAssignable(const AbstractType& dst_type,
 }
 
 Fragment FlowGraphBuilder::AssertBool(TokenPosition position) {
+  if (FLAG_omit_strong_type_checks) {
+    return Fragment();
+  }
   Value* value = Pop();
   AssertBooleanInstr* instr =
       new (Z) AssertBooleanInstr(position, value, GetNextDeoptId());
@@ -1616,6 +1622,10 @@ Fragment FlowGraphBuilder::AssertAssignable(TokenPosition position,
                                             const AbstractType& dst_type,
                                             const String& dst_name,
                                             AssertAssignableInstr::Kind kind) {
+  if (FLAG_omit_strong_type_checks) {
+    return Fragment();
+  }
+
   Fragment instructions;
   Value* value = Pop();
 

@@ -956,6 +956,10 @@ bool StreamingFlowGraphBuilder::NeedsDynamicInvocationForwarder(
 
 Fragment StreamingFlowGraphBuilder::BuildArgumentTypeChecks(
     TypeChecksToBuild mode) {
+  if (FLAG_omit_strong_type_checks) {
+    return Fragment();
+  }
+
   FunctionNodeHelper function_node_helper(this);
   function_node_helper.SetNext(FunctionNodeHelper::kTypeParameters);
   const Function& dart_function = parsed_function()->function();
@@ -2717,7 +2721,8 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
     const intptr_t kNumArgsChecked = 1;
 
     const String* mangled_name = &setter_name;
-    if (!FLAG_precompiled_mode && I->strong() && H.IsRoot(itarget_name)) {
+    if (!FLAG_precompiled_mode && I->strong() &&
+        !FLAG_omit_strong_type_checks && H.IsRoot(itarget_name)) {
       mangled_name = &String::ZoneHandle(
           Z, Function::CreateDynamicInvocationForwarderName(setter_name));
     }
@@ -3291,6 +3296,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
     //     those cases require a dynamic invocation forwarder;
     //   * we assume that all closures are entered in a checked way.
     if (!FLAG_precompiled_mode && I->strong() &&
+        !FLAG_omit_strong_type_checks &&
         (name.raw() != Symbols::EqualOperator().raw()) &&
         (name.raw() != Symbols::Call().raw()) && H.IsRoot(itarget_name)) {
       mangled_name = &String::ZoneHandle(
