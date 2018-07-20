@@ -4,8 +4,9 @@
 
 library async_start_test;
 
-import "package:unittest/unittest.dart";
 import "dart:async";
+
+import "package:expect/async_minitest.dart";
 
 main() {
   group("basic", () {
@@ -105,7 +106,7 @@ main() {
     });
 
     test("Cannot yield* non-stream", () {
-      f(s) async* {
+      f(Object s) async* {
         yield* s;
       }
 
@@ -115,8 +116,8 @@ main() {
       });
     });
 
-    test("Cannot yield* non-stream", () {
-      f(s) async* {
+    test("Cannot yield* non-stream 2", () {
+      f(Object s) async* {
         yield* s;
       }
 

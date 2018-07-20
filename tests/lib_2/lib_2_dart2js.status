@@ -822,9 +822,7 @@ html/canvas_pixel_array_type_alias_test/types2_runtimeTypeName: Fail, OK # Issue
 [ $compiler == dart2js && $strong ]
 async/future_or_type_test: RuntimeError
 async/slow_consumer2_test: RuntimeError
-async/stream_controller_async_test: RuntimeError
 async/stream_distinct_test: RuntimeError
-async/stream_join_test: RuntimeError
 collection/list_test: RuntimeError
 html/element_classes_test: RuntimeError
 

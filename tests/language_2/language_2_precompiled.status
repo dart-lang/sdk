@@ -68,7 +68,6 @@ async_star_cancel_while_paused_test: RuntimeError
 async_star_pause_test: Fail, OK
 async_star_regression_2238_test: CompileTimeError, RuntimeError
 async_star_test/01: CompileTimeError # Issue 2238.
-async_star_test/02: RuntimeError
 bad_named_parameters2_test/01: MissingCompileTimeError
 bad_named_parameters_test/01: MissingCompileTimeError
 bad_named_parameters_test/02: MissingCompileTimeError

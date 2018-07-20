@@ -4,16 +4,7 @@
 
 import 'dart:async';
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/src/expected_function.dart' show ExpectedFunction;
-
-T Function() expectAsync0<T>(T Function() callback,
-        {int count: 1, int max: 0}) =>
-    new ExpectedFunction<T>(callback, count, max).max0;
-
-T Function(A) expectAsync1<T, A>(T Function(A) callback,
-        {int count: 1, int max: 0}) =>
-    new ExpectedFunction<T>(callback, count, max).max1;
+import 'package:expect/async_minitest.dart';
 
 main() {
   test("timer isActive test", () {
