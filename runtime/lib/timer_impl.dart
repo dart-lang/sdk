@@ -462,7 +462,6 @@ class _Timer implements Timer {
   }
 }
 
-@pragma("vm.entry_point")
 _setupHooks() {
   VMLibraryHooks.timerFactory = _Timer._factory;
 }

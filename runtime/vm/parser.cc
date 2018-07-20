@@ -4006,7 +4006,6 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                     method->has_external,
                     method->has_native,  // May change.
                     current_class(), method->decl_begin_pos));
-  func.set_has_pragma(IsPragmaAnnotation(method->metadata_pos));
 
   ASSERT(innermost_function().IsNull());
   innermost_function_ = func.raw();
@@ -5575,12 +5574,8 @@ bool Parser::IsPatchAnnotation(TokenPosition pos) {
   }
   TokenPosScope saved_pos(this);
   SetPosition(pos);
-  while (CurrentToken() == Token::kAT) {
-    ConsumeToken();
-    if (IsSymbol(Symbols::Patch())) return true;
-    SkipOneMetadata();
-  }
-  return false;
+  ExpectToken(Token::kAT);
+  return IsSymbol(Symbols::Patch());
 }
 
 bool Parser::IsPragmaAnnotation(TokenPosition pos) {
@@ -5589,27 +5584,8 @@ bool Parser::IsPragmaAnnotation(TokenPosition pos) {
   }
   TokenPosScope saved_pos(this);
   SetPosition(pos);
-  while (CurrentToken() == Token::kAT) {
-    ConsumeToken();
-    if (IsSymbol(Symbols::Pragma())) return true;
-    SkipOneMetadata();
-  }
-  return false;
-}
-
-void Parser::SkipOneMetadata() {
-  ExpectIdentifier("identifier expected");
-  if (CurrentToken() == Token::kPERIOD) {
-    ConsumeToken();
-    ExpectIdentifier("identifier expected");
-    if (CurrentToken() == Token::kPERIOD) {
-      ConsumeToken();
-      ExpectIdentifier("identifier expected");
-    }
-  }
-  if (CurrentToken() == Token::kLPAREN) {
-    SkipToMatchingParenthesis();
-  }
+  ExpectToken(Token::kAT);
+  return IsSymbol(Symbols::Pragma());
 }
 
 TokenPosition Parser::SkipMetadata() {
@@ -5619,7 +5595,18 @@ TokenPosition Parser::SkipMetadata() {
   TokenPosition metadata_pos = TokenPos();
   while (CurrentToken() == Token::kAT) {
     ConsumeToken();
-    SkipOneMetadata();
+    ExpectIdentifier("identifier expected");
+    if (CurrentToken() == Token::kPERIOD) {
+      ConsumeToken();
+      ExpectIdentifier("identifier expected");
+      if (CurrentToken() == Token::kPERIOD) {
+        ConsumeToken();
+        ExpectIdentifier("identifier expected");
+      }
+    }
+    if (CurrentToken() == Token::kLPAREN) {
+      SkipToMatchingParenthesis();
+    }
   }
   return metadata_pos;
 }

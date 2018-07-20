@@ -41,6 +41,8 @@ void main(List<String> args) {
       '$buildDir/gen/runtime/bin/precompiler_entry_points.json',
       '--entry-points',
       'pkg/vm/lib/transformations/type_flow/entry_points_extra.json',
+      '--entry-points',
+      'pkg/vm/lib/transformations/type_flow/entry_points_extra_standalone.json',
       scriptPath,
     ];
     runSync("pkg/vm/tool/gen_kernel${Platform.isWindows ? '.bat' : ''}", args);

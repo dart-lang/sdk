@@ -55,7 +55,6 @@ class _IOCrypto {
   static Uint8List getRandomBytes(int count) native "Crypto_GetRandomBytes";
 }
 
-@pragma("vm.entry_point")
 _setupHooks() {
   VMLibraryHooks.eventHandlerSendData = _EventHandler._sendData;
   VMLibraryHooks.timerMillisecondClock = _EventHandler._timerMillisecondClock;

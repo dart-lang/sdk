@@ -104,7 +104,6 @@ class Object {
    *
    * The default behavior is to throw a [NoSuchMethodError].
    */
-  @pragma("vm.entry_point")
   external dynamic noSuchMethod(Invocation invocation);
 
   /**

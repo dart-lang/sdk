@@ -74,7 +74,6 @@ class FormatException implements Exception {
    * Optionally also supply the actual [source] with the incorrect format,
    * and the [offset] in the format where a problem was detected.
    */
-  @pragma("vm.entry_point")
   const FormatException([this.message = "", this.source, this.offset]);
 
   /**

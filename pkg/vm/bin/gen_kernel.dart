@@ -102,6 +102,7 @@ Future<int> compile(List<String> arguments) async {
     entryPoints.addAll([
       'pkg/vm/lib/transformations/type_flow/entry_points.json',
       'pkg/vm/lib/transformations/type_flow/entry_points_extra.json',
+      'pkg/vm/lib/transformations/type_flow/entry_points_extra_standalone.json',
     ]);
   }
 

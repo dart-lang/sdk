@@ -46,7 +46,6 @@ part of dart.cli;
  */
 external void _waitForEvent(int timeoutMillis);
 
-@pragma("vm.entry_point")
 void Function(int) _getWaitForEvent() => _waitForEvent;
 
 // This should be set from C++ code by the embedder to wire up waitFor() to the
