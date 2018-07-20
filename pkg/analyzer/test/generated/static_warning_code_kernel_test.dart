@@ -33,6 +33,9 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   bool get useCFE => true;
 
   @override
+  bool get usingFastaParser => true;
+
+  @override
   @failingTest
   @potentialAnalyzerProblem
   test_ambiguousImport_as() async {

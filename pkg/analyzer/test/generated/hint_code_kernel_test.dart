@@ -20,6 +20,9 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   @override
   bool get useCFE => true;
 
+  @override
+  bool get usingFastaParser => true;
+
   @failingTest
   @override
   test_abstractSuperMemberReference_getter() async {

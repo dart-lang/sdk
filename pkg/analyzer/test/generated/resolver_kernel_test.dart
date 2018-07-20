@@ -21,6 +21,9 @@ class StrictModeTest_Kernel extends StrictModeTest_Driver {
   bool get useCFE => true;
 
   @override
+  bool get usingFastaParser => true;
+
+  @override
   @failingTest
   test_assert_is() async {
     // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_OPERATOR, found 0

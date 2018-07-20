@@ -28,6 +28,9 @@ class StaticTypeWarningCodeTest_Kernel
   bool get useCFE => true;
 
   @override
+  bool get usingFastaParser => true;
+
+  @override
   @failingTest
   test_ambiguousImport_function() async {
     // Bad state: No reference information for f at 53
@@ -894,6 +897,9 @@ class StrongModeStaticTypeWarningCodeTest_Kernel
 
   @override
   bool get useCFE => true;
+
+  @override
+  bool get usingFastaParser => true;
 
   @override
   @failingTest

@@ -37,6 +37,9 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
   bool get useCFE => true;
 
   @override
+  bool get usingFastaParser => true;
+
+  @override
   test_overrideOnNonOverridingField_inInterface() {
     return super.test_overrideOnNonOverridingField_inInterface();
   }

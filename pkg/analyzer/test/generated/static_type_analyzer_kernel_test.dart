@@ -19,4 +19,7 @@ class StaticTypeAnalyzer2Test_Kernel extends StaticTypeAnalyzer2Test_Driver {
 
   @override
   bool get useCFE => true;
+
+  @override
+  bool get usingFastaParser => true;
 }

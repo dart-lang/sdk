@@ -21,6 +21,9 @@ class ErrorSuppressionTest_Kernel extends ErrorSuppressionTest_Driver {
   bool get useCFE => true;
 
   @override
+  bool get usingFastaParser => true;
+
+  @override
   @failingTest
   test_error_code_mismatch() async {
     // Expected 1 errors of type StaticTypeWarningCode.INVALID_ASSIGNMENT, found 0;

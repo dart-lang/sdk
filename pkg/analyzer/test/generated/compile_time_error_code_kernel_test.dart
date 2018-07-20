@@ -25,77 +25,42 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   bool get useCFE => true;
 
   @override
+  bool get usingFastaParser => true;
+
+  @override
   @failingTest
   test_accessPrivateEnumField() async {
-    // 'package:analyzer/src/dart/analysis/library_analyzer.dart': Failed assertion: line 1082 pos 18: 'memberElement != null': is not true.
+    // Expected 1 errors of type CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD, found 0
     await super.test_accessPrivateEnumField();
   }
 
   @override
   @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/12916')
-  test_ambiguousExport() async => super.test_ambiguousExport();
+  test_ambiguousExport() async {
+    // Expected 1 errors of type CompileTimeErrorCode.AMBIGUOUS_EXPORT, found 0
+    await super.test_ambiguousExport();
+  }
 
   @override
   @failingTest
   test_annotationWithNotClass() async {
-    // Bad state: No reference information for property at 117
+    // Bad state: No data for property at (offset=117, isSynthetic=false) in /test.dart
     await super.test_annotationWithNotClass();
   }
 
   @override
   @failingTest
   test_annotationWithNotClass_prefixed() async {
-    // Bad state: No reference information for pref at 36
+    // Bad state: No data for property at (offset=41, isSynthetic=false) in /test.dart
     await super.test_annotationWithNotClass_prefixed();
   }
 
   @override
   @failingTest
   test_async_used_as_identifier_in_break_statement() async {
-    // Bad state: No type information for true at 21
+    // Bad state: No data for true at (offset=21, isSynthetic=false) in /test.dart
     await super.test_async_used_as_identifier_in_break_statement();
-  }
-
-  @override
-  @failingTest
-  test_bug_23176() async {
-    // This test fails because the kernel driver element model produces a
-    // different element model result than the regular parser produces. Once these
-    // tests enable the faster parser (and not just the kernel driver), this
-    // should be looked at again.
-    return super.test_bug_23176();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_builtInIdentifierAsType_dynamicMissingPrefix() async {
-    // Kernel and analyzer report different errors. Which is the correct one?
-    await super.test_builtInIdentifierAsType_dynamicMissingPrefix();
-  }
-
-  @override
-  @failingTest
-  test_builtInIdentifierAsType_formalParameter_field() async {
-    // Expected 1 errors of type CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, found 0;
-    //          0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (23)
-    await super.test_builtInIdentifierAsType_formalParameter_field();
-  }
-
-  @override
-  @failingTest
-  test_builtInIdentifierAsType_formalParameter_simple() async {
-    // Expected 1 errors of type CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, found 0;
-    //          0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (2)
-    await super.test_builtInIdentifierAsType_formalParameter_simple();
-  }
-
-  @override
-  @failingTest
-  test_builtInIdentifierAsType_variableDeclaration() async {
-    // Bad state: No reference information for typedef at 8
-    await super.test_builtInIdentifierAsType_variableDeclaration();
   }
 
   @override
@@ -131,18 +96,11 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_conflictingGenericInterfaces_hierarchyLoop() =>
-      super.test_conflictingGenericInterfaces_hierarchyLoop();
-
-  @override
-  @failingTest
-  test_conflictingGenericInterfaces_simple() =>
-      super.test_conflictingGenericInterfaces_simple();
-
-  @override
-  @failingTest
-  test_conflictingGenericInterfaces_viaMixin() =>
-      super.test_conflictingGenericInterfaces_viaMixin();
+  test_conflictingGenericInterfaces_hierarchyLoop() {
+    // _ElementMismatchException: Element mismatch in /test.dart at /test.dart
+    // Caused by Bad state: [B<T>] != []
+    return super.test_conflictingGenericInterfaces_hierarchyLoop();
+  }
 
   @override
   @failingTest
@@ -155,6 +113,7 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @override
   @failingTest
   test_const_invalid_constructorFieldInitializer_fromLibrary() {
+    // Expected 1 errors of type CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, found 0
     return super.test_const_invalid_constructorFieldInitializer_fromLibrary();
   }
 
@@ -168,38 +127,9 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33645')
-  test_constConstructorWithMixinWithField() async {
-    return super.test_constConstructorWithMixinWithField();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33645')
-  test_constConstructorWithMixinWithField_final() async {
-    return super.test_constConstructorWithMixinWithField_final();
-  }
-
-  @override
-  @failingTest
-  test_constConstructorWithNonFinalField_mixin() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN, found 0;
-    //          1 errors of type CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, found 0
-    await super.test_constConstructorWithNonFinalField_mixin();
-  }
-
-  @override
-  @failingTest
   test_constConstructorWithNonFinalField_super() async {
-    // UnimplementedError: For ShadowInvalidInitializer
+    // Expected 1 errors of type CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, found 0
     await super.test_constConstructorWithNonFinalField_super();
-  }
-
-  @override
-  @failingTest
-  test_constEval_newInstance_constConstructor() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, found 0
-    await super.test_constEval_newInstance_constConstructor();
   }
 
   @override
@@ -211,22 +141,15 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_constEval_propertyExtraction_targetNotConst() async {
-    // Expected 1 errors of type CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, found 0
-    await super.test_constEval_propertyExtraction_targetNotConst();
-  }
-
-  @override
-  @failingTest
   test_constEvalThrowsException_binaryMinus_null() async {
-    // UnimplementedError: kernel: (Let) let final dynamic #t2 = null in let ...
+    // Expected 1 errors of type CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, found 0
     await super.test_constEvalThrowsException_binaryMinus_null();
   }
 
   @override
   @failingTest
   test_constEvalThrowsException_binaryPlus_null() async {
-    // UnimplementedError: kernel: (Let) let final dynamic #t3 = null in let ...
+    // Expected 1 errors of type CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, found 0
     await super.test_constEvalThrowsException_binaryPlus_null();
   }
 
@@ -2486,14 +2409,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_symbol_constructor_badArgs() async {
     // Bad state: No type information for Symbol at 69
     await super.test_symbol_constructor_badArgs();
-  }
-
-  @override
-  @failingTest
-  test_test_fieldInitializerOutsideConstructor_topLevelFunction() async {
-    // Expected 1 errors of type ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, found 0;
-    //          1 errors of type CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, found 0
-    await super.test_test_fieldInitializerOutsideConstructor_topLevelFunction();
   }
 
   @override

@@ -23,6 +23,9 @@ class InvalidCodeTest_Kernel extends InvalidCodeTest {
   @override
   bool get useCFE => true;
 
+  @override
+  bool get usingFastaParser => true;
+
   @failingTest
   @override
   test_genericFunction_asTypeArgument_ofUnresolvedClass() async {

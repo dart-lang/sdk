@@ -21,6 +21,9 @@ class CheckedModeCompileTimeErrorCodeTest_Kernel
   @override
   bool get useCFE => true;
 
+  @override
+  bool get usingFastaParser => true;
+
   @failingTest
   @override
   test_assertion_throws() async {

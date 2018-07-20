@@ -618,7 +618,12 @@ import 'dart:core' as core;
 dynamic x;
 """);
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
+    if (useCFE) {
+      assertErrors(source,
+          [CompileTimeErrorCode.UNDEFINED_CLASS, StaticWarningCode.NOT_A_TYPE]);
+    } else {
+      assertErrors(source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
+    }
   }
 
   test_builtInIdentifierAsType_formalParameter_field() async {
@@ -657,13 +662,19 @@ f() {
     await computeAnalysisResult(source);
     assertErrors(
         source,
-        usingFastaParser
+        useCFE
             ? [
-                StaticWarningCode.UNDEFINED_IDENTIFIER,
-                StaticWarningCode.UNDEFINED_IDENTIFIER,
+                StaticTypeWarningCode.UNDEFINED_GETTER,
+                StaticTypeWarningCode.UNDEFINED_GETTER,
                 ParserErrorCode.EXPECTED_TOKEN
               ]
-            : [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
+            : usingFastaParser
+                ? [
+                    StaticWarningCode.UNDEFINED_IDENTIFIER,
+                    StaticWarningCode.UNDEFINED_IDENTIFIER,
+                    ParserErrorCode.EXPECTED_TOKEN
+                  ]
+                : [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
     verify([source]);
   }
 
@@ -812,7 +823,12 @@ class B implements I<String> {}
 class C extends A implements B {}
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.AMBIGUOUS_SUPERTYPES]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
+    }
   }
 
   @failingTest // Does not work with old task model
@@ -824,7 +840,12 @@ class B implements I<String> {}
 class C extends A with B {}
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.AMBIGUOUS_SUPERTYPES]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
+    }
   }
 
   test_conflictingGetterAndMethod_field_method() async {
@@ -1060,10 +1081,16 @@ class B extends Object with A {
   const B();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
-      CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD
-    ]);
+    if (useCFE) {
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_CONSTRUCTOR_IN_SUBCLASS_OF_MIXIN_APPLICATION
+      ]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
+        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD
+      ]);
+    }
     verify([source]);
   }
 
@@ -1076,8 +1103,14 @@ class B extends Object with A {
   const B();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD]);
+    if (useCFE) {
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_CONSTRUCTOR_IN_SUBCLASS_OF_MIXIN_APPLICATION
+      ]);
+    } else {
+      assertErrors(source,
+          [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD]);
+    }
     verify([source]);
   }
 
@@ -1118,10 +1151,16 @@ class B extends Object with A {
   const B();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
-      CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD
-    ]);
+    if (useCFE) {
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_CONSTRUCTOR_IN_SUBCLASS_OF_MIXIN_APPLICATION
+      ]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
+        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD
+      ]);
+    }
     verify([source]);
   }
 
@@ -1196,8 +1235,12 @@ class A {
 }
 const a = new A();''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+    } else {
+      assertErrors(source,
+          [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    }
     verify([source]);
   }
 
@@ -1237,8 +1280,12 @@ class A {
 final a = const A();
 const C = a.m;''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    if (useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+    } else {
+      assertErrors(source,
+          [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    }
     verify([source]);
   }
 
@@ -1256,12 +1303,14 @@ f() { return const C(); }''');
   }
 
   test_constEvalThrowsException_binaryMinus_null() async {
-    await _check_constEvalThrowsException_binary_null("null - 5", false);
+    await _check_constEvalThrowsException_binary_null("null - 5", false,
+        cfeErrors: [StaticTypeWarningCode.UNDEFINED_METHOD]);
     await _check_constEvalThrowsException_binary_null("5 - null", true);
   }
 
   test_constEvalThrowsException_binaryPlus_null() async {
-    await _check_constEvalThrowsException_binary_null("null + 5", false);
+    await _check_constEvalThrowsException_binary_null("null + 5", false,
+        cfeErrors: [StaticTypeWarningCode.UNDEFINED_METHOD]);
     await _check_constEvalThrowsException_binary_null("5 + null", true);
   }
 
@@ -6867,7 +6916,7 @@ f() async* {
     await computeAnalysisResult(source);
     assertErrors(
         source,
-        usingFastaParser
+        usingFastaParser && !useCFE
             ? [
                 CompileTimeErrorCode.RETURN_IN_GENERATOR,
                 CompileTimeErrorCode.RETURN_IN_GENERATOR
@@ -6884,7 +6933,7 @@ f() sync* {
     await computeAnalysisResult(source);
     assertErrors(
         source,
-        usingFastaParser
+        usingFastaParser && !useCFE
             ? [
                 CompileTimeErrorCode.RETURN_IN_GENERATOR,
                 CompileTimeErrorCode.RETURN_IN_GENERATOR
@@ -7601,16 +7650,17 @@ f() {
   }
 
   Future<Null> _check_constEvalThrowsException_binary_null(
-      String expr, bool resolved) async {
+      String expr, bool resolved,
+      {List<StaticTypeWarningCode> cfeErrors}) async {
     Source source = addSource("const C = $expr;");
-    if (resolved) {
-      await computeAnalysisResult(source);
-      assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
-      verify([source]);
+    await computeAnalysisResult(source);
+    if (useCFE && cfeErrors != null) {
+      assertErrors(source, cfeErrors);
     } else {
-      await computeAnalysisResult(source);
       assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
-      // no verify(), 'null x' is not resolved
+    }
+    if (resolved) {
+      verify([source]);
     }
   }
 

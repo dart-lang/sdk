@@ -36,6 +36,9 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
   bool get useCFE => true;
 
   @override
+  bool get usingFastaParser => true;
+
+  @override
   @failingTest
   test_constrainedByBounds2() async {
     // Expected: InterfaceTypeImpl:<int>
@@ -264,6 +267,9 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
 
   @override
   bool get useCFE => true;
+
+  @override
+  bool get usingFastaParser => true;
 
   @override
   @failingTest
@@ -508,4 +514,7 @@ class StrongModeTypePropagationTest_Kernel
 
   @override
   bool get useCFE => true;
+
+  @override
+  bool get usingFastaParser => true;
 }

@@ -40,6 +40,9 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   bool get useCFE => true;
 
   @override
+  bool get usingFastaParser => true;
+
+  @override
   @failingTest
   @AnalyzerProblem('https://github.com/dart-lang/sdk/issues/33636')
   test_ambiguousImport_showCombinator() async {
