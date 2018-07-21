@@ -8,7 +8,6 @@ import 'package:front_end/src/fasta/scanner/abstract_scanner.dart'
     show AbstractScanner;
 import 'package:front_end/src/scanner/errors.dart';
 import 'package:front_end/src/scanner/reader.dart';
-import 'package:front_end/src/scanner/scanner.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -16,8 +15,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CharSequenceReaderTest);
-    defineReflectiveTests(KeywordStateTest);
-    defineReflectiveTests(ScannerTest);
     defineReflectiveTests(TokenTypeTest);
   });
 }
@@ -79,64 +76,6 @@ class ErrorListener {
 
   void assertNoErrors() {
     assertErrors([]);
-  }
-}
-
-@reflectiveTest
-class KeywordStateTest {
-  void test_KeywordState() {
-    //
-    // Generate the test data to be scanned.
-    //
-    List<Keyword> keywords = Keyword.values;
-    int keywordCount = keywords.length;
-    List<String> textToTest = new List<String>(keywordCount * 3);
-    for (int i = 0; i < keywordCount; i++) {
-      String syntax = keywords[i].lexeme;
-      textToTest[i] = syntax;
-      textToTest[i + keywordCount] = "${syntax}x";
-      textToTest[i + keywordCount * 2] = syntax.substring(0, syntax.length - 1);
-    }
-    //
-    // Scan each of the identifiers.
-    //
-    KeywordState firstState = KeywordState.KEYWORD_STATE;
-    for (int i = 0; i < textToTest.length; i++) {
-      String text = textToTest[i];
-      int index = 0;
-      int length = text.length;
-      KeywordState state = firstState;
-      while (index < length && state != null) {
-        state = state.next(text.codeUnitAt(index));
-        index++;
-      }
-      if (i < keywordCount) {
-        // keyword
-        expect(state, isNotNull);
-        expect(state.keyword(), isNotNull);
-        expect(state.keyword(), keywords[i]);
-      } else if (i < keywordCount * 2) {
-        // keyword + "x"
-        expect(state, isNull);
-      } else {
-        // keyword.substring(0, keyword.length() - 1)
-        expect(state, isNotNull);
-      }
-    }
-  }
-}
-
-@reflectiveTest
-class ScannerTest extends ScannerTestBase {
-  @override
-  Token scanWithListener(String source, ErrorListener listener,
-      {bool genericMethodComments: false,
-      bool lazyAssignmentOperators: false}) {
-    Scanner scanner =
-        new _TestScanner(new CharSequenceReader(source), listener);
-    scanner.scanGenericMethodComments = genericMethodComments;
-    scanner.scanLazyAssignmentOperators = lazyAssignmentOperators;
-    return scanner.tokenize();
   }
 }
 
@@ -252,15 +191,6 @@ abstract class ScannerTestBase {
     _assertToken(TokenType.COMMA, ",");
   }
 
-  void test_comment_disabled_multi() {
-    Scanner scanner =
-        new _TestScanner(new CharSequenceReader("/* comment */ "));
-    scanner.preserveComments = false;
-    Token token = scanner.tokenize();
-    expect(token, isNotNull);
-    expect(token.precedingComments, isNull);
-  }
-
   void test_comment_generic_method_type_assign() {
     _assertComment(TokenType.MULTI_LINE_COMMENT, "/*=comment*/");
     _assertComment(TokenType.GENERIC_METHOD_TYPE_ASSIGN, "/*=comment*/",
@@ -305,27 +235,6 @@ abstract class ScannerTestBase {
     expect(token.precedingComments.next.next.previous,
         same(token.precedingComments.next));
     expect(token.precedingComments.next.next.next, isNull);
-  }
-
-  void test_comment_multi_lineEnds() {
-    String code = r'''
-/**
- * aa
- * bbb
- * c
- */''';
-    ErrorListener listener = new ErrorListener();
-    Scanner scanner = new _TestScanner(new CharSequenceReader(code), listener);
-    scanner.tokenize();
-    expect(
-        scanner.lineStarts,
-        equals(<int>[
-          code.indexOf('/**'),
-          code.indexOf(' * aa'),
-          code.indexOf(' * bbb'),
-          code.indexOf(' * c'),
-          code.indexOf(' */')
-        ]));
   }
 
   void test_comment_multi_unterminated() {
@@ -988,19 +897,6 @@ abstract class ScannerTestBase {
 
   void test_semicolon() {
     _assertToken(TokenType.SEMICOLON, ";");
-  }
-
-  void test_setSourceStart() {
-    int offsetDelta = 42;
-    ErrorListener listener = new ErrorListener();
-    Scanner scanner =
-        new _TestScanner(new SubSequenceReader("a", offsetDelta), listener);
-    scanner.setSourceStart(3, 9);
-    scanner.tokenize();
-    List<int> lineStarts = scanner.lineStarts;
-    expect(lineStarts, isNotNull);
-    expect(lineStarts.length, 3);
-    expect(lineStarts[2], 33);
   }
 
   void test_slash() {
@@ -1743,19 +1639,5 @@ class TokenTypeTest {
     expect(TokenType.STAR.isUserDefinableOperator, isTrue);
     expect(TokenType.TILDE.isUserDefinableOperator, isTrue);
     expect(TokenType.TILDE_SLASH.isUserDefinableOperator, isTrue);
-  }
-}
-
-class _TestScanner extends Scanner {
-  final ErrorListener listener;
-
-  _TestScanner(CharacterReader reader, [this.listener]) : super.create(reader);
-
-  @override
-  void reportError(
-      ScannerErrorCode errorCode, int offset, List<Object> arguments) {
-    if (listener != null) {
-      listener.errors.add(new TestError(offset, errorCode, arguments));
-    }
   }
 }
