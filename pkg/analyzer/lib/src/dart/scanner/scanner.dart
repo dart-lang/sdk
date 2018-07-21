@@ -11,11 +11,9 @@ import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:front_end/src/fasta/scanner.dart' as fasta;
 import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
-import 'package:front_end/src/scanner/scanner.dart' as fe;
 import 'package:front_end/src/scanner/token.dart' show Token, TokenType;
 
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';
-export 'package:front_end/src/scanner/scanner.dart' show KeywordState;
 
 /**
  * The class `Scanner` implements a scanner for Dart code.
@@ -27,52 +25,7 @@ export 'package:front_end/src/scanner/scanner.dart' show KeywordState;
  * any context, so it always resolves such conflicts by scanning the longest
  * possible token.
  */
-class Scanner extends fe.Scanner {
-  /**
-   * The source being scanned.
-   */
-  final Source source;
-
-  /**
-   * The error listener that will be informed of any errors that are found
-   * during the scan.
-   */
-  final AnalysisErrorListener _errorListener;
-
-  /**
-   * Initialize a newly created scanner to scan characters from the given
-   * [source]. The given character [reader] will be used to read the characters
-   * in the source. The given [_errorListener] will be informed of any errors
-   * that are found.
-   */
-  factory Scanner(Source source, CharacterReader reader,
-          AnalysisErrorListener errorListener) =>
-      new Scanner.fasta(source, errorListener,
-          contents: reader.getContents(), offset: reader.offset);
-
-  factory Scanner.fasta(Source source, AnalysisErrorListener errorListener,
-      {String contents, int offset: -1}) {
-    return new _Scanner2(
-        source, contents ?? source.contents.data, offset, errorListener);
-  }
-
-  // Deprecated
-  Scanner.old(this.source, CharacterReader reader, this._errorListener)
-      : super.create(reader);
-
-  @override
-  void reportError(
-      ScannerErrorCode errorCode, int offset, List<Object> arguments) {
-    _errorListener
-        .onError(new AnalysisError(source, offset, 1, errorCode, arguments));
-  }
-}
-
-/**
- * Replacement scanner based on fasta.
- */
-class _Scanner2 implements Scanner {
-  @override
+class Scanner {
   final Source source;
 
   /**
@@ -96,61 +49,46 @@ class _Scanner2 implements Scanner {
    */
   bool _preserveComments = true;
 
-  @override
   final List<int> lineStarts = <int>[];
 
-  @override
   Token firstToken;
 
-  @override
   bool scanGenericMethodComments = false;
 
-  @override
   bool scanLazyAssignmentOperators = false;
 
-  _Scanner2(
+  /**
+   * Initialize a newly created scanner to scan characters from the given
+   * [source]. The given character [reader] will be used to read the characters
+   * in the source. The given [_errorListener] will be informed of any errors
+   * that are found.
+   */
+  factory Scanner(Source source, CharacterReader reader,
+          AnalysisErrorListener errorListener) =>
+      new Scanner.fasta(source, errorListener,
+          contents: reader.getContents(), offset: reader.offset);
+
+  factory Scanner.fasta(Source source, AnalysisErrorListener errorListener,
+      {String contents, int offset: -1}) {
+    return new Scanner._(
+        source, contents ?? source.contents.data, offset, errorListener);
+  }
+
+  Scanner._(
       this.source, this._contents, this._readerOffset, this._errorListener) {
     lineStarts.add(0);
   }
 
-  @override
-  bool get hasUnmatchedGroups {
-    throw 'unsupported operation';
-  }
-
-  @override
   set preserveComments(bool preserveComments) {
     this._preserveComments = preserveComments;
   }
 
-  @override
-  Token get tail {
-    throw 'unsupported operation';
-  }
-
-  @override
-  void appendToken(Token token) {
-    throw 'unsupported operation';
-  }
-
-  @override
-  int bigSwitch(int next) {
-    throw 'unsupported operation';
-  }
-
-  @override
-  void recordStartOfLine() {
-    throw 'unsupported operation';
-  }
-
-  @override
   void reportError(
       ScannerErrorCode errorCode, int offset, List<Object> arguments) {
     _errorListener
         .onError(new AnalysisError(source, offset, 1, errorCode, arguments));
   }
 
-  @override
   void setSourceStart(int line, int column) {
     int offset = _readerOffset;
     if (line < 1 || column < 1 || offset < 0 || (line + column - 2) >= offset) {
@@ -163,7 +101,6 @@ class _Scanner2 implements Scanner {
     lineStarts.add(offset - column + 1);
   }
 
-  @override
   Token tokenize() {
     fasta.ScannerResult result = fasta.scanString(_contents,
         includeComments: _preserveComments,
