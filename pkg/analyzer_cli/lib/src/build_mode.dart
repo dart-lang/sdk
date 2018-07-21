@@ -144,7 +144,7 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
     errorSink = errorBuffer;
     outSink = outBuffer;
     exitHandler = (int exitCode) {
-      throw new StateError('Exit called: $exitCode');
+      return throw new StateError('Exit called: $exitCode');
     };
     await super.run();
   }

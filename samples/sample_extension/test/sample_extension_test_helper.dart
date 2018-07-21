@@ -85,6 +85,6 @@ Future testNativeExtensions(String snapshotKind) async {
       await run(Platform.executable, args);
     }
   } finally {
-    tempDirectory.deleteSync(recursive: true);
+    await tempDirectory.deleteSync(recursive: true);
   }
 }

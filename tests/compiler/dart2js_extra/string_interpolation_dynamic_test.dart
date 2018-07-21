@@ -18,7 +18,7 @@ int ifun() => 37;
 double dfun() => 2.71828;
 bool bfun() => true;
 String sfun() => "sfun";
-nfun() => null;
+void nfun() => null;
 
 void testEscapes() {
   // Test that escaping the '$' prevents string interpolation.

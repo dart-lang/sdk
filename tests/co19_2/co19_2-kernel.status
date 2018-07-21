@@ -202,7 +202,11 @@ Language/Types/Parameterized_Types/malbounded_t06: MissingCompileTimeError
 Language/Types/Static_Types/malformed_type_t01/04: MissingCompileTimeError
 Language/Types/Static_Types/malformed_type_t01/05: MissingCompileTimeError
 Language/Types/Static_Types/malformed_type_t01/06: MissingCompileTimeError
+Language/Types/Type_Void/returning_t03: MissingCompileTimeError
+Language/Types/Type_Void/returning_t04: MissingCompileTimeError
+Language/Types/Type_Void/returning_t05: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t08: MissingCompileTimeError
+Language/Types/Type_Void/using_t01: MissingCompileTimeError
 Language/Variables/constant_initialization_t03: CompileTimeError # Dart 1 constants, https://github.com/dart-lang/sdk/issues/33894
 Language/Variables/constant_variable_t09: CompileTimeError # Dart 1 constants, https://github.com/dart-lang/sdk/issues/33894
 Language/Variables/final_or_static_initialization_t02: MissingCompileTimeError
@@ -1470,14 +1474,3 @@ LibTest/typed_data/Uint8List/first_A01_t02: RuntimeError
 LibTest/typed_data/Uint8List/last_A01_t02: RuntimeError
 Utils/tests/Expect/setEquals_A01_t02: CompileTimeError # Dart 1 constants, https://github.com/dart-lang/sdk/issues/33894
 Utils/tests/Expect/throws_A01_t04: RuntimeError
-
-[ $fasta && $strong ]
-Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/not_overriden_members_t01: CompileTimeError
-Language/Types/Type_Void/syntax_t09: CompileTimeError
-Language/Types/Type_Void/using_t02: CompileTimeError
-Language/Types/Type_Void/using_t03: CompileTimeError
-LibTest/io/Stdin/readLineSync_A03_t01: CompileTimeError
-LibTest/io/Stdin/readLineSync_A03_t02: CompileTimeError
-LibTest/io/Stdin/readLineSync_A03_t03: CompileTimeError
-LibTest/io/Stdin/readLineSync_A03_t04: CompileTimeError
-LibTest/io/Stdin/readLineSync_A04_t01: CompileTimeError

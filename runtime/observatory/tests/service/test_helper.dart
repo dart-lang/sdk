@@ -334,7 +334,7 @@ class _ServiceTesterRunner {
 
         print('All service tests completed successfully.');
         testsDone = true;
-        process.requestExit();
+        await process.requestExit();
       });
     }, onError: (error, stackTrace) {
       if (testsDone) {

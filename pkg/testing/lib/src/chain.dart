@@ -293,7 +293,7 @@ abstract class ChainContext {
     return result.copyWithOutcome(outcome);
   }
 
-  Future<void> cleanUp(TestDescription description, Result result) => null;
+  void cleanUp(TestDescription description, Result result) {}
 }
 
 abstract class Step<I, O, C extends ChainContext> {
