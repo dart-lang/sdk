@@ -766,10 +766,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
     }
     // positional argument
-    ParameterElement parameter = expression.propagatedParameterElement;
-    if (parameter == null) {
-      parameter = expression.staticParameterElement;
-    }
+    ParameterElement parameter = expression.staticParameterElement;
     if (parameter != null) {
       return parameter.displayName;
     }

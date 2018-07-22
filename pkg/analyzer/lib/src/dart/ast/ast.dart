@@ -386,8 +386,10 @@ class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
     ..addAll(_arguments)
     ..add(rightParenthesis);
 
+  @deprecated
   List<ParameterElement> get correspondingPropagatedParameters => null;
 
+  @deprecated
   @override
   void set correspondingPropagatedParameters(
       List<ParameterElement> parameters) {
@@ -776,9 +778,11 @@ class AssignmentExpressionImpl extends ExpressionImpl
   @override
   int get precedence => 1;
 
+  @deprecated
   @override
   MethodElement get propagatedElement => null;
 
+  @deprecated
   @override
   set propagatedElement(MethodElement element) {}
 
@@ -1072,9 +1076,11 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
   @override
   int get precedence => operator.type.precedence;
 
+  @deprecated
   @override
   MethodElement get propagatedElement => null;
 
+  @deprecated
   @override
   set propagatedElement(MethodElement element) {}
 
@@ -4084,12 +4090,15 @@ abstract class ExpressionImpl extends AstNodeImpl implements Expression {
   @override
   bool get isAssignable => false;
 
+  @deprecated
   @override
   ParameterElement get propagatedParameterElement => null;
 
+  @deprecated
   @override
   DartType get propagatedType => null;
 
+  @deprecated
   @override
   set propagatedType(DartType type) {}
 
@@ -5356,9 +5365,11 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   @override
   int get precedence => 15;
 
+  @deprecated
   @override
   ExecutableElement get propagatedElement => null;
 
+  @deprecated
   @override
   set propagatedElement(ExecutableElement element) {}
 
@@ -6220,9 +6231,11 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
   @override
   int get precedence => 15;
 
+  @deprecated
   @override
   MethodElement get propagatedElement => null;
 
+  @deprecated
   @override
   set propagatedElement(MethodElement element) {}
 
@@ -6728,9 +6741,11 @@ abstract class InvocationExpressionImpl extends ExpressionImpl
     _argumentList = _becomeParentOf(argumentList as ArgumentListImpl);
   }
 
+  @deprecated
   @override
   DartType get propagatedInvokeType => null;
 
+  @deprecated
   @override
   set propagatedInvokeType(DartType type) {}
 
@@ -7063,6 +7078,7 @@ class LibraryIdentifierImpl extends IdentifierImpl
   @override
   int get precedence => 15;
 
+  @deprecated
   @override
   Element get propagatedElement => null;
 
@@ -8559,9 +8575,11 @@ class PostfixExpressionImpl extends ExpressionImpl
   @override
   int get precedence => 15;
 
+  @deprecated
   @override
   MethodElement get propagatedElement => null;
 
+  @deprecated
   @override
   set propagatedElement(MethodElement element) {}
 
@@ -8685,6 +8703,7 @@ class PrefixedIdentifierImpl extends IdentifierImpl
     _prefix = _becomeParentOf(identifier as SimpleIdentifierImpl);
   }
 
+  @deprecated
   @override
   Element get propagatedElement => null;
 
@@ -8761,9 +8780,11 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
   @override
   int get precedence => 14;
 
+  @deprecated
   @override
   MethodElement get propagatedElement => null;
 
+  @deprecated
   @override
   set propagatedElement(MethodElement element) {}
 
@@ -9319,9 +9340,11 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   @override
   int get precedence => 16;
 
+  @deprecated
   @override
   Element get propagatedElement => null;
 
+  @deprecated
   @override
   void set propagatedElement(Element element) {}
 

@@ -83,7 +83,6 @@ class DartUnitHoverComputer {
       {
         AstNode parent = expression.parent;
         DartType staticType = null;
-        DartType propagatedType = expression.propagatedType;
         if (element is ParameterElement) {
           staticType = element.type;
         } else if (element == null || element is VariableElement) {
@@ -91,16 +90,11 @@ class DartUnitHoverComputer {
         }
         if (parent is MethodInvocation && parent.methodName == expression) {
           staticType = parent.staticInvokeType;
-          propagatedType = parent.propagatedInvokeType;
           if (staticType != null && staticType.isDynamic) {
             staticType = null;
           }
-          if (propagatedType != null && propagatedType.isDynamic) {
-            propagatedType = null;
-          }
         }
         hover.staticType = _safeToString(staticType);
-        hover.propagatedType = _safeToString(propagatedType);
       }
       // done
       return hover;

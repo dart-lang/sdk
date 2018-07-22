@@ -1969,6 +1969,7 @@ abstract class PropertyInducingElement implements VariableElement {
    * Return the propagated type of this variable, or `null` if type propagation
    * has not been performed, for example because the variable is not final.
    */
+  @deprecated
   DartType get propagatedType;
 
   /**

@@ -249,8 +249,9 @@ class FieldMember extends VariableMember implements FieldElement {
   @override
   bool get isVirtual => baseElement.isVirtual;
 
+  @deprecated
   @override
-  DartType get propagatedType => substituteFor(baseElement.propagatedType);
+  DartType get propagatedType => null;
 
   @override
   PropertyAccessorElement get setter =>

@@ -146,10 +146,6 @@ class DartUnitHighlightsComputer {
     if (element is! VariableElement) {
       return false;
     }
-    // has propagated type
-    if (node.propagatedType != null) {
-      return false;
-    }
     // has dynamic static type
     DartType staticType = node.staticType;
     if (staticType == null || !staticType.isDynamic) {

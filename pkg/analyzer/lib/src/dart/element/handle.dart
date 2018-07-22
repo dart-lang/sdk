@@ -1101,8 +1101,9 @@ abstract class PropertyInducingElementHandle extends VariableElementHandle
   @override
   PropertyAccessorElement get getter => actualElement.getter;
 
+  @deprecated
   @override
-  DartType get propagatedType => actualElement.propagatedType;
+  DartType get propagatedType => null;
 
   @override
   PropertyAccessorElement get setter => actualElement.setter;

@@ -145,10 +145,6 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_dynamicLocal(SimpleIdentifier node) {
-    // no propagated type
-    if (node.propagatedType != null) {
-      return false;
-    }
     // has dynamic static type
     DartType staticType = node.staticType;
     if (staticType == null || !staticType.isDynamic) {
