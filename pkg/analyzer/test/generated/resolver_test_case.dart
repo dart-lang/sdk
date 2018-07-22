@@ -408,6 +408,16 @@ class ResolverTestCase extends EngineTestCase {
   Source addSource(String contents) => addNamedSource("/test.dart", contents);
 
   /**
+   * The [code] that assigns the value to the variable "v", no matter how. We
+   * check that "v" has expected static type.
+   */
+  void assertAssignedType(
+      String code, CompilationUnit unit, DartType expectedStaticType) {
+    SimpleIdentifier identifier = findMarkedIdentifier(code, unit, "v = ");
+    expect(identifier.staticType, expectedStaticType);
+  }
+
+  /**
    * Assert that the number of errors reported against the given
    * [source] matches the number of errors that are given and that they have
    * the expected error codes. The order in which the errors were gathered is
@@ -489,43 +499,23 @@ class ResolverTestCase extends EngineTestCase {
   }
 
   /**
-   * @param code the code that assigns the value to the variable "v", no matter how. We check that
-   *          "v" has expected static and propagated type.
+   * The [code] that iterates using variable "v". We check that "v" has expected
+   * static type.
    */
-  void assertPropagatedAssignedType(String code, CompilationUnit unit,
-      DartType expectedStaticType, DartType expectedPropagatedType) {
-    SimpleIdentifier identifier = findMarkedIdentifier(code, unit, "v = ");
-    expect(identifier.staticType, expectedStaticType);
-    expect(identifier.propagatedType, expectedPropagatedType);
-  }
-
-  /**
-   * @param code the code that iterates using variable "v". We check that
-   *          "v" has expected static and propagated type.
-   */
-  void assertPropagatedIterationType(String code, CompilationUnit unit,
-      DartType expectedStaticType, DartType expectedPropagatedType) {
+  void assertPropagatedIterationType(
+      String code, CompilationUnit unit, DartType expectedStaticType) {
     SimpleIdentifier identifier = findMarkedIdentifier(code, unit, "v in ");
     expect(identifier.staticType, expectedStaticType);
-    expect(identifier.propagatedType, expectedPropagatedType);
   }
 
   /**
-   * Check the static and propagated types of the expression marked with "; // marker" comment.
-   *
-   * @param code source code to analyze, with the expression to check marked with "// marker".
-   * @param expectedStaticType if non-null, check actual static type is equal to this.
-   * @param expectedPropagatedType if non-null, check actual static type is equal to this.
-   * @throws Exception
+   * Check the static type of the expression marked with "; // marker" comment.
    */
-  void assertTypeOfMarkedExpression(String code, CompilationUnit unit,
-      DartType expectedStaticType, DartType expectedPropagatedType) {
+  void assertTypeOfMarkedExpression(
+      String code, CompilationUnit unit, DartType expectedStaticType) {
     SimpleIdentifier identifier =
         findMarkedIdentifier(code, unit, "; // marker");
-    if (expectedStaticType != null) {
-      expect(identifier.staticType, expectedStaticType);
-    }
-    expect(identifier.propagatedType, expectedPropagatedType);
+    expect(identifier.staticType, expectedStaticType);
   }
 
   /**
@@ -886,16 +876,10 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
    * If [type] is a string, validates that the identifier's static type
    * stringifies to that text. Otherwise, [type] is used directly a [Matcher]
    * to match the type.
-   *
-   * If [propagatedType] is given, also validate's the identifier's propagated
-   * type.
    */
-  void expectIdentifierType(String name, type, [propagatedType]) {
+  void expectIdentifierType(String name, type) {
     SimpleIdentifier identifier = findIdentifier(name);
     _expectType(identifier.staticType, type);
-    if (propagatedType != null) {
-      _expectType(identifier.propagatedType, propagatedType);
-    }
   }
 
   /**
@@ -905,19 +889,13 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
    * If [type] is a string, validates that the identifier's static type
    * stringifies to that text. Otherwise, [type] is used directly a [Matcher]
    * to match the type.
-   *
-   * If [propagatedType] is given, also validate's the identifier's propagated
-   * type.
    */
-  void expectInitializerType(String name, type, [propagatedType]) {
+  void expectInitializerType(String name, type) {
     SimpleIdentifier identifier = findIdentifier(name);
     VariableDeclaration declaration =
         identifier.getAncestor((node) => node is VariableDeclaration);
     Expression initializer = declaration.initializer;
     _expectType(initializer.staticType, type);
-    if (propagatedType != null) {
-      _expectType(initializer.propagatedType, propagatedType);
-    }
   }
 
   SimpleIdentifier findIdentifier(String search) {

@@ -55,7 +55,7 @@ main() {
 }
 ''';
     await resolveTestUnit(code);
-    expectInitializerType('foo', previewDart2 ? 'int' : 'dynamic', isNull);
+    expectInitializerType('foo', previewDart2 ? 'int' : 'dynamic');
   }
 
   test_FunctionExpressionInvocation_curried() async {
@@ -67,7 +67,7 @@ main() {
 }
 ''';
     await resolveTestUnit(code);
-    expectInitializerType('foo', 'int', isNull);
+    expectInitializerType('foo', 'int');
   }
 
   test_FunctionExpressionInvocation_expression() async {
@@ -77,7 +77,7 @@ main() {
 }
 ''';
     await resolveTestUnit(code);
-    expectInitializerType('foo', 'int', isNull);
+    expectInitializerType('foo', 'int');
   }
 
   test_MethodInvocation_nameType_localVariable() async {
@@ -118,8 +118,7 @@ main(p) {
     if (previewDart2) {
       expectIdentifierType("p()", '() → dynamic');
     } else {
-      expectIdentifierType("p()", DynamicTypeImpl.instance,
-          predicate((type) => type.displayName == '() → dynamic'));
+      expectIdentifierType("p()", DynamicTypeImpl.instance);
     }
   }
 
@@ -384,7 +383,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     ClassElement subclass = ElementFactory.classElement("B", superclassType);
     Expression node = AstTestFactory.asExpression(
         AstTestFactory.thisExpression(), AstTestFactory.typeName(subclass));
-    expect(_analyze3(node, superclassType), same(subclass.type));
+    expect(_analyze(node, superclassType), same(subclass.type));
     _listener.assertNoErrors();
   }
 
@@ -1338,29 +1337,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
-  void test_visitPropertyAccess_propagated_getter() {
-    DartType boolType = _typeProvider.boolType;
-    PropertyAccessorElementImpl getter =
-        ElementFactory.getterElement("b", false, boolType);
-    PropertyAccess node =
-        AstTestFactory.propertyAccess2(AstTestFactory.identifier3("a"), "b");
-    node.propertyName.propagatedElement = getter;
-    expect(_analyze2(node, false), previewDart2 ? isNull : same(boolType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitPropertyAccess_propagated_setter() {
-    DartType boolType = _typeProvider.boolType;
-    FieldElementImpl field =
-        ElementFactory.fieldElement("b", false, false, false, boolType);
-    PropertyAccessorElement setter = field.setter;
-    PropertyAccess node =
-        AstTestFactory.propertyAccess2(AstTestFactory.identifier3("a"), "b");
-    node.propertyName.propagatedElement = setter;
-    expect(_analyze2(node, false), previewDart2 ? isNull : same(boolType));
-    _listener.assertNoErrors();
-  }
-
   void test_visitPropertyAccess_static_getter() {
     DartType boolType = _typeProvider.boolType;
     PropertyAccessorElementImpl getter =
@@ -1417,7 +1393,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     InterfaceType superType = ElementFactory.classElement2("A").type;
     InterfaceType thisType = ElementFactory.classElement("B", superType).type;
     Expression node = AstTestFactory.superExpression();
-    expect(_analyze3(node, thisType), same(thisType));
+    expect(_analyze(node, thisType), same(thisType));
     _listener.assertNoErrors();
   }
 
@@ -1432,7 +1408,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
         ElementFactory.classElement("B", ElementFactory.classElement2("A").type)
             .type;
     Expression node = AstTestFactory.thisExpression();
-    expect(_analyze3(node, thisType), same(thisType));
+    expect(_analyze(node, thisType), same(thisType));
     _listener.assertNoErrors();
   }
 
@@ -1451,56 +1427,14 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   }
 
   /**
-   * Return the type associated with the given expression after the static type analyzer has
-   * computed a type for it.
-   *
-   * @param node the expression with which the type is associated
-   * @return the type associated with the expression
+   * Return the type associated with the given [node] after the static type
+   * analyzer has computed a type for it. If [thisType] is provided, it is the
+   * type of 'this'.
    */
-  DartType _analyze(Expression node) => _analyze4(node, null, true);
-
-  /**
-   * Return the type associated with the given expression after the static or propagated type
-   * analyzer has computed a type for it.
-   *
-   * @param node the expression with which the type is associated
-   * @param useStaticType `true` if the static type is being requested, and `false` if
-   *          the propagated type is being requested
-   * @return the type associated with the expression
-   */
-  DartType _analyze2(Expression node, bool useStaticType) =>
-      _analyze4(node, null, useStaticType);
-
-  /**
-   * Return the type associated with the given expression after the static type analyzer has
-   * computed a type for it.
-   *
-   * @param node the expression with which the type is associated
-   * @param thisType the type of 'this'
-   * @return the type associated with the expression
-   */
-  DartType _analyze3(Expression node, InterfaceType thisType) =>
-      _analyze4(node, thisType, true);
-
-  /**
-   * Return the type associated with the given expression after the static type analyzer has
-   * computed a type for it.
-   *
-   * @param node the expression with which the type is associated
-   * @param thisType the type of 'this'
-   * @param useStaticType `true` if the static type is being requested, and `false` if
-   *          the propagated type is being requested
-   * @return the type associated with the expression
-   */
-  DartType _analyze4(
-      Expression node, InterfaceType thisType, bool useStaticType) {
+  DartType _analyze(Expression node, [InterfaceType thisType]) {
     _analyzer.thisType = thisType;
     node.accept(_analyzer);
-    if (useStaticType) {
-      return node.staticType;
-    } else {
-      return node.propagatedType;
-    }
+    return node.staticType;
   }
 
   /**

@@ -4441,9 +4441,7 @@ abstract class InvocationExpression extends Expression {
    *     o.m<TArgs>(args);   // target will be `m`
    *
    * In either case, the [function.staticType] will be the
-   * [staticInvokeType] before applying type arguments `TArgs`. Similarly,
-   * [function.propagatedType] will be the [propagatedInvokeType]
-   * before applying type arguments `TArgs`.
+   * [staticInvokeType] before applying type arguments `TArgs`.
    */
   Expression get function;
 
