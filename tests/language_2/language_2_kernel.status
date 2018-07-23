@@ -255,6 +255,23 @@ field3_test/01: MissingCompileTimeError # Issue 33022
 field3_test/02: MissingCompileTimeError # Issue 33022
 generic_methods_bounds_test/01: MissingCompileTimeError # Issue 33018
 generic_methods_recursive_bound_test/02: MissingCompileTimeError # Issue 33018
+initializer_super_last_test/cc04: MissingCompileTimeError
+initializer_super_last_test/cc09: MissingCompileTimeError
+initializer_super_last_test/cc10: MissingCompileTimeError
+initializer_super_last_test/cc11: MissingCompileTimeError
+initializer_super_last_test/cc12: MissingCompileTimeError
+initializer_super_last_test/cc13: MissingCompileTimeError
+initializer_super_last_test/cc14: MissingCompileTimeError
+initializer_super_last_test/cc15: MissingCompileTimeError
+initializer_super_last_test/cc16: MissingCompileTimeError
+initializer_super_last_test/cc25: MissingCompileTimeError
+initializer_super_last_test/cc26: MissingCompileTimeError
+initializer_super_last_test/cc27: MissingCompileTimeError
+initializer_super_last_test/cc28: MissingCompileTimeError
+initializer_super_last_test/cc29: MissingCompileTimeError
+initializer_super_last_test/cc30: MissingCompileTimeError
+initializer_super_last_test/cc31: MissingCompileTimeError
+initializer_super_last_test/cc32: MissingCompileTimeError
 issue31596_super_test/02: MissingCompileTimeError
 issue31596_super_test/04: MissingCompileTimeError
 malbounded_instantiation_test/01: MissingCompileTimeError # Issue 33018
@@ -346,6 +363,18 @@ type_variable_bounds_test/11: MissingCompileTimeError
 vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
+void/return_future_future_or_void_async_error0_test: MissingCompileTimeError
+void/return_future_future_or_void_sync_error0_test: MissingCompileTimeError
+void/return_future_or_future_or_void_sync_error1_test: MissingCompileTimeError
+void/return_future_or_void_sync_error3_test: MissingCompileTimeError
+void/return_void_async_error0_test: MissingCompileTimeError
+void/return_void_async_error1_test: MissingCompileTimeError
+void/return_void_async_error2_test: MissingCompileTimeError
+void/return_void_async_error4_test: MissingCompileTimeError
+void/return_void_sync_error0_test: MissingCompileTimeError
+void/return_void_sync_error1_test: MissingCompileTimeError
+void/return_void_sync_error2_test: MissingCompileTimeError
+void_block_return_test/00: MissingCompileTimeError
 void_type_callbacks_test/00: MissingCompileTimeError
 void_type_callbacks_test/01: MissingCompileTimeError
 void_type_function_types_test/04: MissingCompileTimeError # Issue 32804
@@ -906,7 +935,6 @@ vm/type_vm_test/29: MissingRuntimeError
 vm/type_vm_test/30: MissingRuntimeError
 vm/type_vm_test/31: MissingRuntimeError
 vm/type_vm_test/32: MissingRuntimeError
-void_block_return_test/00: MissingCompileTimeError
 wrong_number_type_arguments_test/01: MissingCompileTimeError
 
 [ $compiler == dartkp && $minified ]
@@ -1500,7 +1528,6 @@ vm/bool_check_stack_traces_test/02: RuntimeError # Issue 33584
 vm/closure_memory_retention_test: Skip # KernelVM bug: Hits OOM
 vm/regress_29145_test: Skip # Issue 29145
 vm/type_cast_vm_test: RuntimeError
-void_block_return_test/00: MissingCompileTimeError
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 wrong_number_type_arguments_test/01: MissingCompileTimeError
 wrong_number_type_arguments_test/none: Pass
@@ -1526,7 +1553,6 @@ map_literal3_test/03: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 type_promotion_logical_and_test/01: MissingCompileTimeError
-void_block_return_test/00: MissingCompileTimeError
 wrong_number_type_arguments_test/01: MissingCompileTimeError
 
 [ $fasta && !$strong ]

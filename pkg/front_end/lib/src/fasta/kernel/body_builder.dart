@@ -56,6 +56,8 @@ import '../scanner/token.dart' show isBinaryOperator, isMinusOperator;
 
 import '../scope.dart' show ProblemBuilder;
 
+import '../severity.dart' show Severity;
+
 import '../source/outline_builder.dart' show OutlineBuilder;
 
 import '../source/scope_listener.dart'
@@ -3966,6 +3968,28 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     return wrapInLocatedCompileTimeError(expression,
         message.withLocation(uri, forest.readOffset(expression), noLength),
         context: context);
+  }
+
+  @override
+  Expression wrapInProblem(Expression expression, Message message, int length,
+      {List<LocatedMessage> context}) {
+    int charOffset = expression.fileOffset;
+    Severity severity = message.code.severity;
+    if (severity == null) {
+      addCompileTimeError(message, charOffset, length, context: context);
+      internalProblem(
+          fasta.templateInternalProblemMissingSeverity
+              .withArguments(message.code.name),
+          charOffset,
+          uri);
+    } else if (severity == Severity.error ||
+        severity == Severity.errorLegacyWarning &&
+            library.loader.target.strongMode) {
+      return wrapInCompileTimeError(expression, message, context: context);
+    } else {
+      addProblem(message, charOffset, length, context: context);
+    }
+    return expression;
   }
 
   @override

@@ -30,45 +30,6 @@ regress_29784_test/02: SkipByDesign # Requires checked mode.
 stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 
-[ $fasta ]
-initializer_super_last_test/cc04: MissingCompileTimeError
-initializer_super_last_test/cc09: MissingCompileTimeError
-initializer_super_last_test/cc10: MissingCompileTimeError
-initializer_super_last_test/cc11: MissingCompileTimeError
-initializer_super_last_test/cc12: MissingCompileTimeError
-initializer_super_last_test/cc13: MissingCompileTimeError
-initializer_super_last_test/cc14: MissingCompileTimeError
-initializer_super_last_test/cc15: MissingCompileTimeError
-initializer_super_last_test/cc16: MissingCompileTimeError
-initializer_super_last_test/cc25: MissingCompileTimeError
-initializer_super_last_test/cc26: MissingCompileTimeError
-initializer_super_last_test/cc27: MissingCompileTimeError
-initializer_super_last_test/cc28: MissingCompileTimeError
-initializer_super_last_test/cc29: MissingCompileTimeError
-initializer_super_last_test/cc30: MissingCompileTimeError
-initializer_super_last_test/cc31: MissingCompileTimeError
-initializer_super_last_test/cc32: MissingCompileTimeError
-void/return_future_future_or_void_async_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_future_or_void_sync_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_or_future_or_void_sync_error0_test: MissingCompileTimeError
-void/return_future_or_future_or_void_sync_error1_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_or_void_async_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_or_void_sync_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_or_void_sync_error1_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_or_void_sync_error2_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_or_void_sync_error3_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_void_async_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_void_async_error1_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_void_async_error2_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_async_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_async_error1_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_async_error2_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_async_error3_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_async_error4_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_sync_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_sync_error1_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_sync_error2_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-
 [ $compiler != app_jitk && $compiler != dartk && $compiler != dartkp && $mode == debug && $runtime == vm ]
 built_in_identifier_type_annotation_test/set: Crash # Not supported by legacy VM front-end.
 
