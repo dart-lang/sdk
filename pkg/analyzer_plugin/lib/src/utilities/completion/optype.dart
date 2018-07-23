@@ -826,6 +826,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
         (node.identifier != null &&
             node.identifier.isSynthetic &&
             identical(entity, node.findPrevious(node.identifier.beginToken)))) {
+      if (node.prefix.isSynthetic) {
+        // If the access has no target (empty string)
+        // then don't suggest anything
+        return;
+      }
       optype.isPrefixed = true;
       if (node.parent is TypeName && node.parent.parent is ConstructorName) {
         optype.includeConstructorSuggestions = true;
@@ -848,12 +853,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    bool isThis = node.target is ThisExpression;
     if (node.realTarget is SimpleIdentifier && node.realTarget.isSynthetic) {
       // If the access has no target (empty string)
       // then don't suggest anything
       return;
     }
+    bool isThis = node.target is ThisExpression;
     if (identical(entity, node.operator) && offset > node.operator.offset) {
       // The cursor is between the two dots of a ".." token, so we need to
       // generate the completions we would generate after a "." token.
@@ -980,6 +985,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (identical(entity, node.initializer)) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
+  visitFieldDeclaration(FieldDeclaration node) {
+    if (offset <= node.semicolon.offset) {
+      optype.includeVarNameSuggestions = true;
     }
   }
 

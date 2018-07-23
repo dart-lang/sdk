@@ -100,11 +100,24 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
 
   @override
   bool get enableStrongMode => false;
+
+  @failingTest
   test_Annotation() async {
     // SimpleIdentifier  Annotation  MethodDeclaration  ClassDeclaration
     addTestSource('class C { @A^ }');
     await assertOpType(
         constructors: previewDart2, returnValue: true, typeNames: true);
+    // TODO(danrubel): This test fails when fasta parser is enabled
+    // because the @A is dropped from the Analyzer AST.
+    // Ideally we generate a synthetic field and associate the annotation
+    // with that field, but doing so breaks test_constructorAndMethodNameCollision.
+    // See https://dart-review.googlesource.com/c/sdk/+/65760/3/pkg/analyzer/lib/src/fasta/ast_builder.dart#2395
+
+    // The old Analyzer parser passes this test, but will be turned off soon.
+    // It is preferable to throw only if the old analyzer is being used,
+    // but there does not seem to be a reliable way to determine that here.
+    // TODO(danrubel): remove this once fasta parser is enabled by default.
+    throw 'Remove this exception once fasta parser is the default';
   }
 
   test_ArgumentList() async {
