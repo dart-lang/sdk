@@ -101,6 +101,12 @@ abstract class Type extends TypeExpr {
   /// Order of precedence for evaluation of union/intersection.
   int get order;
 
+  /// Returns true iff this type is fully specialized.
+  bool get isSpecialized => true;
+
+  /// Returns specialization of this type using the given [TypeHierarchy].
+  Type specialize(TypeHierarchy typeHierarchy) => this;
+
   /// Calculate union of this and [other] types.
   Type union(Type other, TypeHierarchy typeHierarchy);
 
@@ -163,6 +169,14 @@ class NullableType extends Type {
 
   @override
   int get order => TypeOrder.Nullable.index;
+
+  @override
+  bool get isSpecialized => baseType.isSpecialized;
+
+  @override
+  Type specialize(TypeHierarchy typeHierarchy) => baseType.isSpecialized
+      ? this
+      : new NullableType(baseType.specialize(typeHierarchy));
 
   @override
   Type union(Type other, TypeHierarchy typeHierarchy) {
@@ -394,6 +408,13 @@ class ConeType extends Type {
 
   @override
   int get order => TypeOrder.Cone.index;
+
+  @override
+  bool get isSpecialized => false;
+
+  @override
+  Type specialize(TypeHierarchy typeHierarchy) =>
+      typeHierarchy.specializeTypeCone(dartType);
 
   @override
   Type union(Type other, TypeHierarchy typeHierarchy) {

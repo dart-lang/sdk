@@ -731,9 +731,38 @@ class _FieldValue extends _DependencyTracker {
   }
 
   void setValue(Type newValue, TypeFlowAnalysis typeFlowAnalysis) {
-    final Type newType = value.union(
-        newValue.intersection(staticType, typeFlowAnalysis.hierarchyCache),
-        typeFlowAnalysis.hierarchyCache);
+    // Make sure type cones are specialized before putting them into field
+    // value, in order to ensure that dependency is established between
+    // cone's base type and corresponding field setter.
+    //
+    // This ensures correct invalidation in the following scenario:
+    //
+    // 1) setValue(Cone(X)).
+    //    It sets field value to Cone(X).
+    //
+    // 2) setValue(Y).
+    //    It calculates Cone(X) U Y, specializing Cone(X).
+    //    This establishes class X --> setter(Y)  dependency.
+    //    If X does not have allocated subclasses, then Cone(X) is specialized
+    //    to Empty and the new field value is Y.
+    //
+    // 3) A new allocated subtype is added to X.
+    //    This invalidates setter(Y). However, recalculation of setter(Y)
+    //    does not yield correct field value, as value calculated on step 1 is
+    //    already lost, and repeating setValue(Y) will not change field value.
+    //
+    // The eager specialization of field value ensures that specialization
+    // will happen on step 1 and dependency class X --> setter(Cone(X))
+    // is established.
+    //
+    final hierarchy = typeFlowAnalysis.hierarchyCache;
+    Type newType = value
+        .union(
+            newValue.specialize(hierarchy).intersection(staticType, hierarchy),
+            hierarchy)
+        .specialize(hierarchy);
+    assertx(newType.isSpecialized);
+
     if (newType != value) {
       if (kPrintTrace) {
         tracePrint("Set field $field value $newType");
@@ -887,8 +916,8 @@ class _ClassHierarchyCache implements TypeHierarchy {
   @override
   bool isSubtype(DartType subType, DartType superType) {
     if (kPrintTrace) {
-      tracePrint("isSubtype for sub = $subType (${subType
-              .runtimeType}), sup = $superType (${superType.runtimeType})");
+      tracePrint("isSubtype for sub = $subType (${subType.runtimeType}),"
+          " sup = $superType (${superType.runtimeType})");
     }
     if (subType == superType) {
       return true;
