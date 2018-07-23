@@ -6301,13 +6301,14 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  visitVariableDeclarationList(VariableDeclarationList node) {
+  Object visitVariableDeclarationList(VariableDeclarationList node) {
     for (VariableDeclaration decl in node.variables) {
       VariableElement variableElement =
           resolutionMap.elementDeclaredByVariableDeclaration(decl);
       InferenceContext.setType(decl, variableElement?.type);
     }
     super.visitVariableDeclarationList(node);
+    return null;
   }
 
   @override
