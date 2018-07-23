@@ -49,7 +49,7 @@ import 'dart:_internal'
 import 'dart:_native_typed_data';
 
 import 'dart:_js_names'
-    show extractKeys, mangledNames, unmangleAllIdentifiersIfPreservedAnyways;
+    show extractKeys, unmangleAllIdentifiersIfPreservedAnyways;
 
 part 'annotations.dart';
 part 'constant_map.dart';
@@ -312,30 +312,16 @@ class JSInvocationMirror implements Invocation {
   var /* String or Symbol */ _memberName;
   final String _internalName;
   final int _kind;
-  final List<Type> _typeArguments;
   final List _arguments;
   final List _namedArgumentNames;
   final int _typeArgumentCount;
-  /** Map from argument name to index in _arguments. */
-  Map<String, dynamic> _namedIndices = null;
 
   JSInvocationMirror(this._memberName, this._internalName, this._kind,
       this._arguments, this._namedArgumentNames, this._typeArgumentCount);
 
   Symbol get memberName {
     if (_memberName is Symbol) return _memberName;
-    String name = _memberName;
-    String unmangledName = mangledNames[name];
-    if (unmangledName != null) {
-      name = unmangledName.split(':')[0];
-    } else {
-      if (mangledNames[_internalName] == null) {
-        print("Warning: '$name' is used reflectively but not in MirrorsUsed. "
-            "This will break minified code.");
-      }
-    }
-    _memberName = new _symbol_dev.Symbol.unvalidated(name);
-    return _memberName;
+    return _memberName = new _symbol_dev.Symbol.unvalidated(_memberName);
   }
 
   bool get isMethod => _kind == METHOD;
