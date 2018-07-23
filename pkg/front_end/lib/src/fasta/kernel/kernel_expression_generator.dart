@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart'
-    show Arguments, Expression, InvalidExpression, Node;
+    show Arguments, DynamicType, Expression, InvalidExpression, Node;
 
 import '../../scanner/token.dart' show Token;
 
@@ -1129,6 +1129,17 @@ class KernelStaticAccessGenerator extends KernelGenerator
   }
 
   @override
+  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
+      {bool nonInstanceAccessIsError: false, TypeInferrer typeInferrer}) {
+    var offset = offsetForToken(token);
+    typeInferrer.storeTypeReference(
+        offset, token.isSynthetic, readTarget, null, const DynamicType());
+    return super.buildTypeWithBuiltArguments(arguments,
+        nonInstanceAccessIsError: nonInstanceAccessIsError,
+        typeInferrer: typeInferrer);
+  }
+
+  @override
   Expression doInvocation(int offset, Arguments arguments) {
     Expression error;
     if (helper.constantContext != ConstantContext.none &&
@@ -1150,6 +1161,12 @@ class KernelStaticAccessGenerator extends KernelGenerator
       return helper.buildStaticInvocation(readTarget, arguments,
           charOffset: offset, error: error);
     }
+  }
+
+  @override
+  void storeUnexpectedTypePrefix(TypeInferrer typeInferrer) {
+    typeInferrer.storeTypeReference(offsetForToken(token), token.isSynthetic,
+        readTarget, null, const DynamicType());
   }
 
   @override

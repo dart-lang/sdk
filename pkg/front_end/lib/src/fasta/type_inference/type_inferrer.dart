@@ -427,6 +427,8 @@ abstract class TypeInferrer {
 
   void storePrefix(Token token, PrefixBuilder prefix);
 
+  void storeUnresolved(Token token);
+
   void storeTypeReference(int offset, bool forSyntheticToken,
       TreeNode reference, Object binder, DartType type);
 
@@ -503,6 +505,9 @@ class TypeInferrerDisabled extends TypeInferrer {
 
   @override
   void storePrefix(Token token, PrefixBuilder prefix) {}
+
+  @override
+  void storeUnresolved(Token token) {}
 
   @override
   void storeTypeReference(int offset, bool forSyntheticToken,
@@ -1894,6 +1899,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   @override
   void storePrefix(Token token, PrefixBuilder prefix) {
     listener.storePrefixInfo(token.offset, prefix?.importIndex);
+  }
+
+  @override
+  void storeUnresolved(Token token) {
+    listener.storeUnresolved(token.offset);
   }
 
   @override

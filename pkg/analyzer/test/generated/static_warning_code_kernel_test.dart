@@ -1143,13 +1143,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
-  test_notAType() {
-    // Bad state: No data for f at 18 in /test.dart
-    return super.test_notAType();
-  }
-
-  @override
-  @failingTest
   @potentialAnalyzerProblem
   test_notEnoughRequiredArguments() async {
     return super.test_notEnoughRequiredArguments();

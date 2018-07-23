@@ -4456,7 +4456,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void storeUnresolvedPrefix(Token token) {
+  void storeUnresolved(Token token) {
     _typeInferrer.storePrefix(token, null);
   }
 }

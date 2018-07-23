@@ -4,9 +4,7 @@
 
 import 'package:kernel/ast.dart'
     show Catch, DartType, FunctionType, Node, TypeParameter;
-
 import 'package:kernel/ast.dart' show Catch, DartType, FunctionType, Node;
-
 import 'package:kernel/type_algebra.dart' show Substitution;
 
 import '../../scanner/token.dart' show Token;
@@ -18,7 +16,6 @@ import '../kernel/kernel_shadow_ast.dart'
         LoadLibraryTearOffJudgment,
         StatementJudgment,
         SwitchCaseJudgment;
-
 import '../kernel/kernel_type_variable_builder.dart'
     show KernelTypeVariableBuilder;
 
@@ -385,6 +382,8 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
       Location location, Reference reference, DartType rawType);
 
   void storePrefixInfo(Location location, PrefixInfo prefixInfo);
+
+  void storeUnresolved(Location location);
 
   void stringConcatenation(
       ExpressionJudgment judgment, Location location, DartType inferredType);
@@ -879,6 +878,9 @@ class KernelTypeInferenceListener
 
   @override
   void storePrefixInfo(location, prefixInfo) {}
+
+  @override
+  void storeUnresolved(int location) {}
 
   @override
   void stringConcatenation(

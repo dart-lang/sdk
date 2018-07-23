@@ -553,6 +553,12 @@ class ResolutionStorer
     _store(location, isPrefixReference: true, prefixInfo: prefixInfo);
   }
 
+  @override
+  void storeUnresolved(int location) {
+    _unstore(location);
+    _store(location, inferredType: const DynamicType());
+  }
+
   void stringConcatenation(
       ExpressionJudgment judgment, int location, DartType inferredType) {
     // We don't need the type - we already know that it is String.

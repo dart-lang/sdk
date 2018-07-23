@@ -3967,6 +3967,255 @@ main() {
     expect(name.staticType, typeProvider.intType);
   }
 
+  test_invalid_nonTypeAsType_class_constructor() async {
+    addTestFile(r'''
+class A {
+  A.T();
+}
+main() {
+  A.T v;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var aRef = findNode.simple('A.T v;');
+    assertElement(aRef, findElement.class_('A'));
+    assertType(aRef, useCFE ? 'dynamic' : null);
+
+    var tRef = findNode.simple('T v;');
+    assertElement(tRef, null);
+    assertType(tRef, useCFE ? 'dynamic' : null);
+  }
+
+  test_invalid_nonTypeAsType_class_instanceField() async {
+    addTestFile(r'''
+class A {
+  int T;
+}
+main() {
+  A.T v;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var aRef = findNode.simple('A.T v;');
+    assertElement(aRef, findElement.class_('A'));
+    assertType(aRef, useCFE ? 'dynamic' : null);
+
+    var tRef = findNode.simple('T v;');
+    assertElement(tRef, null);
+    assertType(tRef, useCFE ? 'dynamic' : null);
+  }
+
+  test_invalid_nonTypeAsType_class_instanceMethod() async {
+    addTestFile(r'''
+class A {
+  int T() => 0;
+}
+main() {
+  A.T v;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var aRef = findNode.simple('A.T v;');
+    assertElement(aRef, findElement.class_('A'));
+    assertType(aRef, useCFE ? 'dynamic' : null);
+
+    var tRef = findNode.simple('T v;');
+    assertElement(tRef, null);
+    assertType(tRef, useCFE ? 'dynamic' : null);
+  }
+
+  test_invalid_nonTypeAsType_class_staticField() async {
+    addTestFile(r'''
+class A {
+  static int T;
+}
+main() {
+  A.T v;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var aRef = findNode.simple('A.T v;');
+    assertElement(aRef, findElement.class_('A'));
+    assertType(aRef, useCFE ? 'dynamic' : null);
+
+    var tRef = findNode.simple('T v;');
+    assertElement(tRef, null);
+    assertType(tRef, useCFE ? 'dynamic' : null);
+  }
+
+  test_invalid_nonTypeAsType_class_staticMethod() async {
+    addTestFile(r'''
+class A {
+  static int T() => 0;
+}
+main() {
+  A.T v;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var aRef = findNode.simple('A.T v;');
+    assertElement(aRef, findElement.class_('A'));
+    assertType(aRef, useCFE ? 'dynamic' : null);
+
+    var tRef = findNode.simple('T v;');
+    assertElement(tRef, null);
+    assertType(tRef, useCFE ? 'dynamic' : null);
+  }
+
+  test_invalid_nonTypeAsType_topLevelFunction() async {
+    addTestFile(r'''
+int T() => 0;
+main() {
+  T v;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var tRef = findNode.simple('T v;');
+    assertElement(tRef, useCFE ? findElement.topFunction('T') : null);
+    assertTypeDynamic(tRef);
+  }
+
+  test_invalid_nonTypeAsType_topLevelFunction_prefixed() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+int T() => 0;
+''');
+    addTestFile(r'''
+import 'a.dart' as p;
+main() {
+  p.T v;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    ImportElement import = findNode.import('a.dart').element;
+    var tElement = import.importedLibrary.publicNamespace.get('T');
+
+    var prefixedName = findNode.prefixed('p.T');
+    assertTypeDynamic(prefixedName);
+
+    var pRef = prefixedName.prefix;
+    assertElement(pRef, import.prefix);
+    expect(pRef.staticType, null);
+
+    var tRef = prefixedName.identifier;
+    assertElement(tRef, useCFE ? tElement : null);
+    expect(pRef.staticType, null);
+
+    TypeName typeName = prefixedName.parent;
+    expect(typeName.type, isDynamicType);
+  }
+
+  test_invalid_nonTypeAsType_topLevelVariable() async {
+    addTestFile(r'''
+int T;
+main() {
+  T v;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var tRef = findNode.simple('T v;');
+    assertElement(tRef, useCFE ? findElement.topGet('T') : null);
+    assertTypeDynamic(tRef);
+  }
+
+  test_invalid_nonTypeAsType_topLevelVariable_name() async {
+    addTestFile(r'''
+int A;
+main() {
+  A.T v;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var aRef = findNode.simple('A.T v;');
+    assertElement(aRef, findElement.topGet('A'));
+    assertType(aRef, useCFE ? 'dynamic' : null);
+
+    var tRef = findNode.simple('T v;');
+    assertElement(tRef, null);
+    assertType(tRef, useCFE ? 'dynamic' : null);
+  }
+
+  test_invalid_nonTypeAsType_topLevelVariable_prefixed() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+int T;
+''');
+    addTestFile(r'''
+import 'a.dart' as p;
+main() {
+  p.T v;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    ImportElement import = findNode.import('a.dart').element;
+    var tElement = import.importedLibrary.publicNamespace.get('T');
+
+    var prefixedName = findNode.prefixed('p.T');
+    assertTypeDynamic(prefixedName);
+
+    var pRef = prefixedName.prefix;
+    assertElement(pRef, import.prefix);
+    expect(pRef.staticType, null);
+
+    var tRef = prefixedName.identifier;
+    assertElement(tRef, useCFE ? tElement : null);
+    expect(pRef.staticType, null);
+
+    TypeName typeName = prefixedName.parent;
+    expect(typeName.type, isDynamicType);
+  }
+
+  test_invalid_nonTypeAsType_typeParameter_name() async {
+    addTestFile(r'''
+main<T>() {
+  T.U v;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var tRef = findNode.simple('T.U v;');
+    if (useCFE) {
+      var tElement = findNode.typeParameter('T>()').element;
+      assertElement(tRef, tElement);
+      assertTypeDynamic(tRef);
+    }
+  }
+
+  test_invalid_nonTypeAsType_unresolved_name() async {
+    addTestFile(r'''
+main() {
+  T.U v;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var tRef = findNode.simple('T.U v;');
+    assertElementNull(tRef);
+    assertType(tRef, useCFE ? 'dynamic' : null);
+  }
+
   test_isExpression() async {
     String content = r'''
 void main() {
@@ -9129,6 +9378,15 @@ class FindElement {
     fail('Prefix not found: $name');
   }
 
+  FunctionElement topFunction(String name) {
+    for (var function in unitElement.functions) {
+      if (function.name == name) {
+        return function;
+      }
+    }
+    fail('Not found top-level function: $name');
+  }
+
   PropertyAccessorElement topGet(String name) {
     return topVar(name).getter;
   }
@@ -9245,6 +9503,10 @@ class FindNode {
 
   ThrowExpression throw_(String search) {
     return _node(search).getAncestor((n) => n is ThrowExpression);
+  }
+
+  TypeParameter typeParameter(String search) {
+    return _node(search).getAncestor((n) => n is TypeParameter);
   }
 
   VariableDeclaration variableDeclaration(String search) {

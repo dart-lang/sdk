@@ -172,5 +172,5 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   void storeTypeUse(int offset, Node node);
 
-  void storeUnresolvedPrefix(Token token);
+  void storeUnresolved(Token token);
 }

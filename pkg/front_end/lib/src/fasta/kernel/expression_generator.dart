@@ -248,6 +248,12 @@ abstract class Generator implements ExpressionGenerator {
     return new InvalidConstructorInvocationJudgment(error, null, arguments);
   }
 
+  /// This generator was unexpectedly used as a prefix in a type name.
+  /// Store its resolution anyway.
+  void storeUnexpectedTypePrefix(TypeInferrer typeInferrer) {
+    typeInferrer.storeUnresolved(token);
+  }
+
   bool get isThisPropertyAccess => false;
 
   void printOn(StringSink sink);
@@ -651,6 +657,12 @@ abstract class TypeUseGenerator implements Generator {
     return helper.buildConstructorInvocation(declaration, nameToken, arguments,
         name, typeArguments, offsetForToken(nameToken ?? token), constness);
   }
+
+  @override
+  void storeUnexpectedTypePrefix(TypeInferrer typeInferrer) {
+    typeInferrer.storeTypeReference(offsetForToken(token), token.isSynthetic,
+        declaration.target, null, const DynamicType());
+  }
 }
 
 abstract class ReadOnlyAccessGenerator implements Generator {
@@ -839,7 +851,7 @@ abstract class UnresolvedNameGenerator implements ErroneousExpressionGenerator {
 
   @override
   /* Expression | Generator */ Object prefixedLookup(Token name) {
-    helper.storeUnresolvedPrefix(token);
+    helper.storeUnresolved(token);
     return new UnexpectedQualifiedUseGenerator(helper, name, this, true);
   }
 }
@@ -1185,6 +1197,8 @@ abstract class UnexpectedQualifiedUseGenerator implements Generator {
         template.withArguments(prefixGenerator.token, token),
         offsetForToken(prefixGenerator.token),
         lengthOfSpan(prefixGenerator.token, token));
+    prefixGenerator.storeUnexpectedTypePrefix(typeInferrer);
+    helper.storeTypeUse(offsetForToken(token), const InvalidType());
     return const InvalidType();
   }
 
