@@ -2051,6 +2051,14 @@
           "arguments": ["pkg/vm"]
         },
         {
+          "name": "analyze runtime/observatory",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": [
+            "--packages=runtime/observatory/.packages",
+            "runtime/observatory"
+          ]
+        },
+        {
           "name": "analyze tools/gardening",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": ["tools/gardening"]
