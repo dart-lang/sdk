@@ -1254,13 +1254,7 @@ void Assembler::StoreIntoObject(Register object,
   Label done;
   StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
   // A store buffer update is required.
-  if (value != RDX) pushq(RDX);
-  if (object != RDX) {
-    movq(RDX, object);
-  }
-  call(Address(THR, Thread::update_store_buffer_entry_point_offset()));
-
-  if (value != RDX) popq(RDX);
+  call(Address(THR, Thread::update_store_buffer_wrappers_offset(object)));
   Bind(&done);
 }
 

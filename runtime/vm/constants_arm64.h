@@ -158,6 +158,7 @@ const intptr_t kReservedCpuRegisters = (1 << SPREG) |  // Dart SP
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
+constexpr int kNumberOfDartAvailableCpuRegs = kNumberOfCpuRegisters - 9;
 // Registers available to Dart that are not preserved by runtime calls.
 const RegList kDartVolatileCpuRegs =
     kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;
@@ -165,6 +166,8 @@ const Register kDartFirstVolatileCpuReg = R0;
 const Register kDartLastVolatileCpuReg = R14;
 const int kDartVolatileCpuRegCount = 15;
 const int kDartVolatileFpuRegCount = 24;
+
+constexpr int kStoreBufferWrapperSize = 32;
 
 static inline Register ConcreteRegister(Register r) {
   return ((r == ZR) || (r == CSP)) ? R31 : r;

@@ -10,6 +10,7 @@
 #include "platform/atomic.h"
 #include "platform/safe_stack.h"
 #include "vm/bitfield.h"
+#include "vm/constants.h"
 #include "vm/globals.h"
 #include "vm/handles.h"
 #include "vm/heap/store_buffer.h"
@@ -522,6 +523,21 @@ class Thread : public BaseThread {
   CACHED_CONSTANTS_LIST(DEFINE_OFFSET_METHOD)
 #undef DEFINE_OFFSET_METHOD
 
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
+    defined(TARGET_ARCH_X64)
+  static intptr_t update_store_buffer_wrappers_offset(Register reg) {
+    ASSERT((kDartAvailableCpuRegs & (1 << reg)) != 0);
+    intptr_t index = 0;
+    for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+      if ((kDartAvailableCpuRegs & (1 << i)) == 0) continue;
+      if (i == reg) break;
+      ++index;
+    }
+    return OFFSET_OF(Thread, update_store_buffer_wrappers_entry_points_) +
+           index * sizeof(uword);
+  }
+#endif
+
 #define DEFINE_OFFSET_METHOD(name)                                             \
   static intptr_t name##_entry_point_offset() {                                \
     return OFFSET_OF(Thread, name##_entry_point_);                             \
@@ -830,6 +846,12 @@ class Thread : public BaseThread {
 #define DECLARE_MEMBERS(returntype, name, ...) uword name##_entry_point_;
   LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 #undef DECLARE_MEMBERS
+
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
+    defined(TARGET_ARCH_X64)
+  uword
+      update_store_buffer_wrappers_entry_points_[kNumberOfDartAvailableCpuRegs];
+#endif
 
   TimelineStream* dart_stream_;
   OSThread* os_thread_;

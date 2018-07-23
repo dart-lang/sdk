@@ -953,22 +953,9 @@ void Assembler::StoreIntoObject(Register object,
   str(value, dest);
   Label done;
   StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
-  // A store buffer update is required.
-  if (value != R0) {
-    // Preserve R0.
-    Push(R0);
-  }
-  Push(LR);
-  if (object != R0) {
-    mov(R0, object);
-  }
-  ldr(TMP, Address(THR, Thread::update_store_buffer_entry_point_offset()));
-  blr(TMP);
-  Pop(LR);
-  if (value != R0) {
-    // Restore R0.
-    Pop(R0);
-  }
+  ASSERT((kDartAvailableCpuRegs & (1 << LR)) == 0);
+  ldr(LR, Address(THR, Thread::update_store_buffer_wrappers_offset(object)));
+  blr(LR);
   Bind(&done);
 }
 

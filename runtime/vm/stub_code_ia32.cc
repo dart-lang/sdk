@@ -960,6 +960,11 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   __ ret();
 }
 
+void StubCode::GenerateUpdateStoreBufferWrappersStub(Assembler* assembler) {
+  // Not used on IA32.
+  __ Breakpoint();
+}
+
 // Helper stub to implement Assembler::StoreIntoObject.
 // Input parameters:
 //   EDX: Address being stored
