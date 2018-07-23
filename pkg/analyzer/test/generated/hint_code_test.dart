@@ -73,7 +73,7 @@ class _VisibleForTesting {
         r'''
 library js;
 class JS {
-  const JS([String js]) { }
+  const JS([String js]);
 }
 '''
       ]
@@ -93,7 +93,14 @@ class B extends A {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    if (useCFE) {
+      assertErrors(source, [
+        StaticTypeWarningCode.UNDEFINED_SUPER_GETTER,
+        HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE
+      ]);
+    } else {
+      assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    }
     verify([source]);
   }
 
@@ -109,7 +116,14 @@ class B extends A {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    if (useCFE) {
+      assertErrors(source, [
+        StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
+        HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE
+      ]);
+    } else {
+      assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    }
     verify([source]);
   }
 
@@ -125,7 +139,14 @@ class B extends A {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    if (useCFE) {
+      assertErrors(source, [
+        StaticTypeWarningCode.UNDEFINED_SUPER_GETTER,
+        HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE
+      ]);
+    } else {
+      assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    }
     verify([source]);
   }
 
@@ -141,7 +162,14 @@ class B extends A {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    if (useCFE) {
+      assertErrors(source, [
+        StaticTypeWarningCode.UNDEFINED_SUPER_SETTER,
+        HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE
+      ]);
+    } else {
+      assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    }
     verify([source]);
   }
 
@@ -157,7 +185,14 @@ class B extends A {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    if (useCFE) {
+      assertErrors(source, [
+        StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
+        HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE
+      ]);
+    } else {
+      assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    }
     verify([source]);
   }
 
@@ -3904,7 +3939,9 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else if (previewDart2) {
       assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
     } else {
       assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
@@ -3920,7 +3957,12 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
+    if (useCFE) {
+      assertErrors(source, [
+        StaticTypeWarningCode.UNDEFINED_METHOD,
+        StaticTypeWarningCode.UNDEFINED_METHOD
+      ]);
+    } else if (previewDart2) {
       assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
     } else {
       assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
@@ -3936,7 +3978,9 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else if (previewDart2) {
       assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
     } else {
       assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
@@ -3952,7 +3996,9 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else if (previewDart2) {
       assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
     } else {
       assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
