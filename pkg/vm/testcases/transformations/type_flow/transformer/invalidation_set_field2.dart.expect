@@ -1,0 +1,43 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+class T1 extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method go() → self::T3
+    return new self::T3::•();
+}
+class T2 extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class T3 extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method run() → dynamic {
+    core::print("hi");
+  }
+}
+class Q<T extends core::Object = dynamic> extends core::Object {
+  final field self::Q::T result;
+  constructor •(self::Q::T result) → void
+    : self::Q::result = result, super core::Object::•()
+    ;
+}
+static method foo1(core::List<self::T1> list) → dynamic {
+  [@vm.direct-call.metadata=#lib::T3::run] [@vm.direct-call.metadata=#lib::T1::go??] [@vm.inferred-type.metadata=#lib::T3] [@vm.direct-call.metadata=#lib::Q::result??] [@vm.inferred-type.metadata=!] list.{core::Iterable::map}<self::Q<self::T1>>((self::T1 t1) → self::Q<self::T1> => new self::Q::•<self::T1>(t1)).{core::Iterable::first}.{self::Q::result}.{self::T1::go}().{self::T3::run}();
+}
+static method foo2NewValue() → self::Q<dynamic>
+  return new self::Q::•<self::T2>(new self::T2::•());
+static method foo3NewT1() → dynamic {
+  new self::T1::•();
+}
+static method main(core::List<core::String> args) → dynamic {
+  self::foo1(<self::T1>[]);
+  self::foo2NewValue();
+  self::foo3NewT1();
+}
