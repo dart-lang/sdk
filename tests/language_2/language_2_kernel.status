@@ -363,6 +363,22 @@ type_variable_bounds_test/11: MissingCompileTimeError
 vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
+
+[ $arch != simarm && $arch != simarm64 && $arch != simdbc64 && $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
+export_ambiguous_main_test: Crash # Issue 32618
+
+[ $compiler == app_jitk && $mode == product ]
+type_variable_promotion_test: RuntimeError
+vm/causal_async_exception_stack2_test: RuntimeError
+vm/causal_async_exception_stack_test: RuntimeError
+
+[ $compiler == app_jitk && ($mode == debug || $mode == release) ]
+assertion_test: RuntimeError
+
+[ $compiler != app_jitk && $compiler != dart2js && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $fasta ]
+const_optional_args_test/01: MissingCompileTimeError
+
+[ $compiler != dart2analyzer && $fasta ]
 void/return_future_future_or_void_async_error0_test: MissingCompileTimeError
 void/return_future_future_or_void_sync_error0_test: MissingCompileTimeError
 void/return_future_or_future_or_void_sync_error1_test: MissingCompileTimeError
@@ -576,20 +592,6 @@ void_type_usage_test/paren_throw: MissingCompileTimeError # Issue 32804
 void_type_usage_test/paren_toString: MissingCompileTimeError # Issue 32804
 void_type_usage_test/paren_void_init: MissingCompileTimeError # Issue 32804
 void_type_usage_test/paren_while: MissingCompileTimeError # Issue 32804
-
-[ $arch != simarm && $arch != simarm64 && $arch != simdbc64 && $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
-export_ambiguous_main_test: Crash # Issue 32618
-
-[ $compiler == app_jitk && $mode == product ]
-type_variable_promotion_test: RuntimeError
-vm/causal_async_exception_stack2_test: RuntimeError
-vm/causal_async_exception_stack_test: RuntimeError
-
-[ $compiler == app_jitk && ($mode == debug || $mode == release) ]
-assertion_test: RuntimeError
-
-[ $compiler != app_jitk && $compiler != dart2js && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $fasta ]
-const_optional_args_test/01: MissingCompileTimeError
 
 # The precomilation configuration uses a kernel2kernel constants evaluator
 # which is is more correct than fasta/vm in JIT mode (i.e. it catches more
