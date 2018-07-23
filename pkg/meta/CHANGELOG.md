@@ -1,3 +1,8 @@
+## 1.1.7
+
+* Add `unawaited` to mark that a `Future` result is intentionally ignored,
+  silencing the `unawaited_futures` lint.
+
 ## 1.1.6
 
 * Set max SDK version to <3.0.0.
