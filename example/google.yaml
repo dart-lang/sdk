@@ -27,9 +27,25 @@ linter:
 
 # The following lints will NOT be enforced for google internal code.
 #
+# always_put_control_body_on_new_line
+#   Violates Effective Dart "DO format your code using dartfmt". See note
+#   about Flutter SDK style below.
 # avoid_relative_lib_imports
-#   This is enforced as part of the build rather than as a lint. Since it's
+#   Enforced as part of the build rather than as a lint. Since it's
 #   effectively enabled it appears in the above list, too.
+# always_specify_types
+#   Violates Effective Dart "AVOID type annotating initialized local
+#   variables" and others. See note about Flutter SDK style below.
+# avoid_as
+#   Does not reflect standard usage. See note about Flutter SDK style below.
 # empty_statements
 #   Enforcing use of dartfmt is sufficient to make empty statements obvious.
 #   Also, see issue #383 for discussion of false positives.
+# prefer_bool_in_asserts
+#   Obsolete in Dart 2; bool is required in asserts.
+# prefer_final_locals
+#   Does not reflect standard usage.
+#
+# Note on Flutter SDK Style: some lints were created specifically to support
+# Flutter SDK development. Flutter app developers should instead use standard
+# Dart style as described in Effective Dart, and should not use these lints.
