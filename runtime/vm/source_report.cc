@@ -451,7 +451,9 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
   while (it.HasNext()) {
     cls = it.GetNextClass();
     if (!cls.is_finalized()) {
-      if (compile_mode_ == kForceCompile) {
+      if ((compile_mode_ == kForceCompile) && !cls.is_marked_for_parsing()) {
+        // If cls.is_marked_for_parsing(), cls will not get finalized and we
+        // cannot compile its functions below.
         const Error& err = Error::Handle(cls.EnsureIsFinalized(thread()));
         if (!err.IsNull()) {
           // Emit an uncompiled range for this class with error information.
@@ -464,6 +466,7 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
           range.AddProperty("error", err);
           continue;
         }
+        ASSERT(cls.is_finalized());
       } else {
         // Emit one range for the whole uncompiled class.
         JSONObject range(jsarr);
