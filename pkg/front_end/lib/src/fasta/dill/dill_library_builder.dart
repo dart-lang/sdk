@@ -99,7 +99,9 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
     if (name == "_exports#") {
       Field field = member;
       StringLiteral string = field.initializer;
-      unserializableExports = jsonDecode(string.value);
+      var json = jsonDecode(string.value);
+      unserializableExports =
+          json != null ? new Map<String, String>.from(json) : null;
     } else {
       addBuilder(name, new DillMemberBuilder(member, this), member.fileOffset);
     }
