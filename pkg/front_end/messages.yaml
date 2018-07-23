@@ -2297,6 +2297,8 @@ CannotAssignToParenthesizedExpression:
 
 NotAnLvalue:
   template: "Can't assign to this."
+  analyzerCode: NOT_AN_LVALUE
+  dart2jsCode: "*fatal*"
 
 IllegalAssignmentToNonAssignable:
   template: "Illegal assignment to non-assignable expression."

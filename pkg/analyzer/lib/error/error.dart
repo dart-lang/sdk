@@ -223,6 +223,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.NON_SYNC_ABSTRACT_METHOD,
   CompileTimeErrorCode.NON_SYNC_CONSTRUCTOR,
   CompileTimeErrorCode.NON_SYNC_FACTORY,
+  CompileTimeErrorCode.NOT_AN_LVALUE,
   CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION,
   CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS,
   CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS,

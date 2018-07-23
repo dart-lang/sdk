@@ -5213,8 +5213,10 @@ Message _withArgumentsNotAType(String name) {
 const Code<Null> codeNotAnLvalue = messageNotAnLvalue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNotAnLvalue =
-    const MessageCode("NotAnLvalue", message: r"""Can't assign to this.""");
+const MessageCode messageNotAnLvalue = const MessageCode("NotAnLvalue",
+    analyzerCode: "NOT_AN_LVALUE",
+    dart2jsCode: "*fatal*",
+    message: r"""Can't assign to this.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)> templateNotConstantExpression =

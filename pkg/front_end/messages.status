@@ -247,7 +247,6 @@ NonPartOfDirectiveInPart/script1: Fail
 NotAConstantExpression/example: Fail
 NotAPrefixInTypeAnnotation/example: Fail
 NotAType/example: Fail
-NotAnLvalue/analyzerCode: Fail
 NotAnLvalue/example: Fail
 NotConstantExpression/example: Fail
 OperatorMinusParameterMismatch/example: Fail

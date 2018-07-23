@@ -1903,6 +1903,9 @@ class CompileTimeErrorCode extends ErrorCode {
               "declaring a constructor in {1} that explicitly invokes a "
               "constructor in '{0}'.");
 
+  static const CompileTimeErrorCode NOT_AN_LVALUE =
+      const CompileTimeErrorCode.fromFasta('NOT_AN_LVALUE');
+
   /**
    * 13.2 Expression Statements: It is a compile-time error if a non-constant
    * map literal that has no explicit type arguments appears in a place where a
