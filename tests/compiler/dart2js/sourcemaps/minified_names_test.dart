@@ -118,9 +118,18 @@ checkExpectation(MinifiedNameTest test, bool minified) async {
 
   var actualName;
   if (test.isGlobal) {
-    actualName = json['names'][minifiedNames['global'][name]];
+    var index = minifiedNames['global'][name];
+    Expect.isNotNull(index);
+    actualName = json['names'][index];
   } else if (test.isInstance) {
-    actualName = json['names'][minifiedNames['instance'][name]];
+    var index = minifiedNames['instance'][name];
+    // In non-minified mode some errors show the original name
+    // rather than the selector name (e.g. m1 instead of m1$0 in a
+    // NoSuchMethodError), and because of that `index` may be null.
+    //
+    // TODO(sigmund): consider making all errors show the internal name, or
+    // include a marker to make it easier to distinguish.
+    actualName = index == null ? name : json['names'][index];
   } else {
     Expect.fail('unexpected');
   }
@@ -129,10 +138,12 @@ checkExpectation(MinifiedNameTest test, bool minified) async {
   print('   PASS!!');
 }
 
+/// Returns the portion of the output that corresponds to the error message.
+///
+/// Note: some errors can span multiple lines.
 String _extractError(String stdout) {
   var firstStackFrame = stdout.indexOf('\n    at');
   if (firstStackFrame == -1) return null;
-  var prevLine = stdout.lastIndexOf('\n', firstStackFrame - 1);
-  if (prevLine == -1) return null;
-  return stdout.substring(prevLine + 1, firstStackFrame);
+  var errorMarker = stdout.indexOf('^') + 1;
+  return stdout.substring(errorMarker, firstStackFrame).trim();
 }
