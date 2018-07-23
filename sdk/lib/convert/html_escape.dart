@@ -25,8 +25,6 @@ part of dart.convert;
  * tag, but not inside a quoted attribute value, is still dangerous.
  */
 const HtmlEscape htmlEscape = const HtmlEscape();
-@Deprecated("Use htmlEscape instead")
-const HtmlEscape HTML_ESCAPE = htmlEscape;
 
 /**
  * HTML escape modes.
@@ -72,8 +70,6 @@ class HtmlEscapeMode {
    */
   static const HtmlEscapeMode unknown =
       const HtmlEscapeMode._('unknown', true, true, true, true);
-  @Deprecated("Use unknown instead")
-  static const HtmlEscapeMode UNKNOWN = unknown;
 
   /**
    * Escaping mode for text going into double-quoted HTML attribute values.
@@ -87,8 +83,6 @@ class HtmlEscapeMode {
    */
   static const HtmlEscapeMode attribute =
       const HtmlEscapeMode._('attribute', true, true, false, false);
-  @Deprecated("Use attribute instead")
-  static const HtmlEscapeMode ATTRIBUTE = attribute;
 
   /**
    * Escaping mode for text going into single-quoted HTML attribute values.
@@ -102,8 +96,6 @@ class HtmlEscapeMode {
    */
   static const HtmlEscapeMode sqAttribute =
       const HtmlEscapeMode._('attribute', true, false, true, false);
-  @Deprecated("Use sqAttribute instead")
-  static const HtmlEscapeMode SQ_ATTRIBUTE = sqAttribute;
 
   /**
    * Escaping mode for text going into HTML element content.
@@ -116,8 +108,6 @@ class HtmlEscapeMode {
    */
   static const HtmlEscapeMode element =
       const HtmlEscapeMode._('element', true, false, false, false);
-  @Deprecated("Use element instead")
-  static const HtmlEscapeMode ELEMENT = element;
 
   const HtmlEscapeMode._(this._name, this.escapeLtGt, this.escapeQuot,
       this.escapeApos, this.escapeSlash);

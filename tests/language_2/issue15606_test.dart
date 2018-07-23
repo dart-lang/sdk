@@ -6,7 +6,7 @@ class Foo<T> {}
 
 var a = [new Object(), 42];
 
-bar(x, y) {}
+void bar(x, y) {}
 
 main() {
   while (false) {

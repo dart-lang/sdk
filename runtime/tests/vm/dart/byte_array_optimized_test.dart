@@ -24,7 +24,7 @@ class OptimizedByteArrayTest {
       return e is RangeError;
     });
     Expect.throws(() {
-      array[-1];
+      return array[-1];
     }, (e) {
       return e is RangeError;
     });
@@ -130,7 +130,7 @@ class OptimizedByteArrayTest {
       return e is RangeError;
     });
     Expect.throws(() {
-      array[-1];
+      return array[-1];
     }, (e) {
       return e is RangeError;
     });
@@ -227,7 +227,7 @@ class OptimizedByteArrayTest {
       return e is RangeError;
     });
     Expect.throws(() {
-      array[-1];
+      return array[-1];
     }, (e) {
       return e is RangeError;
     });
@@ -353,7 +353,7 @@ class OptimizedByteArrayTest {
       return e is RangeError;
     });
     Expect.throws(() {
-      array[-1];
+      return array[-1];
     }, (e) {
       return e is RangeError;
     });
@@ -460,7 +460,7 @@ class OptimizedByteArrayTest {
       return e is RangeError;
     });
     Expect.throws(() {
-      array[-1];
+      return array[-1];
     }, (e) {
       return e is RangeError;
     });
@@ -586,7 +586,7 @@ class OptimizedByteArrayTest {
       return e is RangeError;
     });
     Expect.throws(() {
-      array[-1];
+      return array[-1];
     }, (e) {
       return e is RangeError;
     });
@@ -698,7 +698,7 @@ class OptimizedByteArrayTest {
       return e is RangeError;
     });
     Expect.throws(() {
-      array[-1];
+      return array[-1];
     }, (e) {
       return e is RangeError;
     });
@@ -822,7 +822,7 @@ class OptimizedByteArrayTest {
       return e is RangeError;
     });
     Expect.throws(() {
-      array[-1];
+      return array[-1];
     }, (e) {
       return e is RangeError;
     });
@@ -928,7 +928,7 @@ class OptimizedByteArrayTest {
       return e is RangeError;
     });
     Expect.throws(() {
-      array[-1];
+      return array[-1];
     }, (e) {
       return e is RangeError;
     });
@@ -1030,7 +1030,7 @@ class OptimizedByteArrayTest {
       return e is RangeError;
     });
     Expect.throws(() {
-      array[-1];
+      return array[-1];
     }, (e) {
       return e is RangeError;
     });
@@ -1172,7 +1172,7 @@ class OptimizedByteArrayTest {
       return e is RangeError;
     });
     Expect.throws(() {
-      view[-1];
+      return view[-1];
     }, (e) {
       return e is RangeError;
     });
@@ -1346,7 +1346,7 @@ class OptimizedByteArrayTest {
       return e is RangeError;
     });
     Expect.throws(() {
-      view[-1];
+      return view[-1];
     }, (e) {
       return e is RangeError;
     });
@@ -1480,7 +1480,7 @@ class OptimizedByteArrayTest {
       return e is RangeError;
     });
     Expect.throws(() {
-      view[-1];
+      return view[-1];
     }, (e) {
       return e is RangeError;
     });
@@ -1808,7 +1808,7 @@ class OptimizedByteArrayTest {
       return e is RangeError;
     });
     Expect.throws(() {
-      view[-1];
+      return view[-1];
     }, (e) {
       return e is RangeError;
     });
@@ -2054,7 +2054,7 @@ class OptimizedByteArrayTest {
       return e is RangeError;
     });
     Expect.throws(() {
-      view[-1];
+      return view[-1];
     }, (e) {
       return e is RangeError;
     });
@@ -2521,7 +2521,7 @@ class OptimizedByteArrayTest {
       return e is RangeError;
     });
     Expect.throws(() {
-      view[-1];
+      return view[-1];
     }, (e) {
       return e is RangeError;
     });
@@ -2862,7 +2862,7 @@ class OptimizedByteArrayTest {
       return e is RangeError;
     });
     Expect.throws(() {
-      view[-1];
+      return view[-1];
     }, (e) {
       return e is RangeError;
     });
@@ -3522,7 +3522,7 @@ class OptimizedByteArrayTest {
       return e is RangeError;
     });
     Expect.throws(() {
-      view[-1];
+      return view[-1];
     }, (e) {
       return e is RangeError;
     });
@@ -3956,7 +3956,7 @@ class OptimizedByteArrayTest {
       return e is RangeError;
     });
     Expect.throws(() {
-      view[-1];
+      return view[-1];
     }, (e) {
       return e is RangeError;
     });
@@ -4121,7 +4121,7 @@ class OptimizedByteArrayTest {
       return e is RangeError;
     });
     Expect.throws(() {
-      view[-1];
+      return view[-1];
     }, (e) {
       return e is RangeError;
     });

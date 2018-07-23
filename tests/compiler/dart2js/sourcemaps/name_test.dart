@@ -16,7 +16,7 @@ import '../memory_compiler.dart';
 const String SOURCE = '''
 
 var toplevelField;
-toplevelMethod() {}
+void toplevelMethod() {}
 void toplevelAnonymous() {
   var foo = () {};
 }

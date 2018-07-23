@@ -8,7 +8,7 @@ void use(dynamic x) { }
 
 Object testVoidParam(void x) {
   x;  //# param_stmt: ok
-  true ? x : x;  //# param_conditional: ok
+  true ? x : x;  //# param_conditional: compile-time error
   for (x; false; x) {}   //# param_for: ok
   use(x);   //# param_argument: compile-time error
   use(x as Object);  //# param_as: ok
@@ -40,7 +40,7 @@ dynamic testVoidParamDynamic(void x) {
 
 Object testVoidCall(void f()) {
   f();  //# call_stmt: ok
-  true ? f() : f();  //# call_conditional: ok
+  true ? f() : f();  //# call_conditional: compile-time error
   for (f(); false; f()) {}   //# call_for: ok
   use(f());   //# call_argument: compile-time error
   use(f() as Object);  //# call_as: ok
@@ -72,7 +72,7 @@ Object testVoidLocal() {
   void x;
   x = 42;   //# local_assign: ok
   x;  //# local_stmt: ok
-  true ? x : x;  //# local_conditional: ok
+  true ? x : x;  //# local_conditional: compile-time error
   for (x; false; x) {}   //# local_for: ok
   use(x);   //# local_argument: compile-time error
   use(x as Object);  //# local_as: ok
@@ -107,7 +107,7 @@ Object testVoidFinalLocal() {
   final void x = null;
   x = 42;   //# final_local_assign: compile-time error
   x;  //# final_local_stmt: ok
-  true ? x : x;  //# final_local_conditional: ok
+  true ? x : x;  //# final_local_conditional: compile-time error
   for (x; false; x) {}   //# final_local_for: ok
   use(x);   //# final_local_argument: compile-time error
   use(x as Object);  //# final_local_as: ok
@@ -141,7 +141,7 @@ dynamic testVoidFinalLocalDynamic() {
 void global;
 Object testVoidGlobal() {
   global;  //# global_stmt: ok
-  true ? global : global;  //# global_conditional: ok
+  true ? global : global;  //# global_conditional: compile-time error
   for (global; false; global) {}   //# global_for: ok
   use(global);   //# global_argument: compile-time error
   use(global as Object);  //# global_as: ok
@@ -171,12 +171,12 @@ dynamic testVoidGlobalDynamic() {
   return global;   //# global_return_dynamic: ok
 }
 
-Object testVoidConditional() {
+testVoidConditional() {
   void x;
-  (true ? x : x);   //# conditional_parens: ok
-  true ? x : x;  //# conditional_stmt: ok
-  true ? true ? x : x : true ? x : x;  //# conditional_conditional: ok
-  for (true ? x : x; false; true ? x : x) {}   //# conditional_for: ok
+  (true ? x : x);   //# conditional_parens: compile-time error
+  true ? x : x;  //# conditional_stmt: compile-time error
+  true ? true ? x : x : true ? x : x;  //# conditional_conditional: compile-time error
+  for (true ? x : x; false; true ? x : x) {}   //# conditional_for: compile-time error
   use(true ? x : x);   //# conditional_argument: compile-time error
   void y = true ? x : x;   //# conditional_void_init: compile-time error
   dynamic z = true ? x : x;  //# conditional_dynamic_init: compile-time error
@@ -184,16 +184,16 @@ Object testVoidConditional() {
   [true ? x : x];   //# conditional_literal_list_init: compile-time error
   var m1 = {4: true ? x : x};   //# conditional_literal_map_value_init: compile-time error
   Map<dynamic, dynamic> m3 = {4: true ? x : x};  //# conditional_literal_map_value_init2: compile-time error
-  null ?? (true ? x : x);  //# conditional_null_equals2: compile-time error
+  null ?? true ? x : x;  //# conditional_null_equals2: compile-time error
   return true ? x : x;   //# conditional_return: compile-time error
   while (true ? x : x) {};  //# conditional_while: compile-time error
   do {} while (true ? x : x);  //# conditional_do_while: compile-time error
   for (var v in true ? x : x) {}   //# conditional_for_in: compile-time error
 
-  (true ? 499 : x);   //# conditional2_parens: ok
-  true ? 499 : x;  //# conditional2_stmt: ok
-  true ? true ? 499 : x : true ? 499 : x;  //# conditional2_conditional: ok
-  for (true ? 499 : x; false; true ? 499 : x) {}   //# conditional2_for: ok
+  (true ? 499 : x);   //# conditional2_parens: compile-time error
+  true ? 499 : x;  //# conditional2_stmt: compile-time error
+  true ? true ? 499 : x : true ? 499 : x;  //# conditional2_conditional: compile-time error
+  for (true ? 499 : x; false; true ? 499 : x) {}   //# conditional2_for: compile-time error
   use(true ? 499 : x);   //# conditional2_argument: compile-time error
   void y2 = true ? 499 : x;   //# conditional2_void_init: compile-time error
   dynamic z2 = true ? 499 : x;  //# conditional2_dynamic_init: compile-time error
@@ -201,16 +201,16 @@ Object testVoidConditional() {
   [true ? 499 : x];   //# conditional2_literal_list_init: compile-time error
   var m12 = {4: true ? 499 : x};   //# conditional2_literal_map_value_init: compile-time error
   Map<dynamic, dynamic> m32 = {4: true ? 499 : x};  //# conditional2_literal_map_value_init2: compile-time error
-  null ?? (true ? 499 : x);  //# conditional2_null_equals2: compile-time error
+  null ?? true ? 499 : x;  //# conditional2_null_equals2: compile-time error
   return true ? 499 : x;   //# conditional2_return: compile-time error
   while (true ? 499 : x) {};  //# conditional2while: compile-time error
   do {} while (true ? 499 : x);  //# conditional2do_while: compile-time error
   for (var v in true ? 499 : x) {}   //# conditional2for_in: compile-time error
 
-  (true ? x : 499);   //# conditional3_parens: ok
-  true ? x : 499;  //# conditional3_stmt: ok
-  true ? true ? x : 499 : true ? x : 499;  //# conditional3_conditional: ok
-  for (true ? x : 499; false; true ? x : 499) {}   //# conditional3_for: ok
+  (true ? x : 499);   //# conditional3_parens: compile-time error
+  true ? x : 499;  //# conditional3_stmt: compile-time error
+  true ? true ? x : 499 : true ? x : 499;  //# conditional3_conditional: compile-time error
+  for (true ? x : 499; false; true ? x : 499) {}   //# conditional3_for: compile-time error
   use(true ? x : 499);   //# conditional3_argument: compile-time error
   void y3 = true ? x : 499;   //# conditional3_void_init: compile-time error
   dynamic z3 = true ? x : 499;  //# conditional3_dynamic_init: compile-time error
@@ -218,18 +218,11 @@ Object testVoidConditional() {
   [true ? x : 499];   //# conditional3_literal_list_init: compile-time error
   var m13 = {4: true ? x : 499 };   //# conditional3_literal_map_value_init: compile-time error
   Map<dynamic, dynamic> m33 = {4: true ? x : 499 };  //# conditional3_literal_map_value_init2: compile-time error
-  null ?? (true ? x : 499);  //# conditional3_null_equals2: compile-time error
+  null ?? true ? x : 499;  //# conditional3_null_equals2: compile-time error
   return true ? x : 499;   //# conditional3_return: compile-time error
   while (true ? x : 499) {};  //# conditional_while: compile-time error
   do {} while (true ? x : 499);  //# conditional_do_while: compile-time error
   for (var v in true ? x : 499) {}   //# conditional_for_in: compile-time error
-}
-
-dynamic testVoidConditionalDynamic() {
-  void x;
-  return true ? x : x;   //# conditional_return_dynamic: ok
-  return true ? 499 : x;   //# conditional2_return_dynamic: ok
-  return true ? x : 499;   //# conditional3_return_dynamic: ok
 }
 
 class A<T> {
@@ -265,7 +258,7 @@ Object testInstanceField() {
   A<void> a = new A<void>();
   a.x = 499;  //# field_assign: ok
   a.x;  //# instance_stmt: ok
-  true ? a.x : a.x;  //# instance_conditional: ok
+  true ? a.x : a.x;  //# instance_conditional: compile-time error
   for (a.x; false; a.x) {}   //# instance_for: ok
   use(a.x);   //# instance_argument: compile-time error
   use(a.x as Object);  //# instance_as: ok
@@ -292,7 +285,7 @@ Object testInstanceField() {
   B b = new B();
   b.x = 42;   //# field_assign2: ok
   b.x;  //# instance2_stmt: ok
-  true ? b.x : b.x;  //# instance2_conditional: ok
+  true ? b.x : b.x;  //# instance2_conditional: compile-time error
   for (b.x; false; b.x) {}   //# instance2_for: ok
   use(b.x);   //# instance2_argument: compile-time error
   use(b.x as Object);  //# instance2_as: ok
@@ -320,7 +313,7 @@ Object testInstanceField() {
   C c = new C();
   c.x = 32;   //# setter_assign: ok
   c.x;  //# instance3_stmt: ok
-  true ? c.x : c.x;  //# instance3_conditional: ok
+  true ? c.x : c.x;  //# instance3_conditional: compile-time error
   for (c.x; false; c.x) {}   //# instance3_for: ok
   use(c.x);   //# instance3_argument: compile-time error
   use(c.x as Object);  //# instance3_as: ok
@@ -360,7 +353,7 @@ dynamic testInstanceFieldDynamic() {
 Object testParenthesized() {
   void x;
   (x);  //# paren_stmt: ok
-  true ? (x) : (x);  //# paren_conditional: ok
+  true ? (x) : (x);  //# paren_conditional: compile-time error
   for ((x); false; (x)) {}   //# paren_for: ok
   use((x));   //# paren_argument: compile-time error
   use((x) as Object);  //# paren_as: ok
@@ -400,9 +393,9 @@ void testReturnToVoid(void x, void f()) {
   return y;   //# local_return_to_void: ok
   return z;   //# final_local_return_to_void: ok
   return global;   //# global_return_to_void: ok
-  return true ? x : x;   //# conditional_return_to_void: ok
-  return true ? 499 : x;   //# conditional2_return_to_void: ok
-  return true ? x : 499;   //# conditional3_return_to_void: ok
+  return true ? x : x;   //# conditional_return_to_void: compile-time error
+  return true ? 499 : x;   //# conditional2_return_to_void: compile-time error
+  return true ? x : 499;   //# conditional3_return_to_void: compile-time error
   return a.x;   //# instance_return_to_void: ok
   return b.x;   //# instance2_return_to_void: ok
   return c.x;   //# instance3_return_to_void: ok

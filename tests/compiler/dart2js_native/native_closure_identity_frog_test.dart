@@ -4,7 +4,7 @@
 
 import 'native_testing.dart';
 
-typedef MyFunctionType();
+typedef void MyFunctionType();
 
 @Native("A")
 class A {

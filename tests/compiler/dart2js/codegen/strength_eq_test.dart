@@ -17,7 +17,7 @@ int foo(x) {
   a.link = a;
   return a;
 }
-main() {
+void main() {
   var x = foo(0);
   return x == x.link;
 }

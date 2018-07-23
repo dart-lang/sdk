@@ -6381,8 +6381,8 @@ String jsLibraryName(String libraryRoot, LibraryElement library) {
         .replaceAll(path.separator, encodedSeparator);
   } else {
     // We don't have a unique name.
-    throw 'Invalid library root. $libraryRoot does not contain ${uri
-        .toFilePath()}';
+    throw 'Invalid library root. $libraryRoot does not contain '
+        '${uri.toFilePath()}';
   }
   return pathToJSIdentifier(qualifiedPath);
 }
@@ -6395,8 +6395,8 @@ String jsLibraryDebuggerName(String libraryRoot, LibraryElement library) {
 
   var filePath = uri.toFilePath();
   if (!path.isWithin(libraryRoot, filePath)) {
-    throw 'Invalid library root. $libraryRoot does not contain ${uri
-        .toFilePath()}';
+    throw 'Invalid library root. $libraryRoot does not contain '
+        '${uri.toFilePath()}';
   }
   // Relative path to the library.
   return path.relative(filePath, from: libraryRoot);

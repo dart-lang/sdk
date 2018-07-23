@@ -1,9 +1,3 @@
-// Errors:
-//
-// pkg/front_end/testcases/inference/void_return_type_subtypes_dynamic.dart:27:73: Error: This expression has type 'void' and can't be used.
-//   var /*@type=void*/ y = /*info:USE_OF_VOID_RESULT*/ /*@typeArgs=void*/ run(
-//                                                                         ^
-
 library test;
 import self as self;
 import "dart:core" as core;
@@ -23,9 +17,7 @@ static method main() → dynamic {
     core::print("running");
   }
   dynamic x = self::run<dynamic>(printRunning);
-  void y = let<BottomType> _ = null in let final dynamic #t1 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/void_return_type_subtypes_dynamic.dart:27:73: Error: This expression has type 'void' and can't be used.
-  var /*@type=void*/ y = /*info:USE_OF_VOID_RESULT*/ /*@typeArgs=void*/ run(
-                                                                        ^" in let final void #t2 = self::run<void>(printRunning) in null;
+  void y = self::run<void>(printRunning);
   x = 123;
   x = "hi";
   y = 123;

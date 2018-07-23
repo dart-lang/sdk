@@ -25,7 +25,7 @@ abstract class B {
 
 class C extends B {
   set hest(value) {
-    a + 42;
+    return a + 42;
   }
 }
 

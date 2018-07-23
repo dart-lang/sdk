@@ -55,8 +55,8 @@ class Context extends ChainContext {
   ];
 
   @override
-  Future<void> cleanUp(TestDescription description, Result result) async {
-    await cleanupHelper?.outDir?.delete(recursive: true);
+  void cleanUp(TestDescription description, Result result) {
+    cleanupHelper?.outDir?.deleteSync(recursive: true);
   }
 
   TestData cleanupHelper;

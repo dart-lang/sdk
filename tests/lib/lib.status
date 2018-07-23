@@ -146,7 +146,69 @@ mirrors/*: Skip # Flutter does not support mirrors.
 
 [ $runtime != none ]
 async/stream_controller_async_test: RuntimeError # Library changed.
+async/stream_empty_test: RuntimeError # Uppercase constants removed
 async/stream_from_iterable_test: RuntimeError # Library changed.
+async/stream_iterator_test: RuntimeError # Uppercase constants removed
+async/stream_listen_zone_test: RuntimeError # Uppercase constants removed
+async/zone_bind_callback_test: RuntimeError # Uppercase constants removed
+async/zone_bind_callback_unary_test: RuntimeError # Uppercase constants removed
+async/zone_bind_test: RuntimeError # Uppercase constants removed
+async/zone_create_periodic_timer_test: RuntimeError # Uppercase constants removed
+async/zone_create_timer2_test: RuntimeError # Uppercase constants removed
+async/zone_create_timer_test: RuntimeError # Uppercase constants removed
+async/zone_debug_test: RuntimeError # Uppercase constants removed
+async/zone_empty_description2_test: RuntimeError # Uppercase constants removed
+async/zone_empty_description_test: RuntimeError # Uppercase constants removed
+async/zone_fork_test: RuntimeError # Uppercase constants removed
+async/zone_register_callback_test: RuntimeError # Uppercase constants removed
+async/zone_register_callback_unary_test: RuntimeError # Uppercase constants removed
+async/zone_root_bind_test: RuntimeError # Uppercase constants removed
+async/zone_run_guarded_test: RuntimeError # Uppercase constants removed
+async/zone_run_test: RuntimeError # Uppercase constants removed
+async/zone_run_unary_test: RuntimeError # Uppercase constants removed
+async/zone_value_test: RuntimeError # Uppercase constants removed
+convert/ascii_test: RuntimeError # Uppercase constants removed
+convert/base64_test/none: RuntimeError # Uppercase constants removed
+convert/chunked_conversion_json_decode1_test: RuntimeError # Uppercase constants removed
+convert/chunked_conversion_utf85_test: RuntimeError # Uppercase constants removed
+convert/chunked_conversion_utf87_test: RuntimeError # Uppercase constants removed
+convert/chunked_conversion_utf88_test: RuntimeError # Uppercase constants removed
+convert/codec2_test: RuntimeError # Uppercase constants removed
+convert/encoding_test: RuntimeError # Uppercase constants removed
+convert/html_escape_test: CompileTimeError # Uppercase constants removed
+convert/json_chunk_test: RuntimeError # Uppercase constants removed
+convert/json_lib_test: RuntimeError # Uppercase constants removed
+convert/json_pretty_test: RuntimeError # Uppercase constants removed
+convert/json_test: RuntimeError # Uppercase constants removed
+convert/json_util_test: RuntimeError # Uppercase constants removed
+convert/latin1_test: RuntimeError # Uppercase constants removed
+convert/line_splitter_test: RuntimeError # Uppercase constants removed
+convert/streamed_conversion_json_encode1_test: RuntimeError # Uppercase constants removed
+convert/streamed_conversion_json_utf8_decode_test: RuntimeError # Uppercase constants removed
+convert/streamed_conversion_json_utf8_encode_test: RuntimeError # Uppercase constants removed
+convert/streamed_conversion_utf8_decode_test: RuntimeError # Uppercase constants removed
+convert/streamed_conversion_utf8_encode_test: RuntimeError # Uppercase constants removed
+convert/utf83_test: RuntimeError # Uppercase constants removed
+convert/utf84_test: RuntimeError # Uppercase constants removed
+convert/utf85_test: RuntimeError # Uppercase constants removed
+convert/utf8_encode_test: RuntimeError # Uppercase constants removed
+convert/utf8_test: RuntimeError # Uppercase constants removed
+math/math2_test: RuntimeError # Uppercase constants removed
+math/math_parse_double_test: RuntimeError # Uppercase constants removed
+math/math_test: RuntimeError # Uppercase constants removed
+mirrors/invocation_fuzz_test/emptyarray: RuntimeError # Uppercase constants removed
+mirrors/invocation_fuzz_test/false: RuntimeError # Uppercase constants removed
+mirrors/invocation_fuzz_test/none: RuntimeError # Uppercase constants removed
+mirrors/invocation_fuzz_test/smi: RuntimeError # Uppercase constants removed
+mirrors/invocation_fuzz_test/string: RuntimeError # Uppercase constants removed
+typed_data/endianness_test: RuntimeError # Uppercase constants removed
+typed_data/float32x4_cross_test: RuntimeError # Uppercase constants removed
+typed_data/float32x4_list_test: RuntimeError # Uppercase constants removed
+typed_data/float32x4_shuffle_test: RuntimeError # Uppercase constants removed
+typed_data/float32x4_test: RuntimeError # Uppercase constants removed
+typed_data/float32x4_transpose_test: RuntimeError # Uppercase constants removed
+typed_data/float32x4_two_arg_shuffle_test: RuntimeError # Uppercase constants removed
+typed_data/int32x4_shuffle_test: RuntimeError # Uppercase constants removed
 
 [ $runtime == safari ]
 convert/json_test: Fail # https://bugs.webkit.org/show_bug.cgi?id=134920

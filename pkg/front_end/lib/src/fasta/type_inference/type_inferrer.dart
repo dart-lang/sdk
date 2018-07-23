@@ -68,28 +68,7 @@ import '../../scanner/token.dart' show Token;
 
 import '../builder/builder.dart' show PrefixBuilder;
 
-import '../fasta_codes.dart'
-    show
-        LocatedMessage,
-        Message,
-        Template,
-        messageReturnFromVoidFunction,
-        messageVoidExpression,
-        noLength,
-        templateArgumentTypeNotAssignable,
-        templateImplicitCallOfNonMethod,
-        templateInvalidAssignment,
-        templateInvalidCastFunctionExpr,
-        templateInvalidCastLiteralList,
-        templateInvalidCastLiteralMap,
-        templateInvalidCastLocalFunction,
-        templateInvalidCastNewExpr,
-        templateInvalidCastStaticMethod,
-        templateInvalidCastTopLevelFunction,
-        templateMixinInferenceNoMatchingClass,
-        templateUndefinedGetter,
-        templateUndefinedMethod,
-        templateUndefinedSetter;
+import '../fasta_codes.dart';
 
 import '../kernel/factory.dart' show Factory;
 
@@ -187,8 +166,6 @@ class ClosureContext {
   /// this typing expectation in `Stream` or `Iterator`, as appropriate.
   final DartType returnOrYieldContext;
 
-  final DartType declaredReturnType;
-
   final bool _needToInferReturnType;
 
   final bool _needImplicitDowncasts;
@@ -210,7 +187,6 @@ class ClosureContext {
       DartType returnContext,
       bool needToInferReturnType,
       bool needImplicitDowncasts) {
-    DartType declaredReturnType = returnContext;
     bool isAsync = asyncMarker == AsyncMarker.Async ||
         asyncMarker == AsyncMarker.AsyncStar;
     bool isGenerator = asyncMarker == AsyncMarker.SyncStar ||
@@ -228,33 +204,28 @@ class ClosureContext {
           inferrer.typeSchemaEnvironment.unfutureType(returnContext));
     }
     return new ClosureContext._(isAsync, isGenerator, returnContext,
-        declaredReturnType, needToInferReturnType, needImplicitDowncasts);
+        needToInferReturnType, needImplicitDowncasts);
   }
 
-  ClosureContext._(
-      this.isAsync,
-      this.isGenerator,
-      this.returnOrYieldContext,
-      this.declaredReturnType,
-      this._needToInferReturnType,
-      this._needImplicitDowncasts) {
+  ClosureContext._(this.isAsync, this.isGenerator, this.returnOrYieldContext,
+      this._needToInferReturnType, this._needImplicitDowncasts) {
     assert(returnOrYieldContext != null);
   }
 
   /// Updates the inferred return type based on the presence of a return
   /// statement returning the given [type].
   void handleReturn(TypeInferrerImpl inferrer, DartType type,
-      Expression expression, int fileOffset, bool isArrow) {
+      Expression expression, int fileOffset) {
     if (isGenerator) return;
     _updateInferredReturnType(
-        inferrer, type, expression, fileOffset, true, false, isArrow);
+        inferrer, type, expression, fileOffset, true, false);
   }
 
   void handleYield(TypeInferrerImpl inferrer, bool isYieldStar, DartType type,
       Expression expression, int fileOffset) {
     if (!isGenerator) return;
     _updateInferredReturnType(
-        inferrer, type, expression, fileOffset, false, isYieldStar, false);
+        inferrer, type, expression, fileOffset, false, isYieldStar);
   }
 
   DartType inferReturnType(TypeInferrerImpl inferrer) {
@@ -271,14 +242,8 @@ class ClosureContext {
     return _wrapAsyncOrGenerator(inferrer, inferredType);
   }
 
-  void _updateInferredReturnType(
-      TypeInferrerImpl inferrer,
-      DartType type,
-      Expression expression,
-      int fileOffset,
-      bool isReturn,
-      bool isYieldStar,
-      bool isArrow) {
+  void _updateInferredReturnType(TypeInferrerImpl inferrer, DartType type,
+      Expression expression, int fileOffset, bool isReturn, bool isYieldStar) {
     if (_needImplicitDowncasts) {
       var expectedType = isYieldStar
           ? _wrapAsyncOrGenerator(inferrer, returnOrYieldContext)
@@ -287,10 +252,7 @@ class ClosureContext {
         expectedType = greatestClosure(inferrer.coreTypes, expectedType);
         if (inferrer.ensureAssignable(
                 expectedType, type, expression, fileOffset,
-                isReturnFromAsync: isAsync,
-                isReturn: isReturn,
-                declaredReturnType: declaredReturnType,
-                isArrow: isArrow) !=
+                isReturnFromAsync: isAsync) !=
             null) {
           type = expectedType;
         }
@@ -606,23 +568,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// [expectedType], and inserts an implicit downcast if appropriate.
   Expression ensureAssignable(DartType expectedType, DartType actualType,
       Expression expression, int fileOffset,
-      {bool isReturnFromAsync: false,
-      bool isReturn: false,
-      bool isVoidAllowed,
-      bool isArrow: false,
-      DartType declaredReturnType,
+      {bool isReturnFromAsync = false,
       Template<Message Function(DartType, DartType)> template}) {
-    isVoidAllowed ??= isArrow;
     assert(expectedType != null);
-    if (isReturn &&
-        !isArrow &&
-        !isValidReturn(declaredReturnType, actualType, isReturnFromAsync)) {
-      TreeNode parent = expression.parent;
-      Expression errorNode = helper.wrapInCompileTimeError(
-          expression, messageReturnFromVoidFunction);
-      parent?.replaceChild(expression, errorNode);
-      return errorNode;
-    }
     expectedType = greatestClosure(coreTypes, expectedType);
 
     DartType initialExpectedType = expectedType;
@@ -637,28 +585,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         expectedType = unfuturedExpectedType;
       } else if (isAssignable(futuredExpectedType, actualType)) {
         expectedType = futuredExpectedType;
-      }
-    }
-    if (isReturn && !isArrow) {
-      if (expectedType is VoidType) {
-        isVoidAllowed = true;
-        if (actualType is! VoidType &&
-            actualType is! DynamicType &&
-            !isNull(actualType)) {
-          // Error: not assignable.  Perform error recovery.
-          TreeNode parent = expression.parent;
-          Expression errorNode = helper.wrapInCompileTimeError(
-              expression, messageReturnFromVoidFunction);
-          parent?.replaceChild(expression, errorNode);
-          return errorNode;
-        }
-      } else {
-        DartType flattened = typeSchemaEnvironment.unfutureType(expectedType);
-        if (flattened is VoidType) {
-          isVoidAllowed = true;
-        } else {
-          isVoidAllowed = expectedType is DynamicType;
-        }
       }
     }
 
@@ -697,15 +623,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
     }
 
-    if (actualType is VoidType && !isVoidAllowed) {
-      // Error: not assignable.  Perform error recovery.
-      TreeNode parent = expression.parent;
-      Expression errorNode =
-          helper.wrapInCompileTimeError(expression, messageVoidExpression);
-      parent?.replaceChild(expression, errorNode);
-      return errorNode;
-    }
-
     if (expectedType == null ||
         typeSchemaEnvironment.isSubtypeOf(actualType, expectedType)) {
       // Types are compatible.
@@ -741,67 +658,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         return typeCheck;
       }
     }
-  }
-
-  bool isValidReturn(
-      DartType returnType, DartType expressionType, bool isAsync) {
-    final DartType t = returnType;
-    final DartType s = expressionType;
-    if (!isAsync) {
-      if (t is DynamicType) {
-        // * `return exp;` where `exp` has static type `S` is a valid return if:
-        //   * `T` is `dynamic`
-        return true;
-      }
-
-      if (t is VoidType) {
-        // * `return exp;` where `exp` has static type `S` is a valid return if:
-        //   * `T` is `void`
-        //   * and `S` is `void` or `dynamic` or `Null`
-        return s is VoidType || s is DynamicType || isNull(s);
-      } else {
-        // * `return exp;` where `exp` has static type `S` is a valid return if:
-        //   * `T` is not `void`
-        //   * and `S` is not `void`
-        //   * and `S` is assignable to `T`
-        return s is! VoidType;
-      }
-    }
-    final DartType flattenT = typeSchemaEnvironment.unfutureType(t);
-
-    // * `return exp;` where `exp` has static type `S` is a valid return if:
-    //   * `flatten(T)` is `dynamic` or `Null`
-    if (flattenT is DynamicType || isNull(flattenT)) return true;
-
-    // * `return exp;` where `exp` has static type `S` is a valid return if:
-    //   * `T` is `void`
-    //   * and `S` is `void`, `dynamic` or `Null`
-    if (t is VoidType) {
-      if (s is VoidType || s is DynamicType || isNull(s)) return true;
-    } else {
-      final DartType flattenS = typeSchemaEnvironment.unfutureType(s);
-      // * `return exp;` where `exp` has static type `S` is a valid return if:
-      //   * `T` is not `void`
-      //   * `flatten(T)` is `void`
-      //   * and `flatten(S)` is `void`, `dynamic` or `Null`
-      if (flattenT is VoidType) {
-        if (flattenS is VoidType ||
-            flattenS is DynamicType ||
-            isNull(flattenS)) {
-          return true;
-        }
-      }
-
-      // * `return exp;` where `exp` has static type `S` is a valid return if:
-      //   * `T` is not `void`
-      //   * and `flatten(S)` is not `void`
-      if (flattenS is! VoidType) return true;
-    }
-    return false;
-  }
-
-  bool isNull(DartType type) {
-    return type is InterfaceType && type.classNode == coreTypes.nullClass;
   }
 
   /// Finds a member of [receiverType] called [name], and if it is found,
@@ -1231,8 +1087,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       Factory<Expression, Statement, Initializer, Type> factory,
       kernel.Expression expression,
       DartType typeContext,
-      bool typeNeeded,
-      {bool isVoidAllowed});
+      bool typeNeeded);
 
   @override
   void inferFieldInitializer<Expression, Statement, Initializer, Type>(

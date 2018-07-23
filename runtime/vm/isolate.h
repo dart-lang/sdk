@@ -749,7 +749,9 @@ class Isolate : public BaseIsolate {
 
   // Convenience flag tester indicating whether incoming function arguments
   // should be type checked.
-  bool argument_type_checks() { return strong() || type_checks(); }
+  bool argument_type_checks() {
+    return (strong() && !FLAG_omit_strong_type_checks) || type_checks();
+  }
 
   static void KillAllIsolates(LibMsgId msg_id);
   static void KillIfExists(Isolate* isolate, LibMsgId msg_id);

@@ -5,9 +5,7 @@ import "dart:core" as core;
 static method f() → dynamic {
   core::List<core::int> o;
   o.{core::Iterable::forEach}((core::int i) → void {
-    return let dynamic _ = null in let final dynamic #t1 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/block_bodied_lambdas_void_context.dart:12:33: Error: Can't return a value from a void function.
-    return i /*@target=num::+*/ + 1;
-                                ^" in let final dynamic #t2 = i.{core::num::+}(1) in null;
+    return i.{core::num::+}(1);
   });
 }
 static method main() → dynamic {}

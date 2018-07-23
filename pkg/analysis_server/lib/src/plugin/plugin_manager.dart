@@ -1072,10 +1072,8 @@ class PluginSession {
       return false;
     }
     channel = info._createChannel();
-    // TODO(brianwilkerson) Determine if await is necessary, if so, change the
-    // return type of `channel.listen` to `Future<void>`.
-    await (channel.listen(handleResponse, handleNotification,
-        onDone: handleOnDone, onError: handleOnError) as dynamic);
+    await channel.listen(handleResponse, handleNotification,
+        onDone: handleOnDone, onError: handleOnError);
     if (channel == null) {
       // If there is an error when starting the isolate, the channel will invoke
       // handleOnDone, which will cause `channel` to be set to `null`.

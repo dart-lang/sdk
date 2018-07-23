@@ -1,16 +1,8 @@
-// Errors:
-//
-// pkg/front_end/testcases/inference/infer_use_of_void_local.dart:11:26: Error: This expression has type 'void' and can't be used.
-//   var /*@type=void*/ x = f();
-//                          ^
-
 library test;
 import self as self;
 
 static method f() → void {}
 static method g() → void {
-  void x = let dynamic _ = null in let final dynamic #t1 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_use_of_void_local.dart:11:26: Error: This expression has type 'void' and can't be used.
-  var /*@type=void*/ x = f();
-                         ^" in let final dynamic #t2 = self::f() in null;
+  void x = self::f();
 }
 static method main() → dynamic {}

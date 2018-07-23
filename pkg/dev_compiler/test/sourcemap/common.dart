@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async' show Future;
-
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
@@ -21,15 +19,14 @@ class Data {
 abstract class ChainContextWithCleanupHelper extends ChainContext {
   Map<TestDescription, Data> cleanupHelper = {};
 
-  Future<void> cleanUp(TestDescription description, Result result) {
+  void cleanUp(TestDescription description, Result result) {
     if (debugging() && result.outcome != Expectation.Pass) {
       print("Not cleaning up: Running in debug-mode for non-passing test.");
-      return null;
+      return;
     }
 
     Data data = cleanupHelper.remove(description);
     data?.outDir?.deleteSync(recursive: true);
-    return null;
   }
 
   bool debugging() => false;

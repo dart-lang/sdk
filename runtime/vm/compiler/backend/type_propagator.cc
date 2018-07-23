@@ -130,7 +130,7 @@ void FlowGraphTypePropagator::PropagateRecursive(BlockEntryInstr* block) {
   // can contain [AssertAssignableInstr]s and we therefore enable this
   // optimization.
   Isolate* isolate = Isolate::Current();
-  if (isolate->type_checks() || isolate->strong()) {
+  if (isolate->argument_type_checks()) {
     StrengthenAsserts(block);
   }
 

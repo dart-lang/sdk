@@ -1,3 +1,9 @@
+## 2.0.0-dev.69.2
+
+### Core library changes
+* Remove deprecated UPPER_CASE constant names. Use the lower-case names only
+  from now on. Example `HTML_ESCAPE` is now only `htmlEscape`.
+
 ## 2.0.0-dev.69.1
 
 Cherry-pick 11f3c57e9c09c62c46aaf7824c3ffdc8debb3960 to dev
