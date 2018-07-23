@@ -8688,6 +8688,30 @@ class FormalParameterParserTest extends ParserTestCase
  */
 abstract class FormalParameterParserTestMixin
     implements AbstractParserTestCase {
+  void test_parseConstructorParameter_this() {
+    parseCompilationUnit('''
+class C {
+  final int field;
+  C(this.field);
+}''');
+  }
+
+  void test_parseConstructorParameter_this_Function() {
+    parseCompilationUnit('''
+class C {
+  final Object Function(int, double) field;
+  C(String Function(num, Object) this.field);
+}''');
+  }
+
+  void test_parseConstructorParameter_this_int() {
+    parseCompilationUnit('''
+class C {
+  final int field;
+  C(int this.field);
+}''');
+  }
+
   void test_parseFormalParameter_covariant_final_named() {
     ParameterKind kind = ParameterKind.NAMED;
     FormalParameter parameter =
