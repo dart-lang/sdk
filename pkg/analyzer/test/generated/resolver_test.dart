@@ -624,7 +624,11 @@ int f(num n) {
   return n & 0x0F;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    }
   }
 
   test_conditional_and_is() async {
@@ -651,7 +655,11 @@ int f(num n) {
   return (n is! int) ? 0 : n & 0x0F;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    }
   }
 
   test_conditional_or_is() async {
@@ -660,7 +668,11 @@ int f(num n) {
   return (n is! int || n < 0) ? 0 : n & 0x0F;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    }
   }
 
   test_forEach() async {
@@ -672,7 +684,11 @@ int f(List<int> list) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    }
   }
 
   test_if_and_is() async {
@@ -709,7 +725,11 @@ int f(num n) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    }
   }
 
   test_if_isNot_abrupt() async {
@@ -721,7 +741,11 @@ int f(num n) {
   return n & 0x0F;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    }
   }
 
   test_if_or_is() async {
@@ -734,7 +758,11 @@ int f(num n) {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    }
   }
 
   test_localVar() async {
@@ -744,7 +772,11 @@ int f() {
   return n & 0x0F;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+    }
   }
 }
 
