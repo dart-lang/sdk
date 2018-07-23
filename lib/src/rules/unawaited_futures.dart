@@ -6,7 +6,8 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 
-const _desc = r'Await future-returning functions inside async function bodies.';
+const _desc = r'`Future` results in `async` function bodies must be '
+    '`await`ed or marked `unawaited` using `package:pedantic`.';
 
 const _details = r'''
 
@@ -15,6 +16,10 @@ const _details = r'''
 It's easy to forget await in async methods as naming conventions usually don't
 tell us if a method is sync or async (except for some in `dart:io`).
 
+When you really _do_ want to start a fire-and-forget `Future`, the recommended
+way is to use `unawaited` from `package:pedantic`. The `// ignore` and
+`// ignore_for_file` comments also work.
+
 **GOOD:**
 ```
 Future doSomething() => ...;
@@ -22,8 +27,7 @@ Future doSomething() => ...;
 void main() async {
   await doSomething();
 
-  // ignore: unawaited_futures
-  doSomething(); // Explicitly-ignored fire-and-forget.
+  unawaited(doSomething()); // Explicitly-ignored fire-and-forget.
 }
 ```
 
