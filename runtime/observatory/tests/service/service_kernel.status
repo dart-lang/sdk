@@ -5,6 +5,7 @@
 [ $compiler == app_jitk ]
 add_breakpoint_rpc_test: RuntimeError
 async_generator_breakpoint_test: RuntimeError
+async_next_regession_18877_test: RuntimeError
 async_next_test: RuntimeError
 async_scope_test: RuntimeError
 async_single_step_exception_test: RuntimeError
