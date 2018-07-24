@@ -171,7 +171,8 @@ class FrontEndCompiler {
         new TargetLibrariesSpecification('none', dartLibraries), packages);
     var errorListener = new _ErrorListener();
     var compilerOptions = new CompilerOptions()
-      ..target = new _AnalyzerTarget(new TargetFlags(strongMode: true))
+      ..target = new _AnalyzerTarget(new TargetFlags(strongMode: true),
+          enableSuperMixins: analysisOptions.enableSuperMixins)
       ..reportMessages = false
       ..logger = logger
       ..fileSystem = new _FileSystemAdaptor(fsState, pathContext)
@@ -456,13 +457,17 @@ class _AnalyzerSourceLoader<L> extends SourceLoader<L> {
  * [Target] for static analysis, with all features enabled.
  */
 class _AnalyzerTarget extends NoneTarget {
-  _AnalyzerTarget(TargetFlags flags) : super(flags);
+  _AnalyzerTarget(TargetFlags flags, {this.enableSuperMixins = false})
+      : super(flags);
 
   @override
   List<String> get extraRequiredLibraries => const <String>['dart:_internal'];
 
   @override
   bool enableNative(Uri uri) => true;
+
+  @override
+  bool enableSuperMixins;
 }
 
 /// The listener for [CompilationMessage]s from FrontEnd.
