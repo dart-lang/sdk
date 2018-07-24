@@ -87,7 +87,6 @@ html/no_linked_scripts_htmltest: Timeout, Pass # Issue 32262
 html/worker_test/functional: RuntimeError # Issue 32261
 
 [ $compiler == dart2js && $runtime == chrome && $strong ]
-html/fileapi_directory_reader_test: RuntimeError
 html/interactive_media_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
@@ -117,6 +116,7 @@ html/audioelement_test: RuntimeError
 html/b_element_test: RuntimeError
 html/blob_constructor_test: RuntimeError
 html/cache_test: RuntimeError
+html/callback_list_test: RuntimeError
 html/callbacks_test: RuntimeError
 html/canvas_pixel_array_type_alias_test: RuntimeError
 html/canvas_test: RuntimeError
