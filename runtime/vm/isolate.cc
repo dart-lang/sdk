@@ -1834,6 +1834,14 @@ void Isolate::Shutdown() {
   // avoid exposing it in a state of decay.
   RemoveIsolateFromList(this);
 
+  {
+    // After removal from isolate list. Before tearing down the heap.
+    StackZone zone(thread);
+    HandleScope handle_scope(thread);
+    ServiceIsolate::SendIsolateShutdownMessage();
+    KernelIsolate::NotifyAboutIsolateShutdown(this);
+  }
+
   if (heap_ != NULL) {
     // Wait for any concurrent GC tasks to finish before shutting down.
     // TODO(koda): Support faster sweeper shutdown (e.g., after current page).
@@ -1855,9 +1863,6 @@ void Isolate::Shutdown() {
     }
   }
 
-  // TODO(33514): Ideally this should be moved to Dart_ShutdownIsolate,
-  // next to ServiceIsolate::SendIsolateShutdownMessage().
-  KernelIsolate::NotifyAboutIsolateShutdown(Isolate::Current());
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   // Then, proceed with low-level teardown.

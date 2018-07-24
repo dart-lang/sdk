@@ -1191,7 +1191,6 @@ DART_EXPORT void Dart_ShutdownIsolate() {
     // Dart_EnterIsolate/Dart_CreateIsolate.
     T->ExitSafepoint();
     T->set_execution_state(Thread::kThreadInVM);
-    ServiceIsolate::SendIsolateShutdownMessage();
   }
   Dart::ShutdownIsolate();
 }
