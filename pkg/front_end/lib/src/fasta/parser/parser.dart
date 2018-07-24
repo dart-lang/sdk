@@ -2137,7 +2137,12 @@ class Parser {
     if (getOrSet != null && !inPlainSync && optional("set", getOrSet)) {
       reportRecoverableError(asyncToken, fasta.messageSetterNotSync);
     }
-    token = parseFunctionBody(token, false, externalToken != null);
+    bool isExternal = externalToken != null;
+    if (isExternal && !optional(';', token.next)) {
+      reportRecoverableError(
+          externalToken, fasta.messageExternalMethodWithBody);
+    }
+    token = parseFunctionBody(token, false, isExternal);
     asyncState = savedAsyncModifier;
     listener.endTopLevelMethod(beforeStart.next, getOrSet, token);
     return token;
