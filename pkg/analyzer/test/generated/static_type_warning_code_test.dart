@@ -2075,7 +2075,10 @@ class B extends A {
   }
 }''',
         useCFE
-            ? [StaticTypeWarningCode.UNDEFINED_SUPER_METHOD]
+            ? [
+                StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+                StaticTypeWarningCode.UNDEFINED_SUPER_METHOD
+              ]
             : (previewDart2
                 ? [
                     StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
