@@ -414,7 +414,7 @@ class CompletionTargetTest extends AbstractContextTest {
     // Comment  ClassDeclaration  CompilationUnit
     await addTestSource('main() { if (v i^) }');
     if (usingFastaParser) {
-      await assertTarget(')', '(v)', droppedToken: 'i');
+      await assertTarget(')', 'if (v) ;', droppedToken: 'i');
     } else {
       await assertTarget('i;', 'if (v) i;');
     }

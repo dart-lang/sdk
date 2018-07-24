@@ -173,6 +173,12 @@ abstract class ParserAdapter implements Parser {
   Expression parseEqualityExpression() => parseExpression2();
 
   @override
+  Expression parseExpression(Token token) {
+    currentToken = token;
+    return parseExpression2();
+  }
+
+  @override
   Expression parseExpression2() {
     currentToken = fastaParser
         .parseExpression(fastaParser.syntheticPreviousToken(currentToken))
