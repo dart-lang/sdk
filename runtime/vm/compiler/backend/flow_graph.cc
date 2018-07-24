@@ -454,13 +454,27 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
   // Useful receiver class information?
   if (receiver_class.IsNull()) {
     return ToCheck::kCheckCid;
-  } else if (call->HasICData() &&
-             !call->ic_data()->HasReceiverClassId(receiver_class.id())) {
+  } else if (call->HasICData()) {
     // If the static class type does not match information found in ICData
     // (which may be "guessed"), then bail, since subsequent code generation
     // (AOT and JIT) for inlining uses the latter.
     // TODO(ajcbik): improve this by using the static class.
-    return ToCheck::kCheckCid;
+    const intptr_t cid = receiver_class.id();
+    const ICData* data = call->ic_data();
+    bool match = false;
+    Class& cls = Class::Handle(zone());
+    Function& fun = Function::Handle(zone());
+    for (intptr_t i = 0, len = data->NumberOfChecks(); i < len; i++) {
+      fun = data->GetTargetAt(i);
+      cls = fun.Owner();
+      if (data->GetReceiverClassIdAt(i) == cid || cls.id() == cid) {
+        match = true;
+        break;
+      }
+    }
+    if (!match) {
+      return ToCheck::kCheckCid;
+    }
   }
 
   const String& method_name =
