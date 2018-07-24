@@ -8,6 +8,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -20,12 +21,13 @@ main() {
 
 @reflectiveTest
 class LocalDeclarationVisitorTest {
-  CompilationUnit parseCompilationUnit(String source) {
+  CompilationUnit parseCompilationUnit(String content) {
     AnalysisErrorListener listener = AnalysisErrorListener.NULL_LISTENER;
     Scanner scanner =
-        new Scanner(null, new CharSequenceReader(source), listener);
+        new Scanner(null, new CharSequenceReader(content), listener);
     Token token = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
+    var source = new StringSource(content, '/test.dart');
+    Parser parser = new Parser(source, listener);
     CompilationUnit unit = parser.parseCompilationUnit(token);
     expect(unit, isNotNull);
     return unit;
@@ -35,7 +37,7 @@ class LocalDeclarationVisitorTest {
     CompilationUnit unit = parseCompilationUnit('''
 class MyClass {}
 f(List<MyClass> list) {
-  for(MyClas( x in list) {}
+  for(x in list) {}
 }
 ''');
     NodeList<CompilationUnitMember> declarations = unit.declarations;

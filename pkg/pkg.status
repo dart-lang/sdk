@@ -201,7 +201,6 @@ analyzer/test/generated/non_error_resolver_test: Fail
 analyzer/test/generated/resolver_test: Fail
 analyzer/test/generated/utilities_test: Fail
 analyzer/test/src/context/context_test: Fail
-analyzer_plugin/test/src/utilities/visitors/local_declaration_visitor_test: Fail
 
 [ $builder_tag != dart2js_analyzer && $compiler == dart2js ]
 analysis_server/test/*: Skip # Issue 26813
