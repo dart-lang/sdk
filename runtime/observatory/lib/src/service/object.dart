@@ -4293,34 +4293,33 @@ class Code extends HeapObject implements M.Code {
     }
   }
 
-  void loadScript() {
+  Future loadScript() {
     if (script != null) {
       // Already done.
-      return;
+      return null;
     }
     if (kind != M.CodeKind.dart) {
-      return;
+      return null;
     }
     if (function == null) {
-      return;
+      return null;
     }
     if ((function.location == null) || (function.location.script == null)) {
       // Attempt to load the function.
-      function.load().then((func) {
+      return function.load().then((func) {
         var script = function.location.script;
         if (script == null) {
           // Function doesn't have an associated script.
-          return;
+          return null;
         }
         // Load the script and then update descriptors.
-        script.load().then((_) => _updateDescriptors(script));
+        return script.load().then((_) => _updateDescriptors(script));
       });
-      return;
     }
     {
       // Load the script and then update descriptors.
       var script = function.location.script;
-      script.load().then((_) => _updateDescriptors(script));
+      return script.load().then((_) => _updateDescriptors(script));
     }
   }
 
