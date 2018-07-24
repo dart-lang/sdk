@@ -27,7 +27,6 @@ class SnapshotWriter;
   V(RunExceptionHandler)                                                       \
   V(DeoptForRewind)                                                            \
   V(UpdateStoreBuffer)                                                         \
-  V(UpdateStoreBufferWrappers)                                                 \
   V(PrintStopMessage)                                                          \
   V(AllocateArray)                                                             \
   V(AllocateContext)                                                           \

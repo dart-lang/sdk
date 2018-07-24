@@ -1104,25 +1104,6 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   __ Ret();
 }
 
-void StubCode::GenerateUpdateStoreBufferWrappersStub(Assembler* assembler) {
-  RegList saved = (1 << LR) | (1 << R0);
-  for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
-    if ((kDartAvailableCpuRegs & (1 << i)) == 0) continue;
-
-    Register reg = static_cast<Register>(i);
-    intptr_t start = __ CodeSize();
-    __ PushList(saved);
-    __ mov(R0, Operand(reg));
-    __ ldr(LR, Address(THR, Thread::update_store_buffer_entry_point_offset()));
-    __ blx(LR);
-    __ PopList(saved);
-    __ bx(LR);
-    intptr_t end = __ CodeSize();
-
-    RELEASE_ASSERT(end - start == kStoreBufferWrapperSize);
-  }
-}
-
 // Helper stub to implement Assembler::StoreIntoObject.
 // Input parameters:
 //   R0: address (i.e. object) being stored into.

@@ -2191,8 +2191,7 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
                                                               bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps =
-      ((IsUnboxedStore() && opt) ? 2 : ((IsPotentialUnboxedStore()) ? 3 : 0)) +
-      (ShouldEmitStoreBarrier() ? 1 : 0);  // block LR for the store barrier
+      (IsUnboxedStore() && opt) ? 2 : ((IsPotentialUnboxedStore()) ? 3 : 0);
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps,
                       ((IsUnboxedStore() && opt && is_initialization()) ||
@@ -2216,9 +2215,6 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
     summary->set_in(1, ShouldEmitStoreBarrier()
                            ? Location::WritableRegister()
                            : Location::RegisterOrConstant(value()));
-  }
-  if (ShouldEmitStoreBarrier()) {
-    summary->set_temp(kNumTemps - 1, Location::RegisterLocation(LR));
   }
   return summary;
 }
@@ -2374,10 +2370,9 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   if (ShouldEmitStoreBarrier()) {
-    ASSERT(!locs()->live_registers()->Contains(Location::RegisterLocation(LR)));
     const Register value_reg = locs()->in(1).reg();
     __ StoreIntoObjectOffset(instance_reg, offset_in_bytes_, value_reg,
-                             CanValueBeSmi(), /*lr_reserved=*/true);
+                             CanValueBeSmi());
   } else {
     if (locs()->in(1).IsConstant()) {
       __ StoreIntoObjectNoBarrierOffset(instance_reg, offset_in_bytes_,

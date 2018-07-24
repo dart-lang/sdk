@@ -797,13 +797,11 @@ class Assembler : public ValueObject {
   void StoreIntoObject(Register object,      // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
                        Register value,       // Value we are storing.
-                       CanBeSmi can_value_be_smi = kValueCanBeSmi,
-                       bool lr_reserved = false);
+                       CanBeSmi can_value_be_smi = kValueCanBeSmi);
   void StoreIntoObjectOffset(Register object,
                              int32_t offset,
                              Register value,
-                             CanBeSmi can_value_be_smi = kValueCanBeSmi,
-                             bool lr_reserved = false);
+                             CanBeSmi can_value_be_smi = kValueCanBeSmi);
 
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
@@ -1257,11 +1255,6 @@ class Assembler : public ValueObject {
     // Filter falls through to the "after-store" code. Target label
     // is barrier update code label.
     kJumpToBarrier,
-
-    // Filter falls through into the conditional barrier update code and does
-    // not jump. Target label is unused. The barrier should run if the NE
-    // condition is set.
-    kNoJump
   };
 
   void StoreIntoObjectFilter(Register object,
