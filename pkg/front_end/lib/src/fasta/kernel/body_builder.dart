@@ -6,6 +6,8 @@ library fasta.body_builder;
 
 import 'dart:core' hide MapEntry;
 
+import 'package:front_end/src/fasta/kernel/kernel_expression_generator.dart';
+
 import '../constant_context.dart' show ConstantContext;
 
 import '../fasta_codes.dart' as fasta;
@@ -81,6 +83,7 @@ import 'expression_generator.dart'
         IndexedAccessGenerator,
         LargeIntAccessGenerator,
         LoadLibraryGenerator,
+        NonLvalueGenerator,
         ParenthesizedExpressionGenerator,
         PrefixUseGenerator,
         ReadOnlyAccessGenerator,
@@ -1932,20 +1935,27 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     pop(); // block
   }
 
+  Generator popForLvalue(Token token) {
+    Object value = pop();
+    if (value is Generator) {
+      return value.asLvalue();
+    } else {
+      return new NonLvalueGenerator(
+          this,
+          token,
+          buildCompileTimeError(fasta.messageNotAnLvalue, offsetForToken(token),
+              lengthForToken(token)),
+          toValue(value));
+    }
+  }
+
   @override
   void handleAssignmentExpression(Token token) {
     debugEvent("AssignmentExpression");
     Expression value = popForValue();
-    Object generator = pop();
-    if (generator is! Generator) {
-      push(new SyntheticExpressionJudgment(buildCompileTimeError(
-          fasta.messageNotAnLvalue,
-          offsetForToken(token),
-          lengthForToken(token))));
-    } else {
-      push(new DelayedAssignment(
-          this, token, generator, value, token.stringValue));
-    }
+    var generator = popForLvalue(token);
+    push(new DelayedAssignment(
+        this, token, generator, value, token.stringValue));
   }
 
   @override
@@ -2648,27 +2658,17 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleUnaryPrefixAssignmentExpression(Token token) {
     debugEvent("UnaryPrefixAssignmentExpression");
-    Object generator = pop();
-    if (generator is Generator) {
-      push(generator.buildPrefixIncrement(incrementOperator(token),
-          offset: token.charOffset));
-    } else {
-      push(
-          wrapInCompileTimeError(toValue(generator), fasta.messageNotAnLvalue));
-    }
+    var generator = popForLvalue(token);
+    push(generator.buildPrefixIncrement(incrementOperator(token),
+        offset: token.charOffset));
   }
 
   @override
   void handleUnaryPostfixAssignmentExpression(Token token) {
     debugEvent("UnaryPostfixAssignmentExpression");
-    Object generator = pop();
-    if (generator is Generator) {
-      push(new DelayedPostfixIncrement(
-          this, token, generator, incrementOperator(token), null));
-    } else {
-      push(
-          wrapInCompileTimeError(toValue(generator), fasta.messageNotAnLvalue));
-    }
+    var generator = popForLvalue(token);
+    push(new DelayedPostfixIncrement(
+        this, token, generator, incrementOperator(token), null));
   }
 
   @override
@@ -3372,7 +3372,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       TypePromotionFact fact =
           typePromoter.getFactForAccess(variable, functionNestingLevel);
       TypePromotionScope scope = typePromoter.currentScope;
-      syntheticAssignment = lvalue.buildAssignment(
+      syntheticAssignment = lvalue.asLvalue().buildAssignment(
           new VariableGetJudgment(variable, fact, scope)
             ..fileOffset = inKeyword.offset,
           voidContext: true);

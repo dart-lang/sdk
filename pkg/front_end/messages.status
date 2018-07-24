@@ -34,6 +34,7 @@ CantInferPackagesFromPackageUri/example: Fail
 CantInferTypeDueToCircularity/dart2jsCode: Fail
 CantInferTypeDueToCircularity/example: Fail
 CantInferTypeDueToInconsistentOverrides/example: Fail
+CantUsePrefixAsExpression/script: Fail
 CantUseSuperBoundedTypeForInstanceCreation/analyzerCode: Fail
 CantUseSuperBoundedTypeForInstanceCreation/example: Fail
 ColonInPlaceOfIn/example: Fail

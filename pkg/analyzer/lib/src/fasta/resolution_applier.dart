@@ -116,9 +116,11 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     node.rightHandSide.accept(this);
 
     SyntacticEntity entity = _getAssignmentEntity(node.leftHandSide);
-    var data = _get(entity);
-    node.staticElement = _translateAuxiliaryReference(data.combiner);
-    node.staticType = _translateType(data.inferredType);
+    if (entity != null) {
+      var data = _get(entity);
+      node.staticElement = _translateAuxiliaryReference(data.combiner);
+      node.staticType = _translateType(data.inferredType);
+    }
   }
 
   @override
@@ -541,9 +543,11 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   void visitPostfixExpression(PostfixExpression node) {
     node.operand.accept(this);
     SyntacticEntity entity = _getAssignmentEntity(node.operand);
-    var data = _get(entity);
-    node.staticElement = _translateAuxiliaryReference(data.combiner);
-    node.staticType = _translateType(data.inferredType);
+    if (entity != null) {
+      var data = _get(entity);
+      node.staticElement = _translateAuxiliaryReference(data.combiner);
+      node.staticType = _translateType(data.inferredType);
+    }
   }
 
   @override
@@ -561,9 +565,11 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       // ++v;
       // This is an assignment, it is associated with the operand.
       SyntacticEntity entity = _getAssignmentEntity(node.operand);
-      var data = _get(entity);
-      node.staticElement = _translateAuxiliaryReference(data.combiner);
-      node.staticType = _translateType(data.inferredType);
+      if (entity != null) {
+        var data = _get(entity);
+        node.staticElement = _translateAuxiliaryReference(data.combiner);
+        node.staticType = _translateType(data.inferredType);
+      }
     } else if (tokenType == TokenType.BANG) {
       // !boolExpression;
       node.staticType = _translateType(_get(node).inferredType);
@@ -732,8 +738,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     } else if (leftHandSide is ParenthesizedExpression) {
       return leftHandSide.rightParenthesis;
     } else {
-      throw new StateError(
-          'Unexpected LHS (${leftHandSide.runtimeType}) $leftHandSide');
+      return null;
     }
   }
 

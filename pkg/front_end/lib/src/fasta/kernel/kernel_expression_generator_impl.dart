@@ -32,6 +32,9 @@ class ThisAccessGenerator extends KernelGenerator {
 
   String get debugName => "ThisAccessGenerator";
 
+  @override
+  Generator asLvalue() => makeNonLValueGenerator();
+
   Expression buildSimpleRead() {
     if (!isSuper) {
       return forest.thisExpression(token);
@@ -129,46 +132,6 @@ class ThisAccessGenerator extends KernelGenerator {
     }
   }
 
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return buildAssignmentError();
-  }
-
-  Expression buildNullAwareAssignment(
-      Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
-    return buildAssignmentError();
-  }
-
-  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false}) {
-    return buildAssignmentError();
-  }
-
-  Expression buildPrefixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
-    return buildAssignmentError();
-  }
-
-  Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget}) {
-    return buildAssignmentError();
-  }
-
-  Expression buildAssignmentError() {
-    String message =
-        isSuper ? "Can't assign to 'super'." : "Can't assign to 'this'.";
-    return helper.deprecated_buildCompileTimeError(
-        message, offsetForToken(token));
-  }
-
   @override
   void printOn(StringSink sink) {
     sink.write(", isInitializer: ");
@@ -188,6 +151,9 @@ abstract class IncompleteSendGenerator extends KernelGenerator {
   withReceiver(Object receiver, int operatorOffset, {bool isNullAware});
 
   Arguments get arguments => null;
+
+  @override
+  Generator asLvalue() => makeNonLValueGenerator();
 
   @override
   void printOn(StringSink sink) {
@@ -378,16 +344,15 @@ class ParenthesizedExpressionGenerator extends KernelReadOnlyAccessGenerator {
   String get debugName => "ParenthesizedExpressionGenerator";
 
   @override
-  ComplexAssignmentJudgment startComplexAssignment(Expression rhs) {
-    return new IllegalAssignmentJudgment(rhs,
+  Generator asLvalue() {
+    return new NonLvalueGenerator(
+        helper,
+        token,
+        helper.buildCompileTimeError(
+            messageCannotAssignToParenthesizedExpression,
+            offsetForToken(token),
+            lengthForToken(token)),
+        buildSimpleRead(),
         assignmentOffset: offsetForToken(token));
-  }
-
-  Expression makeInvalidWrite(Expression value) {
-    var error = helper.buildCompileTimeError(
-        messageCannotAssignToParenthesizedExpression,
-        offsetForToken(token),
-        lengthForToken(token));
-    return new InvalidWriteJudgment(error, expression);
   }
 }

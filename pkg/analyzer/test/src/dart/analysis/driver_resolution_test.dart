@@ -837,6 +837,32 @@ void main() {
     }
   }
 
+  test_assignment_of_postfix_increment() async {
+    addTestFile('''
+f(int x, int y) {
+  x++ = y;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var xElement = findElement.parameter('x');
+    assertElement(findNode.simple('x++'), xElement);
+    var yElement = findElement.parameter('y');
+    assertElement(findNode.simple('y;'), yElement);
+  }
+
+  test_assignment_of_unresolved_name() async {
+    addTestFile('''
+f(int y) {
+  x = y;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var yElement = findElement.parameter('y');
+    assertElement(findNode.simple('y;'), yElement);
+  }
+
   test_assignment_to_final_parameter() async {
     addTestFile('''
 f(final int x) {
@@ -961,6 +987,21 @@ main() {
     var xReference = findNode.simple('x +=');
     expect(xReference.staticElement, useCFE ? isNull : same(xElement));
     expect(xReference.staticType.toString(), useCFE ? 'dynamic' : 'int');
+  }
+
+  test_assignment_to_non_generator() async {
+    addTestFile('''
+f() {}
+g(x) {
+  f() = x;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var fElement = findElement.function('f');
+    assertElement(findNode.simple('f() ='), fElement);
+    var xElement = findElement.parameter('x');
+    assertElement(findNode.simple('x;'), xElement);
   }
 
   test_assignment_to_prefix() async {
@@ -2039,6 +2080,32 @@ var v = (() => 42)();
     expect(closureElement.enclosingElement, same(variableInitializer));
   }
 
+  test_compound_assignment_of_postfix_increment() async {
+    addTestFile('''
+f(int x, int y) {
+  x++ += y;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var xElement = findElement.parameter('x');
+    assertElement(findNode.simple('x++'), xElement);
+    var yElement = findElement.parameter('y');
+    assertElement(findNode.simple('y;'), yElement);
+  }
+
+  test_compound_assignment_of_unresolved_name() async {
+    addTestFile('''
+f(int y) {
+  x += y;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var yElement = findElement.parameter('y');
+    assertElement(findNode.simple('y;'), yElement);
+  }
+
   test_conditionalExpression() async {
     String content = r'''
 void main() {
@@ -2472,6 +2539,18 @@ main() async {
       assertElement(prefixed.identifier, v.setter);
       assertType(prefixed.identifier, 'int');
     }
+  }
+
+  test_dual_increment() async {
+    addTestFile('''
+f(int x) {
+  ++x++;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var xElement = findElement.parameter('x');
+    assertElement(findNode.simple('x++'), xElement);
   }
 
   test_enum_toString() async {
@@ -6303,6 +6382,43 @@ void f<T, U>(T a, U b) {}
     }
   }
 
+  test_null_aware_assignment_of_postfix_increment() async {
+    addTestFile('''
+f(int x, int y) {
+  x++ ??= y;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var xElement = findElement.parameter('x');
+    assertElement(findNode.simple('x++'), xElement);
+    var yElement = findElement.parameter('y');
+    assertElement(findNode.simple('y;'), yElement);
+  }
+
+  test_postfix_increment_of_non_generator() async {
+    addTestFile('''
+f() {}
+g() {
+  f()++;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var fElement = findElement.function('f');
+    assertElement(findNode.simple('f()++;'), fElement);
+  }
+
+  test_postfix_increment_of_unresolved_name() async {
+    addTestFile('''
+f() {
+  x++;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+  }
+
   test_postfixExpression_local() async {
     String content = r'''
 main() {
@@ -6375,6 +6491,31 @@ class C {
       expect(propertyName.staticElement, same(fElement.setter));
       expect(propertyName.staticType, typeProvider.intType);
     }
+  }
+
+  test_prefix_increment_of_non_generator() async {
+    addTestFile('''
+f() {}
+g() {
+  ++f();
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var fReference = findNode.simple('f();');
+    expect(fReference.parent, const TypeMatcher<MethodInvocation>());
+    var fElement = findElement.function('f');
+    assertElement(fReference, fElement);
+  }
+
+  test_prefix_increment_of_unresolved_name() async {
+    addTestFile('''
+f() {
+  ++x;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
   }
 
   test_prefixedIdentifier_classInstance_instanceField() async {
@@ -9429,6 +9570,24 @@ class FindElement {
       }
     }
     fail('Not found class method: $name');
+  }
+
+  ParameterElement parameter(String name) {
+    ParameterElement parameterElement;
+    for (var function in unitElement.functions) {
+      for (var parameter in function.parameters) {
+        if (parameter.name == name) {
+          if (parameterElement != null) {
+            throw new StateError('Parameter name $name is not unique.');
+          }
+          parameterElement = parameter;
+        }
+      }
+    }
+    if (parameterElement != null) {
+      return parameterElement;
+    }
+    fail('No parameter found with name $name');
   }
 
   PrefixElement prefix(String name) {

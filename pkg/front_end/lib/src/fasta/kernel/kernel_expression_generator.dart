@@ -47,6 +47,7 @@ import 'expression_generator.dart'
         IndexedAccessGenerator,
         LargeIntAccessGenerator,
         LoadLibraryGenerator,
+        NonLvalueGenerator,
         NullAwarePropertyAccessGenerator,
         PrefixUseGenerator,
         PropertyAccessGenerator,
@@ -77,13 +78,11 @@ import 'kernel_ast_api.dart'
         Constructor,
         DartType,
         Field,
-        IllegalAssignmentJudgment,
         IndexAssignmentJudgment,
         Initializer,
         InvalidPropertyGetJudgment,
         InvalidType,
         InvalidVariableWriteJudgment,
-        InvalidWriteJudgment,
         Let,
         LoadLibraryTearOffJudgment,
         Member,
@@ -247,7 +246,7 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
   Expression makeInvalidWrite(Expression value) {
     return buildInvalidWriteJudgment(helper.throwNoSuchMethodError(
         forest.literalNull(token),
-        plainNameForRead,
+        plainNameForRead ?? '',
         forest.arguments(<Expression>[value], noLocation),
         offsetForToken(token),
         isSetter: true));
@@ -289,8 +288,13 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
 
   /// Creates a data structure for tracking the desugaring of a complex
   /// assignment expression whose right hand side is [rhs].
-  ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
-      new IllegalAssignmentJudgment(rhs);
+  ComplexAssignmentJudgment startComplexAssignment(Expression rhs) {
+    // This code should never be reached; clients should always use .asLvalue()
+    // prior to starting a complex assignment, and generators returned by
+    // .asLvalue() should always override this method.
+    return unhandled(
+        'startComplexAssignment', '$runtimeType', token.offset, null);
+  }
 }
 
 abstract class KernelGenerator = Generator with KernelExpressionGenerator;

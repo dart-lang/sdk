@@ -17,6 +17,7 @@ import '../fasta_codes.dart'
         messageCantUsePrefixWithNullAware,
         messageInvalidInitializer,
         messageNotAConstantExpression,
+        messageNotAnLvalue,
         templateCantUseDeferredPrefixAsConstant,
         templateDeferredTypeAnnotation,
         templateIntegerLiteralIsOutOfRange,
@@ -66,6 +67,8 @@ import 'kernel_ast_api.dart'
         DartType,
         DynamicType,
         Expression,
+        ExpressionJudgment,
+        IllegalAssignmentJudgment,
         Initializer,
         InvalidConstructorInvocationJudgment,
         InvalidType,
@@ -106,6 +109,96 @@ export 'kernel_expression_generator.dart'
         SendAccessGenerator,
         ThisAccessGenerator,
         buildIsNull;
+
+class NonLvalueGenerator extends Generator {
+  final Expression errorExpression;
+
+  final ExpressionJudgment judgment;
+
+  final assignmentOffset;
+
+  NonLvalueGenerator(ExpressionGeneratorHelper helper, Token token,
+      this.errorExpression, this.judgment,
+      {this.assignmentOffset = -1})
+      : super(helper, token);
+
+  @override
+  Generator asLvalue() => this;
+
+  @override
+  Expression buildAssignment(Expression value, {bool voidContext}) {
+    return makeJudgment(value);
+  }
+
+  @override
+  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+      {int offset,
+      bool voidContext,
+      Procedure interfaceTarget,
+      bool isPreIncDec}) {
+    return makeJudgment(value);
+  }
+
+  @override
+  Expression buildNullAwareAssignment(
+      Expression value, DartType type, int offset,
+      {bool voidContext}) {
+    return makeJudgment(value);
+  }
+
+  @override
+  Expression buildPostfixIncrement(Name binaryOperator,
+      {int offset, bool voidContext, Procedure interfaceTarget}) {
+    return makeJudgment(null);
+  }
+
+  @override
+  Expression buildPrefixIncrement(Name binaryOperator,
+      {int offset, bool voidContext, Procedure interfaceTarget}) {
+    return makeJudgment(null);
+  }
+
+  @override
+  Expression buildSimpleRead() {
+    return makeJudgment(null);
+  }
+
+  @override
+  Expression makeInvalidRead() {
+    return makeJudgment(null);
+  }
+
+  @override
+  Expression makeInvalidWrite(Expression value) {
+    return makeJudgment(value);
+  }
+
+  @override
+  String get debugName {
+    return unhandled('debugName', 'NonLvalueGenerator', token.offset, uri);
+  }
+
+  @override
+  doInvocation(int offset, Arguments arguments) {
+    return unhandled('doInvocation', 'NonLvalueGenerator', token.offset, uri);
+  }
+
+  Expression makeJudgment(ExpressionJudgment rhs) {
+    return new IllegalAssignmentJudgment(errorExpression, judgment, rhs,
+        assignmentOffset: assignmentOffset);
+  }
+
+  @override
+  String get plainNameForRead {
+    return unhandled(
+        'plainNameForRead', 'NonLvalueGenerator', token.offset, uri);
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    return unhandled('printOn', 'NonLvalueGenerator', token.offset, uri);
+  }
+}
 
 abstract class ExpressionGenerator {
   /// Builds a [Expression] representing a read from the generator.
@@ -189,6 +282,8 @@ abstract class Generator implements ExpressionGenerator {
 
   bool get isInitializer => false;
 
+  Generator asLvalue();
+
   Expression buildForEffect() => buildSimpleRead();
 
   Initializer buildFieldInitializer(Map<String, int> initializedFields) {
@@ -231,6 +326,15 @@ abstract class Generator implements ExpressionGenerator {
 
   /* Expression | Generator */ Object prefixedLookup(Token name) {
     return new UnexpectedQualifiedUseGenerator(helper, name, this, false);
+  }
+
+  Generator makeNonLValueGenerator() {
+    return new NonLvalueGenerator(
+        helper,
+        token,
+        helper.buildCompileTimeError(
+            messageNotAnLvalue, offsetForToken(token), lengthForToken(token)),
+        buildSimpleRead());
   }
 
   Expression invokeConstructor(List<DartType> typeArguments, String name,
@@ -278,6 +382,9 @@ abstract class VariableUseGenerator implements Generator {
   }
 
   @override
+  Generator asLvalue() => this;
+
+  @override
   String get debugName => "VariableUseGenerator";
 }
 
@@ -313,6 +420,9 @@ abstract class PropertyAccessGenerator implements Generator {
   }
 
   @override
+  Generator asLvalue() => this;
+
+  @override
   String get debugName => "PropertyAccessGenerator";
 
   @override
@@ -327,6 +437,9 @@ abstract class ThisPropertyAccessGenerator implements Generator {
     return helper.forest
         .thisPropertyAccessGenerator(helper, token, name, getter, setter);
   }
+
+  @override
+  Generator asLvalue() => this;
 
   @override
   String get debugName => "ThisPropertyAccessGenerator";
@@ -349,6 +462,9 @@ abstract class NullAwarePropertyAccessGenerator implements Generator {
   }
 
   @override
+  Generator asLvalue() => this;
+
+  @override
   String get debugName => "NullAwarePropertyAccessGenerator";
 }
 
@@ -358,6 +474,9 @@ abstract class SuperPropertyAccessGenerator implements Generator {
     return helper.forest
         .superPropertyAccessGenerator(helper, token, name, getter, setter);
   }
+
+  @override
+  Generator asLvalue() => this;
 
   @override
   String get debugName => "SuperPropertyAccessGenerator";
@@ -392,6 +511,9 @@ abstract class IndexedAccessGenerator implements Generator {
   }
 
   @override
+  Generator asLvalue() => this;
+
+  @override
   String get plainNameForRead => "[]";
 
   @override
@@ -411,6 +533,9 @@ abstract class ThisIndexedAccessGenerator implements Generator {
   }
 
   @override
+  Generator asLvalue() => this;
+
+  @override
   String get plainNameForRead => "[]";
 
   @override
@@ -426,6 +551,9 @@ abstract class SuperIndexedAccessGenerator implements Generator {
     return helper.forest
         .superIndexedAccessGenerator(helper, token, index, getter, setter);
   }
+
+  @override
+  Generator asLvalue() => this;
 
   String get plainNameForRead => "[]";
 
@@ -466,6 +594,9 @@ abstract class StaticAccessGenerator implements Generator {
     return new StaticAccessGenerator(helper, token, getter, setter);
   }
 
+  @override
+  Generator asLvalue() => this;
+
   Member get readTarget;
 
   @override
@@ -477,6 +608,9 @@ abstract class LoadLibraryGenerator implements Generator {
       LoadLibraryBuilder builder) {
     return helper.forest.loadLibraryGenerator(helper, token, builder);
   }
+
+  @override
+  Generator asLvalue() => makeNonLValueGenerator();
 
   @override
   String get plainNameForRead => 'loadLibrary';
@@ -495,6 +629,9 @@ abstract class DeferredAccessGenerator implements Generator {
   PrefixUseGenerator get prefixGenerator;
 
   Generator get suffixGenerator;
+
+  @override
+  Generator asLvalue() => this;
 
   @override
   buildPropertyAccess(
@@ -571,6 +708,9 @@ abstract class TypeUseGenerator implements Generator {
 
   @override
   String get debugName => "TypeUseGenerator";
+
+  @override
+  Generator asLvalue() => makeNonLValueGenerator();
 
   @override
   DartType buildTypeWithBuiltArguments(List<DartType> arguments,
@@ -674,6 +814,9 @@ abstract class ReadOnlyAccessGenerator implements Generator {
 
   @override
   String get debugName => "ReadOnlyAccessGenerator";
+
+  @override
+  Generator asLvalue() => makeNonLValueGenerator();
 }
 
 abstract class LargeIntAccessGenerator implements Generator {
@@ -688,6 +831,9 @@ abstract class LargeIntAccessGenerator implements Generator {
 
   @override
   String get debugName => "LargeIntAccessGenerator";
+
+  @override
+  Generator asLvalue() => makeNonLValueGenerator();
 
   Expression buildError() {
     return helper.buildCompileTimeError(
@@ -721,6 +867,9 @@ abstract class ErroneousExpressionGenerator implements Generator {
   String get plainNameForRead => name.name;
 
   withReceiver(Object receiver, int operatorOffset, {bool isNullAware}) => this;
+
+  @override
+  Generator asLvalue() => this;
 
   @override
   Initializer buildFieldInitializer(Map<String, int> initializedFields) {
@@ -842,7 +991,7 @@ abstract class UnresolvedNameGenerator implements ErroneousExpressionGenerator {
     offset ??= offsetForToken(this.token);
     return helper.throwNoSuchMethodError(
         forest.literalNull(null)..fileOffset = offset,
-        plainNameForRead,
+        plainNameForRead ?? '',
         arguments,
         offset,
         isGetter: isGetter,
@@ -869,6 +1018,9 @@ abstract class UnlinkedGenerator implements Generator {
 
   @override
   String get debugName => "UnlinkedGenerator";
+
+  @override
+  Generator asLvalue() => this;
 
   @override
   void printOn(StringSink sink) {
@@ -949,6 +1101,9 @@ abstract class DelayedAssignment implements ContextAwareGenerator {
 
   @override
   String get debugName => "DelayedAssignment";
+
+  @override
+  Generator asLvalue() => makeNonLValueGenerator();
 
   @override
   Expression buildSimpleRead() {
@@ -1036,6 +1191,9 @@ abstract class DelayedPostfixIncrement implements ContextAwareGenerator {
   String get debugName => "DelayedPostfixIncrement";
 
   @override
+  Generator asLvalue() => makeNonLValueGenerator();
+
+  @override
   Expression buildSimpleRead() {
     return generator.buildPostfixIncrement(binaryOperator,
         offset: offsetForToken(token),
@@ -1073,6 +1231,9 @@ abstract class PrefixUseGenerator implements Generator {
 
   @override
   String get debugName => "PrefixUseGenerator";
+
+  @override
+  Generator asLvalue() => makeNonLValueGenerator();
 
   @override
   Expression buildSimpleRead() => makeInvalidRead();
@@ -1145,9 +1306,6 @@ abstract class PrefixUseGenerator implements Generator {
   }
 
   @override
-  Expression makeInvalidWrite(Expression value) => makeInvalidRead();
-
-  @override
   void printOn(StringSink sink) {
     sink.write(", prefix: ");
     sink.write(prefix.name);
@@ -1174,6 +1332,9 @@ abstract class UnexpectedQualifiedUseGenerator implements Generator {
 
   @override
   String get debugName => "UnexpectedQualifiedUseGenerator";
+
+  @override
+  Generator asLvalue() => makeNonLValueGenerator();
 
   @override
   Expression buildSimpleRead() => makeInvalidRead();
