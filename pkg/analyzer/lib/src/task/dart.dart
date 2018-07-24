@@ -5724,25 +5724,6 @@ class _ExportSourceClosureTaskInput extends TaskInputImpl<List<Source>> {
 }
 
 /**
- * A [TaskInput] whose value is a list of library sources imported directly
- * or indirectly by the target [Source].
- *
- * [resultDescriptor] is the type of result which should be produced for each
- * target [Source].
- */
-class _ImportSourceClosureTaskInput extends TaskInputImpl<List<Source>> {
-  final Source target;
-  final ResultDescriptor resultDescriptor;
-
-  _ImportSourceClosureTaskInput(this.target, this.resultDescriptor);
-
-  @override
-  TaskInputBuilder<List<Source>> createBuilder() =>
-      new _SourceClosureTaskInputBuilder(
-          target, _SourceClosureKind.IMPORT, resultDescriptor);
-}
-
-/**
  * An object holding either the name or the source associated with a part-of
  * directive.
  */
@@ -5760,7 +5741,7 @@ class _NameOrSource {
 enum _SourceClosureKind { IMPORT, EXPORT, IMPORT_EXPORT }
 
 /**
- * A [TaskInputBuilder] to build values for [_ImportSourceClosureTaskInput].
+ * A [TaskInputBuilder] used by [_ExportSourceClosureTaskInput].
  */
 class _SourceClosureTaskInputBuilder implements TaskInputBuilder<List<Source>> {
   final _SourceClosureKind kind;
