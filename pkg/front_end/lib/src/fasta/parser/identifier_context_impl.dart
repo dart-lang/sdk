@@ -293,7 +293,7 @@ class ExpressionIdentifierContext extends IdentifierContext {
         identifier, fasta.templateExpectedIdentifier);
     if (!looksLikeStatementStart(identifier)) {
       if (identifier.isKeywordOrIdentifier) {
-        if (!isOneOfOrEof(identifier, const ['as', 'is'])) {
+        if (isContinuation || !isOneOfOrEof(identifier, const ['as', 'is'])) {
           return identifier;
         }
       } else if (!identifier.isOperator &&

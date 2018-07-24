@@ -50,6 +50,15 @@ class A {
     expect(suggestions, hasLength(2));
   }
 
+  test_is_asPrefixedIdentifierStart() async {
+    addTestFile('''
+class A { var isVisible;}
+main(A p) { var v1 = p.is^; }''');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'isVisible',
+        relevance: DART_RELEVANCE_DEFAULT);
+  }
+
   test_ArgumentList_factory_named_param_label() async {
     addTestFile('main() { new A(^);}'
         'class A { factory A({one, two}) => null; }');
