@@ -5028,4 +5028,15 @@ class S {
     await computeAnalysisResult(source);
     assertNoErrors(source);
   }
+
+  test_useOfVoidResult_await() async {
+    Source source = addSource(r'''
+main() async {
+  void x;
+  await x;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+    verify([source]);
+  }
 }
