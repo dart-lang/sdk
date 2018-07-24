@@ -305,8 +305,8 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
   void test_isEnum() {
     String firstConst = "A";
     String secondConst = "B";
-    EnumElementImpl enumE = ElementFactory
-        .enumElement(new TestTypeProvider(), "E", [firstConst, secondConst]);
+    EnumElementImpl enumE = ElementFactory.enumElement(
+        new TestTypeProvider(), "E", [firstConst, secondConst]);
 
     // E is an enum
     expect(enumE.isEnum, true);
@@ -1024,7 +1024,7 @@ main() {
     ExpressionStatement statement = body.block.statements[0];
     MethodInvocation invocation = statement.expression;
     ParameterElement parameter =
-        invocation.argumentList.arguments[0].bestParameterElement;
+        invocation.argumentList.arguments[0].staticParameterElement;
     ElementAnnotation annotation = parameter.metadata[0];
     expect(annotation.constantValue, isNull);
     DartObject value = annotation.computeConstantValue();
@@ -1276,8 +1276,8 @@ class FunctionTypeImplTest extends EngineTestCase {
 
   void test_getNamedParameterTypes_namedParameters() {
     TestTypeProvider typeProvider = new TestTypeProvider();
-    FunctionElement element = ElementFactory
-        .functionElementWithParameters('f', VoidTypeImpl.instance, [
+    FunctionElement element = ElementFactory.functionElementWithParameters(
+        'f', VoidTypeImpl.instance, [
       ElementFactory.requiredParameter2('a', typeProvider.intType),
       ElementFactory.requiredParameter('b'),
       ElementFactory.namedParameter2('c', typeProvider.stringType),
@@ -1292,8 +1292,8 @@ class FunctionTypeImplTest extends EngineTestCase {
 
   void test_getNamedParameterTypes_noNamedParameters() {
     TestTypeProvider typeProvider = new TestTypeProvider();
-    FunctionElement element = ElementFactory
-        .functionElementWithParameters('f', VoidTypeImpl.instance, [
+    FunctionElement element = ElementFactory.functionElementWithParameters(
+        'f', VoidTypeImpl.instance, [
       ElementFactory.requiredParameter2('a', typeProvider.intType),
       ElementFactory.requiredParameter('b'),
       ElementFactory.positionalParameter2('c', typeProvider.stringType)
@@ -1311,8 +1311,8 @@ class FunctionTypeImplTest extends EngineTestCase {
 
   void test_getNormalParameterTypes_noNormalParameters() {
     TestTypeProvider typeProvider = new TestTypeProvider();
-    FunctionElement element = ElementFactory
-        .functionElementWithParameters('f', VoidTypeImpl.instance, [
+    FunctionElement element = ElementFactory.functionElementWithParameters(
+        'f', VoidTypeImpl.instance, [
       ElementFactory.positionalParameter2('c', typeProvider.stringType),
       ElementFactory.positionalParameter('d')
     ]);
@@ -1329,8 +1329,8 @@ class FunctionTypeImplTest extends EngineTestCase {
 
   void test_getNormalParameterTypes_normalParameters() {
     TestTypeProvider typeProvider = new TestTypeProvider();
-    FunctionElement element = ElementFactory
-        .functionElementWithParameters('f', VoidTypeImpl.instance, [
+    FunctionElement element = ElementFactory.functionElementWithParameters(
+        'f', VoidTypeImpl.instance, [
       ElementFactory.requiredParameter2('a', typeProvider.intType),
       ElementFactory.requiredParameter('b'),
       ElementFactory.positionalParameter2('c', typeProvider.stringType)
@@ -1344,8 +1344,8 @@ class FunctionTypeImplTest extends EngineTestCase {
 
   void test_getOptionalParameterTypes_noOptionalParameters() {
     TestTypeProvider typeProvider = new TestTypeProvider();
-    FunctionElement element = ElementFactory
-        .functionElementWithParameters('f', VoidTypeImpl.instance, [
+    FunctionElement element = ElementFactory.functionElementWithParameters(
+        'f', VoidTypeImpl.instance, [
       ElementFactory.requiredParameter2('a', typeProvider.intType),
       ElementFactory.requiredParameter('b'),
       ElementFactory.namedParameter2('c', typeProvider.stringType),
@@ -1364,8 +1364,8 @@ class FunctionTypeImplTest extends EngineTestCase {
 
   void test_getOptionalParameterTypes_optionalParameters() {
     TestTypeProvider typeProvider = new TestTypeProvider();
-    FunctionElement element = ElementFactory
-        .functionElementWithParameters('f', VoidTypeImpl.instance, [
+    FunctionElement element = ElementFactory.functionElementWithParameters(
+        'f', VoidTypeImpl.instance, [
       ElementFactory.requiredParameter2('a', typeProvider.intType),
       ElementFactory.requiredParameter('b'),
       ElementFactory.positionalParameter2('c', typeProvider.stringType),
@@ -1581,8 +1581,8 @@ class FunctionTypeImplTest extends EngineTestCase {
   void test_isSubtypeOf_normalAndPositionalArgs_2() {
     // (a, [a]) -> void <: (a) -> void
     ClassElement a = ElementFactory.classElement2("A");
-    FunctionType t = ElementFactory
-        .functionElement6("t", <ClassElement>[a], <ClassElement>[a]).type;
+    FunctionType t = ElementFactory.functionElement6(
+        "t", <ClassElement>[a], <ClassElement>[a]).type;
     FunctionType s =
         ElementFactory.functionElement5("s", <ClassElement>[a]).type;
     expect(t.isSubtypeOf(s), isTrue);
@@ -1608,8 +1608,8 @@ class FunctionTypeImplTest extends EngineTestCase {
     ClassElement e = ElementFactory.classElement2("E");
     FunctionType t = ElementFactory.functionElement6(
         "t", <ClassElement>[a, b], <ClassElement>[c, d, e]).type;
-    FunctionType s = ElementFactory
-        .functionElement6("s", <ClassElement>[a, b, c], <ClassElement>[d]).type;
+    FunctionType s = ElementFactory.functionElement6(
+        "s", <ClassElement>[a, b, c], <ClassElement>[d]).type;
     expect(t.isSubtypeOf(s), isTrue);
     expect(s.isSubtypeOf(t), isFalse);
   }
@@ -1741,11 +1741,11 @@ class FunctionTypeImplTest extends EngineTestCase {
 
   void test_isSubtypeOf_returnType_tNotAssignableToS() {
     // ! () -> A <: () -> B
-    FunctionType t = ElementFactory
-        .functionElement2("t", ElementFactory.classElement2("A").type)
+    FunctionType t = ElementFactory.functionElement2(
+            "t", ElementFactory.classElement2("A").type)
         .type;
-    FunctionType s = ElementFactory
-        .functionElement2("s", ElementFactory.classElement2("B").type)
+    FunctionType s = ElementFactory.functionElement2(
+            "s", ElementFactory.classElement2("B").type)
         .type;
     expect(t.isSubtypeOf(s), isFalse);
   }
@@ -1790,8 +1790,8 @@ class FunctionTypeImplTest extends EngineTestCase {
     ClassElement a = ElementFactory.classElement2("A");
     FunctionType t =
         ElementFactory.functionElement5("t", <ClassElement>[a]).type;
-    FunctionType s = ElementFactory
-        .functionElement7("s", null, <String>["name"], <ClassElement>[a]).type;
+    FunctionType s = ElementFactory.functionElement7(
+        "s", null, <String>["name"], <ClassElement>[a]).type;
     expect(t.isSubtypeOf(s), isFalse);
     expect(s.isSubtypeOf(t), isFalse);
   }
@@ -1802,8 +1802,8 @@ class FunctionTypeImplTest extends EngineTestCase {
     ClassElement a = ElementFactory.classElement2("A");
     FunctionType t =
         ElementFactory.functionElement6("t", null, <ClassElement>[a]).type;
-    FunctionType s = ElementFactory
-        .functionElement7("s", null, <String>["name"], <ClassElement>[a]).type;
+    FunctionType s = ElementFactory.functionElement7(
+        "s", null, <String>["name"], <ClassElement>[a]).type;
     expect(t.isSubtypeOf(s), isFalse);
     expect(s.isSubtypeOf(t), isFalse);
   }
@@ -3108,8 +3108,9 @@ class InterfaceTypeImplTest extends EngineTestCase {
     classA.methods = <MethodElement>[
       ElementFactory.methodElement("call", VoidTypeImpl.instance, [stringType])
     ];
-    FunctionType functionType = ElementFactory
-        .functionElement5("f", <ClassElement>[stringType.element]).type;
+    FunctionType functionType =
+        ElementFactory.functionElement5("f", <ClassElement>[stringType.element])
+            .type;
     expect(classA.type.isSubtypeOf(functionType), isTrue);
   }
 
@@ -3901,9 +3902,10 @@ class B<S> extends A<S> {
     MethodElement AfElement = elementB.type
         .lookUpInheritedMethod("f", library: libraryElement, thisType: false);
     expect(
-        BfElement.getReifiedType(objectType), // ignore: deprecated_member_use
-        equals(AfElement
-            .getReifiedType(objectType))); // ignore: deprecated_member_use
+        // ignore: deprecated_member_use
+        BfElement.getReifiedType(objectType),
+        // ignore: deprecated_member_use
+        equals(AfElement.getReifiedType(objectType)));
   }
 }
 
@@ -4117,7 +4119,7 @@ main() {
     ExpressionStatement statement = body.block.statements[0];
     MethodInvocation invocation = statement.expression;
     SimpleIdentifier argument = invocation.argumentList.arguments[0];
-    PropertyAccessorElementImpl getter = argument.bestElement;
+    PropertyAccessorElementImpl getter = argument.staticElement;
     TopLevelVariableElement constant = getter.variable;
     expect(constant.constantValue, isNull);
     DartObject value = constant.computeConstantValue();

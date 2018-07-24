@@ -1295,7 +1295,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * type analysis.
    */
   DartType _getBestType(Expression expression) {
-    DartType bestType = _resolveTypeParameter(expression.bestType);
+    DartType bestType = _resolveTypeParameter(expression.staticType);
     if (bestType is FunctionType) {
       //
       // All function types are subtypes of 'Function', which is itself a

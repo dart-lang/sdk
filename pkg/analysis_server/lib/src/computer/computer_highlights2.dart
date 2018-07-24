@@ -168,7 +168,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_field(SimpleIdentifier node) {
-    Element element = node.bestElement;
+    Element element = node.staticElement;
     if (element is FieldFormalParameterElement) {
       if (node.parent is FieldFormalParameter) {
         element = (element as FieldFormalParameterElement).field;
@@ -316,7 +316,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_method(SimpleIdentifier node) {
-    Element element = node.bestElement;
+    Element element = node.staticElement;
     if (element is! MethodElement) {
       return false;
     }
@@ -362,7 +362,7 @@ class DartUnitHighlightsComputer2 {
   bool _addIdentifierRegion_unresolvedInstanceMemberReference(
       SimpleIdentifier node) {
     // unresolved
-    Element element = node.bestElement;
+    Element element = node.staticElement;
     if (element != null) {
       return false;
     }

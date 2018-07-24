@@ -756,6 +756,7 @@ class AssignmentExpressionImpl extends ExpressionImpl
   Token get beginToken => _leftHandSide.beginToken;
 
   @override
+  @deprecated
   MethodElement get bestElement => staticElement;
 
   @override
@@ -1056,6 +1057,7 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
   Token get beginToken => _leftOperand.beginToken;
 
   @override
+  @deprecated
   MethodElement get bestElement => staticElement;
 
   @override
@@ -4031,9 +4033,12 @@ abstract class ExpressionImpl extends AstNodeImpl implements Expression {
    * than static analysis, that type will be returned. Otherwise, the result of
    * static analysis will be returned.
    */
+  @override
+  @deprecated
   ParameterElement get bestParameterElement => staticParameterElement;
 
   @override
+  @deprecated
   DartType get bestType => staticType ?? DynamicTypeImpl.instance;
 
   /**
@@ -5345,6 +5350,7 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   Token get beginToken => _function.beginToken;
 
   @override
+  @deprecated
   ExecutableElement get bestElement => staticElement;
 
   @override
@@ -5855,6 +5861,8 @@ abstract class IdentifierImpl extends ExpressionImpl implements Identifier {
    * will be returned. If resolution has not been performed, then `null` will be
    * returned.
    */
+  @override
+  @deprecated
   Element get bestElement;
 
   @override
@@ -6201,6 +6209,7 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
   }
 
   @override
+  @deprecated
   MethodElement get bestElement => staticElement;
 
   @override
@@ -6462,7 +6471,7 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
           }
         }
       } else if (argument is Identifier) {
-        Element element = argument.bestElement;
+        Element element = argument.staticElement;
         if (element is PropertyAccessorElement && !element.variable.isConst) {
           return false;
         } else if (element is VariableElement && !element.isConst) {
@@ -7045,6 +7054,7 @@ class LibraryIdentifierImpl extends IdentifierImpl
   Token get beginToken => _components.beginToken;
 
   @override
+  @deprecated
   Element get bestElement => staticElement;
 
   @override
@@ -8555,6 +8565,7 @@ class PostfixExpressionImpl extends ExpressionImpl
   Token get beginToken => _operand.beginToken;
 
   @override
+  @deprecated
   MethodElement get bestElement => staticElement;
 
   @override
@@ -8653,11 +8664,12 @@ class PrefixedIdentifierImpl extends IdentifierImpl
   Token get beginToken => _prefix.beginToken;
 
   @override
+  @deprecated
   Element get bestElement {
     if (_identifier == null) {
       return null;
     }
-    return _identifier.bestElement;
+    return _identifier.staticElement;
   }
 
   @override
@@ -8760,6 +8772,7 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
   Token get beginToken => operator;
 
   @override
+  @deprecated
   MethodElement get bestElement => staticElement;
 
   @override
@@ -9307,6 +9320,7 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   Token get beginToken => token;
 
   @override
+  @deprecated
   Element get bestElement => _staticElement;
 
   @override

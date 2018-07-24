@@ -279,9 +279,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       Element constructor;
       SimpleIdentifier name = parent.constructorName?.name;
       if (name != null) {
-        constructor = name.bestElement;
+        constructor = name.staticElement;
       } else {
-        var classElem = parent.constructorName?.type?.name?.bestElement;
+        var classElem = parent.constructorName?.type?.name?.staticElement;
         if (classElem is ClassElement) {
           constructor = classElem.unnamedConstructor;
         }
@@ -295,7 +295,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     } else if (parent is InvocationExpression) {
       Expression function = parent.function;
       if (function is SimpleIdentifier) {
-        var elem = function.bestElement;
+        var elem = function.staticElement;
         if (elem is FunctionTypedElement) {
           parameters = elem.parameters;
         } else if (elem == null) {
@@ -541,6 +541,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitExtendsClause(ExtendsClause node) {
     if (identical(entity, node.superclass)) {
       optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
+  visitFieldDeclaration(FieldDeclaration node) {
+    if (offset <= node.semicolon.offset) {
+      optype.includeVarNameSuggestions = true;
     }
   }
 
@@ -985,13 +992,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (identical(entity, node.initializer)) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
-    }
-  }
-
-  @override
-  visitFieldDeclaration(FieldDeclaration node) {
-    if (offset <= node.semicolon.offset) {
-      optype.includeVarNameSuggestions = true;
     }
   }
 

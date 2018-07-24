@@ -15,21 +15,21 @@ class ResolutionMapImpl implements ResolutionMap {
   @override
   ExecutableElement bestElementForFunctionExpressionInvocation(
           FunctionExpressionInvocation node) =>
-      node.bestElement;
+      node.staticElement;
 
   @override
-  Element bestElementForIdentifier(Identifier node) => node.bestElement;
+  Element bestElementForIdentifier(Identifier node) => node.staticElement;
 
   @override
   MethodElement bestElementForMethodReference(MethodReferenceExpression node) =>
-      node.bestElement;
+      node.staticElement;
 
   @override
   ParameterElement bestParameterElementForExpression(Expression node) =>
-      node.bestParameterElement;
+      node.staticParameterElement;
 
   @override
-  DartType bestTypeForExpression(Expression node) => node.bestType;
+  DartType bestTypeForExpression(Expression node) => node.staticType;
 
   @override
   ElementAnnotation elementAnnotationForAnnotation(Annotation node) =>

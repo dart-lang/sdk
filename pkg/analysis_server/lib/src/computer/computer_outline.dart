@@ -414,7 +414,7 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor {
   visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier nameNode = node.methodName;
 
-    engine.Element nameElement = nameNode.bestElement;
+    engine.Element nameElement = nameNode.staticElement;
     if (nameElement is! engine.ExecutableElement) {
       return;
     }

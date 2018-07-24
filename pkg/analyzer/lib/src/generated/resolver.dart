@@ -319,7 +319,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitArgumentList(ArgumentList node) {
     for (Expression argument in node.arguments) {
-      ParameterElement parameter = argument.bestParameterElement;
+      ParameterElement parameter = argument.staticParameterElement;
       if (parameter?.isOptionalPositional == true) {
         _checkForDeprecatedMemberUse(parameter, argument);
       }
@@ -339,7 +339,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     if (operatorType == TokenType.EQ) {
       _checkForInvalidAssignment(node.leftHandSide, node.rightHandSide);
     } else {
-      _checkForDeprecatedMemberUse(node.bestElement, node);
+      _checkForDeprecatedMemberUse(node.staticElement, node);
     }
     return super.visitAssignmentExpression(node);
   }
@@ -347,7 +347,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitBinaryExpression(BinaryExpression node) {
     _checkForDivisionOptimizationHint(node);
-    _checkForDeprecatedMemberUse(node.bestElement, node);
+    _checkForDeprecatedMemberUse(node.staticElement, node);
     return super.visitBinaryExpression(node);
   }
 
@@ -425,7 +425,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitIndexExpression(IndexExpression node) {
-    _checkForDeprecatedMemberUse(node.bestElement, node);
+    _checkForDeprecatedMemberUse(node.staticElement, node);
     return super.visitIndexExpression(node);
   }
 
@@ -475,13 +475,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitPostfixExpression(PostfixExpression node) {
-    _checkForDeprecatedMemberUse(node.bestElement, node);
+    _checkForDeprecatedMemberUse(node.staticElement, node);
     return super.visitPostfixExpression(node);
   }
 
   @override
   Object visitPrefixExpression(PrefixExpression node) {
-    _checkForDeprecatedMemberUse(node.bestElement, node);
+    _checkForDeprecatedMemberUse(node.staticElement, node);
     return super.visitPrefixExpression(node);
   }
 
@@ -705,7 +705,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         parent is HideCombinator) {
       return;
     }
-    _checkForDeprecatedMemberUse(identifier.bestElement, identifier);
+    _checkForDeprecatedMemberUse(identifier.staticElement, identifier);
   }
 
   /**
@@ -722,7 +722,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     }
     // Return if the '/' operator is not defined in core, or if we don't know
     // its static type
-    MethodElement methodElement = node.bestElement;
+    MethodElement methodElement = node.staticElement;
     if (methodElement == null) {
       return false;
     }
@@ -892,7 +892,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         library.definingCompilationUnit.source.fullName.contains(_testDir) ||
         library.definingCompilationUnit.source.fullName.contains(_testingDir);
 
-    Element element = identifier.bestElement;
+    Element element = identifier.staticElement;
     if (!isProtected(element) && !isVisibleForTesting(element)) {
       return;
     }
@@ -963,7 +963,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     // Test for, and then generate the hint
-    DartType bestRightType = rhs.bestType;
+    DartType bestRightType = rhs.staticType;
     if (leftType != null && bestRightType != null) {
       if (!_typeSystem.isAssignableTo(bestRightType, leftType,
           isDeclarationCast: true)) {
@@ -6474,7 +6474,7 @@ class ResolverVisitor extends ScopedVisitor {
    * that will return the Iterable being iterated over.
    */
   DartType _getIteratorElementType(Expression iteratorExpression) {
-    DartType expressionType = iteratorExpression.bestType;
+    DartType expressionType = iteratorExpression.staticType;
     if (expressionType is InterfaceType) {
       PropertyAccessorElement iteratorFunction =
           expressionType.lookUpInheritedGetter("iterator");
@@ -6504,7 +6504,7 @@ class ResolverVisitor extends ScopedVisitor {
    * is the expression that will return the stream being iterated over.
    */
   DartType _getStreamElementType(Expression streamExpression) {
-    DartType streamType = streamExpression.bestType;
+    DartType streamType = streamExpression.staticType;
     if (streamType is InterfaceType) {
       MethodElement listenFunction = streamType.lookUpInheritedMethod("listen");
       if (listenFunction == null) {

@@ -1339,7 +1339,7 @@ class CorrectionUtils {
     } else if (expression is ParenthesizedExpression) {
       return _invertCondition0(expression.unParenthesized);
     }
-    DartType type = expression.bestType;
+    DartType type = expression.staticType;
     if (type.displayName == "bool") {
       return _InvertedCondition._simple("!${getNodeText(expression)}");
     }

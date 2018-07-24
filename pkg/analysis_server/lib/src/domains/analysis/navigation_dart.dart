@@ -118,14 +118,14 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
   @override
   visitAssignmentExpression(AssignmentExpression node) {
     node.leftHandSide?.accept(this);
-    computer._addRegionForToken(node.operator, node.bestElement);
+    computer._addRegionForToken(node.operator, node.staticElement);
     node.rightHandSide?.accept(this);
   }
 
   @override
   visitBinaryExpression(BinaryExpression node) {
     node.leftOperand?.accept(this);
-    computer._addRegionForToken(node.operator, node.bestElement);
+    computer._addRegionForToken(node.operator, node.staticElement);
     node.rightOperand?.accept(this);
   }
 
@@ -178,7 +178,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
     if (node.type == null) {
       Token token = node.keyword;
       if (token?.keyword == Keyword.VAR) {
-        DartType inferredType = node.identifier?.bestType;
+        DartType inferredType = node.identifier?.staticType;
         Element element = inferredType?.element;
         if (element != null) {
           computer._addRegionForToken(token, element);
@@ -211,7 +211,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
   @override
   visitIndexExpression(IndexExpression node) {
     super.visitIndexExpression(node);
-    MethodElement element = node.bestElement;
+    MethodElement element = node.staticElement;
     computer._addRegionForToken(node.leftBracket, element);
     computer._addRegionForToken(node.rightBracket, element);
   }
@@ -236,12 +236,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
   @override
   visitPostfixExpression(PostfixExpression node) {
     super.visitPostfixExpression(node);
-    computer._addRegionForToken(node.operator, node.bestElement);
+    computer._addRegionForToken(node.operator, node.staticElement);
   }
 
   @override
   visitPrefixExpression(PrefixExpression node) {
-    computer._addRegionForToken(node.operator, node.bestElement);
+    computer._addRegionForToken(node.operator, node.staticElement);
     super.visitPrefixExpression(node);
   }
 
@@ -263,7 +263,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
     if (node.parent is ConstructorDeclaration) {
       return;
     }
-    Element element = node.bestElement;
+    Element element = node.staticElement;
     computer._addRegionForNode(node, element);
   }
 
@@ -288,12 +288,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
      * inferred type.
      */
     Element getCommonElement(List<VariableDeclaration> variables) {
-      Element firstElement = variables[0].name?.bestType?.element;
+      Element firstElement = variables[0].name?.staticType?.element;
       if (firstElement == null) {
         return null;
       }
       for (int i = 1; i < variables.length; i++) {
-        Element element = variables[1].name?.bestType?.element;
+        Element element = variables[1].name?.staticType?.element;
         if (element != firstElement) {
           return null;
         }

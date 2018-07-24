@@ -78,7 +78,7 @@ class DartUnitHoverComputer {
         hover.dartdoc = _computeDocumentation(element);
       }
       // parameter
-      hover.parameter = _safeToString(expression.bestParameterElement);
+      hover.parameter = _safeToString(expression.staticParameterElement);
       // types
       {
         AstNode parent = expression.parent;

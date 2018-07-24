@@ -2621,10 +2621,10 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element visitAssignmentExpression(AssignmentExpression node) =>
-      node.bestElement;
+      node.staticElement;
 
   @override
-  Element visitBinaryExpression(BinaryExpression node) => node.bestElement;
+  Element visitBinaryExpression(BinaryExpression node) => node.staticElement;
 
   @override
   Element visitClassDeclaration(ClassDeclaration node) => node.element;
@@ -2657,9 +2657,9 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
       if (identical(returnType, node)) {
         SimpleIdentifier name = parent.name;
         if (name != null) {
-          return name.bestElement;
+          return name.staticElement;
         }
-        Element element = node.bestElement;
+        Element element = node.staticElement;
         if (element is ClassElement) {
           return element.unnamedConstructor;
         }
@@ -2675,14 +2675,14 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
         return grandParent.element;
       }
     }
-    return node.bestElement;
+    return node.staticElement;
   }
 
   @override
   Element visitImportDirective(ImportDirective node) => node.element;
 
   @override
-  Element visitIndexExpression(IndexExpression node) => node.bestElement;
+  Element visitIndexExpression(IndexExpression node) => node.staticElement;
 
   @override
   Element visitInstanceCreationExpression(InstanceCreationExpression node) =>
@@ -2696,19 +2696,20 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element visitMethodInvocation(MethodInvocation node) =>
-      node.methodName.bestElement;
+      node.methodName.staticElement;
 
   @override
   Element visitPartOfDirective(PartOfDirective node) => node.element;
 
   @override
-  Element visitPostfixExpression(PostfixExpression node) => node.bestElement;
+  Element visitPostfixExpression(PostfixExpression node) => node.staticElement;
 
   @override
-  Element visitPrefixedIdentifier(PrefixedIdentifier node) => node.bestElement;
+  Element visitPrefixedIdentifier(PrefixedIdentifier node) =>
+      node.staticElement;
 
   @override
-  Element visitPrefixExpression(PrefixExpression node) => node.bestElement;
+  Element visitPrefixExpression(PrefixExpression node) => node.staticElement;
 
   @override
   Element visitStringLiteral(StringLiteral node) {

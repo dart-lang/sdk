@@ -850,7 +850,7 @@ class FixProcessor {
     if (node is SimpleIdentifier) {
       AstNode invocation = node.parent;
       if (invocation is MethodInvocation) {
-        targetElement = invocation.methodName.bestElement;
+        targetElement = invocation.methodName.staticElement;
         argumentList = invocation.argumentList;
       } else {
         creation =
@@ -1004,7 +1004,7 @@ class FixProcessor {
         TypeAnnotation typeNode = variableList.type;
         if (typeNode != null) {
           Expression initializer = coveredNode;
-          DartType newType = initializer.bestType;
+          DartType newType = initializer.staticType;
           if (newType is InterfaceType || newType is FunctionType) {
             DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
             await changeBuilder.addFileEdit(file,
@@ -1598,7 +1598,7 @@ class FixProcessor {
     ClassElement targetClassElement;
     if (target != null) {
       // prepare target interface type
-      DartType targetType = target.bestType;
+      DartType targetType = target.staticType;
       if (targetType is! InterfaceType) {
         return;
       }
@@ -1606,7 +1606,7 @@ class FixProcessor {
       // maybe static
       if (target is Identifier) {
         Identifier targetIdentifier = target;
-        Element targetElement = targetIdentifier.bestElement;
+        Element targetElement = targetIdentifier.staticElement;
         if (targetElement == null) {
           return;
         }
@@ -1699,7 +1699,7 @@ class FixProcessor {
       {
         Expression target = getQualifiedPropertyTarget(node);
         if (target != null) {
-          DartType targetType = target.bestType;
+          DartType targetType = target.staticType;
           if (targetType != null && targetType.element is ClassElement) {
             targetElement = targetType.element as ClassElement;
             argument = target.parent as Expression;
@@ -1715,7 +1715,7 @@ class FixProcessor {
       }
       argument = stepUpNamedExpression(argument);
       // should be argument of some invocation
-      ParameterElement parameterElement = argument.bestParameterElement;
+      ParameterElement parameterElement = argument.staticParameterElement;
       if (parameterElement == null) {
         return;
       }
@@ -1764,7 +1764,7 @@ class FixProcessor {
     ClassElement targetClassElement;
     if (target != null) {
       // prepare target interface type
-      DartType targetType = target.bestType;
+      DartType targetType = target.staticType;
       if (targetType is! InterfaceType) {
         return;
       }
@@ -1772,7 +1772,7 @@ class FixProcessor {
       // maybe static
       if (target is Identifier) {
         Identifier targetIdentifier = target;
-        Element targetElement = targetIdentifier.bestElement;
+        Element targetElement = targetIdentifier.staticElement;
         staticModifier = targetElement.kind == ElementKind.CLASS;
       }
     } else {
@@ -2364,8 +2364,8 @@ class FixProcessor {
     await null;
     AstNode node = this.node;
     if (node is SimpleIdentifier &&
-        node.bestElement is PropertyAccessorElement) {
-      PropertyAccessorElement getter = node.bestElement;
+        node.staticElement is PropertyAccessorElement) {
+      PropertyAccessorElement getter = node.staticElement;
       if (getter.isGetter &&
           getter.isSynthetic &&
           !getter.variable.isSynthetic &&
@@ -3041,7 +3041,7 @@ class FixProcessor {
           _updateFinderWithClassMembers(finder, classElement);
         }
       } else {
-        DartType type = target.bestType;
+        DartType type = target.staticType;
         if (type is InterfaceType) {
           ClassElement classElement = type.element;
           _updateFinderWithClassMembers(finder, classElement);
@@ -3178,7 +3178,7 @@ class FixProcessor {
         staticModifier = _inStaticContext();
       } else {
         // prepare target interface type
-        DartType targetType = target.bestType;
+        DartType targetType = target.staticType;
         if (targetType is! InterfaceType) {
           return;
         }
@@ -3389,7 +3389,7 @@ class FixProcessor {
       MethodInvocation invocation = node.parent as MethodInvocation;
       if (invocation.methodName == node) {
         Expression target = invocation.target;
-        Element invokedElement = invocation.methodName.bestElement;
+        Element invokedElement = invocation.methodName.staticElement;
         await _addFix_useStaticAccess(target, invokedElement);
       }
     }
@@ -3402,7 +3402,7 @@ class FixProcessor {
       PrefixedIdentifier prefixed = node.parent as PrefixedIdentifier;
       if (prefixed.identifier == node) {
         Expression target = prefixed.prefix;
-        Element invokedElement = prefixed.identifier.bestElement;
+        Element invokedElement = prefixed.identifier.staticElement;
         await _addFix_useStaticAccess(target, invokedElement);
       }
     }
@@ -3687,7 +3687,7 @@ class FixProcessor {
       if (assignment.leftHandSide == expression) {
         Expression rhs = assignment.rightHandSide;
         if (rhs != null) {
-          return rhs.bestType;
+          return rhs.staticType;
         }
       }
     }
@@ -3699,11 +3699,11 @@ class FixProcessor {
           // v = myFunction();
           Expression lhs = assignment.leftHandSide;
           if (lhs != null) {
-            return lhs.bestType;
+            return lhs.staticType;
           }
         } else {
           // v += myFunction();
-          MethodElement method = assignment.bestElement;
+          MethodElement method = assignment.staticElement;
           if (method != null) {
             List<ParameterElement> parameters = method.parameters;
             if (parameters.length == 1) {
@@ -3716,7 +3716,7 @@ class FixProcessor {
     // v + myFunction();
     if (parent is BinaryExpression) {
       BinaryExpression binary = parent;
-      MethodElement method = binary.bestElement;
+      MethodElement method = binary.staticElement;
       if (method != null) {
         if (binary.rightOperand == expression) {
           List<ParameterElement> parameters = method.parameters;
@@ -3726,7 +3726,7 @@ class FixProcessor {
     }
     // foo( myFunction() );
     if (parent is ArgumentList) {
-      ParameterElement parameter = expression.bestParameterElement;
+      ParameterElement parameter = expression.staticParameterElement;
       return parameter?.type;
     }
     // bool

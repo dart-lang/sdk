@@ -137,9 +137,9 @@ class _BestTypeVisitor extends UnifyingAstVisitor<DartType> {
 
   @override
   DartType visitPrefixedIdentifier(PrefixedIdentifier node) =>
-      node.identifier == entity ? node.prefix?.bestType : null;
+      node.identifier == entity ? node.prefix?.staticType : null;
 
   @override
   DartType visitPropertyAccess(PropertyAccess node) =>
-      node.propertyName == entity ? node.realTarget?.bestType : null;
+      node.propertyName == entity ? node.realTarget?.staticType : null;
 }

@@ -1074,7 +1074,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     Expression initializer = node.initializer;
     _inferLocalVariableType(node, initializer);
     if (initializer != null) {
-      DartType rightType = initializer.bestType;
+      DartType rightType = initializer.staticType;
       SimpleIdentifier name = node.name;
       VariableElement element = name.staticElement as VariableElement;
       if (element != null) {

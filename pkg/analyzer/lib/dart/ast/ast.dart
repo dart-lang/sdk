@@ -2569,7 +2569,11 @@ abstract class Expression extends AstNode {
    * expression. If type propagation was able to find a better parameter element
    * than static analysis, that type will be returned. Otherwise, the result of
    * static analysis will be returned.
+   *
+   * Deprecated: The analyzer no longer computes propagated type information.
+   * Use [staticParameterElement] instead.
    */
+  @deprecated
   ParameterElement get bestParameterElement;
 
   /**
@@ -2578,7 +2582,12 @@ abstract class Expression extends AstNode {
    * will be returned. Otherwise, the result of static analysis will be
    * returned. If no type analysis has been performed, then the type 'dynamic'
    * will be returned.
+   *
+   * Deprecated: The analyzer no longer computes propagated type information.
+   * Use [staticType] instead, but be aware that [staticType] will return `null`
+   * under some circumstances, while [bestType] did not.
    */
+  @deprecated
   DartType get bestType;
 
   /**
@@ -3531,7 +3540,11 @@ abstract class FunctionExpressionInvocation extends InvocationExpression {
    * that element will be returned. Otherwise, the element found using the
    * result of static analysis will be returned. If resolution has not been
    * performed, then `null` will be returned.
+   *
+   * Deprecated: The analyzer no longer computes propagated type information.
+   * Use [staticElement] instead.
    */
+  @deprecated
   ExecutableElement get bestElement;
 
   /**
@@ -3845,7 +3858,11 @@ abstract class Identifier extends Expression {
    * returned. Otherwise, the element found using the result of static analysis
    * will be returned. If resolution has not been performed, then `null` will be
    * returned.
+   *
+   * Deprecated: The analyzer no longer computes propagated type information.
+   * Use [staticElement] instead.
    */
+  @deprecated
   Element get bestElement;
 
   /**
@@ -5053,7 +5070,11 @@ abstract class MethodReferenceExpression {
    * be returned. Otherwise, the element found using the result of static
    * analysis will be returned. If resolution has not been performed, then
    * `null` will be returned.
+   *
+   * Deprecated: The analyzer no longer computes propagated type information.
+   * Use [staticElement] instead.
    */
+  @deprecated
   MethodElement get bestElement;
 
   /**

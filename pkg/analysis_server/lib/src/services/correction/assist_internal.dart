@@ -243,7 +243,7 @@ class AssistProcessor {
       _coverageMarker();
       return;
     }
-    DartType type = declaredIdentifier.identifier.bestType;
+    DartType type = declaredIdentifier.identifier.staticType;
     if (type is! InterfaceType && type is! FunctionType) {
       _coverageMarker();
       return;
@@ -347,7 +347,7 @@ class AssistProcessor {
       _coverageMarker();
       return;
     }
-    DartType type = initializer.bestType;
+    DartType type = initializer.staticType;
     // prepare type source
     if ((type is! InterfaceType || type.isDartCoreNull) &&
         type is! FunctionType) {
@@ -402,7 +402,7 @@ class AssistProcessor {
     Expression expression = expressionStatement.expression;
     int offset = expression.offset;
     // prepare expression type
-    DartType type = expression.bestType;
+    DartType type = expression.staticType;
     if (type.isVoid) {
       _coverageMarker();
       return;
@@ -931,7 +931,7 @@ class AssistProcessor {
     }
     // iterable should be List
     {
-      DartType iterableType = iterable.bestType;
+      DartType iterableType = iterable.staticType;
       InterfaceType listType = typeProvider.listType;
       if (iterableType is! InterfaceType ||
           iterableType.element != listType.element) {
@@ -1132,7 +1132,7 @@ class AssistProcessor {
       return;
     }
     // should be "isEmpty"
-    Element propertyElement = isEmptyIdentifier.bestElement;
+    Element propertyElement = isEmptyIdentifier.staticElement;
     if (propertyElement == null || 'isEmpty' != propertyElement.name) {
       _coverageMarker();
       return;

@@ -56,7 +56,7 @@ String _getMethodSourceForInvocation(
     // prepare argument
     Expression argument = null;
     for (Expression arg in arguments) {
-      if (arg.bestParameterElement == parameter) {
+      if (arg.staticParameterElement == parameter) {
         argument = arg;
         break;
       }
@@ -361,7 +361,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     }
     SimpleIdentifier identifier = node as SimpleIdentifier;
     // prepare selected ExecutableElement
-    Element element = identifier.bestElement;
+    Element element = identifier.staticElement;
     if (element is! ExecutableElement) {
       return fatalStatus;
     }

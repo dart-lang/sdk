@@ -223,7 +223,7 @@ String nameForType(SimpleIdentifier identifier, TypeAnnotation declaredType) {
     }
     type = element.returnType;
   } else if (element is VariableElement) {
-    type = identifier.bestType;
+    type = identifier.staticType;
   } else {
     return null;
   }
