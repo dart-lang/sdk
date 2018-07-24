@@ -435,6 +435,25 @@ class C extends B {
     expect(method.parameters[0].type.toString(), 'dynamic');
   }
 
+  void test_inferredType_methodParamType_genericFunction() {
+    createLinker('''
+class A {
+  void m(Map<T, List<U>> Function<T, U>(T, U) p) {}
+}
+class B<V> extends A {
+  void m(p) {}
+}
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+    ClassElementForLink_Class cls = library.getContainedName('B');
+    expect(cls.methods, hasLength(1));
+    var method = cls.methods[0];
+    expect(method.parameters, hasLength(1));
+    var pType = method.parameters[0].type;
+    expect(pType.toString(), '<T,U>(T, U) → Map<T, List<U>>');
+  }
+
   void test_inferredType_methodReturnType_dynamic() {
     createLinker('''
 class B {

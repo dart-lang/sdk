@@ -194,8 +194,13 @@ EntityRefBuilder _createLinkedType(
     TypeParameterElementImpl element = type.element;
     if (typeParameterContext != null &&
         typeParameterContext.isTypeParameterInScope(element)) {
-      result.paramReference =
-          typeParameterContext.typeParameterNestingLevel - element.nestingLevel;
+      var nestingLevel = element.nestingLevel;
+      if (nestingLevel < 0) {
+        result.paramReference = -nestingLevel;
+      } else {
+        result.paramReference =
+            typeParameterContext.typeParameterNestingLevel - nestingLevel;
+      }
     } else {
       throw new StateError('The type parameter $type (in ${element?.location}) '
           'is out of scope on ${typeParameterContext?.location}.');

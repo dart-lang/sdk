@@ -9490,6 +9490,8 @@ class TypeParameterElementImpl extends ElementImpl
    * The number of type parameters whose scope overlaps this one, and which are
    * declared earlier in the file.
    *
+   * If the value is negative, then it represents negated De Bruijn index.
+   *
    * TODO(scheglov) make private?
    */
   final int nestingLevel;
@@ -9550,9 +9552,8 @@ class TypeParameterElementImpl extends ElementImpl
    * Initialize a newly created synthetic type parameter element to have the
    * given [name], and with [synthetic] set to true.
    */
-  TypeParameterElementImpl.synthetic(String name)
+  TypeParameterElementImpl.synthetic(String name, {this.nestingLevel})
       : _unlinkedTypeParam = null,
-        nestingLevel = null,
         _kernel = null,
         super(name, -1) {
     isSynthetic = true;
