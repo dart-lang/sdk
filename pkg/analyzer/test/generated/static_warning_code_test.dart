@@ -760,7 +760,7 @@ f() {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
+      assertErrors(source, [CompileTimeErrorCode.NOT_AN_LVALUE]);
     } else {
       assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL]);
     }
@@ -775,7 +775,7 @@ f() {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
+      assertErrors(source, [CompileTimeErrorCode.NOT_AN_LVALUE]);
     } else {
       assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL]);
     }
@@ -789,7 +789,7 @@ f(final x) {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
+      assertErrors(source, [CompileTimeErrorCode.NOT_AN_LVALUE]);
     } else {
       assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL]);
     }
@@ -804,7 +804,7 @@ f() {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
+      assertErrors(source, [CompileTimeErrorCode.NOT_AN_LVALUE]);
     } else {
       assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL]);
     }
@@ -819,7 +819,7 @@ f() {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
+      assertErrors(source, [CompileTimeErrorCode.NOT_AN_LVALUE]);
     } else {
       assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL]);
     }
@@ -834,7 +834,7 @@ f() {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
+      assertErrors(source, [CompileTimeErrorCode.NOT_AN_LVALUE]);
     } else {
       assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL]);
     }
@@ -849,7 +849,7 @@ f() {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
+      assertErrors(source, [CompileTimeErrorCode.NOT_AN_LVALUE]);
     } else {
       assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL]);
     }
@@ -864,7 +864,7 @@ f() {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
+      assertErrors(source, [CompileTimeErrorCode.NOT_AN_LVALUE]);
     } else {
       assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL]);
     }
@@ -879,7 +879,7 @@ f() {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
+      assertErrors(source, [CompileTimeErrorCode.NOT_AN_LVALUE]);
     } else {
       assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL]);
     }
@@ -4914,6 +4914,17 @@ class A {
     verify([source]);
   }
 
+  test_useOfVoidResult_await() async {
+    Source source = addSource(r'''
+main() async {
+  void x;
+  await x;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+    verify([source]);
+  }
+
   test_useOfVoidResult_inForLoop_error() async {
     Source source = addSource(r'''
 class A {
@@ -5027,16 +5038,5 @@ class S {
 }''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
-  }
-
-  test_useOfVoidResult_await() async {
-    Source source = addSource(r'''
-main() async {
-  void x;
-  await x;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-    verify([source]);
   }
 }

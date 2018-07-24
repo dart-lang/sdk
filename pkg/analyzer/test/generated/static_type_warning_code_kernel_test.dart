@@ -355,12 +355,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_undefinedSuperOperator_indexSetter() async {
-    await super.test_undefinedSuperOperator_indexSetter();
-  }
-
-  @override
-  @failingTest
   test_wrongNumberOfTypeArguments_classAlias() async {
     await super.test_wrongNumberOfTypeArguments_classAlias();
   }
