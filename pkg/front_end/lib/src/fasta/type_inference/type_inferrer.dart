@@ -77,6 +77,7 @@ import '../fasta_codes.dart'
         messageVoidExpression,
         noLength,
         templateArgumentTypeNotAssignable,
+        templateDuplicatedNamedArgument,
         templateImplicitCallOfNonMethod,
         templateInvalidAssignment,
         templateInvalidCastFunctionExpr,
@@ -1374,6 +1375,48 @@ abstract class TypeInferrerImpl extends TypeInferrer {
             receiverType, expressionType);
       }
     });
+
+    // Check for and remove duplicated named arguments.
+    var named = arguments.named;
+    if (named.length == 2) {
+      if (named[0].name == named[1].name) {
+        var name = named[1].name;
+        var error = helper.buildCompileTimeError(
+            templateDuplicatedNamedArgument.withArguments(name),
+            named[1].fileOffset,
+            name.length);
+        arguments.named = [new kernel.NamedExpression(named[1].name, error)];
+        formalTypes.removeLast();
+        actualTypes.removeLast();
+      }
+    } else if (named.length > 2) {
+      var seenNames = <String, kernel.NamedExpression>{};
+      var hasProblem = false;
+      var namedTypeIndex = arguments.positional.length;
+      var uniqueNamed = <kernel.NamedExpression>[];
+      for (var expression in named) {
+        var name = expression.name;
+        if (seenNames.containsKey(name)) {
+          hasProblem = true;
+          var prevNamedExpression = seenNames[name];
+          prevNamedExpression.value = helper.buildCompileTimeError(
+              templateDuplicatedNamedArgument.withArguments(name),
+              expression.fileOffset,
+              name.length)
+            ..parent = prevNamedExpression;
+          formalTypes.removeAt(namedTypeIndex);
+          actualTypes.removeAt(namedTypeIndex);
+        } else {
+          seenNames[name] = expression;
+          uniqueNamed.add(expression);
+          namedTypeIndex++;
+        }
+      }
+      if (hasProblem) {
+        arguments.named = uniqueNamed;
+      }
+    }
+
     if (inferenceNeeded) {
       typeSchemaEnvironment.inferGenericFunctionOrType(
           returnType,

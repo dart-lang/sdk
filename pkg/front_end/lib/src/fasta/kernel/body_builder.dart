@@ -1027,35 +1027,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           arguments.getRange(0, firstNamedArgumentIndex));
       List<NamedExpression> named = new List<NamedExpression>.from(
           arguments.getRange(firstNamedArgumentIndex, arguments.length));
-      if (named.length == 2) {
-        if (named[0].name == named[1].name) {
-          named = <NamedExpression>[
-            new NamedExpression(
-                named[1].name,
-                deprecated_buildCompileTimeError(
-                    "Duplicated named argument '${named[1].name}'.",
-                    named[1].fileOffset))
-          ];
-        }
-      } else if (named.length > 2) {
-        Map<String, NamedExpression> seenNames = <String, NamedExpression>{};
-        bool hasProblem = false;
-        for (NamedExpression expression in named) {
-          if (seenNames.containsKey(expression.name)) {
-            hasProblem = true;
-            NamedExpression prevNamedExpression = seenNames[expression.name];
-            prevNamedExpression.value = deprecated_buildCompileTimeError(
-                "Duplicated named argument '${expression.name}'.",
-                expression.fileOffset)
-              ..parent = prevNamedExpression;
-          } else {
-            seenNames[expression.name] = expression;
-          }
-        }
-        if (hasProblem) {
-          named = new List<NamedExpression>.from(seenNames.values);
-        }
-      }
       push(forest.arguments(positional, beginToken, named: named));
     } else {
       // TODO(kmillikin): Find a way to avoid allocating a second list in the
@@ -2873,7 +2844,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       Set<String> names =
           new Set.from(function.namedParameters.map((a) => a.name));
       for (NamedExpression argument in named) {
-        if (!names.remove(argument.name)) {
+        if (!names.contains(argument.name)) {
           return fasta.templateNoSuchNamedParameter
               .withArguments(argument.name)
               .withLocation(uri, argument.fileOffset, argument.name.length);
@@ -2916,7 +2887,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       Set<String> names =
           new Set.from(function.namedParameters.map((a) => a.name));
       for (NamedExpression argument in named) {
-        if (!names.remove(argument.name)) {
+        if (!names.contains(argument.name)) {
           return fasta.templateNoSuchNamedParameter
               .withArguments(argument.name)
               .withLocation(uri, argument.fileOffset, argument.name.length);

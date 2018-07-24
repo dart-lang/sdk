@@ -74,6 +74,14 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
     expect(actual, isNull);
   }
 
+  void assertIdentifierTopGetRef(SimpleIdentifier ref, String name) {
+    var getter = findElement.topGet(name);
+    assertElement(ref, getter);
+
+    var type = getter.returnType.toString();
+    assertType(ref, type);
+  }
+
   void assertInvokeType(InvocationExpression expression, String expected) {
     DartType actual = expression.staticInvokeType;
     expect(actual?.toString(), expected);
@@ -86,10 +94,9 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
     expect(actual.baseElement, same(expectedBase));
   }
 
-  void assertTopGetRef(String search, String name, String type) {
+  void assertTopGetRef(String search, String name) {
     var ref = findNode.simple(search);
-    assertElement(ref, findElement.topGet(name));
-    assertType(ref, type);
+    assertIdentifierTopGetRef(ref, name);
   }
 
   void assertType(Expression expression, String expected) {
@@ -3309,9 +3316,9 @@ main() {
     var parenthesized = findNode.parenthesized('(a + b)');
     assertType(parenthesized, 'int');
 
-    assertTopGetRef('a + b', 'a', 'int');
-    assertTopGetRef('b)', 'b', 'int');
-    assertTopGetRef('c;', 'c', 'double');
+    assertTopGetRef('a + b', 'a');
+    assertTopGetRef('b)', 'b');
+    assertTopGetRef('c;', 'c');
 
     var assignment = findNode.assignment('= c');
     if (useCFE) {
@@ -3813,6 +3820,62 @@ main(C c) {
     var aRef = invocation.argumentList.arguments[0];
     assertElement(aRef, findElement.topGet('a'));
     assertType(aRef, 'int');
+  }
+
+  test_invalid_invocation_arguments_named_duplicate2() async {
+    addTestFile(r'''
+void f({p}) {}
+int a, b;
+main() {
+  f(p: a, p: b);
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var f = findElement.function('f');
+
+    var invocation = findNode.methodInvocation('f(p: a');
+    assertElement(invocation.methodName, f);
+    assertType(invocation.methodName, '({p: dynamic}) → void');
+    assertType(invocation, 'void');
+
+    NamedExpression arg0 = invocation.argumentList.arguments[0];
+    assertElement(arg0.name.label, f.parameters[0]);
+    assertIdentifierTopGetRef(arg0.expression, 'a');
+
+    NamedExpression arg1 = invocation.argumentList.arguments[1];
+    assertElement(arg1.name.label, f.parameters[0]);
+    assertIdentifierTopGetRef(arg1.expression, 'b');
+  }
+
+  test_invalid_invocation_arguments_named_duplicate3() async {
+    addTestFile(r'''
+void f({p}) {}
+int a, b, c;
+main() {
+  f(p: a, p: b, p: c);
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var f = findElement.function('f');
+
+    var invocation = findNode.methodInvocation('f(p: a');
+    assertElement(invocation.methodName, f);
+    assertType(invocation.methodName, '({p: dynamic}) → void');
+    assertType(invocation, 'void');
+
+    NamedExpression arg0 = invocation.argumentList.arguments[0];
+    assertElement(arg0.name.label, f.parameters[0]);
+    assertIdentifierTopGetRef(arg0.expression, 'a');
+
+    NamedExpression arg1 = invocation.argumentList.arguments[1];
+    assertElement(arg1.name.label, f.parameters[0]);
+    assertIdentifierTopGetRef(arg1.expression, 'b');
+
+    NamedExpression arg2 = invocation.argumentList.arguments[2];
+    assertElement(arg2.name.label, f.parameters[0]);
+    assertIdentifierTopGetRef(arg2.expression, 'c');
   }
 
   test_invalid_invocation_arguments_static_method() async {

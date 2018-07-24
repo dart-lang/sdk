@@ -152,20 +152,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_fieldFormalParameter_genericFunctionTyped() {
-    // Expected 0 errors of type ParserErrorCode.EXPECTED_TOKEN, found 1 (88)
-    return super.test_fieldFormalParameter_genericFunctionTyped();
-  }
-
-  @override
-  @failingTest
-  test_fieldFormalParameter_genericFunctionTyped_named() {
-    // Expected 0 errors of type ParserErrorCode.EXPECTED_TOKEN, found 1 (89)
-    return super.test_fieldFormalParameter_genericFunctionTyped_named();
-  }
-
-  @override
-  @failingTest
   @potentialAnalyzerProblem
   test_finalNotInitialized_hasNativeClause_hasConstructor() async {
     return super.test_finalNotInitialized_hasNativeClause_hasConstructor();

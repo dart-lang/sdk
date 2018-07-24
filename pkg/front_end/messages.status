@@ -108,6 +108,7 @@ DuplicatedExportInType/analyzerCode: Fail
 DuplicatedExportInType/example: Fail
 DuplicatedModifier/script1: Fail
 DuplicatedName/example: Fail
+DuplicatedNamedArgument/example: Fail
 DuplicatedParameterName/example: Fail
 Encoding/analyzerCode: Fail
 EnumConstantSameNameAsEnclosing/example: Fail

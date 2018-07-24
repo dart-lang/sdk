@@ -2613,7 +2613,7 @@ class Arguments extends TreeNode {
   final List<DartType> types;
   @coqsingle
   final List<Expression> positional;
-  final List<NamedExpression> named;
+  List<NamedExpression> named;
 
   Arguments(this.positional,
       {List<DartType> types, List<NamedExpression> named})

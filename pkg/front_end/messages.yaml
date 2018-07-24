@@ -2049,6 +2049,12 @@ DuplicatedNamePreviouslyUsedCause:
   analyzerCode: REFERENCED_BEFORE_DECLARATION
   severity: CONTEXT
 
+DuplicatedNamedArgument:
+  template: "Duplicated named argument '#name'."
+  severity: ERROR
+  analyzerCode: DUPLICATE_NAMED_ARGUMENT
+  dart2jsCode: "*fatal*"
+
 DuplicatedParameterName:
   template: "Duplicated parameter name '#name'."
   severity: ERROR

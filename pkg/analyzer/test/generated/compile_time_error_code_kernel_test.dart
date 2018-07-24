@@ -359,12 +359,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_duplicateNamedArgument() async {
-    await super.test_duplicateNamedArgument();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30959')
   test_exportOfNonLibrary() async {
     return super.test_exportOfNonLibrary();

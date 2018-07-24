@@ -159,12 +159,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_returnOfInvalidType_void() async {
-    await super.test_returnOfInvalidType_void();
-  }
-
-  @override
-  @failingTest
   test_typeArgumentNotMatchingBounds_classTypeAlias() async {
     await super.test_typeArgumentNotMatchingBounds_classTypeAlias();
   }
@@ -357,6 +351,12 @@ class StaticTypeWarningCodeTest_Kernel
   @failingTest
   test_undefinedSuperMethod() async {
     await super.test_undefinedSuperMethod();
+  }
+
+  @override
+  @failingTest
+  test_undefinedSuperOperator_indexSetter() async {
+    await super.test_undefinedSuperOperator_indexSetter();
   }
 
   @override

@@ -2054,6 +2054,27 @@ Message _withArgumentsDuplicatedNamePreviouslyUsedCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateDuplicatedNamedArgument =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Duplicated named argument '#name'.""",
+        withArguments: _withArgumentsDuplicatedNamedArgument);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeDuplicatedNamedArgument =
+    const Code<Message Function(String name)>(
+        "DuplicatedNamedArgument", templateDuplicatedNamedArgument,
+        analyzerCode: "DUPLICATE_NAMED_ARGUMENT",
+        dart2jsCode: "*fatal*",
+        severity: Severity.error);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDuplicatedNamedArgument(String name) {
+  return new Message(codeDuplicatedNamedArgument,
+      message: """Duplicated named argument '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateDuplicatedParameterName =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Duplicated parameter name '#name'.""",
