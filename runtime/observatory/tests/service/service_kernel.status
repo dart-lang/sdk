@@ -14,6 +14,7 @@ async_single_step_out_test: RuntimeError
 async_star_single_step_into_test: RuntimeError
 async_star_step_out_test: RuntimeError
 async_step_out_test: RuntimeError
+awaiter_async_stack_contents_2_test: RuntimeError
 awaiter_async_stack_contents_test: RuntimeError
 bad_reload_test: RuntimeError
 break_on_activation_test: RuntimeError
