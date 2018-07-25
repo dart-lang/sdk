@@ -2997,11 +2997,25 @@ class CodeGenerator extends Object
       return element.jsVariable;
     }
 
-    // Directly emit constants.
+    // As an optimization, directly emit simple constants.
+    // (This is not required for correctness.)
     if (element is VariableElement && element.isStatic && element.isConst) {
-      var val = element.computeConstantValue() as DartObjectImpl;
-      var result = val.isBoolNumStringOrNull ? _emitDartObject(val) : null;
-      if (result != null) return result;
+      var value = element.computeConstantValue() as DartObjectImpl;
+      // TODO(jmesserly): value should always be non-null unless the program has
+      // errors. However constants seem to be missing in some cases, see:
+      // https://github.com/dart-lang/sdk/issues/33885
+      //
+      // This may be an Analyzer bug. This workaround prevents a compiler crash
+      // until we can track down the root cause (or migrate to CFE+Kernel).
+      //
+      // If the constant is not a primitive (or we fail to evaluate it), then
+      // we can fall through and emit a reference to it at runtime.
+      //
+      // TODO(jmesserly): avoid inlining strings depending on their length.
+      if (value != null && value.isBoolNumStringOrNull) {
+        var result = _emitDartObject(value);
+        if (result != null) return result;
+      }
     }
 
     // type literal
