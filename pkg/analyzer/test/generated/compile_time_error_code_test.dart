@@ -734,6 +734,7 @@ f(var a) {
     verify([source]);
   }
 
+  @failingTest // See an update on override checks in issue #33235.
   test_conflictingConstructorNameAndMember_field() async {
     Source source = addSource(r'''
 class A {
@@ -741,17 +742,11 @@ class A {
   A.x() {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source,
-        useCFE
-            ? [
-                CompileTimeErrorCode.CONFLICTS_WITH_CONSTRUCTOR,
-                CompileTimeErrorCode.CONFLICTS_WITH_MEMBER
-              ]
-            : [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD]);
+    assertNoErrors(source);
     verify([source]);
   }
 
+  @failingTest // See an update on override checks in issue #33235.
   test_conflictingConstructorNameAndMember_getter() async {
     Source source = addSource(r'''
 class A {
@@ -759,17 +754,11 @@ class A {
   A.x() {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source,
-        useCFE
-            ? [
-                CompileTimeErrorCode.CONFLICTS_WITH_CONSTRUCTOR,
-                CompileTimeErrorCode.CONFLICTS_WITH_MEMBER
-              ]
-            : [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD]);
+    assertNoErrors(source);
     verify([source]);
   }
 
+  @failingTest // See an update on override checks in issue #33235.
   test_conflictingConstructorNameAndMember_method() async {
     Source source = addSource(r'''
 class A {
@@ -777,14 +766,7 @@ class A {
   void x() {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source,
-        useCFE
-            ? [
-                CompileTimeErrorCode.CONFLICTS_WITH_CONSTRUCTOR,
-                CompileTimeErrorCode.CONFLICTS_WITH_MEMBER
-              ]
-            : [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD]);
+    assertNoErrors(source);
     verify([source]);
   }
 

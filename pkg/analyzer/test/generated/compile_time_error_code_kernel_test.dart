@@ -60,20 +60,17 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
     await super.test_caseExpressionTypeImplementsEquals();
   }
 
-  @override
-  @failingTest
+  @override // Test passes with CFE but fails with the original analyzer.
   test_conflictingConstructorNameAndMember_field() async {
     await super.test_conflictingConstructorNameAndMember_field();
   }
 
-  @override
-  @failingTest
+  @override // Test passes with CFE but fails with the original analyzer.
   test_conflictingConstructorNameAndMember_getter() async {
     await super.test_conflictingConstructorNameAndMember_getter();
   }
 
-  @override
-  @failingTest
+  @override // Test passes with CFE but fails with the original analyzer.
   test_conflictingConstructorNameAndMember_method() async {
     await super.test_conflictingConstructorNameAndMember_method();
   }
