@@ -10,7 +10,7 @@
 ///
 
 // TODO(leafp): Consider splitting some of this out.
-part of "runtime.dart";
+part of dart._runtime;
 
 /// Returns a new type that mixes members from base and the mixin.
 ///
