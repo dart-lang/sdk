@@ -550,6 +550,7 @@ a:focus, a:hover {
   
   
   
+  
 <h3>Requests</h3><dl><dt class="request"><a name="request_analysis.getErrors">analysis.getErrors</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "analysis.getErrors"
@@ -4241,6 +4242,19 @@ a:focus, a:hover {
           An "analysis.getReachableSources" request specified a FilePath
           which does not match a file currently subject to
           analysis.
+        </p>
+      </dd><dt class="value">GET_SIGNATURE_INVALID_FILE</dt><dd>
+        
+        <p>
+          An "analysis.getSignature" request specified a FilePath
+          which does not match a file currently subject to
+          analysis.
+        </p>
+      </dd><dt class="value">GET_SIGNATURE_UNKNOWN_FUNCTION</dt><dd>
+        
+        <p>
+          An "analysis.getSignature" request specified an offset
+          that could not be matched to a function call.
         </p>
       </dd><dt class="value">IMPORT_ELEMENTS_INVALID_FILE</dt><dd>
         

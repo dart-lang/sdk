@@ -8,6 +8,7 @@ import 'dart:core';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
+import 'package:analysis_server/src/computer/computer_signature.dart';
 import 'package:analysis_server/src/computer/imported_elements_computer.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
@@ -247,6 +248,32 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
 //        .toResponse(request.id);
   }
 
+  /**
+   * Implement the `analysis.getSignature` request.
+   */
+  Future<Null> getSignature(Request request) async {
+    var params = new AnalysisGetSignatureParams.fromRequest(request);
+
+    // Prepare the resolved units.
+    AnalysisResult result = await server.getAnalysisResult(params.file);
+    CompilationUnit unit = result?.unit;
+    if (unit == null) {
+      server.sendResponse(Response.getSignatureInvalidFile(request));
+      return;
+    }
+
+    // Prepare the signature.
+    var signature =
+        new DartUnitSignatureComputer(unit, params.offset).compute();
+
+    // Send the response.
+    if (signature != null) {
+      server.sendResponse(signature.toResponse(request.id));
+    } else {
+      server.sendResponse(Response.getSignatureUnknownFunction(request));
+    }
+  }
+
   @override
   Response handleRequest(Request request) {
     try {
@@ -267,6 +294,9 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
         return Response.DELAYED_RESPONSE;
       } else if (requestName == ANALYSIS_REQUEST_GET_REACHABLE_SOURCES) {
         return getReachableSources(request);
+      } else if (requestName == ANALYSIS_REQUEST_GET_SIGNATURE) {
+        getSignature(request);
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == ANALYSIS_REQUEST_REANALYZE) {
         return reanalyze(request);
       } else if (requestName == ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS) {

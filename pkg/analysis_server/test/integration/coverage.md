@@ -8,6 +8,7 @@ server calls. This file is validated by `coverage_test.dart`.
 - [x] analysis.getLibraryDependencies (failing - see #29310)
 - [x] analysis.getNavigation (failing - see #28799)
 - [x] analysis.getReachableSources (failing - see #29311)
+- [ ] analysis.getSignature
 - [x] analysis.reanalyze
 - [x] analysis.setAnalysisRoots
 - [x] analysis.setGeneralSubscriptions

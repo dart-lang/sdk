@@ -75,7 +75,7 @@ class DartUnitHoverComputer {
           }
         }
         // documentation
-        hover.dartdoc = _computeDocumentation(element);
+        hover.dartdoc = computeDocumentation(element);
       }
       // parameter
       hover.parameter = _safeToString(expression.staticParameterElement);
@@ -103,7 +103,8 @@ class DartUnitHoverComputer {
     return null;
   }
 
-  String _computeDocumentation(Element element) {
+  static String computeDocumentation(Element element) {
+    // TODO(dantup) We're reusing this in parameter information - move it somewhere shared?
     if (element is FieldFormalParameterElement) {
       element = (element as FieldFormalParameterElement).field;
     }

@@ -66,6 +66,9 @@ const String ANALYSIS_REQUEST_GET_NAVIGATION_OFFSET = 'offset';
 const String ANALYSIS_REQUEST_GET_REACHABLE_SOURCES =
     'analysis.getReachableSources';
 const String ANALYSIS_REQUEST_GET_REACHABLE_SOURCES_FILE = 'file';
+const String ANALYSIS_REQUEST_GET_SIGNATURE = 'analysis.getSignature';
+const String ANALYSIS_REQUEST_GET_SIGNATURE_FILE = 'file';
+const String ANALYSIS_REQUEST_GET_SIGNATURE_OFFSET = 'offset';
 const String ANALYSIS_REQUEST_REANALYZE = 'analysis.reanalyze';
 const String ANALYSIS_REQUEST_REANALYZE_ROOTS = 'roots';
 const String ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS = 'analysis.setAnalysisRoots';
@@ -94,6 +97,11 @@ const String ANALYSIS_RESPONSE_GET_NAVIGATION_FILES = 'files';
 const String ANALYSIS_RESPONSE_GET_NAVIGATION_REGIONS = 'regions';
 const String ANALYSIS_RESPONSE_GET_NAVIGATION_TARGETS = 'targets';
 const String ANALYSIS_RESPONSE_GET_REACHABLE_SOURCES_SOURCES = 'sources';
+const String ANALYSIS_RESPONSE_GET_SIGNATURE_DARTDOC = 'dartdoc';
+const String ANALYSIS_RESPONSE_GET_SIGNATURE_NAME = 'name';
+const String ANALYSIS_RESPONSE_GET_SIGNATURE_PARAMETERS = 'parameters';
+const String ANALYSIS_RESPONSE_GET_SIGNATURE_SELECTED_PARAMETER_INDEX =
+    'selectedParameterIndex';
 const String ANALYTICS_REQUEST_ENABLE = 'analytics.enable';
 const String ANALYTICS_REQUEST_ENABLE_VALUE = 'value';
 const String ANALYTICS_REQUEST_IS_ENABLED = 'analytics.isEnabled';

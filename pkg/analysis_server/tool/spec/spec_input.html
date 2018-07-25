@@ -647,6 +647,74 @@
       </field>
     </result>
   </request>
+  <request method="getSignature" experimental="true">
+    <p>
+      Return the signature information associated with the given
+      location in the given file. If the signature information
+      for the given file has not yet been computed, or the most
+      recently computed signature information for the given file
+      is out of date, then the response for this request will be
+      delayed until it has been computed. If the content of the
+      file changes after this request was received but before a
+      response could be sent, then an error of type
+      <tt>CONTENT_MODIFIED</tt> will be generated.
+
+      If a request is made for a file which does not exist, or
+      which is not currently subject to analysis (e.g. because it
+      is not associated with any analysis root specified to
+      analysis.setAnalysisRoots), an error of type
+      <tt>GET_SIGNATURE_INVALID_FILE</tt> will be generated.
+
+      If the location given is not inside the argument list for a
+      function (including method and constructor) invocation, then
+      an error of type <tt>GET_SIGNATURE_INVALID_OFFSET</tt> will
+      be generated. If the location is inside an argument list but
+      the function is not defined or cannot be determined (such as
+      a method invocation where the target has type 'dynamic')
+      then an error of type <tt>GET_SIGNATURE_UNKNOWN_FUNCTION</tt>
+      will be generated.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file in which signature information is being requested.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The location for which signature information is being requested.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="name">
+        <ref>String</ref>
+        <p>The name of the function being invoked at the given offset.</p>
+      </field>
+      <field name="dartdoc">
+        <ref>String</ref>
+        <p>
+          The dartdoc associated with the function being invoked. Other
+          than the removal of the comment delimiters, including leading
+          asterisks in the case of a block comment, the dartdoc is
+          unprocessed markdown. This data is omitted if there is no
+          referenced element, or if the element has no dartdoc.
+        </p>
+      </field>
+      <field name="parameters">
+        <list>
+          <ref>ParameterInfo</ref>
+        </list>
+        <p>A list of information about each of the parameters of the function being invoked.</p>
+      </field>
+      <field name="selectedParameterIndex">
+        <ref>int</ref>
+        <p>The index of the paramter in the parameters collection at the specified offset.</p>
+      </field>
+    </result>
+  </request>
   <request method="reanalyze">
     <p>
       Force the re-analysis of everything contained in the specified
@@ -3951,6 +4019,21 @@
           An "analysis.getReachableSources" request specified a FilePath
           which does not match a file currently subject to
           analysis.
+        </p>
+      </value>
+      <value>
+        <code>GET_SIGNATURE_INVALID_FILE</code>
+        <p>
+          An "analysis.getSignature" request specified a FilePath
+          which does not match a file currently subject to
+          analysis.
+        </p>
+      </value>
+      <value>
+        <code>GET_SIGNATURE_UNKNOWN_FUNCTION</code>
+        <p>
+          An "analysis.getSignature" request specified an offset
+          that could not be matched to a function call.
         </p>
       </value>
       <value>

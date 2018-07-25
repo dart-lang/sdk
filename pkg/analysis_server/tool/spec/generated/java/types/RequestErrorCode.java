@@ -74,6 +74,18 @@ public class RequestErrorCode {
   public static final String GET_REACHABLE_SOURCES_INVALID_FILE = "GET_REACHABLE_SOURCES_INVALID_FILE";
 
   /**
+   * An "analysis.getSignature" request specified a FilePath which does not match a file currently
+   * subject to analysis.
+   */
+  public static final String GET_SIGNATURE_INVALID_FILE = "GET_SIGNATURE_INVALID_FILE";
+
+  /**
+   * An "analysis.getSignature" request specified an offset that could not be matched to a function
+   * call.
+   */
+  public static final String GET_SIGNATURE_UNKNOWN_FUNCTION = "GET_SIGNATURE_UNKNOWN_FUNCTION";
+
+  /**
    * An "edit.importElements" request specified a FilePath that does not match a file currently
    * subject to analysis.
    */

@@ -4579,6 +4579,201 @@ class Outline implements HasToJson {
 }
 
 /**
+ * ParameterInfo
+ *
+ * {
+ *   "kind": ParameterKind
+ *   "name": String
+ *   "type": String
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ParameterInfo implements HasToJson {
+  ParameterKind _kind;
+
+  String _name;
+
+  String _type;
+
+  /**
+   * The kind of the parameter.
+   */
+  ParameterKind get kind => _kind;
+
+  /**
+   * The kind of the parameter.
+   */
+  void set kind(ParameterKind value) {
+    assert(value != null);
+    this._kind = value;
+  }
+
+  /**
+   * The name of the parameter.
+   */
+  String get name => _name;
+
+  /**
+   * The name of the parameter.
+   */
+  void set name(String value) {
+    assert(value != null);
+    this._name = value;
+  }
+
+  /**
+   * The type of the parameter.
+   */
+  String get type => _type;
+
+  /**
+   * The type of the parameter.
+   */
+  void set type(String value) {
+    assert(value != null);
+    this._type = value;
+  }
+
+  ParameterInfo(ParameterKind kind, String name, String type) {
+    this.kind = kind;
+    this.name = name;
+    this.type = type;
+  }
+
+  factory ParameterInfo.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      ParameterKind kind;
+      if (json.containsKey("kind")) {
+        kind = new ParameterKind.fromJson(
+            jsonDecoder, jsonPath + ".kind", json["kind"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "kind");
+      }
+      String name;
+      if (json.containsKey("name")) {
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "name");
+      }
+      String type;
+      if (json.containsKey("type")) {
+        type = jsonDecoder.decodeString(jsonPath + ".type", json["type"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "type");
+      }
+      return new ParameterInfo(kind, name, type);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "ParameterInfo", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["kind"] = kind.toJson();
+    result["name"] = name;
+    result["type"] = type;
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ParameterInfo) {
+      return kind == other.kind && name == other.name && type == other.type;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, type.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * ParameterKind
+ *
+ * enum {
+ *   NAMED
+ *   OPTIONAL
+ *   REQUIRED
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ParameterKind implements Enum {
+  /**
+   * A named parameter.
+   */
+  static const ParameterKind NAMED = const ParameterKind._("NAMED");
+
+  /**
+   * An optional parameter.
+   */
+  static const ParameterKind OPTIONAL = const ParameterKind._("OPTIONAL");
+
+  /**
+   * A required parameter.
+   */
+  static const ParameterKind REQUIRED = const ParameterKind._("REQUIRED");
+
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<ParameterKind> VALUES = const <ParameterKind>[
+    NAMED,
+    OPTIONAL,
+    REQUIRED
+  ];
+
+  @override
+  final String name;
+
+  const ParameterKind._(this.name);
+
+  factory ParameterKind(String name) {
+    switch (name) {
+      case "NAMED":
+        return NAMED;
+      case "OPTIONAL":
+        return OPTIONAL;
+      case "REQUIRED":
+        return REQUIRED;
+    }
+    throw new Exception('Illegal enum value: $name');
+  }
+
+  factory ParameterKind.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json is String) {
+      try {
+        return new ParameterKind(json);
+      } catch (_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, "ParameterKind", json);
+  }
+
+  @override
+  String toString() => "ParameterKind.$name";
+
+  String toJson() => name;
+}
+
+/**
  * Position
  *
  * {

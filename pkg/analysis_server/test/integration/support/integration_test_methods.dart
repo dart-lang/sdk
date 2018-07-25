@@ -402,6 +402,67 @@ abstract class IntegrationTestMixin {
   }
 
   /**
+   * Return the signature information associated with the given location in the
+   * given file. If the signature information for the given file has not yet
+   * been computed, or the most recently computed signature information for the
+   * given file is out of date, then the response for this request will be
+   * delayed until it has been computed. If the content of the file changes
+   * after this request was received but before a response could be sent, then
+   * an error of type CONTENT_MODIFIED will be generated. If a request is made
+   * for a file which does not exist, or which is not currently subject to
+   * analysis (e.g. because it is not associated with any analysis root
+   * specified to analysis.setAnalysisRoots), an error of type
+   * GET_SIGNATURE_INVALID_FILE will be generated. If the location given is not
+   * inside the argument list for a function (including method and constructor)
+   * invocation, then an error of type GET_SIGNATURE_INVALID_OFFSET will be
+   * generated. If the location is inside an argument list but the function is
+   * not defined or cannot be determined (such as a method invocation where the
+   * target has type 'dynamic') then an error of type
+   * GET_SIGNATURE_UNKNOWN_FUNCTION will be generated.
+   *
+   * Parameters
+   *
+   * file: FilePath
+   *
+   *   The file in which signature information is being requested.
+   *
+   * offset: int
+   *
+   *   The location for which signature information is being requested.
+   *
+   * Returns
+   *
+   * name: String
+   *
+   *   The name of the function being invoked at the given offset.
+   *
+   * dartdoc: String
+   *
+   *   The dartdoc associated with the function being invoked. Other than the
+   *   removal of the comment delimiters, including leading asterisks in the
+   *   case of a block comment, the dartdoc is unprocessed markdown. This data
+   *   is omitted if there is no referenced element, or if the element has no
+   *   dartdoc.
+   *
+   * parameters: List<ParameterInfo>
+   *
+   *   A list of information about each of the parameters of the function being
+   *   invoked.
+   *
+   * selectedParameterIndex: int
+   *
+   *   The index of the paramter in the parameters collection at the specified
+   *   offset.
+   */
+  Future<AnalysisGetSignatureResult> sendAnalysisGetSignature(
+      String file, int offset) async {
+    var params = new AnalysisGetSignatureParams(file, offset).toJson();
+    var result = await server.send("analysis.getSignature", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new AnalysisGetSignatureResult.fromJson(decoder, 'result', result);
+  }
+
+  /**
    * Force the re-analysis of everything contained in the specified analysis
    * roots. This will cause all previously computed analysis results to be
    * discarded and recomputed, and will cause all subscribed notifications to
