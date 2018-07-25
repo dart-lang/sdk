@@ -326,9 +326,14 @@ class Driver implements ServerStarter {
     analysisServerOptions.useCFE = results[USE_CFE];
     analysisServerOptions.useFastaParser = results[USE_FASTA_PARSER];
 
+    bool disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG];
+    if (results.wasParsed(TRAIN_USING)) {
+      disableAnalyticsForSession = true;
+    }
+
     telemetry.Analytics analytics = telemetry.createAnalyticsInstance(
         'UA-26406144-29', 'analysis-server',
-        disableForSession: results[SUPPRESS_ANALYTICS_FLAG]);
+        disableForSession: disableAnalyticsForSession);
     analysisServerOptions.analytics = analytics;
 
     if (analysisServerOptions.clientId != null) {
@@ -452,14 +457,31 @@ class Driver implements ServerStarter {
     }
 
     if (trainDirectory != null) {
+      Directory tempDriverDir =
+          Directory.systemTemp.createTempSync('dartServer');
+      analysisServerOptions.cacheFolder = tempDriverDir.path;
+
       DevAnalysisServer devServer = new DevAnalysisServer(socketServer);
-      devServer.processDirectories([trainDirectory]).then((int exitCode) async {
+      devServer.initServer();
+
+      () async {
+        // We first analyze code with an empty driver cache.
+        print('Analyzing with an empty driver cache:');
+        int exitCode = await devServer.processDirectories([trainDirectory]);
+
+        print('');
+
+        // Then again with a populated cache.
+        print('Analyzing with a populated driver cache:');
+        exitCode = await devServer.processDirectories([trainDirectory]);
+
+        tempDriverDir.deleteSync(recursive: true);
         if (serve_http) {
           httpServer.close();
         }
         await instrumentationService.shutdown();
         exit(exitCode);
-      });
+      }();
     } else {
       _captureExceptions(instrumentationService, () {
         StdioAnalysisServer stdioServer = new StdioAnalysisServer(socketServer);

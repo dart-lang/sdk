@@ -27,10 +27,18 @@ class DevAnalysisServer {
    */
   final SocketServer socketServer;
 
+  int _nextId = 0;
+  DevChannel _channel;
+
   /**
    * Initialize a newly created stdio server.
    */
   DevAnalysisServer(this.socketServer);
+
+  void initServer() {
+    _channel = new DevChannel();
+    socketServer.createAnalysisServer(_channel);
+  }
 
   /**
    * Analyze the given directories and display any results to stdout.
@@ -47,8 +55,6 @@ class DevAnalysisServer {
     Stopwatch timer = new Stopwatch()..start();
 
     Completer<int> whenComplete = new Completer();
-
-    DevChannel channel = new DevChannel();
 
     int exitCode = 0;
 
@@ -117,7 +123,8 @@ class DevAnalysisServer {
       whenComplete.completeError(message);
     }
 
-    channel.onNotification.listen((Notification notification) {
+    StreamSubscription<Notification> notificationSubscriptions =
+        _channel.onNotification.listen((Notification notification) {
       if (notification.event == 'server.status') {
         handleStatusNotification(notification);
       } else if (notification.event == 'analysis.errors') {
@@ -127,29 +134,37 @@ class DevAnalysisServer {
       }
     });
 
-    socketServer.createAnalysisServer(channel);
-
-    int id = 0;
-    channel.sendRequest(new Request('${id++}', 'server.setSubscriptions', {
+    _channel
+        .sendRequest(new Request('${_nextId++}', 'server.setSubscriptions', {
       'subscriptions': ['STATUS'],
     }));
 
     directories =
         directories.map((dir) => path.normalize(path.absolute(dir))).toList();
 
-    channel.sendRequest(new Request('${id++}', 'analysis.setAnalysisRoots', {
-      'included': directories,
-      'excluded': [],
-    }));
+    _channel.sendRequest(new Request(
+      '${_nextId++}',
+      'analysis.setAnalysisRoots',
+      {'included': directories, 'excluded': []},
+    ));
 
-    return whenComplete.future;
+    return whenComplete.future.whenComplete(() {
+      notificationSubscriptions.cancel();
+
+      _channel.sendRequest(new Request(
+        '${_nextId++}',
+        'analysis.setAnalysisRoots',
+        {'included': [], 'excluded': []},
+      ));
+    });
   }
 }
 
 class DevChannel implements ServerCommunicationChannel {
-  StreamController<Request> _requestController = new StreamController();
+  StreamController<Request> _requestController =
+      new StreamController.broadcast();
   StreamController<Notification> _notificationController =
-      new StreamController();
+      new StreamController.broadcast();
 
   Map<String, Completer<Response>> _responseCompleters = {};
 
