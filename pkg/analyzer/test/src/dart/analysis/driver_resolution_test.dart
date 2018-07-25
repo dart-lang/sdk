@@ -4421,6 +4421,28 @@ main() {
     expect(rethrowExpression.staticType, isBottomType);
   }
 
+  test_invalid_tryCatch_1() async {
+    addTestFile(r'''
+main() {
+  try {}
+  catch String catch (e) {}
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+  }
+
+  test_invalid_tryCatch_2() async {
+    addTestFile(r'''
+main() {
+  try {}
+  catch catch (e) {}
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+  }
+
   test_isExpression() async {
     String content = r'''
 void main() {

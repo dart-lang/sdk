@@ -150,7 +150,9 @@ class ResolutionStorer
       covariant VariableDeclarationBinder stackTraceBinder,
       DartType stackTraceType) {
     if (exceptionBinder != null) {
-      _store(exceptionBinder.fileOffset, inferredType: exceptionType);
+      _store(exceptionBinder.fileOffset,
+          inferredType: exceptionType,
+          isSynthetic: exceptionBinder.isSynthetic);
     }
 
     if (stackTraceBinder != null) {
