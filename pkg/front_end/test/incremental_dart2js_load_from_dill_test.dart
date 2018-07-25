@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async' show Future;
 import 'dart:io' show Directory, File;
 
 import 'package:expect/expect.dart' show Expect;
@@ -22,7 +23,7 @@ main() async {
   }
 }
 
-void testDart2jsCompile() async {
+Future<void> testDart2jsCompile() async {
   final Uri dart2jsUrl = Uri.base.resolve("pkg/compiler/bin/dart2js.dart");
   final Uri invalidateUri = Uri.parse("package:compiler/src/filenames.dart");
   Uri normalDill = outDir.uri.resolve("dart2js.full.dill");

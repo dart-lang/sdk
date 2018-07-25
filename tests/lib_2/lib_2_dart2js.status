@@ -87,7 +87,6 @@ html/no_linked_scripts_htmltest: Timeout, Pass # Issue 32262
 html/worker_test/functional: RuntimeError # Issue 32261
 
 [ $compiler == dart2js && $runtime == chrome && $strong ]
-html/fileapi_directory_reader_test: RuntimeError
 html/interactive_media_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
@@ -117,6 +116,7 @@ html/audioelement_test: RuntimeError
 html/b_element_test: RuntimeError
 html/blob_constructor_test: RuntimeError
 html/cache_test: RuntimeError
+html/callback_list_test: RuntimeError
 html/callbacks_test: RuntimeError
 html/canvas_pixel_array_type_alias_test: RuntimeError
 html/canvas_test: RuntimeError
@@ -358,6 +358,7 @@ convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 2
 convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
 convert/utf85_test: Pass, Slow, Timeout
+html/callback_list_test: SkipByDesign # FileSystem not supported in FireFox.
 html/custom/attribute_changed_callback_test: Skip # Times out
 html/custom/constructor_calls_created_synchronously_test: Pass, Timeout
 html/custom/created_callback_test: Skip # Times out
@@ -461,6 +462,7 @@ async/timer_not_available_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == safari ]
 html/audiobuffersourcenode_test: RuntimeError
+html/callback_list_test: SkipByDesign # FileSystem not supported in Safari.
 html/css_test/functional/functional: RuntimeError # Issue 32576
 html/custom/attribute_changed_callback_test: RuntimeError, Timeout
 html/custom/constructor_calls_created_synchronously_test: Pass, Timeout

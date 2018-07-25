@@ -137,6 +137,15 @@ _js_custom_constructors = monitored.Set('systemhtml._js_custom_constructors', [
 # constructor creation.
 _static_classes = set(['Url'])
 
+# Callback typedefs with generic List (List<nnn>) convert to List
+_callback_list_generics_mapping = monitored.Set('systemhtml._callback_list_generics_mapping', [
+    'List<Entry>',
+    'List<IntersectionObserverEntry>',
+    'List<MutationRecord>',
+    'List<_Report>',
+])
+
+
 # Information for generating element constructors.
 #
 # TODO(sra): maybe remove all the argument complexity and use cascades.
@@ -524,10 +533,19 @@ class HtmlDartInterfaceGenerator(object):
     annotations = self._metadata.GetFormattedMetadata(self._library_name,
         self._interface)
 
+    params = info.ParametersAsDeclaration(self._DartType);
+
+    types = params.split()
+    if len(types) > 0:
+      mapType = types[0] in _callback_list_generics_mapping
+      if mapType is True:
+        types[0] = 'List'
+        params = " ".join(types)
+
     code.Emit('$(ANNOTATIONS)typedef void $NAME($PARAMS);\n',
               ANNOTATIONS=annotations,
               NAME=typedef_name,
-              PARAMS=info.ParametersAsDeclaration(self._DartType))
+              PARAMS=params)
     self._backend.GenerateCallback(info)
 
   def GenerateInterface(self):

@@ -83,7 +83,9 @@ class Parameter extends Statement {
   Type get argumentType => _argumentType;
 
   void _observeArgumentType(Type argType, TypeHierarchy typeHierarchy) {
+    assertx(argType.isSpecialized);
     _argumentType = _argumentType.union(argType, typeHierarchy);
+    assertx(_argumentType.isSpecialized);
   }
 }
 
@@ -183,10 +185,11 @@ class Call extends Statement {
     if (selector is! DirectSelector) {
       _observeReceiverType(argTypes[0]);
     }
-    final Type result = callHandler.applyCall(
+    Type result = callHandler.applyCall(
         this, selector, new Args<Type>(argTypes, names: args.names),
         isResultUsed: isResultUsed);
     if (isResultUsed) {
+      result = result.specialize(typeHierarchy);
       _observeResultType(result, typeHierarchy);
     }
     return result;
@@ -252,7 +255,9 @@ class Call extends Statement {
   }
 
   void _observeResultType(Type result, TypeHierarchy typeHierarchy) {
+    assertx(result.isSpecialized);
     _resultType = _resultType.union(result, typeHierarchy);
+    assertx(_resultType.isSpecialized);
   }
 }
 
@@ -311,36 +316,37 @@ class Summary {
 
     List<Type> types = new List<Type>(_statements.length);
 
-    types.setRange(0, positionalArgCount, args);
-
     for (int i = 0; i < positionalArgCount; i++) {
-      Parameter param = _statements[i] as Parameter;
-      param._observeArgumentType(args[i], typeHierarchy);
-      types[i] = args[i].intersection(param.staticType, typeHierarchy);
+      final Parameter param = _statements[i] as Parameter;
+      final argType = args[i].specialize(typeHierarchy);
+      param._observeArgumentType(argType, typeHierarchy);
+      types[i] = argType.intersection(param.staticType, typeHierarchy);
     }
 
     for (int i = positionalArgCount; i < positionalParameterCount; i++) {
-      Parameter param = _statements[i] as Parameter;
-      assertx(param.defaultValue != null);
-      param._observeArgumentType(param.defaultValue, typeHierarchy);
-      types[i] = param.defaultValue;
+      final Parameter param = _statements[i] as Parameter;
+      final argType = param.defaultValue.specialize(typeHierarchy);
+      param._observeArgumentType(argType, typeHierarchy);
+      types[i] = argType;
     }
 
     final argNames = arguments.names;
     int argIndex = 0;
     for (int i = positionalParameterCount; i < parameterCount; i++) {
-      Parameter param = _statements[i] as Parameter;
+      final Parameter param = _statements[i] as Parameter;
       assertx(param.defaultValue != null);
       if ((argIndex < namedArgCount) && (argNames[argIndex] == param.name)) {
-        Type argType = args[positionalArgCount + argIndex];
+        final argType =
+            args[positionalArgCount + argIndex].specialize(typeHierarchy);
         argIndex++;
         param._observeArgumentType(argType, typeHierarchy);
         types[i] = argType.intersection(param.staticType, typeHierarchy);
       } else {
         assertx((argIndex == namedArgCount) ||
             (param.name.compareTo(argNames[argIndex]) < 0));
-        param._observeArgumentType(param.defaultValue, typeHierarchy);
-        types[i] = param.defaultValue;
+        final argType = param.defaultValue.specialize(typeHierarchy);
+        param._observeArgumentType(argType, typeHierarchy);
+        types[i] = argType;
       }
     }
     assertx(argIndex == namedArgCount);

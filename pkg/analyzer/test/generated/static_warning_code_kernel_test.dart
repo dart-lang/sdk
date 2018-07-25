@@ -1636,4 +1636,9 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   test_useOfVoidResult_variableDeclaration_method_ok() async {
     return super.test_useOfVoidResult_variableDeclaration_method_ok();
   }
+
+  @override
+  test_useOfVoidResult_await() async {
+    return super.test_useOfVoidResult_await();
+  }
 }

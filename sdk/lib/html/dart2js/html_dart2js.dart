@@ -14504,7 +14504,7 @@ class EmbedElement extends HtmlElement {
 
 // WARNING: Do not edit - generated code.
 
-typedef void _EntriesCallback(List<Entry> entries);
+typedef void _EntriesCallback(List entries);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18843,7 +18843,7 @@ class IntersectionObserver extends Interceptor {
 // WARNING: Do not edit - generated code.
 
 typedef void IntersectionObserverCallback(
-    List<IntersectionObserverEntry> entries, IntersectionObserver observer);
+    List entries, IntersectionObserver observer);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -21179,8 +21179,7 @@ class MouseEvent extends UIEvent {
 
 // WARNING: Do not edit - generated code.
 
-typedef void MutationCallback(
-    List<MutationRecord> mutations, MutationObserver observer);
+typedef void MutationCallback(List mutations, MutationObserver observer);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -25106,7 +25105,7 @@ class ReportingObserver extends Interceptor {
 // WARNING: Do not edit - generated code.
 
 typedef void ReportingObserverCallback(
-    List<_Report> reports, ReportingObserver observer);
+    List reports, ReportingObserver observer);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -25481,7 +25480,6 @@ class RtcPeerConnection extends EventTarget {
   * Temporarily exposes _getStats and old getStats as getLegacyStats until Chrome fully supports
   * new getStats API.
   */
-  @JSName('getStats')
   Future<RtcStatsResponse> getLegacyStats([MediaStreamTrack selector]) {
     var completer = new Completer<RtcStatsResponse>();
     _getStats((value) {

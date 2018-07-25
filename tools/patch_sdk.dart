@@ -146,7 +146,7 @@ Future _main(List<String> argv) async {
       throw "Unknown mode: $mode";
   }
 
-  await _writeSync(
+  _writeSync(
       librariesJson.toFilePath(),
       jsonEncode({
         mode: {"libraries": locations}
