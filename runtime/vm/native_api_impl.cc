@@ -134,7 +134,8 @@ DART_EXPORT bool Dart_InvokeVMServiceMethod(uint8_t* request_json,
     }
   };
 
-  auto port = Dart_NewNativePort("service-rpc", &Utils::HandleResponse, false);
+  auto port =
+      ::Dart_NewNativePort("service-rpc", &Utils::HandleResponse, false);
   if (port == ILLEGAL_PORT) {
     return Api::NewError("Was unable to create native port.");
   }
