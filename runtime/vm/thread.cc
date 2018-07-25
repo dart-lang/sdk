@@ -118,6 +118,13 @@ Thread::Thread(Isolate* isolate)
   CACHED_CONSTANTS_LIST(DEFAULT_INIT)
 #undef DEFAULT_INIT
 
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
+    defined(TARGET_ARCH_X64)
+  for (intptr_t i = 0; i < kNumberOfDartAvailableCpuRegs; ++i) {
+    update_store_buffer_wrappers_entry_points_[i] = 0;
+  }
+#endif
+
 #define DEFAULT_INIT(name) name##_entry_point_ = 0;
   RUNTIME_ENTRY_LIST(DEFAULT_INIT)
 #undef DEFAULT_INIT
@@ -204,6 +211,15 @@ void Thread::InitVMConstants() {
   member_name = (init_expr);
   CACHED_CONSTANTS_LIST(INIT_VALUE)
 #undef INIT_VALUE
+
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
+    defined(TARGET_ARCH_X64)
+  for (intptr_t i = 0; i < kNumberOfDartAvailableCpuRegs; ++i) {
+    update_store_buffer_wrappers_entry_points_[i] =
+        StubCode::UpdateStoreBufferWrappers_entry()->EntryPoint() +
+        i * kStoreBufferWrapperSize;
+  }
+#endif
 
 #define INIT_VALUE(name)                                                       \
   ASSERT(name##_entry_point_ == 0);                                            \

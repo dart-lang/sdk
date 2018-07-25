@@ -2075,8 +2075,13 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (ShouldEmitStoreBarrier()) {
     const Register value_reg = locs()->in(1).reg();
+    // In intrinsic mode, there is no stack frame and the function will return
+    // by executing 'ret LR' directly. Therefore we cannot overwrite LR. (see
+    // ReturnInstr::EmitNativeCode).
+    ASSERT((kDartAvailableCpuRegs & (1 << LR)) == 0);
     __ StoreIntoObjectOffset(instance_reg, offset_in_bytes_, value_reg,
-                             CanValueBeSmi());
+                             CanValueBeSmi(),
+                             /*lr_reserved=*/!compiler->intrinsic_mode());
   } else {
     if (locs()->in(1).IsConstant()) {
       __ StoreIntoObjectOffsetNoBarrier(instance_reg, offset_in_bytes_,

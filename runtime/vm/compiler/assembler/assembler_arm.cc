@@ -1551,7 +1551,9 @@ void Assembler::StoreIntoObjectFilter(Register object,
     bic(IP, value, Operand(object));
   }
   tst(IP, Operand(kNewObjectAlignmentOffset));
-  b(label, how_to_jump == kJumpToNoUpdate ? EQ : NE);
+  if (how_to_jump != kNoJump) {
+    b(label, how_to_jump == kJumpToNoUpdate ? EQ : NE);
+  }
 }
 
 Register UseRegister(Register reg, RegList* used) {
@@ -1576,37 +1578,47 @@ Register AllocateRegister(RegList* used) {
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
-                                CanBeSmi can_be_smi) {
+                                CanBeSmi can_be_smi,
+                                bool lr_reserved) {
   ASSERT(object != value);
   str(value, dest);
-  Label done;
-  StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
   // A store buffer update is required.
-  RegList regs = (1 << LR);
-  if (value != R0) {
-    regs |= (1 << R0);  // Preserve R0.
+  if (lr_reserved) {
+    StoreIntoObjectFilter(object, value, nullptr, can_be_smi, kNoJump);
+    ldr(LR, Address(THR, Thread::update_store_buffer_wrappers_offset(object)),
+        NE);
+    blx(LR, NE);
+  } else {
+    Label done;
+    StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
+    RegList regs = 0;
+    regs |= (1 << LR);
+    if (value != R0) {
+      regs |= (1 << R0);  // Preserve R0.
+    }
+    PushList(regs);
+    if (object != R0) {
+      mov(R0, Operand(object));
+    }
+    ldr(LR, Address(THR, Thread::update_store_buffer_entry_point_offset()));
+    blx(LR);
+    PopList(regs);
+    Bind(&done);
   }
-  PushList(regs);
-  if (object != R0) {
-    mov(R0, Operand(object));
-  }
-  ldr(LR, Address(THR, Thread::update_store_buffer_entry_point_offset()));
-  blx(LR);
-  PopList(regs);
-  Bind(&done);
 }
 
 void Assembler::StoreIntoObjectOffset(Register object,
                                       int32_t offset,
                                       Register value,
-                                      CanBeSmi can_value_be_smi) {
+                                      CanBeSmi can_value_be_smi,
+                                      bool lr_reserved) {
   int32_t ignored = 0;
   if (Address::CanHoldStoreOffset(kWord, offset - kHeapObjectTag, &ignored)) {
     StoreIntoObject(object, FieldAddress(object, offset), value,
-                    can_value_be_smi);
+                    can_value_be_smi, lr_reserved);
   } else {
     AddImmediate(IP, object, offset - kHeapObjectTag);
-    StoreIntoObject(object, Address(IP), value, can_value_be_smi);
+    StoreIntoObject(object, Address(IP), value, can_value_be_smi, lr_reserved);
   }
 }
 
