@@ -3196,7 +3196,7 @@ class FixProcessor {
         // maybe static
         if (target is Identifier) {
           staticModifier =
-              resolutionMap.bestElementForIdentifier(target).kind ==
+              resolutionMap.staticElementForIdentifier(target).kind ==
                   ElementKind.CLASS;
         }
         // use different utils

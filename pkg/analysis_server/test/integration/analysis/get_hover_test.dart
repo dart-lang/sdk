@@ -73,7 +73,6 @@ main() {
     String docRegexp: null,
     bool isLiteral: false,
     List<String> parameterRegexps: null,
-    propagatedType: null,
   }) {
     int offset = text.indexOf(target);
     return sendAnalysisGetHover(pathname, offset).then((result) {
@@ -163,7 +162,7 @@ main() {
           isCore: true, docRegexp: '.*'));
       tests.add(checkHover(
           'localVar =', 8, ['num', 'localVar'], 'local variable', ['num'],
-          isLocal: true, propagatedType: 'int'));
+          isLocal: true));
       tests.add(checkHover('topLevelVar.length;', 11, ['List', 'topLevelVar'],
           'top level variable', ['List']));
       tests.add(checkHover(
@@ -181,7 +180,7 @@ main() {
           isCore: true, docRegexp: '.*'));
       tests.add(checkHover(
           'localVar)', 8, ['num', 'localVar'], 'local variable', ['num'],
-          isLocal: true, parameterRegexps: ['.*'], propagatedType: 'int'));
+          isLocal: true, parameterRegexps: ['.*']));
       tests.add(checkHover(
           'func(35', 4, ['func', 'int', 'param'], 'function', ['int', 'void'],
           docRegexp: 'Documentation for func'));

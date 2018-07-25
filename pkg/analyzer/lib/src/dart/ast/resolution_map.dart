@@ -12,22 +12,27 @@ import 'package:analyzer/dart/element/type.dart';
  * implementation.
  */
 class ResolutionMapImpl implements ResolutionMap {
+  @deprecated
   @override
   ExecutableElement bestElementForFunctionExpressionInvocation(
           FunctionExpressionInvocation node) =>
       node.staticElement;
 
+  @deprecated
   @override
   Element bestElementForIdentifier(Identifier node) => node.staticElement;
 
+  @deprecated
   @override
   MethodElement bestElementForMethodReference(MethodReferenceExpression node) =>
       node.staticElement;
 
+  @deprecated
   @override
   ParameterElement bestParameterElementForExpression(Expression node) =>
       node.staticParameterElement;
 
+  @deprecated
   @override
   DartType bestTypeForExpression(Expression node) => node.staticType;
 
@@ -100,29 +105,29 @@ class ResolutionMapImpl implements ResolutionMap {
           FormalParameterList node) =>
       node.parameterElements;
 
+  @deprecated
   @override
-  // TODO(brianwilkerson) Remove this method.
   ExecutableElement propagatedElementForFunctionExpressionInvocation(
           FunctionExpressionInvocation node) =>
       null;
 
+  @deprecated
   @override
-  // TODO(brianwilkerson) Remove this method.
   Element propagatedElementForIdentifier(Identifier node) => null;
 
+  @deprecated
   @override
-  // TODO(brianwilkerson) Remove this method.
   MethodElement propagatedElementForMethodReference(
           MethodReferenceExpression node) =>
       null;
 
+  @deprecated
   @override
-  // TODO(brianwilkerson) Remove this method.
   ParameterElement propagatedParameterElementForExpression(Expression node) =>
       null;
 
+  @deprecated
   @override
-  // TODO(brianwilkerson) Remove this method.
   DartType propagatedTypeForExpression(Expression node) => null;
 
   @override

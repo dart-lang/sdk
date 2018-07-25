@@ -1247,7 +1247,7 @@ abstract class OutputUtils {
       }
     } else if (returnNode is Identifier) {
       // ConstructorDeclaration returns an Identifier from returnType
-      if (resolutionMap.bestTypeForExpression(returnNode).isVoid) {
+      if (resolutionMap.staticTypeForExpression(returnNode).isVoid) {
         returnTypeVName = voidBuiltin;
       } else {
         returnTypeVName =

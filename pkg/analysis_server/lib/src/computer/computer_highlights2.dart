@@ -428,7 +428,7 @@ class DartUnitHighlightsComputer2 {
     if (e is SimpleIdentifier && e.staticElement is PrefixElement) {
       return false;
     }
-    return resolutionMap.bestTypeForExpression(e).isDynamic;
+    return resolutionMap.staticTypeForExpression(e).isDynamic;
   }
 }
 

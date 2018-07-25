@@ -2399,6 +2399,7 @@ class SyntheticIdentifier extends IdentifierImpl {
   @override
   int get precedence => 16;
 
+  @deprecated
   @override
   Element get propagatedElement => null;
 
