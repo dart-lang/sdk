@@ -7141,7 +7141,13 @@ class B {
 }''');
     await computeAnalysisResult(source);
     assertErrors(
-        source, [CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR]);
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.CONSTRUCTOR_NOT_FOUND,
+                CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR
+              ]
+            : [CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR]);
   }
 
   test_redirectToNonClass_notAType() async {

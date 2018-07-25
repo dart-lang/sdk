@@ -764,12 +764,14 @@ class LibraryAnalyzer {
               var redirectedConstructor = context.redirectedConstructor;
               redirectName.staticElement = redirectedConstructor;
               // TODO(scheglov) Support for import prefix?
-              DeclarationResolver.applyConstructorElement(
-                  _libraryElement,
-                  null,
-                  redirectedConstructor,
-                  redirectedConstructor.returnType,
-                  redirectName);
+              if (redirectedConstructor != null) {
+                DeclarationResolver.applyConstructorElement(
+                    _libraryElement,
+                    null,
+                    redirectedConstructor,
+                    redirectedConstructor.returnType,
+                    redirectName);
+              }
               // TODO(scheglov) Add support for type parameterized redirects.
               // Annotations are stored separately for each formal parameter.
               for (var parameter in member.parameters.parameters) {

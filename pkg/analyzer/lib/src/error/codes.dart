@@ -795,6 +795,9 @@ class CompileTimeErrorCode extends ErrorCode {
           "The class '{0}' doesn't have a default constant constructor.",
           correction: "Try calling a different contructor.");
 
+  static const CompileTimeErrorCode CONSTRUCTOR_NOT_FOUND =
+      const CompileTimeErrorCode.fromFasta('CONSTRUCTOR_NOT_FOUND');
+
   static const CompileTimeErrorCode DECLARED_MEMBER_CONFLICTS_WITH_INHERITED =
       const CompileTimeErrorCode.fromFasta(
           'DECLARED_MEMBER_CONFLICTS_WITH_INHERITED');

@@ -1154,6 +1154,8 @@ MetadataTypeArguments:
 ConstructorNotFound:
   template: "Couldn't find constructor '#name'."
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: CONSTRUCTOR_NOT_FOUND
+  dart2jsCode: "*fatal*"
 
 ConstructorWithReturnType:
   template: "Constructors can't have a return type."
@@ -1208,6 +1210,8 @@ FieldInitializerOutsideConstructor:
 RedirectionTargetNotFound:
   template: "Redirection constructor target not found: '#name'"
   severity: ERROR_LEGACY_WARNING
+  analyzerCode: REDIRECT_TO_MISSING_CONSTRUCTOR
+  dart2jsCode: "*fatal*"
 
 CyclicTypedef:
   template: "The typedef '#name' has a reference to itself."

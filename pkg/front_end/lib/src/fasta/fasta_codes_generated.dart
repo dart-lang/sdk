@@ -1370,6 +1370,8 @@ const Template<Message Function(String name)> templateConstructorNotFound =
 const Code<Message Function(String name)> codeConstructorNotFound =
     const Code<Message Function(String name)>(
         "ConstructorNotFound", templateConstructorNotFound,
+        analyzerCode: "CONSTRUCTOR_NOT_FOUND",
+        dart2jsCode: "*fatal*",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5968,6 +5970,8 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)> codeRedirectionTargetNotFound =
     const Code<Message Function(String name)>(
         "RedirectionTargetNotFound", templateRedirectionTargetNotFound,
+        analyzerCode: "REDIRECT_TO_MISSING_CONSTRUCTOR",
+        dart2jsCode: "*fatal*",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

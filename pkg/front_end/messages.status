@@ -78,7 +78,6 @@ ConstEvalNonConstantVariableGet/dart2jsCode: Fail
 ConstEvalNonConstantVariableGet/example: Fail
 ConstEvalZeroDivisor/example: Fail
 ConstFieldWithoutInitializer/example: Fail
-ConstructorNotFound/analyzerCode: Fail
 ConstructorNotFound/example: Fail
 ConstructorNotSync/example: Fail
 ContinueOutsideOfLoop/script1: Fail
@@ -290,7 +289,6 @@ PreviousUseOfName/example: Fail
 PrivateNamedParameter/example: Fail
 RedirectingConstructorWithBody/script1: Fail
 RedirectionInNonFactory/script1: Fail
-RedirectionTargetNotFound/analyzerCode: Fail
 RedirectionTargetNotFound/example: Fail
 RethrowNotCatch/example: Fail
 ReturnTypeFunctionExpression/analyzerCode: Fail

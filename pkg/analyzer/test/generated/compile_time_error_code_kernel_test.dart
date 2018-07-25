@@ -1410,18 +1410,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_redirectToMissingConstructor_named() async {
-    await super.test_redirectToMissingConstructor_named();
-  }
-
-  @override
-  @failingTest
-  test_redirectToMissingConstructor_unnamed() async {
-    await super.test_redirectToMissingConstructor_unnamed();
-  }
-
-  @override
-  @failingTest
   test_redirectToNonClass_notAType() async {
     await super.test_redirectToNonClass_notAType();
   }

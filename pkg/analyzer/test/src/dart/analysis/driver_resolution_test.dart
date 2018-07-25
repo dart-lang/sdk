@@ -9365,6 +9365,35 @@ main() {
     expect(property.staticType, isDynamicType);
   }
 
+  test_unresolved_redirectingFactory_1() async {
+    addTestFile(r'''
+class A {
+  factory A() = B;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+  }
+
+  test_unresolved_redirectingFactory_22() async {
+    addTestFile(r'''
+class A {
+  factory A() = B.named;
+}
+class B {}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var bRef = findNode.simple('B.');
+    assertElement(bRef, findElement.class_('B'));
+    assertType(bRef, 'B');
+
+    var namedRef = findNode.simple('named;');
+    assertElementNull(namedRef);
+    expect(namedRef.staticType, useCFE ? isDynamicType : isNull);
+  }
+
   test_unresolved_simpleIdentifier() async {
     addTestFile(r'''
 main() {
