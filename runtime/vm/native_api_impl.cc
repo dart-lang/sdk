@@ -11,6 +11,7 @@
 #include "vm/message.h"
 #include "vm/native_message_handler.h"
 #include "vm/port.h"
+#include "vm/service_isolate.h"
 
 namespace dart {
 
@@ -93,6 +94,85 @@ DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id) {
 
   // TODO(turnidge): Check that the port is native before trying to close.
   return PortMap::ClosePort(native_port_id);
+}
+
+static Monitor* vm_service_calls_monitor = new Monitor();
+
+DART_EXPORT bool Dart_InvokeVMServiceMethod(uint8_t* request_json,
+                                            intptr_t request_json_length,
+                                            uint8_t** response_json,
+                                            intptr_t* response_json_length,
+                                            char** error) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate == nullptr || !isolate->is_service_isolate());
+  IsolateSaver saver(isolate);
+
+  // We only allow one isolate reload at a time.  If this turns out to be on the
+  // critical path, we can change it to have a global datastructure which is
+  // mapping the reply ports to receive buffers.
+  MonitorLocker _(vm_service_calls_monitor);
+
+  static Monitor* vm_service_call_monitor = new Monitor();
+  static uint8_t* result_bytes = nullptr;
+  static intptr_t result_length = 0;
+
+  ASSERT(result_bytes == nullptr);
+  ASSERT(result_length == 0);
+
+  struct Utils {
+    static void HandleResponse(Dart_Port dest_port_id, Dart_CObject* message) {
+      MonitorLocker monitor(vm_service_call_monitor);
+
+      RELEASE_ASSERT(message->type == Dart_CObject_kTypedData);
+      RELEASE_ASSERT(message->value.as_typed_data.type ==
+                     Dart_TypedData_kUint8);
+      result_length = message->value.as_typed_data.length;
+      result_bytes = reinterpret_cast<uint8_t*>(malloc(result_length));
+      memmove(result_bytes, message->value.as_typed_data.values, result_length);
+
+      monitor.Notify();
+    }
+  };
+
+  auto port = Dart_NewNativePort("service-rpc", &Utils::HandleResponse, false);
+  if (port == ILLEGAL_PORT) {
+    return Api::NewError("Was unable to create native port.");
+  }
+
+  // Before sending the message we'll lock the monitor, which the receiver
+  // will later on notify once the answer has been received.
+  MonitorLocker monitor(vm_service_call_monitor);
+
+  if (ServiceIsolate::SendServiceRpc(request_json, request_json_length, port)) {
+    // We posted successfully and expect the vm-service to send the reply, so
+    // we will wait for it now.
+    auto wait_result = monitor.Wait();
+    ASSERT(wait_result == Monitor::kNotified);
+
+    // The caller takes ownership of the data.
+    *response_json = result_bytes;
+    *response_json_length = result_length;
+
+    // Reset global data, which can be used by the next call (after the mutex
+    // has been released).
+    result_bytes = nullptr;
+    result_length = 0;
+
+    // After the data has been received, we will not get any more messages on
+    // this port and can safely close it now.
+    Dart_CloseNativePort(port);
+
+    return true;
+  } else {
+    // We couldn't post the message and will not receive any reply. Therefore we
+    // clean up the port and return an error.
+    Dart_CloseNativePort(port);
+
+    if (error != nullptr) {
+      *error = strdup("Was unable to post message to isolate.");
+    }
+    return false;
+  }
 }
 
 // --- Verification tools ---

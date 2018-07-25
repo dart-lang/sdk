@@ -158,6 +158,29 @@ typedef void (*Dart_EmbedderInformationCallback)(
 DART_EXPORT void Dart_SetEmbedderInformationCallback(
     Dart_EmbedderInformationCallback callback);
 
+/**
+ * Invoke a vm-service method and wait for its result.
+ *
+ * \param request_json The utf8-encoded json-rpc request.
+ * \param request_json_length The length of the json-rpc request.
+ *
+ * \param response_json The returned utf8-encoded json response, must be
+ *   free()ed by caller.
+ * \param response_json_length The length of the returned json response.
+ * \param error An optional error, must be free()ed by caller.
+ *
+ * \return Whether the call was sucessfully performed.
+ *
+ * NOTE: This method does not need a current isolate and must not have the
+ * vm-isolate being the current isolate. It must be called after
+ * Dart_Initialize() and before Dart_Cleanup().
+ */
+DART_EXPORT bool Dart_InvokeVMServiceMethod(uint8_t* request_json,
+                                            intptr_t request_json_length,
+                                            uint8_t** response_json,
+                                            intptr_t* response_json_length,
+                                            char** error);
+
 /*
  * ========
  * Event Streams

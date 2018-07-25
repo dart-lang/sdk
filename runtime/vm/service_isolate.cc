@@ -44,6 +44,8 @@ DEFINE_FLAG(bool,
 #define VM_SERVICE_WEB_SERVER_CONTROL_MESSAGE_ID 3
 #define VM_SERVICE_SERVER_INFO_MESSAGE_ID 4
 
+#define VM_SERVICE_METHOD_CALL_FROM_NATIVE 5
+
 static RawArray* MakeServiceControlMessage(Dart_Port port_id,
                                            intptr_t code,
                                            const String& name) {
@@ -151,6 +153,39 @@ Dart_Port ServiceIsolate::WaitForLoadPort() {
 Dart_Port ServiceIsolate::LoadPort() {
   MonitorLocker ml(monitor_);
   return load_port_;
+}
+
+bool ServiceIsolate::SendServiceRpc(uint8_t* request_json,
+                                    intptr_t request_json_length,
+                                    Dart_Port reply_port) {
+  // Keep in sync with "sdk/lib/vmservice/vmservice.dart:_handleNativeRpcCall".
+  Dart_CObject opcode;
+  opcode.type = Dart_CObject_kInt32;
+  opcode.value.as_int32 = VM_SERVICE_METHOD_CALL_FROM_NATIVE;
+
+  Dart_CObject message;
+  message.type = Dart_CObject_kTypedData;
+  message.value.as_typed_data.type = Dart_TypedData_kUint8;
+  message.value.as_typed_data.length = request_json_length;
+  message.value.as_typed_data.values = request_json;
+
+  Dart_CObject send_port;
+  send_port.type = Dart_CObject_kSendPort;
+  send_port.value.as_send_port.id = reply_port;
+  send_port.value.as_send_port.origin_id = ILLEGAL_PORT;
+
+  Dart_CObject* request_array[] = {
+      &opcode,
+      &message,
+      &send_port,
+  };
+
+  Dart_CObject request;
+  request.type = Dart_CObject_kArray;
+  request.value.as_array.values = request_array;
+  request.value.as_array.length = ARRAY_SIZE(request_array);
+
+  return Dart_PostCObject(ServiceIsolate::Port(), &request);
 }
 
 bool ServiceIsolate::SendIsolateStartupMessage() {
