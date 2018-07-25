@@ -2855,8 +2855,8 @@ class Parser {
       reportRecoverableError(next, fasta.messageRedirectionInNonFactory);
       token = parseRedirectingFactoryBody(token);
     } else {
-      token = parseFunctionBody(
-          token, false, staticToken == null || externalToken != null);
+      token = parseFunctionBody(token, false,
+          (staticToken == null || externalToken != null) && inPlainSync);
     }
     asyncState = savedAsyncModifier;
     listener.endMethod(getOrSet, beforeStart.next, beforeParam.next, token);

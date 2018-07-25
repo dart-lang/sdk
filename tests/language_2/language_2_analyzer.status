@@ -9,12 +9,6 @@ error_stacktrace_test/00: MissingCompileTimeError
 vm/lazy_deopt_with_exception_test: CompileTimeError
 
 [ $compiler == dart2analyzer && $analyzer_use_fasta_parser ]
-async_await_syntax_test/b00a: MissingCompileTimeError
-async_await_syntax_test/b00b: MissingCompileTimeError
-async_await_syntax_test/b00c: MissingCompileTimeError
-async_await_syntax_test/e4: MissingCompileTimeError
-async_await_syntax_test/e5: MissingCompileTimeError
-async_await_syntax_test/e6: MissingCompileTimeError
 constructor_with_type_parameters_test/05: MissingCompileTimeError
 constructor_with_type_parameters_test/09: MissingCompileTimeError
 constructor_with_type_parameters_test/11: MissingCompileTimeError
