@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.non_error_resolver_test;
-
 import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -1257,6 +1255,7 @@ class A {
     verify([source]);
   }
 
+  @failingTest
   test_conflictingStaticSetterAndInstanceMember_thisClass_method() async {
     Source source = addSource(r'''
 class A {
@@ -1264,7 +1263,15 @@ class A {
   static set x(int p) {}
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    if (useCFE) {
+      assertErrors(source, [
+        CompileTimeErrorCode.CONFLICTS_WITH_MEMBER,
+        CompileTimeErrorCode.CONFLICTS_WITH_MEMBER
+      ]);
+    } else {
+      assertErrors(
+          source, [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
+    }
     verify([source]);
   }
 
@@ -1308,7 +1315,23 @@ const int value = 12345;
     verify([source]);
   }
 
-  test_constConstructorWithMixinWithField() async {
+  @failingTest
+  test_constConstructorWithMixinWithField_withoutSuperMixins() async {
+    Source source = addSource(r'''
+class M {
+}
+class A extends Object with M {
+  const A();
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_CONSTRUCTOR_IN_SUBCLASS_OF_MIXIN_APPLICATION
+    ]);
+    verify([source]);
+  }
+
+  test_constConstructorWithMixinWithField_withSuperMixins() async {
+    resetWith(options: new AnalysisOptionsImpl()..enableSuperMixins = true);
     Source source = addSource(r'''
 class M {
 }
@@ -1358,8 +1381,12 @@ class B extends A {
   const B(): super();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SUPER_METHOD]);
+    } else {
+      assertErrors(source,
+          [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
+    }
     verify([source]);
   }
 
@@ -3566,7 +3593,11 @@ main() {
   v();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else {
+      assertErrors(source, [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
+    }
     verify([source]);
   }
 
@@ -4772,15 +4803,17 @@ class A {
     verify([source]);
   }
 
+  @failingTest
   test_null_callMethod() async {
     Source source = addSource(r'''
 main() {
   null.m();
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
+  @failingTest
   test_null_callOperator() async {
     Source source = addSource(r'''
 main() {
@@ -4789,7 +4822,10 @@ main() {
   null[0];
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    assertErrors(source, [
+      StaticTypeWarningCode.UNDEFINED_METHOD,
+      StaticTypeWarningCode.UNDEFINED_METHOD
+    ]);
   }
 
   test_optionalNew_rewrite() async {
@@ -5931,7 +5967,14 @@ main() {
   print(is String);
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [ParserErrorCode.MISSING_IDENTIFIER]);
+    if (useCFE) {
+      assertErrors(source, [
+        ParserErrorCode.MISSING_IDENTIFIER,
+        StaticTypeWarningCode.UNDEFINED_GETTER
+      ]);
+    } else {
+      assertErrors(source, [ParserErrorCode.MISSING_IDENTIFIER]);
+    }
   }
 
   test_undefinedIdentifier_synthetic_whenMethodName() async {

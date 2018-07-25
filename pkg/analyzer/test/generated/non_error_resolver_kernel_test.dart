@@ -17,10 +17,6 @@ main() {
 /// the Dart 2.0 plan, or disabled for Dart 2.0 altogether.
 const notForDart2 = const Object();
 
-/// Tests marked with this annotations fail because we either have not triaged
-/// them, or know that this is an analyzer problem.
-const potentialAnalyzerProblem = const Object();
-
 /// Tests marked with this annotation fail because of an Analyzer problem.
 class AnalyzerProblem {
   const AnalyzerProblem(String issueUri);
@@ -127,39 +123,30 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   }
 
   @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_conflictingStaticSetterAndInstanceMember_thisClass_method() async {
-    // Bad state: Unable to convert (null, @39, Conflicts with member 'x'.)
     return super
         .test_conflictingStaticSetterAndInstanceMember_thisClass_method();
   }
 
   @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33676')
-  test_constConstructorWithMixinWithField() {
-    // Bad state: Unable to convert (Unspecified, null, @52, Can't extend a mixin application and be 'const'.)
-    return super.test_constConstructorWithMixinWithField();
+  test_constConstructorWithMixinWithField_withoutSuperMixins() async {
+    return super.test_constConstructorWithMixinWithField_withoutSuperMixins();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_constConstructorWithNonConstSuper_unresolved() async {
-    return super.test_constConstructorWithNonConstSuper_unresolved();
+  test_constConstructorWithMixinWithField_withSuperMixins() async {
+    return super.test_constConstructorWithMixinWithField_withSuperMixins();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
   test_finalNotInitialized_hasNativeClause_hasConstructor() async {
     return super.test_finalNotInitialized_hasNativeClause_hasConstructor();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
   test_finalNotInitialized_hasNativeClause_noConstructor() async {
     return super.test_finalNotInitialized_hasNativeClause_noConstructor();
   }
@@ -168,7 +155,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/33799')
   test_functionTypeAlias_scope_signature() async {
-    // Caused by Bad state: Found 1 annotation nodes and 0 element annotations
     return super.test_functionTypeAlias_scope_signature();
   }
 
@@ -181,13 +167,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31758')
-  test_invocationOfNonFunction_Object() async {
-    return super.test_invocationOfNonFunction_Object();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30609')
   test_metadata_enumConstantDeclaration() {
     // Failed to resolve 2 nodes
@@ -197,7 +176,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   test_nativeConstConstructor() {
-    // Expected 0 errors of type ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, found 1 (35)
     return super.test_nativeConstConstructor();
   }
 
@@ -216,15 +194,11 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   }
 
   @override
-  @failingTest
-  @notForDart2
   test_null_callMethod() async {
     return super.test_null_callMethod();
   }
 
   @override
-  @failingTest
-  @notForDart2
   test_null_callOperator() async {
     return super.test_null_callOperator();
   }
@@ -232,21 +206,11 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   test_optionalNew_rewrite_instantiatesToBounds() {
-    // Bad state: No data for named1 at 21
     return super.test_optionalNew_rewrite_instantiatesToBounds();
   }
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33677')
-  test_undefinedIdentifier_synthetic_whenExpression() {
-    // Expected 0 errors of type StaticTypeWarningCode.UNDEFINED_GETTER, found 1 (29)
-    return super.test_undefinedIdentifier_synthetic_whenExpression();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_undefinedIdentifier_synthetic_whenMethodName() async {
     return super.test_undefinedIdentifier_synthetic_whenMethodName();
   }
