@@ -1964,13 +1964,7 @@ class CodeGenerator extends Object
 
   JS.Statement _addConstructorToClass(
       JS.Expression className, String name, JS.Expression jsCtor) {
-    var ctorName = _constructorName(name);
-    if (JS.invalidStaticFieldName(name)) {
-      jsCtor =
-          runtimeCall('defineValue(#, #, #)', [className, ctorName, jsCtor]);
-    } else {
-      jsCtor = js.call('#.# = #', [className, ctorName, jsCtor]);
-    }
+    jsCtor = defineValueOnClass(className, _constructorName(name), jsCtor);
     return js.statement('#.prototype = #.prototype;', [jsCtor, className]);
   }
 
@@ -1982,17 +1976,9 @@ class CodeGenerator extends Object
       // Emit enum static fields
       var type = classElem.type;
       void addField(FieldElement e, JS.Expression value) {
-        var args = [
-          _emitStaticClassName(classElem),
-          _declareMemberName(e.getter),
-          value
-        ];
-        // TODO(jmesserly): should this be the job of `declareMemberName`?
-        if (JS.invalidStaticFieldName(e.name)) {
-          body.add(runtimeStatement('defineValue(#, #, #)', args));
-        } else {
-          body.add(js.statement('#.# = #', args));
-        }
+        body.add(defineValueOnClass(_emitStaticClassName(classElem),
+                _declareMemberName(e.getter), value)
+            .toStatement());
       }
 
       int index = 0;

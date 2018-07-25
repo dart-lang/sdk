@@ -1080,7 +1080,7 @@ class ProgramCompiler extends Object
       fields.add(valueField);
       for (var f in fields) {
         assert(f.isConst);
-        body.add(_defineValueOnClass(
+        body.add(defineValueOnClass(
                 classRef,
                 _emitStaticMemberName(f.name.name),
                 _visitInitializer(f.initializer, f.annotations))
@@ -1541,18 +1541,8 @@ class ProgramCompiler extends Object
 
   JS.Statement _addConstructorToClass(
       JS.Expression className, String name, JS.Expression jsCtor) {
-    jsCtor = _defineValueOnClass(className, _constructorName(name), jsCtor);
+    jsCtor = defineValueOnClass(className, _constructorName(name), jsCtor);
     return js.statement('#.prototype = #.prototype;', [jsCtor, className]);
-  }
-
-  JS.Expression _defineValueOnClass(
-      JS.Expression className, JS.Expression name, JS.Expression value) {
-    var args = [className, name, value];
-    if (name is JS.LiteralString &&
-        JS.invalidStaticFieldName(name.valueWithoutQuotes)) {
-      return runtimeCall('defineValue(#, #, #)', args);
-    }
-    return js.call('#.# = #', args);
   }
 
   List<JS.Method> _emitClassMethods(Class c) {

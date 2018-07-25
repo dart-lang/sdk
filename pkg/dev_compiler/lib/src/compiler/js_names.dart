@@ -292,17 +292,20 @@ bool invalidVariableName(String keyword, {bool strictMode = true}) {
   return false;
 }
 
-/// Returns true for invalid static field names in strict mode.
+/// Returns true for names that cannot be set via `className.fieldName = ...`
+/// on a JS class/constructor function.
 ///
-/// In particular, "caller" "callee" "arguments" and "name" cannot be used.
-/// These names however are valid as static getter/setter/method names using
-/// ES class syntax.
-bool invalidStaticFieldName(String name) {
+/// These are getters on `Function.prototype` so we cannot set them but we can
+/// define them on our object using `Object.defineProperty` or equivalent.
+/// They are also valid as static getter/setter/method names if we use the JS
+/// class syntax.
+bool isFunctionPrototypeGetter(String name) {
   switch (name) {
     case "arguments":
     case "caller":
     case "callee":
     case "name":
+    case "length":
       return true;
   }
   return false;
