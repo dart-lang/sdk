@@ -3518,6 +3518,55 @@ const bool b = a;
     assertType(aRef, 'int');
   }
 
+  test_invalid_catch_parameters_3() async {
+    addTestFile(r'''
+main() {
+  try { } catch (x, y, z) { }
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    assertTypeDynamic(findNode.simple('x,'));
+    assertType(findNode.simple('y,'), 'StackTrace');
+  }
+
+  test_invalid_catch_parameters_empty() async {
+    addTestFile(r'''
+main() {
+  try { } catch () { }
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+  }
+
+  test_invalid_catch_parameters_named_stack() async {
+    addTestFile(r'''
+main() {
+  try { } catch (e, {s}) { }
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    assertTypeDynamic(findNode.simple('e,'));
+    assertType(findNode.simple('s})'), useCFE ? 'StackTrace' : 'dynamic');
+  }
+
+  test_invalid_catch_parameters_optional_stack() async {
+    addTestFile(r'''
+main() {
+  try { } catch (e, [s]) { }
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    assertTypeDynamic(findNode.simple('e,'));
+    assertType(findNode.simple('s])'), useCFE ? 'StackTrace' : 'dynamic');
+  }
+
   test_invalid_const_methodInvocation() async {
     addTestFile(r'''
 const a = 'foo';

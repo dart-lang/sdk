@@ -203,6 +203,7 @@ InvalidCastLocalFunction/example: Fail
 InvalidCastNewExpr/example: Fail
 InvalidCastStaticMethod/example: Fail
 InvalidCastTopLevelFunction/example: Fail
+InvalidCatchArguments/example: Fail
 InvalidInitializer/example: Fail
 InvalidInlineFunctionType/analyzerCode: Fail
 InvalidPackageUri/analyzerCode: Fail

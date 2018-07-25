@@ -170,6 +170,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.INVALID_ANNOTATION,
   CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY,
   CompileTimeErrorCode.INVALID_ANNOTATION_GETTER,
+  CompileTimeErrorCode.INVALID_CATCH_ARGUMENTS,
   CompileTimeErrorCode.INVALID_CONSTANT,
   CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME,
   CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS,

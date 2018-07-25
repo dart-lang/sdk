@@ -914,7 +914,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     enterLocalScope(
         null,
         new FormalParameters<Expression, Statement, Arguments>(
-                parameters.positionalParameters, null, -1)
+                parameters.positionalParameters, null, -1, 0)
             .computeFormalParameterScope(scope, member, this));
 
     token = parser.parseExpression(parser.syntheticPreviousToken(token));
@@ -2506,7 +2506,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     popList(count, variables);
     FormalParameters<Expression, Statement, Arguments> formals =
         new FormalParameters<Expression, Statement, Arguments>(
-            variables, optional, beginToken.charOffset);
+            variables,
+            optional,
+            beginToken.charOffset,
+            endToken.end - beginToken.charOffset);
     constantContext = pop();
     push(formals);
     if ((inCatchClause || functionNestingLevel != 0) &&
@@ -2557,14 +2560,25 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
               stackTrace, coreTypes.stackTraceClass.rawType);
         }
       } else {
-        body = forest.block(
-            catchKeyword,
-            <Statement>[
-              compileTimeErrorInTry ??=
-                  deprecated_buildCompileTimeErrorStatement(
-                      "Invalid catch arguments.", catchKeyword.next.charOffset)
-            ],
-            null);
+        buildCompileTimeError(fasta.messageInvalidCatchArguments,
+            catchParameters.charOffset, catchParameters.charLength);
+
+        var allFormals = <VariableDeclaration>[];
+        allFormals.addAll(catchParameters.required);
+        if (catchParameters.optional != null) {
+          allFormals.addAll(catchParameters.optional.formals);
+        }
+
+        var allCount = allFormals.length;
+        if (allCount >= 1) {
+          exception = allFormals[0];
+          forest.setParameterType(exception, type);
+        }
+        if (allCount >= 2) {
+          stackTrace = allFormals[1];
+          forest.setParameterType(
+              stackTrace, coreTypes.stackTraceClass.rawType);
+        }
       }
     }
     push(forest.catchClause(onKeyword, type, catchKeyword, exception,
@@ -4614,8 +4628,10 @@ class FormalParameters<Expression, Statement, Arguments> {
   final List<VariableDeclaration> required;
   final OptionalFormals optional;
   final int charOffset;
+  final int charLength;
 
-  FormalParameters(this.required, this.optional, this.charOffset);
+  FormalParameters(
+      this.required, this.optional, this.charOffset, this.charLength);
 
   FunctionNode addToFunction(FunctionNode function) {
     function.requiredParameterCount = required.length;

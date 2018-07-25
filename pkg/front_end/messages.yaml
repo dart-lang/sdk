@@ -2455,6 +2455,11 @@ InvalidCastTopLevelFunction:
   analyzerCode: INVALID_CAST_FUNCTION
   dart2jsCode: "*ignored*"
 
+InvalidCatchArguments:
+  template: "Invalid catch arguments."
+  analyzerCode: INVALID_CATCH_ARGUMENTS
+  dart2jsCode: "*fatal*"
+
 InvalidUseOfNullAwareAccess:
   template: "Cannot use '?.' here."
   tip: "Try using '.'."

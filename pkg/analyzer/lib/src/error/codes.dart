@@ -1470,6 +1470,9 @@ class CompileTimeErrorCode extends ErrorCode {
           'INVALID_ANNOTATION_GETTER', "Getters cannot be used as annotations.",
           correction: "Try using a top-level variable or a field.");
 
+  static const CompileTimeErrorCode INVALID_CATCH_ARGUMENTS =
+      const CompileTimeErrorCode.fromFasta('INVALID_CATCH_ARGUMENTS');
+
   /**
    * 15.31 Identifier Reference: It is a compile-time error if any of the
    * identifiers async, await or yield is used as an identifier in a function

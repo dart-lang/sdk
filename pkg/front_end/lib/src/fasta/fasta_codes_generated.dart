@@ -4303,6 +4303,16 @@ Message _withArgumentsInvalidCastTopLevelFunction(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidCatchArguments = messageInvalidCatchArguments;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidCatchArguments = const MessageCode(
+    "InvalidCatchArguments",
+    analyzerCode: "INVALID_CATCH_ARGUMENTS",
+    dart2jsCode: "*fatal*",
+    message: r"""Invalid catch arguments.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidCodePoint = messageInvalidCodePoint;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
