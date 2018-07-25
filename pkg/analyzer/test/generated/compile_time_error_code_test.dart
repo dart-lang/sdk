@@ -6368,13 +6368,7 @@ class C {
 ''');
     await computeAnalysisResult(source);
     assertErrors(
-        source,
-        useCFE
-            ? [
-                CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-                CompileTimeErrorCode.NOT_AN_LVALUE
-              ]
-            : [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
     verify([source]);
   }
 
@@ -6388,13 +6382,7 @@ f() {
 ''');
     await computeAnalysisResult(source);
     assertErrors(
-        source,
-        useCFE
-            ? [
-                CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-                CompileTimeErrorCode.NOT_AN_LVALUE
-              ]
-            : [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
     verify([source]);
   }
 
@@ -6410,13 +6398,7 @@ class C {
 ''');
     await computeAnalysisResult(source);
     assertErrors(
-        source,
-        useCFE
-            ? [
-                CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-                CompileTimeErrorCode.NOT_AN_LVALUE
-              ]
-            : [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
     verify([source]);
   }
 
@@ -6430,13 +6412,7 @@ f() {
 ''');
     await computeAnalysisResult(source);
     assertErrors(
-        source,
-        useCFE
-            ? [
-                CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-                CompileTimeErrorCode.NOT_AN_LVALUE
-              ]
-            : [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
     verify([source]);
   }
 
@@ -6649,13 +6625,7 @@ f() {
 ''');
     await computeAnalysisResult(source);
     assertErrors(
-        source,
-        useCFE
-            ? [
-                CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-                CompileTimeErrorCode.NOT_AN_LVALUE
-              ]
-            : [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
     verify([source]);
   }
 

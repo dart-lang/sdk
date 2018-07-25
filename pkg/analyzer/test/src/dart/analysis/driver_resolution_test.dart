@@ -2615,6 +2615,17 @@ class C<T> {
     expect(fElement.type, typeProvider.listType.instantiate([tElement.type]));
   }
 
+  test_for_in_assign_to_prefix() async {
+    addTestFile('''
+import "dart:core" as prefix;
+
+main() {
+  for (prefix in []) {}
+}
+''');
+    await resolveTestFile();
+  }
+
   test_formalParameter_functionTyped() async {
     addTestFile(r'''
 class A {

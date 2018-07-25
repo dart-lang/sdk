@@ -29,7 +29,7 @@ class Fisk extends core::Object {
       core::print(self::Fisk);
     }
     for (final dynamic #t3 in x) {
-      invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:17:10: Error: Can't assign to this.
+      invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:17:10: Error: A prefix can't be used as an expression.
     for (collection in x) {
          ^^^^^^^^^^";
       core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:18:13: Error: A prefix can't be used as an expression.
@@ -62,7 +62,7 @@ static method main(dynamic arguments) → dynamic {
     core::print(self::Fisk);
   }
   for (final dynamic #t8 in arguments) {
-    invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:37:8: Error: Can't assign to this.
+    invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:37:8: Error: A prefix can't be used as an expression.
   for (collection in arguments) {
        ^^^^^^^^^^";
     core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:38:11: Error: A prefix can't be used as an expression.

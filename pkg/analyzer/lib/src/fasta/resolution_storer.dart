@@ -256,7 +256,7 @@ class ResolutionStorer
         _store(writeLocation,
             declaration: writeVariableBinder.fileOffset,
             inferredType: writeType);
-      } else {
+      } else if (writeLocation != null) {
         _store(writeLocation,
             reference: writeTarget,
             isWriteReference: true,

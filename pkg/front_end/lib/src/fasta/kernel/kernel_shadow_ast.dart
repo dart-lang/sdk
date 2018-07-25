@@ -1588,7 +1588,7 @@ class IllegalAssignmentJudgment extends SyntheticExpressionJudgment {
     // inference currently requires expressions to have a parent (so that it can
     // replace them with their desugared equivalents), so create placeholder
     // parents if needed.
-    if (lhs.parent == null) {
+    if (lhs != null && lhs.parent == null) {
       new ExpressionStatement(lhs);
     }
     if (rhs != null && rhs.parent == null) {
@@ -1605,7 +1605,9 @@ class IllegalAssignmentJudgment extends SyntheticExpressionJudgment {
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    inferrer.inferExpression(factory, lhs, const UnknownType(), false);
+    if (lhs != null) {
+      inferrer.inferExpression(factory, lhs, const UnknownType(), false);
+    }
     if (assignmentOffset != -1) {
       inferrer.listener.invalidAssignment(this, assignmentOffset);
     }

@@ -1233,7 +1233,9 @@ abstract class PrefixUseGenerator implements Generator {
   String get debugName => "PrefixUseGenerator";
 
   @override
-  Generator asLvalue() => makeNonLValueGenerator();
+  Generator asLvalue() {
+    return new NonLvalueGenerator(helper, token, makeError(), null);
+  }
 
   @override
   Expression buildSimpleRead() => makeInvalidRead();
@@ -1299,10 +1301,12 @@ abstract class PrefixUseGenerator implements Generator {
 
   @override
   Expression makeInvalidRead() {
-    return new SyntheticExpressionJudgment(helper.buildCompileTimeError(
-        messageCantUsePrefixAsExpression,
-        offsetForToken(token),
-        lengthForToken(token)));
+    return new SyntheticExpressionJudgment(makeError());
+  }
+
+  Expression makeError() {
+    return helper.buildCompileTimeError(messageCantUsePrefixAsExpression,
+        offsetForToken(token), lengthForToken(token));
   }
 
   @override
