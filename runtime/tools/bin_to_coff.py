@@ -95,6 +95,9 @@ STRING_TABLE_OFFSET = 0x4 # Starting offset for the string table.
 SIZE_FORMAT         = 'I'
 SIZE_LENGTH         = calcsize(SIZE_FORMAT)
 
+SIZE_SYMBOL_FORMAT_X64 = 'Q'
+SIZE_SYMBOL_LENGTH_X64 = calcsize(SIZE_SYMBOL_FORMAT_X64)
+
 def main():
   parser = argparse.ArgumentParser(description='Generate a COFF file for binary data.')
   parser.add_argument('--input', dest='input', help='Path of the input file.')
@@ -125,8 +128,11 @@ def main():
     size_symbol = args.size_name if args.size_name else args.symbol_name + "Size"
     size_symbol_name = symbol_prefix + size_symbol
 
+  size_symbol_format = SIZE_SYMBOL_FORMAT_X64  if args.use_64_bit else SIZE_FORMAT
+  size_symbol_size = SIZE_SYMBOL_LENGTH_X64 if args.use_64_bit else SIZE_LENGTH
+
   # The symbol table is directly after the data section
-  symbol_table_ptr = (FILE_HEADER_SIZE + SECTION_HEADER_SIZE + section_size + SIZE_LENGTH)
+  symbol_table_ptr = (FILE_HEADER_SIZE + SECTION_HEADER_SIZE + section_size + size_symbol_size)
   string_table_len = 0
 
   # Symbols longer than 8 characters have their string representations stored
@@ -145,7 +151,7 @@ def main():
   offset = 0
   buff = create_string_buffer(FILE_HEADER_SIZE + SECTION_HEADER_SIZE +
                               section_size + num_symbols *
-                              SYMBOL_TABLE_ENTRY_SIZE + 2 * SIZE_LENGTH +
+                              SYMBOL_TABLE_ENTRY_SIZE + SIZE_LENGTH + size_symbol_size +
                               string_table_len)
 
   FILE_HEADER_MAGIC = FILE_HEADER_MAGIC_X64 if args.use_64_bit else FILE_HEADER_MAGIC_IA32
@@ -168,7 +174,7 @@ def main():
   # Populate the section header for a single section.
   pack_into(SECTION_HEADER_FORMAT, buff, offset,
       section_name, SECTION_PADDR, SECTION_VADDR,
-      section_size + SIZE_LENGTH, SECTION_RAW_DATA_PTR, SECTION_RELOCATION_PTR,
+      section_size + size_symbol_size, SECTION_RAW_DATA_PTR, SECTION_RELOCATION_PTR,
       SECTION_LINE_NUMS_PTR, SECTION_NUM_RELOCATION,
       SECTION_NUM_LINE_NUMS, section_type)
   offset += SECTION_HEADER_SIZE
@@ -178,8 +184,8 @@ def main():
   offset += section_size
 
   # Append the size of the section.
-  pack_into(SIZE_FORMAT, buff, offset, section_size)
-  offset += SIZE_LENGTH
+  pack_into(size_symbol_format, buff, offset, section_size)
+  offset += size_symbol_size
 
   # Build the symbol table. If a symbol name is 8 characters or less, it's
   # placed directly in the symbol table. If not, it's entered in the string
