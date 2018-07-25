@@ -837,32 +837,6 @@ void main() {
     }
   }
 
-  test_assignment_of_postfix_increment() async {
-    addTestFile('''
-f(int x, int y) {
-  x++ = y;
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-    var xElement = findElement.parameter('x');
-    assertElement(findNode.simple('x++'), xElement);
-    var yElement = findElement.parameter('y');
-    assertElement(findNode.simple('y;'), yElement);
-  }
-
-  test_assignment_of_unresolved_name() async {
-    addTestFile('''
-f(int y) {
-  x = y;
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-    var yElement = findElement.parameter('y');
-    assertElement(findNode.simple('y;'), yElement);
-  }
-
   test_assignment_to_final_parameter() async {
     addTestFile('''
 f(final int x) {
@@ -1004,6 +978,20 @@ g(x) {
     assertElement(findNode.simple('x;'), xElement);
   }
 
+  test_assignment_to_postfix_increment() async {
+    addTestFile('''
+f(int x, int y) {
+  x++ = y;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var xElement = findElement.parameter('x');
+    assertElement(findNode.simple('x++'), xElement);
+    var yElement = findElement.parameter('y');
+    assertElement(findNode.simple('y;'), yElement);
+  }
+
   test_assignment_to_prefix() async {
     var a = _p('/test/lib/a.dart');
     provider.newFile(a, '''
@@ -1023,6 +1011,18 @@ main() {
     var pReference = findNode.simple('p +=');
     expect(pReference.staticElement, same(pElement));
     expect(pReference.staticType, isNull);
+  }
+
+  test_assignment_to_unresolved_name() async {
+    addTestFile('''
+f(int y) {
+  x = y;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var yElement = findElement.parameter('y');
+    assertElement(findNode.simple('y;'), yElement);
   }
 
   test_assignmentExpression_compound_indexExpression() async {
@@ -2080,7 +2080,7 @@ var v = (() => 42)();
     expect(closureElement.enclosingElement, same(variableInitializer));
   }
 
-  test_compound_assignment_of_postfix_increment() async {
+  test_compound_assignment_to_postfix_increment() async {
     addTestFile('''
 f(int x, int y) {
   x++ += y;
@@ -2094,7 +2094,7 @@ f(int x, int y) {
     assertElement(findNode.simple('y;'), yElement);
   }
 
-  test_compound_assignment_of_unresolved_name() async {
+  test_compound_assignment_to_unresolved_name() async {
     addTestFile('''
 f(int y) {
   x += y;
@@ -6382,7 +6382,7 @@ void f<T, U>(T a, U b) {}
     }
   }
 
-  test_null_aware_assignment_of_postfix_increment() async {
+  test_null_aware_assignment_to_postfix_increment() async {
     addTestFile('''
 f(int x, int y) {
   x++ ??= y;
