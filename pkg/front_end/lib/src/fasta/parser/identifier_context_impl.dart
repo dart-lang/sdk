@@ -944,7 +944,7 @@ void checkAsyncAwaitYieldAsIdentifier(Token identifier, Parser parser) {
 }
 
 bool looksLikeStartOfNextClassMember(Token token) =>
-    token.isModifier || isOneOfOrEof(token, const ['get', 'set', 'void']);
+    token.isModifier || isOneOfOrEof(token, const ['@', 'get', 'set', 'void']);
 
 bool looksLikeStartOfNextTopLevelDeclaration(Token token) =>
     token.isTopLevelKeyword ||
