@@ -2828,6 +2828,17 @@ void main(f) {
     _assertTypeNameSimple(typeArguments[0], typeProvider.stringType);
   }
 
+  test_functionExpressionInvocation_namedArgument() async {
+    addTestFile(r'''
+int a;
+main(f) {
+  (f)(p: a);
+}
+''');
+    await resolveTestFile();
+    assertTopGetRef('a);', 'a');
+  }
+
   test_generic_function_type() async {
     addTestFile('''
 main() {

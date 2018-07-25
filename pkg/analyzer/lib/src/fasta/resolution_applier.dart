@@ -97,8 +97,20 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         constructorName.staticType = element.type;
       }
 
-      _applyResolutionToArguments(argumentList);
+      argumentList.accept(this);
       _resolveNamedArguments(argumentList, element.parameters);
+    }
+  }
+
+  @override
+  void visitArgumentList(ArgumentList node) {
+    for (var argument in node.arguments) {
+      if (argument is NamedExpression) {
+        argument.expression.accept(this);
+        argument.staticType = argument.expression.staticType;
+      } else {
+        argument.accept(this);
+      }
     }
   }
 
@@ -433,7 +445,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     constructorIdentifier?.staticElement = constructor;
 
     ArgumentList argumentList = node.argumentList;
-    _applyResolutionToArguments(argumentList);
+    argumentList.accept(this);
     _resolveNamedArguments(argumentList, constructor?.parameters);
   }
 
@@ -515,7 +527,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       node.methodName.staticType = invokeType;
     }
 
-    _applyResolutionToArguments(argumentList);
+    argumentList.accept(this);
 
     {
       var elementForParameters = invokeElement;
@@ -607,7 +619,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     constructorName?.staticElement = element;
 
     ArgumentList argumentList = node.argumentList;
-    _applyResolutionToArguments(argumentList);
+    argumentList.accept(this);
     _resolveNamedArguments(argumentList, element?.parameters);
   }
 
@@ -653,7 +665,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     node.staticElement = element;
 
     ArgumentList argumentList = node.argumentList;
-    _applyResolutionToArguments(argumentList);
+    argumentList.accept(this);
     _resolveNamedArguments(argumentList, element?.parameters);
   }
 
@@ -702,18 +714,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       node.type?.accept(this);
       node.metadata.accept(this);
       node.variables.accept(this);
-    }
-  }
-
-  /// Apply resolution to arguments of the [argumentList].
-  void _applyResolutionToArguments(ArgumentList argumentList) {
-    for (var argument in argumentList.arguments) {
-      if (argument is NamedExpression) {
-        argument.expression.accept(this);
-        argument.staticType = argument.expression.staticType;
-      } else {
-        argument.accept(this);
-      }
     }
   }
 
