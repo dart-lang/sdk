@@ -262,16 +262,21 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
       return;
     }
 
-    // Prepare the signature.
-    var signature =
-        new DartUnitSignatureComputer(unit, params.offset).compute();
-
-    // Send the response.
-    if (signature != null) {
-      server.sendResponse(signature.toResponse(request.id));
-    } else {
-      server.sendResponse(Response.getSignatureUnknownFunction(request));
+    // Ensure the offset provided is a valid location in the file.
+    final computer = new DartUnitSignatureComputer(unit, params.offset);
+    if (!computer.offsetIsValid) {
+      server.sendResponse(Response.getSignatureInvalidOffset(request));
+      return;
     }
+
+    // Try to get a signature.
+    final signature = computer.compute();
+    if (signature == null) {
+      server.sendResponse(Response.getSignatureUnknownFunction(request));
+      return;
+    }
+
+    server.sendResponse(signature.toResponse(request.id));
   }
 
   @override

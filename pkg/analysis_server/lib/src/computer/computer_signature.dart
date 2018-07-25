@@ -14,36 +14,44 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
  * A computer for the signature at the specified offset of a Dart [CompilationUnit].
  */
 class DartUnitSignatureComputer {
-  final CompilationUnit _unit;
-  final int _offset;
+  final AstNode _node;
+  DartUnitSignatureComputer(CompilationUnit _unit, int _offset)
+      : _node = new NodeLocator(_offset).searchWithin(_unit);
 
-  DartUnitSignatureComputer(this._unit, this._offset);
+  bool get offsetIsValid => _node != null;
 
   /**
    * Returns the computed signature information, maybe `null`.
    */
   AnalysisGetSignatureResult compute() {
-    AstNode node = new NodeLocator(_offset).searchWithin(_unit);
-    if (node == null) {
+    if (_node == null) {
       return null;
     }
 
     // Find the closest argument list.
-    while (node != null && !(node is ArgumentList)) {
-      node = node.parent;
+    var argsNode = _node;
+    while (argsNode != null && !(argsNode is ArgumentList)) {
+      argsNode = argsNode.parent;
     }
 
-    if (node == null) {
+    if (argsNode == null) {
       return null;
     }
 
-    final args = node;
+    final args = argsNode;
     String name;
     ExecutableElement execElement;
     if (args.parent is MethodInvocation) {
       MethodInvocation method = args.parent;
       name = method.methodName.name;
       execElement = ElementLocator.locate(method) as ExecutableElement;
+    } else if (args.parent is InstanceCreationExpression) {
+      InstanceCreationExpression constructor = args.parent;
+      name = constructor.constructorName.type.name.name;
+      if (constructor.constructorName.name != null) {
+        name += ".${constructor.constructorName.name.name}";
+      }
+      execElement = ElementLocator.locate(constructor) as ExecutableElement;
     }
 
     if (execElement == null) {
@@ -53,8 +61,8 @@ class DartUnitSignatureComputer {
     final parameters =
         execElement.parameters.map((p) => _convertParam(p)).toList();
 
-    return new AnalysisGetSignatureResult(name,
-        DartUnitHoverComputer.computeDocumentation(execElement), parameters, 0);
+    return new AnalysisGetSignatureResult(name, parameters, 0,
+        dartdoc: DartUnitHoverComputer.computeDocumentation(execElement));
   }
 
   ParameterInfo _convertParam(ParameterElement param) {

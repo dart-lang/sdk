@@ -80,6 +80,12 @@ public class RequestErrorCode {
   public static final String GET_SIGNATURE_INVALID_FILE = "GET_SIGNATURE_INVALID_FILE";
 
   /**
+   * An "analysis.getSignature" request specified an offset which is not a valid location within for
+   * the contents of the file specified FilePath.
+   */
+  public static final String GET_SIGNATURE_INVALID_OFFSET = "GET_SIGNATURE_INVALID_OFFSET";
+
+  /**
    * An "analysis.getSignature" request specified an offset that could not be matched to a function
    * call.
    */

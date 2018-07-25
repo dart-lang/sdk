@@ -436,7 +436,7 @@ abstract class IntegrationTestMixin {
    *
    *   The name of the function being invoked at the given offset.
    *
-   * dartdoc: String
+   * dartdoc: String (optional)
    *
    *   The dartdoc associated with the function being invoked. Other than the
    *   removal of the comment delimiters, including leading asterisks in the

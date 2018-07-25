@@ -499,6 +499,16 @@ class Response {
 
   /**
    * Initialize a newly created instance to represent the
+   * GET_SIGNATURE_INVALID_OFFSET error condition.
+   */
+  Response.getSignatureInvalidOffset(Request request)
+      : this(request.id,
+            error: new RequestError(
+                RequestErrorCode.GET_SIGNATURE_INVALID_OFFSET,
+                'Error during `analysis.getSignature`: invalid offset.'));
+
+  /**
+   * Initialize a newly created instance to represent the
    * GET_SIGNATURE_UNKNOWN_FUNCTION error condition.
    */
   Response.getSignatureUnknownFunction(Request request)

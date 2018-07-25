@@ -1259,6 +1259,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *   GET_NAVIGATION_INVALID_FILE
  *   GET_REACHABLE_SOURCES_INVALID_FILE
  *   GET_SIGNATURE_INVALID_FILE
+ *   GET_SIGNATURE_INVALID_OFFSET
  *   GET_SIGNATURE_UNKNOWN_FUNCTION
  *   IMPORT_ELEMENTS_INVALID_FILE
  *   INVALID_ANALYSIS_ROOT
@@ -1291,6 +1292,7 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "GET_NAVIGATION_INVALID_FILE",
   "GET_REACHABLE_SOURCES_INVALID_FILE",
   "GET_SIGNATURE_INVALID_FILE",
+  "GET_SIGNATURE_INVALID_OFFSET",
   "GET_SIGNATURE_UNKNOWN_FUNCTION",
   "IMPORT_ELEMENTS_INVALID_FILE",
   "INVALID_ANALYSIS_ROOT",
@@ -1719,7 +1721,7 @@ final Matcher isAnalysisGetSignatureParams = new LazyMatcher(() =>
  *
  * {
  *   "name": String
- *   "dartdoc": String
+ *   "dartdoc": optional String
  *   "parameters": List<ParameterInfo>
  *   "selectedParameterIndex": int
  * }
@@ -1727,9 +1729,10 @@ final Matcher isAnalysisGetSignatureParams = new LazyMatcher(() =>
 final Matcher isAnalysisGetSignatureResult = new LazyMatcher(
     () => new MatchesJsonObject("analysis.getSignature result", {
           "name": isString,
-          "dartdoc": isString,
           "parameters": isListOf(isParameterInfo),
           "selectedParameterIndex": isInt
+        }, optionalFields: {
+          "dartdoc": isString
         }));
 
 /**

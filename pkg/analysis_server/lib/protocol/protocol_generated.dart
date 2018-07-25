@@ -2017,7 +2017,7 @@ class AnalysisGetSignatureParams implements RequestParams {
  *
  * {
  *   "name": String
- *   "dartdoc": String
+ *   "dartdoc": optional String
  *   "parameters": List<ParameterInfo>
  *   "selectedParameterIndex": int
  * }
@@ -2063,7 +2063,6 @@ class AnalysisGetSignatureResult implements ResponseResult {
    * dartdoc.
    */
   void set dartdoc(String value) {
-    assert(value != null);
     this._dartdoc = value;
   }
 
@@ -2097,8 +2096,9 @@ class AnalysisGetSignatureResult implements ResponseResult {
     this._selectedParameterIndex = value;
   }
 
-  AnalysisGetSignatureResult(String name, String dartdoc,
-      List<ParameterInfo> parameters, int selectedParameterIndex) {
+  AnalysisGetSignatureResult(
+      String name, List<ParameterInfo> parameters, int selectedParameterIndex,
+      {String dartdoc}) {
     this.name = name;
     this.dartdoc = dartdoc;
     this.parameters = parameters;
@@ -2121,8 +2121,6 @@ class AnalysisGetSignatureResult implements ResponseResult {
       if (json.containsKey("dartdoc")) {
         dartdoc =
             jsonDecoder.decodeString(jsonPath + ".dartdoc", json["dartdoc"]);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, "dartdoc");
       }
       List<ParameterInfo> parameters;
       if (json.containsKey("parameters")) {
@@ -2143,7 +2141,8 @@ class AnalysisGetSignatureResult implements ResponseResult {
         throw jsonDecoder.mismatch(jsonPath, "selectedParameterIndex");
       }
       return new AnalysisGetSignatureResult(
-          name, dartdoc, parameters, selectedParameterIndex);
+          name, parameters, selectedParameterIndex,
+          dartdoc: dartdoc);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.getSignature result", json);
@@ -2161,7 +2160,9 @@ class AnalysisGetSignatureResult implements ResponseResult {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["name"] = name;
-    result["dartdoc"] = dartdoc;
+    if (dartdoc != null) {
+      result["dartdoc"] = dartdoc;
+    }
     result["parameters"] =
         parameters.map((ParameterInfo value) => value.toJson()).toList();
     result["selectedParameterIndex"] = selectedParameterIndex;
@@ -15606,6 +15607,7 @@ class RequestError implements HasToJson {
  *   GET_NAVIGATION_INVALID_FILE
  *   GET_REACHABLE_SOURCES_INVALID_FILE
  *   GET_SIGNATURE_INVALID_FILE
+ *   GET_SIGNATURE_INVALID_OFFSET
  *   GET_SIGNATURE_UNKNOWN_FUNCTION
  *   IMPORT_ELEMENTS_INVALID_FILE
  *   INVALID_ANALYSIS_ROOT
@@ -15704,6 +15706,13 @@ class RequestErrorCode implements Enum {
    */
   static const RequestErrorCode GET_SIGNATURE_INVALID_FILE =
       const RequestErrorCode._("GET_SIGNATURE_INVALID_FILE");
+
+  /**
+   * An "analysis.getSignature" request specified an offset which is not a
+   * valid location within for the contents of the file specified FilePath.
+   */
+  static const RequestErrorCode GET_SIGNATURE_INVALID_OFFSET =
+      const RequestErrorCode._("GET_SIGNATURE_INVALID_OFFSET");
 
   /**
    * An "analysis.getSignature" request specified an offset that could not be
@@ -15853,6 +15862,7 @@ class RequestErrorCode implements Enum {
     GET_NAVIGATION_INVALID_FILE,
     GET_REACHABLE_SOURCES_INVALID_FILE,
     GET_SIGNATURE_INVALID_FILE,
+    GET_SIGNATURE_INVALID_OFFSET,
     GET_SIGNATURE_UNKNOWN_FUNCTION,
     IMPORT_ELEMENTS_INVALID_FILE,
     INVALID_ANALYSIS_ROOT,
@@ -15902,6 +15912,8 @@ class RequestErrorCode implements Enum {
         return GET_REACHABLE_SOURCES_INVALID_FILE;
       case "GET_SIGNATURE_INVALID_FILE":
         return GET_SIGNATURE_INVALID_FILE;
+      case "GET_SIGNATURE_INVALID_OFFSET":
+        return GET_SIGNATURE_INVALID_OFFSET;
       case "GET_SIGNATURE_UNKNOWN_FUNCTION":
         return GET_SIGNATURE_UNKNOWN_FUNCTION;
       case "IMPORT_ELEMENTS_INVALID_FILE":
