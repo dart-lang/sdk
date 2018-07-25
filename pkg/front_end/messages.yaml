@@ -2737,3 +2737,8 @@ ReturnFromVoidFunction:
   analyzerCode: RETURN_OF_INVALID_TYPE
   dart2jsCode: "*fatal*"
   declaration: "void foo() { return 1; }"
+
+RethrowNotCatch:
+  template: "'rethrow' can only be used in catch clauses."
+  analyzerCode: RETHROW_OUTSIDE_CATCH
+  dart2jsCode: "*fatal*"

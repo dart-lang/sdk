@@ -3453,13 +3453,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endRethrowStatement(Token rethrowToken, Token endToken) {
     debugEvent("RethrowStatement");
-    if (inCatchBlock) {
-      push(forest.rethrowStatement(rethrowToken, endToken));
-    } else {
-      push(deprecated_buildCompileTimeErrorStatement(
-          "'rethrow' can only be used in catch clauses.",
-          rethrowToken.charOffset));
-    }
+    var error = inCatchBlock
+        ? null
+        : buildCompileTimeError(fasta.messageRethrowNotCatch,
+            offsetForToken(rethrowToken), lengthForToken(rethrowToken));
+    push(new ExpressionStatementJudgment(
+        new RethrowJudgment(rethrowToken, error)
+          ..fileOffset = offsetForToken(rethrowToken),
+        endToken));
   }
 
   @override

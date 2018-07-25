@@ -4380,6 +4380,19 @@ main() {
     assertType(tRef, useCFE ? 'dynamic' : null);
   }
 
+  test_invalid_rethrow() async {
+    addTestFile('''
+main() {
+  rethrow;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var rethrowExpression = findNode.rethrow_('rethrow;');
+    expect(rethrowExpression.staticType, isBottomType);
+  }
+
   test_isExpression() async {
     String content = r'''
 void main() {
@@ -9727,6 +9740,10 @@ class FindNode {
 
   PrefixedIdentifier prefixed(String search) {
     return _node(search).getAncestor((n) => n is PrefixedIdentifier);
+  }
+
+  RethrowExpression rethrow_(String search) {
+    return _node(search).getAncestor((n) => n is RethrowExpression);
   }
 
   SimpleIdentifier simple(String search) {

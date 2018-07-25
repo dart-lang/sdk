@@ -488,7 +488,7 @@ class Fangorn extends Forest {
   @override
   Statement rethrowStatement(Token rethrowKeyword, Token semicolon) {
     return new ExpressionStatementJudgment(
-        new RethrowJudgment(rethrowKeyword)
+        new RethrowJudgment(rethrowKeyword, null)
           ..fileOffset = offsetForToken(rethrowKeyword),
         semicolon);
   }

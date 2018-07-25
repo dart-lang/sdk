@@ -108,6 +108,7 @@ export 'kernel_shadow_ast.dart'
         PropertyAssignmentJudgment,
         PropertyGetJudgment,
         RedirectingInitializerJudgment,
+        RethrowJudgment,
         ReturnJudgment,
         StaticAssignmentJudgment,
         StaticGetJudgment,

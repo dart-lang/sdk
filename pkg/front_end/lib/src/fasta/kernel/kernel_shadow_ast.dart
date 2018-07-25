@@ -2500,10 +2500,11 @@ class RedirectingInitializerJudgment extends RedirectingInitializer
 /// Shadow object for [Rethrow].
 class RethrowJudgment extends Rethrow implements ExpressionJudgment {
   final Token rethrowKeyword;
+  final kernel.Expression desugaredError;
 
   DartType inferredType;
 
-  RethrowJudgment(this.rethrowKeyword);
+  RethrowJudgment(this.rethrowKeyword, this.desugaredError);
 
   @override
   Expression infer<Expression, Statement, Initializer, Type>(
@@ -2512,6 +2513,10 @@ class RethrowJudgment extends Rethrow implements ExpressionJudgment {
       DartType typeContext) {
     inferredType = const BottomType();
     inferrer.listener.rethrow_(this, fileOffset, rethrowKeyword, inferredType);
+    if (desugaredError != null) {
+      parent.replaceChild(this, desugaredError);
+      parent = null;
+    }
     return null;
   }
 }

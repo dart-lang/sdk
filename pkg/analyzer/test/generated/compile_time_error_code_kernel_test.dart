@@ -1470,12 +1470,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_rethrowOutsideCatch() async {
-    await super.test_rethrowOutsideCatch();
-  }
-
-  @override
-  @failingTest
   test_returnInGenerativeConstructor() async {
     await super.test_returnInGenerativeConstructor();
   }

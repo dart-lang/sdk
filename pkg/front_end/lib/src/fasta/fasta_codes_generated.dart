@@ -5991,6 +5991,15 @@ const MessageCode messageRequiredParameterWithDefault = const MessageCode(
         r"""Try removing the default value or making the parameter optional.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRethrowNotCatch = messageRethrowNotCatch;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRethrowNotCatch = const MessageCode("RethrowNotCatch",
+    analyzerCode: "RETHROW_OUTSIDE_CATCH",
+    dart2jsCode: "*fatal*",
+    message: r"""'rethrow' can only be used in catch clauses.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeReturnFromVoidFunction = messageReturnFromVoidFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
