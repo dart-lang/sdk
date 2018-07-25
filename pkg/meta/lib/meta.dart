@@ -18,6 +18,8 @@
 /// in the language tour.
 library meta;
 
+import 'dart:async' show Future;
+
 /// Used to annotate a function `f`. Indicates that `f` always throws an
 /// exception. Any functions that override `f`, in class inheritence, are also
 /// expected to conform to this contract.
@@ -262,7 +264,7 @@ class Required {
 ///   unawaited(log('Preferences saved!'));
 /// }
 /// ```
-void unawaited(Future<Object> future) {}
+void unawaited(Future<void> future) {}
 
 class _AlwaysThrows {
   const _AlwaysThrows();
