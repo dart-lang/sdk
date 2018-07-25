@@ -494,6 +494,81 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
   arguments.SetReturn(cloned_ctx);
 }
 
+// Extract a method by allocating and initializing a new Closure.
+// Arg0: receiver.
+// Arg1: method.
+// Return value: newly allocated Closure.
+DEFINE_RUNTIME_ENTRY(ExtractMethod, 2) {
+#if defined(DART_USE_INTERPRETER)
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const Function& method = Function::CheckedHandle(zone, arguments.ArgAt(1));
+  const TypeArguments& instantiator_type_arguments =
+      method.HasInstantiatedSignature(kCurrentClass)
+          ? Object::null_type_arguments()
+          : TypeArguments::Handle(zone, receiver.GetTypeArguments());
+  ASSERT(method.HasInstantiatedSignature(kFunctions));
+  const Context& context = Context::Handle(zone, Context::New(1));
+  context.SetAt(0, receiver);
+  const Closure& closure = Closure::Handle(
+      zone,
+      Closure::New(instantiator_type_arguments, Object::null_type_arguments(),
+                   Object::empty_type_arguments(), method, context));
+  arguments.SetReturn(closure);
+#else
+  UNREACHABLE();
+#endif  // defined(DART_USE_INTERPRETER)
+}
+
+// Invoke field getter before dispatch.
+// Arg0: instance.
+// Arg1: field name.
+// Return value: field value.
+DEFINE_RUNTIME_ENTRY(GetFieldForDispatch, 2) {
+#if defined(DART_USE_INTERPRETER)
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const String& name = String::CheckedHandle(zone, arguments.ArgAt(1));
+  const Class& receiver_class = Class::Handle(zone, receiver.clazz());
+  const String& getter_name = String::Handle(zone, Field::GetterName(name));
+  const int kTypeArgsLen = 0;
+  const int kNumArguments = 1;
+  ArgumentsDescriptor args_desc(Array::Handle(
+      zone, ArgumentsDescriptor::New(kTypeArgsLen, kNumArguments)));
+  const Function& getter =
+      Function::Handle(zone, Resolver::ResolveDynamicForReceiverClass(
+                                 receiver_class, getter_name, args_desc));
+  ASSERT(!getter.IsNull());  // An InvokeFieldDispatcher function was created.
+  const Array& args = Array::Handle(zone, Array::New(kNumArguments));
+  args.SetAt(0, receiver);
+  const Object& result =
+      Object::Handle(zone, DartEntry::InvokeFunction(getter, args));
+  arguments.SetReturn(result);
+#else
+  UNREACHABLE();
+#endif  // defined(DART_USE_INTERPRETER)
+}
+
+// Resolve 'call' function of receiver.
+// Arg0: receiver (not a closure).
+// Return value: 'call' function'.
+DEFINE_RUNTIME_ENTRY(ResolveCallFunction, 1) {
+#if defined(DART_USE_INTERPRETER)
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  ASSERT(!receiver.IsClosure());  // Interpreter tests for closure.
+  Class& cls = Class::Handle(zone, receiver.clazz());
+  Function& call_function = Function::Handle(zone);
+  do {
+    call_function = cls.LookupDynamicFunction(Symbols::Call());
+    if (!call_function.IsNull()) {
+      break;
+    }
+    cls = cls.SuperClass();
+  } while (!cls.IsNull());
+  arguments.SetReturn(call_function);
+#else
+  UNREACHABLE();
+#endif  // defined(DART_USE_INTERPRETER)
+}
+
 // Helper routine for tracing a type check.
 static void PrintTypeCheck(const char* message,
                            const Instance& instance,

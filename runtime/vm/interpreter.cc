@@ -1068,9 +1068,89 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
       *invoked = true;
       return true;
     }
+    case RawFunction::kMethodExtractor: {
+      call_top[1] = 0;                       // Result of runtime call.
+      call_top[2] = *call_base;              // Receiver.
+      call_top[3] = function->ptr()->data_;  // Method.
+      Exit(thread, *FP, call_top + 4, *pc);
+      NativeArguments native_args(thread, 2, call_top + 2, call_top + 1);
+      if (!InvokeRuntime(thread, this, DRT_ExtractMethod, native_args)) {
+        return false;
+      }
+      *SP = call_base;
+      **SP = call_top[1];
+      *invoked = true;
+      return true;
+    }
+    case RawFunction::kInvokeFieldDispatcher: {
+      RawObject** callee_fp = call_top + kKBCDartFrameFixedSize;
+      ASSERT(function == FrameFunction(callee_fp));
+      RawFunction* call_function = Function::null();
+      if (function->ptr()->name_ == Symbols::Call().raw()) {
+        RawObject* owner = function->ptr()->owner_;
+        if (owner->GetClassId() == kPatchClassCid) {
+          owner = PatchClass::RawCast(owner)->ptr()->patched_class_;
+        }
+        if (owner == thread->isolate()->object_store()->closure_class()) {
+          // Closure call.
+          RawClosure* closure = reinterpret_cast<RawClosure*>(*call_base);
+          call_function = closure->ptr()->function_;
+        }
+      }
+      if (call_function == Function::null()) {
+        // Invoke field getter on *call_base.
+        call_top[1] = 0;                       // Result of runtime call.
+        call_top[2] = *call_base;              // Receiver.
+        call_top[3] = function->ptr()->name_;  // Field name.
+        Exit(thread, *FP, call_top + 4, *pc);
+        NativeArguments native_args(thread, 2, call_top + 2, call_top + 1);
+        if (!InvokeRuntime(thread, this, DRT_GetFieldForDispatch,
+                           native_args)) {
+          return false;
+        }
+        // If the field value is a closure, no need to resolve 'call' function.
+        // Otherwise, call runtime to resolve 'call' function.
+        if (InterpreterHelpers::GetClassId(call_top[1]) == kClosureCid) {
+          // Closure call.
+          call_function =
+              (reinterpret_cast<RawClosure*>(call_top[1]))->ptr()->function_;
+        } else {
+          // Resolve and invoke the 'call' function.
+          call_top[2] = 0;  // Result of runtime call.
+          Exit(thread, *FP, call_top + 3, *pc);
+          NativeArguments native_args(thread, 1, call_top + 1, call_top + 2);
+          if (!InvokeRuntime(thread, this, DRT_ResolveCallFunction,
+                             native_args)) {
+            return false;
+          }
+          call_function = reinterpret_cast<RawFunction*>(call_top[2]);
+          if (call_function == Function::null()) {
+            // 'Call' could not be resolved. TODO(regis): Can this happen?
+            // Fall back to jitting the field dispatcher function.
+            break;
+          }
+        }
+        // Replace receiver with field value, keep all other arguments, and
+        // invoke 'call' function.
+        *call_base = call_top[1];
+      }
+      ASSERT(call_function != Function::null());
+      // Patch field dispatcher in callee frame with call function.
+      callee_fp[kKBCFunctionSlotFromFp] = call_function;
+      // Do not compile function if it has code or bytecode.
+      if (Function::HasCode(call_function)) {
+        *invoked = true;
+        return InvokeCompiled(thread, call_function, call_base, call_top, pc,
+                              FP, SP);
+      }
+      if (Function::HasBytecode(call_function)) {
+        *invoked = false;
+        return true;
+      }
+      function = call_function;
+      break;  // Compile and invoke the function.
+    }
     case RawFunction::kNoSuchMethodDispatcher:
-    case RawFunction::kInvokeFieldDispatcher:
-    case RawFunction::kMethodExtractor:
       // TODO(regis): Implement. For now, use jitted version.
       break;
     default:
@@ -1116,6 +1196,7 @@ DART_FORCE_INLINE bool Interpreter::Invoke(Thread* thread,
     if (invoked || !result) {
       return result;
     }
+    function = FrameFunction(callee_fp);  // Function may have been patched.
     ASSERT(Function::HasBytecode(function));
   }
 #if defined(DEBUG)
