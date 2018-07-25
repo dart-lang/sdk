@@ -6468,12 +6468,6 @@ void Function::set_num_fixed_parameters(intptr_t value) const {
                                 value, *original));
 }
 
-void Function::set_is_no_such_method_forwarder(bool value) const {
-  const uint32_t* original = &raw_ptr()->packed_fields_;
-  StoreNonPointer(original, RawFunction::PackedIsNoSuchMethodForwarder::update(
-                                value ? 1 : 0, *original));
-}
-
 void Function::SetNumOptionalParameters(intptr_t value,
                                         bool are_optional_positional) const {
   ASSERT(Utils::IsUint(RawFunction::kMaxOptionalParametersBits, value));
@@ -6515,12 +6509,10 @@ void Function::SetIsOptimizable(bool value) const {
 
 bool Function::CanBeInlined() const {
 #if defined(PRODUCT)
-  return is_inlinable() && !is_external() && !is_generated_body() &&
-         !is_no_such_method_forwarder();
+  return is_inlinable() && !is_external() && !is_generated_body();
 #else
   Thread* thread = Thread::Current();
   return is_inlinable() && !is_external() && !is_generated_body() &&
-         !is_no_such_method_forwarder() &&
          !thread->isolate()->debugger()->HasBreakpoint(*this, thread->zone());
 #endif
 }
@@ -7190,7 +7182,6 @@ RawFunction* Function::New(const String& name,
   NOT_IN_PRECOMPILED(result.set_end_token_pos(token_pos));
   result.set_num_fixed_parameters(0);
   result.SetNumOptionalParameters(0, false);
-  result.set_is_no_such_method_forwarder(false);
   NOT_IN_PRECOMPILED(result.set_usage_counter(0));
   NOT_IN_PRECOMPILED(result.set_deoptimization_counter(0));
   NOT_IN_PRECOMPILED(result.set_optimized_instruction_count(0));
@@ -7415,8 +7406,6 @@ RawFunction* Function::ImplicitClosureFunction() const {
     closure_function.SetParameterNameAt(i, param_name);
   }
   closure_function.set_kernel_offset(kernel_offset());
-  closure_function.set_is_no_such_method_forwarder(
-      is_no_such_method_forwarder());
 
   // In strong mode, change covariant parameter types to Object in the implicit
   // closure of a method compiled by kernel.

@@ -941,8 +941,7 @@ class RawFunction : public RawObject {
   uint32_t kind_tag_;                          // See Function::KindTagBits.
   uint32_t packed_fields_;
 
-  typedef BitField<uint32_t, bool, 0, 1> PackedIsNoSuchMethodForwarder;
-  typedef BitField<uint32_t, bool, PackedIsNoSuchMethodForwarder::kNextBit, 1>
+  typedef BitField<uint32_t, bool, 0, 1>
       PackedHasNamedOptionalParameters;
   typedef BitField<uint32_t,
                    bool,

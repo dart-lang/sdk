@@ -1600,10 +1600,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction: {
       ReadUntilFunctionNode();
-      if (function.is_no_such_method_forwarder()) {
-        return BuildGraphOfNoSuchMethodForwarder(
-            function, function.IsImplicitClosureFunction());
-      } else if (function.IsImplicitClosureFunction()) {
+      if (function.IsImplicitClosureFunction()) {
         return BuildGraphOfImplicitClosureFunction(function);
       }
     }

@@ -381,7 +381,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     case RawFunction::kIrregexpFunction:
       UNREACHABLE();
   }
-  if (needs_expr_temp_ || function.is_no_such_method_forwarder()) {
+  if (needs_expr_temp_) {
     scope_->AddVariable(parsed_function_->EnsureExpressionTemp());
   }
   parsed_function_->AllocateVariables();

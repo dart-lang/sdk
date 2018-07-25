@@ -2461,13 +2461,6 @@ class Function : public Object {
 #endif
   }
 
-  bool is_no_such_method_forwarder() const {
-    return RawFunction::PackedIsNoSuchMethodForwarder::decode(
-        raw_ptr()->packed_fields_);
-  }
-
-  void set_is_no_such_method_forwarder(bool value) const;
-
   intptr_t num_fixed_parameters() const {
     return RawFunction::PackedNumFixedParameters::decode(
         raw_ptr()->packed_fields_);
