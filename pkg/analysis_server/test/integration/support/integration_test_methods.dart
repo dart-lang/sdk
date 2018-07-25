@@ -448,11 +448,6 @@ abstract class IntegrationTestMixin {
    *
    *   A list of information about each of the parameters of the function being
    *   invoked.
-   *
-   * selectedParameterIndex: int
-   *
-   *   The index of the paramter in the parameters collection at the specified
-   *   offset.
    */
   Future<AnalysisGetSignatureResult> sendAnalysisGetSignature(
       String file, int offset) async {

@@ -2019,7 +2019,6 @@ class AnalysisGetSignatureParams implements RequestParams {
  *   "name": String
  *   "dartdoc": optional String
  *   "parameters": List<ParameterInfo>
- *   "selectedParameterIndex": int
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -2030,8 +2029,6 @@ class AnalysisGetSignatureResult implements ResponseResult {
   String _dartdoc;
 
   List<ParameterInfo> _parameters;
-
-  int _selectedParameterIndex;
 
   /**
    * The name of the function being invoked at the given offset.
@@ -2081,28 +2078,11 @@ class AnalysisGetSignatureResult implements ResponseResult {
     this._parameters = value;
   }
 
-  /**
-   * The index of the paramter in the parameters collection at the specified
-   * offset.
-   */
-  int get selectedParameterIndex => _selectedParameterIndex;
-
-  /**
-   * The index of the paramter in the parameters collection at the specified
-   * offset.
-   */
-  void set selectedParameterIndex(int value) {
-    assert(value != null);
-    this._selectedParameterIndex = value;
-  }
-
-  AnalysisGetSignatureResult(
-      String name, List<ParameterInfo> parameters, int selectedParameterIndex,
+  AnalysisGetSignatureResult(String name, List<ParameterInfo> parameters,
       {String dartdoc}) {
     this.name = name;
     this.dartdoc = dartdoc;
     this.parameters = parameters;
-    this.selectedParameterIndex = selectedParameterIndex;
   }
 
   factory AnalysisGetSignatureResult.fromJson(
@@ -2132,17 +2112,7 @@ class AnalysisGetSignatureResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "parameters");
       }
-      int selectedParameterIndex;
-      if (json.containsKey("selectedParameterIndex")) {
-        selectedParameterIndex = jsonDecoder.decodeInt(
-            jsonPath + ".selectedParameterIndex",
-            json["selectedParameterIndex"]);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, "selectedParameterIndex");
-      }
-      return new AnalysisGetSignatureResult(
-          name, parameters, selectedParameterIndex,
-          dartdoc: dartdoc);
+      return new AnalysisGetSignatureResult(name, parameters, dartdoc: dartdoc);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.getSignature result", json);
@@ -2165,7 +2135,6 @@ class AnalysisGetSignatureResult implements ResponseResult {
     }
     result["parameters"] =
         parameters.map((ParameterInfo value) => value.toJson()).toList();
-    result["selectedParameterIndex"] = selectedParameterIndex;
     return result;
   }
 
@@ -2183,8 +2152,7 @@ class AnalysisGetSignatureResult implements ResponseResult {
       return name == other.name &&
           dartdoc == other.dartdoc &&
           listEqual(parameters, other.parameters,
-              (ParameterInfo a, ParameterInfo b) => a == b) &&
-          selectedParameterIndex == other.selectedParameterIndex;
+              (ParameterInfo a, ParameterInfo b) => a == b);
     }
     return false;
   }
@@ -2195,7 +2163,6 @@ class AnalysisGetSignatureResult implements ResponseResult {
     hash = JenkinsSmiHash.combine(hash, name.hashCode);
     hash = JenkinsSmiHash.combine(hash, dartdoc.hashCode);
     hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
-    hash = JenkinsSmiHash.combine(hash, selectedParameterIndex.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

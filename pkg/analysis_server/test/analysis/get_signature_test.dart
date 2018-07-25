@@ -233,6 +233,46 @@ main() {
         equals(new ParameterInfo(ParameterKind.NAMED, "length", "int")));
   }
 
+  test_function_named_with_default_int() async {
+    addTestFile('''
+/// one doc
+one(String name, {int length = 1}) {}
+main() {
+  one("Danny", /*^*/);
+}
+''');
+    var result = await prepareSignature('/*^*/');
+    expect(result.name, equals("one"));
+    expect(result.dartdoc, equals("one doc"));
+    expect(result.parameters, hasLength(2));
+    expect(result.parameters[0],
+        equals(new ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+    expect(
+        result.parameters[1],
+        equals(new ParameterInfo(ParameterKind.NAMED, "length", "int",
+            defaultValue: "1")));
+  }
+
+  test_function_named_with_default_string() async {
+    addTestFile('''
+/// one doc
+one(String name, {String email = "a@b.c"}) {}
+main() {
+  one("Danny", /*^*/);
+}
+''');
+    var result = await prepareSignature('/*^*/');
+    expect(result.name, equals("one"));
+    expect(result.dartdoc, equals("one doc"));
+    expect(result.parameters, hasLength(2));
+    expect(result.parameters[0],
+        equals(new ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+    expect(
+        result.parameters[1],
+        equals(new ParameterInfo(ParameterKind.NAMED, "email", "String",
+            defaultValue: '"a@b.c"')));
+  }
+
   test_function_nested_call_inner() async {
     // eg. foo(bar(1, 2));
     addTestFile('''
@@ -304,6 +344,26 @@ main() {
         equals(new ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
     expect(result.parameters[1],
         equals(new ParameterInfo(ParameterKind.OPTIONAL, "length", "int")));
+  }
+
+  test_function_optional_with_default() async {
+    addTestFile('''
+/// one doc
+one(String name, [int length = 11]) {}
+main() {
+  one("Danny", /*^*/);
+}
+''');
+    var result = await prepareSignature('/*^*/');
+    expect(result.name, equals("one"));
+    expect(result.dartdoc, equals("one doc"));
+    expect(result.parameters, hasLength(2));
+    expect(result.parameters[0],
+        equals(new ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+    expect(
+        result.parameters[1],
+        equals(new ParameterInfo(ParameterKind.OPTIONAL, "length", "int",
+            defaultValue: "11")));
   }
 
   test_function_required() async {

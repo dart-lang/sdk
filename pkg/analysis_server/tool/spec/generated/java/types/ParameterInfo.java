@@ -51,12 +51,19 @@ public class ParameterInfo {
   private final String type;
 
   /**
+   * The default value for this parameter. This value will be omitted if the parameter does not have
+   * a default value.
+   */
+  private final String defaultValue;
+
+  /**
    * Constructor for {@link ParameterInfo}.
    */
-  public ParameterInfo(String kind, String name, String type) {
+  public ParameterInfo(String kind, String name, String type, String defaultValue) {
     this.kind = kind;
     this.name = name;
     this.type = type;
+    this.defaultValue = defaultValue;
   }
 
   @Override
@@ -66,7 +73,8 @@ public class ParameterInfo {
       return
         ObjectUtilities.equals(other.kind, kind) &&
         ObjectUtilities.equals(other.name, name) &&
-        ObjectUtilities.equals(other.type, type);
+        ObjectUtilities.equals(other.type, type) &&
+        ObjectUtilities.equals(other.defaultValue, defaultValue);
     }
     return false;
   }
@@ -75,7 +83,8 @@ public class ParameterInfo {
     String kind = jsonObject.get("kind").getAsString();
     String name = jsonObject.get("name").getAsString();
     String type = jsonObject.get("type").getAsString();
-    return new ParameterInfo(kind, name, type);
+    String defaultValue = jsonObject.get("defaultValue") == null ? null : jsonObject.get("defaultValue").getAsString();
+    return new ParameterInfo(kind, name, type, defaultValue);
   }
 
   public static List<ParameterInfo> fromJsonArray(JsonArray jsonArray) {
@@ -88,6 +97,14 @@ public class ParameterInfo {
       list.add(fromJson(iterator.next().getAsJsonObject()));
     }
     return list;
+  }
+
+  /**
+   * The default value for this parameter. This value will be omitted if the parameter does not have
+   * a default value.
+   */
+  public String getDefaultValue() {
+    return defaultValue;
   }
 
   /**
@@ -117,6 +134,7 @@ public class ParameterInfo {
     builder.append(kind);
     builder.append(name);
     builder.append(type);
+    builder.append(defaultValue);
     return builder.toHashCode();
   }
 
@@ -125,6 +143,9 @@ public class ParameterInfo {
     jsonObject.addProperty("kind", kind);
     jsonObject.addProperty("name", name);
     jsonObject.addProperty("type", type);
+    if (defaultValue != null) {
+      jsonObject.addProperty("defaultValue", defaultValue);
+    }
     return jsonObject;
   }
 
@@ -137,7 +158,9 @@ public class ParameterInfo {
     builder.append("name=");
     builder.append(name + ", ");
     builder.append("type=");
-    builder.append(type);
+    builder.append(type + ", ");
+    builder.append("defaultValue=");
+    builder.append(defaultValue);
     builder.append("]");
     return builder.toString();
   }

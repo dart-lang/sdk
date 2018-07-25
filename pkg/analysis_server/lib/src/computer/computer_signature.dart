@@ -61,7 +61,7 @@ class DartUnitSignatureComputer {
     final parameters =
         execElement.parameters.map((p) => _convertParam(p)).toList();
 
-    return new AnalysisGetSignatureResult(name, parameters, 0,
+    return new AnalysisGetSignatureResult(name, parameters,
         dartdoc: DartUnitHoverComputer.computeDocumentation(execElement));
   }
 
@@ -71,6 +71,7 @@ class DartUnitSignatureComputer {
             ? ParameterKind.OPTIONAL
             : param.isPositional ? ParameterKind.REQUIRED : ParameterKind.NAMED,
         param.displayName,
-        param.type.displayName);
+        param.type.displayName,
+        defaultValue: param.defaultValueCode);
   }
 }

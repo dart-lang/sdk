@@ -100,8 +100,6 @@ const String ANALYSIS_RESPONSE_GET_REACHABLE_SOURCES_SOURCES = 'sources';
 const String ANALYSIS_RESPONSE_GET_SIGNATURE_DARTDOC = 'dartdoc';
 const String ANALYSIS_RESPONSE_GET_SIGNATURE_NAME = 'name';
 const String ANALYSIS_RESPONSE_GET_SIGNATURE_PARAMETERS = 'parameters';
-const String ANALYSIS_RESPONSE_GET_SIGNATURE_SELECTED_PARAMETER_INDEX =
-    'selectedParameterIndex';
 const String ANALYTICS_REQUEST_ENABLE = 'analytics.enable';
 const String ANALYTICS_REQUEST_ENABLE_VALUE = 'value';
 const String ANALYTICS_REQUEST_IS_ENABLED = 'analytics.isEnabled';

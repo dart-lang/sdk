@@ -699,11 +699,13 @@ final Matcher isOutline =
  *   "kind": ParameterKind
  *   "name": String
  *   "type": String
+ *   "defaultValue": optional String
  * }
  */
 final Matcher isParameterInfo = new LazyMatcher(() => new MatchesJsonObject(
     "ParameterInfo",
-    {"kind": isParameterKind, "name": isString, "type": isString}));
+    {"kind": isParameterKind, "name": isString, "type": isString},
+    optionalFields: {"defaultValue": isString}));
 
 /**
  * ParameterKind

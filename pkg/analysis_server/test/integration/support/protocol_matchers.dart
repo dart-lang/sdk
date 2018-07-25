@@ -1064,11 +1064,13 @@ final Matcher isOverride =
  *   "kind": ParameterKind
  *   "name": String
  *   "type": String
+ *   "defaultValue": optional String
  * }
  */
 final Matcher isParameterInfo = new LazyMatcher(() => new MatchesJsonObject(
     "ParameterInfo",
-    {"kind": isParameterKind, "name": isString, "type": isString}));
+    {"kind": isParameterKind, "name": isString, "type": isString},
+    optionalFields: {"defaultValue": isString}));
 
 /**
  * ParameterKind
@@ -1723,17 +1725,12 @@ final Matcher isAnalysisGetSignatureParams = new LazyMatcher(() =>
  *   "name": String
  *   "dartdoc": optional String
  *   "parameters": List<ParameterInfo>
- *   "selectedParameterIndex": int
  * }
  */
-final Matcher isAnalysisGetSignatureResult = new LazyMatcher(
-    () => new MatchesJsonObject("analysis.getSignature result", {
-          "name": isString,
-          "parameters": isListOf(isParameterInfo),
-          "selectedParameterIndex": isInt
-        }, optionalFields: {
-          "dartdoc": isString
-        }));
+final Matcher isAnalysisGetSignatureResult = new LazyMatcher(() =>
+    new MatchesJsonObject("analysis.getSignature result",
+        {"name": isString, "parameters": isListOf(isParameterInfo)},
+        optionalFields: {"dartdoc": isString}));
 
 /**
  * analysis.highlights params

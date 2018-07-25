@@ -4585,6 +4585,7 @@ class Outline implements HasToJson {
  *   "kind": ParameterKind
  *   "name": String
  *   "type": String
+ *   "defaultValue": optional String
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -4595,6 +4596,8 @@ class ParameterInfo implements HasToJson {
   String _name;
 
   String _type;
+
+  String _defaultValue;
 
   /**
    * The kind of the parameter.
@@ -4635,10 +4638,26 @@ class ParameterInfo implements HasToJson {
     this._type = value;
   }
 
-  ParameterInfo(ParameterKind kind, String name, String type) {
+  /**
+   * The default value for this parameter. This value will be omitted if the
+   * parameter does not have a default value.
+   */
+  String get defaultValue => _defaultValue;
+
+  /**
+   * The default value for this parameter. This value will be omitted if the
+   * parameter does not have a default value.
+   */
+  void set defaultValue(String value) {
+    this._defaultValue = value;
+  }
+
+  ParameterInfo(ParameterKind kind, String name, String type,
+      {String defaultValue}) {
     this.kind = kind;
     this.name = name;
     this.type = type;
+    this.defaultValue = defaultValue;
   }
 
   factory ParameterInfo.fromJson(
@@ -4666,7 +4685,12 @@ class ParameterInfo implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "type");
       }
-      return new ParameterInfo(kind, name, type);
+      String defaultValue;
+      if (json.containsKey("defaultValue")) {
+        defaultValue = jsonDecoder.decodeString(
+            jsonPath + ".defaultValue", json["defaultValue"]);
+      }
+      return new ParameterInfo(kind, name, type, defaultValue: defaultValue);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ParameterInfo", json);
     }
@@ -4678,6 +4702,9 @@ class ParameterInfo implements HasToJson {
     result["kind"] = kind.toJson();
     result["name"] = name;
     result["type"] = type;
+    if (defaultValue != null) {
+      result["defaultValue"] = defaultValue;
+    }
     return result;
   }
 
@@ -4687,7 +4714,10 @@ class ParameterInfo implements HasToJson {
   @override
   bool operator ==(other) {
     if (other is ParameterInfo) {
-      return kind == other.kind && name == other.name && type == other.type;
+      return kind == other.kind &&
+          name == other.name &&
+          type == other.type &&
+          defaultValue == other.defaultValue;
     }
     return false;
   }
@@ -4698,6 +4728,7 @@ class ParameterInfo implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     hash = JenkinsSmiHash.combine(hash, name.hashCode);
     hash = JenkinsSmiHash.combine(hash, type.hashCode);
+    hash = JenkinsSmiHash.combine(hash, defaultValue.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
