@@ -76,8 +76,8 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   Object binderForTypeVariable(
       KernelTypeVariableBuilder builder, int fileOffset, String name);
 
-  Object binderForVariableDeclaration(
-      StatementJudgment judgment, int fileOffset, String name);
+  Object binderForVariableDeclaration(StatementJudgment judgment,
+      int fileOffset, String name, bool forSyntheticToken);
 
   void block(StatementJudgment judgment, Location location, Token leftBracket,
       List<void> statements, Token rightBracket);
@@ -542,8 +542,8 @@ class KernelTypeInferenceListener
       KernelTypeVariableBuilder builder, int fileOffset, String name) {}
 
   @override
-  void binderForVariableDeclaration(
-      StatementJudgment judgment, int fileOffset, String name) {}
+  void binderForVariableDeclaration(StatementJudgment judgment, int fileOffset,
+      String name, bool forSyntheticToken) {}
 
   @override
   void block(StatementJudgment judgment, location, Token leftBracket,

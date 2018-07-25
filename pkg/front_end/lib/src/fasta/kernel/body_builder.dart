@@ -1829,6 +1829,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     bool isFinal = (currentLocalVariableModifiers & finalMask) != 0;
     assert(isConst == (constantContext == ConstantContext.inferred));
     push(new VariableDeclarationJudgment(identifier.name, functionNestingLevel,
+        forSyntheticToken: identifier.token.isSynthetic,
         initializer: initializer,
         type: currentLocalVariableType,
         isFinal: isFinal,
@@ -2402,6 +2403,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       variable = new VariableDeclarationJudgment(
           name?.name, functionNestingLevel,
+          forSyntheticToken: name?.token?.isSynthetic ?? false,
           type: type,
           initializer: name?.initializer,
           isFinal: isFinal,
@@ -3129,7 +3131,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Identifier name = pop();
     VariableDeclaration variable = new VariableDeclarationJudgment(
         name.name, functionNestingLevel,
-        isFinal: true, isLocalFunction: true)
+        forSyntheticToken: name.token.isSynthetic,
+        isFinal: true,
+        isLocalFunction: true)
       ..fileOffset = offsetForToken(name.token);
     if (scope.local[variable.name] != null) {
       deprecated_addCompileTimeError(offsetForToken(name.token),

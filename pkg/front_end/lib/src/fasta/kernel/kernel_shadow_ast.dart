@@ -3559,6 +3559,8 @@ class VariableAssignmentJudgment extends ComplexAssignmentJudgment {
 /// Concrete shadow object representing a variable declaration in kernel form.
 class VariableDeclarationJudgment extends VariableDeclaration
     implements StatementJudgment {
+  final bool forSyntheticToken;
+
   final bool _implicitlyTyped;
 
   final int _functionNestingLevel;
@@ -3578,7 +3580,8 @@ class VariableDeclarationJudgment extends VariableDeclaration
   bool infersAnnotations = true;
 
   VariableDeclarationJudgment(String name, this._functionNestingLevel,
-      {Expression initializer,
+      {this.forSyntheticToken: false,
+      Expression initializer,
       DartType type,
       bool isFinal: false,
       bool isConst: false,
@@ -3597,13 +3600,15 @@ class VariableDeclarationJudgment extends VariableDeclaration
 
   VariableDeclarationJudgment.forEffect(
       Expression initializer, this._functionNestingLevel)
-      : _implicitlyTyped = false,
+      : forSyntheticToken = false,
+        _implicitlyTyped = false,
         _isLocalFunction = false,
         super.forValue(initializer);
 
   VariableDeclarationJudgment.forValue(
       Expression initializer, this._functionNestingLevel)
-      : _implicitlyTyped = true,
+      : forSyntheticToken = false,
+        _implicitlyTyped = true,
         _isLocalFunction = false,
         super.forValue(initializer);
 
@@ -3671,8 +3676,8 @@ class VariableDeclarationJudgment extends VariableDeclaration
       binder ??= _isLocalFunction
           ? inferrer.listener
               .binderForFunctionDeclaration(this, fileOffset, name)
-          : inferrer.listener
-              .binderForVariableDeclaration(this, fileOffset, name);
+          : inferrer.listener.binderForVariableDeclaration(
+              this, fileOffset, name, forSyntheticToken);
 
   /// Determine whether the given [VariableDeclarationJudgment] had an implicit
   /// type.

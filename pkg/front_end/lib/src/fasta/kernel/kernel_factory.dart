@@ -105,8 +105,8 @@ class KernelFactory
   }
 
   @override
-  Object binderForVariableDeclaration(
-      StatementJudgment judgment, int fileOffset, String name) {
+  Object binderForVariableDeclaration(StatementJudgment judgment,
+      int fileOffset, String name, bool forSyntheticToken) {
     return judgment;
   }
 

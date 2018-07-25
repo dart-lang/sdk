@@ -66,8 +66,8 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Object binderForTypeVariable(
       KernelTypeVariableBuilder builder, int fileOffset, String name);
 
-  Object binderForVariableDeclaration(
-      StatementJudgment judgment, int fileOffset, String name);
+  Object binderForVariableDeclaration(StatementJudgment judgment,
+      int fileOffset, String name, bool forSyntheticToken);
 
   Statement block(StatementJudgment judgment, int fileOffset, Token leftBracket,
       List<Statement> statements, Token rightBracket);

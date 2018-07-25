@@ -3403,6 +3403,34 @@ var b = new C<num, String>.named(4, 'five');
     }
   }
 
+  test_invalid_annotation_on_variable_declaration() async {
+    addTestFile(r'''
+const a = null;
+main() {
+  int x, @a y;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    // Note: no further expectations.  We don't care how the error is recovered
+    // from, provided it is recovered from in a way that doesn't crash the
+    // analyzer/FE integration.
+  }
+
+  test_invalid_annotation_on_variable_declaration_for() async {
+    addTestFile(r'''
+const a = null;
+main() {
+  for (var @a x = 0;;) {}
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    // Note: no further expectations.  We don't care how the error is recovered
+    // from, provided it is recovered from in a way that doesn't crash the
+    // analyzer/FE integration.
+  }
+
   test_invalid_assign_notLValue_parenthesized() async {
     addTestFile(r'''
 int a, b;

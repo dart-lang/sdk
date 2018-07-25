@@ -82,8 +82,8 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       KernelTypeVariableBuilder builder, int fileOffset, String name) {}
 
   @override
-  void binderForVariableDeclaration(
-      StatementJudgment judgment, int fileOffset, String name) {}
+  void binderForVariableDeclaration(StatementJudgment judgment, int fileOffset,
+      String name, bool forSyntheticToken) {}
 
   @override
   void block(StatementJudgment judgment, int fileOffset, Token leftBracket,

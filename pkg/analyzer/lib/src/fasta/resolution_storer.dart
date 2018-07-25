@@ -91,7 +91,7 @@ class ResolutionStorer
 
   Object binderForFunctionDeclaration(
       StatementJudgment judgment, int fileOffset, String name) {
-    return new VariableDeclarationBinder(fileOffset);
+    return new VariableDeclarationBinder(fileOffset, false);
   }
 
   void binderForStatementLabel(
@@ -105,9 +105,9 @@ class ResolutionStorer
     return new TypeVariableBinder(fileOffset);
   }
 
-  Object binderForVariableDeclaration(
-      StatementJudgment judgment, int fileOffset, String name) {
-    return new VariableDeclarationBinder(fileOffset);
+  Object binderForVariableDeclaration(StatementJudgment judgment,
+      int fileOffset, String name, bool forSyntheticToken) {
+    return new VariableDeclarationBinder(fileOffset, forSyntheticToken);
   }
 
   void block(StatementJudgment judgment, int location, Token leftBracket,
@@ -654,7 +654,8 @@ class ResolutionStorer
 
   void variableDeclaration(
       covariant VariableDeclarationBinder binder, DartType inferredType) {
-    _store(binder.fileOffset, inferredType: inferredType);
+    _store(binder.fileOffset,
+        inferredType: inferredType, isSynthetic: binder.isSynthetic);
   }
 
   void variableGet(
@@ -774,6 +775,7 @@ class TypeVariableBinder {
 /// TODO(paulberry): eventually just use the element directly.
 class VariableDeclarationBinder {
   final int fileOffset;
+  final bool isSynthetic;
 
-  VariableDeclarationBinder(this.fileOffset);
+  VariableDeclarationBinder(this.fileOffset, this.isSynthetic);
 }

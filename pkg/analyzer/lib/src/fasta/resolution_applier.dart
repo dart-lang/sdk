@@ -693,7 +693,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
             parent.parent is FieldDeclaration)) {
       // Don't visit the name; resolution for it will come from the outline.
     } else {
-      DartType type = _translateType(_get(node.name).inferredType);
+      DartType type = _translateType(
+          _get(node.name, isSynthetic: node.name.isSynthetic).inferredType);
       node.name.staticType = type;
 
       VariableElementImpl element = node.name.staticElement;

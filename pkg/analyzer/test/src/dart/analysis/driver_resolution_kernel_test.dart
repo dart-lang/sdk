@@ -32,6 +32,12 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
 
   @override
   @failingTest
+  test_invalid_annotation_on_variable_declaration_for() async {
+    await super.test_invalid_annotation_on_variable_declaration_for();
+  }
+
+  @override
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/33858')
   test_invalid_fieldInitializer_this() async {
     await super.test_invalid_fieldInitializer_this();
