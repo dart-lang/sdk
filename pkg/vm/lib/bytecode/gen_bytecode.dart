@@ -333,11 +333,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     return typeArgs.any((t) => t.accept(findTypeParams));
   }
 
-  bool hasInstantiatorTypeArguments(Class c) {
-    return c.typeParameters.isNotEmpty ||
-        (c.superclass != null && hasInstantiatorTypeArguments(c.superclass));
-  }
-
   void _genTypeArguments(List<DartType> typeArgs, {Class instantiatingClass}) {
     int typeArgsCPIndex() {
       if (instantiatingClass != null) {
@@ -2428,7 +2423,10 @@ class ConstantEmitter extends ConstantVisitor<int> {
   int visitInstanceConstant(InstanceConstant node) =>
       cp.add(new ConstantInstance(
           node.klass,
-          cp.add(new ConstantTypeArguments(node.typeArguments)),
+          cp.add(hasInstantiatorTypeArguments(node.klass)
+              ? new ConstantTypeArgumentsForInstanceAllocation(
+                  node.klass, node.typeArguments)
+              : new ConstantNull()),
           node.fieldValues.map<Reference, int>(
               (Reference fieldRef, Constant value) =>
                   new MapEntry(fieldRef, value.accept(this)))));
@@ -2540,4 +2538,9 @@ class FinallyBlock {
   final GenerateContinuation generateContinuation;
 
   FinallyBlock(this.generateContinuation);
+}
+
+bool hasInstantiatorTypeArguments(Class c) {
+  return c.typeParameters.isNotEmpty ||
+      (c.superclass != null && hasInstantiatorTypeArguments(c.superclass));
 }

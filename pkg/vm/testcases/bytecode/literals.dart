@@ -72,4 +72,14 @@ void test_type_literal<T>() {
   print(T);
 }
 
+class E<T> {
+  const E();
+}
+
+class F<P, Q> extends E<Map<P, Q>> {
+  const F();
+}
+
+testGenericConstInstance() => const F<int, String>();
+
 main() {}

@@ -848,10 +848,12 @@ class ConstantInstance extends ConstantPoolEntry {
   }
 
   @override
-  String toString() =>
-      'Instance $classNode type-args CP#$_typeArgumentsConstantIndex'
-      ' ${_fieldValues.map<String, int>((Reference fieldRef, int valueIndex) =>
-              new MapEntry(fieldRef.asField.name.name, valueIndex))}';
+  String toString() {
+    final values = _fieldValues.map<String, String>(
+        (Reference fieldRef, int valueIndex) =>
+            new MapEntry(fieldRef.asField.name.name, 'CP#$valueIndex'));
+    return 'Instance $classNode type-args CP#$_typeArgumentsConstantIndex $values';
+  }
 
   @override
   int get hashCode => _combineHashes(
