@@ -111,6 +111,10 @@ class DevAnalysisServer {
       }
 
       exitCode = 3;
+
+      // Ensure we terminate training if we get an exception from the analysis
+      // server.
+      whenComplete.completeError(message);
     }
 
     channel.onNotification.listen((Notification notification) {
