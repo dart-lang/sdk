@@ -458,7 +458,7 @@ class Driver implements ServerStarter {
 
     if (trainDirectory != null) {
       Directory tempDriverDir =
-          Directory.systemTemp.createTempSync('dartServer');
+          Directory.systemTemp.createTempSync('analysis_server_');
       analysisServerOptions.cacheFolder = tempDriverDir.path;
 
       DevAnalysisServer devServer = new DevAnalysisServer(socketServer);
@@ -475,11 +475,17 @@ class Driver implements ServerStarter {
         print('Analyzing with a populated driver cache:');
         exitCode = await devServer.processDirectories([trainDirectory]);
 
-        tempDriverDir.deleteSync(recursive: true);
         if (serve_http) {
           httpServer.close();
         }
         await instrumentationService.shutdown();
+
+        try {
+          tempDriverDir.deleteSync(recursive: true);
+        } catch (_) {
+          // ignore any exception
+        }
+
         exit(exitCode);
       }();
     } else {
