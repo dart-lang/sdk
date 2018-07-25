@@ -39,10 +39,6 @@ main() {
 /// the Dart 2.0 plan, so will not be implemented by Fasta.
 const notForDart2 = const Object();
 
-/// Tests marked with this annotations fail because we either have not triaged
-/// them, or know that this is an analyzer problem.
-const potentialAnalyzerProblem = const Object();
-
 /// Tests marked with this annotation fail because of a Fasta problem.
 class FastaProblem {
   const FastaProblem(String issueUri);
@@ -210,13 +206,11 @@ class C {
   }
 
   @failingTest
-  @potentialAnalyzerProblem
   test_invalidUris() async {
     await super.test_invalidUris();
   }
 
   @failingTest
-  @potentialAnalyzerProblem
   test_metadata_enumConstantDeclaration() async {
     await super.test_metadata_enumConstantDeclaration();
   }
@@ -236,7 +230,6 @@ class C {
   }
 
   @failingTest
-  @potentialAnalyzerProblem
   test_setter_inferred_type_conflictingInheritance() async {
     await super.test_setter_inferred_type_conflictingInheritance();
   }

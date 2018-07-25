@@ -12,10 +12,6 @@ main() {
   });
 }
 
-/// Tests marked with this annotations fail because we either have not triaged
-/// them, or know that this is an analyzer problem.
-const potentialAnalyzerProblem = const Object();
-
 @reflectiveTest
 class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   @override
@@ -31,7 +27,6 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   @override
   @assertFailingTest
   test_closure_generic() {
-    // Assertion error: 'element != null': is not true.
     return super.test_closure_generic();
   }
 
@@ -44,35 +39,30 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
   test_unresolved_assignment_left_indexed1_simple() async {
     await super.test_unresolved_assignment_left_indexed1_simple();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
   test_unresolved_assignment_left_indexed2_simple() async {
     await super.test_unresolved_assignment_left_indexed2_simple();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
   test_unresolved_assignment_left_indexed3_simple() async {
     await super.test_unresolved_assignment_left_indexed3_simple();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
   test_unresolved_assignment_left_indexed4_simple() async {
     await super.test_unresolved_assignment_left_indexed4_simple();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
   test_unresolved_methodInvocation_target_unresolved() async {
     await super.test_unresolved_methodInvocation_target_unresolved();
   }
