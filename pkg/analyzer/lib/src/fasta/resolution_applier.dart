@@ -120,6 +120,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       var data = _get(entity);
       node.staticElement = _translateAuxiliaryReference(data.combiner);
       node.staticType = _translateType(data.inferredType);
+    } else {
+      node.staticType = _translateType(const kernel.DynamicType());
     }
   }
 
@@ -547,6 +549,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       var data = _get(entity);
       node.staticElement = _translateAuxiliaryReference(data.combiner);
       node.staticType = _translateType(data.inferredType);
+    } else {
+      node.staticType = _translateType(const kernel.DynamicType());
     }
   }
 
@@ -569,6 +573,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         var data = _get(entity);
         node.staticElement = _translateAuxiliaryReference(data.combiner);
         node.staticType = _translateType(data.inferredType);
+      } else {
+        node.staticType = _translateType(const kernel.DynamicType());
       }
     } else if (tokenType == TokenType.BANG) {
       // !boolExpression;
@@ -735,8 +741,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       return leftHandSide.propertyName;
     } else if (leftHandSide is IndexExpressionImpl) {
       return leftHandSide.leftBracket;
-    } else if (leftHandSide is ParenthesizedExpression) {
-      return leftHandSide.rightParenthesis;
     } else {
       return null;
     }
