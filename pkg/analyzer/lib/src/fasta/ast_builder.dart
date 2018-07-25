@@ -36,6 +36,7 @@ import 'package:front_end/src/fasta/messages.dart'
         messageConstConstructorWithBody,
         messageConstMethod,
         messageConstructorWithReturnType,
+        messageConstructorWithTypeParameters,
         messageDirectiveAfterDeclaration,
         messageExpectedStatement,
         messageFieldInitializerOutsideConstructor,
@@ -2309,6 +2310,11 @@ class AstBuilder extends StackListener {
 
     void constructor(
         SimpleIdentifier prefixOrName, Token period, SimpleIdentifier name) {
+      if (typeParameters != null) {
+        // Outline builder also reports this error message.
+        handleRecoverableError(messageConstructorWithTypeParameters,
+            typeParameters.beginToken, typeParameters.endToken);
+      }
       if (modifiers?.constKeyword != null &&
           body != null &&
           (body.length > 1 || body.beginToken?.lexeme != ';')) {

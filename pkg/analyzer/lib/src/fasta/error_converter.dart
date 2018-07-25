@@ -576,6 +576,10 @@ class FastaErrorReporter {
             length,
             [arguments['name']]);
         return;
+      case "TYPE_PARAMETER_ON_CONSTRUCTOR":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR, offset, length);
+        return;
       case "TYPEDEF_IN_CLASS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.TYPEDEF_IN_CLASS, offset, length);
