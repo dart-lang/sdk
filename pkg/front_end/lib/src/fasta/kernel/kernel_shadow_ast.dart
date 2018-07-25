@@ -3739,8 +3739,12 @@ class UnresolvedVariableAssignmentJudgment extends SyntheticExpressionJudgment {
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    inferrer.inferExpression(factory, rhs, const UnknownType(), true);
-    inferredType = isCompound ? const DynamicType() : rhs.inferredType;
+    if (rhs != null) {
+      inferrer.inferExpression(factory, rhs, const UnknownType(), true);
+      inferredType = isCompound ? const DynamicType() : rhs.inferredType;
+    } else {
+      inferredType = const DynamicType();
+    }
     inferrer.listener.variableAssign(
         this, fileOffset, const DynamicType(), null, null, inferredType);
     return super.infer(inferrer, factory, typeContext);

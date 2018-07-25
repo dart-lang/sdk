@@ -6459,6 +6459,19 @@ f(int x, int y) {
     assertElement(findNode.simple('y;'), yElement);
   }
 
+  test_null_aware_assignment_to_unresolved_name() async {
+    addTestFile('''
+f(int y) {
+  x ??= y;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    assertElement(findNode.simple('x'), null);
+    var yElement = findElement.parameter('y');
+    assertElement(findNode.simple('y;'), yElement);
+  }
+
   test_postfix_increment_of_non_generator() async {
     addTestFile('''
 f() {}
@@ -8387,6 +8400,8 @@ main() {
     var assignment = findNode.assignment('a = b');
     assertElementNull(assignment);
     if (useCFE) {
+      assertType(assignment, 'dynamic');
+    } else {
       assertType(assignment, 'int');
     }
 

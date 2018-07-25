@@ -103,7 +103,6 @@ import 'kernel_ast_api.dart'
         Throw,
         TreeNode,
         TypeParameter,
-        UnresolvedVariableAssignmentJudgment,
         UnresolvedVariableGetJudgment,
         VariableAssignmentJudgment,
         VariableDeclaration,
@@ -1452,20 +1451,6 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
       : super(helper, token);
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return _buildUnresolvedVariableAssignment(false, value);
-  }
-
-  @override
-  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      Procedure interfaceTarget,
-      bool isPreIncDec: false}) {
-    return _buildUnresolvedVariableAssignment(true, value);
-  }
-
-  @override
   Expression buildSimpleRead() {
     Expression error = buildError(forest.argumentsEmpty(token), isGetter: true);
     return new UnresolvedVariableGetJudgment(error, token.isSynthetic)
@@ -1486,15 +1471,6 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
   void printOn(StringSink sink) {
     sink.write(", name: ");
     sink.write(name.name);
-  }
-
-  UnresolvedVariableAssignmentJudgment _buildUnresolvedVariableAssignment(
-      bool isCompound, Expression value) {
-    return new UnresolvedVariableAssignmentJudgment(
-      buildError(forest.arguments(<Expression>[value], token), isSetter: true),
-      isCompound,
-      value,
-    )..fileOffset = token.charOffset;
   }
 }
 

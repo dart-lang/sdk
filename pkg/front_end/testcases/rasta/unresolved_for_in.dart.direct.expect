@@ -52,7 +52,7 @@ class Fisk extends core::Object {
 static method main(dynamic arguments) → dynamic {
   new self::Fisk::•();
   for (final dynamic #t6 in arguments) {
-    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#key, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t6]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#key, 34, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
     core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#key, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
   }
   for (final dynamic #t7 in arguments) {

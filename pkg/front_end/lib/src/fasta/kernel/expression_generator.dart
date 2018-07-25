@@ -80,6 +80,7 @@ import 'kernel_ast_api.dart'
         TreeNode,
         TypeParameterType,
         UnresolvedTargetInvocationJudgment,
+        UnresolvedVariableAssignmentJudgment,
         UnresolvedVariableUnaryJudgment,
         VariableDeclaration;
 
@@ -869,9 +870,6 @@ abstract class ErroneousExpressionGenerator implements Generator {
   withReceiver(Object receiver, int operatorOffset, {bool isNullAware}) => this;
 
   @override
-  Generator asLvalue() => this;
-
-  @override
   Initializer buildFieldInitializer(Map<String, int> initializedFields) {
     return helper.buildInvalidInitializer(new SyntheticExpressionJudgment(
         buildError(forest.argumentsEmpty(token), isSetter: true)));
@@ -973,6 +971,20 @@ abstract class UnresolvedNameGenerator implements ErroneousExpressionGenerator {
   factory UnresolvedNameGenerator(
       ExpressionGeneratorHelper helper, Token token, Name name) {
     return helper.forest.unresolvedNameGenerator(helper, token, name);
+  }
+
+  @override
+  Generator asLvalue() {
+    return new NonLvalueGenerator(
+        helper,
+        token,
+        buildError(new Arguments([]),
+            isSetter: true, offset: offsetForToken(token)),
+        new UnresolvedVariableAssignmentJudgment(
+          null,
+          false,
+          null,
+        )..fileOffset = token.charOffset);
   }
 
   @override
