@@ -3861,16 +3861,30 @@ class Wrong<T> {
 
   void test_illegalAssignmentToNonAssignable_assign_int() {
     parseStatement("0 = 1;");
-    listener.assertErrors([
-      expectedError(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 0, 1)
-    ]);
+    listener.assertErrors(usingFastaParser
+        ? [
+            expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 0, 1),
+            expectedError(
+                ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 0, 1),
+          ]
+        : [
+            expectedError(
+                ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 4, 1)
+          ]);
   }
 
   void test_illegalAssignmentToNonAssignable_assign_this() {
     parseStatement("this = 1;");
-    listener.assertErrors([
-      expectedError(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 0, 4)
-    ]);
+    listener.assertErrors(usingFastaParser
+        ? [
+            expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 0, 4),
+            expectedError(
+                ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 0, 4)
+          ]
+        : [
+            expectedError(
+                ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 7, 1)
+          ]);
   }
 
   void test_illegalAssignmentToNonAssignable_postfix_minusMinus_literal() {
@@ -3899,16 +3913,10 @@ class Wrong<T> {
 
   void test_illegalAssignmentToNonAssignable_superAssigned() {
     parseStatement("super = x;");
-    listener.assertErrors(usingFastaParser
-        ? [
-            expectedError(
-                ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 0, 5)
-          ]
-        : [
-            expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 6, 1),
-            expectedError(
-                ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 6, 1)
-          ]);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 0, 5),
+      expectedError(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 0, 5)
+    ]);
   }
 
   void test_implementsBeforeExtends() {

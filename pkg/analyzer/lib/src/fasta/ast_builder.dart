@@ -726,6 +726,11 @@ class AstBuilder extends StackListener {
 
     Expression rhs = pop();
     Expression lhs = pop();
+    if (!lhs.isAssignable) {
+      // TODO(danrubel): Update the BodyBuilder to report this error.
+      handleRecoverableError(
+          messageMissingAssignableSelector, lhs.beginToken, lhs.endToken);
+    }
     push(ast.assignmentExpression(lhs, token, rhs));
   }
 
