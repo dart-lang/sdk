@@ -172,7 +172,7 @@ class IncompleteErrorGenerator extends IncompleteSendGenerator
       : super(helper, token, null);
 
   @override
-  Generator asLvalue() => this;
+  Generator asLvalue() => makeNonLValueGenerator();
 
   String get debugName => "IncompleteErrorGenerator";
 

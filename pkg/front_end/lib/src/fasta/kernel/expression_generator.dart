@@ -81,7 +81,6 @@ import 'kernel_ast_api.dart'
         TypeParameterType,
         UnresolvedTargetInvocationJudgment,
         UnresolvedVariableAssignmentJudgment,
-        UnresolvedVariableUnaryJudgment,
         VariableDeclaration;
 
 import 'kernel_builder.dart'
@@ -889,70 +888,12 @@ abstract class ErroneousExpressionGenerator implements Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return new SyntheticExpressionJudgment(buildError(
-        forest.arguments(<Expression>[value], token),
-        isSetter: true));
-  }
-
-  @override
-  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: -1,
-      bool voidContext: false,
-      Procedure interfaceTarget,
-      bool isPreIncDec: false}) {
-    return new SyntheticExpressionJudgment(buildError(
-        forest.arguments(<Expression>[value], token),
-        isGetter: true));
-  }
-
-  @override
-  Expression buildPrefixIncrement(Name binaryOperator,
-      {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
-    var error = buildError(
-        forest.arguments(
-            <Expression>[forest.literalInt(1, null)..fileOffset = offset],
-            token),
-        isGetter: true);
-    return new UnresolvedVariableUnaryJudgment(error, token)
-      ..fileOffset = offset;
-  }
-
-  @override
-  Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
-    var error = buildError(
-        forest.arguments(
-            <Expression>[forest.literalInt(1, null)..fileOffset = offset],
-            token),
-        isGetter: true);
-    return new UnresolvedVariableUnaryJudgment(error, token)
-      ..fileOffset = offset;
-  }
-
-  @override
-  Expression buildNullAwareAssignment(
-      Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
-    return new SyntheticExpressionJudgment(buildError(
-        forest.arguments(<Expression>[value], token),
-        isSetter: true));
-  }
-
-  @override
   Expression buildSimpleRead() => new SyntheticExpressionJudgment(
       buildError(forest.argumentsEmpty(token), isGetter: true));
 
   @override
   Expression makeInvalidRead() => new SyntheticExpressionJudgment(
       buildError(forest.argumentsEmpty(token), isGetter: true));
-
-  @override
-  Expression makeInvalidWrite(Expression value) {
-    return new SyntheticExpressionJudgment(buildError(
-        forest.arguments(<Expression>[value], token),
-        isSetter: true));
-  }
 
   @override
   Expression invokeConstructor(List<DartType> typeArguments, String name,
