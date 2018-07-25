@@ -338,9 +338,6 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   void propertyGetCall(
       ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void propertySet(
-      ExpressionJudgment judgment, Location location, DartType inferredType);
-
   void redirectingInitializer(
       InitializerJudgment judgment,
       Location location,
@@ -828,10 +825,6 @@ class KernelTypeInferenceListener
 
   @override
   void propertyGetCall(
-      ExpressionJudgment judgment, location, DartType inferredType) {}
-
-  @override
-  void propertySet(
       ExpressionJudgment judgment, location, DartType inferredType) {}
 
   @override

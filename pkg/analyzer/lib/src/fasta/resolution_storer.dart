@@ -487,10 +487,6 @@ class ResolutionStorer
     _store(location, isExplicitCall: true);
   }
 
-  void propertySet(
-          ExpressionJudgment judgment, int location, DartType inferredType) =>
-      genericExpression("propertySet", location, inferredType);
-
   void redirectingInitializer(
       InitializerJudgment judgment,
       int location,

@@ -487,12 +487,6 @@ class KernelFactory
   }
 
   @override
-  Expression propertySet(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {
-    return judgment;
-  }
-
-  @override
   Initializer redirectingInitializer(
       InitializerJudgment judgment,
       int fileOffset,

@@ -326,9 +326,6 @@ abstract class Factory<Expression, Statement, Initializer, Type> {
   Expression propertyGetCall(
       ExpressionJudgment judgment, int fileOffset, DartType inferredType);
 
-  Expression propertySet(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType);
-
   Initializer redirectingInitializer(
       InitializerJudgment judgment,
       int fileOffset,

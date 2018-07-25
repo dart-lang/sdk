@@ -380,10 +380,6 @@ class ToplevelInferenceFactory implements Factory<void, void, void, void> {
       ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
 
   @override
-  void propertySet(
-      ExpressionJudgment judgment, int fileOffset, DartType inferredType) {}
-
-  @override
   void redirectingInitializer(
       InitializerJudgment judgment,
       int fileOffset,
