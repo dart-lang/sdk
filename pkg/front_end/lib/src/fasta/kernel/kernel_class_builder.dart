@@ -667,7 +667,12 @@ abstract class KernelClassBuilder
           ]);
     } else if (library.loader.target.backendTarget.strongMode &&
         declaredFunction?.typeParameters != null) {
-      var substitution = <TypeParameter, DartType>{};
+      var substitutionMap = <TypeParameter, DartType>{};
+      for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {
+        substitutionMap[interfaceFunction.typeParameters[i]] =
+            new TypeParameterType(declaredFunction.typeParameters[i]);
+      }
+      Substitution substitution = Substitution.fromMap(substitutionMap);
       for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {
         TypeParameter declaredParameter = declaredFunction.typeParameters[i];
         TypeParameter interfaceParameter = interfaceFunction.typeParameters[i];
@@ -679,7 +684,7 @@ abstract class KernelClassBuilder
             interfaceBound =
                 interfaceSubstitution.substituteType(interfaceBound);
           }
-          if (declaredBound != interfaceBound) {
+          if (declaredBound != substitution.substituteType(interfaceBound)) {
             addProblem(
                 templateOverrideTypeVariablesMismatch.withArguments(
                     "$name::${declaredMember.name.name}",
@@ -695,13 +700,10 @@ abstract class KernelClassBuilder
                 ]);
           }
         }
-        substitution[interfaceParameter] =
-            new TypeParameterType(declaredParameter);
       }
-      var newSubstitution = Substitution.fromMap(substitution);
       interfaceSubstitution = interfaceSubstitution == null
-          ? newSubstitution
-          : Substitution.combine(interfaceSubstitution, newSubstitution);
+          ? substitution
+          : Substitution.combine(interfaceSubstitution, substitution);
     }
     return interfaceSubstitution;
   }
