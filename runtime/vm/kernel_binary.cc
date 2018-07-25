@@ -161,6 +161,12 @@ Program* Program::ReadFromBuffer(const uint8_t* buffer,
   return kernel::Program::ReadFrom(&reader, error);
 }
 
+Program* Program::ReadFromTypedData(const ExternalTypedData& typed_data,
+                                    const char** error) {
+  kernel::Reader reader(typed_data);
+  return kernel::Program::ReadFrom(&reader, error);
+}
+
 }  // namespace kernel
 }  // namespace dart
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

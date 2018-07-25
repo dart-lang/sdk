@@ -614,8 +614,22 @@ void IsolateReloadContext::Reload(bool force_reload,
         return;
       }
       did_kernel_compilation = true;
-      kernel_program.set(
-          kernel::Program::ReadFromBuffer(retval.kernel, retval.kernel_size));
+
+      // The ownership of the kernel buffer goes now to the VM.
+      const ExternalTypedData& typed_data = ExternalTypedData::Handle(
+          Z,
+          ExternalTypedData::New(kExternalTypedDataUint8ArrayCid, retval.kernel,
+                                 retval.kernel_size, Heap::kOld));
+      struct Helper {
+        static void Finalize(void* isolate_callback_data,
+                             Dart_WeakPersistentHandle handle,
+                             void* data) {
+          free(data);
+        }
+      };
+      typed_data.AddFinalizer(retval.kernel, Helper::Finalize,
+                              retval.kernel_size);
+      kernel_program.set(kernel::Program::ReadFromTypedData(typed_data));
     }
 
     kernel::KernelLoader::FindModifiedLibraries(kernel_program.get(), I,

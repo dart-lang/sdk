@@ -66,6 +66,8 @@ class Program {
   static Program* ReadFromBuffer(const uint8_t* buffer,
                                  intptr_t buffer_length,
                                  const char** error = nullptr);
+  static Program* ReadFromTypedData(const ExternalTypedData& typed_data,
+                                    const char** error = nullptr);
 
   bool is_single_program() { return single_program_; }
   NameIndex main_method() { return main_method_reference_; }
