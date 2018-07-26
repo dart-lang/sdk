@@ -17,6 +17,7 @@ import 'package:source_span/source_span.dart' show SourceLocation;
 import '../compiler/js_names.dart' as JS;
 import '../compiler/js_utils.dart' as JS;
 import '../compiler/module_builder.dart' show pathToJSIdentifier;
+import '../compiler/shared_command.dart' show SharedCompilerOptions;
 import '../compiler/shared_compiler.dart';
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
@@ -37,6 +38,8 @@ class ProgramCompiler extends Object
         ExpressionVisitor<JS.Expression>,
         DartTypeVisitor<JS.Expression>,
         ConstantVisitor<JS.Expression> {
+  final SharedCompilerOptions options;
+
   /// The set of libraries we are currently compiling, and the temporaries used
   /// to refer to them.
   ///
@@ -48,8 +51,8 @@ class ProgramCompiler extends Object
   /// corresponding Kernel summary module we imported it with.
   final _importToSummary = Map<Library, Component>.identity();
 
-  /// Maps a summary to the file URI we used to load it from disk.
-  final _summaryToUri = Map<Component, Uri>.identity();
+  /// Maps a summary to the JS import name for the module.
+  final _summaryToModule = Map<Component, String>.identity();
 
   /// Imported libraries, and the temporaries used to refer to them.
   final _imports = Map<Library, JS.TemporaryId>();
@@ -127,10 +130,6 @@ class ProgramCompiler extends Object
 
   final _superHelpers = Map<String, JS.Method>();
 
-  final bool emitMetadata;
-  final bool enableAsserts;
-  final bool replCompile;
-
   // Compilation of Kernel's [BreakStatement].
   //
   // Kernel represents Dart's `break` and `continue` uniformly as
@@ -196,11 +195,8 @@ class ProgramCompiler extends Object
 
   final NullableInference _nullableInference;
 
-  factory ProgramCompiler(Component component,
-      {bool emitMetadata = false,
-      bool replCompile = false,
-      bool enableAsserts = true,
-      Map<String, String> declaredVariables = const {}}) {
+  factory ProgramCompiler(Component component, SharedCompilerOptions options,
+      Map<String, String> declaredVariables) {
     var coreTypes = CoreTypes(component);
     var types =
         TypeSchemaEnvironment(coreTypes, ClassHierarchy(component), true);
@@ -208,15 +204,18 @@ class ProgramCompiler extends Object
     var nativeTypes = NativeTypeSet(coreTypes, constants);
     var jsTypeRep = JSTypeRep(types);
     return ProgramCompiler._(coreTypes, coreTypes.index, nativeTypes, constants,
-        types, jsTypeRep, NullableInference(jsTypeRep),
-        emitMetadata: emitMetadata,
-        enableAsserts: enableAsserts,
-        replCompile: replCompile);
+        types, jsTypeRep, NullableInference(jsTypeRep), options);
   }
 
-  ProgramCompiler._(this.coreTypes, LibraryIndex sdk, this._extensionTypes,
-      this._constants, this.types, this._typeRep, this._nullableInference,
-      {this.emitMetadata, this.enableAsserts, this.replCompile})
+  ProgramCompiler._(
+      this.coreTypes,
+      LibraryIndex sdk,
+      this._extensionTypes,
+      this._constants,
+      this.types,
+      this._typeRep,
+      this._nullableInference,
+      this.options)
       : _jsArrayClass = sdk.getClass('dart:_interceptors', 'JSArray'),
         _asyncStreamIteratorClass =
             sdk.getClass('dart:async', 'StreamIterator'),
@@ -234,20 +233,23 @@ class ProgramCompiler extends Object
 
   Uri get currentLibraryUri => _currentLibrary.importUri;
 
-  JS.Program emitModule(
-      Component buildUnit, List<Component> summaries, List<Uri> summaryUris) {
+  bool get emitMetadata => options.emitMetadata;
+
+  JS.Program emitModule(Component buildUnit, List<Component> summaries,
+      Map<Uri, String> summaryModules) {
     if (moduleItems.isNotEmpty) {
       throw StateError('Can only call emitModule once.');
     }
     _component = buildUnit;
 
+    var moduleImports = summaryModules.values.toList();
     for (var i = 0; i < summaries.length; i++) {
       var summary = summaries[i];
-      var summaryUri = summaryUris[i];
+      var moduleImport = moduleImports[i];
       for (var l in summary.libraries) {
         assert(!_importToSummary.containsKey(l));
         _importToSummary[l] = summary;
-        _summaryToUri[summary] = summaryUri;
+        _summaryToModule[summary] = moduleImport;
       }
     }
 
@@ -366,17 +368,11 @@ class ProgramCompiler extends Object
       return JS.dartSdkModule;
     }
     var summary = _importToSummary[library];
-    assert(summary != null);
-    // TODO(jmesserly): look up the appropriate relative import path if the user
-    // specified that on the command line.
-    var uri = _summaryToUri[summary];
-    var summaryPath = uri.path;
-    var extensionIndex = summaryPath.lastIndexOf('.');
-    // Note: These URIs do not contain absolute paths from the physical file
-    // system, but only the relevant path within a user's project. This path
-    // will match the path where the .js file is generated, so we use it as
-    // the module name.
-    var moduleName = summaryPath.substring(1, extensionIndex);
+    var moduleName = _summaryToModule[summary];
+    if (moduleName == null) {
+      throw StateError('Could not find module name for library "$library" '
+          'from component "$summary".');
+    }
     return moduleName;
   }
 
@@ -3077,7 +3073,7 @@ class ProgramCompiler extends Object
 
   @override
   visitAssertStatement(AssertStatement node) {
-    if (!enableAsserts) return JS.EmptyStatement();
+    if (!options.enableAsserts) return JS.EmptyStatement();
     var condition = node.condition;
     var conditionType = condition.getStaticType(types);
     var jsCondition = _visitExpression(condition);
@@ -3657,7 +3653,7 @@ class ProgramCompiler extends Object
   // TODO(jmesserly): can we encapsulate REPL name lookups and remove this?
   // _emitMemberName would be a nice place to handle it, but we don't have
   // access to the target expression there (needed for `dart.replNameLookup`).
-  String get _replSuffix => replCompile ? 'Repl' : '';
+  String get _replSuffix => options.replCompile ? 'Repl' : '';
 
   JS.Expression _emitPropertySet(
       Expression receiver, Member member, Expression value,

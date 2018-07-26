@@ -559,9 +559,11 @@ class CodeGenerator extends Object
     if (source.uri.scheme == 'dart') {
       return JS.dartSdkModule;
     }
-    var moduleName = _buildUnit.libraryToModule(source);
+    var summaryPath = (source as InSummarySource).summaryPath;
+    var moduleName = options.summaryModules[summaryPath];
     if (moduleName == null) {
-      throw StateError('Could not find module containing "$library".');
+      throw StateError('Could not find module name for library "$library" '
+          'from summary path "$summaryPath".');
     }
     return moduleName;
   }

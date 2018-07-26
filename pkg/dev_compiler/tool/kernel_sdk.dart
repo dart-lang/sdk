@@ -8,6 +8,8 @@ import 'dart:convert' show json;
 import 'dart:io';
 import 'package:args/args.dart' show ArgParser;
 import 'package:dev_compiler/src/compiler/module_builder.dart';
+import 'package:dev_compiler/src/compiler/shared_command.dart'
+    show SharedCompilerOptions;
 import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:dev_compiler/src/kernel/command.dart';
 import 'package:dev_compiler/src/kernel/compiler.dart';
@@ -50,8 +52,8 @@ Future main(List<String> args) async {
   await Directory(outputDir).create(recursive: true);
   await writeComponentToBinary(component, outputPath);
 
-  var jsModule = ProgramCompiler(component, declaredVariables: {})
-      .emitModule(component, [], []);
+  var jsModule = ProgramCompiler(component, SharedCompilerOptions(), {})
+      .emitModule(component, [], {});
   var moduleFormats = {
     'amd': ModuleFormat.amd,
     'common': ModuleFormat.common,

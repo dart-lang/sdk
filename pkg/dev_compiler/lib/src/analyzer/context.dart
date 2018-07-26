@@ -31,11 +31,6 @@ class AnalyzerOptions {
   /// Package root when resolving 'package:' urls the standard way.
   String get packageRoot => contextBuilderOptions.defaultPackagesDirectoryPath;
 
-  /// List of summary file paths.
-  final List<String> summaryPaths;
-
-  final Map<String, String> customSummaryModules = {};
-
   /// Path to the dart-sdk, or `null` if the path couldn't be determined.
   final String dartSdkPath;
 
@@ -49,63 +44,49 @@ class AnalyzerOptions {
 
   AnalyzerOptions._(
       {this.contextBuilderOptions,
-      List<String> summaryPaths,
       String dartSdkPath,
       this.customUrlMappings = const {}})
-      : dartSdkPath = dartSdkPath ?? getSdkDir().path,
-        summaryPaths = summaryPaths ?? const [] {
+      : dartSdkPath = dartSdkPath ?? getSdkDir().path {
     contextBuilderOptions.declaredVariables ??= const {};
-    _parseCustomSummaryModules();
   }
 
   factory AnalyzerOptions.basic(
-      {String dartSdkPath,
-      String dartSdkSummaryPath,
-      List<String> summaryPaths}) {
-    var contextBuilderOptions = ContextBuilderOptions()
-      ..defaultOptions = (AnalysisOptionsImpl()..previewDart2 = true)
-      ..dartSdkSummaryPath = dartSdkSummaryPath;
-
+      {String dartSdkPath, String dartSdkSummaryPath}) {
     return AnalyzerOptions._(
-        contextBuilderOptions: contextBuilderOptions,
-        dartSdkPath: dartSdkPath,
-        summaryPaths: summaryPaths);
+        contextBuilderOptions: ContextBuilderOptions()
+          ..defaultOptions = (AnalysisOptionsImpl()..previewDart2 = true)
+          ..dartSdkSummaryPath = dartSdkSummaryPath,
+        dartSdkPath: dartSdkPath);
   }
 
   factory AnalyzerOptions.fromArguments(ArgResults args,
-      {String dartSdkSummaryPath, List<String> summaryPaths}) {
-    var contextBuilderOptions =
+      {String dartSdkSummaryPath}) {
+    var contextOpts =
         createContextBuilderOptions(args, trackCacheDependencies: false);
-    (contextBuilderOptions.defaultOptions as AnalysisOptionsImpl).previewDart2 =
-        true;
+    (contextOpts.defaultOptions as AnalysisOptionsImpl).previewDart2 = true;
 
     var dartSdkPath = args['dart-sdk'] as String ?? getSdkDir().path;
 
-    dartSdkSummaryPath ??= contextBuilderOptions.dartSdkSummaryPath;
-    dartSdkSummaryPath ??=
+    dartSdkSummaryPath ??= contextOpts.dartSdkSummaryPath ??
         path.join(dartSdkPath, 'lib', '_internal', 'ddc_sdk.sum');
     // For building the SDK, we explicitly set the path to none.
     if (dartSdkSummaryPath == 'build') dartSdkSummaryPath = null;
-    contextBuilderOptions.dartSdkSummaryPath = dartSdkSummaryPath;
+    contextOpts.dartSdkSummaryPath = dartSdkSummaryPath;
 
     return AnalyzerOptions._(
-        contextBuilderOptions: contextBuilderOptions,
-        summaryPaths: summaryPaths ?? args['summary'] as List<String>,
+        contextBuilderOptions: contextOpts,
         dartSdkPath: dartSdkPath,
         customUrlMappings:
             _parseUrlMappings(args['url-mapping'] as List<String>));
   }
 
   static void addArguments(ArgParser parser, {bool hide = true}) {
-    parser
-      ..addOption('summary',
-          abbr: 's', help: 'summary file(s) to include', allowMultiple: true)
-      ..addOption('url-mapping',
-          help: '--url-mapping=libraryUri,/path/to/library.dart uses\n'
-              'library.dart as the source for an import of of "libraryUri".',
-          allowMultiple: true,
-          splitCommas: false,
-          hide: hide);
+    parser.addOption('url-mapping',
+        help: '--url-mapping=libraryUri,/path/to/library.dart uses\n'
+            'library.dart as the source for an import of of "libraryUri".',
+        allowMultiple: true,
+        splitCommas: false,
+        hide: hide);
   }
 
   static Map<String, String> _parseUrlMappings(List<String> argument) {
@@ -117,23 +98,6 @@ class AnalyzerOptions {
       }
     }
     return mappings;
-  }
-
-  /// A summary path can contain "=" followed by an explicit module name to
-  /// allow working with summaries whose physical location is outside of the
-  /// module root directory.
-  ///
-  /// Removes any explicit module names from [summaryPaths] and populates with
-  /// [customSummaryModules] with them.
-  void _parseCustomSummaryModules() {
-    for (var i = 0; i < summaryPaths.length; i++) {
-      var summaryPath = summaryPaths[i];
-      var pipe = summaryPath.indexOf("=");
-      if (pipe != -1) {
-        summaryPaths[i] = summaryPath.substring(0, pipe);
-        customSummaryModules[summaryPaths[i]] = summaryPath.substring(pipe + 1);
-      }
-    }
   }
 }
 
@@ -147,19 +111,17 @@ SourceFactory createSourceFactory(AnalyzerOptions options,
     SummaryDataStore summaryData,
     ResourceProvider resourceProvider}) {
   resourceProvider ??= PhysicalResourceProvider.INSTANCE;
-  var resolvers = <UriResolver>[];
+  var resolvers = <UriResolver>[sdkResolver];
   if (options.customUrlMappings.isNotEmpty) {
     resolvers
         .add(CustomUriResolver(resourceProvider, options.customUrlMappings));
   }
-  resolvers.add(sdkResolver);
   if (summaryData != null) {
     resolvers.add(InSummaryUriResolver(resourceProvider, summaryData));
   }
 
-  if (fileResolvers == null)
-    fileResolvers =
-        createFileResolvers(options, resourceProvider: resourceProvider);
+  fileResolvers ??=
+      createFileResolvers(options, resourceProvider: resourceProvider);
   resolvers.addAll(fileResolvers);
   return SourceFactory(resolvers, null, resourceProvider);
 }

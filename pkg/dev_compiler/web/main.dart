@@ -18,7 +18,7 @@ external set setUpCompilerInBrowser(Function function);
 
 Future<dynamic> _setUpCompilerInBrowser;
 main() {
-  var args = ['compile', '--repl-compile'];
+  var args = ['compile'];
 
   // Avoid race condition when users try to call $setUpDartDevCompilerInBrowser
   // before it is ready by installing the method immediately and making the body

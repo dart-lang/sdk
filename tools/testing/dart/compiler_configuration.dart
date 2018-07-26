@@ -58,7 +58,7 @@ abstract class CompilerConfiguration {
         return new DevCompilerConfiguration(configuration);
 
       case Compiler.dartdevk:
-        return new DevKernelCompilerConfiguration(configuration);
+        return new DevCompilerConfiguration(configuration, useKernel: true);
 
       case Compiler.appJit:
         return new AppJitCompilerConfiguration(configuration,
@@ -462,14 +462,18 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
   }
 }
 
-/// Configuration for dev-compiler.
+/// Configuration for `dartdevc` and `dartdevk`
 class DevCompilerConfiguration extends CompilerConfiguration {
-  DevCompilerConfiguration(Configuration configuration)
+  final bool useKernel;
+
+  DevCompilerConfiguration(Configuration configuration, {this.useKernel: false})
       : super._subclass(configuration);
+
+  String get compilerName => useKernel ? 'dartdevk' : 'dartdevc';
 
   String computeCompilerPath() {
     var dir = _useSdk ? "${_configuration.buildDirectory}/dart-sdk" : "sdk";
-    return "$dir/bin/dartdevc$executableScriptSuffix";
+    return "$dir/bin/$compilerName$executableScriptSuffix";
   }
 
   List<String> computeCompilerArguments(
@@ -487,11 +491,9 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
   Command createCommand(String inputFile, String outputFile,
       List<String> sharedOptions, Map<String, String> environment) {
-    var moduleRoot =
-        new Path(outputFile).directoryPath.directoryPath.toNativePath();
-
+    var sdkSummaryFile = useKernel ? 'kernel/ddc_sdk.dill' : 'ddc_sdk.sum';
     var sdkSummary = new Path(_configuration.buildDirectory)
-        .append("/gen/utils/dartdevc/ddc_sdk.sum")
+        .append("/gen/utils/dartdevc/$sdkSummaryFile")
         .absolute
         .toNativePath();
 
@@ -504,17 +506,19 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     // of computing `--dart-sdk` and passing it to DDC. For simplicitly that
     // script should be passing `--dart-sdk-summary`, that way DDC doesn't need
     // two options for the same thing.
-    var args = _useSdk
+    var args = _useSdk && !useKernel
         ? ["--dart-sdk", "${_configuration.buildDirectory}/dart-sdk"]
         : ["--dart-sdk-summary", sdkSummary];
 
     args.addAll(sharedOptions);
+    if (!useKernel) {
+      // TODO(jmesserly): library-root needs to be removed.
+      args.addAll(
+          ["--library-root", new Path(inputFile).directoryPath.toNativePath()]);
+    }
+
     args.addAll([
       "--ignore-unrecognized-flags",
-      "--library-root",
-      new Path(inputFile).directoryPath.toNativePath(),
-      "--module-root",
-      moduleRoot,
       "--no-summarize",
       "--no-source-map",
       "-o",
@@ -524,108 +528,25 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
     // Link to the summaries for the available packages, so that they don't
     // get recompiled into the test's own module.
+    var pkgDir = useKernel ? 'pkg_kernel' : 'pkg';
+    var pkgExtension = useKernel ? 'dill' : 'sum';
     for (var package in testPackages) {
       args.add("-s");
 
       // Since the summaries for the packages are not near the tests, we give
       // dartdevc explicit module paths for each one. When the test is run, we
       // will tell require.js where to find each package's compiled JS.
-      var summary = _configuration.buildDirectory +
-          "/gen/utils/dartdevc/pkg/$package.sum";
+      var summary = new Path(_configuration.buildDirectory)
+          .append("/gen/utils/dartdevc/$pkgDir/$package.$pkgExtension")
+          .absolute
+          .toNativePath();
       args.add("$summary=$package");
     }
 
-    return Command.compilation(Compiler.dartdevc.name, outputFile,
-        bootstrapDependencies(), computeCompilerPath(), args, environment);
-  }
-
-  CommandArtifact computeCompilationArtifact(
-      String tempDir, List<String> arguments, Map<String, String> environment) {
-    // The list of arguments comes from a call to our own
-    // computeCompilerArguments(). It contains the shared options followed by
-    // the input file path.
-    // TODO(rnystrom): Jamming these into a list in order to pipe them from
-    // computeCompilerArguments() to here seems hacky. Is there a cleaner way?
-    var sharedOptions = arguments.sublist(0, arguments.length - 1);
-    var inputFile = arguments.last;
-    var inputFilename = (new Uri.file(inputFile)).pathSegments.last;
-    var outputFile = "$tempDir/${inputFilename.replaceAll('.dart', '.js')}";
-
-    return new CommandArtifact(
-        [createCommand(inputFile, outputFile, sharedOptions, environment)],
-        outputFile,
-        "application/javascript");
-  }
-}
-
-/// Configuration for dev-compiler with the kernel front end.
-class DevKernelCompilerConfiguration extends CompilerConfiguration {
-  DevKernelCompilerConfiguration(Configuration configuration)
-      : super._subclass(configuration);
-
-  String computeCompilerPath() {
-    var dir = _useSdk ? "${_configuration.buildDirectory}/dart-sdk" : "sdk";
-    return "$dir/bin/dartdevk$executableScriptSuffix";
-  }
-
-  List<String> computeCompilerArguments(
-      List<String> vmOptions,
-      List<String> sharedOptions,
-      List<String> dart2jsOptions,
-      List<String> ddcOptions,
-      List<String> args) {
-    var result = sharedOptions.toList()..addAll(ddcOptions);
-
-    // The file being compiled is the last argument.
-    result.add(args.last);
-    return result;
-  }
-
-  Command createCommand(String inputFile, String outputFile,
-      List<String> sharedOptions, Map<String, String> environment) {
-    var args = sharedOptions.toList();
-
-    var sdkSummary = new Path(_configuration.buildDirectory)
-        .append("/gen/utils/dartdevc/kernel/ddc_sdk.dill")
-        .absolute
-        .toNativePath();
-
-    var summaryInputDir = new Path(_configuration.buildDirectory)
-        .append("/gen/utils/dartdevc/pkg_kernel")
-        .absolute
-        .toNativePath();
-
-    args.addAll([
-      "--dart-sdk-summary",
-      sdkSummary,
-      "--no-summarize",
-      "-o",
-      outputFile,
-      inputFile,
-      "--summary-input-dir=$summaryInputDir",
-    ]);
-
-    // Link to the summaries for the available packages, so that they don't
-    // get recompiled into the test's own module.
-    for (var package in testPackages) {
-      var summary = new Path(_configuration.buildDirectory)
-          .append("/gen/utils/dartdevc/pkg_kernel/$package.dill")
-          .absolute
-          .toNativePath();
-      args.add("-s");
-      args.add(summary);
-    }
-
-    // Use the directory containing the test as the working directory. This
-    // ensures dartdevk creates a short module named based on the test name
-    // (like "ackermann_test") and does not include any of the parent
-    // directories in the name (like "tests__language_2__ackermann_test").
     var inputDir =
         new Path(inputFile).append("..").canonicalize().toNativePath();
-    var compiler = Repository.dir.append(computeCompilerPath()).toNativePath();
-
-    return Command.compilation(Compiler.dartdevk.name, outputFile,
-        bootstrapDependencies(), compiler, args, environment,
+    return Command.compilation(compilerName, outputFile,
+        bootstrapDependencies(), computeCompilerPath(), args, environment,
         workingDirectory: inputDir);
   }
 

@@ -5,14 +5,12 @@
 import 'dart:io';
 import 'package:analyzer/src/command_line/arguments.dart'
     show defineAnalysisArguments, ignoreUnrecognizedFlagsFlag;
-import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
-    show ConflictingSummaryException, InSummarySource;
+    show ConflictingSummaryException;
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:args/command_runner.dart' show UsageException;
 import 'package:path/path.dart' as path;
 
-import '../compiler/module_builder.dart';
 import 'context.dart' show AnalyzerOptions;
 import 'module_compiler.dart' show BuildUnit, CompilerOptions, ModuleCompiler;
 
@@ -58,7 +56,7 @@ int compile(List<String> args, {void printFn(Object obj)}) {
     return 0;
   } on UsageException catch (error) {
     // Incorrect usage, input file not found, etc.
-    printFn(error);
+    printFn('${error.message}\n\n$_usageMessage');
     return 64;
   } on ConflictingSummaryException catch (error) {
     // Same input file appears in multiple provided summaries.
@@ -106,14 +104,14 @@ ArgParser ddcArgParser({bool hide = true}) {
         defaultsTo: false,
         hide: hide)
     ..addMultiOption('out', abbr: 'o', help: 'Output file (required).')
-    ..addOption('module-root',
-        help: 'Root module directory. Module paths are relative to this root.')
+    ..addOption('module-name',
+        help: 'The output module name, used in some JS module formats.\n'
+            'Defaults to the output file name (without .js).')
     ..addOption('library-root',
         help: 'Root of source files. Library names are relative to this root.');
-  defineAnalysisArguments(argParser, hide: hide, ddc: true);
-  addModuleFormatOptions(argParser, allowMultiple: true, hide: hide);
-  AnalyzerOptions.addArguments(argParser, hide: hide);
   CompilerOptions.addArguments(argParser, hide: hide);
+  defineAnalysisArguments(argParser, hide: hide, ddc: true);
+  AnalyzerOptions.addArguments(argParser, hide: hide);
   return argParser;
 }
 
@@ -131,23 +129,17 @@ void _compile(ArgResults argResults, AnalyzerOptions analyzerOptions,
   var compiler = ModuleCompiler(analyzerOptions);
   var compilerOpts = CompilerOptions.fromArguments(argResults);
   var outPaths = argResults['out'] as List<String>;
-  var moduleFormats = parseModuleFormatOption(argResults);
-  bool singleOutFile = argResults['single-out-file'];
-  if (singleOutFile) {
-    for (var format in moduleFormats) {
-      if (format != ModuleFormat.amd && format != ModuleFormat.legacy) {
-        _usageException('Format $format cannot be combined with '
-            'single-out-file. Only amd and legacy modes are supported.');
-      }
-    }
-  }
-
+  var moduleFormats = compilerOpts.moduleFormats;
   if (outPaths.isEmpty) {
-    _usageException('Please include the output file location. For example:\n'
-        '    -o PATH/TO/OUTPUT_FILE.js');
+    throw UsageException(
+        'Please specify the output file location. For example:\n'
+        '    -o PATH/TO/OUTPUT_FILE.js',
+        '');
   } else if (outPaths.length != moduleFormats.length) {
-    _usageException('Number of output files (${outPaths.length}) must match '
-        'number of module formats (${moduleFormats.length}).');
+    throw UsageException(
+        'Number of output files (${outPaths.length}) must match '
+        'number of module formats (${moduleFormats.length}).',
+        '');
   }
 
   // TODO(jmesserly): for now the first one is special. This will go away once
@@ -160,27 +152,20 @@ void _compile(ArgResults argResults, AnalyzerOptions analyzerOptions,
   } else {
     libraryRoot = Directory.current.path;
   }
-  var moduleRoot = argResults['module-root'] as String;
-  String modulePath;
-  if (moduleRoot != null) {
-    moduleRoot = path.absolute(moduleRoot);
-    if (!path.isWithin(moduleRoot, firstOutPath)) {
-      _usageException('Output file $firstOutPath must be within the module '
-          'root directory $moduleRoot');
+  var moduleName = argResults['module-name'] as String;
+  if (moduleName == null) {
+    var moduleRoot = compilerOpts.moduleRoot;
+    if (moduleRoot != null) {
+      // TODO(jmesserly): remove this legacy support after a deprecation period.
+      // (Mainly this is to give time for migrating build rules.)
+      moduleName =
+          path.withoutExtension(path.relative(firstOutPath, from: moduleRoot));
+    } else {
+      moduleName = path.basenameWithoutExtension(firstOutPath);
     }
-    modulePath =
-        path.withoutExtension(path.relative(firstOutPath, from: moduleRoot));
-  } else {
-    moduleRoot = path.dirname(firstOutPath);
-    modulePath = path.basenameWithoutExtension(firstOutPath);
   }
 
-  var unit = BuildUnit(
-      modulePath,
-      libraryRoot,
-      argResults.rest,
-      (source) =>
-          _moduleForLibrary(moduleRoot, source, analyzerOptions, compilerOpts));
+  var unit = BuildUnit(moduleName, libraryRoot, argResults.rest);
 
   var module = compiler.compile(unit, compilerOpts);
   module.errors.forEach(printFn);
@@ -193,8 +178,7 @@ void _compile(ArgResults argResults, AnalyzerOptions analyzerOptions,
 
   // Write JS file, as well as source map and summary (if requested).
   for (var i = 0; i < outPaths.length; i++) {
-    module.writeCodeSync(moduleFormats[i], outPaths[i],
-        singleOutFile: singleOutFile);
+    module.writeCodeSync(moduleFormats[i], outPaths[i]);
   }
   if (module.summaryBytes != null) {
     var summaryPaths = compilerOpts.summaryOutPath != null
@@ -216,34 +200,6 @@ void _compile(ArgResults argResults, AnalyzerOptions analyzerOptions,
   }
 }
 
-String _moduleForLibrary(String moduleRoot, Source source,
-    AnalyzerOptions analyzerOptions, CompilerOptions compilerOpts) {
-  if (source is InSummarySource) {
-    var summaryPath = source.summaryPath;
-
-    if (analyzerOptions.customSummaryModules.containsKey(summaryPath)) {
-      return analyzerOptions.customSummaryModules[summaryPath];
-    }
-
-    var ext = '.${compilerOpts.summaryExtension}';
-    if (path.isWithin(moduleRoot, summaryPath) && summaryPath.endsWith(ext)) {
-      var buildUnitPath =
-          summaryPath.substring(0, summaryPath.length - ext.length);
-      return path.url
-          .joinAll(path.split(path.relative(buildUnitPath, from: moduleRoot)));
-    }
-
-    _usageException('Imported file ${source.uri} is not within the module root '
-        'directory $moduleRoot');
-  }
-
-  _usageException(
-      'Imported file "${source.uri}" was not found as a summary or source '
-      'file. Please pass in either the summary or the source file '
-      'for this import.');
-  return null; // unreachable
-}
-
 String get _usageMessage =>
     'The Dart Development Compiler compiles Dart sources into a JavaScript '
     'module.\n\n'
@@ -260,10 +216,6 @@ String _getVersion() {
     // This happens when the script is not running in the context of an SDK.
     return "<unknown>";
   }
-}
-
-void _usageException(String message) {
-  throw UsageException(message, _usageMessage);
 }
 
 /// Thrown when the input source code has errors.
