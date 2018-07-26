@@ -94,7 +94,6 @@ front_end/test/*: RuntimeError, OK, Pass # Issue 26103. Timers are not supported
 kernel/test/*: RuntimeError, OK # Issue 26103. Timers are not supported.
 
 [ $runtime == vm ]
-analysis_server/test/analysis/get_signature_test: Pass, Slow
 analysis_server/test/benchmarks_test: Pass, Slow
 analysis_server/test/completion_test: Pass, Slow
 analysis_server/test/domain_completion_test: Pass, Slow
