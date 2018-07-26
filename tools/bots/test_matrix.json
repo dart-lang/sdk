@@ -246,7 +246,8 @@
       "options": {
         "preview-dart-2": false
       }},
-    "app_jitk-linux-(debug|product|release)-x64": { }
+    "app_jitk-linux-(debug|product|release)-x64": { },
+    "dartkb-linux-(debug|release)-x64": { }
   },
   "builder_configurations": [
     {
@@ -321,6 +322,43 @@
             "--compiler=fasta",
             "--runtime=none",
             "co19_2"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-dartkb-linux-debug-x64",
+        "vm-dartkb-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm kbc builders."
+      },
+      "steps": [
+        {
+          "name": "configure dart",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=debug,release",
+            "--arch=x64",
+            "--bytecode"
+          ]
+        },
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--bytecode",
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "--compiler=dartkb",
+            "-n=dartkb-linux-${mode}-x64",
+            "vm",
+            "language_2"
           ]
         }
       ]

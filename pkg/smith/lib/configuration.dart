@@ -491,6 +491,7 @@ class Compiler extends NamedEnum {
   static const appJitk = const Compiler._('app_jitk');
   static const dartk = const Compiler._('dartk');
   static const dartkp = const Compiler._('dartkp');
+  static const dartkb = const Compiler._('dartkb');
   static const specParser = const Compiler._('spec_parser');
   static const fasta = const Compiler._('fasta');
 
@@ -507,6 +508,7 @@ class Compiler extends NamedEnum {
     appJitk,
     dartk,
     dartkp,
+    dartkb,
     specParser,
     fasta,
   ], key: (compiler) => (compiler as Compiler).name);
