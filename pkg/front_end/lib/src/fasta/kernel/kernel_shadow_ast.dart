@@ -1716,6 +1716,28 @@ class IndexAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
   }
 }
 
+class IllegalPropertySetJudgment extends SyntheticExpressionJudgment {
+  final bool forSyntheticToken;
+
+  final Member setter;
+
+  IllegalPropertySetJudgment(
+      Expression desugared, this.forSyntheticToken, this.setter)
+      : super(desugared);
+
+  @override
+  Expression infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory,
+      DartType typeContext) {
+    _replaceWithDesugared();
+    inferredType = const DynamicType();
+    inferrer.listener.propertyAssign(
+        this, fileOffset, setter, setter.setterType, null, inferredType);
+    return null;
+  }
+}
+
 /// Common base class for shadow objects representing initializers in kernel
 /// form.
 abstract class InitializerJudgment implements Initializer {

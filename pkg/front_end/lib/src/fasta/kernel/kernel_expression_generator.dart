@@ -11,15 +11,15 @@ import '../constant_context.dart' show ConstantContext;
 
 import '../fasta_codes.dart'
     show
-        Message,
         LocatedMessage,
+        Message,
+        messageCannotAssignToParenthesizedExpression,
+        messageInvalidUseOfNullAwareAccess,
         messageLoadLibraryTakesNoArguments,
         messageNotAConstantExpression,
-        messageCannotAssignToParenthesizedExpression,
-        templateNotConstantExpression,
         messageSuperAsExpression,
-        templateThisOrSuperAccessInFieldInitializer,
-        messageInvalidUseOfNullAwareAccess;
+        templateNotConstantExpression,
+        templateThisOrSuperAccessInFieldInitializer;
 
 import '../messages.dart' show Message, noLength;
 
@@ -44,6 +44,7 @@ import 'expression_generator.dart'
         ErroneousExpressionGenerator,
         ExpressionGenerator,
         Generator,
+        IllegalThisPropertyAccessGenerator,
         IndexedAccessGenerator,
         LargeIntAccessGenerator,
         LoadLibraryGenerator,
@@ -78,6 +79,7 @@ import 'kernel_ast_api.dart'
         Constructor,
         DartType,
         Field,
+        IllegalPropertySetJudgment,
         IndexAssignmentJudgment,
         Initializer,
         InvalidPropertyGetJudgment,
@@ -1438,6 +1440,49 @@ class KernelLargeIntAccessGenerator extends KernelGenerator
   Expression _makeWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
     return new SyntheticExpressionJudgment(buildError());
+  }
+}
+
+class KernelIllegalThisPropertyAccessGenerator extends KernelGenerator
+    with ErroneousExpressionGenerator, IllegalThisPropertyAccessGenerator {
+  @override
+  final Name name;
+
+  final Member getter;
+
+  final Member setter;
+
+  KernelIllegalThisPropertyAccessGenerator(ExpressionGeneratorHelper helper,
+      Token token, this.name, this.getter, this.setter)
+      : super(helper, token);
+
+  @override
+  Expression buildSimpleRead() {
+    Expression error = buildError(forest.argumentsEmpty(token), isGetter: true);
+    return new InvalidPropertyGetJudgment(error, getter)
+      ..fileOffset = token.charOffset;
+  }
+
+  Expression buildSimpleWrite() {
+    Expression error = buildError(forest.argumentsEmpty(token), isSetter: true);
+    return new IllegalPropertySetJudgment(error, token.isSynthetic, setter)
+      ..fileOffset = token.charOffset;
+  }
+
+  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
+      {bool nonInstanceAccessIsError: false, TypeInferrer typeInferrer}) {
+    var type = super.buildTypeWithBuiltArguments(arguments,
+        nonInstanceAccessIsError: nonInstanceAccessIsError,
+        typeInferrer: typeInferrer);
+    typeInferrer.storeTypeReference(
+        token.offset, token.isSynthetic, null, null, type);
+    return type;
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", name: ");
+    sink.write(name.name);
   }
 }
 

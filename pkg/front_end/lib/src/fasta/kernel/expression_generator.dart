@@ -908,6 +908,56 @@ abstract class ErroneousExpressionGenerator implements Generator {
   }
 }
 
+abstract class IllegalThisPropertyAccessGenerator
+    implements ErroneousExpressionGenerator {
+  factory IllegalThisPropertyAccessGenerator(ExpressionGeneratorHelper helper,
+      Token token, Name name, Member getter, Member setter) {
+    return helper.forest.illegalThisPropertyAccessGenerator(
+        helper, token, name, getter, setter);
+  }
+
+  @override
+  Generator asLvalue() {
+    return new NonLvalueGenerator(
+        helper,
+        token,
+        buildError(new Arguments([]),
+            isSetter: true, offset: offsetForToken(token)),
+        buildSimpleWrite());
+  }
+
+  /// Builds an [Expression] representing a write to the generator.
+  Expression buildSimpleWrite();
+
+  @override
+  String get debugName => "IllegalThisPropertyAccessGenerator";
+
+  @override
+  Expression doInvocation(int charOffset, Arguments arguments) {
+    return new UnresolvedTargetInvocationJudgment(
+        buildError(arguments, offset: charOffset), arguments)
+      ..fileOffset = arguments.fileOffset;
+  }
+
+  @override
+  Expression buildError(Arguments arguments,
+      {bool isGetter: false, bool isSetter: false, int offset}) {
+    offset ??= offsetForToken(this.token);
+    return helper.throwNoSuchMethodError(
+        forest.literalNull(null)..fileOffset = offset,
+        plainNameForRead ?? '',
+        arguments,
+        offset,
+        isGetter: isGetter,
+        isSetter: isSetter);
+  }
+
+  @override
+  /* Expression | Generator */ Object prefixedLookup(Token name) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+}
+
 abstract class UnresolvedNameGenerator implements ErroneousExpressionGenerator {
   factory UnresolvedNameGenerator(
       ExpressionGeneratorHelper helper, Token token, Name name) {

@@ -32,6 +32,12 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
 
   @override
   @failingTest
+  test_illegal_call_to_static_member() {
+    return super.test_illegal_call_to_static_member();
+  }
+
+  @override
+  @failingTest
   test_invalid_annotation_on_variable_declaration_for() async {
     await super.test_invalid_annotation_on_variable_declaration_for();
   }

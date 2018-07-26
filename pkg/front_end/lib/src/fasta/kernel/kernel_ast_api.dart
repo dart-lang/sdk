@@ -90,6 +90,7 @@ export 'kernel_shadow_ast.dart'
         IfNullJudgment,
         IfJudgment,
         IllegalAssignmentJudgment,
+        IllegalPropertySetJudgment,
         IndexAssignmentJudgment,
         InvalidConstructorInvocationJudgment,
         InvalidPropertyGetJudgment,

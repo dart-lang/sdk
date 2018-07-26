@@ -964,6 +964,23 @@ main() {
     expect(xReference.staticType.toString(), useCFE ? 'dynamic' : 'int');
   }
 
+  test_assignment_to_illegal_static_access() async {
+    addTestFile('''
+class C {
+  int x;
+  static f(int y) {
+    x = y;
+  }
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var xElement = findElement.field('x');
+    assertElement(findNode.simple('x ='), xElement.setter);
+    var yElement = findElement.parameter('y');
+    assertElement(findNode.simple('y;'), yElement);
+  }
+
   test_assignment_to_non_generator() async {
     addTestFile('''
 f() {}
@@ -2081,6 +2098,23 @@ var v = (() => 42)();
     expect(closureElement.enclosingElement, same(variableInitializer));
   }
 
+  test_compound_assignment_to_illegal_static_access() async {
+    addTestFile('''
+class C {
+  int x;
+  static f(int y) {
+    x += y;
+  }
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var xElement = findElement.field('x');
+    assertElement(findNode.simple('x +='), xElement.setter);
+    var yElement = findElement.parameter('y');
+    assertElement(findNode.simple('y;'), yElement);
+  }
+
   test_compound_assignment_to_postfix_increment() async {
     addTestFile('''
 f(int x, int y) {
@@ -2858,6 +2892,23 @@ main() {
     var functionTypeNode = tRef.parent.parent.parent as GenericFunctionType;
     var functionType = functionTypeNode.type as FunctionType;
     assertElement(tRef, functionType.typeFormals[0]);
+  }
+
+  test_illegal_call_to_static_member() async {
+    addTestFile('''
+class C {
+  f() {}
+  static g() {
+    f();
+  }
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var fElement = findElement.method('f');
+    var fReference = findNode.simple('f();');
+    assertElement(fReference, fElement);
   }
 
   test_indexExpression() async {
@@ -6519,6 +6570,23 @@ void f<T, U>(T a, U b) {}
     }
   }
 
+  test_null_aware_assignment_to_illegal_static_access() async {
+    addTestFile('''
+class C {
+  int x;
+  static f(int y) {
+    x ??= y;
+  }
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var xElement = findElement.field('x');
+    assertElement(findNode.simple('x ??='), xElement.setter);
+    var yElement = findElement.parameter('y');
+    assertElement(findNode.simple('y;'), yElement);
+  }
+
   test_null_aware_assignment_to_postfix_increment() async {
     addTestFile('''
 f(int x, int y) {
@@ -6544,6 +6612,21 @@ f(int y) {
     assertElement(findNode.simple('x'), null);
     var yElement = findElement.parameter('y');
     assertElement(findNode.simple('y;'), yElement);
+  }
+
+  test_postfix_increment_of_illegal_static_access() async {
+    addTestFile('''
+class C {
+  int x;
+  static f() {
+    x++;
+  }
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var xElement = findElement.field('x');
+    assertElement(findNode.simple('x++'), xElement.setter);
   }
 
   test_postfix_increment_of_non_generator() async {
@@ -6641,6 +6724,21 @@ class C {
       expect(propertyName.staticElement, same(fElement.setter));
       expect(propertyName.staticType, typeProvider.intType);
     }
+  }
+
+  test_prefix_increment_of_illegal_static_access() async {
+    addTestFile('''
+class C {
+  int x;
+  static f() {
+    ++x; // usage
+  }
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    var xElement = findElement.field('x');
+    assertElement(findNode.simple('x; // usage'), xElement.setter);
   }
 
   test_prefix_increment_of_non_generator() async {
@@ -9755,13 +9853,24 @@ class FindElement {
 
   ParameterElement parameter(String name) {
     ParameterElement parameterElement;
+    void considerParameter(ParameterElement parameter) {
+      if (parameter.name == name) {
+        if (parameterElement != null) {
+          throw new StateError('Parameter name $name is not unique.');
+        }
+        parameterElement = parameter;
+      }
+    }
+
     for (var function in unitElement.functions) {
       for (var parameter in function.parameters) {
-        if (parameter.name == name) {
-          if (parameterElement != null) {
-            throw new StateError('Parameter name $name is not unique.');
-          }
-          parameterElement = parameter;
+        considerParameter(parameter);
+      }
+    }
+    for (var class_ in unitElement.types) {
+      for (var method in class_.methods) {
+        for (var parameter in method.parameters) {
+          considerParameter(parameter);
         }
       }
     }

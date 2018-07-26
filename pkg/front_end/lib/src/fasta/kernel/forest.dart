@@ -376,6 +376,9 @@ abstract class Forest {
   Generator thisPropertyAccessGenerator(ExpressionGeneratorHelper helper,
       Token location, Name name, Member getter, Member setter);
 
+  Generator illegalThisPropertyAccessGenerator(ExpressionGeneratorHelper helper,
+      Token location, Name name, Member getter, Member setter);
+
   Generator nullAwarePropertyAccessGenerator(
       ExpressionGeneratorHelper helper,
       Token location,

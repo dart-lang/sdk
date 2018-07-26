@@ -77,6 +77,7 @@ import 'expression_generator.dart'
         DelayedAssignment,
         DelayedPostfixIncrement,
         Generator,
+        IllegalThisPropertyAccessGenerator,
         IncompleteErrorGenerator,
         IncompletePropertyAccessGenerator,
         IncompleteSendGenerator,
@@ -1518,11 +1519,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       return new IncompleteErrorGenerator(this, token, declaration.target,
           fasta.templateThisAccessInFieldInitializer.withArguments(name));
     }
-    if (declaration == null ||
-        (!isInstanceContext && declaration.isInstanceMember)) {
+    if (declaration == null) {
       Name n = new Name(name, library.library);
       if (!isQualified && isInstanceContext) {
-        assert(declaration == null);
         if (constantContext != ConstantContext.none || member.isField) {
           return new UnresolvedNameGenerator(this, token, n);
         }
@@ -1588,7 +1587,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         getter = declaration.target;
         setter = lookupInstanceMember(n, isSetter: true);
       }
-      return new ThisPropertyAccessGenerator(this, token, n, getter, setter);
+      if (isInstanceContext) {
+        return new ThisPropertyAccessGenerator(this, token, n, getter, setter);
+      } else {
+        return new IllegalThisPropertyAccessGenerator(
+            this, token, n, getter, setter);
+      }
     } else if (declaration.isRegularMethod) {
       assert(declaration.isStatic || declaration.isTopLevel);
       return new StaticAccessGenerator(this, token, declaration.target, null);
