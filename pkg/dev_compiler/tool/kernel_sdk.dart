@@ -43,6 +43,8 @@ Future main(List<String> args) async {
     ..compileSdk = true
     ..packagesFileUri = path.toUri(path.absolute('../../.packages'))
     ..sdkRoot = path.toUri(inputPath)
+    ..librariesSpecificationUri =
+        Uri.base.resolve('../../sdk/lib/libraries.json')
     ..target = target;
 
   var inputs = target.extraRequiredLibraries.map(Uri.parse).toList();
