@@ -12,8 +12,6 @@ vm/lazy_deopt_with_exception_test: CompileTimeError
 async_await_syntax_test/e4: MissingCompileTimeError
 async_await_syntax_test/e5: MissingCompileTimeError
 async_await_syntax_test/e6: MissingCompileTimeError
-generic_metadata_test/02: MissingCompileTimeError
-generic_metadata_test/03: MissingCompileTimeError
 illegal_initializer_test/01: MissingCompileTimeError
 illegal_initializer_test/03: MissingCompileTimeError
 multiline_newline_test/01: Pass
