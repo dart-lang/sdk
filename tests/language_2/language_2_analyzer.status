@@ -9,6 +9,9 @@ error_stacktrace_test/00: MissingCompileTimeError
 vm/lazy_deopt_with_exception_test: CompileTimeError
 
 [ $compiler == dart2analyzer && $analyzer_use_fasta_parser ]
+async_await_syntax_test/e4: MissingCompileTimeError
+async_await_syntax_test/e5: MissingCompileTimeError
+async_await_syntax_test/e6: MissingCompileTimeError
 factory_with_type_parameters_test/01: MissingCompileTimeError
 factory_with_type_parameters_test/02: MissingCompileTimeError
 factory_with_type_parameters_test/05: MissingCompileTimeError
@@ -57,8 +60,6 @@ const_constructor_mixin3_test/01: MissingCompileTimeError # Issue 33644
 const_constructor_mixin_test/01: MissingCompileTimeError # Issue 33644
 const_for_in_variable_test/01: MissingCompileTimeError # Issue 25161
 constructor_call_wrong_argument_count_negative_test: Fail # Issue 11585
-constructor_type_parameter_test/00: MissingCompileTimeError # Issue 33110
-constructor_with_type_parameters_test/03: MissingCompileTimeError
 deep_nesting1_negative_test: CompileTimeError # Issue 25558
 deep_nesting2_negative_test: CompileTimeError # Issue 25558
 duplicate_export_negative_test: CompileTimeError
