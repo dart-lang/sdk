@@ -693,6 +693,7 @@ class CodeGenerator extends Object
     if (fields != null) _emitTopLevelFields(fields);
 
     _currentElement = savedElement;
+    return null;
   }
 
   void _emitExportDirectives(CompilationUnit unit) {
@@ -750,6 +751,7 @@ class CodeGenerator extends Object
       moduleItems.add(js.statement(
           '#.# = #;', [emitLibraryName(currentLibrary), name.selector, name]));
     }
+    return null;
   }
 
   @override
@@ -4162,14 +4164,14 @@ class CodeGenerator extends Object
   /// compilation unit, see [visitCompilationUnit].
   @override
   visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    assert(false);
+    return _unreachable(node);
   }
 
   /// This is not used--we emit fields as we are emitting the class,
   /// see [visitClassDeclaration].
   @override
   visitFieldDeclaration(FieldDeclaration node) {
-    assert(false);
+    return _unreachable(node);
   }
 
   @override
