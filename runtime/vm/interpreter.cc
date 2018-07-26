@@ -1069,6 +1069,7 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
       return true;
     }
     case RawFunction::kMethodExtractor: {
+      ASSERT(InterpreterHelpers::ArgDescTypeArgsLen(argdesc_) == 0);
       call_top[1] = 0;                       // Result of runtime call.
       call_top[2] = *call_base;              // Receiver.
       call_top[3] = function->ptr()->data_;  // Method.
@@ -1083,6 +1084,10 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
       return true;
     }
     case RawFunction::kInvokeFieldDispatcher: {
+      const intptr_t type_args_len =
+          InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
+      const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
+      RawObject* receiver = call_base[receiver_idx];
       RawObject** callee_fp = call_top + kKBCDartFrameFixedSize;
       ASSERT(function == FrameFunction(callee_fp));
       RawFunction* call_function = Function::null();
@@ -1093,14 +1098,13 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
         }
         if (owner == thread->isolate()->object_store()->closure_class()) {
           // Closure call.
-          RawClosure* closure = reinterpret_cast<RawClosure*>(*call_base);
-          call_function = closure->ptr()->function_;
+          call_function = Closure::RawCast(receiver)->ptr()->function_;
         }
       }
       if (call_function == Function::null()) {
-        // Invoke field getter on *call_base.
+        // Invoke field getter on receiver.
         call_top[1] = 0;                       // Result of runtime call.
-        call_top[2] = *call_base;              // Receiver.
+        call_top[2] = receiver;                // Receiver.
         call_top[3] = function->ptr()->name_;  // Field name.
         Exit(thread, *FP, call_top + 4, *pc);
         NativeArguments native_args(thread, 2, call_top + 2, call_top + 1);
@@ -1112,8 +1116,7 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
         // Otherwise, call runtime to resolve 'call' function.
         if (InterpreterHelpers::GetClassId(call_top[1]) == kClosureCid) {
           // Closure call.
-          call_function =
-              (reinterpret_cast<RawClosure*>(call_top[1]))->ptr()->function_;
+          call_function = Closure::RawCast(call_top[1])->ptr()->function_;
         } else {
           // Resolve and invoke the 'call' function.
           call_top[2] = 0;  // Result of runtime call.
@@ -1123,7 +1126,7 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
                              native_args)) {
             return false;
           }
-          call_function = reinterpret_cast<RawFunction*>(call_top[2]);
+          call_function = Function::RawCast(call_top[2]);
           if (call_function == Function::null()) {
             // 'Call' could not be resolved. TODO(regis): Can this happen?
             // Fall back to jitting the field dispatcher function.
@@ -1132,7 +1135,7 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
         }
         // Replace receiver with field value, keep all other arguments, and
         // invoke 'call' function.
-        *call_base = call_top[1];
+        call_base[receiver_idx] = call_top[1];
       }
       ASSERT(call_function != Function::null());
       // Patch field dispatcher in callee frame with call function.
