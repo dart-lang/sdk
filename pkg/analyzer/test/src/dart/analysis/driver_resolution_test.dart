@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:test/test.dart';
@@ -3551,7 +3552,8 @@ main() {
     expect(result.errors, isNotEmpty);
 
     assertTypeDynamic(findNode.simple('e,'));
-    assertType(findNode.simple('s})'), useCFE ? 'StackTrace' : 'dynamic');
+    assertType(findNode.simple('s})'),
+        useCFE || Parser.useFasta ? 'StackTrace' : 'dynamic');
   }
 
   test_invalid_catch_parameters_optional_stack() async {
@@ -3564,7 +3566,8 @@ main() {
     expect(result.errors, isNotEmpty);
 
     assertTypeDynamic(findNode.simple('e,'));
-    assertType(findNode.simple('s])'), useCFE ? 'StackTrace' : 'dynamic');
+    assertType(findNode.simple('s])'),
+        useCFE || Parser.useFasta ? 'StackTrace' : 'dynamic');
   }
 
   test_invalid_const_methodInvocation() async {
