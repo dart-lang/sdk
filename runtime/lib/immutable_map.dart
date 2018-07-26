@@ -7,6 +7,7 @@
 /// Immutable map class for compiler generated map literals.
 // TODO(lrn): Extend MapBase with UnmodifiableMapMixin when mixins
 // support forwarding const constructors.
+@pragma("vm.entry-point")
 class _ImmutableMap<K, V> implements Map<K, V> {
   final _ImmutableList _kvPairs;
 

@@ -135,6 +135,7 @@ void _asyncStarMoveNextHelper(var stream) {
 
 // _AsyncStarStreamController is used by the compiler to implement
 // async* generator functions.
+@pragma("vm.entry-point")
 class _AsyncStarStreamController<T> {
   StreamController<T> controller;
   Function asyncStarBody;

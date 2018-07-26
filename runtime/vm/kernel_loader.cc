@@ -1102,7 +1102,17 @@ Class& KernelLoader::LoadClass(const Library& library,
   class_helper.ReadUntilIncluding(ClassHelper::kFlags);
   if (class_helper.is_enum_class()) klass.set_is_enum_class();
 
-  class_helper.ReadUntilIncluding(ClassHelper::kAnnotations);
+  class_helper.ReadUntilExcluding(ClassHelper::kAnnotations);
+  intptr_t annotation_count = helper_.ReadListLength();
+  bool has_pragma_annotation = false;
+  {
+    String& native_name_unused = String::Handle(Z);
+    bool is_potential_native_unused = false;
+    ReadVMAnnotations(annotation_count, &native_name_unused,
+                      &is_potential_native_unused, &has_pragma_annotation);
+  }
+  klass.set_has_pragma(has_pragma_annotation);
+  class_helper.SetJustRead(ClassHelper::kAnnotations);
   class_helper.ReadUntilExcluding(ClassHelper::kTypeParameters);
   intptr_t type_parameter_counts =
       helper_.ReadListLength();  // read type_parameters list length.
@@ -1118,7 +1128,7 @@ Class& KernelLoader::LoadClass(const Library& library,
     class_helper.SetJustRead(ClassHelper::kTypeParameters);
   }
 
-  if (FLAG_enable_mirrors && class_helper.annotation_count_ > 0) {
+  if ((FLAG_enable_mirrors || has_pragma_annotation) && annotation_count > 0) {
     library.AddClassMetadata(klass, toplevel_class, TokenPosition::kNoSource,
                              class_offset - correction_offset_);
   }
@@ -1224,9 +1234,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     {
       String& native_name_unused = String::Handle();
       bool is_potential_native_unused;
-      ReadProcedureAnnotations(annotation_count, &native_name_unused,
-                               &is_potential_native_unused,
-                               &has_pragma_annotation);
+      ReadVMAnnotations(annotation_count, &native_name_unused,
+                        &is_potential_native_unused, &has_pragma_annotation);
     }
     constructor_helper.SetJustRead(ConstructorHelper::kAnnotations);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kFunction);
@@ -1333,18 +1342,18 @@ void KernelLoader::FinishLoading(const Class& klass) {
 //
 // Output parameters:
 //
-//   `native_name`: non-null if `ExternalName(<name>)` was identified.
+//   `native_name`: non-null if `@ExternalName(...)` was identified.
 //
-//   `is_potential_native`: non-null if there may be an `ExternalName`
+//   `is_potential_native`: non-null if there may be an `@ExternalName(...)`
 //   annotation and we need to re-try after reading the constants table.
 //
 //   `has_pragma_annotation`: non-null if @pragma(...) was found (no information
 //   is given on the kind of pragma directive).
 //
-void KernelLoader::ReadProcedureAnnotations(intptr_t annotation_count,
-                                            String* native_name,
-                                            bool* is_potential_native,
-                                            bool* has_pragma_annotation) {
+void KernelLoader::ReadVMAnnotations(intptr_t annotation_count,
+                                     String* native_name,
+                                     bool* is_potential_native,
+                                     bool* has_pragma_annotation) {
   *is_potential_native = false;
   *has_pragma_annotation = false;
   String& detected_name = String::Handle(Z);
@@ -1449,8 +1458,8 @@ void KernelLoader::LoadProcedure(const Library& library,
   bool is_potential_native;
   bool has_pragma_annotation;
   const intptr_t annotation_count = helper_.ReadListLength();
-  ReadProcedureAnnotations(annotation_count, &native_name, &is_potential_native,
-                           &has_pragma_annotation);
+  ReadVMAnnotations(annotation_count, &native_name, &is_potential_native,
+                    &has_pragma_annotation);
   // If this is a potential native, we'll unset is_external in
   // AnnotateNativeProcedures instead.
   is_external = is_external && native_name.IsNull();

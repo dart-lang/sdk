@@ -579,6 +579,7 @@ class NoSuchMethodError {
   }
 }
 
+@pragma("vm.entry-point")
 class _CompileTimeError extends Error {
   final String _errorMsg;
   _CompileTimeError(this._errorMsg);

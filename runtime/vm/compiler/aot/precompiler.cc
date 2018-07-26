@@ -1481,38 +1481,48 @@ void Precompiler::AddAnnotatedRoots() {
   auto& pragma_options_field =
       Field::Handle(Z, cls.LookupField(Symbols::options()));
 
+  // Local function allows easy reuse of handles above.
+  auto metadata_defines_entrypoint = [&]() {
+    bool is_entry_point = false;
+    for (intptr_t i = 0; i < metadata.Length(); i++) {
+      pragma = metadata.At(i);
+      if (pragma.clazz() != isolate()->object_store()->pragma_class()) {
+        continue;
+      }
+      if (Instance::Cast(pragma).GetField(pragma_name_field) !=
+          Symbols::vm_entry_point().raw()) {
+        continue;
+      }
+      pragma_options = Instance::Cast(pragma).GetField(pragma_options_field);
+      if (pragma_options.raw() == Bool::null() ||
+          pragma_options.raw() == Bool::True().raw()) {
+        is_entry_point = true;
+        break;
+      }
+    }
+    return is_entry_point;
+  };
+
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
+
+      if (cls.has_pragma()) {
+        metadata ^= lib.GetMetadata(cls);
+        if (metadata_defines_entrypoint()) {
+          AddInstantiatedClass(cls);
+        }
+      }
+
       functions = cls.functions();
       for (intptr_t k = 0; k < functions.Length(); k++) {
         function ^= functions.At(k);
         if (!function.has_pragma()) continue;
         metadata ^= lib.GetMetadata(function);
         if (metadata.IsNull()) continue;
-
-        bool is_entry_point = false;
-        for (intptr_t i = 0; i < metadata.Length(); i++) {
-          pragma = metadata.At(i);
-          if (pragma.clazz() != isolate()->object_store()->pragma_class()) {
-            continue;
-          }
-          if (Instance::Cast(pragma).GetField(pragma_name_field) !=
-              Symbols::vm_entry_point().raw()) {
-            continue;
-          }
-          pragma_options =
-              Instance::Cast(pragma).GetField(pragma_options_field);
-          if (pragma_options.raw() == Bool::null() ||
-              pragma_options.raw() == Bool::True().raw()) {
-            is_entry_point = true;
-            break;
-          }
-        }
-
-        if (!is_entry_point) continue;
+        if (!metadata_defines_entrypoint()) continue;
 
         AddFunction(function);
         if (function.IsGenerativeConstructor()) {

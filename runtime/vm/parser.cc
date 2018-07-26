@@ -4812,6 +4812,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
   bool is_abstract = false;
   TokenPosition declaration_pos =
       metadata_pos.IsReal() ? metadata_pos : TokenPos();
+  const bool is_pragma = IsPragmaAnnotation(metadata_pos);
   if (is_patch_source() && IsPatchAnnotation(metadata_pos)) {
     is_patch = true;
     metadata_pos = TokenPosition::kNoSource;
@@ -4859,6 +4860,9 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
       cls.set_script(script_);
       cls.set_token_pos(declaration_pos);
     }
+  }
+  if (is_pragma) {
+    cls.set_has_pragma(true);
   }
   ASSERT(!cls.IsNull());
   ASSERT(cls.functions() == Object::empty_array().raw());

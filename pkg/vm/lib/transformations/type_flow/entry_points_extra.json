@@ -2,16 +2,6 @@
   "roots": [
     {
       "library": "dart:core",
-      "class": "_ImmutableList",
-      "action": "create-instance"
-    },
-    {
-      "library": "dart:core",
-      "class": "_ImmutableMap",
-      "action": "create-instance"
-    },
-    {
-      "library": "dart:core",
       "class": "_Closure",
       "name": "_instantiator_type_arguments",
       "action": "get"
@@ -45,16 +35,6 @@
       "class": "_Closure",
       "name": "_hash",
       "action": "get"
-    },
-    {
-      "library": "dart:core",
-      "class": "_CompileTimeError",
-      "action": "create-instance"
-    },
-    {
-      "library": "dart:async",
-      "class": "_AsyncStarStreamController",
-      "action": "create-instance"
     }
   ]
 }
