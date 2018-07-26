@@ -384,30 +384,6 @@ main() {
         equals(new ParameterInfo(ParameterKind.REQUIRED, "length", "int")));
   }
 
-  @failingTest
-  test_function_select_param_first() {
-    // Placeholder for supporting telling the user which param is where the cursor is
-    // https://github.com/dart-lang/sdk/issues/27034#issuecomment-238280507
-    // eg. foo(1^, 2);
-    fail('TODO');
-  }
-
-  @failingTest
-  test_function_select_param_next() {
-    // Placeholder for supporting telling the user which param is where the cursor is
-    // https://github.com/dart-lang/sdk/issues/27034#issuecomment-238280507
-    // eg. foo(1, ^);
-    fail('TODO');
-  }
-
-  @failingTest
-  test_function_select_param_second() {
-    // Placeholder for supporting telling the user which param is where the cursor is
-    // https://github.com/dart-lang/sdk/issues/27034#issuecomment-238280507
-    // eg. foo(1, ^2);
-    fail('TODO');
-  }
-
   test_function_zero_arguments() async {
     addTestFile('''
 /// one doc
