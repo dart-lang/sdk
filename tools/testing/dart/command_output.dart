@@ -612,6 +612,13 @@ class AnalysisCommandOutput extends CommandOutput {
     var warnings = <String>[];
     parseAnalyzerOutput(errors, warnings);
 
+    // Handle negative
+    if (testCase.isNegative) {
+      return errors.isNotEmpty
+          ? Expectation.pass
+          : Expectation.missingCompileTimeError;
+    }
+
     // Handle errors / missing errors
     if (testCase.expectCompileError) {
       if (errors.isNotEmpty) {
