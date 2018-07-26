@@ -6372,7 +6372,7 @@ class BinaryInt64OpInstr : public BinaryIntegerOpInstr {
 
   virtual bool ComputeCanDeoptimize() const {
     ASSERT(!can_overflow());
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
+#ifdef TARGET_ARCH_ARM
     if (op_kind() == Token::kMUL) {
       return true;  // Deopt if inputs are not int32.
     }

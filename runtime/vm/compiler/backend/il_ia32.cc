@@ -5214,22 +5214,27 @@ LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
     case Token::kBIT_OR:
     case Token::kBIT_XOR:
     case Token::kADD:
-    case Token::kSUB:
-    case Token::kMUL: {
-      const intptr_t kNumTemps = (op_kind() == Token::kMUL) ? 1 : 0;
+    case Token::kSUB: {
+      const intptr_t kNumTemps = 0;
       LocationSummary* summary = new (zone) LocationSummary(
           zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-      summary->set_in(0, (op_kind() == Token::kMUL)
-                             ? Location::Pair(Location::RegisterLocation(EAX),
-                                              Location::RegisterLocation(EDX))
-                             : Location::Pair(Location::RequiresRegister(),
-                                              Location::RequiresRegister()));
+      summary->set_in(0, Location::Pair(Location::RequiresRegister(),
+                                        Location::RequiresRegister()));
       summary->set_in(1, Location::Pair(Location::RequiresRegister(),
                                         Location::RequiresRegister()));
       summary->set_out(0, Location::SameAsFirstInput());
-      if (kNumTemps > 0) {
-        summary->set_temp(0, Location::RequiresRegister());
-      }
+      return summary;
+    }
+    case Token::kMUL: {
+      const intptr_t kNumTemps = 1;
+      LocationSummary* summary = new (zone) LocationSummary(
+          zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+      summary->set_in(0, Location::Pair(Location::RegisterLocation(EAX),
+                                        Location::RegisterLocation(EDX)));
+      summary->set_in(1, Location::Pair(Location::RequiresRegister(),
+                                        Location::RequiresRegister()));
+      summary->set_out(0, Location::SameAsFirstInput());
+      summary->set_temp(0, Location::RequiresRegister());
       return summary;
     }
     default:
@@ -5251,11 +5256,8 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(out_lo == left_lo);
   ASSERT(out_hi == left_hi);
   ASSERT(!can_overflow());
+  ASSERT(!CanDeoptimize());
 
-  Label* deopt = NULL;
-  if (CanDeoptimize()) {
-    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryInt64Op);
-  }
   switch (op_kind()) {
     case Token::kBIT_AND:
       __ andl(left_lo, right_lo);
@@ -5281,21 +5283,19 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kMUL: {
-      // The product of two signed 32-bit integers fits in a signed 64-bit
-      // result without causing overflow.
-      // We deopt on larger inputs.
-      // TODO(regis): Range analysis may eliminate the deopt check.
+      // Compute 64-bit a * b as:
+      //     a_l * b_l + (a_h * b_l + a_l * b_h) << 32
+      // Since we requested EDX:EAX for in and out,
+      // we can use these as scratch registers once
+      // input has been consumed.
       Register temp = locs()->temp(0).reg();
       __ movl(temp, left_lo);
-      __ sarl(temp, Immediate(31));
-      __ cmpl(temp, left_hi);
-      __ j(NOT_EQUAL, deopt);
-      __ movl(temp, right_lo);
-      __ sarl(temp, Immediate(31));
-      __ cmpl(temp, right_hi);
-      __ j(NOT_EQUAL, deopt);
+      __ imull(left_hi, right_lo);  // a_h * b_l
+      __ imull(temp, right_hi);     // a_l * b_h
+      __ addl(temp, left_hi);       // sum_high
       ASSERT(left_lo == EAX);
-      __ imull(right_lo);  // Result in EDX:EAX.
+      __ mull(right_lo);   // a_l * b_l in EDX:EAX
+      __ addl(EDX, temp);  // add sum_high
       ASSERT(out_lo == EAX);
       ASSERT(out_hi == EDX);
       break;
