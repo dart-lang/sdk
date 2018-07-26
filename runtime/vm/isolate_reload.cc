@@ -614,8 +614,26 @@ void IsolateReloadContext::Reload(bool force_reload,
         return;
       }
       did_kernel_compilation = true;
-      kernel_program.set(
-          kernel::Program::ReadFromBuffer(retval.kernel, retval.kernel_size));
+
+      // The ownership of the kernel buffer goes now to the VM.
+      const ExternalTypedData& typed_data = ExternalTypedData::Handle(
+          Z,
+          ExternalTypedData::New(kExternalTypedDataUint8ArrayCid, retval.kernel,
+                                 retval.kernel_size, Heap::kOld));
+      typed_data.AddFinalizer(
+          retval.kernel,
+          [](void* isolate_callback_data, Dart_WeakPersistentHandle handle,
+             void* data) { free(data); },
+          retval.kernel_size);
+
+      // TODO(dartbug.com/33973): Change the heap objects to have a proper
+      // retaining path to the kernel blob and ensure the finalizer will free it
+      // once there are no longer references to it.
+      // (The [ExternalTypedData] currently referenced by e.g. functions point
+      // into the middle of c-allocated buffer and don't have a finalizer).
+      I->RetainKernelBlob(typed_data);
+
+      kernel_program.set(kernel::Program::ReadFromTypedData(typed_data));
     }
 
     kernel::KernelLoader::FindModifiedLibraries(kernel_program.get(), I,
