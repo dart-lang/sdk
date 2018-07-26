@@ -258,21 +258,21 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     AnalysisResult result = await server.getAnalysisResult(params.file);
     CompilationUnit unit = result?.unit;
     if (unit == null) {
-      server.sendResponse(Response.getSignatureInvalidFile(request));
+      server.sendResponse(new Response.getSignatureInvalidFile(request));
       return;
     }
 
     // Ensure the offset provided is a valid location in the file.
     final computer = new DartUnitSignatureComputer(unit, params.offset);
     if (!computer.offsetIsValid) {
-      server.sendResponse(Response.getSignatureInvalidOffset(request));
+      server.sendResponse(new Response.getSignatureInvalidOffset(request));
       return;
     }
 
     // Try to get a signature.
     final signature = computer.compute();
     if (signature == null) {
-      server.sendResponse(Response.getSignatureUnknownFunction(request));
+      server.sendResponse(new Response.getSignatureUnknownFunction(request));
       return;
     }
 
