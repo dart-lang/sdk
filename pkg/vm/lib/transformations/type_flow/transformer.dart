@@ -14,6 +14,7 @@ import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/type_environment.dart';
 
 import 'analysis.dart';
+import 'native_code.dart';
 import 'calls.dart';
 import 'summary_collector.dart';
 import 'types.dart';
@@ -31,7 +32,8 @@ const bool kDumpClassHierarchy =
 /// Whole-program type flow analysis and transformation.
 /// Assumes strong mode and closed world.
 Component transformComponent(
-    CoreTypes coreTypes, Component component, List<String> entryPoints) {
+    CoreTypes coreTypes, Component component, List<String> entryPoints,
+    [EntryPointsAnnotationMatcher matcher]) {
   if ((entryPoints == null) || entryPoints.isEmpty) {
     throw 'Error: unable to perform global type flow analysis without entry points.';
   }
@@ -53,7 +55,7 @@ Component transformComponent(
 
   final typeFlowAnalysis = new TypeFlowAnalysis(
       component, coreTypes, hierarchy, types, libraryIndex,
-      entryPointsJSONFiles: entryPoints);
+      entryPointsJSONFiles: entryPoints, matcher: matcher);
 
   Procedure main = component.mainMethod;
   final Selector mainSelector = new DirectSelector(main);

@@ -1036,8 +1036,6 @@ abstract class VMKernelCompilerMixin {
         '${_configuration.buildDirectory}/gen/runtime/bin/precompiler_entry_points.json',
         '--entry-points',
         '${pkgVmDir}/lib/transformations/type_flow/entry_points_extra.json',
-        '--entry-points',
-        '${pkgVmDir}/lib/transformations/type_flow/entry_points_extra_standalone.json',
       ]);
     }
 

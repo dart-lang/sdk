@@ -1,4 +1,5 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+@pragma("vm.entry-point")
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -36,12 +37,14 @@ import 'dart:math' show Random;
 @patch
 class ByteData implements TypedData {
   @patch
+  @pragma("vm.entry-point")
   factory ByteData(int length) {
     final list = new Uint8List(length) as _TypedList;
     return new _ByteDataView(list, 0, length);
   }
 
   // Called directly from C code.
+  @pragma("vm.entry-point")
   factory ByteData._view(_TypedList typedData, int offsetInBytes, int length) {
     return new _ByteDataView(typedData, offsetInBytes, length);
   }
@@ -1900,6 +1903,7 @@ class _ByteBuffer implements ByteBuffer {
 
   _ByteBuffer(this._data);
 
+  @pragma("vm.entry-point")
   factory _ByteBuffer._New(data) => new _ByteBuffer(data);
 
   // Forward calls to _data.

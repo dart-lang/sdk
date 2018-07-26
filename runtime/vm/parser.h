@@ -412,6 +412,7 @@ class Parser : public ValueObject {
   void SkipToMatching();
   void SkipToMatchingParenthesis();
   void SkipBlock();
+  void SkipOneMetadata();
   TokenPosition SkipMetadata();
   bool IsPatchAnnotation(TokenPosition pos);
   bool IsPragmaAnnotation(TokenPosition pos);
