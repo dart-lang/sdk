@@ -41,13 +41,6 @@ analyzer:
 
 Note that you can use globs, as defined by the [glob package][glob].
 
-Here is an example file that enables the analyzer's [strong mode][strongmode]:
-
-```yaml
-analyzer:
-  strong-mode: true
-```
-
 Here is an example file that enables two lint rules:
 
 ```yaml
@@ -106,7 +99,6 @@ See the [LICENSE] file.
 [analyzercli]: https://github.com/dart-lang/sdk/tree/master/pkg/analyzer_cli
 [list]: https://groups.google.com/a/dartlang.org/forum/#!forum/analyzer-discuss
 [lintrules]: http://dart-lang.github.io/linter/lints/
-[strongmode]: https://github.com/dart-lang/dev_compiler/blob/master/STRONG_MODE.md
 [glob]: https://pub.dartlang.org/packages/glob
 [LICENSE]: https://github.com/dart-lang/sdk/blob/master/pkg/analyzer/LICENSE
 [dartfmt]: https://github.com/dart-lang/dart_style

@@ -19,7 +19,6 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
-import 'package:analyzer/src/summary/package_bundle_reader.dart';
 
 /**
  * An abstract implementation of a Dart SDK in which the available libraries are
@@ -72,16 +71,6 @@ abstract class AbstractDartSdk implements DartSdk {
       _analysisContext = new SdkAnalysisContext(_analysisOptions);
       SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
       _analysisContext.sourceFactory = factory;
-      if (_useSummary) {
-        bool strongMode = _analysisOptions?.strongMode ?? false;
-        PackageBundle sdkBundle = getSummarySdkBundle(strongMode);
-        if (sdkBundle != null) {
-          SummaryDataStore dataStore = new SummaryDataStore([]);
-          dataStore.addBundle(null, sdkBundle);
-          _analysisContext.resultProvider =
-              new InputPackagesResultProvider(_analysisContext, dataStore);
-        }
-      }
     }
     return _analysisContext;
   }
@@ -150,7 +139,8 @@ abstract class AbstractDartSdk implements DartSdk {
    * This method should not be used outside of `analyzer` and `analyzer_cli`
    * packages.
    */
-  PackageBundle getSummarySdkBundle(bool strongMode);
+  @deprecated
+  PackageBundle getSummarySdkBundle(bool _);
 
   FileBasedSource internalMapDartUri(String dartUri) {
     // TODO(brianwilkerson) Figure out how to unify the implementations in the

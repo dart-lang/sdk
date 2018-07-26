@@ -780,12 +780,11 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
       AnalysisOptions analysisOptions) {
     if (sdk == null) {
       if (options.dartSdkSummaryPath != null) {
-        sdk = new SummaryBasedDartSdk(
-            options.dartSdkSummaryPath, options.strongMode);
+        sdk = new SummaryBasedDartSdk(options.dartSdkSummaryPath, true);
       } else {
         String dartSdkPath = options.dartSdkPath;
-        FolderBasedDartSdk dartSdk = new FolderBasedDartSdk(resourceProvider,
-            resourceProvider.getFolder(dartSdkPath), options.strongMode);
+        FolderBasedDartSdk dartSdk = new FolderBasedDartSdk(
+            resourceProvider, resourceProvider.getFolder(dartSdkPath), true);
         dartSdk.useSummary = useSummaries &&
             options.sourceFiles.every((String sourcePath) {
               sourcePath = path.absolute(sourcePath);

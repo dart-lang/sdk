@@ -584,9 +584,9 @@ class FolderBasedDartSdk extends AbstractDartSdk {
    * This method should not be used outside of `analyzer` and `analyzer_cli`
    * packages.
    */
-  PackageBundle getSummarySdkBundle(bool strongMode) {
+  PackageBundle getSummarySdkBundle(bool _) {
     String rootPath = directory.path;
-    String name = strongMode ? 'strong.sum' : 'spec.sum';
+    String name = 'strong.sum';
     String path =
         resourceProvider.pathContext.join(rootPath, 'lib', '_internal', name);
     try {
