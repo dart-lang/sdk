@@ -15,6 +15,23 @@ const String dartSdkModule = 'dart_sdk';
 /// generation without needing global knowledge. See [TemporaryNamer].
 // TODO(jmesserly): move into js_ast? add a boolean to Identifier?
 class TemporaryId extends Identifier {
+  // TODO(jmesserly): by design, temporary identifier nodes are shared
+  // throughout the AST, so any source information we attach in one location
+  // be incorrect for another location (and overwrites previous data).
+  //
+  // If we want to track source information for temporary variables, we'll
+  // need to separate the identity of the variable from its Identifier.
+  //
+  // In practice that makes temporaries more difficult to use: they're no longer
+  // JS AST nodes, so `toIdentifier()` is required to put them in the JS AST.
+  // And anywhere we currently use type `Identifier` to hold Identifier or
+  // TemporaryId, those types would need to change to `Identifier Function()`.
+  //
+  // However we may need to fix this if we want hover to work well for things
+  // like library prefixes and field-initializing formals.
+  get sourceInformation => null;
+  set sourceInformation(Object obj) {}
+
   TemporaryId(String name) : super(name);
 }
 
