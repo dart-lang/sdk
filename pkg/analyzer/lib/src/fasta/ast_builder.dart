@@ -2071,11 +2071,17 @@ class AstBuilder extends StackListener {
     }
 
     FormalParameterList parameters = pop();
-    pop(); // Type parameters
+    TypeParameterList typeParameters = pop();
     Object constructorName = pop();
     _Modifiers modifiers = pop();
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
+
+    if (typeParameters != null) {
+      // TODO(danrubel): Update OutlineBuilder to report this error message.
+      handleRecoverableError(messageConstructorWithTypeParameters,
+          typeParameters.beginToken, typeParameters.endToken);
+    }
 
     // Decompose the preliminary ConstructorName into the type name and
     // the actual constructor name.
