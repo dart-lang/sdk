@@ -336,8 +336,8 @@ class StoreBasedSummaryResynthesizer extends SummaryResynthesizer {
   final SummaryDataStore _dataStore;
 
   StoreBasedSummaryResynthesizer(AnalysisContext context,
-      SourceFactory sourceFactory, bool strongMode, this._dataStore)
-      : super(context, sourceFactory, strongMode);
+      SourceFactory sourceFactory, bool _, this._dataStore)
+      : super(context, sourceFactory, true);
 
   @override
   LinkedLibrary getLinkedSummary(String uri) {

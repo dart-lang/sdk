@@ -9260,6 +9260,7 @@ abstract class PropertyInducingElementImpl
  * The context in which elements are resynthesized.
  */
 abstract class ResynthesizerContext {
+  @deprecated
   bool get isStrongMode;
 
   /**
