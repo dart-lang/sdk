@@ -2274,7 +2274,7 @@ class Parser {
       listener.endInitializer(token.next);
       return token;
     } else if (optional('super', next)) {
-      return parseInitializerExpressionRest(token);
+      return parseSuperInitializerExpression(token);
     } else if (optional('this', next)) {
       token = next;
       next = token.next;
@@ -2336,6 +2336,32 @@ class Parser {
     rewriter.insertTokenAfter(
         token, new SyntheticToken(TokenType.EQ, token.offset));
     return parseInitializerExpressionRest(beforeExpression);
+  }
+
+  /// Parse the `super` initializer:
+  /// ```
+  ///   'super' ('.' identifier)? arguments ;
+  /// ```
+  Token parseSuperInitializerExpression(final Token start) {
+    Token token = start.next;
+    assert(optional('super', token));
+    Token next = token.next;
+    if (optional('.', next)) {
+      token = next;
+      next = token.next;
+      if (next.kind != IDENTIFIER_TOKEN) {
+        next = IdentifierContext.expressionContinuation
+            .ensureIdentifier(token, this);
+      }
+      token = next;
+      next = token.next;
+    }
+    if (!optional('(', next)) {
+      reportRecoverableError(
+          token, fasta.templateExpectedAfterButGot.withArguments('('));
+      rewriter.insertParens(token, false);
+    }
+    return parseInitializerExpressionRest(start);
   }
 
   Token parseInitializerExpressionRest(Token token) {

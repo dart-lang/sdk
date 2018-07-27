@@ -9,8 +9,6 @@ error_stacktrace_test/00: MissingCompileTimeError
 vm/lazy_deopt_with_exception_test: CompileTimeError
 
 [ $compiler == dart2analyzer && $analyzer_use_fasta_parser ]
-illegal_initializer_test/01: MissingCompileTimeError
-illegal_initializer_test/03: MissingCompileTimeError
 multiline_newline_test/01: Pass
 multiline_newline_test/01r: Pass
 multiline_newline_test/02: Pass
