@@ -13,8 +13,10 @@ import '../fasta_codes.dart'
     show
         Message,
         LocatedMessage,
+        messageCannotAssignToSuper,
         messageLoadLibraryTakesNoArguments,
         messageNotAConstantExpression,
+        messageNotAnLvalue,
         messageCannotAssignToParenthesizedExpression,
         templateNotConstantExpression,
         messageSuperAsExpression,

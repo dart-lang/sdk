@@ -745,6 +745,15 @@ BreakOutsideOfLoop:
   script:
     - "main() { break; }"
 
+InvalidBreakTarget:
+  template: "Can't break to '#name'."
+  dart2jsCode: "*fatal*"
+
+BreakTargetOutsideFunction:
+  template: "Can't break to '#name' in a different function."
+  analyzerCode: LABEL_IN_OUTER_SCOPE
+  dart2jsCode: "*fatal*"
+
 ContinueOutsideOfLoop:
   template: "A continue statement can't be used outside of a loop or switch statement."
   tip: "Try removing the continue statement."
@@ -752,6 +761,20 @@ ContinueOutsideOfLoop:
   dart2jsCode: "*ignored*"
   script:
     - "main() { continue; }"
+
+InvalidContinueTarget:
+  template: "Can't continue at '#name'."
+  dart2jsCode: "*fatal*"
+
+ContinueTargetOutsideFunction:
+  template: "Can't continue at '#name' in a different function."
+  analyzerCode: LABEL_IN_OUTER_SCOPE
+  dart2jsCode: "*fatal*"
+
+ContinueLabelNotTarget:
+  template: "Target of continue must be a label."
+  analyzerCode: LABEL_UNDEFINED
+  dart2jsCode: "*fatal*"
 
 ContinueWithoutLabelInCase:
   template: "A continue statement in a switch statement must have a label as a target."
@@ -1087,6 +1110,11 @@ PositionalAfterNamedArgument:
   analyzerCode: POSITIONAL_AFTER_NAMED_ARGUMENT
   dart2jsCode: "*ignored*"
 
+ExpectedNamedArgument:
+  template: "Expected named argument."
+  analyzerCode: EXTRA_POSITIONAL_ARGUMENTS
+  dart2jsCode: "*fatal*"
+
 AssertAsExpression:
   template: "`assert` can't be used as an expression."
   dart2jsCode: "*fatal*"
@@ -1253,6 +1281,10 @@ CandidateFoundIsDefaultConstructor:
   template: "The class '#name' has a constructor that takes no arguments."
   severity: CONTEXT
 
+MissingArgumentList:
+  template: "Constructor invocations must have an argument list."
+  severity: ERROR
+
 TooFewArguments:
   template: "Too few positional arguments: #count required, #count2 given."
   severity: ERROR_LEGACY_WARNING
@@ -1275,6 +1307,12 @@ AbstractClassInstantiation:
   template: "The class '#name' is abstract and can't be instantiated."
   severity: ERROR_LEGACY_WARNING
   analyzerCode: NEW_WITH_ABSTRACT_CLASS
+  dart2jsCode: "*fatal*"
+
+EnumInstantiation:
+  template: "Enums can't be instantiated."
+  severity: ERROR
+  analyzerCode: INSTANTIATE_ENUM
   dart2jsCode: "*fatal*"
 
 AbstractRedirectedClassInstantiation:
@@ -2310,6 +2348,11 @@ NotAnLvalue:
   analyzerCode: NOT_AN_LVALUE
   dart2jsCode: "*fatal*"
 
+CannotAssignToSuper:
+  template: "Can't assign to super."
+  analyzerCode: NOT_AN_LVALUE
+  dart2jsCode: "*fatal*"
+
 IllegalAssignmentToNonAssignable:
   template: "Illegal assignment to non-assignable expression."
   analyzerCode: ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE
@@ -2634,7 +2677,7 @@ BoundIssueViaRawTypeWithNonSimpleBounds:
   template: "Generic type '#name' can't be used without type arguments in a type variable bound."
   tip: "Try providing type arguments to '#name' here."
   severity: ERROR
-  analyzerCode: SNOT_INSTANTIATED_BOUND
+  analyzerCode: NOT_INSTANTIATED_BOUND
   dart2jsCode: "*fatal*"
   script: >
     class Hest<X extends Hest<X>> {}

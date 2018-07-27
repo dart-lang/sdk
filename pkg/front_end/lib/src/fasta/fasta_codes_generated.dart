@@ -339,7 +339,7 @@ const Code<Message Function(String name)>
     const Code<Message Function(String name)>(
         "BoundIssueViaRawTypeWithNonSimpleBounds",
         templateBoundIssueViaRawTypeWithNonSimpleBounds,
-        analyzerCode: "SNOT_INSTANTIATED_BOUND",
+        analyzerCode: "NOT_INSTANTIATED_BOUND",
         dart2jsCode: "*fatal*",
         severity: Severity.error);
 
@@ -363,6 +363,26 @@ const MessageCode messageBreakOutsideOfLoop = const MessageCode(
     message:
         r"""A break statement can't be used outside of a loop or switch statement.""",
     tip: r"""Try removing the break statement.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateBreakTargetOutsideFunction =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Can't break to '#name' in a different function.""",
+        withArguments: _withArgumentsBreakTargetOutsideFunction);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeBreakTargetOutsideFunction =
+    const Code<Message Function(String name)>(
+        "BreakTargetOutsideFunction", templateBreakTargetOutsideFunction,
+        analyzerCode: "LABEL_IN_OUTER_SCOPE", dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsBreakTargetOutsideFunction(String name) {
+  return new Message(codeBreakTargetOutsideFunction,
+      message: """Can't break to '${name}' in a different function.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateBuiltInIdentifierAsType =
@@ -453,6 +473,16 @@ const MessageCode messageCannotAssignToParenthesizedExpression =
         analyzerCode: "ASSIGNMENT_TO_PARENTHESIZED_EXPRESSION",
         dart2jsCode: "*fatal*",
         message: r"""Can't assign to a parenthesized expression.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeCannotAssignToSuper = messageCannotAssignToSuper;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageCannotAssignToSuper = const MessageCode(
+    "CannotAssignToSuper",
+    analyzerCode: "NOT_AN_LVALUE",
+    dart2jsCode: "*fatal*",
+    message: r"""Can't assign to super.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)> templateCannotReadPackagesFile =
@@ -1449,6 +1479,16 @@ Message _withArgumentsConstructorWithWrongNameContext(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeContinueLabelNotTarget = messageContinueLabelNotTarget;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageContinueLabelNotTarget = const MessageCode(
+    "ContinueLabelNotTarget",
+    analyzerCode: "LABEL_UNDEFINED",
+    dart2jsCode: "*fatal*",
+    message: r"""Target of continue must be a label.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeContinueOutsideOfLoop = messageContinueOutsideOfLoop;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1459,6 +1499,27 @@ const MessageCode messageContinueOutsideOfLoop = const MessageCode(
     message:
         r"""A continue statement can't be used outside of a loop or switch statement.""",
     tip: r"""Try removing the continue statement.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateContinueTargetOutsideFunction =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Can't continue at '#name' in a different function.""",
+        withArguments: _withArgumentsContinueTargetOutsideFunction);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeContinueTargetOutsideFunction =
+    const Code<Message Function(String name)>(
+        "ContinueTargetOutsideFunction", templateContinueTargetOutsideFunction,
+        analyzerCode: "LABEL_IN_OUTER_SCOPE", dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsContinueTargetOutsideFunction(String name) {
+  return new Message(codeContinueTargetOutsideFunction,
+      message: """Can't continue at '${name}' in a different function.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeContinueWithoutLabelInCase =
@@ -2192,6 +2253,17 @@ const MessageCode messageEnumInClass = const MessageCode("EnumInClass",
     tip: r"""Try moving the enum to the top-level.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumInstantiation = messageEnumInstantiation;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumInstantiation = const MessageCode(
+    "EnumInstantiation",
+    analyzerCode: "INSTANTIATE_ENUM",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message: r"""Enums can't be instantiated.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEqualityCannotBeEqualityOperand =
     messageEqualityCannotBeEqualityOperand;
 
@@ -2441,6 +2513,16 @@ Message _withArgumentsExpectedIdentifier(Token token) {
       message: """Expected an identifier, but got '${lexeme}'.""",
       arguments: {'token': token});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedNamedArgument = messageExpectedNamedArgument;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedNamedArgument = const MessageCode(
+    "ExpectedNamedArgument",
+    analyzerCode: "EXTRA_POSITIONAL_ARGUMENTS",
+    dart2jsCode: "*fatal*",
+    message: r"""Expected named argument.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExpectedOneExpression = messageExpectedOneExpression;
@@ -4035,6 +4117,24 @@ const MessageCode messageInvalidAwaitFor = const MessageCode("InvalidAwaitFor",
     tip: r"""Try removing the keyword, or use a for-each statement.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateInvalidBreakTarget =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Can't break to '#name'.""",
+        withArguments: _withArgumentsInvalidBreakTarget);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeInvalidBreakTarget =
+    const Code<Message Function(String name)>(
+        "InvalidBreakTarget", templateInvalidBreakTarget,
+        dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidBreakTarget(String name) {
+  return new Message(codeInvalidBreakTarget,
+      message: """Can't break to '${name}'.""", arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         DartType _type,
@@ -4322,6 +4422,24 @@ const MessageCode messageInvalidCodePoint = const MessageCode(
     dart2jsCode: "*fatal*",
     message:
         r"""The escape sequence starting with '\u' isn't a valid code point.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateInvalidContinueTarget =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Can't continue at '#name'.""",
+        withArguments: _withArgumentsInvalidContinueTarget);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeInvalidContinueTarget =
+    const Code<Message Function(String name)>(
+        "InvalidContinueTarget", templateInvalidContinueTarget,
+        dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidContinueTarget(String name) {
+  return new Message(codeInvalidContinueTarget,
+      message: """Can't continue at '${name}'.""", arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidHexEscape = messageInvalidHexEscape;
@@ -4629,6 +4747,15 @@ Message _withArgumentsMethodNotFound(String name) {
   return new Message(codeMethodNotFound,
       message: """Method not found: '${name}'.""", arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingArgumentList = messageMissingArgumentList;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingArgumentList = const MessageCode(
+    "MissingArgumentList",
+    severity: Severity.error,
+    message: r"""Constructor invocations must have an argument list.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMissingAssignableSelector =

@@ -342,56 +342,6 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
 
   @override
   @failingTest
-  test_notInstantiatedBound_error_class_argument() {
-    return super.test_notInstantiatedBound_error_class_argument();
-  }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_error_class_argument2() {
-    return super.test_notInstantiatedBound_error_class_argument2();
-  }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_error_class_direct() {
-    // Expected 1 errors of type
-    // StrongModeCode.STRONG_MODE_NOT_INSTANTIATED_BOUND, found 0
-    return super.test_notInstantiatedBound_error_class_direct();
-  }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_error_class_indirect() {
-    return super.test_notInstantiatedBound_error_class_indirect();
-  }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_error_functionType() {
-    return super.test_notInstantiatedBound_error_functionType();
-  }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_error_typedef_argument() {
-    return super.test_notInstantiatedBound_error_typedef_argument();
-  }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_error_typedef_argument2() {
-    return super.test_notInstantiatedBound_error_typedef_argument2();
-  }
-
-  @override
-  @failingTest
-  test_notInstantiatedBound_error_typedef_direct() {
-    return super.test_notInstantiatedBound_error_typedef_direct();
-  }
-
-  @override
-  @failingTest
   test_setterWithDynamicTypeIsError() async {
     await super.test_setterWithDynamicTypeIsError();
   }

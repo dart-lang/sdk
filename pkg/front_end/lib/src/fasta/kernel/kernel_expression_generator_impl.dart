@@ -163,10 +163,10 @@ class ThisAccessGenerator extends KernelGenerator {
   }
 
   Expression buildAssignmentError() {
-    String message =
-        isSuper ? "Can't assign to 'super'." : "Can't assign to 'this'.";
-    return helper.deprecated_buildCompileTimeError(
-        message, offsetForToken(token));
+    return helper.buildCompileTimeError(
+        isSuper ? messageCannotAssignToSuper : messageNotAnLvalue,
+        offsetForToken(token),
+        token.length);
   }
 
   @override

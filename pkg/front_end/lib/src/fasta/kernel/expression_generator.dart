@@ -15,6 +15,7 @@ import '../fasta_codes.dart'
         Template,
         messageCantUsePrefixAsExpression,
         messageCantUsePrefixWithNullAware,
+        messageIllegalAssignmentToNonAssignable,
         messageInvalidInitializer,
         messageNotAConstantExpression,
         templateCantUseDeferredPrefixAsConstant,
@@ -930,9 +931,9 @@ abstract class ContextAwareGenerator implements Generator {
 
   @override
   Expression makeInvalidWrite(Expression value) {
-    return helper.deprecated_buildCompileTimeError(
-        "Can't be used as left-hand side of assignment.",
-        offsetForToken(token));
+    return helper.buildCompileTimeErrorExpression(
+        messageIllegalAssignmentToNonAssignable, offsetForToken(token),
+        length: token?.length);
   }
 }
 
@@ -962,8 +963,9 @@ abstract class DelayedAssignment implements ContextAwareGenerator {
 
   Expression handleAssignment(bool voidContext) {
     if (helper.constantContext != ConstantContext.none) {
-      return helper.deprecated_buildCompileTimeError(
-          null, offsetForToken(token), messageNotAConstantExpression);
+      return helper.buildCompileTimeErrorExpression(
+          messageNotAConstantExpression, offsetForToken(token),
+          length: token.length);
     }
     if (identical("=", assignmentOperator)) {
       return generator.buildAssignment(value, voidContext: voidContext);
