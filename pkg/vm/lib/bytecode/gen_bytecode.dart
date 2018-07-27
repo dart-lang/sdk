@@ -540,6 +540,12 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   /// Generates is-test for the value at TOS.
   void _genInstanceOf(DartType type) {
+    if (typeEnvironment.isTop(type)) {
+      asm.emitDrop1();
+      asm.emitPushConstant(cp.add(new ConstantBool(true)));
+      return;
+    }
+
     // TODO(alexmarkov): generate _simpleInstanceOf if possible
 
     if (hasTypeParameters([type])) {
