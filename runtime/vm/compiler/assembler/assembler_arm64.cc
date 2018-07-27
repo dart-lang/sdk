@@ -935,30 +935,40 @@ void Assembler::StoreIntoObjectFilter(Register object,
 void Assembler::StoreIntoObjectOffset(Register object,
                                       int32_t offset,
                                       Register value,
-                                      CanBeSmi value_can_be_smi,
-                                      bool lr_reserved) {
+                                      CanBeSmi value_can_be_smi) {
   if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
     StoreIntoObject(object, FieldAddress(object, offset), value,
-                    value_can_be_smi, lr_reserved);
+                    value_can_be_smi);
   } else {
     AddImmediate(TMP, object, offset - kHeapObjectTag);
-    StoreIntoObject(object, Address(TMP), value, value_can_be_smi, lr_reserved);
+    StoreIntoObject(object, Address(TMP), value, value_can_be_smi);
   }
 }
 
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
-                                CanBeSmi can_be_smi,
-                                bool lr_reserved) {
+                                CanBeSmi can_be_smi) {
   ASSERT(object != value);
   str(value, dest);
   Label done;
   StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
-  if (!lr_reserved) Push(LR);
-  ldr(LR, Address(THR, Thread::update_store_buffer_wrappers_offset(object)));
-  blr(LR);
-  if (!lr_reserved) Pop(LR);
+  // A store buffer update is required.
+  if (value != R0) {
+    // Preserve R0.
+    Push(R0);
+  }
+  Push(LR);
+  if (object != R0) {
+    mov(R0, object);
+  }
+  ldr(TMP, Address(THR, Thread::update_store_buffer_entry_point_offset()));
+  blr(TMP);
+  Pop(LR);
+  if (value != R0) {
+    // Restore R0.
+    Pop(R0);
+  }
   Bind(&done);
 }
 

@@ -1460,13 +1460,11 @@ class Assembler : public ValueObject {
   void StoreIntoObject(Register object,
                        const Address& dest,
                        Register value,
-                       CanBeSmi can_value_be_smi = kValueCanBeSmi,
-                       bool lr_reserved = false);
+                       CanBeSmi can_value_be_smi = kValueCanBeSmi);
   void StoreIntoObjectOffset(Register object,
                              int32_t offset,
                              Register value,
-                             CanBeSmi can_value_be_smi = kValueCanBeSmi,
-                             bool lr_reserved = false);
+                             CanBeSmi can_value_be_smi = kValueCanBeSmi);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 Register value);

@@ -125,8 +125,6 @@ const RegList kReservedCpuRegisters =
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
-constexpr int kNumberOfDartAvailableCpuRegs = kNumberOfCpuRegisters - 5;
-constexpr int kStoreBufferWrapperSize = 13;
 
 enum ScaleFactor {
   TIMES_1 = 0,

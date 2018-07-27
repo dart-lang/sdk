@@ -96,7 +96,7 @@ class MutexLocker : public ValueObject {
 
 /*
  * Normal monitor locker :
- * This locker abstraction should only be used when the enclosed code can
+ * This locker abstraction should only be used when the enclosing code can
  * not trigger a safepoint. In debug mode this class increments the
  * no_safepoint_scope_depth variable for the current thread when the lock is
  * taken and decrements it when the lock is released. NOTE: please do not use
