@@ -3372,6 +3372,12 @@ class CheckedSmiComparisonSlowPath
       __ b(instruction()->is_negated() ? labels_.true_label
                                        : labels_.false_label);
     } else {
+      if (instruction()->is_negated()) {
+        // Need to negate the result of slow path call.
+        __ CompareObject(result, Bool::True());
+        __ LoadObject(result, Bool::True(), NE);
+        __ LoadObject(result, Bool::False(), EQ);
+      }
       __ b(exit_label());
     }
   }
