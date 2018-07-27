@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.task.strong_mode;
-
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -72,9 +70,7 @@ class InstanceMemberInferrer {
   InstanceMemberInferrer(
       TypeProvider typeProvider, this.inheritanceManagerProvider,
       {TypeSystem typeSystem})
-      : typeSystem = (typeSystem != null)
-            ? typeSystem
-            : new TypeSystemImpl(typeProvider),
+      : typeSystem = typeSystem ?? new StrongTypeSystemImpl(typeProvider),
         this.typeProvider = typeProvider;
 
   /**

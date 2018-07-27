@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.summary.summary_common;
-
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
@@ -162,12 +160,6 @@ abstract class SummaryTest {
    * `true` if non-const variable initializers are not serialized.
    */
   bool get skipNonConstInitializers;
-
-  /**
-   * `true` if the linked portion of the summary contains the result of strong
-   * mode analysis.
-   */
-  bool get strongMode;
 
   /**
    * Get access to the unlinked compilation unit summaries that result from
@@ -341,21 +333,13 @@ abstract class SummaryTest {
       UnlinkedUnit unlinkedSourceUnit,
       int numTypeParameters: 0,
       bool onlyInStrongMode: true}) {
-    if (strongMode || !onlyInStrongMode) {
-      checkLinkedTypeSlot(slotId, absoluteUri, expectedName,
-          numTypeArguments: numTypeArguments,
-          expectedKind: expectedKind,
-          expectedTargetUnit: expectedTargetUnit,
-          linkedSourceUnit: linkedSourceUnit,
-          unlinkedSourceUnit: unlinkedSourceUnit,
-          numTypeParameters: numTypeParameters);
-    } else {
-      // A slot id should have been assigned but it should not be associated
-      // with any type.
-      expect(slotId, isNot(0));
-      expect(getTypeRefForSlot(slotId, linkedSourceUnit: linkedSourceUnit),
-          isNull);
-    }
+    checkLinkedTypeSlot(slotId, absoluteUri, expectedName,
+        numTypeArguments: numTypeArguments,
+        expectedKind: expectedKind,
+        expectedTargetUnit: expectedTargetUnit,
+        linkedSourceUnit: linkedSourceUnit,
+        unlinkedSourceUnit: unlinkedSourceUnit,
+        numTypeParameters: numTypeParameters);
   }
 
   /**
@@ -1511,15 +1495,8 @@ class E {}
       expect(executable.localFunctions[0].returnType, isNull);
       closure = executable.localFunctions[0];
     }
-    if (strongMode) {
-      // Strong mode infers a type for the closure of `() => Null`.
-      checkInferredTypeSlot(
-          closure.inferredReturnTypeSlot, 'dart:core', 'Null');
-    } else {
-      // Spec mode infers a type for the closure of `() => Bottom`.
-      checkInferredTypeSlot(closure.inferredReturnTypeSlot, null, '*bottom*',
-          onlyInStrongMode: false);
-    }
+    // Strong mode infers a type for the closure of `() => Null`.
+    checkInferredTypeSlot(closure.inferredReturnTypeSlot, 'dart:core', 'Null');
   }
 
   test_closure_executable_with_imported_return_type() {
@@ -7584,7 +7561,7 @@ class C<T> {
   }
 
   test_fully_linked_references_follow_other_references() {
-    if (!strongMode || skipFullyLinkedData) {
+    if (skipFullyLinkedData) {
       return;
     }
     serializeLibraryText('final x = 0; String y;');
@@ -7993,7 +7970,7 @@ import "${'a'}.dart";
   }
 
   test_inferred_function_type_parameter_type_with_unrelated_type_param() {
-    if (!strongMode || skipFullyLinkedData) {
+    if (skipFullyLinkedData) {
       return;
     }
     UnlinkedClass c = serializeClassText('''
@@ -8021,7 +7998,7 @@ class C<T> extends B<T> {
   }
 
   test_inferred_type_keeps_leading_dynamic() {
-    if (!strongMode || skipFullyLinkedData) {
+    if (skipFullyLinkedData) {
       return;
     }
     UnlinkedClass cls =
@@ -8035,7 +8012,7 @@ class C<T> extends B<T> {
   }
 
   test_inferred_type_reference_shared_prefixed() {
-    if (!strongMode || skipFullyLinkedData) {
+    if (skipFullyLinkedData) {
       return;
     }
     // Variable `y` has an inferred type of `p.C`.  Verify that the reference
@@ -8048,7 +8025,7 @@ class C<T> extends B<T> {
   }
 
   test_inferred_type_refers_to_bound_type_param() {
-    if (!strongMode || skipFullyLinkedData) {
+    if (skipFullyLinkedData) {
       return;
     }
     UnlinkedClass cls = serializeClassText(
@@ -8064,7 +8041,7 @@ class C<T> extends B<T> {
   }
 
   test_inferred_type_refers_to_function_typed_param_of_typedef() {
-    if (!strongMode || skipFullyLinkedData) {
+    if (skipFullyLinkedData) {
       return;
     }
     UnlinkedVariable v = serializeVariableText('''
@@ -8083,7 +8060,7 @@ var v = h((y) {});
   }
 
   test_inferred_type_refers_to_function_typed_parameter_type_generic_class() {
-    if (!strongMode || skipFullyLinkedData) {
+    if (skipFullyLinkedData) {
       return;
     }
     UnlinkedClass cls = serializeClassText(
@@ -8106,7 +8083,7 @@ var v = h((y) {});
   }
 
   test_inferred_type_refers_to_function_typed_parameter_type_other_lib() {
-    if (!strongMode || skipFullyLinkedData) {
+    if (skipFullyLinkedData) {
       return;
     }
     addNamedSource('/a.dart', 'import "b.dart"; abstract class D extends E {}');
@@ -8128,7 +8105,7 @@ var v = h((y) {});
   }
 
   test_inferred_type_refers_to_method_function_typed_parameter_type() {
-    if (!strongMode || skipFullyLinkedData) {
+    if (skipFullyLinkedData) {
       return;
     }
     UnlinkedClass cls = serializeClassText(
@@ -8150,7 +8127,7 @@ var v = h((y) {});
   }
 
   test_inferred_type_refers_to_nested_function_typed_param() {
-    if (!strongMode || skipFullyLinkedData) {
+    if (skipFullyLinkedData) {
       return;
     }
     UnlinkedVariable v = serializeVariableText('''
@@ -8169,7 +8146,7 @@ var v = f((x, y) {});
   }
 
   test_inferred_type_refers_to_nested_function_typed_param_named() {
-    if (!strongMode || skipFullyLinkedData) {
+    if (skipFullyLinkedData) {
       return;
     }
     UnlinkedVariable v = serializeVariableText('''
@@ -8188,7 +8165,7 @@ var v = f(g: (x, y) {});
   }
 
   test_inferred_type_refers_to_setter_function_typed_parameter_type() {
-    if (!strongMode || skipFullyLinkedData) {
+    if (skipFullyLinkedData) {
       return;
     }
     UnlinkedClass cls = serializeClassText(
@@ -8217,7 +8194,7 @@ var v = f(g: (x, y) {});
   }
 
   test_inferred_type_skips_trailing_dynamic() {
-    if (!strongMode || skipFullyLinkedData) {
+    if (skipFullyLinkedData) {
       return;
     }
     UnlinkedClass cls =
@@ -8231,7 +8208,7 @@ var v = f(g: (x, y) {});
   }
 
   test_inferred_type_skips_unnecessary_dynamic() {
-    if (!strongMode || skipFullyLinkedData) {
+    if (skipFullyLinkedData) {
       return;
     }
     UnlinkedClass cls = serializeClassText('class C { final x = []; }');
@@ -8398,7 +8375,7 @@ int bar;'''
   }
 
   test_linked_reference_reuse() {
-    if (!strongMode || skipFullyLinkedData) {
+    if (skipFullyLinkedData) {
       return;
     }
     // When the reference for a linked type is the same as an explicitly
@@ -8413,7 +8390,7 @@ int bar;'''
   }
 
   test_linked_type_dependency_reuse() {
-    if (!strongMode || skipFullyLinkedData) {
+    if (skipFullyLinkedData) {
       return;
     }
     // When the dependency for a linked type is the same as an explicit
@@ -9270,15 +9247,9 @@ void set f(value) {}''';
     if (skipFullyLinkedData) {
       return;
     }
-    if (!strongMode) {
-      // The test below uses generic comment syntax because proper generic
-      // method syntax doesn't support generic closures.  So it can only run in
-      // strong mode.
-      // TODO(paulberry): once proper generic method syntax supports generic
-      // closures, rewrite the test below without using generic comment syntax,
-      // and remove this hack.  See dartbug.com/25819
-      return;
-    }
+    // TODO(paulberry): once proper generic method syntax supports generic
+    // closures, rewrite the test below without using generic comment syntax,
+    // and remove this hack.  See dartbug.com/25819
     UnlinkedVariable variable = serializeVariableText('''
 final v = f() ? /*<T>*/(T t) => 0 : /*<T>*/(T t) => 1;
 bool f() => true;
@@ -9865,7 +9836,7 @@ typedef F();''';
   }
 
   test_unused_type_parameter() {
-    if (!strongMode || skipFullyLinkedData) {
+    if (skipFullyLinkedData) {
       return;
     }
     UnlinkedVariable variable = serializeVariableText('''

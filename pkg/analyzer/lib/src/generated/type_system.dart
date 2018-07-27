@@ -844,10 +844,9 @@ class StrongTypeSystemImpl extends TypeSystem {
    */
   DartType getLeastNullableSupertype(InterfaceType type) {
     // compute set of supertypes
-    List<InterfaceType> s =
-        InterfaceTypeImpl.computeSuperinterfaceSet(type, strong: true)
-            .where(isNullableType)
-            .toList();
+    List<InterfaceType> s = InterfaceTypeImpl.computeSuperinterfaceSet(type)
+        .where(isNullableType)
+        .toList();
     return InterfaceTypeImpl.computeTypeAtMaxUniqueDepth(s);
   }
 
@@ -1527,8 +1526,7 @@ class StrongTypeSystemImpl extends TypeSystem {
       lub.typeArguments = tArgs;
       return lub;
     }
-    return InterfaceTypeImpl.computeLeastUpperBound(type1, type2,
-            strong: isStrong) ??
+    return InterfaceTypeImpl.computeLeastUpperBound(type1, type2) ??
         typeProvider.dynamicType;
   }
 
@@ -2135,18 +2133,17 @@ abstract class TypeSystem {
    */
   static TypeSystem create(AnalysisContext context) {
     var options = context.analysisOptions as AnalysisOptionsImpl;
-    return options.strongMode
-        ? new StrongTypeSystemImpl(context.typeProvider,
-            declarationCasts: options.declarationCasts,
-            implicitCasts: options.implicitCasts,
-            nonnullableTypes: options.nonnullableTypes)
-        : new TypeSystemImpl(context.typeProvider);
+    return new StrongTypeSystemImpl(context.typeProvider,
+        declarationCasts: options.declarationCasts,
+        implicitCasts: options.implicitCasts,
+        nonnullableTypes: options.nonnullableTypes);
   }
 }
 
 /**
  * Implementation of [TypeSystem] using the rules in the Dart specification.
  */
+@deprecated
 class TypeSystemImpl extends TypeSystem {
   // TODO(brianwilkerson) Remove this class and update references to it to use
   // StrongTypeSystemImpl.

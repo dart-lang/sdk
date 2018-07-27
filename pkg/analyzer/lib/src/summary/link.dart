@@ -408,7 +408,7 @@ class AnalysisOptionsForLink implements AnalysisOptions {
   bool get previewDart2 => true;
 
   @override
-  bool get strongMode => _linker.strongMode;
+  bool get strongMode => true;
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -697,9 +697,7 @@ class ClassElementForLink_Class extends ClassElementForLink
         var mixin = _computeInterfaceType(entity);
         var mixinElement = mixin.element;
         var slot = entity.refinedSlot;
-        if (slot != 0 &&
-            mixinElement.typeParameters.isNotEmpty &&
-            library._linker.strongMode) {
+        if (slot != 0 && mixinElement.typeParameters.isNotEmpty) {
           CompilationUnitElementForLink enclosingElement =
               this.enclosingElement;
           if (enclosingElement is CompilationUnitElementInBuildUnit) {
@@ -825,17 +823,14 @@ class ClassElementForLink_Class extends ClassElementForLink
     for (ConstructorElementForLink constructorElement in constructors) {
       constructorElement.link(compilationUnit);
     }
-    if (library._linker.strongMode) {
-      for (MethodElementForLink methodElement in methods) {
-        methodElement.link(compilationUnit);
-      }
-      for (PropertyAccessorElementForLink propertyAccessorElement
-          in accessors) {
-        propertyAccessorElement.link(compilationUnit);
-      }
-      for (FieldElementForLink_ClassField fieldElement in fields) {
-        fieldElement.link(compilationUnit);
-      }
+    for (MethodElementForLink methodElement in methods) {
+      methodElement.link(compilationUnit);
+    }
+    for (PropertyAccessorElementForLink propertyAccessorElement in accessors) {
+      propertyAccessorElement.link(compilationUnit);
+    }
+    for (FieldElementForLink_ClassField fieldElement in fields) {
+      fieldElement.link(compilationUnit);
     }
   }
 
@@ -1496,14 +1491,13 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
    * compilation unit.
    */
   void link() {
-    if (library._linker.strongMode) {
-      new InstanceMemberInferrer(
-          enclosingElement._linker.typeProvider,
-          (clazz) => (clazz.library as LibraryElementInBuildUnit)
-              .inheritanceManager).inferCompilationUnit(this);
-      for (TopLevelVariableElementForLink variable in topLevelVariables) {
-        variable.link(this);
-      }
+    new InstanceMemberInferrer(
+            enclosingElement._linker.typeProvider,
+            (clazz) =>
+                (clazz.library as LibraryElementInBuildUnit).inheritanceManager)
+        .inferCompilationUnit(this);
+    for (TopLevelVariableElementForLink variable in topLevelVariables) {
+      variable.link(this);
     }
     for (ClassElementForLink classElement in types) {
       classElement.link(this);
@@ -2163,8 +2157,7 @@ abstract class ExecutableElementForLink extends Object
     var kind = serializedExecutable.kind;
     var isMethod = kind == UnlinkedExecutableKind.functionOrMethod;
     var isSetter = kind == UnlinkedExecutableKind.setter;
-    if ((isSetter || isMethod && serializedExecutable.name == '[]=') &&
-        (library as LibraryElementForLink)._linker.strongMode) {
+    if ((isSetter || isMethod && serializedExecutable.name == '[]=')) {
       // In strong mode, setters and `[]=` operators without an explicit
       // return type are considered to return `void`.
       return VoidTypeImpl.instance;
@@ -3653,12 +3646,8 @@ class Linker {
   final List<LibraryElementInBuildUnit> _librariesInBuildUnit =
       <LibraryElementInBuildUnit>[];
 
-  /**
-   * Indicates whether type inference should use strong mode rules.
-   */
-  final bool strongMode;
-
   LibraryElementForLink _coreLibrary;
+
   LibraryElementForLink _asyncLibrary;
   TypeProviderForLink _typeProvider;
   TypeSystem _typeSystem;
@@ -3667,9 +3656,8 @@ class Linker {
   SpecialTypeElementForLink _bottomElement;
   ContextForLink _context;
   AnalysisOptionsForLink _analysisOptions;
-
   Linker(Map<String, LinkedLibraryBuilder> linkedLibraries, this.getDependency,
-      this.getUnit, this.strongMode) {
+      this.getUnit, bool _) {
     // Create elements for the libraries to be linked.  The rest of
     // the element model will be created on demand.
     linkedLibraries
@@ -3717,6 +3705,12 @@ class Linker {
       new SpecialTypeElementForLink(this, DynamicTypeImpl.instance);
 
   /**
+   * Indicates whether type inference should use strong mode rules.
+   */
+  @deprecated
+  bool get strongMode => true;
+
+  /**
    * Get an instance of [TypeProvider] for use during linking.
    */
   TypeProviderForLink get typeProvider =>
@@ -3725,9 +3719,8 @@ class Linker {
   /**
    * Get an instance of [TypeSystem] for use during linking.
    */
-  TypeSystem get typeSystem => _typeSystem ??= strongMode
-      ? new StrongTypeSystemImpl(typeProvider)
-      : new TypeSystemImpl(typeProvider);
+  TypeSystem get typeSystem =>
+      _typeSystem ??= new StrongTypeSystemImpl(typeProvider);
 
   /**
    * Get the element representing `void`.
@@ -3867,15 +3860,13 @@ class NonstaticMemberElementForLink extends Object
 
   @override
   DartType get asStaticType {
-    if (_library._linker.strongMode) {
-      ExecutableElement element = asExecutableElement;
-      if (element != null) {
-        if (element is PropertyAccessorElement) {
-          return element.returnType;
-        } else {
-          // Method tear-off
-          return element.type;
-        }
+    ExecutableElement element = asExecutableElement;
+    if (element != null) {
+      if (element is PropertyAccessorElement) {
+        return element.returnType;
+      } else {
+        // Method tear-off
+        return element.type;
       }
     }
     return DynamicTypeImpl.instance;

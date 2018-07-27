@@ -290,7 +290,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       {TypeSystem typeSystem})
       : _nullType = typeProvider.nullType,
         _futureNullType = typeProvider.futureNullType,
-        _typeSystem = typeSystem ?? new TypeSystemImpl(typeProvider) {
+        _typeSystem = typeSystem ?? new StrongTypeSystemImpl(typeProvider) {
     inDeprecatedMember = _currentLibrary.hasDeprecated;
   }
 
@@ -2131,7 +2131,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
    * provided.
    */
   DeadCodeVerifier(this._errorReporter, {TypeSystem typeSystem})
-      : this._typeSystem = typeSystem ?? new TypeSystemImpl(null);
+      : this._typeSystem = typeSystem ?? new StrongTypeSystemImpl(null);
 
   @override
   Object visitBinaryExpression(BinaryExpression node) {
@@ -10707,7 +10707,7 @@ class _ConstantVerifier_validateInitializerExpression extends ConstantVisitor {
       this.parameterElements,
       DeclaredVariables declaredVariables,
       {TypeSystem typeSystem})
-      : _typeSystem = typeSystem ?? new TypeSystemImpl(typeProvider),
+      : _typeSystem = typeSystem ?? new StrongTypeSystemImpl(typeProvider),
         super(
             new ConstantEvaluationEngine(typeProvider, declaredVariables,
                 typeSystem: typeSystem),

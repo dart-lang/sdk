@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.evaluation_test;
-
 import 'dart:async';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
@@ -1679,7 +1677,7 @@ const b = 3;''');
     TestTypeProvider typeProvider = new TestTypeProvider();
     return expression.accept(new ConstantVisitor(
         new ConstantEvaluationEngine(typeProvider, new DeclaredVariables(),
-            typeSystem: new TypeSystemImpl(typeProvider)),
+            typeSystem: new StrongTypeSystemImpl(typeProvider)),
         errorReporter));
   }
 
