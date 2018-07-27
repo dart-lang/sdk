@@ -50,7 +50,6 @@ int findIdentifierLength(String search) {
 class AbstractAnalysisTest extends Object with ResourceProviderMixin {
   bool generateSummaryFiles = false;
   MockServerChannel serverChannel;
-  MockPackageMapProvider packageMapProvider;
   TestPluginManager pluginManager;
   AnalysisServer server;
   RequestHandler handler;
@@ -121,7 +120,6 @@ class AbstractAnalysisTest extends Object with ResourceProviderMixin {
     return new AnalysisServer(
         serverChannel,
         resourceProvider,
-        packageMapProvider,
         options,
         new DartSdkManager(resourceProvider.convertPath('/'), true),
         InstrumentationService.NULL_SERVICE);
@@ -200,7 +198,6 @@ class AbstractAnalysisTest extends Object with ResourceProviderMixin {
     projectPath = resourceProvider.convertPath('/project');
     testFolder = resourceProvider.convertPath('/project/bin');
     testFile = resourceProvider.convertPath('/project/bin/test.dart');
-    packageMapProvider = new MockPackageMapProvider();
     pluginManager = new TestPluginManager();
     server = createAnalysisServer();
     server.pluginManager = pluginManager;

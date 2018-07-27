@@ -26,10 +26,8 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
-import 'package:analyzer/src/source/package_map_provider.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/source/path_filter.dart';
-import 'package:analyzer/src/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/source/sdk_ext.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/glob.dart';
@@ -367,12 +365,6 @@ abstract class ContextManagerCallbacks {
   void broadcastWatchEvent(WatchEvent event);
 
   /**
-   * Signals that the context manager has started to compute a package map (if
-   * [computing] is `true`) or has finished (if [computing] is `false`).
-   */
-  void computingPackageMap(bool computing);
-
-  /**
    * Create and return a context builder that can be used to create a context
    * for the files in the given [folder] when analyzed using the given [options].
    */
@@ -476,12 +468,6 @@ class ContextManagerImpl implements ContextManager {
   final ResolverProvider packageResolverProvider;
 
   /**
-   * Provider which is used to determine the mapping from package name to
-   * package folder.
-   */
-  final PubPackageMapProvider _packageMapProvider;
-
-  /**
    * A list of the globs used to determine which files should be analyzed.
    */
   final List<Glob> analyzedFilesGlobs;
@@ -521,7 +507,6 @@ class ContextManagerImpl implements ContextManager {
       this.fileContentOverlay,
       this.sdkManager,
       this.packageResolverProvider,
-      this._packageMapProvider,
       this.analyzedFilesGlobs,
       this._instrumentationService,
       this.defaultContextOptions) {
@@ -1040,32 +1025,20 @@ class ContextManagerImpl implements ContextManager {
       // resolve packages.
       return new NoPackageFolderDisposition(packageRoot: packageRoot);
     } else {
-      PackageMapInfo packageMapInfo;
-      callbacks.computingPackageMap(true);
-      try {
-        // Try .packages first.
-        if (pathContext.basename(packagespecFile.path) == PACKAGE_SPEC_NAME) {
-          Packages packages = _readPackagespec(packagespecFile);
-          return new PackagesFileDisposition(packages);
-        }
-        if (packageResolverProvider != null) {
-          UriResolver resolver = packageResolverProvider(folder);
-          if (resolver != null) {
-            return new CustomPackageResolverDisposition(resolver);
-          }
-        }
+      // Try .packages first.
+      if (pathContext.basename(packagespecFile.path) == PACKAGE_SPEC_NAME) {
+        Packages packages = _readPackagespec(packagespecFile);
+        return new PackagesFileDisposition(packages);
+      }
 
-        packageMapInfo = _packageMapProvider.computePackageMap(folder);
-      } finally {
-        callbacks.computingPackageMap(false);
+      if (packageResolverProvider != null) {
+        UriResolver resolver = packageResolverProvider(folder);
+        if (resolver != null) {
+          return new CustomPackageResolverDisposition(resolver);
+        }
       }
-      for (String dependencyPath in packageMapInfo.dependencies) {
-        addDependency(dependencyPath);
-      }
-      if (packageMapInfo.packageMap == null) {
-        return new NoPackageFolderDisposition();
-      }
-      return new PackageMapDisposition(packageMapInfo.packageMap);
+
+      return new NoPackageFolderDisposition();
     }
   }
 
@@ -1414,7 +1387,6 @@ class ContextManagerImpl implements ContextManager {
         }
         break;
       case ChangeType.REMOVE:
-
         // If package spec info is removed, check to see if we can merge contexts.
         // Note that it's important to verify that there is NEITHER a .packages nor a
         // lingering pubspec.yaml before merging.

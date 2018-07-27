@@ -9,11 +9,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
-import 'package:analyzer/file_system/file_system.dart' as resource;
-import 'package:analyzer/file_system/memory_file_system.dart' as resource;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/source/package_map_provider.dart';
-import 'package:analyzer/src/source/pub_package_map_provider.dart';
 import 'package:front_end/src/base/timestamped_data.dart';
 import 'package:test/test.dart';
 
@@ -45,46 +41,6 @@ Matcher isResponseFailure(String id, [RequestErrorCode code]) =>
  * and no error.
  */
 Matcher isResponseSuccess(String id) => new _IsResponseSuccess(id);
-
-/**
- * A mock [PackageMapProvider].
- */
-class MockPackageMapProvider implements PubPackageMapProvider {
-  /**
-   * Package map that will be returned by the next call to [computePackageMap].
-   */
-  Map<String, List<resource.Folder>> packageMap =
-      <String, List<resource.Folder>>{};
-
-  /**
-   * Package maps that will be returned by the next call to [computePackageMap].
-   */
-  Map<String, Map<String, List<resource.Folder>>> packageMaps = null;
-
-  /**
-   * Dependency list that will be returned by the next call to [computePackageMap].
-   */
-  Set<String> dependencies = new Set<String>();
-
-  /**
-   * Number of times [computePackageMap] has been called.
-   */
-  int computeCount = 0;
-
-  @override
-  PackageMapInfo computePackageMap(resource.Folder folder) {
-    ++computeCount;
-    if (packageMaps != null) {
-      return new PackageMapInfo(packageMaps[folder.path], dependencies);
-    }
-    return new PackageMapInfo(packageMap, dependencies);
-  }
-
-  noSuchMethod(Invocation invocation) {
-    // No other methods should be called.
-    return super.noSuchMethod(invocation);
-  }
-}
 
 /**
  * A mock [ServerCommunicationChannel] for testing [AnalysisServer].

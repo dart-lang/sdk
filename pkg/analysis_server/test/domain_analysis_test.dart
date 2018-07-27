@@ -363,7 +363,6 @@ class AnalysisTestHelper extends Object with ResourceProviderMixin {
     server = new AnalysisServer(
         serverChannel,
         resourceProvider,
-        new MockPackageMapProvider(),
         new AnalysisServerOptions()..previewDart2 = true,
         new DartSdkManager(convertPath('/'), false),
         InstrumentationService.NULL_SERVICE);
@@ -626,9 +625,6 @@ main() {
   new A();
 }
 ''');
-    packageMapProvider.packageMap = {
-      'pkgA': [newFolder('$pkgA/lib'), newFolder('$pkgB/lib')]
-    };
     // add 'pkgA' and 'pkgB' as projects
     newFolder(projectPath);
     handleSuccessfulRequest(

@@ -332,12 +332,17 @@
           analyzed.
         </p>
       </field>
-      <field name="pub" optional="true">
+      <field name="pub" optional="true" deprecated="true">
         <ref>PubStatus</ref>
         <p>
           The current status of pub execution, indicating whether we are
           currently running pub.
         </p>
+
+        <p>
+          Note: this status type is deprecated, and is no longer sent by
+          the server.
+      </p>
       </field>
     </params>
   </notification>

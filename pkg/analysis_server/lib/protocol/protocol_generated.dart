@@ -18875,12 +18875,16 @@ class ServerStatusParams implements HasToJson {
   /**
    * The current status of pub execution, indicating whether we are currently
    * running pub.
+   *
+   * Note: this status type is deprecated, and is no longer sent by the server.
    */
   PubStatus get pub => _pub;
 
   /**
    * The current status of pub execution, indicating whether we are currently
    * running pub.
+   *
+   * Note: this status type is deprecated, and is no longer sent by the server.
    */
   void set pub(PubStatus value) {
     this._pub = value;

@@ -153,6 +153,9 @@ abstract class IntegrationTestMixin {
    *
    *   The current status of pub execution, indicating whether we are currently
    *   running pub.
+   *
+   *   Note: this status type is deprecated, and is no longer sent by the
+   *   server.
    */
   Stream<ServerStatusParams> onServerStatus;
 
