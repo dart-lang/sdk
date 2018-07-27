@@ -1679,15 +1679,8 @@ class Emitter extends js_emitter.EmitterBase {
 
         output.add(SourceMapBuilder.generateSourceMapTag(mapUri, partUri));
         output.close();
-        SourceMapBuilder.outputSourceMap(
-            output,
-            locationCollector,
-            namer.createMinifiedGlobalNameMap(),
-            namer.createMinifiedInstanceNameMap(),
-            partName,
-            mapUri,
-            partUri,
-            compiler.outputProvider);
+        SourceMapBuilder.outputSourceMap(output, locationCollector, {}, {},
+            partName, mapUri, partUri, compiler.outputProvider);
       } else {
         output.close();
       }
