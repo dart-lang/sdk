@@ -4,15 +4,14 @@
     "ff": "61"
   },
   "filesets": {
-    "analyzer": [
-      "out/ReleaseX64/",
-      "xcodebuild/ReleaseX64/",
-      "tools/",
-      "tests/",
+    "analyzer_unit_tests": [
+      ".packages",
       "pkg/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
-      ".packages"
+      "tools/",
+      "out/ReleaseX64/dart-sdk/",
+      "xcodebuild/ReleaseX64/dart-sdk/"
     ],
     "dart2js": [
       ".packages",
@@ -1894,6 +1893,28 @@
           "arguments": ["create_sdk"]
         },
         {
+          "name": "analyzer unit tests",
+          "arguments": [
+            "--compiler=none",
+            "--enable-asserts",
+            "--use-sdk",
+            "pkg/analyzer"
+          ],
+          "shards": 2,
+          "fileset": "analyzer_unit_tests"
+        },
+        {
+          "name": "analysis_server unit tests",
+          "arguments": [
+            "--compiler=none",
+            "--enable-asserts",
+            "--use-sdk",
+            "pkg/analysis_server"
+          ],
+          "shards": 2,
+          "fileset": "analyzer_unit_tests"
+        },
+        {
           "name": "analyze tests enable-asserts",
           "arguments": [
             "--compiler=dart2analyzer",
@@ -1908,24 +1929,6 @@
             "--enable-asserts",
             "--use-sdk",
             "pkg"
-          ]
-        },
-        {
-          "name": "analyzer unit tests",
-          "arguments": [
-            "--compiler=none",
-            "--enable-asserts",
-            "--use-sdk",
-            "pkg/analyzer"
-          ]
-        },
-        {
-          "name": "analysis_server unit tests",
-          "arguments": [
-            "--compiler=none",
-            "--enable-asserts",
-            "--use-sdk",
-            "pkg/analysis_server"
           ]
         },
         {
