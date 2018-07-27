@@ -632,6 +632,14 @@ CompileType CompileType::String() {
 }
 
 intptr_t CompileType::ToCid() {
+  if (cid_ == kIllegalCid) {
+    // Make sure to initialize cid_ for Null type to consistently return
+    // kNullCid.
+    if ((type_ != NULL) && type_->IsNullType()) {
+      cid_ = kNullCid;
+    }
+  }
+
   if ((cid_ == kNullCid) || (cid_ == kDynamicCid)) {
     return cid_;
   }
@@ -648,6 +656,8 @@ intptr_t CompileType::ToNullableCid() {
       cid_ = kDynamicCid;
     } else if (type_->IsVoidType()) {
       cid_ = kDynamicCid;
+    } else if (type_->IsNullType()) {
+      cid_ = kNullCid;
     } else if (type_->IsFunctionType() || type_->IsDartFunctionType()) {
       cid_ = kClosureCid;
     } else if (type_->HasResolvedTypeClass()) {
