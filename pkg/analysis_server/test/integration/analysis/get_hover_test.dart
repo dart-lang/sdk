@@ -201,7 +201,6 @@ class AnalysisGetHoverIntegrationTest_UseCFE
   @override
   @failingTest
   test_getHover() {
-    // TODO(devoncarew): NoSuchMethodError: The getter 'canonicalName' was called on null.
     return super.test_getHover();
   }
 }

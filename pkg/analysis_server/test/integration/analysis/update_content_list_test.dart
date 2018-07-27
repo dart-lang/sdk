@@ -60,7 +60,6 @@ class UpdateContentTest_UseCFE extends UpdateContentTest {
   @override
   @failingTest
   test_updateContent_list() {
-    // TODO(devoncarew): at character offset 2550: Bad state: Data already stored for offset -1.
     return super.test_updateContent_list();
   }
 }

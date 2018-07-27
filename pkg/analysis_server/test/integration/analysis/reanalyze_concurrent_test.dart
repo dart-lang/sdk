@@ -55,10 +55,4 @@ main() {}''';
 class ReanalyzeTest_UseCFE extends ReanalyzeTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_reanalyze_concurrent() {
-    fail('Test fails with CFE');
-  }
 }
