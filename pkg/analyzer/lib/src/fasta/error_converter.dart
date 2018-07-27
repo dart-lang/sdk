@@ -508,6 +508,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, offset, length);
         return;
+      case "NON_SYNC_FACTORY":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.NON_SYNC_FACTORY, offset, length);
+        return;
       case "POSITIONAL_AFTER_NAMED_ARGUMENT":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT, offset, length);
