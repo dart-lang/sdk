@@ -521,17 +521,17 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       fields.add(field);
       if (initializer != null) {
         if (field.next != null) {
-          // TODO(ahe): This can happen, for example, if a final field is
-          // combined with a setter.
-          unhandled("field with more than one declaration", field.name,
-              field.charOffset, field.fileUri);
+          // Duplicate definition. The field might not be the correct one,
+          // so we skip inference of the initializer.
+          // Error reporting and recovery is handled elsewhere.
+        } else {
+          field.initializer = initializer;
+          _typeInferrer.inferFieldInitializer(
+              this,
+              factory,
+              field.hasTypeInferredFromInitializer ? null : field.builtType,
+              initializer);
         }
-        field.initializer = initializer;
-        _typeInferrer.inferFieldInitializer(
-            this,
-            factory,
-            field.hasTypeInferredFromInitializer ? null : field.builtType,
-            initializer);
       }
     }
     pop(); // Type.
