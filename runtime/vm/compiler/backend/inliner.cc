@@ -3398,10 +3398,6 @@ static bool InlineMathIntPow(FlowGraph* flow_graph,
   // (2) y >= 0.
   // Thus, try to inline some very obvious cases.
   // TODO(ajcbik): useful to generalize?
-#ifdef TARGET_ARCH_ARM
-  if (FLAG_precompiled_mode)
-    return false;  // could deopt on ARM32 (IA32 is okay)
-#endif
   intptr_t val = 0;
   Value* x = call->PushArgumentAt(0)->value();
   Value* y = call->PushArgumentAt(1)->value();
