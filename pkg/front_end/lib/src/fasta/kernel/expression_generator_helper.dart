@@ -123,8 +123,6 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   Expression wrapInDeferredCheck(
       Expression expression, KernelPrefixBuilder prefix, int charOffset);
 
-  dynamic deprecated_addCompileTimeError(int charOffset, String message);
-
   bool isIdentical(Member member);
 
   Expression buildMethodInvocation(

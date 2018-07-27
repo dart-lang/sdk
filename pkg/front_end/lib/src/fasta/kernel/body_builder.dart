@@ -1489,8 +1489,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
     } else if (constantContext != ConstantContext.none &&
         !context.allowedInConstantExpression) {
-      deprecated_addCompileTimeError(
-          token.charOffset, "Not a constant expression: $context");
+      addCompileTimeError(
+          fasta.messageNotAConstantExpression, token.charOffset, token.length);
     }
     push(new Identifier(token));
   }
@@ -2251,10 +2251,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         if (existing == null) {
           scopeBuilder.addMember(name, builder);
         } else {
-          deprecated_addCompileTimeError(
-              builder.charOffset, "'$name' already declared in this scope.");
-          deprecated_addCompileTimeError(
-              existing.charOffset, "Previous definition of '$name'.");
+          addCompileTimeError(fasta.templateDuplicatedName.withArguments(name),
+              builder.charOffset, name.length);
+          addCompileTimeError(
+              fasta.templateDuplicatedNameCause.withArguments(name),
+              existing.charOffset,
+              name.length);
         }
       }
     }
@@ -3147,15 +3149,18 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void endFunctionName(Token beginToken, Token token) {
     debugEvent("FunctionName");
     Identifier name = pop();
+    Token nameToken = name.token;
     VariableDeclaration variable = new VariableDeclarationJudgment(
         name.name, functionNestingLevel,
-        forSyntheticToken: name.token.isSynthetic,
+        forSyntheticToken: nameToken.isSynthetic,
         isFinal: true,
         isLocalFunction: true)
-      ..fileOffset = offsetForToken(name.token);
+      ..fileOffset = offsetForToken(nameToken);
     if (scope.local[variable.name] != null) {
-      deprecated_addCompileTimeError(offsetForToken(name.token),
-          "'${variable.name}' already declared in this scope.");
+      addCompileTimeError(
+          fasta.templateDuplicatedName.withArguments(variable.name),
+          offsetForToken(nameToken),
+          nameToken.length);
     }
     push(new FunctionDeclarationJudgment(
         variable,
@@ -4224,19 +4229,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void handleSymbolVoid(Token token) {
     debugEvent("SymbolVoid");
     push(new Identifier(token));
-  }
-
-  @override
-  void deprecated_addCompileTimeError(int charOffset, String error,
-      {fasta.Message message, bool wasHandled: false}) {
-    // TODO(ahe): Consider setting [constantContext] to `ConstantContext.none`
-    // to avoid a long list of errors.
-    return library.addCompileTimeError(
-        message ?? fasta.templateUnspecified.withArguments(error),
-        charOffset,
-        noLength,
-        uri,
-        wasHandled: wasHandled);
   }
 
   @override
