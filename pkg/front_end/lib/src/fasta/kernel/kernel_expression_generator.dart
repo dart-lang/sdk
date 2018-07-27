@@ -11,15 +11,15 @@ import '../constant_context.dart' show ConstantContext;
 
 import '../fasta_codes.dart'
     show
-        LocatedMessage,
         Message,
-        messageCannotAssignToParenthesizedExpression,
-        messageInvalidUseOfNullAwareAccess,
+        LocatedMessage,
         messageLoadLibraryTakesNoArguments,
         messageNotAConstantExpression,
-        messageSuperAsExpression,
+        messageCannotAssignToParenthesizedExpression,
         templateNotConstantExpression,
-        templateThisOrSuperAccessInFieldInitializer;
+        messageSuperAsExpression,
+        templateThisOrSuperAccessInFieldInitializer,
+        messageInvalidUseOfNullAwareAccess;
 
 import '../messages.dart' show Message, noLength;
 
@@ -44,11 +44,9 @@ import 'expression_generator.dart'
         ErroneousExpressionGenerator,
         ExpressionGenerator,
         Generator,
-        IllegalThisPropertyAccessGenerator,
         IndexedAccessGenerator,
         LargeIntAccessGenerator,
         LoadLibraryGenerator,
-        NonLvalueGenerator,
         NullAwarePropertyAccessGenerator,
         PrefixUseGenerator,
         PropertyAccessGenerator,
@@ -79,12 +77,13 @@ import 'kernel_ast_api.dart'
         Constructor,
         DartType,
         Field,
-        IllegalPropertySetJudgment,
+        IllegalAssignmentJudgment,
         IndexAssignmentJudgment,
         Initializer,
         InvalidPropertyGetJudgment,
         InvalidType,
         InvalidVariableWriteJudgment,
+        InvalidWriteJudgment,
         Let,
         LoadLibraryTearOffJudgment,
         Member,
@@ -105,6 +104,7 @@ import 'kernel_ast_api.dart'
         Throw,
         TreeNode,
         TypeParameter,
+        UnresolvedVariableAssignmentJudgment,
         UnresolvedVariableGetJudgment,
         VariableAssignmentJudgment,
         VariableDeclaration,
@@ -247,7 +247,7 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
   Expression makeInvalidWrite(Expression value) {
     return buildInvalidWriteJudgment(helper.throwNoSuchMethodError(
         forest.literalNull(token),
-        plainNameForRead ?? '',
+        plainNameForRead,
         forest.arguments(<Expression>[value], noLocation),
         offsetForToken(token),
         isSetter: true));
@@ -289,13 +289,8 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
 
   /// Creates a data structure for tracking the desugaring of a complex
   /// assignment expression whose right hand side is [rhs].
-  ComplexAssignmentJudgment startComplexAssignment(Expression rhs) {
-    // This code should never be reached; clients should always use .asLvalue()
-    // prior to starting a complex assignment, and generators returned by
-    // .asLvalue() should always override this method.
-    return unhandled(
-        'startComplexAssignment', '$runtimeType', token.offset, null);
-  }
+  ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
+      new IllegalAssignmentJudgment(rhs);
 }
 
 abstract class KernelGenerator = Generator with KernelExpressionGenerator;
@@ -1443,49 +1438,6 @@ class KernelLargeIntAccessGenerator extends KernelGenerator
   }
 }
 
-class KernelIllegalThisPropertyAccessGenerator extends KernelGenerator
-    with ErroneousExpressionGenerator, IllegalThisPropertyAccessGenerator {
-  @override
-  final Name name;
-
-  final Member getter;
-
-  final Member setter;
-
-  KernelIllegalThisPropertyAccessGenerator(ExpressionGeneratorHelper helper,
-      Token token, this.name, this.getter, this.setter)
-      : super(helper, token);
-
-  @override
-  Expression buildSimpleRead() {
-    Expression error = buildError(forest.argumentsEmpty(token), isGetter: true);
-    return new InvalidPropertyGetJudgment(error, getter)
-      ..fileOffset = token.charOffset;
-  }
-
-  Expression buildSimpleWrite() {
-    Expression error = buildError(forest.argumentsEmpty(token), isSetter: true);
-    return new IllegalPropertySetJudgment(error, token.isSynthetic, setter)
-      ..fileOffset = token.charOffset;
-  }
-
-  DartType buildTypeWithBuiltArguments(List<DartType> arguments,
-      {bool nonInstanceAccessIsError: false, TypeInferrer typeInferrer}) {
-    var type = super.buildTypeWithBuiltArguments(arguments,
-        nonInstanceAccessIsError: nonInstanceAccessIsError,
-        typeInferrer: typeInferrer);
-    typeInferrer.storeTypeReference(
-        token.offset, token.isSynthetic, null, null, type);
-    return type;
-  }
-
-  @override
-  void printOn(StringSink sink) {
-    sink.write(", name: ");
-    sink.write(name.name);
-  }
-}
-
 class KernelUnresolvedNameGenerator extends KernelGenerator
     with ErroneousExpressionGenerator, UnresolvedNameGenerator {
   @override
@@ -1494,6 +1446,20 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
   KernelUnresolvedNameGenerator(
       ExpressionGeneratorHelper helper, Token token, this.name)
       : super(helper, token);
+
+  @override
+  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+    return _buildUnresolvedVariableAssignment(false, value);
+  }
+
+  @override
+  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget,
+      bool isPreIncDec: false}) {
+    return _buildUnresolvedVariableAssignment(true, value);
+  }
 
   @override
   Expression buildSimpleRead() {
@@ -1516,6 +1482,15 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
   void printOn(StringSink sink) {
     sink.write(", name: ");
     sink.write(name.name);
+  }
+
+  UnresolvedVariableAssignmentJudgment _buildUnresolvedVariableAssignment(
+      bool isCompound, Expression value) {
+    return new UnresolvedVariableAssignmentJudgment(
+      buildError(forest.arguments(<Expression>[value], token), isSetter: true),
+      isCompound,
+      value,
+    )..fileOffset = token.charOffset;
   }
 }
 

@@ -1574,46 +1574,35 @@ class IfJudgment extends IfStatement implements StatementJudgment {
   }
 }
 
-class IllegalAssignmentJudgment extends SyntheticExpressionJudgment {
+/// Concrete shadow object representing an assignment to a target for which
+/// assignment is not allowed.
+class IllegalAssignmentJudgment extends ComplexAssignmentJudgment {
   /// The offset at which the invalid assignment should be stored.
   /// If `-1`, then there is no separate location for invalid assignment.
   final int assignmentOffset;
 
-  IllegalAssignmentJudgment(kernel.Expression desugared, this.lhs, this.rhs,
-      {this.assignmentOffset: -1})
-      : super(desugared) {
-    // lhs and rhs may not be hooked up to the expression tree because they're
-    // not meant to be part of the compiled output; they only exist to allow
-    // resolution information to be reported to the analyzer.  But type
-    // inference currently requires expressions to have a parent (so that it can
-    // replace them with their desugared equivalents), so create placeholder
-    // parents if needed.
-    if (lhs != null && lhs.parent == null) {
-      new ExpressionStatement(lhs);
-    }
-    if (rhs != null && rhs.parent == null) {
-      new ExpressionStatement(rhs);
-    }
+  IllegalAssignmentJudgment(ExpressionJudgment rhs, {this.assignmentOffset: -1})
+      : super(rhs) {
+    rhs.parent = this;
   }
 
-  final ExpressionJudgment lhs;
-
-  final ExpressionJudgment rhs;
+  @override
+  DartType _getWriteType(ShadowTypeInferrer inferrer) {
+    return const UnknownType();
+  }
 
   @override
   Expression infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    if (lhs != null) {
-      inferrer.inferExpression(factory, lhs, const UnknownType(), false);
+    if (write != null) {
+      inferrer.inferExpression(factory, write, const UnknownType(), false);
     }
     if (assignmentOffset != -1) {
       inferrer.listener.invalidAssignment(this, assignmentOffset);
     }
-    if (rhs != null) {
-      inferrer.inferExpression(factory, rhs, const UnknownType(), false);
-    }
+    inferrer.inferExpression(factory, rhs, const UnknownType(), false);
     _replaceWithDesugared();
     inferredType = const DynamicType();
     return null;
@@ -1712,28 +1701,6 @@ class IndexAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
     inferrer.listener.indexAssign(this, write.fileOffset, writeMember,
         inferredResult.combiner, inferredType);
     _replaceWithDesugared();
-    return null;
-  }
-}
-
-class IllegalPropertySetJudgment extends SyntheticExpressionJudgment {
-  final bool forSyntheticToken;
-
-  final Member setter;
-
-  IllegalPropertySetJudgment(
-      Expression desugared, this.forSyntheticToken, this.setter)
-      : super(desugared);
-
-  @override
-  Expression infer<Expression, Statement, Initializer, Type>(
-      ShadowTypeInferrer inferrer,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      DartType typeContext) {
-    _replaceWithDesugared();
-    inferredType = const DynamicType();
-    inferrer.listener.propertyAssign(
-        this, fileOffset, setter, setter.setterType, null, inferredType);
     return null;
   }
 }
@@ -3013,6 +2980,29 @@ class InvalidVariableWriteJudgment extends SyntheticExpressionJudgment {
   }
 }
 
+/// Synthetic judgment class representing an attempt to assign to the
+/// [expression] which is not assignable.
+class InvalidWriteJudgment extends SyntheticExpressionJudgment {
+  final ExpressionJudgment expression;
+
+  InvalidWriteJudgment(kernel.Expression desugared, this.expression)
+      : super(desugared);
+
+  @override
+  Expression infer<Expression, Statement, Initializer, Type>(
+      ShadowTypeInferrer inferrer,
+      Factory<Expression, Statement, Initializer, Type> factory,
+      DartType typeContext) {
+    // When a compound assignment, the expression is already wrapping in
+    // VariableDeclaration in _makeRead(). Otherwise, temporary associate
+    // the expression with this node.
+    expression.parent ??= this;
+
+    inferrer.inferExpression(factory, expression, const UnknownType(), false);
+    return super.infer(inferrer, factory, typeContext);
+  }
+}
+
 /// Synthetic judgment class representing an attempt reference a member
 /// that is not allowed at this location.
 class InvalidPropertyGetJudgment extends SyntheticExpressionJudgment {
@@ -3761,12 +3751,8 @@ class UnresolvedVariableAssignmentJudgment extends SyntheticExpressionJudgment {
       ShadowTypeInferrer inferrer,
       Factory<Expression, Statement, Initializer, Type> factory,
       DartType typeContext) {
-    if (rhs != null) {
-      inferrer.inferExpression(factory, rhs, const UnknownType(), true);
-      inferredType = isCompound ? const DynamicType() : rhs.inferredType;
-    } else {
-      inferredType = const DynamicType();
-    }
+    inferrer.inferExpression(factory, rhs, const UnknownType(), true);
+    inferredType = isCompound ? const DynamicType() : rhs.inferredType;
     inferrer.listener.variableAssign(
         this, fileOffset, const DynamicType(), null, null, inferredType);
     return super.infer(inferrer, factory, typeContext);

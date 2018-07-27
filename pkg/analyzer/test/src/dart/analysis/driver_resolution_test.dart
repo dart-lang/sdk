@@ -964,52 +964,6 @@ main() {
     expect(xReference.staticType.toString(), useCFE ? 'dynamic' : 'int');
   }
 
-  test_assignment_to_illegal_static_access() async {
-    addTestFile('''
-class C {
-  int x;
-  static f(int y) {
-    x = y;
-  }
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-    var xElement = findElement.field('x');
-    assertElement(findNode.simple('x ='), xElement.setter);
-    var yElement = findElement.parameter('y');
-    assertElement(findNode.simple('y;'), yElement);
-  }
-
-  test_assignment_to_non_generator() async {
-    addTestFile('''
-f() {}
-g(x) {
-  f() = x;
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-    var fElement = findElement.function('f');
-    assertElement(findNode.simple('f() ='), fElement);
-    var xElement = findElement.parameter('x');
-    assertElement(findNode.simple('x;'), xElement);
-  }
-
-  test_assignment_to_postfix_increment() async {
-    addTestFile('''
-f(int x, int y) {
-  x++ = y;
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-    var xElement = findElement.parameter('x');
-    assertElement(findNode.simple('x++'), xElement);
-    var yElement = findElement.parameter('y');
-    assertElement(findNode.simple('y;'), yElement);
-  }
-
   test_assignment_to_prefix() async {
     var a = _p('/test/lib/a.dart');
     provider.newFile(a, '''
@@ -1029,18 +983,6 @@ main() {
     var pReference = findNode.simple('p +=');
     expect(pReference.staticElement, same(pElement));
     expect(pReference.staticType, isNull);
-  }
-
-  test_assignment_to_unresolved_name() async {
-    addTestFile('''
-f(int y) {
-  x = y;
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-    var yElement = findElement.parameter('y');
-    assertElement(findNode.simple('y;'), yElement);
   }
 
   test_assignmentExpression_compound_indexExpression() async {
@@ -2098,49 +2040,6 @@ var v = (() => 42)();
     expect(closureElement.enclosingElement, same(variableInitializer));
   }
 
-  test_compound_assignment_to_illegal_static_access() async {
-    addTestFile('''
-class C {
-  int x;
-  static f(int y) {
-    x += y;
-  }
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-    var xElement = findElement.field('x');
-    assertElement(findNode.simple('x +='), xElement.setter);
-    var yElement = findElement.parameter('y');
-    assertElement(findNode.simple('y;'), yElement);
-  }
-
-  test_compound_assignment_to_postfix_increment() async {
-    addTestFile('''
-f(int x, int y) {
-  x++ += y;
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-    var xElement = findElement.parameter('x');
-    assertElement(findNode.simple('x++'), xElement);
-    var yElement = findElement.parameter('y');
-    assertElement(findNode.simple('y;'), yElement);
-  }
-
-  test_compound_assignment_to_unresolved_name() async {
-    addTestFile('''
-f(int y) {
-  x += y;
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-    var yElement = findElement.parameter('y');
-    assertElement(findNode.simple('y;'), yElement);
-  }
-
   test_conditionalExpression() async {
     String content = r'''
 void main() {
@@ -2576,18 +2475,6 @@ main() async {
     }
   }
 
-  test_dual_increment() async {
-    addTestFile('''
-f(int x) {
-  ++x++;
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-    var xElement = findElement.parameter('x');
-    assertElement(findNode.simple('x++'), xElement);
-  }
-
   test_enum_toString() async {
     addTestFile(r'''
 enum MyEnum { A, B, C }
@@ -2648,17 +2535,6 @@ class C<T> {
     VariableDeclaration fNode = fDeclaration.fields.variables[0];
     FieldElement fElement = fNode.element;
     expect(fElement.type, typeProvider.listType.instantiate([tElement.type]));
-  }
-
-  test_for_in_assign_to_prefix() async {
-    addTestFile('''
-import "dart:core" as prefix;
-
-main() {
-  for (prefix in []) {}
-}
-''');
-    await resolveTestFile();
   }
 
   test_formalParameter_functionTyped() async {
@@ -2892,23 +2768,6 @@ main() {
     var functionTypeNode = tRef.parent.parent.parent as GenericFunctionType;
     var functionType = functionTypeNode.type as FunctionType;
     assertElement(tRef, functionType.typeFormals[0]);
-  }
-
-  test_illegal_call_to_static_member() async {
-    addTestFile('''
-class C {
-  f() {}
-  static g() {
-    f();
-  }
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-
-    var fElement = findElement.method('f');
-    var fReference = findNode.simple('f();');
-    assertElement(fReference, fElement);
   }
 
   test_indexExpression() async {
@@ -6591,88 +6450,6 @@ void f<T, U>(T a, U b) {}
     }
   }
 
-  test_null_aware_assignment_to_illegal_static_access() async {
-    addTestFile('''
-class C {
-  int x;
-  static f(int y) {
-    x ??= y;
-  }
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-    var xElement = findElement.field('x');
-    assertElement(findNode.simple('x ??='), xElement.setter);
-    var yElement = findElement.parameter('y');
-    assertElement(findNode.simple('y;'), yElement);
-  }
-
-  test_null_aware_assignment_to_postfix_increment() async {
-    addTestFile('''
-f(int x, int y) {
-  x++ ??= y;
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-    var xElement = findElement.parameter('x');
-    assertElement(findNode.simple('x++'), xElement);
-    var yElement = findElement.parameter('y');
-    assertElement(findNode.simple('y;'), yElement);
-  }
-
-  test_null_aware_assignment_to_unresolved_name() async {
-    addTestFile('''
-f(int y) {
-  x ??= y;
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-    assertElement(findNode.simple('x'), null);
-    var yElement = findElement.parameter('y');
-    assertElement(findNode.simple('y;'), yElement);
-  }
-
-  test_postfix_increment_of_illegal_static_access() async {
-    addTestFile('''
-class C {
-  int x;
-  static f() {
-    x++;
-  }
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-    var xElement = findElement.field('x');
-    assertElement(findNode.simple('x++'), xElement.setter);
-  }
-
-  test_postfix_increment_of_non_generator() async {
-    addTestFile('''
-f() {}
-g() {
-  f()++;
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-    var fElement = findElement.function('f');
-    assertElement(findNode.simple('f()++;'), fElement);
-  }
-
-  test_postfix_increment_of_unresolved_name() async {
-    addTestFile('''
-f() {
-  x++;
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-  }
-
   test_postfixExpression_local() async {
     String content = r'''
 main() {
@@ -6745,46 +6522,6 @@ class C {
       expect(propertyName.staticElement, same(fElement.setter));
       expect(propertyName.staticType, typeProvider.intType);
     }
-  }
-
-  test_prefix_increment_of_illegal_static_access() async {
-    addTestFile('''
-class C {
-  int x;
-  static f() {
-    ++x; // usage
-  }
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-    var xElement = findElement.field('x');
-    assertElement(findNode.simple('x; // usage'), xElement.setter);
-  }
-
-  test_prefix_increment_of_non_generator() async {
-    addTestFile('''
-f() {}
-g() {
-  ++f();
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
-    var fReference = findNode.simple('f();');
-    expect(fReference.parent, const TypeMatcher<MethodInvocation>());
-    var fElement = findElement.function('f');
-    assertElement(fReference, fElement);
-  }
-
-  test_prefix_increment_of_unresolved_name() async {
-    addTestFile('''
-f() {
-  ++x;
-}
-''');
-    await resolveTestFile();
-    expect(result.errors, isNotEmpty);
   }
 
   test_prefixedIdentifier_classInstance_instanceField() async {
@@ -8593,8 +8330,6 @@ main() {
     var assignment = findNode.assignment('a = b');
     assertElementNull(assignment);
     if (useCFE) {
-      assertType(assignment, 'dynamic');
-    } else {
       assertType(assignment, 'int');
     }
 

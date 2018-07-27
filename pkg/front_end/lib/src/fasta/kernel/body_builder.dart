@@ -6,8 +6,6 @@ library fasta.body_builder;
 
 import 'dart:core' hide MapEntry;
 
-import 'package:front_end/src/fasta/kernel/kernel_expression_generator.dart';
-
 import '../constant_context.dart' show ConstantContext;
 
 import '../fasta_codes.dart' as fasta;
@@ -77,14 +75,12 @@ import 'expression_generator.dart'
         DelayedAssignment,
         DelayedPostfixIncrement,
         Generator,
-        IllegalThisPropertyAccessGenerator,
         IncompleteErrorGenerator,
         IncompletePropertyAccessGenerator,
         IncompleteSendGenerator,
         IndexedAccessGenerator,
         LargeIntAccessGenerator,
         LoadLibraryGenerator,
-        NonLvalueGenerator,
         ParenthesizedExpressionGenerator,
         PrefixUseGenerator,
         ReadOnlyAccessGenerator,
@@ -1519,9 +1515,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       return new IncompleteErrorGenerator(this, token, declaration.target,
           fasta.templateThisAccessInFieldInitializer.withArguments(name));
     }
-    if (declaration == null) {
+    if (declaration == null ||
+        (!isInstanceContext && declaration.isInstanceMember)) {
       Name n = new Name(name, library.library);
       if (!isQualified && isInstanceContext) {
+        assert(declaration == null);
         if (constantContext != ConstantContext.none || member.isField) {
           return new UnresolvedNameGenerator(this, token, n);
         }
@@ -1587,12 +1585,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         getter = declaration.target;
         setter = lookupInstanceMember(n, isSetter: true);
       }
-      if (isInstanceContext) {
-        return new ThisPropertyAccessGenerator(this, token, n, getter, setter);
-      } else {
-        return new IllegalThisPropertyAccessGenerator(
-            this, token, n, getter, setter);
-      }
+      return new ThisPropertyAccessGenerator(this, token, n, getter, setter);
     } else if (declaration.isRegularMethod) {
       assert(declaration.isStatic || declaration.isTopLevel);
       return new StaticAccessGenerator(this, token, declaration.target, null);
@@ -1940,27 +1933,20 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     pop(); // block
   }
 
-  Generator popForLvalue(Token token) {
-    Object value = pop();
-    if (value is Generator) {
-      return value.asLvalue();
-    } else {
-      return new NonLvalueGenerator(
-          this,
-          token,
-          buildCompileTimeError(fasta.messageNotAnLvalue, offsetForToken(token),
-              lengthForToken(token)),
-          toValue(value));
-    }
-  }
-
   @override
   void handleAssignmentExpression(Token token) {
     debugEvent("AssignmentExpression");
     Expression value = popForValue();
-    var generator = popForLvalue(token);
-    push(new DelayedAssignment(
-        this, token, generator, value, token.stringValue));
+    Object generator = pop();
+    if (generator is! Generator) {
+      push(new SyntheticExpressionJudgment(buildCompileTimeError(
+          fasta.messageNotAnLvalue,
+          offsetForToken(token),
+          lengthForToken(token))));
+    } else {
+      push(new DelayedAssignment(
+          this, token, generator, value, token.stringValue));
+    }
   }
 
   @override
@@ -2680,17 +2666,27 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleUnaryPrefixAssignmentExpression(Token token) {
     debugEvent("UnaryPrefixAssignmentExpression");
-    var generator = popForLvalue(token);
-    push(generator.buildPrefixIncrement(incrementOperator(token),
-        offset: token.charOffset));
+    Object generator = pop();
+    if (generator is Generator) {
+      push(generator.buildPrefixIncrement(incrementOperator(token),
+          offset: token.charOffset));
+    } else {
+      push(
+          wrapInCompileTimeError(toValue(generator), fasta.messageNotAnLvalue));
+    }
   }
 
   @override
   void handleUnaryPostfixAssignmentExpression(Token token) {
     debugEvent("UnaryPostfixAssignmentExpression");
-    var generator = popForLvalue(token);
-    push(new DelayedPostfixIncrement(
-        this, token, generator, incrementOperator(token), null));
+    Object generator = pop();
+    if (generator is Generator) {
+      push(new DelayedPostfixIncrement(
+          this, token, generator, incrementOperator(token), null));
+    } else {
+      push(
+          wrapInCompileTimeError(toValue(generator), fasta.messageNotAnLvalue));
+    }
   }
 
   @override
@@ -3399,7 +3395,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       TypePromotionFact fact =
           typePromoter.getFactForAccess(variable, functionNestingLevel);
       TypePromotionScope scope = typePromoter.currentScope;
-      syntheticAssignment = lvalue.asLvalue().buildAssignment(
+      syntheticAssignment = lvalue.buildAssignment(
           new VariableGetJudgment(variable, fact, scope)
             ..fileOffset = inKeyword.offset,
           voidContext: true);

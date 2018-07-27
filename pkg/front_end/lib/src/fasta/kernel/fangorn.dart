@@ -48,7 +48,6 @@ import 'kernel_expression_generator.dart'
         KernelDeferredAccessGenerator,
         KernelDelayedAssignment,
         KernelDelayedPostfixIncrement,
-        KernelIllegalThisPropertyAccessGenerator,
         KernelIndexedAccessGenerator,
         KernelLargeIntAccessGenerator,
         KernelLoadLibraryGenerator,
@@ -681,16 +680,6 @@ class Fangorn extends Forest {
       Member getter,
       Member setter) {
     return new KernelThisPropertyAccessGenerator(
-        helper, token, name, getter, setter);
-  }
-
-  KernelIllegalThisPropertyAccessGenerator illegalThisPropertyAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Name name,
-      Member getter,
-      Member setter) {
-    return new KernelIllegalThisPropertyAccessGenerator(
         helper, token, name, getter, setter);
   }
 

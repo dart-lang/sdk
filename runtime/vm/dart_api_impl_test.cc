@@ -6662,7 +6662,7 @@ TEST_CASE(DartAPI_ImportLibrary3) {
     if (TestCase::UsingStrongMode()) {
       EXPECT_ERROR(lib,
                    "Compilation failed file:///test-lib:4:10:"
-                   " Error: Can't assign to this.");
+                   " Error: Setter not found: 'foo'");
       return;
     }
     EXPECT_VALID(lib);

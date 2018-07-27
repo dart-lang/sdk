@@ -128,13 +128,9 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     node.rightHandSide.accept(this);
 
     SyntacticEntity entity = _getAssignmentEntity(node.leftHandSide);
-    if (entity != null) {
-      var data = _get(entity);
-      node.staticElement = _translateAuxiliaryReference(data.combiner);
-      node.staticType = _translateType(data.inferredType);
-    } else {
-      node.staticType = _translateType(const kernel.DynamicType());
-    }
+    var data = _get(entity);
+    node.staticElement = _translateAuxiliaryReference(data.combiner);
+    node.staticType = _translateType(data.inferredType);
   }
 
   @override
@@ -558,13 +554,9 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   void visitPostfixExpression(PostfixExpression node) {
     node.operand.accept(this);
     SyntacticEntity entity = _getAssignmentEntity(node.operand);
-    if (entity != null) {
-      var data = _get(entity);
-      node.staticElement = _translateAuxiliaryReference(data.combiner);
-      node.staticType = _translateType(data.inferredType);
-    } else {
-      node.staticType = _translateType(const kernel.DynamicType());
-    }
+    var data = _get(entity);
+    node.staticElement = _translateAuxiliaryReference(data.combiner);
+    node.staticType = _translateType(data.inferredType);
   }
 
   @override
@@ -582,13 +574,9 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       // ++v;
       // This is an assignment, it is associated with the operand.
       SyntacticEntity entity = _getAssignmentEntity(node.operand);
-      if (entity != null) {
-        var data = _get(entity);
-        node.staticElement = _translateAuxiliaryReference(data.combiner);
-        node.staticType = _translateType(data.inferredType);
-      } else {
-        node.staticType = _translateType(const kernel.DynamicType());
-      }
+      var data = _get(entity);
+      node.staticElement = _translateAuxiliaryReference(data.combiner);
+      node.staticType = _translateType(data.inferredType);
     } else if (tokenType == TokenType.BANG) {
       // !boolExpression;
       node.staticType = _translateType(_get(node).inferredType);
@@ -743,8 +731,11 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       return leftHandSide.propertyName;
     } else if (leftHandSide is IndexExpressionImpl) {
       return leftHandSide.leftBracket;
+    } else if (leftHandSide is ParenthesizedExpression) {
+      return leftHandSide.rightParenthesis;
     } else {
-      return null;
+      throw new StateError(
+          'Unexpected LHS (${leftHandSide.runtimeType}) $leftHandSide');
     }
   }
 
