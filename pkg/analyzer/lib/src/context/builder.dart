@@ -814,10 +814,6 @@ class _BasicWorkspace extends Workspace {
   _BasicWorkspace._(this.provider, this.root, this._builder);
 
   @override
-  // Alternately, we could check the pubspec for "sdk: flutter"
-  bool get hasFlutterDependency => packageMap.containsKey('flutter');
-
-  @override
   Map<String, List<Folder>> get packageMap {
     _packageMap ??= _builder.convertPackagesToMap(packages);
     return _packageMap;

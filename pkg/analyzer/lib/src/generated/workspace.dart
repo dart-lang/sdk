@@ -14,13 +14,13 @@ import 'package:analyzer/src/generated/source.dart';
  */
 abstract class Workspace {
   /**
-   * Return `true` if this workspace defines a single "project"
-   * and that "project" depends upon flutter,
+   * Return `true` if this workspace defines a single "project" and that
+   * "project" depends upon flutter.
    */
-  bool get hasFlutterDependency => false;
+  bool get hasFlutterDependency => packageMap?.containsKey('flutter') ?? false;
 
   /**
-   * Return a map of package sources.
+   * Return a (possibly null) map of package sources.
    */
   Map<String, List<Folder>> get packageMap;
 
