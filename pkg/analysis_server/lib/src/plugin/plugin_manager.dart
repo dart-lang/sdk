@@ -708,7 +708,7 @@ class PluginManager {
           environment: {_pubEnvironmentKey: _getPubEnvironmentValue()});
       if (result.exitCode != 0) {
         StringBuffer buffer = new StringBuffer();
-        buffer.writeln('Failed to run pub get');
+        buffer.writeln('Failed to run pub $pubSubcommand');
         buffer.writeln('  pluginFolder = ${pluginFolder.path}');
         buffer.writeln('  exitCode = ${result.exitCode}');
         buffer.writeln('  stdout = ${result.stdout}');
