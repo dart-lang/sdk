@@ -2994,7 +2994,7 @@ class CheckedSmiComparisonSlowPath
   CheckedSmiComparisonSlowPath(CheckedSmiComparisonInstr* instruction,
                                intptr_t try_index,
                                BranchLabels labels,
-                               bool merged = false)
+                               bool merged)
       : TemplateSlowPathCode(instruction),
         try_index_(try_index),
         labels_(labels),
@@ -3033,7 +3033,9 @@ class CheckedSmiComparisonSlowPath
                                               : labels_.true_label);
       __ jmp(instruction()->is_negated() ? labels_.true_label
                                          : labels_.false_label);
+      ASSERT(exit_label()->IsUnused());
     } else {
+      ASSERT(!instruction()->is_negated());
       __ jmp(exit_label());
     }
   }
@@ -3093,28 +3095,38 @@ void CheckedSmiComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   Condition true_condition = EmitComparisonCode(compiler, labels);
   ASSERT(true_condition != INVALID_CONDITION);
   EmitBranchOnCondition(compiler, true_condition, labels);
-  __ Bind(slow_path->exit_label());
+  // No need to bind slow_path->exit_label() as slow path exits through
+  // true/false branch labels.
 }
 
 void CheckedSmiComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label true_label, false_label, done;
-  BranchLabels labels = {&true_label, &false_label, &false_label};
+  // Zone-allocate labels to pass them to slow-path which outlives local scope.
+  Label* true_label = new (Z) Label();
+  Label* false_label = new (Z) Label();
+  Label done;
+  BranchLabels labels = {true_label, false_label, false_label};
+  // In case of negated comparison result of a slow path call should be negated.
+  // For this purpose, 'merged' slow path is generated: it tests
+  // result of a call and jumps directly to true or false label.
   CheckedSmiComparisonSlowPath* slow_path = new CheckedSmiComparisonSlowPath(
       this, compiler->CurrentTryIndex(), labels,
-      /* merged = */ false);
+      /* merged = */ is_negated());
   compiler->AddSlowPathCode(slow_path);
   EMIT_SMI_CHECK;
   Condition true_condition = EmitComparisonCode(compiler, labels);
   ASSERT(true_condition != INVALID_CONDITION);
   EmitBranchOnCondition(compiler, true_condition, labels);
   Register result = locs()->out(0).reg();
-  __ Bind(&false_label);
+  __ Bind(false_label);
   __ LoadObject(result, Bool::False());
   __ jmp(&done);
-  __ Bind(&true_label);
+  __ Bind(true_label);
   __ LoadObject(result, Bool::True());
   __ Bind(&done);
-  __ Bind(slow_path->exit_label());
+  // In case of negated comparison slow path exits through true/false labels.
+  if (!is_negated()) {
+    __ Bind(slow_path->exit_label());
+  }
 }
 
 static bool CanBeImmediate(const Object& constant) {

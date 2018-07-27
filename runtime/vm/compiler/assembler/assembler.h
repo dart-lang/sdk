@@ -24,7 +24,7 @@ class AssemblerFixup;
 class AssemblerBuffer;
 class MemoryRegion;
 
-class Label : public ValueObject {
+class Label : public ZoneAllocated {
  public:
   Label() : position_(0), unresolved_(0) {
 #ifdef DEBUG
