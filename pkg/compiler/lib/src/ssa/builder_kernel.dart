@@ -2748,8 +2748,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // The map literal constructors take the key-value pairs as a List
     List<HInstruction> constructorArgs = <HInstruction>[];
     for (ir.MapEntry mapEntry in node.entries) {
-      mapEntry.accept(this);
+      mapEntry.key.accept(this);
       constructorArgs.add(pop());
+      mapEntry.value.accept(this);
       constructorArgs.add(pop());
     }
 
@@ -2818,11 +2819,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   @override
-  void visitMapEntry(ir.MapEntry mapEntry) {
-    // Visit value before the key because each will push an expression to the
-    // stack, so when we pop them off, the key is popped first, then the value.
-    mapEntry.value.accept(this);
-    mapEntry.key.accept(this);
+  void visitMapEntry(ir.MapEntry node) {
+    failedAt(CURRENT_ELEMENT_SPANNABLE,
+        'ir.MapEntry should be handled in visitMapLiteral');
   }
 
   @override
