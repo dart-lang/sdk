@@ -1518,9 +1518,6 @@ class AstBuilder extends StackListener {
     Token externalKeyword = modifiers?.externalKeyword;
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
-    if (getOrSet != null && optional('get', getOrSet)) {
-      parameters = null;
-    }
     declarations.add(ast.functionDeclaration(
         comment,
         metadata,

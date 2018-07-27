@@ -3824,6 +3824,27 @@ f() sync* => a;
     assertType(aRef, 'int');
   }
 
+  test_invalid_getter_parameters() async {
+    addTestFile(r'''
+get m(int a, double b) {
+  a;
+  b;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    if (useCFE) {
+      var aRef = findNode.simple('a;');
+      assertElement(aRef, findElement.parameter('a'));
+      assertType(aRef, 'int');
+
+      var bRef = findNode.simple('b;');
+      assertElement(bRef, findElement.parameter('b'));
+      assertType(bRef, 'double');
+    }
+  }
+
   test_invalid_instanceCreation_abstract() async {
     addTestFile(r'''
 abstract class C<T> {
@@ -9862,6 +9883,11 @@ class FindElement {
       }
     }
 
+    for (var accessor in unitElement.accessors) {
+      for (var parameter in accessor.parameters) {
+        considerParameter(parameter);
+      }
+    }
     for (var function in unitElement.functions) {
       for (var parameter in function.parameters) {
         considerParameter(parameter);
