@@ -113,7 +113,8 @@ echo "
       if (!source_maps) {
         console.log('For Dart source maps: npm install source-map-support');
       }
-      console.error(e.toString(), sdk.dart.stackTrace(e).toString());
+      let toString = sdk.dart.toString;
+      console.error(toString(e), toString(sdk.dart.stackTrace(e)));
       process.exit(1);
     }" \
     > $LIBROOT/$BASENAME.run.js
