@@ -25,9 +25,9 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   }
 
   @override
-  @assertFailingTest
-  test_closure_generic() {
-    return super.test_closure_generic();
+  @failingTest
+  test_generic_function_type() async {
+    await super.test_generic_function_type();
   }
 
   @override

@@ -10,6 +10,8 @@ import '../fasta_codes.dart'
         templateMissingExplicitTypeArguments,
         templateTypeArgumentMismatch;
 
+import '../source/outline_listener.dart';
+
 import 'builder.dart'
     show
         Declaration,
@@ -22,13 +24,14 @@ import 'builder.dart'
         TypeDeclarationBuilder;
 
 abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
+  final OutlineListener outlineListener;
   final Object name;
 
   List<T> arguments;
 
   TypeDeclarationBuilder<T, R> declaration;
 
-  NamedTypeBuilder(this.name, this.arguments);
+  NamedTypeBuilder(this.outlineListener, this.name, this.arguments);
 
   InvalidTypeBuilder<T, R> buildInvalidType(int charOffset, Uri fileUri,
       [Message message]);
@@ -47,6 +50,8 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
     if (name is QualifiedName) {
       Declaration prefix = scope.lookup(name.prefix, charOffset, fileUri);
       if (prefix is PrefixBuilder) {
+        outlineListener?.store(charOffset, false,
+            importIndex: prefix.importIndex);
         member = prefix.lookup(name.suffix, name.charOffset, fileUri);
       }
     } else {

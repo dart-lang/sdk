@@ -136,12 +136,6 @@ class B {
     await super.test_getResult_doesNotExist();
   }
 
-  @override
-  @assertFailingTest
-  test_getResult_functionTypeFormalParameter_withTypeParameter() {
-    return super.test_getResult_functionTypeFormalParameter_withTypeParameter();
-  }
-
   @failingTest
   @override
   test_getResult_importLibrary_thenRemoveIt() async {

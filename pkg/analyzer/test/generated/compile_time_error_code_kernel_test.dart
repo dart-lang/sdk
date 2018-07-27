@@ -1335,6 +1335,12 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  test_recursiveInterfaceInheritance_extends() async {
+    await super.test_recursiveInterfaceInheritance_extends();
+  }
+
+  @override
+  @failingTest
   test_recursiveInterfaceInheritance_extends_implements() async {
     await super.test_recursiveInterfaceInheritance_extends_implements();
   }
@@ -1374,6 +1380,18 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @failingTest
   test_recursiveInterfaceInheritance_tail3() async {
     await super.test_recursiveInterfaceInheritance_tail3();
+  }
+
+  @override
+  @failingTest
+  test_recursiveInterfaceInheritanceBaseCaseExtends() async {
+    await super.test_recursiveInterfaceInheritanceBaseCaseExtends();
+  }
+
+  @override
+  @failingTest
+  test_recursiveInterfaceInheritanceBaseCaseExtends_abstract() async {
+    await super.test_recursiveInterfaceInheritanceBaseCaseExtends_abstract();
   }
 
   @override

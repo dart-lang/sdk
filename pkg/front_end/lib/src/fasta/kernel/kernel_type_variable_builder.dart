@@ -11,6 +11,8 @@ import '../deprecated_problems.dart' show deprecated_inputError;
 
 import '../fasta_codes.dart' show templateTypeArgumentsOnTypeVariable;
 
+import '../source/outline_listener.dart';
+
 import 'kernel_builder.dart'
     show
         KernelClassBuilder,
@@ -23,6 +25,7 @@ import 'kernel_builder.dart'
 
 class KernelTypeVariableBuilder
     extends TypeVariableBuilder<KernelTypeBuilder, DartType> {
+  final OutlineListener outlineListener;
   final TypeParameter actualParameter;
 
   KernelTypeVariableBuilder actualOrigin;
@@ -34,14 +37,16 @@ class KernelTypeVariableBuilder
       [KernelTypeBuilder bound, TypeParameter actual])
       // TODO(32378): We would like to use '??' here instead, but in conjuction
       // with '..', it crashes Dart2JS.
-      : actualParameter = actual != null
+      : outlineListener = compilationUnit?.outlineListener,
+        actualParameter = actual != null
             ? (actual..fileOffset = charOffset)
             : (new TypeParameter(name, null)..fileOffset = charOffset),
         super(name, bound, compilationUnit, charOffset);
 
   KernelTypeVariableBuilder.fromKernel(
       TypeParameter parameter, KernelLibraryBuilder compilationUnit)
-      : actualParameter = parameter,
+      : outlineListener = null,
+        actualParameter = parameter,
         super(parameter.name, null, compilationUnit, parameter.fileOffset);
 
   @override
@@ -76,7 +81,8 @@ class KernelTypeVariableBuilder
   }
 
   KernelTypeBuilder asTypeBuilder() {
-    return new KernelNamedTypeBuilder(name, null)..bind(this);
+    return new KernelNamedTypeBuilder(outlineListener, charOffset, name, null)
+      ..bind(this);
   }
 
   void finish(LibraryBuilder library, KernelClassBuilder object,

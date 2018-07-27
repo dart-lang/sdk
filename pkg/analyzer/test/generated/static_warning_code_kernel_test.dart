@@ -583,22 +583,9 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
-  test_typeAnnotationDeferredClass_fieldFormalParameter() {
-    return super.test_typeAnnotationDeferredClass_fieldFormalParameter();
-  }
-
-  @override
-  @failingTest
   test_typeAnnotationDeferredClass_functionDeclaration_returnType() async {
     return super
         .test_typeAnnotationDeferredClass_functionDeclaration_returnType();
-  }
-
-  @override
-  @failingTest
-  test_typeAnnotationDeferredClass_functionTypedFormalParameter_returnType() {
-    return super
-        .test_typeAnnotationDeferredClass_functionTypedFormalParameter_returnType();
   }
 
   @override
@@ -612,12 +599,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   test_typeAnnotationDeferredClass_methodDeclaration_returnType() async {
     return super
         .test_typeAnnotationDeferredClass_methodDeclaration_returnType();
-  }
-
-  @override
-  @failingTest
-  test_typeAnnotationDeferredClass_simpleFormalParameter() {
-    return super.test_typeAnnotationDeferredClass_simpleFormalParameter();
   }
 
   @override

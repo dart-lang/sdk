@@ -19,6 +19,7 @@ class ResolutionData {
   final DartType invokeType;
   final bool isExplicitCall;
   final bool isImplicitCall;
+  final bool isOutline;
   final bool isPrefixReference;
   final bool isTypeReference;
   final bool isWriteReference;
@@ -35,6 +36,7 @@ class ResolutionData {
       this.invokeType,
       this.isExplicitCall = false,
       this.isImplicitCall = false,
+      this.isOutline = false,
       this.isPrefixReference = false,
       this.isTypeReference = false,
       this.isWriteReference = false,
@@ -707,9 +709,15 @@ class ResolutionStorer
       DartType writeContext}) {
     _validateLocation(location);
     var encodedLocation = 2 * location + (isSynthetic ? 1 : 0);
-    if (!replace && _data.containsKey(encodedLocation)) {
-      throw new StateError('Data already stored for (offset=$location, '
-          'isSynthetic=$isSynthetic)');
+    if (!replace) {
+      var existing = _data[encodedLocation];
+      if (existing != null) {
+        if (existing.isOutline) {
+          return;
+        }
+        throw new StateError('Data already stored for (offset=$location, '
+            'isSynthetic=$isSynthetic)');
+      }
     }
     _data[encodedLocation] = new ResolutionData(
         argumentTypes: argumentTypes,

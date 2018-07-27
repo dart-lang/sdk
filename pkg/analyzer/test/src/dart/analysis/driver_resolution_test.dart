@@ -53,9 +53,13 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
 
   DynamicTypeImpl get dynamicType => DynamicTypeImpl.instance;
 
+  ClassElement get futureElement => typeProvider.futureType.element;
+
   ClassElement get intElement => typeProvider.intType.element;
 
   InterfaceType get intType => typeProvider.intType;
+
+  ClassElement get listElement => typeProvider.listType.element;
 
   ClassElement get mapElement => typeProvider.mapType.element;
 
@@ -65,7 +69,7 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
 
   TypeProvider get typeProvider => result.unit.element.context.typeProvider;
 
-  void assertElement(Expression node, Element expected) {
+  void assertElement(AstNode node, Element expected) {
     Element actual = getNodeElement(node);
     expect(actual, same(expected));
   }
@@ -100,8 +104,17 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
     assertIdentifierTopGetRef(ref, name);
   }
 
-  void assertType(Expression expression, String expected) {
-    DartType actual = expression.staticType;
+  void assertType(AstNode node, String expected) {
+    DartType actual;
+    if (node is Expression) {
+      actual = node.staticType;
+    } else if (node is GenericFunctionType) {
+      actual = node.type;
+    } else if (node is TypeName) {
+      actual = node.type;
+    } else {
+      fail('Unsupported node: (${node.runtimeType}) $node');
+    }
     expect(actual?.toString(), expected);
   }
 
@@ -117,6 +130,30 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
   void assertTypeDynamic(Expression expression) {
     DartType actual = expression.staticType;
     expect(actual, isDynamicType);
+  }
+
+  void assertTypeName(
+      TypeName node, Element expectedElement, String expectedType,
+      {PrefixElement expectedPrefix}) {
+    assertType(node, expectedType);
+
+    if (expectedPrefix == null) {
+      var name = node.name as SimpleIdentifier;
+      assertElement(name, expectedElement);
+      assertType(name, expectedType);
+    } else {
+      var name = node.name as PrefixedIdentifier;
+
+      assertElement(name.prefix, expectedPrefix);
+      expect(name.prefix.staticType, isNull);
+
+      assertElement(name.identifier, expectedElement);
+      if (useCFE) {
+        assertType(name.identifier, expectedType);
+      } else {
+        expect(name.identifier.staticType, isNull);
+      }
+    }
   }
 
   /// Creates a function that checks that an expression is a reference to a top
@@ -6450,6 +6487,57 @@ void f<T, U>(T a, U b) {}
     }
   }
 
+  test_outline_type_genericFunction() async {
+    addTestFile(r'''
+int Function(double) g() => null;
+''');
+    await resolveTestFile();
+    expect(result.errors, isEmpty);
+
+    var intRef = findNode.typeName('int Function');
+    assertTypeName(intRef, intElement, 'int');
+
+    var functionRef = findNode.genericFunctionType('Function(double)');
+    assertType(functionRef, '(double) → int');
+
+    var doubleRef = findNode.typeName('double) g');
+    assertTypeName(doubleRef, doubleElement, 'double');
+  }
+
+  test_outline_type_topLevelVar_named() async {
+    addTestFile(r'''
+int a;
+List<double> b;
+''');
+    await resolveTestFile();
+    expect(result.errors, isEmpty);
+
+    var intRef = findNode.typeName('int a');
+    assertTypeName(intRef, intElement, 'int');
+
+    var listRef = findNode.typeName('List<double> b');
+    assertTypeName(listRef, listElement, 'List<double>');
+
+    var doubleRef = findNode.typeName('double> b');
+    assertTypeName(doubleRef, doubleElement, 'double');
+  }
+
+  test_outline_type_topLevelVar_named_prefixed() async {
+    addTestFile(r'''
+import 'dart:async' as my;
+my.Future<int> a;
+''');
+    await resolveTestFile();
+    ImportElement myImport = result.libraryElement.imports[0];
+
+    var intRef = findNode.typeName('int> a');
+    assertTypeName(intRef, intElement, 'int');
+
+    var futureRef = findNode.typeName('my.Future<int> a');
+    assertTypeName(futureRef, futureElement, 'Future<int>',
+        expectedPrefix: myImport.prefix);
+  }
+
   test_postfixExpression_local() async {
     String content = r'''
 main() {
@@ -7246,7 +7334,51 @@ class A {
     }
   }
 
-  test_top_class() async {
+  test_top_class_constructor_parameter_defaultValue() async {
+    String content = r'''
+class C {
+  double f;
+  C([int a: 1 + 2]) : f = 3.4;
+}
+''';
+    addTestFile(content);
+    await resolveTestFile();
+
+    ClassDeclaration cNode = result.unit.declarations[0];
+    ClassElement cElement = cNode.element;
+
+    ConstructorDeclaration constructorNode = cNode.members[1];
+
+    DefaultFormalParameter aNode = constructorNode.parameters.parameters[0];
+    _assertDefaultParameter(aNode, cElement.unnamedConstructor.parameters[0],
+        name: 'a',
+        offset: 31,
+        kind: ParameterKind.POSITIONAL,
+        type: typeProvider.intType);
+
+    BinaryExpression binary = aNode.defaultValue;
+    expect(binary.staticElement, isNotNull);
+    expect(binary.staticType, typeProvider.intType);
+    expect(binary.leftOperand.staticType, typeProvider.intType);
+    expect(binary.rightOperand.staticType, typeProvider.intType);
+  }
+
+  test_top_class_extends() async {
+    String content = r'''
+class A<T> {}
+class B extends A<int> {}
+''';
+    addTestFile(content);
+    await resolveTestFile();
+
+    var aRef = findNode.typeName('A<int>');
+    assertTypeName(aRef, findElement.class_('A'), 'A<int>');
+
+    var intRef = findNode.typeName('int>');
+    assertTypeName(intRef, intElement, 'int');
+  }
+
+  test_top_class_full() async {
     String content = r'''
 class A<T> {}
 class B<T> {}
@@ -7307,35 +7439,6 @@ class D extends A<bool> with B<int> implements C<double> {}
       expect(identifier.staticElement, cElement);
       expect(identifier.staticType, expectedType);
     }
-  }
-
-  test_top_class_constructor_parameter_defaultValue() async {
-    String content = r'''
-class C {
-  double f;
-  C([int a: 1 + 2]) : f = 3.4;
-}
-''';
-    addTestFile(content);
-    await resolveTestFile();
-
-    ClassDeclaration cNode = result.unit.declarations[0];
-    ClassElement cElement = cNode.element;
-
-    ConstructorDeclaration constructorNode = cNode.members[1];
-
-    DefaultFormalParameter aNode = constructorNode.parameters.parameters[0];
-    _assertDefaultParameter(aNode, cElement.unnamedConstructor.parameters[0],
-        name: 'a',
-        offset: 31,
-        kind: ParameterKind.POSITIONAL,
-        type: typeProvider.intType);
-
-    BinaryExpression binary = aNode.defaultValue;
-    expect(binary.staticElement, isNotNull);
-    expect(binary.staticType, typeProvider.intType);
-    expect(binary.leftOperand.staticType, typeProvider.intType);
-    expect(binary.rightOperand.staticType, typeProvider.intType);
   }
 
   test_top_classTypeAlias() async {
@@ -9714,6 +9817,10 @@ class FindNode {
     return _node(search).getAncestor((n) => n is FunctionExpression);
   }
 
+  GenericFunctionType genericFunctionType(String search) {
+    return _node(search).getAncestor((n) => n is GenericFunctionType);
+  }
+
   ImportDirective import(String search) {
     return _node(search).getAncestor((n) => n is ImportDirective);
   }
@@ -9780,6 +9887,10 @@ class FindNode {
 
   ThrowExpression throw_(String search) {
     return _node(search).getAncestor((n) => n is ThrowExpression);
+  }
+
+  TypeName typeName(String search) {
+    return _node(search).getAncestor((n) => n is TypeName);
   }
 
   TypeParameter typeParameter(String search) {

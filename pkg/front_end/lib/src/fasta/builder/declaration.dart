@@ -28,6 +28,8 @@ abstract class Declaration {
 
   bool get hasProblem => false;
 
+  bool get hasTarget => false;
+
   bool get isConst => false;
 
   bool get isConstructor => false;

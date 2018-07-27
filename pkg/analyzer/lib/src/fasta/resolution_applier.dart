@@ -363,10 +363,10 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitGenericFunctionType(GenericFunctionType node) {
+  void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
     var data = _get(node.functionKeyword);
-    var type = (node as GenericFunctionTypeImpl).type;
-    _storeFunctionType(_translateType(data.inferredType), type.element);
+    FunctionType type = _translateType(data.inferredType);
+    node.type = type;
     _typeContext.enterLocalFunction(type.element);
     super.visitGenericFunctionType(node);
     _typeContext.exitLocalFunction(type.element);
@@ -672,6 +672,11 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   void visitTypeName(TypeName node) {
     super.visitTypeName(node);
     node.type = node.name.staticType;
+  }
+
+  @override
+  visitTypeParameter(TypeParameter node) {
+    node.bound?.accept(this);
   }
 
   @override

@@ -755,6 +755,14 @@ class LibraryAnalyzer {
         if (declaration.metadata.isNotEmpty) {
           applier.applyToAnnotations(declaration);
         }
+
+        var context = declaration.element as ClassElementImpl;
+        applierContext.setContext(context);
+        declaration.typeParameters?.accept(applier);
+        declaration.extendsClause?.accept(applier);
+        declaration.withClause?.accept(applier);
+        declaration.implementsClause?.accept(applier);
+
         for (var member in declaration.members) {
           if (member is ConstructorDeclaration) {
             var context = member.element as ConstructorElementImpl;
@@ -786,10 +794,12 @@ class LibraryAnalyzer {
               applier.applyToAnnotations(member);
             }
           } else if (member is FieldDeclaration) {
-            List<VariableDeclaration> fields = member.fields.variables;
+            VariableDeclarationList fieldList = member.fields;
+            List<VariableDeclaration> fields = fieldList.variables;
             var element = fields[0].element;
             var context = (element.initializer ?? element) as ElementImpl;
             applierContext.setContext(context);
+            fieldList.type?.accept(applier);
             for (var field in fields.reversed) {
               field.initializer?.accept(applier);
             }
@@ -797,6 +807,8 @@ class LibraryAnalyzer {
           } else if (member is MethodDeclaration) {
             ExecutableElementImpl context = member.element;
             applierContext.setContext(context);
+            member.typeParameters?.accept(applier);
+            member.returnType?.accept(applier);
             member.parameters?.accept(applier);
             member.body.accept(applier);
             applier.applyToAnnotations(member);
@@ -805,24 +817,40 @@ class LibraryAnalyzer {
           }
         }
       } else if (declaration is ClassTypeAlias) {
-        // No bodies to resolve.
+        applierContext.setContext(declaration.element);
+        declaration.typeParameters?.accept(applier);
+        declaration.superclass.accept(applier);
+        declaration.withClause?.accept(applier);
+        declaration.implementsClause?.accept(applier);
       } else if (declaration is EnumDeclaration) {
         // No bodies to resolve.
       } else if (declaration is FunctionDeclaration) {
         var context = declaration.element as ExecutableElementImpl;
         applierContext.setContext(context);
+        declaration.returnType?.accept(applier);
+        declaration.functionExpression.typeParameters?.accept(applier);
         declaration.functionExpression.parameters?.accept(applier);
         declaration.functionExpression.body.accept(applier);
         applier.applyToAnnotations(declaration);
       } else if (declaration is FunctionTypeAlias) {
-        // No bodies to resolve.
+        applierContext.setContext(declaration.element);
+        declaration.typeParameters?.accept(applier);
+        declaration.returnType?.accept(applier);
       } else if (declaration is GenericTypeAlias) {
-        // No bodies to resolve.
+        declaration.typeParameters?.accept(applier);
+        GenericFunctionType functionType = declaration.functionType;
+        if (functionType != null) {
+          applierContext.setContext(functionType.type.element);
+          functionType.typeParameters?.accept(applier);
+          functionType.returnType?.accept(applier);
+        }
       } else if (declaration is TopLevelVariableDeclaration) {
-        List<VariableDeclaration> variables = declaration.variables.variables;
+        VariableDeclarationList variableList = declaration.variables;
+        List<VariableDeclaration> variables = variableList.variables;
         var element = variables[0].element;
         var context = (element.initializer ?? element) as ElementImpl;
         applierContext.setContext(context);
+        variableList.type?.accept(applier);
         for (var variable in variables.reversed) {
           variable.initializer?.accept(applier);
         }

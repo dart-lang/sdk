@@ -65,6 +65,8 @@ import '../modifier.dart'
 
 import '../problems.dart' show unexpected, unhandled;
 
+import '../source/outline_listener.dart' show OutlineListener;
+
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
 import '../source/source_library_builder.dart'
@@ -148,10 +150,13 @@ class KernelLibraryBuilder
   /// the error message is the corresponding value in the map.
   Map<String, String> unserializableExports;
 
+  final OutlineListener outlineListener;
+
   KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader, this.actualOrigin,
       [Scope scope, Library target])
       : library = target ??
             (actualOrigin?.library ?? new Library(uri, fileUri: fileUri)),
+        outlineListener = loader.createOutlineListener(fileUri),
         super(loader, fileUri, scope);
 
   @override
@@ -174,7 +179,10 @@ class KernelLibraryBuilder
 
   KernelTypeBuilder addNamedType(
       Object name, List<KernelTypeBuilder> arguments, int charOffset) {
-    return addType(new KernelNamedTypeBuilder(name, arguments), charOffset);
+    return addType(
+        new KernelNamedTypeBuilder(
+            outlineListener, charOffset, name, arguments),
+        charOffset);
   }
 
   KernelTypeBuilder addMixinApplication(KernelTypeBuilder supertype,
@@ -747,8 +755,8 @@ class KernelLibraryBuilder
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       int charOffset) {
-    var builder =
-        new KernelFunctionTypeBuilder(returnType, typeVariables, formals);
+    var builder = new KernelFunctionTypeBuilder(
+        outlineListener, charOffset, returnType, typeVariables, formals);
     checkTypeVariables(typeVariables, null);
     // Nested declaration began in `OutlineBuilder.beginFunctionType` or
     // `OutlineBuilder.beginFunctionTypedFormalParameter`.

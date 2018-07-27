@@ -4,12 +4,14 @@
 
 library fasta.kernel_interface_type_builder;
 
-import 'package:kernel/ast.dart' show DartType, Supertype;
+import 'package:kernel/ast.dart' show DartType, InvalidType, Supertype;
 
 import '../fasta_codes.dart' show Message;
 
 import '../messages.dart'
     show noLength, templateSupertypeIsIllegal, templateSupertypeIsTypeVariable;
+
+import '../source/outline_listener.dart';
 
 import 'kernel_builder.dart'
     show
@@ -18,6 +20,7 @@ import 'kernel_builder.dart'
         KernelTypeBuilder,
         LibraryBuilder,
         NamedTypeBuilder,
+        QualifiedName,
         TypeBuilder,
         TypeDeclarationBuilder,
         TypeVariableBuilder;
@@ -25,8 +28,11 @@ import 'kernel_builder.dart'
 class KernelNamedTypeBuilder
     extends NamedTypeBuilder<KernelTypeBuilder, DartType>
     implements KernelTypeBuilder {
-  KernelNamedTypeBuilder(Object name, List<KernelTypeBuilder> arguments)
-      : super(name, arguments);
+  final int charOffset;
+
+  KernelNamedTypeBuilder(OutlineListener outlineListener, this.charOffset,
+      Object name, List<KernelTypeBuilder> arguments)
+      : super(outlineListener, name, arguments);
 
   KernelInvalidTypeBuilder buildInvalidType(int charOffset, Uri fileUri,
       [Message message]) {
@@ -46,22 +52,36 @@ class KernelNamedTypeBuilder
   }
 
   DartType build(LibraryBuilder library) {
-    return declaration.buildType(library, arguments);
+    DartType type = declaration.buildType(library, arguments);
+    var target = declaration.hasTarget ? declaration.target : null;
+    outlineListener?.store(_storeOffset, false, reference: target, type: type);
+    return type;
   }
 
   Supertype buildSupertype(
       LibraryBuilder library, int charOffset, Uri fileUri) {
     TypeDeclarationBuilder declaration = this.declaration;
     if (declaration is KernelClassBuilder) {
-      return declaration.buildSupertype(library, arguments);
+      var supertype = declaration.buildSupertype(library, arguments);
+      outlineListener?.store(_storeOffset, false,
+          reference: declaration.target, type: supertype.asInterfaceType);
+      return supertype;
     } else if (declaration is KernelInvalidTypeBuilder) {
       library.addCompileTimeError(
           declaration.message.messageObject,
           declaration.message.charOffset,
           declaration.message.length,
           declaration.message.uri);
+      // TODO(scheglov) Should we build arguments?
+      outlineListener?.store(_storeOffset, false,
+          reference: declaration.hasTarget ? declaration.target : null,
+          type: const InvalidType());
       return null;
     } else {
+      // TODO(scheglov) Should we build arguments?
+      outlineListener?.store(_storeOffset, false,
+          reference: declaration.hasTarget ? declaration.target : null,
+          type: const InvalidType());
       return handleInvalidSupertype(library, charOffset, fileUri);
     }
   }
@@ -70,7 +90,10 @@ class KernelNamedTypeBuilder
       LibraryBuilder library, int charOffset, Uri fileUri) {
     TypeDeclarationBuilder declaration = this.declaration;
     if (declaration is KernelClassBuilder) {
-      return declaration.buildMixedInType(library, arguments);
+      var supertype = declaration.buildMixedInType(library, arguments);
+      outlineListener?.store(_storeOffset, false,
+          reference: declaration.target, type: supertype.asInterfaceType);
+      return supertype;
     } else if (declaration is KernelInvalidTypeBuilder) {
       library.addCompileTimeError(
           declaration.message.messageObject,
@@ -100,7 +123,9 @@ class KernelNamedTypeBuilder
         i++;
       }
       if (arguments != null) {
-        return new KernelNamedTypeBuilder(name, arguments)..bind(declaration);
+        return new KernelNamedTypeBuilder(
+            outlineListener, charOffset, name, arguments)
+          ..bind(declaration);
       }
     }
     return this;
@@ -114,9 +139,15 @@ class KernelNamedTypeBuilder
         clonedArguments[i] = arguments[i].clone(newTypes);
       }
     }
-    KernelNamedTypeBuilder newType =
-        new KernelNamedTypeBuilder(name, clonedArguments);
+    KernelNamedTypeBuilder newType = new KernelNamedTypeBuilder(
+        outlineListener, charOffset, name, clonedArguments);
     newTypes.add(newType);
     return newType;
+  }
+
+  int get _storeOffset {
+    // TODO(scheglov) Can we always make charOffset the "suffix" offset?
+    var name = this.name;
+    return name is QualifiedName ? name.charOffset : charOffset;
   }
 }

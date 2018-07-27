@@ -21,6 +21,7 @@ import 'package:front_end/src/fasta/dill/dill_target.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
 import 'package:front_end/src/fasta/kernel/metadata_collector.dart';
 import 'package:front_end/src/fasta/source/diet_listener.dart';
+import 'package:front_end/src/fasta/source/outline_listener.dart';
 import 'package:front_end/src/fasta/source/source_library_builder.dart';
 import 'package:front_end/src/fasta/source/source_loader.dart';
 import 'package:front_end/src/fasta/source/stack_listener.dart';
@@ -431,8 +432,28 @@ class _AnalyzerKernelTarget extends KernelTarget {
   }
 }
 
+/// [OutlineListener] that records resolution.
+class _AnalyzerOutlineListener implements OutlineListener {
+  final Uri fileUri;
+  final CollectedResolution resolution;
+
+  _AnalyzerOutlineListener(this.fileUri, this.resolution);
+
+  @override
+  void store(int offset, bool isSynthetic,
+      {int importIndex, Node reference, DartType type}) {
+    var encodedLocation = 2 * offset + (isSynthetic ? 1 : 0);
+    resolution.kernelData[encodedLocation] = new ResolutionData(
+        isOutline: true,
+        prefixInfo: importIndex,
+        reference: reference,
+        inferredType: type);
+  }
+}
+
 /// The [SourceLoader] that record resolution information.
 class _AnalyzerSourceLoader<L> extends SourceLoader<L> {
+  final Map<Uri, CollectedResolution> _fileResolutions = {};
   final Map<Uri, Map<Uri, CollectedResolution>> _resolutions;
 
   _AnalyzerSourceLoader(front_end.FileSystem fileSystem,
@@ -442,14 +463,29 @@ class _AnalyzerSourceLoader<L> extends SourceLoader<L> {
   @override
   _AnalyzerDietListener createDietListener(SourceLibraryBuilder library) {
     var libraryResolutions = <Uri, CollectedResolution>{};
-    libraryResolutions[library.fileUri] = new CollectedResolution();
+    libraryResolutions[library.fileUri] = _fileResolution(library.fileUri);
     for (var part in library.parts) {
-      libraryResolutions[part.fileUri] = new CollectedResolution();
+      libraryResolutions[part.fileUri] = _fileResolution(part.fileUri);
     }
     _resolutions[library.fileUri] = libraryResolutions;
 
     return new _AnalyzerDietListener(
         library, hierarchy, coreTypes, typeInferenceEngine, libraryResolutions);
+  }
+
+  @override
+  OutlineListener createOutlineListener(Uri fileUri) {
+    var resolution = _fileResolution(fileUri);
+    return new _AnalyzerOutlineListener(fileUri, resolution);
+  }
+
+  CollectedResolution _fileResolution(Uri fileUri) {
+    CollectedResolution resolution = _fileResolutions[fileUri];
+    if (resolution == null) {
+      resolution = new CollectedResolution();
+      _fileResolutions[fileUri] = resolution;
+    }
+    return resolution;
   }
 }
 
@@ -457,6 +493,9 @@ class _AnalyzerSourceLoader<L> extends SourceLoader<L> {
  * [Target] for static analysis, with all features enabled.
  */
 class _AnalyzerTarget extends NoneTarget {
+  @override
+  bool enableSuperMixins;
+
   _AnalyzerTarget(TargetFlags flags, {this.enableSuperMixins = false})
       : super(flags);
 
@@ -465,9 +504,6 @@ class _AnalyzerTarget extends NoneTarget {
 
   @override
   bool enableNative(Uri uri) => true;
-
-  @override
-  bool enableSuperMixins;
 }
 
 /// The listener for [CompilationMessage]s from FrontEnd.

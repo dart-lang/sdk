@@ -30,6 +30,8 @@ import 'rewrite_severity.dart' show rewriteSeverity;
 
 import 'severity.dart' show Severity;
 
+import 'source/outline_listener.dart';
+
 import 'target_implementation.dart' show TargetImplementation;
 
 import 'ticker.dart' show Ticker;
@@ -178,6 +180,8 @@ abstract class Loader<L> {
     currentUriForCrashReporting = null;
     logSummary(outlineSummaryTemplate);
   }
+
+  OutlineListener createOutlineListener(Uri fileUri) => null;
 
   void logSummary(Template<SummaryTemplate> template) {
     ticker.log((Duration elapsed, Duration sinceStart) {
