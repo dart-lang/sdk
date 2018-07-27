@@ -2782,9 +2782,6 @@ LibTest/io/RandomAccessFile/writeString_A01_t02: CompileTimeError # Dart 1 const
 LibTest/io/RandomAccessFile/writeString_A01_t03: CompileTimeError # Dart 1 constants, https://github.com/dart-lang/sdk/issues/33894
 LibTest/io/Stdin/readLineSync_A03_t01: CompileTimeError # Dart 1 constants, https://github.com/dart-lang/sdk/issues/33894
 LibTest/io/Stdin/readLineSync_A03_t02: CompileTimeError # Dart 1 constants, https://github.com/dart-lang/sdk/issues/33894
-LibTest/io/Stdin/readLineSync_A03_t03: CompileTimeError # Erroneously awaits void
-LibTest/io/Stdin/readLineSync_A03_t04: CompileTimeError # Erroneously awaits void
-LibTest/io/Stdin/readLineSync_A04_t01: CompileTimeError # Erroneously awaits void
 LibTest/io/Stdout/add_A02_t01: CompileTimeError # Dart 1 constants, https://github.com/dart-lang/sdk/issues/33894
 LibTest/io/Stdout/encoding_A01_t01: CompileTimeError # Dart 1 constants, https://github.com/dart-lang/sdk/issues/33894
 LibTest/io/Stdout/writeAll_A01_t02: CompileTimeError # Dart 1 constants, https://github.com/dart-lang/sdk/issues/33894
