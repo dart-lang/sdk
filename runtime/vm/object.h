@@ -1097,6 +1097,13 @@ class Class : public Object {
     return OFFSET_OF(RawClass, interfaces_);
   }
 
+  // Returns the list of classes directly implementing this class.
+  RawGrowableObjectArray* direct_implementors() const {
+    return raw_ptr()->direct_implementors_;
+  }
+  void AddDirectImplementor(const Class& subclass) const;
+  void ClearDirectImplementors() const;
+
   // Returns the list of classes having this class as direct superclass.
   RawGrowableObjectArray* direct_subclasses() const {
     return raw_ptr()->direct_subclasses_;
@@ -1421,6 +1428,8 @@ class Class : public Object {
   void DisableCHAOptimizedCode(const Class& subclass);
 
   void DisableAllCHAOptimizedCode();
+
+  void DisableCHAImplementorUsers() { DisableAllCHAOptimizedCode(); }
 
   // Return the list of code objects that were compiled using CHA of this class.
   // These code objects will be invalidated if new subclasses of this class

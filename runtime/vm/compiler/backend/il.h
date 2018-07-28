@@ -397,11 +397,21 @@ class HierarchyInfo : public StackResource {
   bool CanUseGenericSubtypeRangeCheckFor(const AbstractType& type);
 
  private:
+  // Does not use any hierarchy information available in the system but computes
+  // it via O(n) class table traversal.
   void BuildRangesFor(ClassTable* table,
                       CidRangeVector* ranges,
                       const Class& klass,
                       bool use_subtype_test,
                       bool include_abstract = false);
+
+  // In JIT mode we use hierarchy information stored in the [RawClass]s
+  // direct_subclasses_/direct_implementors_ arrays.
+  void BuildRangesForJIT(ClassTable* table,
+                         CidRangeVector* ranges,
+                         const Class& klass,
+                         bool use_subtype_test,
+                         bool include_abstract = false);
 
   CidRangeVector* cid_subtype_ranges_;
   CidRangeVector* cid_subtype_ranges_abstract_;

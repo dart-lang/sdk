@@ -1986,7 +1986,9 @@ void FlowGraphCompiler::GenerateCidRangesCheck(Assembler* assembler,
 
 bool FlowGraphCompiler::ShouldUseTypeTestingStubFor(bool optimizing,
                                                     const AbstractType& type) {
-  return FLAG_precompiled_mode || (optimizing && type.IsTypeParameter());
+  return FLAG_precompiled_mode ||
+         (optimizing &&
+          (type.IsTypeParameter() || (type.IsType() && type.IsInstantiated())));
 }
 
 void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
@@ -2061,8 +2063,11 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
       // call-site, we want an optimized type testing stub and therefore record
       // it in the [TypeUsageInfo].
       if (!check_handled_at_callsite) {
-        ASSERT(type_usage_info != NULL);
-        type_usage_info->UseTypeInAssertAssignable(dst_type);
+        if (type_usage_info != NULL) {
+          type_usage_info->UseTypeInAssertAssignable(dst_type);
+        } else {
+          ASSERT(!FLAG_precompiled_mode);
+        }
       }
     }
     __ LoadObject(dst_type_reg, dst_type);

@@ -44,15 +44,20 @@ ISOLATE_UNIT_TEST_CASE(Class) {
   EXPECT_EQ(Array::Handle(cls.functions()).Length(), 0);
 
   // Setup the interfaces in the class.
+  // Normally the class finalizer is resolving super types and interfaces
+  // before finalizing the types in a class. A side-effect of this is setting
+  // the is_implemented() bit on a class. We do that manually here.
   const Array& interfaces = Array::Handle(Array::New(2));
   Class& interface = Class::Handle();
   String& interface_name = String::Handle();
   interface_name = Symbols::New(thread, "Harley");
   interface = CreateDummyClass(interface_name, script);
   interfaces.SetAt(0, Type::Handle(Type::NewNonParameterizedType(interface)));
+  interface.set_is_implemented();
   interface_name = Symbols::New(thread, "Norton");
   interface = CreateDummyClass(interface_name, script);
   interfaces.SetAt(1, Type::Handle(Type::NewNonParameterizedType(interface)));
+  interface.set_is_implemented();
   cls.set_interfaces(interfaces);
 
   // Finalization of types happens before the fields and functions have been

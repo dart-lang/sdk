@@ -2102,8 +2102,9 @@ void Precompiler::TraceTypesFromRetainedClasses() {
         continue;  // class 'dynamic' is in the read-only VM isolate.
       }
 
-      // The subclasses array is only needed for CHA.
+      // The subclasses/implementors array is only needed for CHA.
       cls.ClearDirectSubclasses();
+      cls.ClearDirectImplementors();
 
       bool retain = false;
       members = cls.fields();

@@ -3980,6 +3980,28 @@ RawClass* Class::GetPatchClass() const {
   return lib.GetPatchClass(String::Handle(Name()));
 }
 
+void Class::AddDirectImplementor(const Class& implementor) const {
+  ASSERT(is_implemented());
+  ASSERT(!implementor.IsNull());
+  GrowableObjectArray& direct_implementors =
+      GrowableObjectArray::Handle(raw_ptr()->direct_implementors_);
+  if (direct_implementors.IsNull()) {
+    direct_implementors = GrowableObjectArray::New(4, Heap::kOld);
+    StorePointer(&raw_ptr()->direct_implementors_, direct_implementors.raw());
+  }
+#if defined(DEBUG)
+  // Verify that the same class is not added twice.
+  for (intptr_t i = 0; i < direct_implementors.Length(); i++) {
+    ASSERT(direct_implementors.At(i) != implementor.raw());
+  }
+#endif
+  direct_implementors.Add(implementor, Heap::kOld);
+}
+
+void Class::ClearDirectImplementors() const {
+  StorePointer(&raw_ptr()->direct_implementors_, GrowableObjectArray::null());
+}
+
 void Class::AddDirectSubclass(const Class& subclass) const {
   ASSERT(!subclass.IsNull());
   ASSERT(subclass.SuperClass() == raw());

@@ -47,6 +47,66 @@ DEFINE_FLAG(bool,
             "Support unboxed double and float32x4 fields.");
 DECLARE_FLAG(bool, eliminate_type_checks);
 
+class SubclassFinder {
+ public:
+  SubclassFinder(Zone* zone,
+                 GrowableArray<intptr_t>* cids,
+                 bool include_abstract)
+      : array_handles_(zone),
+        class_handles_(zone),
+        cids_(cids),
+        include_abstract_(include_abstract) {}
+
+  void ScanSubClasses(const Class& klass) {
+    if (include_abstract_ || !klass.is_abstract()) {
+      cids_->Add(klass.id());
+    }
+    ScopedHandle<GrowableObjectArray> array(&array_handles_);
+    ScopedHandle<Class> subclass(&class_handles_);
+    *array = klass.direct_subclasses();
+    if (!array->IsNull()) {
+      for (intptr_t i = 0; i < array->Length(); ++i) {
+        *subclass ^= array->At(i);
+        ScanSubClasses(*subclass);
+      }
+    }
+  }
+
+  void ScanImplementorClasses(const Class& klass) {
+    // An implementor of [klass] is
+    //    * the [klass] itself.
+    //    * all implementors of the direct subclasses of [klass].
+    //    * all implementors of the direct implementors of [klass].
+    if (include_abstract_ || !klass.is_abstract()) {
+      cids_->Add(klass.id());
+    }
+
+    ScopedHandle<GrowableObjectArray> array(&array_handles_);
+    ScopedHandle<Class> subclass_or_implementor(&class_handles_);
+
+    *array = klass.direct_subclasses();
+    if (!array->IsNull()) {
+      for (intptr_t i = 0; i < array->Length(); ++i) {
+        *subclass_or_implementor ^= (*array).At(i);
+        ScanImplementorClasses(*subclass_or_implementor);
+      }
+    }
+    *array = klass.direct_implementors();
+    if (!array->IsNull()) {
+      for (intptr_t i = 0; i < array->Length(); ++i) {
+        *subclass_or_implementor ^= (*array).At(i);
+        ScanImplementorClasses(*subclass_or_implementor);
+      }
+    }
+  }
+
+ private:
+  ReusableHandleStack<GrowableObjectArray> array_handles_;
+  ReusableHandleStack<Class> class_handles_;
+  GrowableArray<intptr_t>* cids_;
+  const bool include_abstract_;
+};
+
 const CidRangeVector& HierarchyInfo::SubtypeRangesForClass(
     const Class& klass,
     bool include_abstract) {
@@ -60,8 +120,13 @@ const CidRangeVector& HierarchyInfo::SubtypeRangesForClass(
 
   CidRangeVector& ranges = (*cid_ranges)[klass.id()];
   if (ranges.length() == 0) {
-    BuildRangesFor(table, &ranges, klass, /*use_subtype_test=*/true,
-                   include_abstract);
+    if (!FLAG_precompiled_mode) {
+      BuildRangesForJIT(table, &ranges, klass, /*use_subtype_test=*/true,
+                        include_abstract);
+    } else {
+      BuildRangesFor(table, &ranges, klass, /*use_subtype_test=*/true,
+                     include_abstract);
+    }
   }
   return ranges;
 }
@@ -76,7 +141,11 @@ const CidRangeVector& HierarchyInfo::SubclassRangesForClass(
 
   CidRangeVector& ranges = cid_subclass_ranges_[klass.id()];
   if (ranges.length() == 0) {
-    BuildRangesFor(table, &ranges, klass, /*use_subtype_test=*/false);
+    if (!FLAG_precompiled_mode) {
+      BuildRangesForJIT(table, &ranges, klass, /*use_subtype_test=*/true);
+    } else {
+      BuildRangesFor(table, &ranges, klass, /*use_subtype_test=*/false);
+    }
   }
   return ranges;
 }
@@ -87,12 +156,14 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
                                    bool use_subtype_test,
                                    bool include_abstract) {
   Zone* zone = thread()->zone();
-  Class& cls = Class::Handle(zone);
+  ClassTable* class_table = thread()->isolate()->class_table();
 
   // Only really used if `use_subtype_test == true`.
   const Type& dst_type = Type::Handle(zone, Type::RawCast(klass.RareType()));
   AbstractType& cls_type = AbstractType::Handle(zone);
 
+  Class& cls = Class::Handle(zone);
+  AbstractType& super_type = AbstractType::Handle(zone);
   const intptr_t cid_count = table->NumCids();
 
   intptr_t start = -1;
@@ -123,7 +194,10 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
           test_succeded = true;
           break;
         }
-        cls = cls.SuperClass();
+
+        super_type = cls.super_type();
+        const intptr_t type_class_id = super_type.type_class_id();
+        cls = class_table->At(type_class_id);
       }
     }
 
@@ -145,6 +219,94 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
     CidRange range;
     ASSERT(range.IsIllegalRange());
     ranges->Add(range);
+  }
+}
+
+void HierarchyInfo::BuildRangesForJIT(ClassTable* table,
+                                      CidRangeVector* ranges,
+                                      const Class& dst_klass,
+                                      bool use_subtype_test,
+                                      bool include_abstract) {
+  if (dst_klass.InVMHeap()) {
+    BuildRangesFor(table, ranges, dst_klass, use_subtype_test,
+                   include_abstract);
+    return;
+  }
+
+  Zone* zone = thread()->zone();
+  GrowableArray<intptr_t> cids;
+  SubclassFinder finder(zone, &cids, include_abstract);
+  if (use_subtype_test) {
+    finder.ScanImplementorClasses(dst_klass);
+  } else {
+    finder.ScanSubClasses(dst_klass);
+  }
+
+  // Sort all collected cids.
+  intptr_t* cids_array = cids.data();
+
+  qsort(cids_array, cids.length(), sizeof(intptr_t),
+        [](const void* a, const void* b) {
+          return static_cast<int>(*static_cast<const intptr_t*>(a) -
+                                  *static_cast<const intptr_t*>(b));
+        });
+
+  // Build ranges of all the cids.
+  Class& klass = Class::Handle();
+  intptr_t left_cid = -1;
+  intptr_t last_cid = -1;
+  for (intptr_t i = 0; i < cids.length(); ++i) {
+    if (left_cid == -1) {
+      left_cid = last_cid = cids[i];
+    } else {
+      const intptr_t current_cid = cids[i];
+
+      // Skip duplicates.
+      if (current_cid == last_cid) continue;
+
+      // Consecutive numbers cids are ok.
+      if (current_cid == (last_cid + 1)) {
+        last_cid = current_cid;
+      } else {
+        // We sorted, after all!
+        RELEASE_ASSERT(last_cid < current_cid);
+
+        intptr_t j = last_cid + 1;
+        for (; j < current_cid; ++j) {
+          if (table->HasValidClassAt(j)) {
+            klass = table->At(j);
+            if (!klass.is_patch() && !klass.IsTopLevel()) {
+              // If we care about abstract classes also, we cannot skip over any
+              // arbitrary abstract class, only those which are subtypes.
+              if (include_abstract) {
+                break;
+              }
+
+              // If the class is concrete we cannot skip over it.
+              if (!klass.is_abstract()) {
+                break;
+              }
+            }
+          }
+        }
+
+        if (current_cid == j) {
+          // If there's only abstract cids between [last_cid] and the
+          // [current_cid] then we connect them.
+          last_cid = current_cid;
+        } else {
+          // Finish the current open cid range and start a new one.
+          ranges->Add(CidRange{left_cid, last_cid});
+          left_cid = last_cid = current_cid;
+        }
+      }
+    }
+  }
+
+  // If there is an open cid-range which we haven't finished yet, we'll
+  // complete it.
+  if (left_cid != -1) {
+    ranges->Add(CidRange{left_cid, last_cid});
   }
 }
 
