@@ -2399,10 +2399,122 @@ class A {
     verify([source]);
   }
 
+  test_missingReturn_functionExpression_declared() async {
+    Source source = addSource(r'''
+main() {
+  f() {} // no hint
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_missingReturn_functionExpression_expression() async {
+    Source source = addSource(r'''
+main() {
+  int Function() f = () => null; // no hint
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_missingReturn_functionExpression_futureOrDynamic() async {
+    Source source = addSource(r'''
+import 'dart:async';
+main() {
+  FutureOr<dynamic> Function() f = () { print(42); };
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_missingReturn_functionExpression_futureOrInt() async {
+    Source source = addSource(r'''
+import 'dart:async';
+main() {
+  FutureOr<int> Function() f = () { print(42); };
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_RETURN]);
+    verify([source]);
+  }
+
+  test_missingReturn_functionExpression_inferred() async {
+    Source source = addSource(r'''
+main() {
+  int Function() f = () { print(42); };
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_RETURN]);
+    verify([source]);
+  }
+
+  test_missingReturn_functionExpression_inferred_dynamic() async {
+    Source source = addSource(r'''
+main() {
+  Function() f = () { print(42); }; // no hint
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_missingReturn_functionExpressionAsync_inferred() async {
+    Source source = addSource(r'''
+import 'dart:async';
+main() {
+  Future<int> Function() f = () async { print(42); };
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_RETURN]);
+    verify([source]);
+  }
+
+  test_missingReturn_functionExpressionAsync_inferred_dynamic() async {
+    Source source = addSource(r'''
+import 'dart:async';
+main() {
+  Future Function() f = () async { print(42); }; // no hint
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_missingReturn_method() async {
     Source source = addSource(r'''
 class A {
   int m() {}
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_RETURN]);
+    verify([source]);
+  }
+
+  test_missingReturn_method_futureOrDynamic() async {
+    Source source = addSource(r'''
+import 'dart:async';
+class A {
+  FutureOr<dynamic> m() {}
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_missingReturn_method_futureOrInt() async {
+    Source source = addSource(r'''
+import 'dart:async';
+class A {
+  FutureOr<int> m() {}
 }''');
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.MISSING_RETURN]);

@@ -188,6 +188,7 @@ class InterceptorDataImpl implements InterceptorData {
           if (result == null) result = new Set<ClassEntity>();
           result.add(subclass);
         }
+        return null;
       });
     }
     return result;

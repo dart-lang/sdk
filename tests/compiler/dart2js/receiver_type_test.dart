@@ -49,7 +49,7 @@ Future runTest() async {
   Selector callSelector = new Selector.callClosure(0);
   closedWorld.classHierarchy.forEachStrictSubclassOf(
       closedWorld.commonElements.objectClass, (ClassEntity cls) {
-    if (cls.library.canonicalUri.scheme != 'memory') return;
+    if (cls.library.canonicalUri.scheme != 'memory') return null;
 
     TypeMask mask = new TypeMask.nonNullSubclass(cls, closedWorld);
     TypeMask receiverType = closedWorld.computeReceiverType(callSelector, mask);
@@ -65,6 +65,7 @@ Future runTest() async {
       Expect.equals(expected, '$receiverType',
           "Unexpected receiver type for $callSelector on $mask");
     }
+    return null;
   });
 
   Expect.equals(2, closureCount);

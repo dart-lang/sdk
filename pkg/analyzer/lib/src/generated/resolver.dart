@@ -414,6 +414,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitFunctionExpression(FunctionExpression node) {
+    if (node.parent is! FunctionDeclaration) {
+      _checkForMissingReturn(null, node.body, node.element, node);
+    }
+    return super.visitFunctionExpression(node);
+  }
+
+  @override
   Object visitImportDirective(ImportDirective node) {
     _checkForDeprecatedMemberUse(node.uriElement, node);
     ImportElement importElement = node.element;
@@ -1069,7 +1077,28 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
             ? returnType.flattenFutures(_typeSystem)
             : returnType;
 
-        // dynamic/Null/void are allowed to omit a return.
+        // Function expressions without a return will have their return type set
+        // to `Null` regardless of their context type. So we need to figure out
+        // if a return type was expected from the original downwards context.
+        //
+        // This helps detect hint cases like `int Function() f = () {}`.
+        // See https://github.com/dart-lang/sdk/issues/28233 for context.
+        if (flattenedType.isDartCoreNull &&
+            functionNode is FunctionExpression) {
+          var contextType = InferenceContext.getContext(functionNode);
+          if (contextType is FunctionType) {
+            returnType = contextType.returnType;
+            flattenedType = body.isAsynchronous
+                ? returnType.flattenFutures(_typeSystem)
+                : returnType;
+          }
+        }
+
+        // dynamic, Null, void, and FutureOr<T> where T is (dynamic, Null, void)
+        // are allowed to omit a return.
+        if (flattenedType.isDartAsyncFutureOr) {
+          flattenedType = (flattenedType as InterfaceType).typeArguments[0];
+        }
         if (flattenedType.isDynamic ||
             flattenedType.isDartCoreNull ||
             flattenedType.isVoid) {
