@@ -19400,11 +19400,15 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
         // Division special case: overflow in int64_t.
         // MIN_VALUE / -1 = (MAX_VALUE + 1), which wraps around to MIN_VALUE
         return Integer::New(Mint::kMinValue, space);
-      } else {
-        return Integer::New(left_value / right_value, space);
       }
+      return Integer::New(left_value / right_value, space);
 
     case Token::kMOD: {
+      if ((left_value == Mint::kMinValue) && (right_value == -1)) {
+        // Modulo special case: overflow in int64_t.
+        // MIN_VALUE % -1 = 0 for reason given above.
+        return Integer::New(0, space);
+      }
       const int64_t remainder = left_value % right_value;
       if (remainder < 0) {
         if (right_value < 0) {
