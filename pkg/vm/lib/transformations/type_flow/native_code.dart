@@ -29,23 +29,25 @@ abstract class EntryPointsListener {
   ConcreteType addAllocatedClass(Class c);
 }
 
-abstract class EntryPointsAnnotationMatcher {
-  bool annotationsDefineRoot(List<Expression> annotations);
-}
-
-class ConstantEntryPointsAnnotationMatcher
-    implements EntryPointsAnnotationMatcher {
+/// Some entry points are not listed in any JSON file but are marked with the
+/// `@pragma('vm.entry_point', ...)` annotation instead.
+///
+/// Currently Procedure`s (action "call") can be annotated in this way.
+//
+// TODO(sjindel): Support all types of entry points.
+class PragmaEntryPointsVisitor extends RecursiveVisitor {
+  final EntryPointsListener entryPoints;
   final CoreTypes coreTypes;
 
-  ConstantEntryPointsAnnotationMatcher(this.coreTypes);
+  PragmaEntryPointsVisitor(this.coreTypes, this.entryPoints);
 
-  bool definesRoot(InstanceConstant constant) {
+  bool _definesRoot(InstanceConstant constant) {
     if (constant.classReference.node != coreTypes.pragmaClass) return false;
 
     Constant name = constant.fieldValues[coreTypes.pragmaName.reference];
     assertx(name != null);
     if (name is! StringConstant ||
-        (name as StringConstant).value != "vm.entry-point") {
+        (name as StringConstant).value != "vm.entry_point") {
       return false;
     }
 
@@ -55,66 +57,34 @@ class ConstantEntryPointsAnnotationMatcher
     return options is BoolConstant && options.value;
   }
 
-  @override
-  bool annotationsDefineRoot(List<Expression> annotations) {
+  bool _annotationsDefineRoot(List<Expression> annotations) {
     for (var annotation in annotations) {
       if (annotation is ConstantExpression) {
         Constant constant = annotation.constant;
         if (constant is InstanceConstant) {
-          if (definesRoot(constant)) {
+          if (_definesRoot(constant)) {
             return true;
           }
         }
-      } else {
-        throw "All annotations must be constants!";
       }
     }
     return false;
   }
-}
-
-/// Some entry points are not listed in any JSON file but are marked with the
-/// `@pragma('vm.entry-point', ...)` annotation instead.
-///
-/// Currently Procedure`s (action "call") can be annotated in this way.
-//
-// TODO(sjindel): Support all types of entry points.
-class PragmaEntryPointsVisitor extends RecursiveVisitor {
-  final EntryPointsListener entryPoints;
-  final NativeCodeOracle nativeCodeOracle;
-  final EntryPointsAnnotationMatcher matcher;
-  Class currentClass = null;
-
-  PragmaEntryPointsVisitor(
-      this.entryPoints, this.nativeCodeOracle, this.matcher);
 
   @override
   visitClass(Class klass) {
-    if (matcher.annotationsDefineRoot(klass.annotations)) {
+    if (_annotationsDefineRoot(klass.annotations)) {
       entryPoints.addAllocatedClass(klass);
     }
-    currentClass = klass;
     klass.visitChildren(this);
   }
 
   @override
   visitProcedure(Procedure proc) {
-    if (matcher.annotationsDefineRoot(proc.annotations)) {
-      assertx(!proc.isGetter && !proc.isSetter);
+    if (_annotationsDefineRoot(proc.annotations)) {
       entryPoints.addRawCall(proc.isInstanceMember
           ? new InterfaceSelector(proc, callKind: CallKind.Method)
           : new DirectSelector(proc, callKind: CallKind.Method));
-      nativeCodeOracle.setMemberReferencedFromNativeCode(proc);
-    }
-  }
-
-  @override
-  visitConstructor(Constructor ctor) {
-    if (matcher.annotationsDefineRoot(ctor.annotations)) {
-      entryPoints
-          .addRawCall(new DirectSelector(ctor, callKind: CallKind.Method));
-      entryPoints.addAllocatedClass(currentClass);
-      nativeCodeOracle.setMemberReferencedFromNativeCode(ctor);
     }
   }
 }
@@ -130,9 +100,6 @@ class NativeCodeOracle {
 
   bool isMemberReferencedFromNativeCode(Member member) =>
       _membersReferencedFromNativeCode.contains(member);
-
-  void setMemberReferencedFromNativeCode(Member member) =>
-      _membersReferencedFromNativeCode.add(member);
 
   /// Simulate the execution of a native method by adding its entry points
   /// using [entryPointsListener]. Returns result type of the native method.

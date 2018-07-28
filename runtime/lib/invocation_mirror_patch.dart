@@ -176,7 +176,6 @@ class _InvocationMirror implements Invocation {
       this._positionalArguments, this._namedArguments, this._isSuperInvocation,
       [this._delayedTypeArgumentsLen = 0]);
 
-  @pragma("vm.entry-point")
   static _allocateInvocationMirror(String functionName,
       List argumentsDescriptor, List arguments, bool isSuperInvocation,
       [int type = null]) {
@@ -189,7 +188,6 @@ class _InvocationMirror implements Invocation {
   // indicate 0 type arguments, but the actual number of type arguments are
   // passed in `delayedTypeArgumentsLen`. If any type arguments are available,
   // the type arguments vector will be the first entry in `arguments`.
-  @pragma("vm.entry-point")
   static _allocateInvocationMirrorForClosure(
       String functionName,
       List argumentsDescriptor,

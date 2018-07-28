@@ -67,5 +67,4 @@ Uri _uriBaseClosure() {
   return new Uri.directory(result);
 }
 
-@pragma("vm.entry-point")
 _getUriBaseClosure() => _uriBaseClosure;

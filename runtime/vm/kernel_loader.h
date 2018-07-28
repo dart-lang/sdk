@@ -160,10 +160,10 @@ class KernelLoader : public ValueObject {
   void AnnotateNativeProcedures(const Array& constant_table);
   void LoadNativeExtensionLibraries(const Array& constant_table);
 
-  void ReadVMAnnotations(intptr_t annotation_count,
-                         String* native_name,
-                         bool* is_potential_native,
-                         bool* has_pragma_annotation);
+  void ReadProcedureAnnotations(intptr_t annotation_count,
+                                String* native_name,
+                                bool* is_potential_native,
+                                bool* has_pragma_annotation);
 
   const String& DartSymbolPlain(StringIndex index) {
     return translation_helper_.DartSymbolPlain(index);

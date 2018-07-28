@@ -571,7 +571,6 @@ void Object::InitOnce(Isolate* isolate) {
     cls.set_type_arguments_field_offset_in_words(Class::kNoTypeArguments);
     cls.set_num_type_arguments(0);
     cls.set_num_own_type_arguments(0);
-    cls.set_has_pragma(false);
     cls.set_num_native_fields(0);
     cls.InitEmptyFields();
     isolate->RegisterClass(cls);
@@ -2192,7 +2191,6 @@ RawClass* Class::New() {
   result.set_id(FakeObject::kClassId);
   result.set_num_type_arguments(0);
   result.set_num_own_type_arguments(0);
-  result.set_has_pragma(false);
   result.set_num_native_fields(0);
   result.set_state_bits(0);
   if ((FakeObject::kClassId < kInstanceCid) ||
@@ -2228,24 +2226,10 @@ void Class::set_num_type_arguments(intptr_t value) const {
 }
 
 void Class::set_num_own_type_arguments(intptr_t value) const {
-  if (!Utils::IsUint(kNumOwnTypeArgumentsSize, value)) {
+  if (!Utils::IsInt(16, value)) {
     ReportTooManyTypeArguments(*this);
   }
-  StoreNonPointer(
-      &raw_ptr()->has_pragma_and_num_own_type_arguments_,
-      NumOwnTypeArguments::update(
-          value, raw_ptr()->has_pragma_and_num_own_type_arguments_));
-}
-
-void Class::set_has_pragma_and_num_own_type_arguments(uint16_t value) const {
-  StoreNonPointer(&raw_ptr()->has_pragma_and_num_own_type_arguments_, value);
-}
-
-void Class::set_has_pragma(bool value) const {
-  StoreNonPointer(
-      &raw_ptr()->has_pragma_and_num_own_type_arguments_,
-      HasPragmaBit::update(value,
-                           raw_ptr()->has_pragma_and_num_own_type_arguments_));
+  StoreNonPointer(&raw_ptr()->num_own_type_arguments_, value);
 }
 
 // Initialize class fields of type Array with empty array.
@@ -3511,7 +3495,6 @@ RawClass* Class::NewCommon(intptr_t index) {
   result.set_id(index);
   result.set_num_type_arguments(kUnknownNumTypeArguments);
   result.set_num_own_type_arguments(kUnknownNumTypeArguments);
-  result.set_has_pragma(false);
   result.set_num_native_fields(0);
   result.set_state_bits(0);
   result.InitEmptyFields();
