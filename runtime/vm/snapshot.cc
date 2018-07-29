@@ -925,8 +925,11 @@ void SnapshotReader::FixSubclassesAndImplementors() {
           interface_cls.set_is_implemented();
           interface_cls.DisableCHAOptimizedCode(cls);
 
-          interface_cls.AddDirectImplementor(cls);
-          interface_cls.DisableCHAImplementorUsers();
+          if (!interface_cls.IsObjectClass() &&
+              interface_cls.IsInFullSnapshot()) {
+            interface_cls.AddDirectImplementor(cls);
+            interface_cls.DisableCHAImplementorUsers();
+          }
         }
       }
     }
