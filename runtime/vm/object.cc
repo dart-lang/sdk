@@ -6847,10 +6847,11 @@ bool Function::HasCompatibleParametersWith(const Function& other,
                          Heap::kOld)) {
     // For more informative error reporting, use the location of the other
     // function here, since the caller will use the location of this function.
+    auto space = Thread::Current()->IsMutatorThread() ? Heap::kNew : Heap::kOld;
     *bound_error = LanguageError::NewFormatted(
         *bound_error,  // A bound error if non null.
         Script::Handle(other.script()), other.token_pos(), Report::AtLocation,
-        Report::kError, Heap::kNew,
+        Report::kError, space,
         "signature type '%s' of function '%s' is not a subtype of signature "
         "type '%s' of function '%s'\n",
         String::Handle(UserVisibleSignature()).ToCString(),
@@ -18678,8 +18679,9 @@ RawAbstractType* TypeParameter::InstantiateFrom(
     // statically for some reason.
     // To prevent crashes we treat it as a bound error.
     // (see AssertAssignableInstr::Canonicalize).
-    *bound_error = LanguageError::New(
-        String::Handle(String::New("Mismatching type argument vector.")));
+    auto space = Thread::Current()->IsMutatorThread() ? Heap::kNew : Heap::kOld;
+    *bound_error = LanguageError::New(String::Handle(
+        String::New("Mismatching type argument vector.", space)));
     return raw();
   }
   return instantiator_type_arguments.TypeAt(index());
