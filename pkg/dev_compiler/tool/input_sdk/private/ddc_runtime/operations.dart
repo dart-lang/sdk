@@ -422,8 +422,7 @@ final Object _ignoreTypeFailure = JS('', '''(() => {
     }
 
     if (!!$isSubtype(type, $Iterable) && !!$isSubtype(actual, $Iterable) ||
-        !!$isSubtype(type, $Future) && !!$isSubtype(actual, $Future) ||
-        !!$isSubtype(type, $Map) && !!$isSubtype(actual, $Map)) {
+        !!$isSubtype(type, $Future) && !!$isSubtype(actual, $Future)) {
       console.warn('Ignoring cast fail from ' + $typeName(actual) +
                    ' to ' + $typeName(type));
       return true;
