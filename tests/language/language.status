@@ -326,6 +326,9 @@ vm/unaligned_integer_access_register_index_test: RuntimeError # Uppercase consta
 closure_cycles_test: Pass, Slow
 large_class_declaration_test: SkipSlow # Uses too much memory.
 
+[ $arch == ia32 && $compiler == none && $mode == debug && $runtime == vm && $system == windows ]
+disassemble_test: Crash # Issue 34030
+
 [ $arch == ia32 && $compiler == none && $runtime == vm && $system == windows ]
 vm/optimized_stacktrace_test: Pass, Crash # Issue 28276
 
@@ -556,5 +559,5 @@ static_closure_identical_test: Pass, Fail # Closure identity
 vm/optimized_stacktrace_test: Pass, Slow
 vm/regress_27201_test: Pass, Crash # Requires deferred libraries
 
-[ ($compiler != dartk && $compiler != dartkb && $compiler != dartkp && $compiler != none) || ($compiler != dartk && $compiler != dartkb && $compiler != dartkp && $runtime != vm) ]
+[ $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $compiler != none || $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $runtime != vm ]
 assert_initializer_test/*: Skip # not implemented yet, experiment is VM only.
