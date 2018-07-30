@@ -18,6 +18,7 @@ import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/builder/builder.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
+import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
 import 'package:front_end/src/fasta/kernel/metadata_collector.dart';
 import 'package:front_end/src/fasta/source/diet_listener.dart';
@@ -246,6 +247,7 @@ class FrontEndCompiler {
 
         // TODO(scheglov) Only for new libraries?
         _component.computeCanonicalNames();
+        _component.accept(new _ShadowCleaner());
 
         _logger.run('Compute dependencies', _computeDependencies);
 
@@ -559,5 +561,26 @@ class _FileSystemEntityAdaptor implements front_end.FileSystemEntity {
     if (!file.exists) {
       throw new front_end.FileSystemException(uri, 'File not found');
     }
+  }
+}
+
+/// Visitor that removes from shadow AST information that is not needed once
+/// resolution is done, and causes memory leaks during incremental compilation.
+class _ShadowCleaner extends RecursiveVisitor {
+  @override
+  visitField(Field node) {
+    if (node is ShadowField) {
+      node.inferenceNode = null;
+      node.typeInferrer = null;
+    }
+    return super.visitField(node);
+  }
+
+  @override
+  visitProcedure(Procedure node) {
+    if (node is ShadowProcedure) {
+      node.inferenceNode = null;
+    }
+    return super.visitProcedure(node);
   }
 }

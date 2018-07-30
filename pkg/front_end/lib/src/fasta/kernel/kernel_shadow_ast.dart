@@ -1016,7 +1016,7 @@ class ShadowField extends Field implements ShadowMember {
   @override
   InferenceNode inferenceNode;
 
-  ShadowTypeInferrer _typeInferrer;
+  ShadowTypeInferrer typeInferrer;
 
   final bool _isImplicitlyTyped;
 
@@ -3289,13 +3289,13 @@ class ShadowTypeInferenceEngine extends TypeInferenceEngine {
       TypeInferenceListener<int, Node, int> listener,
       InterfaceType thisType,
       ShadowField field) {
-    return field._typeInferrer = new ShadowTypeInferrer._(
+    return field.typeInferrer = new ShadowTypeInferrer._(
         this, field.fileUri, listener, true, thisType, null);
   }
 
   @override
   ShadowTypeInferrer getFieldTypeInferrer(ShadowField field) {
-    return field._typeInferrer;
+    return field.typeInferrer;
   }
 }
 
