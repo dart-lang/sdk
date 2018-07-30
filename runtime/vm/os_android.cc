@@ -64,7 +64,8 @@ class PerfCodeObserver : public CodeObserver {
                       uword base,
                       uword prologue_offset,
                       uword size,
-                      bool optimized) {
+                      bool optimized,
+                      const CodeComments* comments) {
     Dart_FileWriteCallback file_write = Dart::file_write_callback();
     if ((file_write == NULL) || (out_file_ == NULL)) {
       return;

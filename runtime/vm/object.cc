@@ -14895,6 +14895,29 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(PRODUCT)
+class CodeCommentsWrapper final : public CodeComments {
+ public:
+  explicit CodeCommentsWrapper(const Code::Comments& comments)
+      : comments_(comments), string_(String::Handle()) {}
+
+  intptr_t Length() const override { return comments_.Length(); }
+
+  intptr_t PCOffsetAt(intptr_t i) const override {
+    return comments_.PCOffsetAt(i);
+  }
+
+  const char* CommentAt(intptr_t i) const override {
+    string_ = comments_.CommentAt(i);
+    return string_.ToCString();
+  }
+
+ private:
+  const Code::Comments& comments_;
+  String& string_;
+};
+#endif
+
 RawCode* Code::FinalizeCode(const char* name,
                             Assembler* assembler,
                             bool optimized,
@@ -14935,11 +14958,14 @@ RawCode* Code::FinalizeCode(const char* name,
   }
 #endif
 
+  const Code::Comments& comments = assembler->GetCodeComments();
+
   code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
 #ifndef PRODUCT
+  CodeCommentsWrapper comments_wrapper(comments);
   CodeObservers::NotifyAll(name, instrs.PayloadStart(),
                            assembler->prologue_offset(), instrs.Size(),
-                           optimized);
+                           optimized, &comments_wrapper);
 #endif
   {
     NoSafepointScope no_safepoint;
@@ -14975,7 +15001,7 @@ RawCode* Code::FinalizeCode(const char* name,
                              instrs.raw()->Size(), VirtualMemory::kReadExecute);
     }
   }
-  code.set_comments(assembler->GetCodeComments());
+  code.set_comments(comments);
   if (assembler->prologue_offset() >= 0) {
     code.SetPrologueOffset(assembler->prologue_offset());
   } else {
@@ -15033,7 +15059,7 @@ RawCode* Code::FinalizeBytecode(const void* bytecode_data,
 #ifndef PRODUCT
   CodeObservers::NotifyAll("bytecode", instrs.PayloadStart(),
                            0 /* prologue_offset */, instrs.Size(),
-                           false /* optimized */);
+                           false /* optimized */, nullptr);
 #endif
   {
     NoSafepointScope no_safepoint;

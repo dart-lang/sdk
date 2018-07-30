@@ -29,11 +29,13 @@ void CodeObservers::NotifyAll(const char* name,
                               uword base,
                               uword prologue_offset,
                               uword size,
-                              bool optimized) {
+                              bool optimized,
+                              const CodeComments* comments) {
   ASSERT(!AreActive() || (strlen(name) != 0));
   for (intptr_t i = 0; i < observers_length_; i++) {
     if (observers_[i]->IsActive()) {
-      observers_[i]->Notify(name, base, prologue_offset, size, optimized);
+      observers_[i]->Notify(name, base, prologue_offset, size, optimized,
+                            comments);
     }
   }
 }
