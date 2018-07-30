@@ -23,8 +23,11 @@ abstract class AnalysisContextCollection {
     ResourceProvider resourceProvider,
   }) = AnalysisContextCollectionImpl;
 
-  /// Return the existing [AnalysisContext] that should be used to analyze
-  /// the given [path], or throw [StateError] if the [path] is not analyzed
-  /// in any of the created analysis contexts.
+  /// Return all of the analysis contexts in this collection.
+  List<AnalysisContext> get contexts;
+
+  /// Return the existing analysis context that should be used to analyze the
+  /// given [path], or throw [StateError] if the [path] is not analyzed in any
+  /// of the created analysis contexts.
   AnalysisContext contextFor(String path);
 }
