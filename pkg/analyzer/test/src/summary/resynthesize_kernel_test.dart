@@ -302,8 +302,8 @@ class C {
       print(_getLibraryText(library));
     }
 
-    var resynthesizer = new KernelResynthesizer(
-        context, libraryResult.types, libraryMap, libraryExistMap);
+    var resynthesizer =
+        new KernelResynthesizer(context, libraryMap, libraryExistMap);
     return resynthesizer;
   }
 

@@ -34,7 +34,6 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/type_environment.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/src/packages_impl.dart';
 import 'package:path/path.dart' as pathos;
@@ -250,10 +249,6 @@ class FrontEndCompiler {
 
         _logger.run('Compute dependencies', _computeDependencies);
 
-        // Reuse CoreTypes and ClassHierarchy.
-        var types = new TypeEnvironment(
-            kernelTarget.loader.coreTypes, kernelTarget.loader.hierarchy);
-
         // Add results for new libraries.
         for (var library in _component.libraries) {
           if (!_results.containsKey(library.importUri)) {
@@ -277,7 +272,7 @@ class FrontEndCompiler {
             }
 
             var libraryResult = new LibraryCompilationResult(
-                _component, types, library.importUri, library, files);
+                _component, library.importUri, library, files);
             _results[library.importUri] = libraryResult;
           }
         }
@@ -368,9 +363,6 @@ class LibraryCompilationResult {
   /// The object is mutable, and is changed when files are invalidated.
   final Component component;
 
-  /// The [TypeEnvironment] for the [component].
-  final TypeEnvironment types;
-
   /// The absolute URI of the library.
   final Uri uri;
 
@@ -380,8 +372,7 @@ class LibraryCompilationResult {
   /// The map from file system URIs to results for the defining unit and parts.
   final Map<Uri, FileCompilationResult> files;
 
-  LibraryCompilationResult(
-      this.component, this.types, this.uri, this.kernel, this.files);
+  LibraryCompilationResult(this.component, this.uri, this.kernel, this.files);
 }
 
 /// The [DietListener] that record resolution information.

@@ -123,8 +123,8 @@ class KernelContext {
       analysisContext.contentCache = new _ContentCacheWrapper(fsState);
 
       // Create the resynthesizer bound to the analysis context.
-      var resynthesizer = new KernelResynthesizer(analysisContext,
-          compilationResult.types, libraryMap, libraryExistMap);
+      var resynthesizer =
+          new KernelResynthesizer(analysisContext, libraryMap, libraryExistMap);
 
       return new KernelContext._(analysisContext, resynthesizer);
     });

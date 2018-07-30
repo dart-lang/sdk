@@ -30,7 +30,6 @@ import 'package:path/path.dart' as pathos;
  */
 class KernelResynthesizer implements ElementResynthesizer {
   final AnalysisContextImpl _analysisContext;
-  final kernel.TypeEnvironment _types;
   final Map<String, kernel.Library> _kernelMap;
   final Map<String, bool> _libraryExistMap;
   final Map<String, LibraryElementImpl> _libraryMap = {};
@@ -43,8 +42,8 @@ class KernelResynthesizer implements ElementResynthesizer {
   /// The type provider for this resynthesizer.
   SummaryTypeProvider _typeProvider;
 
-  KernelResynthesizer(this._analysisContext, this._types, this._kernelMap,
-      this._libraryExistMap) {
+  KernelResynthesizer(
+      this._analysisContext, this._kernelMap, this._libraryExistMap) {
     _buildTypeProvider();
     _analysisContext.typeProvider = _typeProvider;
   }
@@ -657,8 +656,9 @@ class _ExprBuilder {
     if (expr is kernel.ConstructorInvocation) {
       var element = _getElement(expr.targetReference);
 
-      var kernelType =
-          expr.getStaticType(_context.libraryContext.resynthesizer._types);
+      // It's safe to pass null for the TypeEnvironment because it isn't
+      // needed to compute the type of a constructor invocation.
+      var kernelType = expr.getStaticType(null);
       var type = _context.getType(_contextElement, kernelType);
       TypeName typeName = _buildType(type);
 
