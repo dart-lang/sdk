@@ -984,9 +984,13 @@ bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
 }
 
 const Field& LoadStaticFieldInstr::StaticField() const {
-  Field& field = Field::ZoneHandle();
-  field ^= field_value()->BoundConstant().raw();
-  return field;
+  return Field::Cast(field_value()->BoundConstant());
+}
+
+bool LoadStaticFieldInstr::IsFieldInitialized() const {
+  const Field& field = StaticField();
+  return (field.StaticValue() != Object::sentinel().raw()) &&
+         (field.StaticValue() != Object::transition_sentinel().raw());
 }
 
 ConstantInstr::ConstantInstr(const Object& value, TokenPosition token_pos)

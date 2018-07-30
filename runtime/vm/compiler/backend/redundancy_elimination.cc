@@ -1377,6 +1377,16 @@ void LICM::Optimize() {
       BlockEntryInstr* block = flow_graph()->preorder()[loop_it.Current()];
       for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
         Instruction* current = it.Current();
+
+        // Treat loads of static final fields specially: we can CSE them but
+        // we should not move them around unless the field is initialized.
+        // Otherwise we might move load past the initialization.
+        if (LoadStaticFieldInstr* load = current->AsLoadStaticField()) {
+          if (load->AllowsCSE() && !load->IsFieldInitialized()) {
+            continue;
+          }
+        }
+
         if ((current->AllowsCSE() ||
              IsLoopInvariantLoad(loop_invariant_loads, i, current)) &&
             !current->MayThrow()) {

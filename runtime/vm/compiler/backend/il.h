@@ -4285,6 +4285,7 @@ class LoadStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   virtual CompileType ComputeType() const;
 
   const Field& StaticField() const;
+  bool IsFieldInitialized() const;
 
   Value* field_value() const { return inputs_[0]; }
 
