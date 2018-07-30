@@ -2719,7 +2719,6 @@ RawObject* RuntimeEntry::InterpretCall(RawFunction* function,
                                        RawObject** argv,
                                        Thread* thread) {
 #if defined(DART_USE_INTERPRETER)
-  RawObject* result;
   Interpreter* interpreter = Interpreter::Current();
 #if defined(DEBUG)
   uword exit_fp = thread->top_exit_frame_info();
@@ -2729,9 +2728,11 @@ RawObject* RuntimeEntry::InterpretCall(RawFunction* function,
   ASSERT(Function::HasBytecode(function));
   ASSERT(interpreter != NULL);
 #endif
-  result = interpreter->Call(function, argdesc, argc, argv, thread);
+  const Object& result = Object::Handle(
+      thread->zone(), interpreter->Call(function, argdesc, argc, argv, thread));
   DEBUG_ASSERT(thread->top_exit_frame_info() == exit_fp);
-  return result;
+  CheckResultError(result);
+  return result.raw();
 #else
   UNREACHABLE();
 #endif  // defined(DART_USE_INTERPRETER)

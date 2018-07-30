@@ -353,6 +353,17 @@ void KernelBytecodeDisassembler::Disassemble(const Function& function) {
   const ObjectPool& object_pool =
       ObjectPool::Handle(zone, bytecode.GetObjectPool());
   object_pool.DebugPrint();
+
+  THR_Print("PC Descriptors for function '%s' {\n", function_fullname);
+  PcDescriptors::PrintHeaderString();
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(zone, bytecode.pc_descriptors());
+  THR_Print("%s}\n", descriptors.ToCString());
+
+  THR_Print("Exception Handlers for function '%s' {\n", function_fullname);
+  const ExceptionHandlers& handlers =
+      ExceptionHandlers::Handle(zone, bytecode.exception_handlers());
+  THR_Print("%s}\n", handlers.ToCString());
 #else
   UNREACHABLE();
 #endif
