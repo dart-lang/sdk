@@ -571,7 +571,6 @@ html/element_constructor_1_test: Crash # NoSuchMethodError: Class 'JMethod' has 
 html/element_dimensions_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/element_offset_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/element_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/element_test/ElementList: RuntimeError
 html/element_test/_ElementList: RuntimeError
 html/element_test/attributes: RuntimeError
 html/element_test/children: RuntimeError
@@ -749,6 +748,7 @@ html/custom/mirrors_test: Crash # NoSuchMethodError: Class 'JMethod' has no inst
 html/custom_elements_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/element_classes_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/element_offset_test/offset: RuntimeError
+html/element_test/ElementList: RuntimeError
 html/element_types_constructors2_test/constructors: RuntimeError
 html/element_types_constructors3_test/constructors: RuntimeError
 html/element_types_constructors4_test/constructors: RuntimeError
