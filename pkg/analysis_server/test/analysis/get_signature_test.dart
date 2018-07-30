@@ -116,12 +116,6 @@ main() {
         equals(new ParameterInfo(ParameterKind.NAMED, "length", "int")));
   }
 
-  @failingTest
-  test_error_content_modified() {
-    // Content changed during response (CONTENT_MODIFIED)
-    fail('TODO');
-  }
-
   test_error_file_invalid_path() async {
     var result = await prepareRawSignatureAt(0, file: ':\\/?*');
     expect(result.error, isNotNull);

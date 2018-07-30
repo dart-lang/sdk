@@ -409,19 +409,17 @@ abstract class IntegrationTestMixin {
    * given file. If the signature information for the given file has not yet
    * been computed, or the most recently computed signature information for the
    * given file is out of date, then the response for this request will be
-   * delayed until it has been computed. If the content of the file changes
-   * after this request was received but before a response could be sent, then
-   * an error of type CONTENT_MODIFIED will be generated. If a request is made
-   * for a file which does not exist, or which is not currently subject to
-   * analysis (e.g. because it is not associated with any analysis root
-   * specified to analysis.setAnalysisRoots), an error of type
-   * GET_SIGNATURE_INVALID_FILE will be generated. If the location given is not
-   * inside the argument list for a function (including method and constructor)
-   * invocation, then an error of type GET_SIGNATURE_INVALID_OFFSET will be
-   * generated. If the location is inside an argument list but the function is
-   * not defined or cannot be determined (such as a method invocation where the
-   * target has type 'dynamic') then an error of type
-   * GET_SIGNATURE_UNKNOWN_FUNCTION will be generated.
+   * delayed until it has been computed. If a request is made for a file which
+   * does not exist, or which is not currently subject to analysis (e.g.
+   * because it is not associated with any analysis root specified to
+   * analysis.setAnalysisRoots), an error of type GET_SIGNATURE_INVALID_FILE
+   * will be generated. If the location given is not inside the argument list
+   * for a function (including method and constructor) invocation, then an
+   * error of type GET_SIGNATURE_INVALID_OFFSET will be generated. If the
+   * location is inside an argument list but the function is not defined or
+   * cannot be determined (such as a method invocation where the target has
+   * type 'dynamic') then an error of type GET_SIGNATURE_UNKNOWN_FUNCTION will
+   * be generated.
    *
    * Parameters
    *
