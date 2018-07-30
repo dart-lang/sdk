@@ -274,6 +274,8 @@ for the following situations:
     type void; the static type of the conditional expression is then the
     type void. (*This is true even if one of the branches has a different
     type.*)
+*   In a null coalescing expression `e1 ?? e2`, `e2` may have the type void; the
+    static type of the null coalescing expression is then the type void.
 *   If _N1_ and _N2_ are non-terminals in the Dart grammar, and there is a
     derivation of the form _N1 --> N2_, and _N2_ can have type void, then
     _N1_ can also have type void for such a derivation. *In this derivation
