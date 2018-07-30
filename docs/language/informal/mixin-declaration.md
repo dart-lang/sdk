@@ -2,7 +2,7 @@
 
 **Author**: [lrn@google.com](mailto:lrn@google.com)
 
-**Version**: 0.6 (2017-06-14)
+**Version**: 0.7 (2018-06-21)
 
 **Status**: Mostly designed, ready for external comments.
 
@@ -19,7 +19,7 @@ Dart 1 mixins have the following features:
 *   May be derived from class with super-class, then application must be on class implementing super-class interface.
 *   May have super-invocations if the mixin class has a super-class.
 *   Cannot have generative constructors.
-*   Mixin application forwards non-const constructors.
+*   Mixin application forwards some constructors.
 
 There are a number of problems with this approach, especially the super-class constraints.
 
@@ -36,7 +36,7 @@ There are a number of problems with this approach, especially the super-class co
 To avoid some of the problems mentioned above, we introduce a *mixin declaration syntax* separate from class declarations:
 
 *mixinDeclaration* : *metadata*? 'mixin' *identifier* *typeParameters*?  <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;('requires' *types*)? ('implements' *types*)? '{' <em>mixinMember</em>* '}'
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;('on' *types*)? ('implements' *types*)? '{' <em>mixinMember</em>* '}'
 
 The `mixinMember` production allows the same instance or static members that a class would allow, but no constructors (for now).
 
@@ -44,110 +44,124 @@ The `mixin` word will have to be at least a **built-in identifier** to avoid par
 
 It might be possible to just use `mixin` as a contextual keyword, but it would require some look-ahead to determine whether an occurrence is a type named `mixin` or a mixin declaration, and we would like to discourage the former anyway.
 
+
 #### Meaning
 
-A mixin declaration introduces a mixin and an *interface*, but *not a class*. The mixin derived from a mixin declaration contains all the non-static members declared by the mixin, just as the mixin derived from a class currently does.
+A mixin declaration introduces a mixin and an *interface*, but *not a class*. The mixin introduced by a mixin declaration contains all the non-static members declared by the mixin, just as the mixin derived from a class declaration currently does.
 
-The interface of `mixin A requires B, C implements D, E { body }`, which has the same name as the mixin (`A` here), is equivalent to the interface that would be derived from the class declaration:
+In a mixin declaration like `mixin A on B, C implements D, E { body }`
+the `on` clause declares the interfaces `B` and `C` as *super-class constraints* of the mixin. Having a super-class constaint allows the mixin declaration instance members to perform super-invocations (like `super.foo()`) if they are allowed by
+a class implementing both `B` and `C`.
+The mixin introduced by `A` can then only be applied to classes that implement both `B` and `C`.
+
+Further, the interfaces `B` and `C` must be *compatible*. The `on` clause introduces a synthetic interface combining `B` and `C`, call it `A$super`, which is equivalent
+to the interface of a class declaration of the form:
 ```dart
-abstract class A implements B, C, D, E { body' }
+abstract class A$super implements B, C {}
+```
+It is a compile-time error for the mixin declaration if the class declaration above would not be valid. This ensures that if more than one super-constraint interface declares a member with the same name, at least one of those members is more specific than the rest, and this is the unique signature that super-invocations are allowed to invoke.
+
+A mixin declaration defines an interface. The interface for this mixin declaration is equivalent to the interface of the class declared as:
+```dart
+abstract class A implements A$super implements D, E { body' }
 ```
 where `body'` contains abstract declarations corresponding to the instance members of `body` of the mixin `A`.
 
-The `requires` keyword on the mixin declaration is open for discussion. It's better than `super`, but fairly long. Another option is `on`.
+It is a compile time error for the mixin declaration if this class declarations would not be valid.
 
-It's a static warning (strong-mode error) if an instance method in a mixin body has a super-access (`super.foo`, `super.foo()`, `super + bar`, etc.) that is
+An omitted `on` clause is equivalent to `on Object`.
 
-*   not declared by at least one of the *types* in the mixin's `requires` declaration, or
-*   not type-compatible with at least one such declaration from a `requires` type.
+It's a static warning (strong-mode error) if an instance method in a mixin body has a super-access (`super.foo`, `super.foo()`, `super + bar`, etc.) which would not be a valid invocation if `super` was replaced with an expression with static type `A$super`.
 
-The mixin cannot be marked as `abstract`.
+A mixin cannot be marked as `abstract`.
 All mixins are effectively abstract because they don't need to implement the members of the required superclass types.
 We could say that a mixin must implement all other members than the ones declared by the required superclass types, and then allow the declaration to be marked as `abstract` if it doesn't.
 It would still require mixin applications to be marked independently, so there is no large advantage to marking the mixin itself as non-abstract.
 
-
 ### Mixin application
 
-Mixin application syntax is unchanged. A mixin application `S with M` introduces a *class* with superclass `S`, implementing `M` and with copies of all the non-static members of `M`. As usual code in the copies of members retain the static scope of their original declaration.
+Mixin application syntax is unchanged.
 
-In a mixin application declaration `class C = S with M;`, the class is named `C`, otherwise it has a fresh name (it's effectively anonymous since nobody knows its name, but it needs a name because constructor names include the class name and forwarding constructors need to have names).
+Mixin application semantics is mostly unchanged, except that it's a compile-time error to apply a mixin to a class that doesn't implement *all* the `on` type requirements of the mixin declaration, or apply a mixin containing super-invocations to a class that doesn't have a concrete implementation of the super-invoked members compatible with the super-constraint interfaces.
 
-Multiple applications introduce a chain of classes, so `S with M1, M2` has an anonymous `S with M1` application class as superclass and applies `M2` to that.
-
-Mixin application semantics is mostly unchanged, except that it's a static warning (strong mode error) to apply a mixin to a class that doesn't implement *all* the `requires` types of the mixin declaration.
-
-All non constructors of the superclass causes a forwarding constructor to be added to the mixin application with the same arguments.
-
+Forwarding constructors are introduced in the same way as they currently are.
 
 #### Super-calls of mixin applications must be valid
 
-Currently, the specification doesn't warn at compile-time if a `super`-invocation targets an abstract method. This allows declaring a mixin that extends an abstract interface, but it also means that mistakes are only runtime-errors. We want to fix that.
+The Dart 1 specification doesn't warn at compile-time if a `super`-invocation targets an abstract method. This allows declaring a mixin that extends an abstract interface, but it also means that mistakes are only runtime-errors. We want to fix that.
 
-*   One solution is to *require the superclass of a mixin application to be non-abstract*. This would ensure that all `super`-invocations in mixin applications are valid. The mixin declaration only allows `super`-invocations declared by their `requires` constraints and the mixin application requires the superclass to satisfy those constraints, and by also being non-abstract, there must be an actual implementation of the superclass method.
-*   Alternatively, we only make it a compile-time error if a mixin application introduces a method on the mixin application class which contains a super-access (<code>super.<em>x</em></code>, <code>super.<em>x</em>(...)</code>, <code>super <em>op</em> arg</code>, etc), and the actual superclass of the mixin application doesn't have a non-abstract implementation of a member with *that* name.
-(The compile-time error applies to the mixed-in method with the super-call, so a lazy-compile-time-error implementation can fail to compile that method only.)
-
+*   One solution is to *require the superclass of a mixin application to be non-abstract*. This would ensure that all `super`-invocations in mixin applications are valid. The mixin declaration only allows `super`-invocations declared by their `on` constraints and the mixin application requires the superclass to satisfy those constraints, and by also being non-abstract, there must be an actual implementation of the superclass method. That's probably too restrictive in practice, though (e.g., `class UnmodifiableListBase<T> = ListBase<T> with UnmodifiableListMixin<T>;` is reasonable even if `ListBase` is abstract).
+*   Alternatively, we only make it a compile-time error if a mixin  method on the mixin contains a super-access (<code>super.<em>x</em></code>, <code>super.<em>x</em>(...)</code>, <code>super <em>op</em> arg</code>, etc), and the actual superclass of the mixin application doesn't have an implementation of *x*/*op* compatible with the one in interface `A$super`.
+This requires a mixin application to check whether the superclass has a
+concrete implementation of any member of `A$super` which is used by a super-invocation.
 Obviously, if the superclass is not abstract, this check won't be necessary.
 
-*   As a third alternative, we can add syntax to explicitly declare and expose the super constraints. Syntax could be like an abstract method that is marked as "super", perhaps one of:
+The latter option is the more permissive one, but that also comes with a cost of maintainability and usability. If a mixin adds a new super-invocation, then it may break existing mixin applications. It's not possible to see the actual requirements of the mixin from its type signature alone.
 
-```
-int super.foo(int bar);
-super int foo(int bar);
-super {
-  int foo(int bar);  // and perhaps multiple declaration in the block.
+If the requirement is just that the superclass is non-abstract (first option), there are no hidden or fragile constraints in the relation between the mixin and the superclass. However it's likely too restrictive in practice, and there is no work-around if you do want to apply a mixin to an abstract class (short of adding throwing implementations of the missing methods, which is not something to encourage).
+
+In either case, this requirement is new. The Dart 1 specification doesn't have it, instead it just silently accepts a mixin application on an abstract superclass that doesn't actually implement the super-member, and the call will fail at runtime.
+
+
+#### Extending a Mixin
+Current Dart classes can be used as superclasses, mixins and interfaces.
+A mixin declaration does not introduce a class, but we can, and probably should,
+allow *extending* the mixin as a shorthand for extending `Object` with the mixin applied.
+
+That is:
+
+```dart
+mixin M {
+  String toString() => "Magnificent!";
 }
-super foo;  // comma separated list of just the names.
-super { foo }; // ditto.
+class C extends M {
+  ...
+}
 ```
 
+would be equivalent to:
 
-The block approach is unlike anything else we do in Dart. The `super.foo` declaration is also different from other syntax and would complicate the grammar more than just a prefixed `super`, but if it's easier to understand for the user, it's probably worth it.
+```dart
+mixin M {
+  String toString() => "Magnificent!";
+}
+class C extends Object with M {
+  ...
+}
+```
 
-Just mentioning the super-member by name is shorter, and since the required super-types are specified elsewhere, it should be sufficient, but it's not as readable as a full declaration.
+as long as `M` has no `on` clause requiring a class different from `Object`.
 
-With any of these syntaxes, the mixin declaration explicitly declares which super-calls it uses, so the user can be aware of it.
-
-On the other hand, that means duplication (you already make the super-call, now you also repeat it as a declaration) and it still locks you into not being able to do more super-calls in the future without breaking things.
-
-If the constraints are handled entirely structurally, and don't need to be linked to a declared required superclass constraint, it would allow mixins to be used on arbitrary objects that satisfy the constraint, but that would also be the only place in Dart where we have a structural constraint on classes. I would recommend only allowing references to members of the already required superclasses.
-
-
-The second and third options are the more permissive ones, but that also comes with a cost of maintainability and usability. If a mixin adds a new super-invocation, then it may break existing mixin applications. It's not possible to see the actual requirements of the mixin from its type signature alone - in the third option, a new syntax is introduced to represent the requirement.
-
-If the requirement is just that the superclass is non-abstract (first option), there are no hidden or fragile constraints in the relation between the mixin and the superclass. For that reason, I recommend we pick the that approach (require that the superclass of a mixin application is not abstract) and potentially loosen it later if necessary - adding explicit super-requirements would then allow abstract superclasses that satisfy the requirements, not writing anything still works with a non-abstract superclass.
-
-We should check whether that is a problem for existing code that has an abstract superclass for a mixin application.
-
-In either case, this requirement is new. The current specification doesn't have it, instead it just silently accepts a mixin application on an abstract superclass that doesn't actually implement the super-member, and the call will fail at runtime.
+This allows easier migration from existing classes that are used as both
+superclass and mixin.
 
 
 ### Potential future changes
 
-
 #### Deprecating derived mixins
 
-In the future, preferably already in Dart 2.0, we'll remove the ability to derive a mixin from a class declaration.
+In a future version of Dart, we'll remove the ability to derive a mixin from a class declaration.
 
-The requires existing code to be rewritten. The rewrite is simple:
+This requires existing code to be rewritten. The rewrite is simple:
 
+If the class is only used as a mixin,
 
 ```dart
 class FooMixin extends S implements I {
-   members;
+  members;
 }
 ```
 
 becomes
 
 ```dart
-mixin FooMixin requires S implements I {
+mixin FooMixin on S implements I {
   members;
 }
 ```
 
-If a class is *actually* used as both a class and a mixin, the mixin needs to be extracted:
+If the class is *actually* used as both a class and a mixin, and `S` is not `Object`,
+the mixin needs to be extracted:
 
 ```dart
 class Foo extends S implements I {  // Used as mixin *and* class
@@ -158,28 +172,32 @@ class Foo extends S implements I {  // Used as mixin *and* class
 becomes
 
 ```dart
-class Foo = S with FooMixin {
-  public static members
+class Foo extends S with FooMixin {
+  static members
 }
-mixin FooMixin requires S implements I {
+mixin FooMixin on S implements I {
   instance members (references to statics prefixed with "Foo.")
 }
 // All uses of "with Foo" changed to "with FooMixin".
 ```
 
-Apart from public static members (which are rare) this is basically a two line rewrite locally, and then finding the uses of the class.
+Apart from static members (which are rare) this is basically a two line rewrite locally, and then finding the uses of the class as a mixin. Any missed use of `Foo` as a mixin will be a compile-time error, so the uses are easy to find.
 
-Optionally, we can also allow mixins to be used as classes (instead of the other way around), so `class C extends Mixin { … }` is equivalent to `class C extends Object with Mixin { … }`.
+Private static members can be placed in either class, and mayb fit better in the mixin class if they are only used by instance members. Putting them in `Foo` ensures that uses outside of the class, but still in the same library, do not need to be changed.
 
+#### Possible related features ####
 
-#### Forward const constructors
+We may want to allow omitting `extends Object` from 
+`class C extends Object with Mixin {}`, 
+writing it simply as `class C with Mixin {}`.
+The `extends Object` is not necessary when declaring a class with no mixin,
+and the syntax is still easy to parse since `with` cannot occur in that
+position with any other meaning.
 
-A mixin application forwards generative constructors as non-const, even if the superclass constructor is a const constructor. That makes some use-cases for mixins impossible.
+This is not a necessary change, but it make some existing code 
+which `extends` a mixin-class slightly easier to port.
 
-We could make the forwarding constructors const as well when it is safe. An approximation of that could be when the mixin declares no fields. This is not necessarily a good idea, since it would break getter/field symmetry and prevent a mixin from changing a getter to a final field.
-
-
-#### Extending mixins
+#### Further extensions of the feature
 
 With separate syntax for mixins, we are open to adding more capabilities without needing it to also work for classes.
 
@@ -194,3 +212,5 @@ Options are:
 v0.5 (2017-06-12) Initial version
 
 v0.6 (2017-06-14) Say `mixin` must be built-in identifier.
+
+v0.7 (2018-06-21) Change `required` to `on` and remove Dart 1 specific things.
