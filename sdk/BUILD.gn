@@ -38,7 +38,6 @@ declare_args() {
 # ......pub
 # ......snapshots/
 # ........analysis_server.dart.snapshot
-# ........analysis_server_dart1.dart.snapshot (this is temporary; #33877)
 # ........dart2js.dart.snapshot
 # ........dartanalyzer.dart.snapshot
 # ........dartdoc.dart.snapshot
@@ -119,10 +118,6 @@ _platform_sdk_snapshots = [
     "../utils/analysis_server",
   ],
   [
-    "analysis_server_dart1",
-    "../utils/analysis_server_dart1",
-  ],
-  [
     "dartanalyzer",
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
   ],
@@ -148,10 +143,6 @@ _full_sdk_snapshots = [
   [
     "analysis_server",
     "../utils/analysis_server",
-  ],
-  [
-    "analysis_server_dart1",
-    "../utils/analysis_server_dart1",
   ],
   [
     "dart2js",
