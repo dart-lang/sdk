@@ -18680,8 +18680,9 @@ RawAbstractType* TypeParameter::InstantiateFrom(
     // To prevent crashes we treat it as a bound error.
     // (see AssertAssignableInstr::Canonicalize).
     auto space = Thread::Current()->IsMutatorThread() ? Heap::kNew : Heap::kOld;
-    *bound_error = LanguageError::New(String::Handle(
-        String::New("Mismatching type argument vector.", space)));
+    *bound_error = LanguageError::New(
+        String::Handle(String::New("Mismatching type argument vector.", space)),
+        Report::kError, space);
     return raw();
   }
   return instantiator_type_arguments.TypeAt(index());
