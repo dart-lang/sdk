@@ -53,8 +53,7 @@ class KernelNamedTypeBuilder
 
   DartType build(LibraryBuilder library) {
     DartType type = declaration.buildType(library, arguments);
-    var target = declaration.hasTarget ? declaration.target : null;
-    outlineListener?.store(_storeOffset, false, reference: target, type: type);
+    _storeType(library, type);
     return type;
   }
 
@@ -63,8 +62,7 @@ class KernelNamedTypeBuilder
     TypeDeclarationBuilder declaration = this.declaration;
     if (declaration is KernelClassBuilder) {
       var supertype = declaration.buildSupertype(library, arguments);
-      outlineListener?.store(_storeOffset, false,
-          reference: declaration.target, type: supertype.asInterfaceType);
+      _storeType(library, supertype.asInterfaceType);
       return supertype;
     } else if (declaration is KernelInvalidTypeBuilder) {
       library.addCompileTimeError(
@@ -72,16 +70,10 @@ class KernelNamedTypeBuilder
           declaration.message.charOffset,
           declaration.message.length,
           declaration.message.uri);
-      // TODO(scheglov) Should we build arguments?
-      outlineListener?.store(_storeOffset, false,
-          reference: declaration.hasTarget ? declaration.target : null,
-          type: const InvalidType());
+      _storeType(library, const InvalidType());
       return null;
     } else {
-      // TODO(scheglov) Should we build arguments?
-      outlineListener?.store(_storeOffset, false,
-          reference: declaration.hasTarget ? declaration.target : null,
-          type: const InvalidType());
+      _storeType(library, const InvalidType());
       return handleInvalidSupertype(library, charOffset, fileUri);
     }
   }
@@ -91,8 +83,7 @@ class KernelNamedTypeBuilder
     TypeDeclarationBuilder declaration = this.declaration;
     if (declaration is KernelClassBuilder) {
       var supertype = declaration.buildMixedInType(library, arguments);
-      outlineListener?.store(_storeOffset, false,
-          reference: declaration.target, type: supertype.asInterfaceType);
+      _storeType(library, supertype.asInterfaceType);
       return supertype;
     } else if (declaration is KernelInvalidTypeBuilder) {
       library.addCompileTimeError(
@@ -100,8 +91,10 @@ class KernelNamedTypeBuilder
           declaration.message.charOffset,
           declaration.message.length,
           declaration.message.uri);
+      _storeType(library, const InvalidType());
       return null;
     } else {
+      _storeType(library, const InvalidType());
       return handleInvalidSupertype(library, charOffset, fileUri);
     }
   }
@@ -149,5 +142,24 @@ class KernelNamedTypeBuilder
     // TODO(scheglov) Can we always make charOffset the "suffix" offset?
     var name = this.name;
     return name is QualifiedName ? name.charOffset : charOffset;
+  }
+
+  void _storeType(LibraryBuilder library, DartType type) {
+    if (outlineListener != null) {
+      if (arguments != null && !this.declaration.buildsArguments) {
+        for (var argument in arguments) {
+          argument.build(library);
+        }
+      }
+      TypeDeclarationBuilder<KernelTypeBuilder, DartType> storeDeclaration;
+      if (actualDeclaration != null) {
+        storeDeclaration = actualDeclaration;
+        type = storeDeclaration.buildType(library, null);
+      } else {
+        storeDeclaration = declaration;
+      }
+      var target = storeDeclaration.hasTarget ? storeDeclaration.target : null;
+      outlineListener.store(_storeOffset, false, reference: target, type: type);
+    }
   }
 }

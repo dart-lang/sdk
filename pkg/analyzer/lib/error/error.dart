@@ -146,6 +146,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND,
   CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT,
   CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME,
+  CompileTimeErrorCode.ILLEGAL_MIXIN,
   CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS,
   CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
   CompileTimeErrorCode.IMPLEMENTS_DYNAMIC,

@@ -307,6 +307,18 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
+  test_undefinedGetter_wrongNumberOfTypeArguments_tooLittle() async {
+    await super.test_undefinedGetter_wrongNumberOfTypeArguments_tooLittle();
+  }
+
+  @override
+  @failingTest
+  test_undefinedGetter_wrongNumberOfTypeArguments_tooMany() async {
+    await super.test_undefinedGetter_wrongNumberOfTypeArguments_tooMany();
+  }
+
+  @override
+  @failingTest
   test_undefinedMethod_generic_function_call() async {
     await super.test_undefinedMethod_generic_function_call();
   }
@@ -351,12 +363,6 @@ class StaticTypeWarningCodeTest_Kernel
   @failingTest
   test_undefinedSuperMethod() async {
     await super.test_undefinedSuperMethod();
-  }
-
-  @override
-  @failingTest
-  test_wrongNumberOfTypeArguments_classAlias() async {
-    await super.test_wrongNumberOfTypeArguments_classAlias();
   }
 
   @override

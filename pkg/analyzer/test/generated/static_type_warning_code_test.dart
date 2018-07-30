@@ -1706,37 +1706,23 @@ f() => A?.hashCode;
   }
 
   test_undefinedGetter_wrongNumberOfTypeArguments_tooLittle() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A<K, V> {
   K element;
 }
 main(A<int> a) {
   a.element.anyGetterExistsInDynamic;
-}''',
-        useCFE
-            ? [
-                StaticTypeWarningCode.UNDEFINED_GETTER,
-                StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS
-              ]
-            : [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
+}''', [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
   }
 
   test_undefinedGetter_wrongNumberOfTypeArguments_tooMany() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A<E> {
   E element;
 }
 main(A<int,int> a) {
   a.element.anyGetterExistsInDynamic;
-}''',
-        useCFE
-            ? [
-                StaticTypeWarningCode.UNDEFINED_GETTER,
-                StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS
-              ]
-            : [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
+}''', [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
   }
 
   test_undefinedGetter_wrongOfTypeArgument() async {

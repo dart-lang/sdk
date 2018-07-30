@@ -31,6 +31,12 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
 
   TypeDeclarationBuilder<T, R> declaration;
 
+  /// If the number of [arguments] does not correspond to the number of
+  /// type parameters in the [declaration], semantically we should replace
+  /// [declaration] with [InvalidTypeBuilder]. But we still need to store
+  /// the original declaration into [outlineListener].
+  TypeDeclarationBuilder<T, R> actualDeclaration;
+
   NamedTypeBuilder(this.outlineListener, this.name, this.arguments);
 
   InvalidTypeBuilder<T, R> buildInvalidType(int charOffset, Uri fileUri,
@@ -76,6 +82,7 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
   void check(int charOffset, Uri fileUri) {
     if (arguments != null &&
         arguments.length != declaration.typeVariablesCount) {
+      actualDeclaration = declaration;
       declaration = buildInvalidType(
           charOffset,
           fileUri,

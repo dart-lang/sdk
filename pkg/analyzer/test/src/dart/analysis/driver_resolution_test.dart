@@ -6487,6 +6487,183 @@ void f<T, U>(T a, U b) {}
     }
   }
 
+  test_outline_invalid_mixin_arguments_tooFew() async {
+    addTestFile(r'''
+class A extends Object with Map<int> {}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var mapRef = findNode.typeName('Map<');
+    assertTypeName(mapRef, mapElement, 'Map<dynamic, dynamic>');
+
+    var intRef = findNode.typeName('int>');
+    assertTypeName(intRef, intElement, 'int');
+  }
+
+  test_outline_invalid_mixin_arguments_tooMany() async {
+    addTestFile(r'''
+class A extends Object with List<int, double> {}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var listRef = findNode.typeName('List<');
+    assertTypeName(listRef, listElement, 'List<dynamic>');
+
+    var intRef = findNode.typeName('int,');
+    assertTypeName(intRef, intElement, 'int');
+
+    var doubleRef = findNode.typeName('double>');
+    assertTypeName(doubleRef, doubleElement, 'double');
+  }
+
+  test_outline_invalid_mixin_typeParameter() async {
+    addTestFile(r'''
+class A<T> extends Object with T<int, double> {}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var tRef = findNode.typeName('T<');
+    assertTypeName(
+      tRef,
+      findElement.typeParameter('T'),
+      useCFE ? 'dynamic' : 'T',
+    );
+
+    var intRef = findNode.typeName('int,');
+    assertTypeName(intRef, intElement, 'int');
+
+    var doubleRef = findNode.typeName('double>');
+    assertTypeName(doubleRef, doubleElement, 'double');
+  }
+
+  test_outline_invalid_supertype_arguments_tooFew() async {
+    addTestFile(r'''
+class A extends Map<int> {}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var mapRef = findNode.typeName('Map<');
+    assertTypeName(mapRef, mapElement, 'Map<dynamic, dynamic>');
+
+    var intRef = findNode.typeName('int>');
+    assertTypeName(intRef, intElement, 'int');
+  }
+
+  test_outline_invalid_supertype_arguments_tooMany() async {
+    addTestFile(r'''
+class A extends List<int, double> {}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var listRef = findNode.typeName('List<');
+    assertTypeName(listRef, listElement, 'List<dynamic>');
+
+    var intRef = findNode.typeName('int,');
+    assertTypeName(intRef, intElement, 'int');
+
+    var doubleRef = findNode.typeName('double>');
+    assertTypeName(doubleRef, doubleElement, 'double');
+  }
+
+  test_outline_invalid_supertype_hasArguments() async {
+    addTestFile(r'''
+class A extends X<int, double> {}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var xRef = findNode.typeName('X<');
+    assertTypeName(xRef, null, 'dynamic');
+
+    var intRef = findNode.typeName('int,');
+    assertTypeName(intRef, intElement, 'int');
+
+    var doubleRef = findNode.typeName('double>');
+    assertTypeName(doubleRef, doubleElement, 'double');
+  }
+
+  test_outline_invalid_supertype_noArguments() async {
+    addTestFile(r'''
+class A extends X {}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var xRef = findNode.typeName('X {}');
+    assertTypeName(xRef, null, 'dynamic');
+  }
+
+  test_outline_invalid_supertype_typeParameter() async {
+    addTestFile(r'''
+class A<T> extends T<int, double> {}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var tRef = findNode.typeName('T<');
+    assertTypeName(
+      tRef,
+      findElement.typeParameter('T'),
+      useCFE ? 'dynamic' : 'T',
+    );
+
+    var intRef = findNode.typeName('int,');
+    assertTypeName(intRef, intElement, 'int');
+
+    var doubleRef = findNode.typeName('double>');
+    assertTypeName(doubleRef, doubleElement, 'double');
+  }
+
+  test_outline_invalid_type_arguments_tooFew() async {
+    addTestFile(r'''
+typedef Map<int> F();
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var mapRef = findNode.typeName('Map<');
+    assertTypeName(mapRef, mapElement, 'Map<dynamic, dynamic>');
+
+    var intRef = findNode.typeName('int>');
+    assertTypeName(intRef, intElement, 'int');
+  }
+
+  test_outline_invalid_type_arguments_tooMany() async {
+    addTestFile(r'''
+typedef List<int, double> F();
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var listRef = findNode.typeName('List<');
+    assertTypeName(listRef, listElement, 'List<dynamic>');
+
+    var intRef = findNode.typeName('int,');
+    assertTypeName(intRef, intElement, 'int');
+
+    var doubleRef = findNode.typeName('double>');
+    assertTypeName(doubleRef, doubleElement, 'double');
+  }
+
+  test_outline_invalid_type_typeParameter() async {
+    addTestFile(r'''
+typedef T<int> F<T>();
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var tRef = findNode.typeName('T<');
+    assertTypeName(tRef, findElement.typeParameter('T'), 'T');
+
+    var intRef = findNode.typeName('int>');
+    assertTypeName(intRef, intElement, 'int');
+  }
+
   test_outline_type_genericFunction() async {
     addTestFile(r'''
 int Function(double) g() => null;
@@ -9781,12 +9958,25 @@ class FindElement {
   }
 
   TypeParameterElement typeParameter(String name) {
-    for (var type in unitElement.types) {
-      for (var parameter in type.typeParameters) {
-        if (parameter.name == name) {
-          return parameter;
+    TypeParameterElement result;
+
+    void consider(TypeParameterElement candidate) {
+      if (candidate.name == name) {
+        if (result != null) {
+          throw new StateError('Type parameter $name is not unique.');
         }
+        result = candidate;
       }
+    }
+
+    for (var type in unitElement.functionTypeAliases) {
+      type.typeParameters.forEach(consider);
+    }
+    for (var type in unitElement.types) {
+      type.typeParameters.forEach(consider);
+    }
+    if (result != null) {
+      return result;
     }
     fail('Not found type parameter: $name');
   }

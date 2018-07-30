@@ -1161,6 +1161,9 @@ class CompileTimeErrorCode extends ErrorCode {
           "with the same name.",
           correction: "Try renaming either the getter or the method.");
 
+  static const CompileTimeErrorCode ILLEGAL_MIXIN =
+      const CompileTimeErrorCode.fromFasta('ILLEGAL_MIXIN');
+
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the implements clause
    * of a class <i>C</i> specifies a malformed type or deferred type as a

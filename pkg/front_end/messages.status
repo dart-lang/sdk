@@ -189,7 +189,6 @@ GetterNotFound/dart2jsCode: Fail
 GetterNotFound/example: Fail
 GetterWithFormals/example: Fail
 IllegalAssignmentToNonAssignable/script1: Fail
-IllegalMixin/analyzerCode: Fail
 IllegalMixin/example: Fail
 IllegalMixinDueToConstructors/example: Fail
 ImplementsBeforeExtends/script: Fail

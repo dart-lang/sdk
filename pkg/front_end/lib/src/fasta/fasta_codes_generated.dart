@@ -3287,9 +3287,8 @@ const Template<Message Function(String name)> templateIllegalMixin =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeIllegalMixin =
     const Code<Message Function(String name)>(
-  "IllegalMixin",
-  templateIllegalMixin,
-);
+        "IllegalMixin", templateIllegalMixin,
+        analyzerCode: "ILLEGAL_MIXIN", dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIllegalMixin(String name) {
