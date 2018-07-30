@@ -18645,6 +18645,17 @@ RawAbstractType* TypeParameter::InstantiateFrom(
   if (instantiator_type_arguments.IsNull()) {
     return Type::DynamicType();
   }
+  if (instantiator_type_arguments.Length() <= index()) {
+    // InstantiateFrom can be invoked from a compilation pipeline with
+    // mismatching type arguments vector. This can only happen for
+    // a dynamically unreachable code - which compiler can't remove
+    // statically for some reason.
+    // To prevent crashes we treat it as a bound error.
+    // (see AssertAssignableInstr::Canonicalize).
+    *bound_error = LanguageError::New(
+        String::Handle(String::New("Mismatching type argument vector.")));
+    return raw();
+  }
   return instantiator_type_arguments.TypeAt(index());
   // There is no need to canonicalize the instantiated type parameter, since all
   // type arguments are canonicalized at type finalization time. It would be too

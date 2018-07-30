@@ -2661,8 +2661,14 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
   if (dst_type().IsInstantiated()) {
     return this;
   }
+
   // For uninstantiated target types: If the instantiator and function
   // type arguments are constant, instantiate the target type here.
+  // Note: these constant type arguments might not necessarily correspond
+  // to the correct instantiator because AssertAssignable might
+  // be located in the unreachable part of the graph (e.g.
+  // it might be dominated by CheckClass that always fails).
+  // This means that the code below must guard against such possibility.
   ConstantInstr* constant_instantiator_type_args =
       instantiator_type_arguments()->definition()->AsConstant();
   ConstantInstr* constant_function_type_args =
