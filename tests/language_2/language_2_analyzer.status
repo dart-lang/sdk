@@ -27,7 +27,7 @@ void_type_function_types_test/06: MissingCompileTimeError
 void_type_function_types_test/08: MissingCompileTimeError
 void_type_function_types_test/none: Pass
 
-[ $compiler == dart2analyzer && !$analyzer_use_fasta_parser ]
+[ $compiler == dart2analyzer && !$analyzer_use_fasta_parser && !$fasta ]
 constructor_type_parameter_test/00: MissingCompileTimeError # Issue 33110
 constructor_with_type_parameters_test/03: MissingCompileTimeError
 
