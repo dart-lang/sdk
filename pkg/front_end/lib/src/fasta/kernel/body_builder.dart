@@ -111,8 +111,6 @@ import 'kernel_ast_api.dart';
 
 import 'kernel_builder.dart';
 
-import 'kernel_factory.dart' show KernelFactory;
-
 import 'type_algorithms.dart' show calculateBounds;
 
 // TODO(ahe): Remove this and ensure all nodes have a location.
@@ -162,14 +160,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   final TypePromoter typePromoter;
-
-  /// The factory used to construct body expressions, statements, and
-  /// initializers.
-  ///
-  /// TODO(paulberry): when the analyzer's diet parser is in use, this should
-  /// point to the analyzer's factory.  Note that type arguments will have to be
-  /// added to BodyBuilder to make this happen.
-  final KernelFactory factory = new KernelFactory();
 
   /// Only used when [member] is a constructor. It tracks if an implicit super
   /// initializer is needed.
@@ -524,7 +514,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           field.initializer = initializer;
           _typeInferrer.inferFieldInitializer(
               this,
-              factory,
               field.hasTypeInferredFromInitializer ? null : field.builtType,
               initializer);
         }
@@ -533,7 +522,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     pop(); // Type.
     List<Object> annotations = pop();
     if (annotations != null) {
-      _typeInferrer.inferMetadata(this, factory, annotations);
+      _typeInferrer.inferMetadata(this, annotations);
       Field field = fields.first.target;
       // The first (and often only field) will not get a clone.
       annotations.forEach((annotation) => field.addAnnotation(annotation));
@@ -655,7 +644,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
       initializer = buildInvalidInitializer(node, token.charOffset);
     }
-    _typeInferrer.inferInitializer(this, factory, initializer);
+    _typeInferrer.inferInitializer(this, initializer);
     if (member is KernelConstructorBuilder && !member.isExternal) {
       member.addInitializer(initializer, _typeInferrer);
     } else {
@@ -699,12 +688,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             null);
         realParameter.initializer = initializer..parent = realParameter;
         _typeInferrer.inferParameterInitializer(
-            this, factory, initializer, realParameter.type);
+            this, initializer, realParameter.type);
       }
     }
 
     _typeInferrer.inferFunctionBody(
-        this, factory, _computeReturnTypeContext(member), asyncModifier, body);
+        this, _computeReturnTypeContext(member), asyncModifier, body);
 
     // We finished the invalid body inference, desugar it into its error.
     if (body is InvalidStatementJudgment) {
@@ -750,7 +739,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
     Member target = builder.target;
-    _typeInferrer.inferMetadata(this, factory, annotations);
+    _typeInferrer.inferMetadata(this, annotations);
     for (Expression annotation in annotations ?? const []) {
       target.addAnnotation(annotation);
     }
@@ -859,7 +848,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   List<Expression> finishMetadata(TreeNode parent) {
     List<Expression> expressions = pop();
-    _typeInferrer.inferMetadata(this, factory, expressions);
+    _typeInferrer.inferMetadata(this, expressions);
     if (parent is Class) {
       for (Expression expression in expressions) {
         parent.addAnnotation(expression);
@@ -929,7 +918,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     ReturnJudgment fakeReturn = new ReturnJudgment(null, null, expression);
 
     _typeInferrer.inferFunctionBody(
-        this, factory, const DynamicType(), AsyncMarker.Sync, fakeReturn);
+        this, const DynamicType(), AsyncMarker.Sync, fakeReturn);
 
     return fakeReturn.expression;
   }
@@ -2409,7 +2398,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
     if (annotations != null) {
       if (functionNestingLevel == 0) {
-        _typeInferrer.inferMetadata(this, factory, annotations);
+        _typeInferrer.inferMetadata(this, annotations);
       }
       for (Expression annotation in annotations) {
         variable.addAnnotation(annotation);
@@ -3859,7 +3848,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           variable, variable.charOffset, variable.name);
     }
     if (annotations != null) {
-      _typeInferrer.inferMetadata(this, factory, annotations);
+      _typeInferrer.inferMetadata(this, annotations);
       for (Expression annotation in annotations) {
         variable.parameter.addAnnotation(annotation);
       }

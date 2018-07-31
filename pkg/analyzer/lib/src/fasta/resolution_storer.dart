@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/fasta/resolution_applier.dart';
-import 'package:front_end/src/fasta/kernel/factory.dart';
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/kernel/kernel_type_variable_builder.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
@@ -48,10 +47,7 @@ class ResolutionData {
 
 /// Type inference listener that records inferred types for later use by
 /// [ResolutionApplier].
-class ResolutionStorer
-    implements
-        TypeInferenceListener<int, Node, int>,
-        Factory<void, void, void, void> {
+class ResolutionStorer implements TypeInferenceListener<int, Node, int> {
   final Map<int, ResolutionData> _data;
 
   final Map<TypeParameter, int> _typeVariableDeclarations;
