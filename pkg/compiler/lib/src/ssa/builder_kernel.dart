@@ -138,7 +138,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   )   : this.targetElement = _effectiveTargetElementFor(initialTargetElement),
         _infoReporter = compiler.dumpInfoTask,
         _allocatorAnalysis = closedWorld.allocatorAnalysis {
-    _enterFrame(targetElement);
+    _enterFrame(targetElement, null);
     this.loopHandler = new KernelLoopHandler(this);
     typeBuilder = new KernelTypeBuilder(this, _elementMap, _globalLocalsMap);
     graph.element = targetElement;
@@ -163,7 +163,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     return member;
   }
 
-  void _enterFrame(MemberEntity member) {
+  void _enterFrame(
+      MemberEntity member, SourceInformation callSourceInformation) {
     AsyncMarker asyncMarker = AsyncMarker.SYNC;
     ir.FunctionNode function = getFunctionNode(_elementMap, member);
     if (function != null) {
@@ -176,7 +177,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _globalLocalsMap.getLocalsMap(member),
         new KernelToTypeInferenceMapImpl(member, globalInferenceResults),
         _currentFrame != null
-            ? _currentFrame.sourceInformationBuilder.forContext(member)
+            ? _currentFrame.sourceInformationBuilder
+                .forContext(member, callSourceInformation)
             : _sourceInformationStrategy.createBuilderForContext(member));
   }
 
@@ -579,7 +581,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       ConstructorEntity inlinedConstructor = _elementMap.getConstructor(body);
 
-      inlinedFrom(inlinedConstructor, () {
+      inlinedFrom(
+          inlinedConstructor, _sourceInformationBuilder.buildCall(body, body),
+          () {
         void handleParameter(ir.VariableDeclaration node) {
           Local parameter = localsMap.getLocalVariable(node);
           // If [parameter] is boxed, it will be a field in the box passed as
@@ -656,9 +660,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   /// Sets context for generating code that is the result of inlining
   /// [inlinedTarget].
-  inlinedFrom(MemberEntity inlinedTarget, f()) {
+  inlinedFrom(MemberEntity inlinedTarget,
+      SourceInformation callSourceInformation, f()) {
     reporter.withCurrentElement(inlinedTarget, () {
-      _enterFrame(inlinedTarget);
+      _enterFrame(inlinedTarget, callSourceInformation);
       var result = f();
       _leaveFrame();
       return result;
@@ -724,7 +729,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         // TODO(sra): It would be sufficient to know the context was a field
         // initializer.
         if (!_allocatorAnalysis.isInitializedInAllocator(field)) {
-          inlinedFrom(field, () {
+          inlinedFrom(field,
+              _sourceInformationBuilder.buildAssignment(node.initializer), () {
             node.initializer.accept(this);
             constructorData.fieldValues[field] = pop();
           });
@@ -902,7 +908,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
     ConstructorEntity element = _elementMap.getConstructor(constructor);
     ScopeInfo oldScopeInfo = localsHandler.scopeInfo;
 
-    inlinedFrom(element, () {
+    inlinedFrom(
+        element, _sourceInformationBuilder.buildCall(initializer, initializer),
+        () {
       void handleParameter(ir.VariableDeclaration node) {
         Local parameter = localsMap.getLocalVariable(node);
         HInstruction argument = arguments[index++];
@@ -1236,7 +1244,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
               _commonElements.closureConverter,
               [argument, graph.addConstantInt(arity, closedWorld)],
               abstractValueDomain.dynamicType,
-              const <DartType>[]);
+              const <DartType>[],
+              sourceInformation: null);
           argument = pop();
         }
         inputs.add(argument);
@@ -1379,7 +1388,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         [prefixConstant, uriConstant],
         _typeInferenceMap
             .getReturnTypeOf(_commonElements.checkDeferredIsLoaded),
-        const <DartType>[]);
+        const <DartType>[],
+        sourceInformation: null);
   }
 
   @override
@@ -2104,13 +2114,15 @@ class KernelSsaGraphBuilder extends ir.Visitor
   @override
   void visitAssertStatement(ir.AssertStatement node) {
     if (!options.enableUserAssertions) return;
+    var sourceInformation = _sourceInformationBuilder.buildAssert(node);
     if (node.message == null) {
       node.condition.accept(this);
       _pushStaticInvocation(
           _commonElements.assertHelper,
           <HInstruction>[pop()],
           _typeInferenceMap.getReturnTypeOf(_commonElements.assertHelper),
-          const <DartType>[]);
+          const <DartType>[],
+          sourceInformation: sourceInformation);
       pop();
       return;
     }
@@ -2122,7 +2134,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
           _commonElements.assertTest,
           <HInstruction>[pop()],
           _typeInferenceMap.getReturnTypeOf(_commonElements.assertTest),
-          const <DartType>[]);
+          const <DartType>[],
+          sourceInformation: sourceInformation);
     }
 
     void fail() {
@@ -2131,7 +2144,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
           _commonElements.assertThrow,
           <HInstruction>[pop()],
           _typeInferenceMap.getReturnTypeOf(_commonElements.assertThrow),
-          const <DartType>[]);
+          const <DartType>[],
+          sourceInformation: sourceInformation);
       pop();
     }
 
@@ -2814,7 +2828,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     addImplicitInstantiation(type);
     _pushStaticInvocation(
-        constructor, inputs, instructionType, const <DartType>[]);
+        constructor, inputs, instructionType, const <DartType>[],
+        sourceInformation: _sourceInformationBuilder.buildNew(node));
     removeImplicitInstantiation(type);
   }
 
@@ -2914,7 +2929,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       FunctionEntity setter = _elementMap.getMember(staticTarget);
       // Invoke the setter
       _pushStaticInvocation(setter, <HInstruction>[value],
-          _typeInferenceMap.getReturnTypeOf(setter), const <DartType>[]);
+          _typeInferenceMap.getReturnTypeOf(setter), const <DartType>[],
+          sourceInformation: _sourceInformationBuilder.buildSet(node));
       pop();
     } else {
       add(new HStaticStore(
@@ -3662,8 +3678,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       }
     }
 
-    _addTypeArguments(arguments, typeArguments,
-        _sourceInformationBuilder.buildCall(invocation, invocation));
+    SourceInformation sourceInformation =
+        _sourceInformationBuilder.buildCall(invocation, invocation);
+    _addTypeArguments(arguments, typeArguments, sourceInformation);
 
     HInstruction argumentsInstruction = buildLiteralList(arguments);
     add(argumentsInstruction);
@@ -3697,7 +3714,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
           typeArgumentCount,
         ],
         abstractValueDomain.dynamicType,
-        const <DartType>[]);
+        const <DartType>[],
+        sourceInformation: sourceInformation);
   }
 
   bool _unexpectedForeignArguments(ir.StaticInvocation invocation,
@@ -4472,7 +4490,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
           graph.addConstantInt(typeArguments.length, closedWorld),
         ],
         abstractValueDomain.dynamicType,
-        typeArguments);
+        typeArguments,
+        sourceInformation: sourceInformation);
 
     _buildInvokeSuper(Selectors.noSuchMethod_, containingClass, noSuchMethod,
         <HInstruction>[pop()], typeArguments, sourceInformation);
@@ -5167,7 +5186,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       List<HInstruction> compiledArguments = _completeCallArgumentsList(
           function, selector, providedArguments, currentNode);
       _enterInlinedMethod(function, compiledArguments, instanceType);
-      inlinedFrom(function, () {
+      inlinedFrom(function, sourceInformation, () {
         if (!isReachable) {
           _emitReturn(graph.addConstantNull(closedWorld), sourceInformation);
         } else {
@@ -6007,7 +6026,9 @@ class TryCatchFinallyBuilder {
             [exception],
             kernelBuilder._typeInferenceMap.getReturnTypeOf(
                 kernelBuilder._commonElements.traceFromException),
-            const <DartType>[]);
+            const <DartType>[],
+            sourceInformation:
+                kernelBuilder._sourceInformationBuilder.buildCatch(catchBlock));
         HInstruction traceInstruction = kernelBuilder.pop();
         Local traceVariable =
             kernelBuilder.localsMap.getLocalVariable(catchBlock.stackTrace);

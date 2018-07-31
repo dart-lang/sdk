@@ -144,6 +144,17 @@ class RecordingSourceMapper implements SourceMapper {
     nodeToSourceLocationsMap.register(node, codeOffset, sourceLocation);
     sourceMapper.register(node, codeOffset, sourceLocation);
   }
+
+  @override
+  void registerPush(
+      int codeOffset, SourceLocation sourceLocation, String inlinedMethodName) {
+    sourceMapper.registerPush(codeOffset, sourceLocation, inlinedMethodName);
+  }
+
+  @override
+  void registerPop(int codeOffset, {bool isEmpty: false}) {
+    sourceMapper.registerPop(codeOffset, isEmpty: isEmpty);
+  }
 }
 
 /// A wrapper of [SourceInformationProcessor] that records source locations and
@@ -447,6 +458,13 @@ class _LocationRecorder implements SourceMapper, LocationMap {
         .putIfAbsent(codeOffset, () => [])
         .add(sourceLocation);
   }
+
+  @override
+  void registerPush(int codeOffset, SourceLocation sourceLocation,
+      String inlinedMethodName) {}
+
+  @override
+  void registerPop(int codeOffset, {bool isEmpty: false}) {}
 
   Iterable<js.Node> get nodes => _nodeMap.keys;
 
