@@ -440,6 +440,17 @@ int Options::ParseArguments(int argc,
   }
 
   // Verify consistency of arguments.
+
+  // snapshot_depfile is an alias for depfile. Passing them both is an error.
+  if ((snapshot_deps_filename_ != NULL) && (depfile_ != NULL)) {
+    Log::PrintErr("Specify only one of --depfile and --snapshot_depfile\n");
+    return -1;
+  }
+  if (snapshot_deps_filename_ != NULL) {
+    depfile_ = snapshot_deps_filename_;
+    snapshot_deps_filename_ = NULL;
+  }
+
   if ((Options::package_root() != NULL) && (packages_file_ != NULL)) {
     Log::PrintErr(
         "Specifying both a packages directory and a packages "
@@ -455,9 +466,14 @@ int Options::ParseArguments(int argc,
     Log::PrintErr("Empty package file name specified.\n");
     return -1;
   }
-  if (((gen_snapshot_kind_ != kNone) || (snapshot_deps_filename_ != NULL)) &&
-      (snapshot_filename_ == NULL)) {
+  if ((gen_snapshot_kind_ != kNone) && (snapshot_filename_ == NULL)) {
     Log::PrintErr("Generating a snapshot requires a filename (--snapshot).\n");
+    return -1;
+  }
+  if ((gen_snapshot_kind_ == kNone) && (depfile_ != NULL) &&
+      (snapshot_filename_ == NULL) && (depfile_output_filename_ == NULL)) {
+    Log::PrintErr("Generating a depfile requires an output filename"
+                  " (--depfile-output-filename or --snapshot).\n");
     return -1;
   }
   if ((gen_snapshot_kind_ != kNone) && vm_run_app_snapshot) {

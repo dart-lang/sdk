@@ -172,7 +172,7 @@ static Dart_Handle EnvironmentCallback(Dart_Handle name) {
   }
 
 static void WriteDepsFile(Dart_Isolate isolate) {
-  if (Options::snapshot_deps_filename() == NULL) {
+  if (Options::depfile() == NULL) {
     return;
   }
   Loader::ResolveDependenciesAsFilePaths();
@@ -182,13 +182,17 @@ static void WriteDepsFile(Dart_Isolate isolate) {
   MallocGrowableArray<char*>* dependencies = isolate_data->dependencies();
   ASSERT(dependencies != NULL);
   File* file =
-      File::Open(NULL, Options::snapshot_deps_filename(), File::kWriteTruncate);
+      File::Open(NULL, Options::depfile(), File::kWriteTruncate);
   if (file == NULL) {
     ErrorExit(kErrorExitCode, "Error: Unable to open snapshot depfile: %s\n\n",
-              Options::snapshot_deps_filename());
+              Options::depfile());
   }
   bool success = true;
-  success &= file->Print("%s: ", Options::snapshot_filename());
+  if (Options::snapshot_filename() != NULL) {
+    success &= file->Print("%s: ", Options::snapshot_filename());
+  } else {
+    success &= file->Print("%s: ", Options::depfile_output_filename());
+  }
   for (intptr_t i = 0; i < dependencies->length(); i++) {
     char* dep = dependencies->At(i);
     success &= file->Print("%s ", dep);
@@ -208,13 +212,13 @@ static void WriteDepsFile(Dart_Isolate isolate) {
   success &= file->Print("\n");
   if (!success) {
     ErrorExit(kErrorExitCode, "Error: Unable to write snapshot depfile: %s\n\n",
-              Options::snapshot_deps_filename());
+              Options::depfile());
   }
   file->Release();
   dependencies->Clear();
 }
 
-static void SnapshotOnExitHook(int64_t exit_code) {
+static void OnExitHook(int64_t exit_code) {
   if (Dart_CurrentIsolate() != main_isolate) {
     Log::PrintErr(
         "A snapshot was requested, but a secondary isolate "
@@ -223,7 +227,9 @@ static void SnapshotOnExitHook(int64_t exit_code) {
     Platform::Exit(kErrorExitCode);
   }
   if (exit_code == 0) {
-    Snapshot::GenerateAppJIT(Options::snapshot_filename());
+    if (Options::gen_snapshot_kind() == kAppJIT) {
+      Snapshot::GenerateAppJIT(Options::snapshot_filename());
+    }
     WriteDepsFile(main_isolate);
   }
 }
@@ -671,7 +677,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
     isolate_data->set_kernel_buffer(kernel_buffer, kernel_buffer_size,
                                     true /*take ownership*/);
   }
-  if (is_main_isolate && (Options::snapshot_deps_filename() != NULL)) {
+  if (is_main_isolate && (Options::depfile() != NULL)) {
     isolate_data->set_dependencies(new MallocGrowableArray<char*>());
   }
 
@@ -1270,8 +1276,11 @@ void main(int argc, char** argv) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   vm_options.AddArgument("--precompilation");
 #endif
-  if (Options::gen_snapshot_kind() == kAppJIT) {
-    Process::SetExitHook(SnapshotOnExitHook);
+  // If we need to write an app-jit snapshot or a depfile, then add an exit
+  // hook that writes the snapshot and/or depfile as appropriate.
+  if ((Options::gen_snapshot_kind() == kAppJIT) ||
+      (Options::depfile() != NULL)) {
+    Process::SetExitHook(OnExitHook);
   }
 
   char* error = nullptr;
