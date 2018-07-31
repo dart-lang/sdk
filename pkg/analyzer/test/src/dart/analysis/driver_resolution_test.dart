@@ -3517,6 +3517,25 @@ main() {
         useCFE || Parser.useFasta ? 'StackTrace' : 'dynamic');
   }
 
+  test_invalid_const_constructor_initializer_field_multiple() async {
+    addTestFile(r'''
+var a = 0;
+class A {
+  final x = 0;
+  const A() : x = a;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var xRef = findNode.simple('x = a');
+    assertElement(xRef, findElement.field('x'));
+
+    var aRef = findNode.simple('a;');
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
   test_invalid_const_methodInvocation() async {
     addTestFile(r'''
 const a = 'foo';
