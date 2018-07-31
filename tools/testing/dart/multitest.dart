@@ -133,9 +133,9 @@ void extractTestsFromMultitest(Path filePath, Map<String, String> tests,
           if (_multitestOutcomes.contains(nextOutcome)) {
             outcomes[annotation.key].add(nextOutcome);
           } else {
-            DebugLogger
-                .warning("Warning: Invalid expectation '$nextOutcome' on line "
-                    "$lineCount:\n${annotation.rest} ");
+            DebugLogger.warning(
+                "Warning: Invalid expectation '$nextOutcome' on line "
+                "$lineCount:\n${annotation.rest} ");
           }
         }
       }

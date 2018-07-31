@@ -52,7 +52,7 @@ final TEST_SUITE_DIRECTORIES = [
 // This file is created by gclient runhooks.
 final VS_TOOLCHAIN_FILE = new Path("build/win_toolchain.json");
 
-Future testConfigurations(List<Configuration> configurations) async {
+Future testConfigurations(List<TestConfiguration> configurations) async {
   var startTime = new DateTime.now();
   // Extract global options from first configuration.
   var firstConf = configurations[0];

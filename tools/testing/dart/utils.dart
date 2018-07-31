@@ -426,8 +426,7 @@ class TestUtils {
       var native_path = new Path(path).toNativePath();
       // Running this in a shell sucks, but rmdir is not part of the standard
       // path.
-      return Process
-          .run('rmdir', ['/s', '/q', native_path], runInShell: true)
+      return Process.run('rmdir', ['/s', '/q', native_path], runInShell: true)
           .then((ProcessResult result) {
         if (result.exitCode != 0) {
           throw new Exception('Can\'t delete path $native_path. '
@@ -440,7 +439,7 @@ class TestUtils {
     }
   }
 
-  static void deleteTempSnapshotDirectory(Configuration configuration) {
+  static void deleteTempSnapshotDirectory(TestConfiguration configuration) {
     if (configuration.compiler == Compiler.appJit ||
         configuration.compiler == Compiler.precompiler ||
         configuration.compiler == Compiler.dartk ||
@@ -478,7 +477,7 @@ class TestUtils {
   /// test outcomes to this file in the '--output-directory'.
   static const resultLogFileName = "result.log";
 
-  static void ensureExists(String filename, Configuration configuration) {
+  static void ensureExists(String filename, TestConfiguration configuration) {
     if (!configuration.listTests && !existsCache.doesFileExist(filename)) {
       throw "'$filename' does not exist";
     }

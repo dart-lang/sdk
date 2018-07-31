@@ -364,7 +364,7 @@ compiler.''',
   /// Configurations are maps mapping from option keys to values. When
   /// encountering the first non-option string, the rest of the arguments are
   /// stored in the returned Map under the 'rest' key.
-  List<Configuration> parse(List<String> arguments) {
+  List<TestConfiguration> parse(List<String> arguments) {
     // Help supersedes all other arguments.
     if (arguments.contains("--help") || arguments.contains("-h")) {
       _printHelp(
@@ -518,7 +518,7 @@ compiler.''',
     return arguments;
   }
 
-  List<Configuration> _createConfigurations(
+  List<TestConfiguration> _createConfigurations(
       Map<String, dynamic> configuration) {
     var selectors = _expandSelectors(configuration);
 
@@ -557,9 +557,9 @@ compiler.''',
 
   /// Recursively expands a configuration with multiple values per key into a
   /// list of configurations with exactly one value per key.
-  List<Configuration> _expandConfigurations(
+  List<TestConfiguration> _expandConfigurations(
       Map<String, dynamic> data, Map<String, RegExp> selectors) {
-    var result = <Configuration>[];
+    var result = <TestConfiguration>[];
 
     // Handles a string option containing a space-separated list of words.
     listOption(String name) {
@@ -640,7 +640,7 @@ compiler.''',
           for (var modeName in modes.split(",")) {
             var mode = Mode.find(modeName);
 
-            var configuration = new Configuration(
+            var configuration = new TestConfiguration(
                 architecture: architecture,
                 compiler: compiler,
                 mode: mode,

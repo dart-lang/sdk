@@ -17,8 +17,8 @@ import 'runtime_configuration.dart';
 ///
 /// Includes the compiler used to compile the code, the runtime the result is
 /// executed on, etc.
-class Configuration {
-  Configuration(
+class TestConfiguration {
+  TestConfiguration(
       {this.architecture,
       this.compiler,
       this.mode,

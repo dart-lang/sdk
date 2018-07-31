@@ -9,7 +9,7 @@ import 'test_configurations.dart';
 
 void main(List<String> arguments) {
   Repository.uri = Uri.base;
-  var configurations = <Configuration>[];
+  var configurations = <TestConfiguration>[];
   for (var argument in arguments) {
     configurations.addAll(new OptionsParser().parse(argument.split(" ")));
   }

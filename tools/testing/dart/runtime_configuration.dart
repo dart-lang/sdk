@@ -18,9 +18,9 @@ import 'test_suite.dart';
 /// shared between multiple test cases, it should not be mutated after
 /// construction.
 abstract class RuntimeConfiguration {
-  Configuration _configuration;
+  TestConfiguration _configuration;
 
-  static RuntimeConfiguration _makeInstance(Configuration configuration) {
+  static RuntimeConfiguration _makeInstance(TestConfiguration configuration) {
     switch (configuration.runtime) {
       case Runtime.contentShellOnAndroid:
       case Runtime.chrome:
@@ -68,9 +68,8 @@ abstract class RuntimeConfiguration {
     throw "unreachable";
   }
 
-  factory RuntimeConfiguration(Configuration configuration) {
-    return _makeInstance(configuration)
-           .._configuration = configuration;
+  factory RuntimeConfiguration(TestConfiguration configuration) {
+    return _makeInstance(configuration).._configuration = configuration;
   }
 
   RuntimeConfiguration._subclass();

@@ -6,8 +6,8 @@ import 'package:status_file/environment.dart';
 
 import 'configuration.dart';
 
-typedef String _LookUpFunction(Configuration configuration);
-typedef bool _BoolLookUpFunction(Configuration configuration);
+typedef String _LookUpFunction(TestConfiguration configuration);
+typedef bool _BoolLookUpFunction(TestConfiguration configuration);
 
 // TODO(29756): Instead of synthesized negated variables like "unchecked",
 // consider adding support for "!" to status expressions.
@@ -44,7 +44,7 @@ final _variables = {
 };
 
 /// Gets the name of the runtime as it appears in status files.
-String _runtimeName(Configuration configuration) {
+String _runtimeName(TestConfiguration configuration) {
   // TODO(rnystrom): Handle "ff" being used as the name for firefox. We don't
   // want to make the Runtime itself use that as the name because it appears
   // elsewhere in test.dart and we want those other places to show "firefox".
@@ -60,7 +60,7 @@ String _runtimeName(Configuration configuration) {
 /// is only a subset of the full set of command line arguments.
 class ConfigurationEnvironment implements Environment {
   /// The configuration where variable data is found.
-  final Configuration _configuration;
+  final TestConfiguration _configuration;
 
   ConfigurationEnvironment(this._configuration);
 
@@ -106,7 +106,7 @@ class ConfigurationEnvironment implements Environment {
 /// Each variable is an enumerated string type that only accepts a limited range
 /// of values. Each instance of this class defines one variable, the values it
 /// permits, and the logic needed to look up the variable's value from a
-/// [Configuration]
+/// [TestConfiguration]
 class _Variable {
   final _LookUpFunction _lookUp;
   final List<String> allowedValues;
@@ -119,5 +119,5 @@ class _Variable {
       : _lookUp = ((configuration) => lookUp(configuration).toString()),
         allowedValues = const ["true", "false"];
 
-  String lookUp(Configuration configuration) => _lookUp(configuration);
+  String lookUp(TestConfiguration configuration) => _lookUp(configuration);
 }

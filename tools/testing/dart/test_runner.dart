@@ -94,7 +94,7 @@ class TestCase extends UniqueObject {
   Map<Command, CommandOutput> commandOutputs =
       new Map<Command, CommandOutput>();
 
-  Configuration configuration;
+  TestConfiguration configuration;
   String displayName;
   int _expectations = 0;
   int hash = 0;
@@ -364,7 +364,7 @@ class RunningProcess {
   List<String> diagnostics = <String>[];
   bool compilationSkipped = false;
   Completer<CommandOutput> completer;
-  Configuration configuration;
+  TestConfiguration configuration;
 
   RunningProcess(this.command, this.timeout, {this.configuration});
 
@@ -499,8 +499,8 @@ class RunningProcess {
             });
           }
 
-          Future
-              .wait([stdoutCompleter.future, stderrCompleter.future]).then((_) {
+          Future.wait([stdoutCompleter.future, stderrCompleter.future])
+              .then((_) {
             _commandComplete(exitCode);
           });
         });
@@ -668,8 +668,8 @@ class BatchRunnerProcess {
     _process.stdin.write(line);
     _stdoutSubscription.resume();
     _stderrSubscription.resume();
-    Future.wait([_stdoutCompleter.future, _stderrCompleter.future]).then(
-        (_) => _reportResult());
+    Future.wait([_stdoutCompleter.future, _stderrCompleter.future])
+        .then((_) => _reportResult());
   }
 
   String _createArgumentsLine(List<String> arguments, int timeout) {
@@ -1097,7 +1097,7 @@ abstract class CommandExecutor {
 }
 
 class CommandExecutorImpl implements CommandExecutor {
-  final Configuration globalConfiguration;
+  final TestConfiguration globalConfiguration;
   final int maxProcesses;
   final int maxBrowserProcesses;
   AdbDevicePool adbDevicePool;
@@ -1106,7 +1106,7 @@ class CommandExecutorImpl implements CommandExecutor {
   // we keep a list of batch processes.
   final _batchProcesses = new Map<String, List<BatchRunnerProcess>>();
   // We keep a BrowserTestRunner for every configuration.
-  final _browserTestRunners = new Map<Configuration, BrowserTestRunner>();
+  final _browserTestRunners = new Map<TestConfiguration, BrowserTestRunner>();
 
   bool _finishing = false;
 
@@ -1317,7 +1317,7 @@ class CommandExecutorImpl implements CommandExecutor {
   }
 
   Future<BrowserTestRunner> _getBrowserTestRunner(
-      Configuration configuration) async {
+      TestConfiguration configuration) async {
     if (_browserTestRunners[configuration] == null) {
       var testRunner = new BrowserTestRunner(
           configuration, globalConfiguration.localIP, maxBrowserProcesses);
@@ -1487,7 +1487,7 @@ class TestCaseCompleter {
 }
 
 class ProcessQueue {
-  Configuration _globalConfiguration;
+  TestConfiguration _globalConfiguration;
 
   Function _allDone;
   final Graph<Command> _graph = new Graph();

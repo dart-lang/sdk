@@ -194,8 +194,8 @@ Future<Null> resetSafariSettings() async {
   for (String setting in safariSettings) {
     await deleteIfExists(homeDirectory.resolve(setting));
   }
-  var result = await Process
-      .run(defaultsLocation, <String>["write", safari, knownSafariPreference]);
+  var result = await Process.run(
+      defaultsLocation, <String>["write", safari, knownSafariPreference]);
   if (result.exitCode != 0) {
     throw "Unable to reset Safari settings: ${result.stdout}${result.stderr}";
   }

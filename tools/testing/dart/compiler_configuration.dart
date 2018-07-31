@@ -32,7 +32,7 @@ class CommandArtifact {
 }
 
 abstract class CompilerConfiguration {
-  final Configuration _configuration;
+  final TestConfiguration _configuration;
 
   bool get _isDebug => _configuration.mode.isDebug;
   bool get _isChecked => _configuration.isChecked;
@@ -46,7 +46,7 @@ abstract class CompilerConfiguration {
   /// expects a compile-time error and the compiler did not emit one.
   bool get runRuntimeDespiteMissingCompileTimeError => false;
 
-  factory CompilerConfiguration(Configuration configuration) {
+  factory CompilerConfiguration(TestConfiguration configuration) {
     switch (configuration.compiler) {
       case Compiler.dart2analyzer:
         return new AnalyzerCompilerConfiguration(configuration);
@@ -155,7 +155,7 @@ abstract class CompilerConfiguration {
 
 /// The "none" compiler.
 class NoneCompilerConfiguration extends CompilerConfiguration {
-  NoneCompilerConfiguration(Configuration configuration)
+  NoneCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
   bool get hasCompiler => false;
@@ -201,7 +201,7 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
 
 class VMKernelCompilerConfiguration extends CompilerConfiguration
     with VMKernelCompilerMixin {
-  VMKernelCompilerConfiguration(Configuration configuration)
+  VMKernelCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
   bool get _isAot => false;
@@ -301,7 +301,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
   final List<PipelineCommand> pipelineCommands;
 
   ComposedCompilerConfiguration(
-      Configuration configuration, this.pipelineCommands)
+      TestConfiguration configuration, this.pipelineCommands)
       : super._subclass(configuration);
 
   CommandArtifact computeCompilationArtifact(String tempDir,
@@ -362,7 +362,7 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
   final String moniker;
   static Map<String, List<Uri>> _bootstrapDependenciesCache = {};
 
-  Dart2xCompilerConfiguration(this.moniker, Configuration configuration)
+  Dart2xCompilerConfiguration(this.moniker, TestConfiguration configuration)
       : super._subclass(configuration);
 
   String computeCompilerPath() {
@@ -413,7 +413,7 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
 
 /// Configuration for dart2js.
 class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
-  Dart2jsCompilerConfiguration(Configuration configuration)
+  Dart2jsCompilerConfiguration(TestConfiguration configuration)
       : super('dart2js', configuration);
 
   int get timeoutMultiplier {
@@ -466,7 +466,8 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
 class DevCompilerConfiguration extends CompilerConfiguration {
   final bool useKernel;
 
-  DevCompilerConfiguration(Configuration configuration, {this.useKernel: false})
+  DevCompilerConfiguration(TestConfiguration configuration,
+      {this.useKernel: false})
       : super._subclass(configuration);
 
   String get compilerName => useKernel ? 'dartdevk' : 'dartdevc';
@@ -579,7 +580,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
   bool get _isAot => true;
 
-  PrecompilerCompilerConfiguration(Configuration configuration,
+  PrecompilerCompilerConfiguration(TestConfiguration configuration,
       {this.previewDart2: true})
       : super._subclass(configuration);
 
@@ -826,7 +827,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 class AppJitCompilerConfiguration extends CompilerConfiguration {
   final bool previewDart2;
 
-  AppJitCompilerConfiguration(Configuration configuration,
+  AppJitCompilerConfiguration(TestConfiguration configuration,
       {this.previewDart2: true})
       : super._subclass(configuration);
 
@@ -912,7 +913,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
 
 /// Configuration for dartanalyzer.
 class AnalyzerCompilerConfiguration extends CompilerConfiguration {
-  AnalyzerCompilerConfiguration(Configuration configuration)
+  AnalyzerCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
   int get timeoutMultiplier => 4;
@@ -967,7 +968,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
 
 /// Configuration for spec_parser.
 class SpecParserCompilerConfiguration extends CompilerConfiguration {
-  SpecParserCompilerConfiguration(Configuration configuration)
+  SpecParserCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
   String computeCompilerPath() => 'tools/spec_parse.py';
@@ -994,7 +995,7 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
 }
 
 abstract class VMKernelCompilerMixin {
-  Configuration get _configuration;
+  TestConfiguration get _configuration;
   bool get _useSdk;
   bool get _isAot;
   bool get _isChecked;
@@ -1066,7 +1067,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
 
   bool get _isLegacy => _configuration.noPreviewDart2;
 
-  factory FastaCompilerConfiguration(Configuration configuration) {
+  factory FastaCompilerConfiguration(TestConfiguration configuration) {
     var buildDirectory =
         Uri.base.resolveUri(new Uri.directory(configuration.buildDirectory));
 
@@ -1085,7 +1086,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
   }
 
   FastaCompilerConfiguration._(
-      this._platformDill, this._vmExecutable, Configuration configuration)
+      this._platformDill, this._vmExecutable, TestConfiguration configuration)
       : super._subclass(configuration);
 
   @override

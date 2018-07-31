@@ -119,7 +119,7 @@ class FutureGroup {
  * and a status file containing the expected results when these tests are run.
  */
 abstract class TestSuite {
-  final Configuration configuration;
+  final TestConfiguration configuration;
   final String suiteName;
   final List<String> statusFilePaths;
   // This function is set by subclasses before enqueueing starts.
@@ -437,7 +437,7 @@ class VMTestSuite extends TestSuite {
   String hostRunnerPath;
   final String dartDir;
 
-  VMTestSuite(Configuration configuration)
+  VMTestSuite(TestConfiguration configuration)
       : dartDir = Repository.dir.toNativePath(),
         super(configuration, "vm", ["runtime/tests/vm/vm.status"]) {
     // For running the tests we use the given '$runnerName' binary
@@ -569,7 +569,7 @@ class StandardTestSuite extends TestSuite {
   static final Uri legacyCo19SuiteLocation =
       Repository.uri.resolve("tests/co19/");
 
-  StandardTestSuite(Configuration configuration, String suiteName,
+  StandardTestSuite(TestConfiguration configuration, String suiteName,
       Path suiteDirectory, List<String> statusFilePaths,
       {this.isTestFilePredicate, bool recursive: false})
       : dartDir = Repository.dir,
@@ -616,7 +616,7 @@ class StandardTestSuite extends TestSuite {
    * in test.dart, this will all be set up for you.
    */
   factory StandardTestSuite.forDirectory(
-      Configuration configuration, Path directory) {
+      TestConfiguration configuration, Path directory) {
     var name = directory.filename;
     var status_paths = [
       '$directory/$name.status',
@@ -738,8 +738,8 @@ class StandardTestSuite extends TestSuite {
     if (isHtmlTestFile(filename)) {
       var info = html_test.getInformation(filename);
       if (info == null) {
-        DebugLogger
-            .error("HtmlTest $filename does not contain required annotations");
+        DebugLogger.error(
+            "HtmlTest $filename does not contain required annotations");
         return;
       }
       cachedTests.add(info);
@@ -1676,7 +1676,7 @@ class StandardTestSuite extends TestSuite {
 /// Used for testing packages in on off settings, i.e., we pass in the actual
 /// directory that we want to test.
 class PKGTestSuite extends StandardTestSuite {
-  PKGTestSuite(Configuration configuration, Path directoryPath)
+  PKGTestSuite(TestConfiguration configuration, Path directoryPath)
       : super(configuration, directoryPath.filename, directoryPath,
             ["$directoryPath/.status"],
             isTestFilePredicate: (f) => f.endsWith('_test.dart'),
@@ -1702,14 +1702,14 @@ class PKGTestSuite extends StandardTestSuite {
 }
 
 class AnalyzeLibraryTestSuite extends StandardTestSuite {
-  static Path _libraryPath(Configuration configuration) =>
+  static Path _libraryPath(TestConfiguration configuration) =>
       new Path(configuration.useSdk
           ? '${configuration.buildDirectory}/dart-sdk'
           : 'sdk');
 
   bool get listRecursively => true;
 
-  AnalyzeLibraryTestSuite(Configuration configuration)
+  AnalyzeLibraryTestSuite(TestConfiguration configuration)
       : super(configuration, 'analyze_library', _libraryPath(configuration),
             ['tests/lib/analyzer/analyze_library.status']);
 
