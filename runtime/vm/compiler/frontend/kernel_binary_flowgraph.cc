@@ -4353,8 +4353,10 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement() {
   }
   otherwise_fragment += PushArgument();  // message
 
+  // Note: condition_start_offset points to the first token after the opening
+  // paren, not the beginning of 'assert'.
   otherwise_fragment +=
-      StaticCall(TokenPosition::kNoSource, target, 3, ICData::kStatic);
+      StaticCall(condition_start_offset, target, 3, ICData::kStatic);
   otherwise_fragment += PushArgument();
   otherwise_fragment += ThrowException(TokenPosition::kNoSource);
   otherwise_fragment += Drop();
