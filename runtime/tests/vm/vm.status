@@ -24,7 +24,7 @@ dart/data_uri_import_test/none: SkipByDesign
 cc/CodeImmutability: Fail, OK # Address Sanitizer turns a crash into a failure.
 
 [ $builder_tag == optimization_counter_threshold ]
-dart/appjit_cha_deopt_test: SkipByDesign # Test needs to a particular opt-counter value
+dart/appjit*: SkipByDesign # Test needs to a particular opt-counter value
 
 [ $compiler == app_jit ]
 dart/snapshot_version_test: Fail, OK # Expects to find script snapshot relative to Dart source.
@@ -55,7 +55,6 @@ dart/wrap_around_in_range_analysis_test: SkipByDesign # The test requires int64.
 
 [ $compiler == dartk ]
 cc/DartAPI_New: Fail # Issue #33041
-dart/appjit_cha_deopt_test: SkipSlow # Issue 33266
 dart/redirection_type_shuffling_test/00: RuntimeError, Pass
 dart/redirection_type_shuffling_test/none: RuntimeError
 
@@ -230,11 +229,6 @@ cc/MismatchedSnapshotKinds: Fail, Crash, OK # Script snapshots not supported in 
 cc/ScriptSnapshot1: Fail, Crash, OK # Script snapshots not supported in Dart 2
 cc/ScriptSnapshotsUpdateSubclasses: Fail, Crash, OK # Script snapshots not supported in Dart 2
 
-[ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simdbc || $arch == simdbc64) ]
-dart/appjit_cha_deopt_test: SkipSlow # DFE too slow
-dart/appjit_determinism_test: SkipSlow # DFE too slow
-dart/script_determinism_test: SkipSlow # DFE too slow
-
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
@@ -245,9 +239,8 @@ dart/snapshot_version_test: RuntimeError # Please triage.
 [ $compiler == dartk && ($hot_reload || $hot_reload_rollback) ]
 dart/data_uri_spawn_test: Skip # Timeout
 
-[ $compiler != dartk && $compiler != none ]
-dart/appjit_cha_deopt_test: SkipByDesign # Test needs to run from source
-dart/appjit_determinism_test: SkipByDesign # Test needs to run from source
+[ $compiler != dartk && $compiler != dartkb && $compiler != none ]
+dart/appjit*: SkipByDesign # Test needs to run from source
 dart/script_determinism_test: SkipByDesign # Test needs to run from source
 
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
@@ -268,6 +261,10 @@ cc/DartAPI_IsolateSetCheckedMode: Fail, OK # Checked mode disabled in product mo
 [ $runtime == dart_precompiled && $minified ]
 dart/inline_stack_frame_test: Skip
 dart/optimized_stacktrace_line_test: Skip
+
+[ ($arch == simarm || $arch == simarm64 || $arch == simdbc || $arch == simdbc64) && ($compiler == dartk || $compiler == dartkb) ]
+dart/appjit*: SkipSlow # DFE too slow
+dart/script_determinism_test: SkipSlow # DFE too slow
 
 # Profiler is completely disabled in SIMDBC builds.
 # On the simluator stack traces produced by the Profiler do not match
@@ -359,8 +356,7 @@ cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
 
 [ $hot_reload || $hot_reload_rollback ]
-dart/appjit_cha_deopt_test: SkipByDesign # Cannot reload with URI pointing to app snapshot.
-dart/appjit_determinism_test: SkipByDesign # Reload affects determinisim
+dart/appjit*: SkipByDesign # Cannot reload with URI pointing to app snapshot.
 dart/script_determinism_test: SkipByDesign # Cannot reload with URI pointing to script snapshot.
 dart/slow_path_shared_stub_test: SkipSlow # Too slow with --slow-path-triggers-gc flag and not relevant outside precompiled.
 dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.
