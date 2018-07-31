@@ -326,10 +326,8 @@ vm/unaligned_integer_access_register_index_test: RuntimeError # Uppercase consta
 closure_cycles_test: Pass, Slow
 large_class_declaration_test: SkipSlow # Uses too much memory.
 
-[ $arch == ia32 && $compiler == none && $mode == debug && $runtime == vm && $system == windows ]
-disassemble_test: Crash # Issue 34030
-
 [ $arch == ia32 && $compiler == none && $runtime == vm && $system == windows ]
+disassemble_test: Pass, Crash # Issue 34030
 vm/optimized_stacktrace_test: Pass, Crash # Issue 28276
 
 [ $arch == ia32 && $mode == release && $runtime == vm ]
