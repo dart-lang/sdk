@@ -1691,7 +1691,7 @@ class ShadowInvalidInitializer extends LocalInitializer
 /// Concrete shadow object representing an invalid initializer in kernel form.
 class ShadowInvalidFieldInitializer extends LocalInitializer
     implements InitializerJudgment {
-  final Field field;
+  final Node field;
   final Expression value;
 
   ShadowInvalidFieldInitializer(
@@ -1705,7 +1705,9 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
   @override
   void infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer) {
-    inferrer.inferExpression(value, field.type, false);
+    var field = this.field;
+    var typeContext = field is Field ? field.type : const UnknownType();
+    inferrer.inferExpression(value, typeContext, false);
     inferrer.listener.fieldInitializer(
         this, fileOffset, null, null, null, null, null, field);
   }

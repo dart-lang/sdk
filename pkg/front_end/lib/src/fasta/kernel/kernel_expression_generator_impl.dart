@@ -44,15 +44,13 @@ class ThisAccessGenerator extends KernelGenerator {
   }
 
   @override
-  Initializer buildFieldInitializer(Map<String, int> initializedFields) {
+  Expression buildFieldInitializerError() {
     String keyword = isSuper ? "super" : "this";
     int offset = offsetForToken(token);
-    return helper.buildInvalidInitializer(
-        helper.buildCompileTimeError(
-            templateThisOrSuperAccessInFieldInitializer.withArguments(keyword),
-            offset,
-            keyword.length),
-        offset);
+    return helper.buildCompileTimeError(
+        templateThisOrSuperAccessInFieldInitializer.withArguments(keyword),
+        offset,
+        keyword.length);
   }
 
   buildPropertyAccess(

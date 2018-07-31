@@ -65,6 +65,9 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   String get name => library.name;
 
   @override
+  bool get hasTarget => true;
+
+  @override
   Library get target => library;
 
   void becomeCoreLibrary(dynamicType) {

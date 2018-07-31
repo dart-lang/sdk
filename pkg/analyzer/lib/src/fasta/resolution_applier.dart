@@ -207,10 +207,11 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     var element = _translateReference(_get(node.equals));
-    FieldElement fieldElement =
-        element is PropertyAccessorElement ? element.variable : null;
-    node.fieldName.staticElement = fieldElement;
-    node.fieldName.staticType = fieldElement.type;
+    if (element is PropertyAccessorElement) {
+      node.fieldName.staticElement = element.variable;
+    } else {
+      node.fieldName.staticElement = element;
+    }
 
     node.expression.accept(this);
   }

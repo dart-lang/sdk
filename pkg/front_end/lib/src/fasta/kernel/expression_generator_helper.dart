@@ -83,6 +83,9 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   Expression wrapInProblem(Expression expression, Message message, int length,
       {List<LocatedMessage> context});
 
+  Initializer buildInvalidFieldInitializer(int offset, bool isSynthetic,
+      Node target, Expression value, Expression error);
+
   Initializer buildInvalidInitializer(Expression expression, [int offset]);
 
   Initializer buildFieldInitializer(

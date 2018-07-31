@@ -85,6 +85,9 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
     return field;
   }
 
+  @override
+  bool get hasTarget => true;
+
   Field get target => field;
 
   @override

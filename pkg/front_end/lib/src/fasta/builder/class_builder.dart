@@ -66,9 +66,6 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   @override
   bool get buildsArguments => true;
 
-  @override
-  bool get hasTarget => true;
-
   /// Returns true if this class is the result of applying a mixin to its
   /// superclass.
   bool get isMixinApplication => mixedInType != null;

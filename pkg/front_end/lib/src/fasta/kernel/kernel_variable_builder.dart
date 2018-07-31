@@ -28,6 +28,9 @@ class KernelVariableBuilder extends Declaration {
 
   bool get isFinal => variable.isFinal;
 
+  @override
+  bool get hasTarget => true;
+
   VariableDeclaration get target => variable;
 
   @override

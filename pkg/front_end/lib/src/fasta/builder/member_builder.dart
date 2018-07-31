@@ -17,6 +17,9 @@ abstract class MemberBuilder extends ModifierBuilder {
 
   MemberBuilder(this.parent, int charOffset) : super(parent, charOffset);
 
+  @override
+  bool get hasTarget => true;
+
   bool get isInstanceMember => isClassMember && !isStatic;
 
   bool get isClassMember => parent is ClassBuilder;

@@ -54,6 +54,9 @@ class KernelTypeVariableBuilder
 
   TypeParameter get parameter => origin.actualParameter;
 
+  @override
+  bool get hasTarget => true;
+
   TypeParameter get target => parameter;
 
   DartType buildType(

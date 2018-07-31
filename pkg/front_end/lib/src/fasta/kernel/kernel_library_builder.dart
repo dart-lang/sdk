@@ -163,6 +163,9 @@ class KernelLibraryBuilder
   KernelLibraryBuilder get origin => actualOrigin ?? this;
 
   @override
+  bool get hasTarget => true;
+
+  @override
   Library get target => library;
 
   Uri get uri => library.importUri;

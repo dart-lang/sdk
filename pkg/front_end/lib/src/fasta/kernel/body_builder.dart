@@ -631,8 +631,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Initializer initializer;
     if (node is Initializer) {
       initializer = node;
-    } else if (node is Generator) {
-      initializer = node.buildFieldInitializer(initializedFields);
+    } else if (node is DelayedAssignment) {
+      initializer = node.buildFieldInitializer();
     } else if (node is ConstructorInvocation) {
       initializer = buildSuperInitializer(
           false, node.target, node.arguments, token.charOffset);
@@ -4058,6 +4058,16 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  Initializer buildInvalidFieldInitializer(int offset, bool isSynthetic,
+      Node target, Expression value, Expression error) {
+    needsImplicitSuperInitializer = false;
+    return new ShadowInvalidFieldInitializer(
+        target, value, new VariableDeclaration.forValue(error))
+      ..fileOffset = offset
+      ..isSynthetic = isSynthetic;
+  }
+
+  @override
   Initializer buildInvalidInitializer(Expression expression,
       [int charOffset = -1]) {
     needsImplicitSuperInitializer = false;
@@ -4155,12 +4165,17 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           ..isSynthetic = isSynthetic;
       }
     } else {
-      return buildInvalidInitializer(
-          buildCompileTimeError(
-              fasta.templateInitializerForStaticField.withArguments(name),
-              offset,
-              name.length),
-          offset);
+      builder ??= classBuilder.scope.setters[name];
+      var error = buildCompileTimeError(
+          fasta.templateInitializerForStaticField.withArguments(name),
+          offset,
+          name.length);
+      return buildInvalidFieldInitializer(
+          offset,
+          isSynthetic,
+          builder != null && builder.hasTarget ? builder.target : null,
+          expression,
+          error);
     }
   }
 

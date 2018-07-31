@@ -3625,6 +3625,196 @@ const c = throw 42;
     assertType(throwExpression.expression, 'int');
   }
 
+  test_invalid_constructor_initializer_field_class() async {
+    addTestFile(r'''
+var a = 0;
+class A {
+  A() : X = a;
+}
+class X {}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var xRef = findNode.simple('X = ');
+    if (useCFE) {
+      assertElement(xRef, findElement.class_('X'));
+    } else {
+      assertElementNull(xRef);
+    }
+
+    var aRef = findNode.simple('a;');
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_invalid_constructor_initializer_field_getter() async {
+    addTestFile(r'''
+var a = 0;
+class A {
+  A() : x = a;
+  int get x => 0;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var xRef = findNode.simple('x = ');
+    assertElement(xRef, findElement.field('x'));
+
+    var aRef = findNode.simple('a;');
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_invalid_constructor_initializer_field_importPrefix() async {
+    addTestFile(r'''
+import 'dart:async' as x;
+var a = 0;
+class A {
+  A() : x = a;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var xRef = findNode.simple('x = ');
+    if (useCFE) {
+      assertElement(xRef, findElement.import('dart:async').prefix);
+    } else {
+      assertElementNull(xRef);
+    }
+
+    var aRef = findNode.simple('a;');
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_invalid_constructor_initializer_field_method() async {
+    addTestFile(r'''
+var a = 0;
+class A {
+  A() : x = a;
+  void x() {}
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var xRef = findNode.simple('x = ');
+    if (useCFE) {
+      assertElement(xRef, findElement.method('x'));
+    } else {
+      assertElementNull(xRef);
+    }
+
+    var aRef = findNode.simple('a;');
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_invalid_constructor_initializer_field_setter() async {
+    addTestFile(r'''
+var a = 0;
+class A {
+  A() : x = a;
+  set x(_) {}
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var xRef = findNode.simple('x = ');
+    assertElement(xRef, findElement.field('x'));
+
+    var aRef = findNode.simple('a;');
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_invalid_constructor_initializer_field_topLevelFunction() async {
+    addTestFile(r'''
+var a = 0;
+class A {
+  A() : x = a;
+}
+void x() {}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var xRef = findNode.simple('x = ');
+    if (useCFE) {
+      assertElement(xRef, findElement.topFunction('x'));
+    } else {
+      assertElementNull(xRef);
+    }
+
+    var aRef = findNode.simple('a;');
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_invalid_constructor_initializer_field_topLevelVar() async {
+    addTestFile(r'''
+var a = 0;
+class A {
+  A() : x = a;
+}
+int x;
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var xRef = findNode.simple('x = ');
+    if (useCFE) {
+      assertElement(xRef, findElement.topVar('x'));
+    } else {
+      assertElementNull(xRef);
+    }
+
+    var aRef = findNode.simple('a;');
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_invalid_constructor_initializer_field_typeParameter() async {
+    addTestFile(r'''
+var a = 0;
+class A<T> {
+  A() : T = a;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var tRef = findNode.simple('T = ');
+    if (useCFE) {
+      assertElement(tRef, findElement.typeParameter('T'));
+    } else {
+      assertElementNull(tRef);
+    }
+
+    var aRef = findNode.simple('a;');
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
+  test_invalid_constructor_initializer_field_unresolved() async {
+    addTestFile(r'''
+var a = 0;
+class A {
+  A() : x = a;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var aRef = findNode.simple('a;');
+    assertElement(aRef, findElement.topGet('a'));
+    assertType(aRef, 'int');
+  }
+
   test_invalid_fieldInitializer_field() async {
     addTestFile(r'''
 class C {

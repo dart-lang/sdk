@@ -1103,6 +1103,9 @@ class KernelStaticAccessGenerator extends KernelGenerator
         super(helper, token);
 
   @override
+  Node get fieldInitializerTarget => readTarget;
+
+  @override
   String get plainNameForRead => (readTarget ?? writeTarget).name.name;
 
   @override
@@ -1288,6 +1291,10 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
     }
     return super.expression;
   }
+
+  @override
+  Node get fieldInitializerTarget =>
+      declaration.hasTarget ? declaration.target : null;
 
   @override
   Expression makeInvalidWrite(Expression value) {

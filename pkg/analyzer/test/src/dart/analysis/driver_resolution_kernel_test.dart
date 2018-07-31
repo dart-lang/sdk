@@ -38,6 +38,12 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
 
   @override
   @failingTest
+  test_invalid_constructor_initializer_field_importPrefix() async {
+    await super.test_invalid_constructor_initializer_field_importPrefix();
+  }
+
+  @override
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/33858')
   test_invalid_fieldInitializer_this() async {
     await super.test_invalid_fieldInitializer_this();

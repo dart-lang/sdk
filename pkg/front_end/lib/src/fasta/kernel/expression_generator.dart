@@ -72,6 +72,7 @@ import 'kernel_ast_api.dart'
         InvalidType,
         Member,
         Name,
+        Node,
         Procedure,
         StaticInvocationJudgment,
         SyntheticExpressionJudgment,
@@ -192,12 +193,12 @@ abstract class Generator implements ExpressionGenerator {
 
   Expression buildForEffect() => buildSimpleRead();
 
-  Initializer buildFieldInitializer(Map<String, int> initializedFields) {
+  Node get fieldInitializerTarget => null;
+
+  Expression buildFieldInitializerError() {
     int offset = offsetForToken(token);
-    return helper.buildInvalidInitializer(
-        new SyntheticExpressionJudgment(helper.buildCompileTimeError(
-            messageInvalidInitializer, offset, lengthForToken(token))),
-        offset);
+    return helper.buildCompileTimeError(
+        messageInvalidInitializer, offset, lengthForToken(token));
   }
 
   /* Expression | Generator | Initializer */ doInvocation(
@@ -724,9 +725,8 @@ abstract class ErroneousExpressionGenerator implements Generator {
   withReceiver(Object receiver, int operatorOffset, {bool isNullAware}) => this;
 
   @override
-  Initializer buildFieldInitializer(Map<String, int> initializedFields) {
-    return helper.buildInvalidInitializer(new SyntheticExpressionJudgment(
-        buildError(forest.argumentsEmpty(token), isSetter: true)));
+  Expression buildFieldInitializerError() {
+    return buildError(forest.argumentsEmpty(token), isSetter: true);
   }
 
   @override
@@ -1012,11 +1012,15 @@ abstract class DelayedAssignment implements ContextAwareGenerator {
     }
   }
 
-  @override
-  Initializer buildFieldInitializer(Map<String, int> initializedFields) {
+  Initializer buildFieldInitializer() {
     if (!identical("=", assignmentOperator) ||
         !generator.isThisPropertyAccess) {
-      return generator.buildFieldInitializer(initializedFields);
+      return helper.buildInvalidFieldInitializer(
+          offsetForToken(token),
+          false,
+          generator.fieldInitializerTarget,
+          value,
+          generator.buildFieldInitializerError());
     }
     return helper.buildFieldInitializer(
         false, generator.plainNameForRead, offsetForToken(token), value);

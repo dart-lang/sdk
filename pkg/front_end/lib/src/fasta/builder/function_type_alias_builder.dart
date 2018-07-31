@@ -27,9 +27,6 @@ abstract class FunctionTypeAliasBuilder<T extends TypeBuilder, R>
   @override
   bool get buildsArguments => true;
 
-  @override
-  bool get hasTarget => true;
-
   LibraryBuilder get parent => super.parent;
 
   int get typeVariablesCount;

@@ -486,6 +486,9 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
     return super.buildFunction(library)..returnType = const VoidType();
   }
 
+  @override
+  bool get hasTarget => true;
+
   Constructor get target => origin.constructor;
 
   void checkSuperOrThisInitializer(Initializer initializer) {

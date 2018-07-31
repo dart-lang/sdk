@@ -112,6 +112,9 @@ abstract class KernelClassBuilder
 
   Class get cls;
 
+  @override
+  bool get hasTarget => true;
+
   Class get target => cls;
 
   Class get actualCls;
