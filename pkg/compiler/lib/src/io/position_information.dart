@@ -907,7 +907,10 @@ class JavaScriptTracer extends js.BaseVisitor {
   @override
   visitNew(js.New node) {
     visit(node.target);
+    int oldPosition = offsetPosition;
+    offsetPosition = null;
     visitList(node.arguments);
+    offsetPosition = oldPosition;
     if (offsetPosition == null) {
       // Use the syntax offset if this is not the first subexpression.
       offsetPosition = getSyntaxOffset(node);
