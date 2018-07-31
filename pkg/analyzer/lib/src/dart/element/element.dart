@@ -6658,14 +6658,18 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
             }
           }
         }
+
         // Create import elements.
         var imports = new List<ImportElement>(numOfImports + (hasCore ? 0 : 1));
+        int importIndex = 0;
         for (int i = 0; i < numOfDependencies; i++) {
           kernel.LibraryDependency dependency = dependencies[i];
           if (dependency.isImport) {
-            imports[i] = new ImportElementImpl.forKernel(this, dependency);
+            imports[importIndex++] =
+                new ImportElementImpl.forKernel(this, dependency);
           }
         }
+
         // If dart:core is not imported explicitly, import it implicitly.
         if (!hasCore) {
           imports[numOfImports] = new ImportElementImpl.forKernel(this,

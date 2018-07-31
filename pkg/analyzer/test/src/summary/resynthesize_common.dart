@@ -6574,6 +6574,26 @@ dynamic main() {}
 ''');
   }
 
+  test_import_export() async {
+    addLibrary('dart:async');
+    var library = await checkLibrary('''
+import 'dart:async' as i1;
+export 'dart:math';
+import 'dart:async' as i2;
+export 'dart:math';
+import 'dart:async' as i3;
+export 'dart:math';
+''');
+    checkElementText(library, r'''
+import 'dart:async' as i1;
+import 'dart:async' as i2;
+import 'dart:async' as i3;
+export 'dart:math';
+export 'dart:math';
+export 'dart:math';
+''');
+  }
+
   test_import_hide() async {
     addLibrary('dart:async');
     var library = await checkLibrary('''
