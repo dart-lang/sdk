@@ -6,7 +6,7 @@
 
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/il_printer.h"
-#include "vm/compiler/frontend/kernel_to_il.h"
+#include "vm/compiler/frontend/base_flow_graph_builder.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/kernel_loader.h"
 #include "vm/longjump.h"

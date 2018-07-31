@@ -7,7 +7,7 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
-#include "vm/compiler/frontend/kernel_to_il.h"
+#include "vm/compiler/frontend/base_flow_graph_builder.h"
 
 namespace dart {
 namespace kernel {

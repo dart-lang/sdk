@@ -5,6 +5,7 @@
 #include "vm/compiler/frontend/kernel_binary_flowgraph.h"
 
 #include "vm/compiler/frontend/bytecode_reader.h"
+#include "vm/compiler/frontend/flow_graph_builder.h"  // For dart::FlowGraphBuilder::SimpleInstanceOfType.
 #include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/object_store.h"

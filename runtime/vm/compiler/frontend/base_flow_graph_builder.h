@@ -1,0 +1,245 @@
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+#ifndef RUNTIME_VM_COMPILER_FRONTEND_BASE_FLOW_GRAPH_BUILDER_H_
+#define RUNTIME_VM_COMPILER_FRONTEND_BASE_FLOW_GRAPH_BUILDER_H_
+
+#include <initializer_list>
+
+#include "vm/compiler/backend/flow_graph.h"
+#include "vm/compiler/backend/il.h"
+#include "vm/object.h"
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
+namespace dart {
+
+class InlineExitCollector;
+
+namespace kernel {
+
+class TryCatchBlock;
+
+class Fragment {
+ public:
+  Instruction* entry;
+  Instruction* current;
+
+  Fragment() : entry(NULL), current(NULL) {}
+
+  Fragment(std::initializer_list<Fragment> list) : entry(NULL), current(NULL) {
+    for (Fragment i : list) {
+      *this += i;
+    }
+  }
+
+  explicit Fragment(Instruction* instruction)
+      : entry(instruction), current(instruction) {}
+
+  Fragment(Instruction* entry, Instruction* current)
+      : entry(entry), current(current) {}
+
+  bool is_open() { return entry == NULL || current != NULL; }
+  bool is_closed() { return !is_open(); }
+
+  void Prepend(Instruction* start);
+
+  Fragment& operator+=(const Fragment& other);
+  Fragment& operator<<=(Instruction* next);
+
+  Fragment closed();
+};
+
+Fragment operator+(const Fragment& first, const Fragment& second);
+Fragment operator<<(const Fragment& fragment, Instruction* next);
+
+typedef ZoneGrowableArray<PushArgumentInstr*>* ArgumentArray;
+
+class BaseFlowGraphBuilder {
+ public:
+  BaseFlowGraphBuilder(
+      const ParsedFunction* parsed_function,
+      intptr_t last_used_block_id,
+      ZoneGrowableArray<intptr_t>* context_level_array = nullptr,
+      InlineExitCollector* exit_collector = nullptr)
+      : parsed_function_(parsed_function),
+        function_(parsed_function_->function()),
+        thread_(Thread::Current()),
+        zone_(thread_->zone()),
+        context_level_array_(context_level_array),
+        context_depth_(0),
+        last_used_block_id_(last_used_block_id),
+        try_catch_block_(NULL),
+        next_used_try_index_(0),
+        stack_(NULL),
+        pending_argument_count_(0),
+        loop_depth_(0),
+        exit_collector_(exit_collector) {}
+
+  Fragment LoadField(intptr_t offset, intptr_t class_id = kDynamicCid);
+  Fragment LoadNativeField(const NativeFieldDesc* native_field);
+  Fragment LoadIndexed(intptr_t index_scale);
+
+  void SetTempIndex(Definition* definition);
+
+  Fragment LoadLocal(LocalVariable* variable);
+  Fragment StoreLocal(TokenPosition position, LocalVariable* variable);
+  Fragment StoreLocalRaw(TokenPosition position, LocalVariable* variable);
+  Fragment LoadContextAt(int depth);
+  Fragment StoreInstanceField(
+      TokenPosition position,
+      intptr_t offset,
+      StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
+
+  void Push(Definition* definition);
+  Value* Pop();
+  Fragment Drop();
+  // Drop given number of temps from the stack but preserve top of the stack.
+  Fragment DropTempsPreserveTop(intptr_t num_temps_to_drop);
+  Fragment MakeTemp();
+
+  // Create a pseudo-local variable for a location on the expression stack.
+  // Note: SSA construction currently does not support inserting Phi functions
+  // for expression stack locations - only real local variables are supported.
+  // This means that you can't use MakeTemporary in a way that would require
+  // a Phi in SSA form. For example example below will be miscompiled or
+  // will crash debug VM with assertion when building SSA for optimizing
+  // compiler:
+  //
+  //     t = MakeTemporary()
+  //     Branch B1 or B2
+  //     B1:
+  //       StoreLocal(t, v0)
+  //       goto B3
+  //     B2:
+  //       StoreLocal(t, v1)
+  //       goto B3
+  //     B3:
+  //       LoadLocal(t)
+  //
+  LocalVariable* MakeTemporary();
+
+  Fragment PushArgument();
+  ArgumentArray GetArguments(int count);
+
+  TargetEntryInstr* BuildTargetEntry();
+  JoinEntryInstr* BuildJoinEntry();
+  JoinEntryInstr* BuildJoinEntry(intptr_t try_index);
+
+  Fragment StrictCompare(Token::Kind kind, bool number_check = false);
+  Fragment Goto(JoinEntryInstr* destination);
+  Fragment IntConstant(int64_t value);
+  Fragment Constant(const Object& value);
+  Fragment NullConstant();
+  Fragment SmiRelationalOp(Token::Kind kind);
+  Fragment SmiBinaryOp(Token::Kind op, bool is_truncating = false);
+  Fragment LoadFpRelativeSlot(intptr_t offset);
+  Fragment StoreFpRelativeSlot(intptr_t offset);
+  Fragment BranchIfTrue(TargetEntryInstr** then_entry,
+                        TargetEntryInstr** otherwise_entry,
+                        bool negate = false);
+  Fragment BranchIfNull(TargetEntryInstr** then_entry,
+                        TargetEntryInstr** otherwise_entry,
+                        bool negate = false);
+  Fragment BranchIfEqual(TargetEntryInstr** then_entry,
+                         TargetEntryInstr** otherwise_entry,
+                         bool negate = false);
+  Fragment BranchIfStrictEqual(TargetEntryInstr** then_entry,
+                               TargetEntryInstr** otherwise_entry);
+  Fragment Return(TokenPosition position);
+  Fragment CheckStackOverflow(TokenPosition position);
+  Fragment ThrowException(TokenPosition position);
+  Fragment TailCall(const Code& code);
+
+  intptr_t GetNextDeoptId() {
+    intptr_t deopt_id = thread_->GetNextDeoptId();
+    if (context_level_array_ != NULL) {
+      intptr_t level = context_depth_;
+      context_level_array_->Add(deopt_id);
+      context_level_array_->Add(level);
+    }
+    return deopt_id;
+  }
+
+  intptr_t AllocateTryIndex() { return next_used_try_index_++; }
+
+  bool IsInlining() const { return exit_collector_ != nullptr; }
+
+  void InlineBailout(const char* reason);
+
+  Fragment LoadArgDescriptor() {
+    ASSERT(parsed_function_->has_arg_desc_var());
+    return LoadLocal(parsed_function_->arg_desc_var());
+  }
+
+  Fragment TestTypeArgsLen(Fragment eq_branch,
+                           Fragment neq_branch,
+                           intptr_t num_type_args);
+  Fragment TestDelayedTypeArgs(LocalVariable* closure,
+                               Fragment present,
+                               Fragment absent);
+  Fragment TestAnyTypeArgs(Fragment present, Fragment absent);
+
+  JoinEntryInstr* BuildThrowNoSuchMethod();
+
+  Fragment AssertBool(TokenPosition position);
+
+ protected:
+  intptr_t AllocateBlockId() { return ++last_used_block_id_; }
+  intptr_t CurrentTryIndex();
+
+  const ParsedFunction* parsed_function_;
+  const Function& function_;
+  Thread* thread_;
+  Zone* zone_;
+  // Contains (deopt_id, context_level) pairs.
+  ZoneGrowableArray<intptr_t>* context_level_array_;
+  intptr_t context_depth_;
+  intptr_t last_used_block_id_;
+
+  // A chained list of try-catch blocks. Chaining and lookup is done by the
+  // [TryCatchBlock] class.
+  TryCatchBlock* try_catch_block_;
+  intptr_t next_used_try_index_;
+
+  Value* stack_;
+  intptr_t pending_argument_count_;
+  intptr_t loop_depth_;
+  InlineExitCollector* exit_collector_;
+
+  friend class TryCatchBlock;
+  friend class StreamingFlowGraphBuilder;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BaseFlowGraphBuilder);
+};
+
+class TryCatchBlock {
+ public:
+  explicit TryCatchBlock(BaseFlowGraphBuilder* builder,
+                         intptr_t try_handler_index = -1)
+      : builder_(builder),
+        outer_(builder->try_catch_block_),
+        try_index_(try_handler_index) {
+    if (try_index_ == -1) try_index_ = builder->AllocateTryIndex();
+    builder->try_catch_block_ = this;
+  }
+  ~TryCatchBlock() { builder_->try_catch_block_ = outer_; }
+
+  intptr_t try_index() { return try_index_; }
+  TryCatchBlock* outer() const { return outer_; }
+
+ private:
+  BaseFlowGraphBuilder* builder_;
+  TryCatchBlock* outer_;
+  intptr_t try_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(TryCatchBlock);
+};
+
+}  // namespace kernel
+}  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // RUNTIME_VM_COMPILER_FRONTEND_BASE_FLOW_GRAPH_BUILDER_H_
