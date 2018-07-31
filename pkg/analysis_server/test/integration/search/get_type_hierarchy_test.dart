@@ -281,6 +281,6 @@ class GetTypeHierarchyTest_UseCFE extends GetTypeHierarchyTest {
 
   @override
   @failingTest
-  // TODO(devoncarew): 'NoSuchMethodError: The getter 'source' was called on null'
-  Future test_getTypeHierarchy() => new Future.error('failing test');
+  // TimeoutException
+  test_getTypeHierarchy() => callFailingTest(super.test_getTypeHierarchy());
 }

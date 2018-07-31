@@ -200,7 +200,5 @@ class AnalysisGetHoverIntegrationTest_UseCFE
 
   @override
   @failingTest
-  test_getHover() {
-    return super.test_getHover();
-  }
+  test_getHover() => super.test_getHover();
 }

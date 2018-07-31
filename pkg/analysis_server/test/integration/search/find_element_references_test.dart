@@ -79,5 +79,6 @@ class FindElementReferencesTest_UseCFE extends FindElementReferencesTest {
 
   @override
   @failingTest
-  Future test_findReferences() => fail('Test fails with CFE');
+  // TimeoutException
+  test_findReferences() => callFailingTest(super.test_findReferences());
 }

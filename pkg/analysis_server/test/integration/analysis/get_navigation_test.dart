@@ -78,7 +78,5 @@ class GetNavigationTest_UseCFE extends GetNavigationTest {
 
   @override
   @failingTest
-  test_navigation_no_result() {
-    return super.test_navigation();
-  }
+  test_navigation_no_result() => super.test_navigation_no_result();
 }

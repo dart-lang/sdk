@@ -59,7 +59,5 @@ class UpdateContentTest_UseCFE extends UpdateContentTest {
 
   @override
   @failingTest
-  test_updateContent_list() {
-    return super.test_updateContent_list();
-  }
+  test_updateContent_list() => super.test_updateContent_list();
 }
