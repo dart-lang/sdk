@@ -1,17 +1,17 @@
 # Annotations for Static Analysis
 
-This package defines annotations that can be used by the tools that are shipped
-with the Dart SDK.
+This package defines annotations, and functions that act like annotations for
+expressions, that can be used by the tools that are shipped with the Dart SDK.
 
 ## Library Structure
 
 The annotations in this package are defined in two libraries.
 
-The library in `meta.dart` defines annotations that can be used by static
-analysis tools to provide a more complete analysis of the code that uses them.
-Within the SDK, these tools include the command-line analyzer (`dartanalyzer`)
-and the analysis server that is used to power many of the Dart-enabled
-development tools.
+The library in `meta.dart` defines annotations and functions that can be used
+by static analysis tools to provide a more complete analysis of the code that
+uses them. Within the SDK, these tools include the command-line analyzer
+(`dartanalyzer`) and the analysis server that is used to power many of the
+Dart-enabled development tools.
 
 The library in `dart2js.dart` defines annotations that provide hints to dart2js
 to improve the quality of the JavaScript code that it produces. These
