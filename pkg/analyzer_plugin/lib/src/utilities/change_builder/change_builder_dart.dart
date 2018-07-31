@@ -1124,6 +1124,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         super(changeBuilder, path, timeStamp);
 
   @override
+  bool get hasEdits => super.hasEdits || librariesToImport.isNotEmpty;
+
+  @override
   void addInsertion(int offset, void buildEdit(DartEditBuilder builder)) =>
       super.addInsertion(offset, (builder) => buildEdit(builder));
 

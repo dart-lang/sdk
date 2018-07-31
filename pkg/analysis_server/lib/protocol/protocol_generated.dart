@@ -8206,7 +8206,7 @@ class EditImportElementsParams implements RequestParams {
  * edit.importElements result
  *
  * {
- *   "edit": SourceFileEdit
+ *   "edit": optional SourceFileEdit
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -8219,7 +8219,8 @@ class EditImportElementsResult implements ResponseResult {
    * accessible. The file to be edited will be the defining compilation unit of
    * the library containing the file specified in the request, which can be
    * different than the file specified in the request if the specified file is
-   * a part file.
+   * a part file. This field will be omitted if there are no edits that need to
+   * be applied.
    */
   SourceFileEdit get edit => _edit;
 
@@ -8228,14 +8229,14 @@ class EditImportElementsResult implements ResponseResult {
    * accessible. The file to be edited will be the defining compilation unit of
    * the library containing the file specified in the request, which can be
    * different than the file specified in the request if the specified file is
-   * a part file.
+   * a part file. This field will be omitted if there are no edits that need to
+   * be applied.
    */
   void set edit(SourceFileEdit value) {
-    assert(value != null);
     this._edit = value;
   }
 
-  EditImportElementsResult(SourceFileEdit edit) {
+  EditImportElementsResult({SourceFileEdit edit}) {
     this.edit = edit;
   }
 
@@ -8249,10 +8250,8 @@ class EditImportElementsResult implements ResponseResult {
       if (json.containsKey("edit")) {
         edit = new SourceFileEdit.fromJson(
             jsonDecoder, jsonPath + ".edit", json["edit"]);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, "edit");
       }
-      return new EditImportElementsResult(edit);
+      return new EditImportElementsResult(edit: edit);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.importElements result", json);
     }
@@ -8268,7 +8267,9 @@ class EditImportElementsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["edit"] = edit.toJson();
+    if (edit != null) {
+      result["edit"] = edit.toJson();
+    }
     return result;
   }
 

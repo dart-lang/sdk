@@ -44,7 +44,19 @@ class ChangeBuilderImplTest {
     expect(builder.sourceChange.selection, position);
   }
 
-  void test_sourceChange_noChanges() {
+  void test_sourceChange_emptyEdit() async {
+    ChangeBuilderImpl builder = new ChangeBuilderImpl();
+    String path = '/test.dart';
+    await builder.addFileEdit(path, (FileEditBuilder builder) {});
+    SourceChange sourceChange = builder.sourceChange;
+    expect(sourceChange, isNotNull);
+    expect(sourceChange.edits, isEmpty);
+    expect(sourceChange.linkedEditGroups, isEmpty);
+    expect(sourceChange.message, isEmpty);
+    expect(sourceChange.selection, isNull);
+  }
+
+  void test_sourceChange_noEdits() {
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
     SourceChange sourceChange = builder.sourceChange;
     expect(sourceChange, isNotNull);
@@ -57,7 +69,9 @@ class ChangeBuilderImplTest {
   test_sourceChange_oneChange() async {
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
     String path = '/test.dart';
-    await builder.addFileEdit(path, (FileEditBuilder builder) {});
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
+      builder.addSimpleInsertion(0, '_');
+    });
     builder.getLinkedEditGroup('a');
     SourceChange sourceChange = builder.sourceChange;
     expect(sourceChange, isNotNull);

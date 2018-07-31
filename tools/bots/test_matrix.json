@@ -1889,6 +1889,7 @@
         {
           "name": "package unit tests",
           "arguments": [
+            "--builder-tag=pkg_tests_no_preview_dart_2",
             "--checked",
             "--compiler=none",
             "--no-preview-dart-2",
