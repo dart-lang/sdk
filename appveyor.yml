@@ -8,6 +8,7 @@ install:
   - cmd: 7z x dart-sdk.zip -o"C:\tools" -y > nul
   - set PATH=%PATH%;C:\tools\dart-sdk\bin
   - set PATH=%PATH%;%APPDATA%\Pub\Cache\bin
+  - cmd: dart --version
   - pub get
 
 build: off
