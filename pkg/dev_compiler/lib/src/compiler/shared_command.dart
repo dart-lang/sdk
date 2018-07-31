@@ -135,15 +135,21 @@ Map<String, String> _parseCustomSummaryModules(List<String> summaryPaths,
   for (var summaryPath in summaryPaths) {
     var equalSign = summaryPath.indexOf("=");
     String modulePath;
+    var summaryPathWithoutExt = summaryExt != null
+        ? summaryPath.substring(
+            0,
+            // Strip off the extension, including the last `.`.
+            summaryPath.length - (summaryExt.length + 1))
+        : path.withoutExtension(summaryPath);
     if (equalSign != -1) {
       modulePath = summaryPath.substring(equalSign + 1);
       summaryPath = summaryPath.substring(0, equalSign);
     } else if (moduleRoot != null && path.isWithin(moduleRoot, summaryPath)) {
       // TODO(jmesserly): remove this, it's legacy --module-root support.
-      modulePath = path.url.joinAll(path.split(
-          path.relative(path.withoutExtension(summaryPath), from: moduleRoot)));
+      modulePath = path.url.joinAll(
+          path.split(path.relative(summaryPathWithoutExt, from: moduleRoot)));
     } else {
-      modulePath = path.basenameWithoutExtension(summaryPath);
+      modulePath = path.basename(summaryPathWithoutExt);
     }
     pathToModule[summaryPath] = modulePath;
   }

@@ -126,8 +126,9 @@ bool _changed(List<int> list1, List<int> list2) {
 
 void _compile(ArgResults argResults, AnalyzerOptions analyzerOptions,
     void printFn(Object obj)) {
-  var compiler = ModuleCompiler(analyzerOptions);
   var compilerOpts = CompilerOptions.fromArguments(argResults);
+  var compiler = ModuleCompiler(analyzerOptions,
+      summaryPaths: compilerOpts.summaryModules.keys);
   var outPaths = argResults['out'] as List<String>;
   var moduleFormats = compilerOpts.moduleFormats;
   if (outPaths.isEmpty) {
