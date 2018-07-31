@@ -366,7 +366,6 @@ class Parser {
     token = syntheticPreviousToken(token);
     while (!token.next.isEof) {
       final Token start = token.next;
-      final String value = start.stringValue;
       final String nextValue = start.next.stringValue;
 
       // If a built-in keyword is being used as function name, then stop.
@@ -381,6 +380,7 @@ class Parser {
         token = parseScript(token);
       } else {
         token = parseMetadataStar(token);
+        final String value = token.next.stringValue;
         if (identical(value, 'import')) {
           directiveState?.checkImport(this, token);
           token = parseImport(token);

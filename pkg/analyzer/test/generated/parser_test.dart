@@ -17215,6 +17215,35 @@ Function(int, String) v;
     expect(lib.name.components[2].name, 'c');
   }
 
+  void test_parseDirective_library_annotation() {
+    createParser("@A library l;");
+    Directive directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive, new TypeMatcher<LibraryDirective>());
+    LibraryDirective libraryDirective = directive;
+    expect(libraryDirective.libraryKeyword, isNotNull);
+    expect(libraryDirective.name, isNotNull);
+    expect(libraryDirective.semicolon, isNotNull);
+    expect(libraryDirective.metadata, hasLength(1));
+    expect(libraryDirective.metadata[0].name.name, 'A');
+  }
+
+  void test_parseDirective_library_annotation2() {
+    createParser("@A library l;");
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    Directive directive = unit.directives[0];
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive, new TypeMatcher<LibraryDirective>());
+    LibraryDirective libraryDirective = directive;
+    expect(libraryDirective.libraryKeyword, isNotNull);
+    expect(libraryDirective.name, isNotNull);
+    expect(libraryDirective.semicolon, isNotNull);
+    expect(libraryDirective.metadata, hasLength(1));
+    expect(libraryDirective.metadata[0].name.name, 'A');
+  }
+
   void test_parseDirective_library_withDocumentationComment() {
     createParser('/// Doc\nlibrary l;');
     var directive = parseFullDirective() as LibraryDirective;
@@ -17280,6 +17309,14 @@ Function(int, String) v;
     expect(partOfDirective.ofKeyword, isNotNull);
     expect(partOfDirective.libraryName, isNotNull);
     expect(partOfDirective.semicolon, isNotNull);
+  }
+
+  void test_parseDirectives_annotations() {
+    CompilationUnit unit =
+        parseDirectives("@A library l; @B import 'foo.dart';");
+    expect(unit.directives, hasLength(2));
+    expect(unit.directives[0].metadata[0].name.name, 'A');
+    expect(unit.directives[1].metadata[0].name.name, 'B');
   }
 
   void test_parseDirectives_complete() {
