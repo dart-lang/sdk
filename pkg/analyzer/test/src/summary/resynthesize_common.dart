@@ -5230,6 +5230,28 @@ class D {
 ''');
   }
 
+  test_defaultValue_genericFunction() async {
+    var library = await checkLibrary('''
+typedef void F<T>(T v);
+
+void defaultF<T>(T v) {}
+
+class X {
+  final F f;
+  const X({this.f: defaultF});
+}
+''');
+    checkElementText(library, r'''
+typedef F<T> = void Function(T v);
+class X {
+  final (dynamic) → void f;
+  const X({(dynamic) → void this.f:
+        defaultF/*location: test.dart;defaultF*/});
+}
+void defaultF<T>(T v) {}
+''');
+  }
+
   test_defaultValue_refersToGenericClass_constructor() async {
     var library = await checkLibrary('''
 class B<T> {

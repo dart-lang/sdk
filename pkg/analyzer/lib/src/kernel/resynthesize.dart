@@ -672,6 +672,10 @@ class _ExprBuilder {
           keyword, constructorName, arguments);
     }
 
+    if (expr is kernel.Instantiation) {
+      return _build(expr.expression);
+    }
+
     if (expr is kernel.TypeLiteral) {
       ElementImpl element;
       var kernelType = expr.type;
