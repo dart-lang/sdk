@@ -18,10 +18,6 @@ multiline_newline_test/04r: Pass
 multiline_newline_test/05: Pass
 multiline_newline_test/05r: Pass
 regress_29349_test: Pass
-unsupported_operators_test/01: MissingCompileTimeError
-unsupported_operators_test/02: MissingCompileTimeError
-unsupported_operators_test/03: MissingCompileTimeError
-unsupported_operators_test/04: MissingCompileTimeError
 void_type_function_types_test/04: MissingCompileTimeError
 void_type_function_types_test/06: MissingCompileTimeError
 void_type_function_types_test/08: MissingCompileTimeError

@@ -948,6 +948,14 @@ UnmatchedToken:
     - "main(){"
     - "main(){[}"
 
+UnsupportedOperator:
+  template: "The '#lexeme' operator is not supported."
+  analyzerCode: UNSUPPORTED_OPERATOR
+  dart2jsCode: "*ignored*"
+  script:
+    - "class C { void operator ===(x) {} }"
+    - "class C { void operator !==(x) {} }"
+
 UnsupportedPrefixPlus:
   template: "'+' is not a prefix operator."
   tip: "Try removing '+'."
@@ -2130,7 +2138,7 @@ InvalidOperator:
   analyzerCode: INVALID_OPERATOR
   dart2jsCode: "*fatal*"
   script:
-    - "class C { void operator ===(x) {} }"
+    - "class C { void operator %=(x) {} }"
 
 OperatorParameterMismatch0:
   template: "Operator '#name' shouldn't have any parameters."

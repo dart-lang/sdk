@@ -52,6 +52,13 @@ class ScannerErrorCode extends ErrorCode {
           "an identifier or an expression in curly braces ({}).",
           correction: "Try adding a backslash (\\) to escape the '\$'.");
 
+  /**
+   * Parameters:
+   * 0: the unsupported operator
+   */
+  static const ScannerErrorCode UNSUPPORTED_OPERATOR = const ScannerErrorCode(
+      'UNSUPPORTED_OPERATOR', "The '{0}' operator is not supported.");
+
   static const ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT =
       const ScannerErrorCode(
           'UNTERMINATED_MULTI_LINE_COMMENT', "Unterminated multi-line comment.",
@@ -135,6 +142,10 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
     case "ILLEGAL_CHARACTER":
       return _makeError(ScannerErrorCode.ILLEGAL_CHARACTER, [token.character]);
 
+    case "UNSUPPORTED_OPERATOR":
+      return _makeError(ScannerErrorCode.UNSUPPORTED_OPERATOR,
+          [(token as UnsupportedOperator).token.lexeme]);
+
     default:
       if (errorCode == codeUnmatchedToken) {
         charOffset = token.begin.endToken.charOffset;
@@ -155,7 +166,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
       } else if (errorCode == codeUnexpectedDollarInString) {
         return _makeError(ScannerErrorCode.MISSING_IDENTIFIER, null);
       }
-      throw new UnimplementedError('$errorCode');
+      throw new UnimplementedError('$errorCode "${errorCode.analyzerCode}"');
   }
 }
 

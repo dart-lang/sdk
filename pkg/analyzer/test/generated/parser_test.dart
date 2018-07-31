@@ -4103,11 +4103,15 @@ class Wrong<T> {
   }
 
   void test_invalidOperator() {
-    createParser('void operator ===(x) {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener
-        .assertErrors([expectedError(ParserErrorCode.INVALID_OPERATOR, 14, 3)]);
+    CompilationUnit unit =
+        parseCompilationUnit('class C { void operator ===(x) { } }',
+            errors: usingFastaParser
+                ? [expectedError(ScannerErrorCode.UNSUPPORTED_OPERATOR, 24, 1)]
+                : [
+                    expectedError(ScannerErrorCode.UNSUPPORTED_OPERATOR, 24, 1),
+                    expectedError(ParserErrorCode.INVALID_OPERATOR, 24, 3)
+                  ]);
+    expect(unit, isNotNull);
   }
 
   void test_invalidOperator_unary() {

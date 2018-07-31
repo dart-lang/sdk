@@ -2700,6 +2700,7 @@ class Parser {
           listener.endMember();
           return token;
         } else if (optional('===', next2) ||
+            optional('!==', next2) ||
             (next2.isOperator &&
                 !optional('=', next2) &&
                 !optional('<', next2))) {
@@ -2976,9 +2977,13 @@ class Parser {
       return next;
     } else {
       // Recovery
-      // The user has specified an invalid operator name.
-      // Report the error, accept the invalid operator name, and move on.
-      reportRecoverableErrorWithToken(next, fasta.templateInvalidOperator);
+      // Scanner reports an error for `===` and `!==`.
+      if (next.type != TokenType.EQ_EQ_EQ &&
+          next.type != TokenType.BANG_EQ_EQ) {
+        // The user has specified an invalid operator name.
+        // Report the error, accept the invalid operator name, and move on.
+        reportRecoverableErrorWithToken(next, fasta.templateInvalidOperator);
+      }
       listener.handleInvalidOperatorName(token, next);
       return next;
     }
@@ -5595,7 +5600,9 @@ class Parser {
           beforeName, new SyntheticToken(Keyword.OPERATOR, next.offset));
     }
 
-    assert((next.isOperator && next.endGroup == null) || optional('===', next));
+    assert((next.isOperator && next.endGroup == null) ||
+        optional('===', next) ||
+        optional('!==', next));
 
     Token token = parseMethod(
         beforeStart,

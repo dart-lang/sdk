@@ -7169,6 +7169,26 @@ Message _withArgumentsUnspecified(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Token token)> templateUnsupportedOperator =
+    const Template<Message Function(Token token)>(
+        messageTemplate: r"""The '#lexeme' operator is not supported.""",
+        withArguments: _withArgumentsUnsupportedOperator);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeUnsupportedOperator =
+    const Code<Message Function(Token token)>(
+        "UnsupportedOperator", templateUnsupportedOperator,
+        analyzerCode: "UNSUPPORTED_OPERATOR", dart2jsCode: "*ignored*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnsupportedOperator(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeUnsupportedOperator,
+      message: """The '${lexeme}' operator is not supported.""",
+      arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeUnsupportedPrefixPlus = messageUnsupportedPrefixPlus;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
