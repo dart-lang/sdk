@@ -6834,10 +6834,11 @@ bool Function::HasCompatibleParametersWith(const Function& other,
                          Heap::kOld)) {
     // For more informative error reporting, use the location of the other
     // function here, since the caller will use the location of this function.
+    auto space = Thread::Current()->IsMutatorThread() ? Heap::kNew : Heap::kOld;
     *bound_error = LanguageError::NewFormatted(
         *bound_error,  // A bound error if non null.
         Script::Handle(other.script()), other.token_pos(), Report::AtLocation,
-        Report::kError, Heap::kNew,
+        Report::kError, space,
         "signature type '%s' of function '%s' is not a subtype of signature "
         "type '%s' of function '%s'\n",
         String::Handle(UserVisibleSignature()).ToCString(),
@@ -18640,6 +18641,19 @@ RawAbstractType* TypeParameter::InstantiateFrom(
   ASSERT(IsClassTypeParameter());
   if (instantiator_type_arguments.IsNull()) {
     return Type::DynamicType();
+  }
+  if (instantiator_type_arguments.Length() <= index()) {
+    // InstantiateFrom can be invoked from a compilation pipeline with
+    // mismatching type arguments vector. This can only happen for
+    // a dynamically unreachable code - which compiler can't remove
+    // statically for some reason.
+    // To prevent crashes we treat it as a bound error.
+    // (see AssertAssignableInstr::Canonicalize).
+    auto space = Thread::Current()->IsMutatorThread() ? Heap::kNew : Heap::kOld;
+    *bound_error = LanguageError::New(
+        String::Handle(String::New("Mismatching type argument vector.", space)),
+        Report::kError, space);
+    return raw();
   }
   return instantiator_type_arguments.TypeAt(index());
   // There is no need to canonicalize the instantiated type parameter, since all
