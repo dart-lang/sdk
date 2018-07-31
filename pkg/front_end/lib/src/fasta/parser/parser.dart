@@ -5227,6 +5227,16 @@ class Parser {
             if (!exceptionName.isSynthetic) {
               reportRecoverableError(comma, fasta.messageCatchSyntax);
             }
+
+            // TODO(danrubel): Consider inserting `on` clause if
+            // exceptionName is preceded by type and followed by a comma.
+            // Then this
+            //   } catch (E e, t) {
+            // will recover to
+            //   } on E catch (e, t) {
+            // with a detailed explaination for the user in the error
+            // indicating what they should do to fix the code.
+
             // TODO(danrubel): Consider inserting synthetic identifier if
             // exceptionName is a non-synthetic identifier followed by `.`.
             // Then this
@@ -5238,12 +5248,13 @@ class Parser {
             // rather than
             //   } catch (e) {}
             //   _s_.f();
+
             if (openParens.endGroup.isSynthetic) {
               // The scanner did not place the synthetic ')' correctly.
               rewriter.moveSynthetic(exceptionName, openParens.endGroup);
               comma = null;
             } else {
-              comma = rewriter.insertTokenAfter(exceptionName,
+              comma = rewriter.insertToken(exceptionName,
                   new SyntheticToken(TokenType.COMMA, comma.charOffset));
             }
           }

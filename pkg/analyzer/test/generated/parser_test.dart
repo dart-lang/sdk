@@ -15801,6 +15801,44 @@ main() {
     expect(statement.finallyBlock, isNull);
   }
 
+  void test_parseTryStatement_catch_error_invalidCatchParam() {
+    CompilationUnit unit =
+        parseCompilationUnit('main() { try {} catch (int e) { } }',
+            errors: usingFastaParser
+                ? [expectedError(ParserErrorCode.CATCH_SYNTAX, 27, 1)]
+                : [
+                    expectedError(ParserErrorCode.EXPECTED_TOKEN, 27, 1),
+                    expectedError(ParserErrorCode.EXPECTED_TOKEN, 27, 1),
+                    expectedError(ParserErrorCode.EXPECTED_TOKEN, 27, 1),
+                    expectedError(ParserErrorCode.MISSING_IDENTIFIER, 28, 1),
+                    expectedError(ParserErrorCode.EXPECTED_TOKEN, 28, 1),
+                    expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 28, 1),
+                  ]);
+    FunctionDeclaration method = unit.declarations[0];
+    BlockFunctionBody body = method.functionExpression.body;
+    TryStatement statement = body.block.statements[0];
+    expect(statement.tryKeyword, isNotNull);
+    expect(statement.body, isNotNull);
+    NodeList<CatchClause> catchClauses = statement.catchClauses;
+    expect(catchClauses, hasLength(1));
+    CatchClause clause = catchClauses[0];
+    expect(clause.onKeyword, isNull);
+    expect(clause.exceptionType, isNull);
+    expect(clause.catchKeyword, isNotNull);
+    if (usingFastaParser) {
+      expect(clause.exceptionParameter.name, 'int');
+      expect(clause.comma, isNotNull);
+      expect(clause.stackTraceParameter.name, 'e');
+    } else {
+      expect(clause.exceptionParameter.name, 'int');
+      expect(clause.comma, isNull);
+      expect(clause.stackTraceParameter, isNull);
+    }
+    expect(clause.body, isNotNull);
+    expect(statement.finallyKeyword, isNull);
+    expect(statement.finallyBlock, isNull);
+  }
+
   void test_parseTryStatement_catch_error_missingCatchParam() {
     var statement = parseStatement('try {} catch () {}') as TryStatement;
     listener.assertErrors(usingFastaParser
