@@ -324,8 +324,6 @@ mixin_type_parameters_errors_test/03: MissingCompileTimeError
 mixin_type_parameters_errors_test/04: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError # Fasta bug: Default values are not allowed on redirecting factory constructors.
-override_field_test/02: MissingCompileTimeError
-override_field_test/03: MissingCompileTimeError
 partial_tearoff_instantiation_test/05: MissingCompileTimeError
 partial_tearoff_instantiation_test/06: MissingCompileTimeError
 partial_tearoff_instantiation_test/07: MissingCompileTimeError
@@ -863,13 +861,6 @@ null_no_such_method_test: CompileTimeError # Issue 31533
 null_test/mirrors: Skip # Uses mirrors.
 null_test/none: SkipByDesign
 overridden_no_such_method_test: SkipByDesign
-override_inheritance_field_test/04: CompileTimeError # Issue 31616
-override_inheritance_field_test/06: CompileTimeError # Issue 31616
-override_inheritance_field_test/26: CompileTimeError # Issue 31616
-override_inheritance_field_test/29: CompileTimeError # Issue 31616
-override_inheritance_generic_test/02: CompileTimeError
-override_inheritance_method_test/28: CompileTimeError
-override_inheritance_method_test/29: CompileTimeError
 parser_quirks_test: CompileTimeError # Issue 31533
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
@@ -1043,13 +1034,6 @@ multiline_newline_test/05r: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 null_no_such_method_test: CompileTimeError
-override_inheritance_field_test/04: CompileTimeError
-override_inheritance_field_test/06: CompileTimeError
-override_inheritance_field_test/26: CompileTimeError
-override_inheritance_field_test/29: CompileTimeError
-override_inheritance_generic_test/02: CompileTimeError
-override_inheritance_method_test/28: CompileTimeError
-override_inheritance_method_test/29: CompileTimeError
 parser_quirks_test: CompileTimeError
 regress_23408_test: CompileTimeError
 regress_29025_test: CompileTimeError
@@ -1492,13 +1476,6 @@ no_main_test/01: Skip
 no_main_test/01: DartkCrash
 no_such_method_mock_test: RuntimeError # Issue 31426
 null_no_such_method_test: CompileTimeError # Issue 31533
-override_inheritance_field_test/04: CompileTimeError # Issue 31616
-override_inheritance_field_test/06: CompileTimeError # Issue 31616
-override_inheritance_field_test/26: CompileTimeError # Issue 31616
-override_inheritance_field_test/29: CompileTimeError # Issue 31616
-override_inheritance_generic_test/02: CompileTimeError
-override_inheritance_method_test/28: CompileTimeError
-override_inheritance_method_test/29: CompileTimeError
 parser_quirks_test: CompileTimeError # Issue 31533
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError

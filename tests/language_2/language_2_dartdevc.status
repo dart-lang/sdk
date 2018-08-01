@@ -128,14 +128,8 @@ multiline_newline_test/03r: RuntimeError
 multiline_newline_test/none: RuntimeError
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 nested_generic_closure_test: CompileTimeError
-override_inheritance_field_test/04: CompileTimeError
-override_inheritance_field_test/06: CompileTimeError
-override_inheritance_field_test/26: CompileTimeError
-override_inheritance_field_test/29: CompileTimeError
+override_field_test/02: CompileTimeError
 override_inheritance_field_test/42: CompileTimeError
-override_inheritance_generic_test/02: CompileTimeError
-override_inheritance_method_test/28: CompileTimeError
-override_inheritance_method_test/29: CompileTimeError
 part_of_multiple_libs_test/01: MissingCompileTimeError
 part_refers_to_core_library_test/01: Crash
 prefix_shadow_test/01: MissingCompileTimeError # Issue 33005
@@ -460,14 +454,6 @@ named_constructor_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 no_such_method_mock_test: RuntimeError # Issue 31426 - Kernel does not introduce nSM for implemented fields.
 null_no_such_method_test: CompileTimeError # Issue 31533
-override_field_test/02: MissingCompileTimeError
-override_inheritance_field_test/04: CompileTimeError # Issue 31616
-override_inheritance_field_test/06: CompileTimeError # Issue 31616
-override_inheritance_field_test/26: CompileTimeError # Issue 31616
-override_inheritance_field_test/29: CompileTimeError # Issue 31616
-override_inheritance_generic_test/02: CompileTimeError # Issue 31616
-override_inheritance_method_test/28: CompileTimeError # Issue 31616
-override_inheritance_method_test/29: CompileTimeError # Issue 31616
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
@@ -629,7 +615,6 @@ null_test/mirrors: RuntimeError # Uses mirrors.; ReferenceError: GenericOfT is n
 number_identity2_test: RuntimeError # Issue 29920; Expect.isTrue(false) fails.
 number_identity_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 numbers_test: RuntimeError # Issue 29920; Expect.equals(expected: <false>, actual: <true>) fails.
-override_field_test/03: MissingCompileTimeError
 parser_quirks_test: CompileTimeError
 regress_16640_test: RuntimeError # Issue 29920; Uncaught Error: type arguments should not be null: E => {
 regress_22443_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
