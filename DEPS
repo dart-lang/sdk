@@ -130,7 +130,7 @@ vars = {
   "test_descriptor_tag": "1.1.1",
   "test_process_tag": "1.0.3",
   "term_glyph_tag": "1.0.1",
-  "test_reflective_loader_tag": "0.1.4",
+  "test_reflective_loader_tag": "0.1.8",
   "test_tag": "1.0.0",
   "tuple_tag": "v1.0.1",
   "typed_data_tag": "1.1.6",
