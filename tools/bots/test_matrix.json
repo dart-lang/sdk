@@ -1845,6 +1845,33 @@
       ]
     },
     {
+      "builders": [
+        "analyzer-use-cfe-linux",
+        "analyzer-use-cfe-mac",
+        "analyzer-use-cfe-win"
+      ],
+      "meta": {
+        "description": "The configuration used by the analyzer builders running --use-cfe."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["create_sdk"]
+        },
+        {
+          "name": "analyze pkg/analyzer_cli --use-cfe",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "pkg/analyzer_cli/bin/analyzer.dart",
+            "--fatal-warnings",
+            "--use-cfe",
+            "pkg/analyzer_cli"
+          ]
+        }
+      ]
+    },
+    {
       "builders": ["analyzer-analysis-server-linux"],
       "meta": {
         "description": "Analyze analyzer related packages."
