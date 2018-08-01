@@ -1939,7 +1939,7 @@ class RawClosure : public RawInstance {
   // passed-in function type arguments get concatenated to the function type
   // arguments of the parent that are found in the context_.
   //
-  // delayed_type_arguments_ is used to support the parital instantiation
+  // delayed_type_arguments_ is used to support the partial instantiation
   // feature. When this field is set to any value other than
   // Object::empty_type_arguments(), the types in this vector will be passed as
   // type arguments to the closure when invoked. In this case there may not be

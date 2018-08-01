@@ -22139,13 +22139,16 @@ const char* SendPort::ToCString() const {
 }
 
 const char* Closure::ToCString() const {
-  const Function& fun = Function::Handle(function());
+  Zone* zone = Thread::Current()->zone();
+  const Function& fun = Function::Handle(zone, function());
   const bool is_implicit_closure = fun.IsImplicitClosureFunction();
-  const char* fun_sig = String::Handle(fun.UserVisibleSignature()).ToCString();
+  const Function& sig_fun =
+      Function::Handle(zone, GetInstantiatedSignature(zone));
+  const char* fun_sig =
+      String::Handle(zone, sig_fun.UserVisibleSignature()).ToCString();
   const char* from = is_implicit_closure ? " from " : "";
   const char* fun_desc = is_implicit_closure ? fun.ToCString() : "";
-  return OS::SCreate(Thread::Current()->zone(), "Closure: %s%s%s", fun_sig,
-                     from, fun_desc);
+  return OS::SCreate(zone, "Closure: %s%s%s", fun_sig, from, fun_desc);
 }
 
 int64_t Closure::ComputeHash() const {
