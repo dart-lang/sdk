@@ -73,6 +73,12 @@ class AbstractAnalysisTest extends Object with ResourceProviderMixin {
 
   AnalysisDriver get testDiver => server.getAnalysisDriver(testFile);
 
+  /**
+   * Return `true` if the CFE should be used to perform analysis. Subclasses
+   * can override the getter to change the default behavior.
+   */
+  bool get useCFE => false;
+
   void addAnalysisSubscription(AnalysisService service, String file) {
     // add file to subscription
     var files = analysisSubscriptions[service];
@@ -116,7 +122,8 @@ class AbstractAnalysisTest extends Object with ResourceProviderMixin {
     // Create server
     //
     AnalysisServerOptions options = new AnalysisServerOptions()
-      ..previewDart2 = true;
+      ..previewDart2 = true
+      ..useCFE = useCFE;
     return new AnalysisServer(
         serverChannel,
         resourceProvider,
