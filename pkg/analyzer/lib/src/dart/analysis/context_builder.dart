@@ -52,7 +52,8 @@ class ContextBuilderImpl implements ContextBuilder {
   AnalysisContext createContext(
       {@required ContextRoot contextRoot,
       DeclaredVariables declaredVariables,
-      String sdkPath}) {
+      String sdkPath,
+      @deprecated bool useCFE}) {
     PerformanceLog performanceLog = new PerformanceLog(new StringBuffer());
     AnalysisDriverScheduler scheduler =
         new AnalysisDriverScheduler(performanceLog);
@@ -78,6 +79,7 @@ class ContextBuilderImpl implements ContextBuilder {
     builder.byteStore = new MemoryByteStore();
     builder.fileContentOverlay = new FileContentOverlay();
     builder.performanceLog = performanceLog;
+    builder.useCFE = useCFE ?? false;
 
     old.ContextRoot oldContextRoot = new old.ContextRoot(
         contextRoot.root.path, contextRoot.excludedPaths.toList(),

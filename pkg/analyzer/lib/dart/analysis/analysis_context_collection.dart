@@ -18,10 +18,10 @@ abstract class AnalysisContextCollection {
   ///
   /// If a [resourceProvider] is given, then it will be used to access the file
   /// system, otherwise the default resource provider will be used.
-  factory AnalysisContextCollection({
-    @required List<String> includedPaths,
-    ResourceProvider resourceProvider,
-  }) = AnalysisContextCollectionImpl;
+  factory AnalysisContextCollection(
+      {@required List<String> includedPaths,
+      ResourceProvider resourceProvider,
+      @deprecated bool useCFE}) = AnalysisContextCollectionImpl;
 
   /// Return all of the analysis contexts in this collection.
   List<AnalysisContext> get contexts;
