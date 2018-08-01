@@ -60,6 +60,7 @@ class TestConfiguration {
       this.writeDebugLog,
       this.writeTestOutcomeLog,
       this.writeResultLog,
+      this.namedConfiguration,
       this.drtPath,
       this.chromePath,
       this.safariPath,
@@ -134,6 +135,9 @@ class TestConfiguration {
   final bool writeResultLog;
   final bool printPassingStdout;
 
+  final Configuration
+      namedConfiguration; // The test configuration containing all test options.
+
   // Various file paths.
 
   final String drtPath;
@@ -161,6 +165,7 @@ class TestConfiguration {
   final List<String> vmOptions;
 
   String _packages;
+
   String get packages {
     // If the .packages file path wasn't given, find it.
     if (packageRoot == null && _packages == null) {
@@ -177,6 +182,7 @@ class TestConfiguration {
   final List<String> reproducingArguments;
 
   TestingServers _servers;
+
   TestingServers get servers {
     if (_servers == null) {
       throw new StateError("Servers have not been started yet.");
@@ -205,6 +211,7 @@ class TestConfiguration {
   ///
   ///     none_vm_release_x64
   String _configurationDirectory;
+
   String get configurationDirectory {
     // Lazy initialize and cache since it requires hitting the file system.
     if (_configurationDirectory == null) {
@@ -220,6 +227,7 @@ class TestConfiguration {
   String get buildDirectory => system.outputDirectory + configurationDirectory;
 
   int _timeout;
+
   int get timeout {
     if (_timeout == null) {
       var isReload = hotReload || hotReloadRollback;
@@ -260,6 +268,7 @@ class TestConfiguration {
   }
 
   String _windowsSdkPath;
+
   String get windowsSdkPath {
     if (!Platform.isWindows) {
       throw new StateError(
@@ -340,10 +349,12 @@ class TestConfiguration {
   }
 
   RuntimeConfiguration _runtimeConfiguration;
+
   RuntimeConfiguration get runtimeConfiguration =>
       _runtimeConfiguration ??= new RuntimeConfiguration(this);
 
   CompilerConfiguration _compilerConfiguration;
+
   CompilerConfiguration get compilerConfiguration =>
       _compilerConfiguration ??= new CompilerConfiguration(this);
 
@@ -385,6 +396,33 @@ class TestConfiguration {
     if (runtime == Runtime.flutter && architecture != Architecture.x64) {
       isValid = false;
       print("-rflutter is applicable only for --arch=x64");
+    }
+
+    if (namedConfiguration != null) {
+      if ( // namedConfiguration.builderTag != builderTag ||  # Null versus empty string
+          //   namedConfiguration.architecture != architecture ||  # smith.Architecture vs Architecture
+          //   namedConfiguration.compiler != compiler ||
+          namedConfiguration.isChecked != isChecked ||
+              namedConfiguration.isCsp != isCsp ||
+              namedConfiguration.isHostChecked != isHostChecked ||
+              namedConfiguration.isMinified != isMinified ||
+              //  namedConfiguration.mode != mode ||
+              namedConfiguration.previewDart2 == noPreviewDart2 ||
+              //   namedConfiguration.runtime != runtime ||
+              //   namedConfiguration.system != system ||
+              // namedConfiguration.timeout != _timeout || #? Null?
+              namedConfiguration.useBlobs != useBlobs ||
+              namedConfiguration.useFastStartup != useFastStartup ||
+              namedConfiguration.useHotReload != hotReload ||
+              namedConfiguration.useHotReloadRollback != hotReloadRollback ||
+              namedConfiguration.useSdk != useSdk
+          // namedConfiguration.vmOptions != vmOptions # String vs List<String>
+          ) {
+        print(
+            "Configuration and namedConfiguration differ: ${toSummaryMap()} $namedConfiguration"
+            "$builderTag ${namedConfiguration.builderTag}");
+        isValid = false;
+      }
     }
 
     return isValid;

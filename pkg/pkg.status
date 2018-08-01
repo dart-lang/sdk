@@ -164,10 +164,8 @@ testing/test/analyze_test: SkipByDesign
 [ $jscl ]
 kernel/test/*: SkipByDesign # Uses dart:io and bigints.
 
-[ $no_preview_dart_2 ]
-dev_compiler/*: SkipByDesign # uses Dart 2.
-
 [ !$preview_dart_2 ]
+dev_compiler/*: SkipByDesign # uses Dart 2.
 smith/test/*: Skip # Uses optional new.
 
 [ $arch == x64 && $runtime == vm && $system == windows && $checked ]
@@ -197,9 +195,6 @@ analyzer/test/src/context/context_test: Fail
 analysis_server/test/*: Skip # Issue 26813
 analyzer/test/*: Skip # Issue 26813
 analyzer/tool/*: Skip # Issue 26813
-
-[ $builder_tag == pkg_tests_no_preview_dart_2 && $runtime == vm ]
-analysis_server/test/services/correction/assist_test: RuntimeError
 
 # Analyze dev_compiler but only run its tests on the vm
 [ $compiler != dart2analyzer && $runtime != vm ]
@@ -258,6 +253,9 @@ analysis_server/test/socket_server_test: Skip # Pass, Slow
 analyzer/test/generated/non_error_resolver_kernel_test: Pass, Slow
 analyzer/test/src/summary/resynthesize_ast_test: Pass, Slow
 analyzer/test/src/task/strong/front_end_inference_test: Pass, Slow
+
+[ $runtime == vm && !$preview_dart_2 ]
+analysis_server/test/services/correction/assist_test: RuntimeError
 
 # Timeout. These tests do not run efficiently on our simulator or low-end
 # devices.

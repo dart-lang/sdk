@@ -143,6 +143,28 @@
     ]
   },
   "configurations": {
+    "unittest-(linux|win|mac)": {
+      "options": {
+        "compiler": "none",
+        "runtime": "vm",
+        "preview-dart-2": false,
+        "checked": true,
+        "timeout": 240
+      }},
+    "unittest-asserts-(linux|mac|win)": {
+      "options": {
+        "compiler": "none",
+        "runtime": "vm",
+        "enable-asserts": true
+      }},
+    "unittest-analyzer_use_fasta-linux": {
+      "options": {
+        "compiler": "none",
+        "runtime": "vm",
+        "use-sdk": true,
+        "vm-options": "-DuserFastParser=true",
+        "builder-tag": "analyzer_use_fasta"
+      }},
     "vm-legacy-(linux|mac|win)-(debug|release)-(ia32|x64)": {
       "options": {
         "preview-dart-2": false
@@ -196,9 +218,117 @@
         "builder-tag": "asan",
         "timeout": 240
       }},
-    "dartk-legacy-linux-release-x64": {
+    "vm-legacy-optcounter-linux-release-(ia32|x64)": {
       "options": {
-        "preview-dart-2": false
+        "preview-dart-2": false,
+        "builder-tag": "optimization_counter_threshold",
+        "vm-options": "--optimization-counter-threshold=5"
+      }},
+    "vm-legacy-optcounter-checked-linux-release-(ia32|x64)": {
+      "options": {
+        "preview-dart-2": false,
+        "checked": true,
+        "builder-tag": "optimization_counter_threshold",
+        "vm-options": "--optimization-counter-threshold=5"
+      }},
+    "vm-legacy-reload-linux-(debug|release)-x64": {
+      "options": {
+        "preview-dart-2": false,
+        "hot-reload": true
+      }},
+    "vm-legacy-reload-checked-linux-(debug|release)-x64": {
+      "options": {
+        "preview-dart-2": false,
+        "checked": true,
+        "hot-reload": true
+      }},
+    "vm-legacy-reload-mac-(debug|release)-simdbc64": {
+      "options": {
+        "preview-dart-2": false,
+        "hot-reload": true
+      }},
+    "vm-legacy-reload-checked-mac-(debug|release)-simdbc64": {
+      "options": {
+        "preview-dart-2": false,
+        "checked": true,
+        "hot-reload": true
+      }},
+    "vm-legacy-reload-rollback-linux-(debug|release)-x64": {
+      "options": {
+        "preview-dart-2": false,
+        "hot-reload-rollback": true
+      }},
+    "vm-legacy-reload-rollback-checked-linux-(debug|release)-x64": {
+      "options": {
+        "preview-dart-2": false,
+        "checked": true,
+        "hot-reload-rollback": true
+      }},
+    "dart2js-(linux|mac|win)-chrome": {
+      "options": {
+        "use-sdk": true
+      }},
+    "dart2js-(linux|win)-firefox": {
+      "options": {
+        "use-sdk": true
+      }},
+    "dart2js-win-(ie11|edge)": {
+      "options": {
+        "use-sdk": true
+      }},
+    "dart2js-mac-safari": {
+      "options": {
+        "use-sdk": true
+      }},
+    "dart2js-faststartup-(linux|mac|win)-chrome": {
+      "options": {
+        "fast-startup": true,
+        "use-sdk": true
+      }},
+    "dart2js-faststartup-(linux|win)-firefox": {
+      "options": {
+        "fast-startup": true,
+        "use-sdk": true
+      }},
+    "dart2js-faststartup-win-(ie11|edge)": {
+      "options": {
+        "fast-startup": true,
+        "use-sdk": true
+      }},
+    "dart2js-faststartup-mac-safari": {
+      "options": {
+        "fast-startup": true,
+        "use-sdk": true
+      }},
+    "dart2js-minified-csp-linux-chrome": {
+      "options": {
+        "minified": true,
+        "csp": true,
+        "preview-dart-2": false,
+        "use-sdk": true
+      }},
+    "dart2js-minified-faststartup-csp-linux-chrome": {
+      "options": {
+        "minified": true,
+        "csp": true,
+        "fast-startup": true,
+        "preview-dart-2": false,
+        "use-sdk": true
+      }},
+    "dart2js-minified-linux-d8": {
+      "options": {
+        "minified": true,
+        "use-sdk": true
+      }},
+    "dart2js-minified-faststartup-linux-d8": {
+      "options": {
+        "minified": true,
+        "fast-startup": true,
+        "use-sdk": true
+      }},
+    "dart2js-hostasserts-linux-ia32-d8": {
+      "options": {
+        "host-checked": true
       }},
     "dartkp-linux-release-(simarm|simarm64)": {
       "options": {
@@ -217,12 +347,70 @@
     "dartk-win-release-x64": { },
     "dartk-linux-(debug|release)-simdbc64": { },
     "dartk-linux-release-(simarm|simarm64)": { },
+    "dartk-optcounter-linux-release-x64": {
+      "options": {
+        "builder-tag": "optimization_counter_threshold",
+        "vm-options": "--optimization-counter-threshold=5",
+        "preview-dart-2": false
+      }},
+    "dartk-legacy-linux-release-x64": {
+      "options": {
+        "preview-dart-2": false
+      }},
+    "dartk-reload-linux-(debug|release)-x64": {
+      "options": {
+        "hot-reload": true
+      }},
+    "dartk-reload-mac-(debug|release)-simdbc64": {
+      "options": {
+        "hot-reload": true
+      }},
+    "dartk-reload-rollback-linux-(debug|release)-x64": {
+      "options": {
+        "hot-reload-rollback": true
+      }},
     "app_jit-legacy-linux-(debug|product|release)-x64": {
       "options": {
         "preview-dart-2": false
       }},
     "app_jitk-linux-(debug|product|release)-x64": { },
-    "dartkb-linux-(debug|release)-x64": { }
+    "dartkb-linux-(debug|release)-x64": { },
+    "(dartdevc|dartdevkl)-checked-(linux|mac|win)-release-chrome": {
+      "options": {
+        "checked": true,
+        "use-sdk": true
+      }},
+    "precompiler-legacy-linux-(debug|product)-x64": {
+      "options": {
+        "preview-dart-2": false,
+        "use-blobs": true
+      }},
+    "precompiler-legacy-(mac|win)-debug-simarm64": {
+      "options": {
+        "preview-dart-2": false,
+        "use-blobs": true
+      }},
+    "precompiler-legacy-android-debug-arm": {
+      "options": {
+        "preview-dart-2": false,
+        "use-blobs": true
+      }},
+    "fasta-(linux|mac|win)": { },
+    "fasta-legacy-linux": {
+      "options": {
+        "preview-dart-2": false
+      }},
+    "analyzer-(linux|mac|win)": {
+      "options": {
+        "compiler": "dart2analyzer",
+        "use-sdk": true
+      }},
+    "analyzer-asserts-(linux|mac|win)": {
+      "options": {
+        "compiler": "dart2analyzer",
+        "enable-asserts": true,
+        "use-sdk": true
+      }}
   },
   "builder_configurations": [
     {
@@ -246,6 +434,7 @@
         {
           "name": "fasta legacy mode sdk tests",
           "arguments": [
+            "-nfasta-legacy-linux",
             "--compiler=fasta",
             "--no-preview-dart-2",
             "--runtime=none"
@@ -276,6 +465,7 @@
         {
           "name": "unit tests",
           "arguments": [
+            "-nunittest-${system}",
             "--checked",
             "--compiler=none",
             "--no-preview-dart-2",
@@ -287,6 +477,7 @@
         {
           "name": "fasta sdk tests",
           "arguments": [
+            "-nfasta-${system}",
             "--compiler=fasta",
             "--runtime=none"
           ]
@@ -294,6 +485,7 @@
         {
           "name": "fasta co19_2 tests",
           "arguments": [
+            "-nfasta-${system}",
             "--compiler=fasta",
             "--runtime=none",
             "co19_2"
@@ -330,8 +522,8 @@
         {
           "name": "vm tests",
           "arguments": [
+            "-ndartkb-linux-${mode}-x64",
             "--compiler=dartkb",
-            "-n=dartkb-linux-${mode}-x64",
             "vm",
             "language_2"
           ]
@@ -356,7 +548,7 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-n=vm-legacy-${system}-product-x64",
+            "-nvm-legacy-${system}-product-x64",
             "--builder-tag=swarming",
             "--no-preview-dart-2"]
         }
@@ -394,14 +586,14 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-n=vm-legacy-${system}-${mode}-${arch}",
+            "-nvm-legacy-${system}-${mode}-${arch}",
             "--builder-tag=swarming",
             "--no-preview-dart-2"]
         },
         {
           "name": "checked vm tests",
           "arguments": [
-            "-n=vm-legacy-checked-${system}-${mode}-${arch}",
+            "-nvm-legacy-checked-${system}-${mode}-${arch}",
             "--builder-tag=swarming",
             "--checked",
             "--no-preview-dart-2"]
@@ -424,7 +616,7 @@
         {
           "name": "vm ia32 tests",
           "arguments": [
-            "-n=vm-legacy-linux-debug-ia32",
+            "-nvm-legacy-linux-debug-ia32",
             "--arch=ia32",
             "--no-preview-dart-2",
             "vm"]
@@ -432,7 +624,7 @@
         {
           "name": "vm x64 tests",
           "arguments": [
-            "-n=vm-legacy-linux-debug-x64",
+            "-nvm-legacy-linux-debug-x64",
             "--arch=x64",
             "--no-preview-dart-2",
             "vm"]
@@ -455,7 +647,7 @@
         {
           "name": "vm legacy tests",
           "arguments": [
-            "-n=dartk-legacy-linux-release-x64",
+            "-ndartk-legacy-linux-release-x64",
             "--compiler=dartk",
             "--no-preview-dart-2"],
           "fileset": "vm-kernel",
@@ -484,7 +676,7 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-n=dartkp-${system}-release-${arch}",
+            "-ndartkp-${system}-release-${arch}",
             "--compiler=dartkp",
             "--runtime=dart_precompiled",
             "--use-blobs"
@@ -513,7 +705,7 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-n=dartkp-linux-release-x64",
+            "-ndartkp-linux-release-x64",
             "--compiler=dartkp",
             "--runtime=dart_precompiled"
           ],
@@ -541,7 +733,7 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-n=dartkp-linux-debug-x64",
+            "-ndartkp-linux-debug-x64",
             "--compiler=dartkp",
             "--runtime=dart_precompiled",
             "--vm-options=--no-enable-malloc-hooks"
@@ -572,7 +764,7 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-n=vm-legacy-asan-linux-release-x64",
+            "-nvm-legacy-asan-linux-release-x64",
             "--timeout=240",
             "--no-preview-dart-2",
             "--builder-tag=asan"],
@@ -584,7 +776,7 @@
         {
           "name": "checked vm tests",
           "arguments": [
-            "-n=vm-legacy-checked-asan-linux-release-x64",
+            "-nvm-legacy-checked-asan-linux-release-x64",
             "--checked",
             "--no-preview-dart-2",
             "--timeout=240",
@@ -620,7 +812,7 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-n=dartk-${system}-${mode}-${arch}",
+            "-ndartk-${system}-${mode}-${arch}",
             "--compiler=dartk"],
           "fileset": "vm-kernel",
           "shards": 10
@@ -647,7 +839,7 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-n=app_jit-legacy-linux-${mode}-x64",
+            "-napp_jit-legacy-linux-${mode}-x64",
             "--compiler=app_jit",
             "--no-preview-dart-2"]
         }
@@ -673,7 +865,7 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-n=app_jitk-linux-${mode}-x64",
+            "-napp_jitk-linux-${mode}-x64",
             "--compiler=app_jitk"]
         }
       ]
@@ -695,6 +887,7 @@
         {
           "name": "ddc tests",
           "arguments": [
+            "-ndartdevc-checked-${system}-release-chrome",
             "-cdartdevc",
             "--checked",
             "--use-sdk",
@@ -706,6 +899,7 @@
         {
           "name": "ddc kernel tests",
           "arguments": [
+            "-ndartdevk-checked-${system}-release-chrome",
             "-cdartdevk",
             "--checked",
             "--use-sdk",
@@ -764,6 +958,7 @@
         {
           "name": "ddc tests",
           "arguments": [
+            "-ndartdevc-checked-mac-release-chrome",
             "-cdartdevc",
             "--checked",
             "--use-sdk",
@@ -775,6 +970,7 @@
         {
           "name": "ddc kernel tests",
           "arguments": [
+            "-ndartdevk-checked-mac-release-chrome",
             "-cdartdevk",
             "--checked",
             "--use-sdk",
@@ -836,6 +1032,7 @@
         {
           "name": "vm tests",
           "arguments": [
+            "-nprecompiler-legacy-${system}-${mode}-${arch}",
             "--compiler=precompiler",
             "--no-preview-dart-2",
             "--runtime=dart_precompiled",
@@ -859,6 +1056,7 @@
         {
           "name": "vm tests",
           "arguments": [
+            "-nprecompiler-legacy-android-debug-arm",
             "--compiler=precompiler",
             "--no-preview-dart-2",
             "--runtime=dart_precompiled",
@@ -886,6 +1084,7 @@
         {
           "name": "vm tests",
           "arguments": [
+            "-nvm-legacy-optcounter-linux-release-${arch}",
             "--builder-tag=optimization_counter_threshold",
             "--no-preview-dart-2",
             "--vm-options=--optimization-counter-threshold=5"
@@ -894,6 +1093,7 @@
         {
           "name": "checked vm tests",
           "arguments": [
+            "-nvm-legacy-optcounter-checked-linux-release-${arch}",
             "--builder-tag=optimization_counter_threshold",
             "--checked",
             "--no-preview-dart-2",
@@ -918,8 +1118,9 @@
           ]
         },
         {
-          "name": "strong vm tests",
+          "name": "vm tests",
           "arguments": [
+            "-ndartk-optcounter-linux-release-x64",
             "--builder-tag=optimization_counter_threshold",
             "--compiler=dartk",
             "--vm-options=--optimization-counter-threshold=5"
@@ -947,11 +1148,18 @@
         },
         {
           "name": "vm tests",
-          "arguments": ["--hot-reload", "--no-preview-dart-2"]
+          "arguments": [
+            "-nvm-legacy-reload-${system}-${mode}-${arch}",
+            "--hot-reload",
+            "--no-preview-dart-2"]
         },
         {
           "name": "checked vm tests",
-          "arguments": ["--checked", "--hot-reload", "--no-preview-dart-2"]
+          "arguments": [
+            "-nvm-legacy-reload-checked-${system}-${mode}-${arch}",
+            "--checked",
+            "--hot-reload",
+            "--no-preview-dart-2"]
         }
       ]
     },
@@ -973,7 +1181,10 @@
         },
         {
           "name": "vm tests",
-          "arguments": ["--compiler=dartk", "--hot-reload"]
+          "arguments": [
+            "-ndartk-reload-${system}-${mode}-${arch}",
+            "--compiler=dartk",
+            "--hot-reload"]
         }
       ]
     },
@@ -993,11 +1204,16 @@
         },
         {
           "name": "vm tests",
-          "arguments": ["--hot-reload-rollback", "--no-preview-dart-2"]
+          "arguments": [
+            "-nvm-legacy-reload-rollback-linux-${mode}-x64",
+            "--hot-reload-rollback",
+            "--no-preview-dart-2"
+          ]
         },
         {
           "name": "checked vm tests",
           "arguments": [
+            "-nvm-legacy-reload-rollback-checked-linux-${mode}-x64",
             "--checked",
             "--hot-reload-rollback",
             "--no-preview-dart-2"
@@ -1021,7 +1237,11 @@
         },
         {
           "name": "vm tests",
-          "arguments": ["--compiler=dartk", "--hot-reload-rollback"]
+          "arguments": [
+            "-ndartk-reload-rollback-linux-${mode}-x64",
+            "--compiler=dartk",
+            "--hot-reload-rollback"
+          ]
         }
       ]
     },
@@ -1041,6 +1261,7 @@
         {
           "name": "dart2js unit tests",
           "arguments": [
+            "-nunittest-linux",
             "--compiler=none",
             "--runtime=vm",
             "--timeout=120",
@@ -1068,6 +1289,7 @@
         {
           "name": "dart2js tests",
           "arguments": [
+            "-ndart2js-hostasserts-linux-ia32-d8",
             "--compiler=dart2js",
             "--dart2js-batch",
             "--host-checked"
@@ -1079,6 +1301,7 @@
         {
           "name": "dart2js package tests",
           "arguments": [
+            "-ndart2js-hostasserts-linux-ia32-d8",
             "--compiler=dart2js",
             "--dart2js-batch",
             "--host-checked"
@@ -1088,6 +1311,7 @@
         {
           "name": "dart2js observatory-ui tests",
           "arguments": [
+            "-ndart2js-hostasserts-linux-ia32-d8",
             "--compiler=dart2js",
             "--dart2js-batch",
             "--host-checked"
@@ -1097,6 +1321,7 @@
         {
           "name": "dart2js extra tests",
           "arguments": [
+            "-ndart2js-hostasserts-linux-ia32-d8",
             "--compiler=dart2js",
             "--dart2js-batch",
             "--host-checked"
@@ -1128,6 +1353,7 @@
         {
           "name": "dart2js tests",
           "arguments": [
+            "-ndart2js-${system}-${runtime}",
             "--compiler=dart2js",
             "--dart2js-batch",
             "--reset-browser-configuration",
@@ -1140,6 +1366,7 @@
         {
           "name": "dart2js package tests",
           "arguments": [
+            "-ndart2js-${system}-${runtime}",
             "--compiler=dart2js",
             "--dart2js-batch",
             "--reset-browser-configuration",
@@ -1150,6 +1377,7 @@
         {
           "name": "dart2js observatory-ui tests",
           "arguments": [
+            "-ndart2js-${system}-${runtime}",
             "--compiler=dart2js",
             "--dart2js-batch",
             "--reset-browser-configuration",
@@ -1160,6 +1388,7 @@
         {
           "name": "dart2js extra tests",
           "arguments": [
+            "-ndart2js-${system}-${runtime}",
             "--compiler=dart2js",
             "--dart2js-batch",
             "--reset-browser-configuration",
@@ -1192,6 +1421,7 @@
         {
           "name": "dart2js fast-startup tests",
           "arguments": [
+            "-ndart2js-faststartup-${system}-${runtime}",
             "--compiler=dart2js",
             "--dart2js-batch",
             "--fast-startup",
@@ -1205,6 +1435,7 @@
         {
           "name": "dart2js fast-startup package tests",
           "arguments": [
+            "-ndart2js-faststartup-${system}-${runtime}",
             "--compiler=dart2js",
             "--dart2js-batch",
             "--fast-startup",
@@ -1216,6 +1447,7 @@
         {
           "name": "dart2js fast-startup observatory-ui tests",
           "arguments": [
+            "-ndart2js-faststartup-${system}-${runtime}",
             "--compiler=dart2js",
             "--dart2js-batch",
             "--fast-startup",
@@ -1227,6 +1459,7 @@
         {
           "name": "dart2js fast-startup extra tests",
           "arguments": [
+            "-ndart2js-faststartup-${system}-${runtime}",
             "--compiler=dart2js",
             "--dart2js-batch",
             "--fast-startup",
@@ -1251,6 +1484,7 @@
         {
           "name": "dart2js tests",
           "arguments": [
+            "-ndart2js-minified-linux-d8",
             "--compiler=dart2js",
             "--dart2js-batch",
             "--minified",
@@ -1263,6 +1497,7 @@
         {
           "name": "dart2js fast-startup tests",
           "arguments": [
+            "-ndart2js-minified-faststartup-linux-d8",
             "--compiler=dart2js",
             "--dart2js-batch",
             "--fast-startup",
@@ -1276,6 +1511,7 @@
         {
           "name": "dart2js package tests",
           "arguments": [
+            "-ndart2js-minified-linux-d8",
             "--compiler=dart2js",
             "--dart2js-batch",
             "--minified",
@@ -1286,6 +1522,7 @@
         {
           "name": "dart2js observatory-ui tests",
           "arguments": [
+            "-ndart2js-minified-linux-d8",
             "--compiler=dart2js",
             "--dart2js-batch",
             "--minified",
@@ -1296,6 +1533,7 @@
         {
           "name": "dart2js extra tests",
           "arguments": [
+            "-ndart2js-minified-linux-d8",
             "--compiler=dart2js",
             "--dart2js-batch",
             "--minified",
@@ -1306,6 +1544,7 @@
         {
           "name": "dart2js fast-startup package tests",
           "arguments": [
+            "-ndart2js-minified-faststartup-linux-d8",
             "--compiler=dart2js",
             "--dart2js-batch",
             "--fast-startup",
@@ -1317,6 +1556,7 @@
         {
           "name": "dart2js fast-startup observatory-ui tests",
           "arguments": [
+            "-ndart2js-minified-faststartup-linux-d8",
             "--compiler=dart2js",
             "--dart2js-batch",
             "--fast-startup",
@@ -1328,6 +1568,7 @@
         {
           "name": "dart2js fast-startup extra tests",
           "arguments": [
+            "-ndart2js-minified-faststartup-linux-d8",
             "--compiler=dart2js",
             "--dart2js-batch",
             "--fast-startup",
@@ -1352,6 +1593,7 @@
         {
           "name": "dart2js tests",
           "arguments": [
+            "-ndart2js-minified-csp-linux-chrome",
             "--compiler=dart2js",
             "--csp",
             "--dart2js-batch",
@@ -1366,6 +1608,7 @@
         {
           "name": "dart2js fast-startup tests",
           "arguments": [
+            "-ndart2js-minified-faststartup-csp-linux-d8",
             "--compiler=dart2js",
             "--csp",
             "--dart2js-batch",
@@ -1381,6 +1624,7 @@
         {
           "name": "dart2js package tests",
           "arguments": [
+            "-ndart2js-minified-csp-linux-chrome",
             "--compiler=dart2js",
             "--csp",
             "--dart2js-batch",
@@ -1393,6 +1637,7 @@
         {
           "name": "dart2js observatory-ui tests",
           "arguments": [
+            "-ndart2js-minified-csp-linux-chrome",
             "--compiler=dart2js",
             "--csp",
             "--dart2js-batch",
@@ -1405,6 +1650,7 @@
         {
           "name": "dart2js extra tests",
           "arguments": [
+            "-ndart2js-minified-csp-linux-chrome",
             "--compiler=dart2js",
             "--csp",
             "--dart2js-batch",
@@ -1417,6 +1663,7 @@
         {
           "name": "dart2js fast-startup package tests",
           "arguments": [
+            "-ndart2js-minified-faststartup-csp-linux-d8",
             "--compiler=dart2js",
             "--csp",
             "--dart2js-batch",
@@ -1430,6 +1677,7 @@
         {
           "name": "dart2js fast-startup observatory-ui tests",
           "arguments": [
+            "-ndart2js-minified-faststartup-csp-linux-d8",
             "--compiler=dart2js",
             "--csp",
             "--dart2js-batch",
@@ -1443,6 +1691,7 @@
         {
           "name": "dart2js fast-startup extra tests",
           "arguments": [
+            "-ndart2js-minified-faststartup-csp-linux-d8",
             "--compiler=dart2js",
             "--csp",
             "--dart2js-batch",
@@ -1519,6 +1768,7 @@
         {
           "name": "analyzer unit tests",
           "arguments": [
+            "-nunittest-asserts-${system}",
             "--compiler=none",
             "--enable-asserts",
             "--use-sdk",
@@ -1530,6 +1780,7 @@
         {
           "name": "analysis_server unit tests",
           "arguments": [
+            "-nunittest-asserts-${system}",
             "--compiler=none",
             "--enable-asserts",
             "--use-sdk",
@@ -1541,6 +1792,7 @@
         {
           "name": "analyze tests enable-asserts",
           "arguments": [
+            "-nanalyzer-asserts-${system}",
             "--compiler=dart2analyzer",
             "--enable-asserts",
             "--use-sdk"
@@ -1549,6 +1801,7 @@
         {
           "name": "analyze pkg tests enable-asserts",
           "arguments": [
+            "-nanalyzer-asserts-${system}",
             "--compiler=dart2analyzer",
             "--enable-asserts",
             "--use-sdk",
@@ -1558,6 +1811,7 @@
         {
           "name": "analyzer_cli unit tests",
           "arguments": [
+            "-nunittest-asserts-${system}",
             "--compiler=none",
             "--enable-asserts",
             "--use-sdk",
@@ -1567,6 +1821,7 @@
         {
           "name": "analyzer_plugin unit tests",
           "arguments": [
+            "-nunittest-asserts-${system}",
             "--compiler=none",
             "--enable-asserts",
             "--use-sdk",
@@ -1576,6 +1831,7 @@
         {
           "name": "analyze tests co19_2",
           "arguments": [
+            "-nanalyzer-${system}",
             "--compiler=dart2analyzer",
             "--use-sdk",
             "co19_2"
@@ -1737,11 +1993,20 @@
 
         {
           "name": "dartanalyzer --batch tests",
-          "arguments": [ "--compiler=dart2analyzer", "--use-sdk" ]
+          "arguments": [
+            "-nanalyzer-${system}",
+            "--compiler=dart2analyzer",
+            "--use-sdk"
+          ]
         },
         {
           "name": "dartanalyzer --batch pkg tests",
-          "arguments": [ "--compiler=dart2analyzer", "--use-sdk", "pkg" ]
+          "arguments": [
+            "-nanalyzer-${system}",
+            "--compiler=dart2analyzer",
+            "--use-sdk",
+            "pkg"
+          ]
         }
       ]
     },
@@ -1822,6 +2087,7 @@
         {
           "name": "run analyzer unit tests",
           "arguments": [
+            "-nunittest-analyzer_use_fasta-linux",
             "--builder-tag=analyzer_use_fasta",
             "--compiler=none",
             "--use-sdk",
@@ -1832,6 +2098,7 @@
         {
           "name": "run analysis server plugin tests",
           "arguments": [
+            "-nunittest-analyzer_use_fasta-linux",
             "--builder-tag=analyzer_use_fasta",
             "--compiler=none",
             "--use-sdk",
@@ -1842,6 +2109,7 @@
         {
           "name": "run analysis server unit tests",
           "arguments": [
+            "-nunittest-analyzer_use_fasta-linux",
             "--builder-tag=analyzer_use_fasta",
             "--compiler=none",
             "--use-sdk",
@@ -1852,7 +2120,9 @@
       ]
     },
     {
-      "builders": ["pkg-linux-release","pkg-win-release","pkg-mac-release"],
+      "builders": ["pkg-linux-release",
+                   "pkg-win-release",
+                   "pkg-mac-release"],
       "meta": {
         "description": "This configuration is used by the pkg builders."
       },
@@ -1865,12 +2135,12 @@
         {
           "name": "package unit tests",
           "arguments": [
-            "--builder-tag=pkg_tests_no_preview_dart_2",
+            "-nunittest-${system}",
             "--checked",
             "--compiler=none",
             "--no-preview-dart-2",
             "--runtime=vm",
-            "--timeout=120",
+            "--timeout=240",
             "--use-sdk"
           ],
           "tests": ["pkg"]
@@ -1878,10 +2148,12 @@
         {
           "name": "third_party/pkg_tested unit tests",
           "arguments": [
+            "-nunittest-${system}",
             "--checked",
             "--compiler=none",
             "--no-preview-dart-2",
             "--runtime=vm",
+            "--timeout=240",
             "--use-sdk"
           ],
           "tests": ["pkg_tested"]

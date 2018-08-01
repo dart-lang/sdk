@@ -4,6 +4,8 @@
 
 import 'dart:io';
 
+import 'package:smith/smith.dart' as smith;
+
 import 'configuration.dart';
 import 'path.dart';
 import 'repository.dart';
@@ -476,11 +478,6 @@ compiler.''',
       }
     }
 
-    if (configuration['no_preview_dart_2'] == true &&
-        configuration['preview_dart_2'] == true) {
-      _fail('"--no-preview-dart-2" and "--preview-dart-2" specified,');
-    }
-
     return _createConfigurations(configuration);
   }
 
@@ -633,7 +630,15 @@ compiler.''',
           if (modes == "all") modes = "debug,release,product";
           for (var modeName in modes.split(",")) {
             var mode = Mode.find(modeName);
-
+            var system = System.find(data["system"] as String);
+            var namedConfiguration = getNamedConfiguration(
+                data["named_configuration"] as String,
+                runtime,
+                compiler,
+                mode,
+                architecture,
+                system);
+            print(namedConfiguration);
             var configuration = new TestConfiguration(
                 architecture: architecture,
                 compiler: compiler,
@@ -674,6 +679,7 @@ compiler.''',
                 writeDebugLog: data["write_debug_log"] as bool,
                 writeTestOutcomeLog: data["write_test_outcome_log"] as bool,
                 writeResultLog: data["write_result_log"] as bool,
+                namedConfiguration: namedConfiguration,
                 drtPath: data["drt"] as String,
                 chromePath: data["chrome"] as String,
                 safariPath: data["safari"] as String,
@@ -851,4 +857,32 @@ Options:''');
 
     return null;
   }
+}
+
+smith.Configuration getNamedConfiguration(String template, Runtime runtime,
+    Compiler compiler, Mode mode, Architecture architecture, System system) {
+  print(template);
+  if (template == null) return null;
+  if (template.contains(r"${runtime}")) {
+    template = template.replaceFirst(r"${runtime}", runtime.name);
+  }
+  if (template.contains(r"${compiler}")) {
+    template = template.replaceFirst(r"${compiler}", compiler.name);
+  }
+  if (template.contains(r"${mode}")) {
+    template = template.replaceFirst(r"${mode}", mode.name);
+  }
+  if (template.contains(r"${arch}")) {
+    template = template.replaceFirst(r"${arch}", architecture.name);
+  }
+  if (template.contains(r"${system}")) {
+    var name = {'windows': 'win', 'macos': 'mac'}[system.name] ?? system.name;
+    template = template.replaceFirst(r"${system}", name);
+  }
+
+  smith.TestMatrix testMatrix =
+      smith.TestMatrix.fromPath("tools/bots/test_matrix.json");
+  print("Expanded namedConfiguration name:$template");
+  return testMatrix.configurations
+      .singleWhere((c) => c.name == template, orElse: () => null);
 }
