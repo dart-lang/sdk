@@ -145,12 +145,6 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       // Issue: https://github.com/dart-lang/sdk/issues/23891
       // This change does not fix the problem.
       maxBrowserProcesses = math.max(1, maxBrowserProcesses ~/ 2);
-    } else if (configuration.runtime != Runtime.drt) {
-      // Even on machines with more than 16 processors, don't open more
-      // than 15 browser instances, to avoid overloading the machine.
-      // This is especially important when running locally on powerful
-      // desktops.
-      maxBrowserProcesses = math.min(maxBrowserProcesses, 15);
     }
 
     // If we specifically pass in a suite only run that.

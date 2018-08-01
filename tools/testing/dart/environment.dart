@@ -36,10 +36,10 @@ final _variables = {
   "mode": new _Variable((c) => c.mode.name, Mode.names),
   "no_preview_dart_2": new _Variable.bool((c) => c.noPreviewDart2),
   "preview_dart_2": new _Variable.bool((c) => !c.noPreviewDart2),
-  "runtime": new _Variable(_runtimeName, Runtime.names),
+  "runtime": new _Variable(_runtimeName, _runtimeNames),
   "spec_parser": new _Variable.bool((c) => c.compiler == Compiler.specParser),
   "strong": new _Variable.bool((c) => !c.noPreviewDart2),
-  "system": new _Variable((c) => c.system.name, System.names),
+  "system": new _Variable(_systemName, _systemNames),
   "use_sdk": new _Variable.bool((c) => c.useSdk)
 };
 
@@ -52,6 +52,20 @@ String _runtimeName(TestConfiguration configuration) {
 
   return configuration.runtime.name;
 }
+
+List<String> _runtimeNames = ['ff', 'drt']..addAll(Runtime.names);
+
+/// Gets the name of the runtime as it appears in status files.
+String _systemName(TestConfiguration configuration) {
+  // Because we are getting rid of status files, we don't want to change all
+  // of them to say "win" instead of "windows" and "mac" instead of "macos"
+  if (configuration.system == System.win) return 'windows';
+  if (configuration.system == System.mac) return 'macos';
+
+  return configuration.system.name;
+}
+
+List<String> _systemNames = ['windows', 'macos']..addAll(System.names);
 
 /// Defines the variables that are available for use inside a status file
 /// section header.

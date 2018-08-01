@@ -540,6 +540,7 @@ class Compiler extends NamedEnum {
           Runtime.ie9,
           Runtime.ie10,
           Runtime.ie11,
+          Runtime.edge,
           Runtime.chromeOnAndroid,
         ];
 
@@ -557,6 +558,7 @@ class Compiler extends NamedEnum {
       case Compiler.appJit:
       case Compiler.appJitk:
       case Compiler.dartk:
+      case Compiler.dartkb:
         return const [Runtime.vm, Runtime.selfCheck];
       case Compiler.precompiler:
       case Compiler.dartkp:
@@ -586,6 +588,7 @@ class Compiler extends NamedEnum {
       case Compiler.appJit:
       case Compiler.appJitk:
       case Compiler.dartk:
+      case Compiler.dartkb:
         return Runtime.vm;
       case Compiler.precompiler:
       case Compiler.dartkp:
@@ -650,6 +653,7 @@ class Runtime extends NamedEnum {
   static const ie9 = const Runtime._('ie9');
   static const ie10 = const Runtime._('ie10');
   static const ie11 = const Runtime._('ie11');
+  static const edge = const Runtime._('edge');
   static const chromeOnAndroid = const Runtime._('chromeOnAndroid');
   static const selfCheck = const Runtime._('self_check');
   static const none = const Runtime._('none');
@@ -668,6 +672,7 @@ class Runtime extends NamedEnum {
     ie9,
     ie10,
     ie11,
+    edge,
     chromeOnAndroid,
     selfCheck,
     none
@@ -686,6 +691,7 @@ class Runtime extends NamedEnum {
         ie9,
         ie10,
         ie11,
+        edge,
         safari,
         chrome,
         firefox,
@@ -721,6 +727,7 @@ class Runtime extends NamedEnum {
       case ie9:
       case ie10:
       case ie11:
+      case edge:
       case chromeOnAndroid:
         return Compiler.dart2js;
 

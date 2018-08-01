@@ -22,14 +22,12 @@ abstract class RuntimeConfiguration {
 
   static RuntimeConfiguration _makeInstance(TestConfiguration configuration) {
     switch (configuration.runtime) {
-      case Runtime.contentShellOnAndroid:
       case Runtime.chrome:
       case Runtime.chromeOnAndroid:
       case Runtime.firefox:
       case Runtime.ie11:
       case Runtime.ie10:
       case Runtime.ie9:
-      case Runtime.opera:
       case Runtime.safari:
         // TODO(ahe): Replace this with one or more browser runtimes.
         return new DummyRuntimeConfiguration();
@@ -58,9 +56,6 @@ abstract class RuntimeConfiguration {
               useBlobs: configuration.useBlobs);
         }
         break;
-
-      case Runtime.drt:
-        return new DrtRuntimeConfiguration();
 
       case Runtime.selfCheck:
         return new SelfCheckRuntimeConfiguration();

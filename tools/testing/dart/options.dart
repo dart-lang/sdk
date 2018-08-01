@@ -7,7 +7,6 @@ import 'dart:io';
 import 'configuration.dart';
 import 'path.dart';
 import 'repository.dart';
-import 'runtime_updater.dart';
 import 'utils.dart';
 
 const _defaultTestSelectors = const [
@@ -617,11 +616,6 @@ compiler.''',
     // Expand runtimes.
     for (var runtime in runtimes) {
       // Start installing the runtime if needed.
-      if (runtime == Runtime.drt &&
-          !(data["list"] as bool) &&
-          !(data["list_status_files"] as bool)) {
-        updateContentShell(data["drt"] as String);
-      }
 
       // Expand architectures.
       var architectures = data["arch"] as String;
