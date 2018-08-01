@@ -2,7 +2,7 @@
 
 **Author**: eernst@
 
-**Version**: 0.9 (2018-02-22)
+**Version**: 0.10 (2018-07-10)
 
 **Status**: Under implementation.
 
@@ -282,7 +282,9 @@ for the following situations:
     no additional tokens are included, it is only the non-terminal which
     changes.*
 *   In a return statement `return e;`, when the return type of the innermost
-    enclosing function is the type void, `e` may have type void.
+    enclosing function is the type void or dynamic, `e` may have type void.
+*   In an arrow function body `=> e`, when the return type is the type void
+    or dynamic, the returned expression `e` may have type void.
 *   An initializing expression for a variable of type void may have the type
     void.
 *   An actual parameter expression corresponding to a formal parameter whose
@@ -388,6 +390,10 @@ the type void. This motivated the decision to treat such a void-valued
 bound as `Object`.
 
 ## Updates
+
+*   July 10th 2018, v0.10: Added case to whitelist: It is not an error
+    to `return e;` with an `e` of type `void` when the return type is
+    `dynamic`.
 
 *   February 22nd 2018, v0.9: Added several new contexts where an
     expression with static type void may be evaluated, such that pure data
