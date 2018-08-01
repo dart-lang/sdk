@@ -88,14 +88,13 @@ typedef Future<Null> WorkToWaitAfterComputingResult(String path);
  * results are "eventually consistent" with the file system by simply calling
  * [changeFile] any time the contents of a file on the file system have changed.
  *
- *
  * TODO(scheglov) Clean up the list of implicitly analyzed files.
  */
 class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 62;
+  static const int DATA_VERSION = 63;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
