@@ -422,6 +422,7 @@ class TestConfiguration {
             "Configuration and namedConfiguration differ: ${toSummaryMap()} $namedConfiguration"
             "$builderTag ${namedConfiguration.builderTag}");
         isValid = false;
+        exit(1);
       }
     }
 

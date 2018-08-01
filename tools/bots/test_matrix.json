@@ -147,6 +147,7 @@
       "options": {
         "compiler": "none",
         "runtime": "vm",
+        "mode": "release",
         "preview-dart-2": false,
         "checked": true,
         "timeout": 240
@@ -155,12 +156,14 @@
       "options": {
         "compiler": "none",
         "runtime": "vm",
+        "mode": "release",
         "enable-asserts": true
       }},
     "unittest-analyzer_use_fasta-linux": {
       "options": {
         "compiler": "none",
         "runtime": "vm",
+        "mode": "release",
         "use-sdk": true,
         "vm-options": "-DuserFastParser=true",
         "builder-tag": "analyzer_use_fasta"
@@ -375,7 +378,7 @@
       }},
     "app_jitk-linux-(debug|product|release)-x64": { },
     "dartkb-linux-(debug|release)-x64": { },
-    "(dartdevc|dartdevkl)-checked-(linux|mac|win)-release-chrome": {
+    "(dartdevc|dartdevk)-checked-(linux|mac|win)-release-chrome": {
       "options": {
         "checked": true,
         "use-sdk": true
