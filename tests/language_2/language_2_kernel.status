@@ -129,13 +129,6 @@ nested_generic_closure_test: RuntimeError
 no_main_test/01: Crash
 no_such_method_mock_test: RuntimeError
 null_no_such_method_test: CompileTimeError
-override_inheritance_field_test/04: CompileTimeError
-override_inheritance_field_test/06: CompileTimeError
-override_inheritance_field_test/26: CompileTimeError
-override_inheritance_field_test/29: CompileTimeError
-override_inheritance_generic_test/02: CompileTimeError
-override_inheritance_method_test/28: CompileTimeError
-override_inheritance_method_test/29: CompileTimeError
 parser_quirks_test: CompileTimeError
 regress_22443_test: RuntimeError
 regress_23408_test: CompileTimeError
