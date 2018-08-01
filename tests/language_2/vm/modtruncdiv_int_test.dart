@@ -159,56 +159,61 @@ doTruncDivVars(int xlo, int xhi, int ylo, int yhi) {
 }
 
 main() {
-  // Repeat constant tests to enter JIT (when applicable).
-
+  // Repeat to enter JIT (when applicable).
   for (int i = 0; i < 20; i++) {
+    // Constants.
+
     doModConstants();
     doTruncDivConstants();
+
+    // Variable ranges.
+
+    acc = 0;
+    doModVars(3, 5, 2, 6);
+    Expect.equals(28, acc);
+
+    acc = 0;
+    doModVars((3 << 32) - 1, (3 << 32) + 1, (3 << 32) - 1, (3 << 32) + 1);
+    Expect.equals(38654705666, acc);
+
+    acc = 0;
+    doTruncDivVars(3, 5, 2, 6);
+    Expect.equals(11, acc);
+
+    acc = 0;
+    doTruncDivVars(-5, -3, 2, 6);
+    Expect.equals(-11, acc);
+
+    acc = 0;
+    doTruncDivVars(3, 5, -6, -2);
+    Expect.equals(-11, acc);
+
+    acc = 0;
+    doTruncDivVars(-5, -3, -6, -2);
+    Expect.equals(11, acc);
+
+    acc = 0;
+    doTruncDivVars((3 << 32) - 1, (3 << 32) + 1, 3, 6);
+    Expect.equals(36721970376, acc);
+
+    acc = 0;
+    doTruncDivVars(minInt64, minInt64, -1, -1);
+    Expect.equals(minInt64, acc);
+
+    // Exceptions at the right time.
+
+    acc = 0;
+    try {
+      doModVars(9, 9, -9, 0);
+      acc = 0; // don't reach!
+    } on IntegerDivisionByZeroException catch (e, s) {}
+    Expect.equals(12, acc);
+
+    acc = 0;
+    try {
+      doTruncDivVars(9, 9, -9, 0);
+      acc = 0; // don't reach!
+    } on IntegerDivisionByZeroException catch (e, s) {}
+    Expect.equals(-23, acc);
   }
-
-  // Variable ranges.
-
-  acc = 0;
-  doModVars(3, 5, 2, 6);
-  Expect.equals(28, acc);
-
-  acc = 0;
-  doModVars((3 << 32) - 1, (3 << 32) + 1, (3 << 32) - 1, (3 << 32) + 1);
-  Expect.equals(38654705666, acc);
-
-  acc = 0;
-  doTruncDivVars(3, 5, 2, 6);
-  Expect.equals(11, acc);
-
-  acc = 0;
-  doTruncDivVars(-5, -3, 2, 6);
-  Expect.equals(-11, acc);
-
-  acc = 0;
-  doTruncDivVars(3, 5, -6, -2);
-  Expect.equals(-11, acc);
-
-  acc = 0;
-  doTruncDivVars(-5, -3, -6, -2);
-  Expect.equals(11, acc);
-
-  acc = 0;
-  doTruncDivVars((3 << 32) - 1, (3 << 32) + 1, 3, 6);
-  Expect.equals(36721970376, acc);
-
-  // Exceptions at the right time.
-
-  acc = 0;
-  try {
-    doModVars(9, 9, -9, 0);
-    acc = 0; // don't reach!
-  } catch (e, s) {}
-  Expect.equals(12, acc);
-
-  acc = 0;
-  try {
-    doTruncDivVars(9, 9, -9, 0);
-    acc = 0; // don't reach!
-  } catch (e, s) {}
-  Expect.equals(-23, acc);
 }

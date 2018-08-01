@@ -225,6 +225,11 @@ DEFINE_RUNTIME_ENTRY(ArgumentErrorUnboxedInt64, 0) {
   Exceptions::ThrowArgumentError(value);
 }
 
+DEFINE_RUNTIME_ENTRY(IntegerDivisionByZeroException, 0) {
+  const Array& args = Array::Handle(Array::New(0));
+  Exceptions::ThrowByType(Exceptions::kIntegerDivisionByZeroException, args);
+}
+
 static void EnsureNewOrRemembered(Isolate* isolate,
                                   Thread* thread,
                                   const Object& result) {

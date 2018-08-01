@@ -5196,6 +5196,107 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+class Int64DivideSlowPath : public ThrowErrorSlowPathCode {
+ public:
+  static const intptr_t kNumberOfArguments = 0;
+
+  Int64DivideSlowPath(BinaryInt64OpInstr* instruction,
+                      Register right,
+                      intptr_t try_index)
+      : ThrowErrorSlowPathCode(instruction,
+                               kIntegerDivisionByZeroExceptionRuntimeEntry,
+                               kNumberOfArguments,
+                               try_index),
+        is_mod_(instruction->op_kind() == Token::kMOD),
+        right_(right),
+        div_by_minus_one_label_(),
+        adjust_sign_label_() {}
+
+  void EmitNativeCode(FlowGraphCompiler* compiler) override {
+    // Main entry throws, use code of superclass.
+    ThrowErrorSlowPathCode::EmitNativeCode(compiler);
+    // Handle modulo/division by minus one.
+    __ Bind(div_by_minus_one_label());
+    if (is_mod_) {
+      __ xorq(RDX, RDX);  // x % -1 =  0
+    } else {
+      __ negq(RAX);  // x / -1 = -x
+    }
+    __ jmp(exit_label());
+    // Adjust modulo for negative sign.
+    // if (right < 0)
+    //   out -= right;
+    // else
+    //   out += right;
+    if (is_mod_) {
+      Label subtract;
+      __ Bind(adjust_sign_label());
+      __ testq(right_, right_);
+      __ j(LESS, &subtract, Assembler::kNearJump);
+      __ addq(RDX, right_);
+      __ jmp(exit_label());
+      __ Bind(&subtract);
+      __ subq(RDX, right_);
+      __ jmp(exit_label());
+    }
+  }
+
+  const char* name() override { return "int64 divide"; }
+
+  Label* div_by_minus_one_label() { return &div_by_minus_one_label_; }
+  Label* adjust_sign_label() { return &adjust_sign_label_; }
+
+ private:
+  bool is_mod_;
+  Register right_;
+  Label div_by_minus_one_label_;
+  Label adjust_sign_label_;
+};
+
+static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
+                                 BinaryInt64OpInstr* instruction,
+                                 Token::Kind op_kind,
+                                 Register left,
+                                 Register right,
+                                 Register tmp,
+                                 Register out) {
+  ASSERT(op_kind == Token::kMOD || op_kind == Token::kTRUNCDIV);
+
+  // Set up a slow path.
+  Int64DivideSlowPath* slow_path = new (Z)
+      Int64DivideSlowPath(instruction, right, compiler->CurrentTryIndex());
+  compiler->AddSlowPathCode(slow_path);
+
+  // Handle modulo/division by zero exception on slow path.
+  __ testq(right, right);
+  __ j(EQUAL, slow_path->entry_label());
+
+  // Handle modulo/division by minus one explicitly on slow path
+  // (to avoid arithmetic exception on 0x8000000000000000 / -1).
+  __ cmpq(right, Immediate(-1));
+  __ j(EQUAL, slow_path->div_by_minus_one_label());
+
+  // Perform actual operation
+  //   out = left % right
+  // or
+  //   out = left / right.
+  ASSERT(left == RAX);
+  __ cqo();         // sign-ext rax into rdx:rax
+  __ idivq(right);  // quotient rax, remainder rdx
+  if (op_kind == Token::kMOD) {
+    ASSERT(out == RDX);
+    ASSERT(tmp == RAX);
+    // For the % operator, again the idiv instruction does
+    // not quite do what we want. Adjust for sign on slow path.
+    __ testq(out, out);
+    __ j(LESS, slow_path->adjust_sign_label());
+  } else {
+    ASSERT(out == RAX);
+    ASSERT(tmp == RDX);
+  }
+  __ Bind(slow_path->exit_label());
+}
+
 template <typename OperandType>
 static void EmitInt64Arithmetic(FlowGraphCompiler* compiler,
                                 Token::Kind op_kind,
@@ -5227,30 +5328,55 @@ static void EmitInt64Arithmetic(FlowGraphCompiler* compiler,
 
 LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RegisterOrConstant(right()));
-  summary->set_out(0, Location::SameAsFirstInput());
-  return summary;
+  switch (op_kind()) {
+    case Token::kMOD:
+    case Token::kTRUNCDIV: {
+      const intptr_t kNumInputs = 2;
+      const intptr_t kNumTemps = 1;
+      LocationSummary* summary = new (zone) LocationSummary(
+          zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+      summary->set_in(0, Location::RegisterLocation(RAX));
+      summary->set_in(1, Location::RequiresRegister());
+      // Intel uses rdx:rax with quotient rax and remainder rdx. Pick the
+      // appropriate one for output and reserve the other as temp.
+      summary->set_out(
+          0, Location::RegisterLocation(op_kind() == Token::kMOD ? RDX : RAX));
+      summary->set_temp(
+          0, Location::RegisterLocation(op_kind() == Token::kMOD ? RAX : RDX));
+      return summary;
+    }
+    default: {
+      const intptr_t kNumInputs = 2;
+      const intptr_t kNumTemps = 0;
+      LocationSummary* summary = new (zone) LocationSummary(
+          zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+      summary->set_in(0, Location::RequiresRegister());
+      summary->set_in(1, Location::RegisterOrConstant(right()));
+      summary->set_out(0, Location::SameAsFirstInput());
+      return summary;
+    }
+  }
 }
 
 void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Location left = locs()->in(0);
   const Location right = locs()->in(1);
   const Location out = locs()->out(0);
-  ASSERT(out.reg() == left.reg());
   ASSERT(!can_overflow());
   ASSERT(!CanDeoptimize());
 
-  if (right.IsConstant()) {
+  if (op_kind() == Token::kMOD || op_kind() == Token::kTRUNCDIV) {
+    const Location temp = locs()->temp(0);
+    EmitInt64ModTruncDiv(compiler, this, op_kind(), left.reg(), right.reg(),
+                         temp.reg(), out.reg());
+  } else if (right.IsConstant()) {
+    ASSERT(out.reg() == left.reg());
     ConstantInstr* constant_instr = right.constant_instruction();
     const int64_t value =
         constant_instr->GetUnboxedSignedIntegerConstantValue();
     EmitInt64Arithmetic(compiler, op_kind(), left.reg(), Immediate(value));
   } else {
+    ASSERT(out.reg() == left.reg());
     EmitInt64Arithmetic(compiler, op_kind(), left.reg(), right.reg());
   }
 }

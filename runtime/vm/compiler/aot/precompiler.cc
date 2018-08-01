@@ -502,6 +502,8 @@ static Dart_QualifiedFunctionName vm_entry_points[] = {
     {"dart:core", "CyclicInitializationError", "CyclicInitializationError."},
     {"dart:core", "FallThroughError", "FallThroughError._create"},
     {"dart:core", "FormatException", "FormatException."},
+    {"dart:core", "IntegerDivisionByZeroException",
+     "IntegerDivisionByZeroException."},
     {"dart:core", "NoSuchMethodError", "NoSuchMethodError._withType"},
     {"dart:core", "NullThrownError", "NullThrownError."},
     {"dart:core", "OutOfMemoryError", "OutOfMemoryError."},

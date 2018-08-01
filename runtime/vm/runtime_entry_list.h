@@ -40,6 +40,7 @@ namespace dart {
   V(RangeError)                                                                \
   V(NullError)                                                                 \
   V(ArgumentErrorUnboxedInt64)                                                 \
+  V(IntegerDivisionByZeroException)                                            \
   V(ReThrow)                                                                   \
   V(StackOverflow)                                                             \
   V(Throw)                                                                     \

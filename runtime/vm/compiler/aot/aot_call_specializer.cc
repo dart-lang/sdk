@@ -572,6 +572,10 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
       case Token::kADD:
       case Token::kSUB:
       case Token::kMUL:
+#ifdef TARGET_ARCH_X64  // TODO(ajcbik): support all
+      case Token::kMOD:
+      case Token::kTRUNCDIV:
+#endif
       case Token::kDIV: {
         if ((op_kind == Token::kDIV) &&
             !FlowGraphCompiler::SupportsHardwareDivision()) {

@@ -73,6 +73,7 @@ class ObjectPointerVisitor;
   V(FallThroughError, "FallThroughError")                                      \
   V(AbstractClassInstantiationError, "AbstractClassInstantiationError")        \
   V(NoSuchMethodError, "NoSuchMethodError")                                    \
+  V(IntegerDivisionByZeroException, "IntegerDivisionByZeroException")          \
   V(CyclicInitializationError, "CyclicInitializationError")                    \
   V(_CompileTimeError, "_CompileTimeError")                                    \
   V(ThrowNew, "_throwNew")                                                     \

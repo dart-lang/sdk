@@ -6386,6 +6386,10 @@ class BinaryInt64OpInstr : public BinaryIntegerOpInstr {
     return false;
   }
 
+  virtual bool MayThrow() const {
+    return op_kind() == Token::kMOD || op_kind() == Token::kTRUNCDIV;
+  }
+
   virtual Representation representation() const { return kUnboxedInt64; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
