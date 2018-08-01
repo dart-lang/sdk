@@ -14,12 +14,13 @@ import '../analysis_abstract.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(_AnalysisNotificationClosingLabelsTest);
+    defineReflectiveTests(AnalysisNotificationClosingLabelsTest);
+    defineReflectiveTests(AnalysisNotificationClosingLabelsTest_UseCFE);
   });
 }
 
 @reflectiveTest
-class _AnalysisNotificationClosingLabelsTest extends AbstractAnalysisTest {
+class AnalysisNotificationClosingLabelsTest extends AbstractAnalysisTest {
   static const sampleCode = '''
 Widget build(BuildContext context) {
   return /*1*/new Row(
@@ -98,4 +99,11 @@ Widget build(BuildContext context) {
     action();
     return _labelsReceived.future;
   }
+}
+
+@reflectiveTest
+class AnalysisNotificationClosingLabelsTest_UseCFE
+    extends AnalysisNotificationClosingLabelsTest {
+  @override
+  bool get useCFE => true;
 }

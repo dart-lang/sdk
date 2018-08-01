@@ -16,6 +16,7 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationAnalyzedFilesTest);
+    defineReflectiveTests(AnalysisNotificationAnalyzedFilesTest_UseCFE);
   });
 }
 
@@ -127,4 +128,11 @@ class A {}
   void unsubscribeAnalyzedFiles() {
     removeGeneralAnalysisSubscription(GeneralAnalysisService.ANALYZED_FILES);
   }
+}
+
+@reflectiveTest
+class AnalysisNotificationAnalyzedFilesTest_UseCFE
+    extends AnalysisNotificationAnalyzedFilesTest {
+  @override
+  bool get useCFE => true;
 }

@@ -16,7 +16,9 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationHighlightsTest);
+    defineReflectiveTests(AnalysisNotificationHighlightsTest_UseCFE);
     defineReflectiveTests(HighlightTypeTest);
+    defineReflectiveTests(HighlightTypeTest_UseCFE);
   });
 }
 
@@ -1115,6 +1117,43 @@ part 'test.dart';
 }
 
 @reflectiveTest
+class AnalysisNotificationHighlightsTest_UseCFE
+    extends AnalysisNotificationHighlightsTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_BUILT_IN_hide() async => callFailingTest(super.test_BUILT_IN_hide());
+
+  @failingTest
+  @override
+  test_BUILT_IN_import() async => callFailingTest(super.test_BUILT_IN_import());
+
+  @failingTest
+  @override
+  test_BUILT_IN_native() async => callFailingTest(super.test_BUILT_IN_native());
+
+  @failingTest
+  @override
+  test_BUILT_IN_show() async => callFailingTest(super.test_BUILT_IN_show());
+
+  @failingTest
+  @override
+  test_DIRECTIVE() async => callFailingTest(super.test_DIRECTIVE());
+
+  @failingTest
+  @override
+  test_TOP_LEVEL_VARIABLE() async =>
+      callFailingTest(super.test_TOP_LEVEL_VARIABLE());
+
+  @failingTest
+  @override
+  test_TYPE_NAME_DYNAMIC() async =>
+      callFailingTest(super.test_TYPE_NAME_DYNAMIC());
+}
+
+@reflectiveTest
 class HighlightTypeTest {
   void test_constructor() {
     expect(HighlightRegionType.CLASS,
@@ -1130,4 +1169,10 @@ class HighlightTypeTest {
       new HighlightRegionType('no-such-type');
     }, throwsException);
   }
+}
+
+@reflectiveTest
+class HighlightTypeTest_UseCFE extends HighlightTypeTest {
+  @override
+  bool get useCFE => true;
 }

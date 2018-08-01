@@ -14,6 +14,7 @@ import 'notification_navigation_test.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetNavigationTest);
+    defineReflectiveTests(GetNavigationTest_UseCFE);
   });
 }
 
@@ -245,4 +246,10 @@ main() {
     targets = result.targets;
     regions = result.regions;
   }
+}
+
+@reflectiveTest
+class GetNavigationTest_UseCFE extends GetNavigationTest {
+  @override
+  bool get useCFE => true;
 }

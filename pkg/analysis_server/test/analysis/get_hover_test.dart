@@ -14,6 +14,7 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisHoverTest);
+    defineReflectiveTests(AnalysisHoverTest_UseCFE);
   });
 }
 
@@ -611,4 +612,35 @@ main() {
     HoverInformation hover = await prepareHover('nothing');
     expect(hover, isNull);
   }
+}
+
+@reflectiveTest
+class AnalysisHoverTest_UseCFE extends AnalysisHoverTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_expression_literal_noElement() async =>
+      super.test_expression_literal_noElement();
+
+  @failingTest
+  @override
+  test_expression_method_invocation_genericMethod() async =>
+      super.test_expression_method_invocation_genericMethod();
+
+  @failingTest
+  @override
+  test_instanceCreation_implicit_withTypeArgument() async =>
+      super.test_instanceCreation_implicit_withTypeArgument();
+
+  @failingTest
+  @override
+  test_instanceCreation_noKeyword_const() async =>
+      super.test_instanceCreation_noKeyword_const();
+
+  @failingTest
+  @override
+  test_instanceCreation_noKeyword_new() async =>
+      super.test_instanceCreation_noKeyword_new();
 }

@@ -16,6 +16,7 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReanalyzeTest);
+    defineReflectiveTests(ReanalyzeTest_UseCFE);
   });
 }
 
@@ -72,4 +73,10 @@ class ReanalyzeTest extends AbstractAnalysisTest {
       expect(errors, hasLength(1));
     }
   }
+}
+
+@reflectiveTest
+class ReanalyzeTest_UseCFE extends ReanalyzeTest {
+  @override
+  bool get useCFE => true;
 }

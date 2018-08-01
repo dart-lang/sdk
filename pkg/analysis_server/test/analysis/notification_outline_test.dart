@@ -15,12 +15,13 @@ import '../analysis_abstract.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(_AnalysisNotificationOutlineTest);
+    defineReflectiveTests(AnalysisNotificationOutlineTest);
+    defineReflectiveTests(AnalysisNotificationOutlineTest_UseCFE);
   });
 }
 
 @reflectiveTest
-class _AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
+class AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
   FileKind fileKind;
   String libraryName;
   Outline outline;
@@ -132,4 +133,21 @@ class B {}
     await prepareOutline();
     expect(outline.children, hasLength(2));
   }
+}
+
+@reflectiveTest
+class AnalysisNotificationOutlineTest_UseCFE
+    extends AnalysisNotificationOutlineTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_libraryName_hasLibraryPartOfDirectives() async =>
+      callFailingTest(super.test_libraryName_hasLibraryPartOfDirectives());
+
+  @failingTest
+  @override
+  test_libraryName_hasPartOfDirective() async =>
+      callFailingTest(super.test_libraryName_hasPartOfDirective());
 }

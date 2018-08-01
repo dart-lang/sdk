@@ -16,6 +16,7 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationNavigationTest);
+    defineReflectiveTests(AnalysisNotificationNavigationTest_UseCFE);
   });
 }
 
@@ -1029,4 +1030,65 @@ var x;
     await prepareNavigation();
     assertNoRegionAt('var');
   }
+}
+
+@reflectiveTest
+class AnalysisNotificationNavigationTest_UseCFE
+    extends AnalysisNotificationNavigationTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_annotationConstructor_importPrefix() async =>
+      super.test_annotationConstructor_importPrefix();
+
+  @failingTest
+  @override
+  test_annotationField() async => super.test_annotationField();
+
+  @failingTest
+  @override
+  test_inComment() async => super.test_inComment();
+
+  @failingTest
+  @override
+  test_instanceCreation_withImportPrefix_named() async =>
+      super.test_instanceCreation_withImportPrefix_named();
+
+  @failingTest
+  @override
+  test_library() async => super.test_library();
+
+  @failingTest
+  @override
+  test_multiplyDefinedElement() async =>
+      callFailingTest(super.test_multiplyDefinedElement());
+
+  @failingTest
+  @override
+  test_partOf() async => super.test_partOf();
+
+  @failingTest
+  @override
+  test_string_export() async => super.test_string_export();
+
+  @failingTest
+  @override
+  test_string_export_unresolvedUri() async =>
+      callFailingTest(super.test_string_export_unresolvedUri());
+
+  @failingTest
+  @override
+  test_string_import() async => super.test_string_import();
+
+  @failingTest
+  @override
+  test_string_import_unresolvedUri() async =>
+      callFailingTest(super.test_string_import_unresolvedUri());
+
+  @failingTest
+  @override
+  test_string_part_unresolvedUri() async =>
+      callFailingTest(super.test_string_part_unresolvedUri());
 }

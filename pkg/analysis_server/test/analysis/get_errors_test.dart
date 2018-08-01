@@ -16,6 +16,7 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetErrorsTest);
+    defineReflectiveTests(GetErrorsTest_UseCFE);
   });
 }
 
@@ -147,4 +148,21 @@ main() {
     Response response = await serverChannel.sendRequest(request);
     return new AnalysisGetErrorsResult.fromResponse(response).errors;
   }
+}
+
+@reflectiveTest
+class GetErrorsTest_UseCFE extends GetErrorsTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_errorInPart() async => super.test_errorInPart();
+
+  @override
+  test_fileDoesNotExist() async => super.test_fileDoesNotExist();
+
+  @override
+  test_removeContextAfterRequest() async =>
+      super.test_removeContextAfterRequest();
 }
