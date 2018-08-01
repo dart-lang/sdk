@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
@@ -30,6 +31,7 @@ import 'package:path/path.dart' as pathos;
  */
 class KernelResynthesizer implements ElementResynthesizer {
   final AnalysisContextImpl _analysisContext;
+  final Map<String, LineInfo> _lineInfoMap;
   final Map<String, kernel.Library> _kernelMap;
   final Map<String, bool> _libraryExistMap;
   final Map<String, LibraryElementImpl> _libraryMap = {};
@@ -42,8 +44,8 @@ class KernelResynthesizer implements ElementResynthesizer {
   /// The type provider for this resynthesizer.
   SummaryTypeProvider _typeProvider;
 
-  KernelResynthesizer(
-      this._analysisContext, this._kernelMap, this._libraryExistMap) {
+  KernelResynthesizer(this._analysisContext, this._lineInfoMap, this._kernelMap,
+      this._libraryExistMap) {
     _buildTypeProvider();
     _analysisContext.typeProvider = _typeProvider;
   }
@@ -200,14 +202,18 @@ class KernelResynthesizer implements ElementResynthesizer {
 
       // Build the defining unit.
       var definingUnit = libraryContext._buildUnit(null).unit;
+      definingUnit.lineInfo = _lineInfoMap[uriStr];
       libraryElement.definingCompilationUnit = definingUnit;
 
       // Build units for parts.
       var parts = new List<CompilationUnitElementImpl>(kernel.parts.length);
       for (int i = 0; i < kernel.parts.length; i++) {
-        var fileUri = kernel.fileUri.resolve(kernel.parts[i].partUri);
-        var unitContext = libraryContext._buildUnit("$fileUri");
-        parts[i] = unitContext.unit;
+        var fileUriStr =
+            kernel.fileUri.resolve(kernel.parts[i].partUri).toString();
+        var unitContext = libraryContext._buildUnit(fileUriStr);
+        var partUnit = unitContext.unit;
+        partUnit.lineInfo = _lineInfoMap[fileUriStr];
+        parts[i] = partUnit;
       }
       libraryElement.parts = parts;
 

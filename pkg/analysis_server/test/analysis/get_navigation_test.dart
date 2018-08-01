@@ -43,6 +43,27 @@ main() {
     assertHasTarget('test = 0');
   }
 
+  test_fieldType() async {
+    // This test mirrors test_navigation() from
+    // test/integration/analysis/get_navigation_test.dart
+    String text = r'''
+class Foo {}
+
+class Bar {
+  Foo foo;
+}
+''';
+    addTestFile(text);
+    await _getNavigation(testFile, text.indexOf('Foo foo'), 0);
+    expect(targets, hasLength(1));
+    NavigationTarget target = targets.first;
+    expect(target.kind, ElementKind.CLASS);
+    expect(target.offset, text.indexOf('Foo {'));
+    expect(target.length, 3);
+    expect(target.startLine, 1);
+    expect(target.startColumn, 7);
+  }
+
   test_fileDoesNotExist() async {
     String file = '$projectPath/doesNotExist.dart';
     Request request = _createGetNavigationRequest(file, 0, 100);

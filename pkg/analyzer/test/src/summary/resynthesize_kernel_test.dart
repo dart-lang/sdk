@@ -287,12 +287,14 @@ class C {
     LibraryCompilationResult libraryResult = await compiler.compile(testUri);
 
     // Remember Kernel libraries produced by the compiler.
+    var lineInfoMap = <String, LineInfo>{};
     var libraryMap = <String, kernel.Library>{};
     var libraryExistMap = <String, bool>{};
     for (var library in libraryResult.component.libraries) {
       String uriStr = library.importUri.toString();
-      libraryMap[uriStr] = library;
       FileState file = fsState.getFileForUri(library.importUri);
+      lineInfoMap[uriStr] = file?.lineInfo ?? new LineInfo([0]);
+      libraryMap[uriStr] = library;
       libraryExistMap[uriStr] = file?.exists ?? false;
     }
 
@@ -302,8 +304,8 @@ class C {
       print(_getLibraryText(library));
     }
 
-    var resynthesizer =
-        new KernelResynthesizer(context, libraryMap, libraryExistMap);
+    var resynthesizer = new KernelResynthesizer(
+        context, lineInfoMap, libraryMap, libraryExistMap);
     return resynthesizer;
   }
 
