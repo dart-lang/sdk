@@ -149,6 +149,7 @@
         "runtime": "vm",
         "mode": "release",
         "preview-dart-2": false,
+        "use-sdk": true,
         "checked": true,
         "timeout": 240
       }},
@@ -157,6 +158,7 @@
         "compiler": "none",
         "runtime": "vm",
         "mode": "release",
+        "use-sdk": true,
         "enable-asserts": true
       }},
     "unittest-analyzer_use_fasta-linux": {
