@@ -528,7 +528,8 @@ abstract class DeferredAccessGenerator implements Generator {
     helper.addProblem(
         templateDeferredTypeAnnotation.withArguments(
             suffixGenerator.buildTypeWithBuiltArguments(arguments,
-                nonInstanceAccessIsError: nonInstanceAccessIsError),
+                nonInstanceAccessIsError: nonInstanceAccessIsError,
+                typeInferrer: typeInferrer),
             prefixGenerator.plainNameForRead),
         offsetForToken(prefixGenerator.token),
         lengthOfSpan(prefixGenerator.token, token));

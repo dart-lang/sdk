@@ -3815,6 +3815,26 @@ class A {
     assertType(aRef, 'int');
   }
 
+  test_invalid_deferred_type_localVariable() async {
+    addTestFile(r'''
+import 'dart:async' deferred as a;
+
+main() {
+  a.Future<int> v;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    assertTypeName(
+      findNode.typeName('a.Future'),
+      futureElement,
+      'Future<int>',
+      expectedPrefix: findElement.import('dart:async').prefix,
+    );
+    assertTypeName(findNode.typeName('int>'), intElement, 'int');
+  }
+
   test_invalid_fieldInitializer_field() async {
     addTestFile(r'''
 class C {

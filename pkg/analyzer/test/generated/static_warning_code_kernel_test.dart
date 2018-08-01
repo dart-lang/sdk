@@ -571,27 +571,9 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
-  test_typeAnnotationDeferredClass_asExpression() {
-    return super.test_typeAnnotationDeferredClass_asExpression();
-  }
-
-  @override
-  @failingTest
-  test_typeAnnotationDeferredClass_catchClause() {
-    return super.test_typeAnnotationDeferredClass_catchClause();
-  }
-
-  @override
-  @failingTest
   test_typeAnnotationDeferredClass_functionDeclaration_returnType() async {
     return super
         .test_typeAnnotationDeferredClass_functionDeclaration_returnType();
-  }
-
-  @override
-  @failingTest
-  test_typeAnnotationDeferredClass_isExpression() {
-    return super.test_typeAnnotationDeferredClass_isExpression();
   }
 
   @override
