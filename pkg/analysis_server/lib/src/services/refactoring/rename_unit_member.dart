@@ -205,6 +205,7 @@ class _RenameUnitMemberValidator {
                 getElementQualifiedName(shadow));
             result.addError(message, newLocation_fromElement(shadow));
           }
+          return false;
         });
       }
     }

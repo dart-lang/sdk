@@ -1040,5 +1040,6 @@ abstract class _RecursiveMatcher extends Matcher {
   MismatchDescriber simpleDescription(String description) =>
       (Description mismatchDescription) {
         mismatchDescription.add(description);
+        return mismatchDescription;
       };
 }

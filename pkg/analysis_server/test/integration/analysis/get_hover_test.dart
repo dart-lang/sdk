@@ -75,7 +75,7 @@ main() {
     List<String> parameterRegexps: null,
   }) {
     int offset = text.indexOf(target);
-    return sendAnalysisGetHover(pathname, offset).then((result) {
+    return sendAnalysisGetHover(pathname, offset).then((result) async {
       expect(result.hovers, hasLength(1));
       HoverInformation info = result.hovers[0];
       expect(info.offset, equals(offset));
@@ -120,6 +120,7 @@ main() {
           expect(info.staticType, matches(staticTypeRegexp));
         }
       }
+      return null;
     });
   }
 
