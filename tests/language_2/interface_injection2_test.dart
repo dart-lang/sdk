@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// The removed language feature "interface injection" is now a syntax error.
+
 import "package:expect/expect.dart";
 
 abstract class S { }
-abstract class I { }
-abstract class I implements S;
-
-class C implements I { }
+class C { }
+class C implements S;  //# 1: syntax error
 
 main() {
-  Expect.equals(true, new C() is S);
+  Expect.isFalse(new C() is S);
 }
