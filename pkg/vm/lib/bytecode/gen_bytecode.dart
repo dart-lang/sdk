@@ -60,6 +60,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   Class enclosingClass;
   Member enclosingMember;
+  FunctionNode enclosingFunction;
+  FunctionNode parentFunction;
   Set<TypeParameter> classTypeParameters;
   Set<TypeParameter> functionTypeParameters;
   List<DartType> instantiatorTypeArguments;
@@ -563,6 +565,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   void start(Member node) {
     enclosingClass = node.enclosingClass;
     enclosingMember = node;
+    enclosingFunction = node.function;
+    parentFunction = null;
     if (node.isInstanceMember ||
         node is Constructor ||
         (node is Procedure && node.isFactory)) {
@@ -583,10 +587,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
             _flattenInstantiatorTypeArguments(enclosingClass, typeParameters);
       }
     }
-    if (enclosingMember.function != null &&
-        enclosingMember.function.typeParameters.isNotEmpty) {
+    if (enclosingFunction != null &&
+        enclosingFunction.typeParameters.isNotEmpty) {
       functionTypeParameters =
-          new Set<TypeParameter>.from(enclosingMember.function.typeParameters);
+          new Set<TypeParameter>.from(enclosingFunction.typeParameters);
     }
     locals = new LocalVariables(node);
     // TODO(alexmarkov): improve caching in ConstantEvaluator and reuse it
@@ -643,6 +647,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     enclosingClass = null;
     enclosingMember = null;
+    enclosingFunction = null;
+    parentFunction = null;
     classTypeParameters = null;
     functionTypeParameters = null;
     instantiatorTypeArguments = null;
@@ -809,6 +815,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     locals.enterScope(node);
 
+    final savedParentFunction = parentFunction;
+    parentFunction = enclosingFunction;
+    enclosingFunction = function;
+
     if (function.typeParameters.isNotEmpty) {
       functionTypeParameters ??= new Set<TypeParameter>();
       functionTypeParameters.addAll(function.typeParameters);
@@ -852,6 +862,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (function.typeParameters.isNotEmpty) {
       functionTypeParameters.removeAll(function.typeParameters);
     }
+
+    enclosingFunction = parentFunction;
+    parentFunction = savedParentFunction;
 
     locals.leaveScope();
 
@@ -2326,8 +2339,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     asm.bind(continuationLabel);
 
-    if (enclosingMember.function.dartAsyncMarker == AsyncMarker.Async ||
-        enclosingMember.function.dartAsyncMarker == AsyncMarker.AsyncStar) {
+    if (parentFunction.dartAsyncMarker == AsyncMarker.Async ||
+        parentFunction.dartAsyncMarker == AsyncMarker.AsyncStar) {
       final int exceptionParam = locals.asyncExceptionParamIndexInFrame;
       final int stackTraceParam = locals.asyncStackTraceParamIndexInFrame;
 
