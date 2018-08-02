@@ -122,9 +122,14 @@ import 'forest.dart'
         TypeDeclarationBuilder,
         UnlinkedDeclaration;
 
+import '../type_inference/type_inference_listener.dart'
+    show TypeInferenceTokensSaver;
+
 /// A shadow tree factory.
 class Fangorn extends Forest {
-  const Fangorn();
+  TypeInferenceTokensSaver typeInferenceTokensSaver;
+
+  Fangorn(this.typeInferenceTokensSaver);
 
   @override
   ArgumentsJudgment arguments(List<Expression> positional, Token token,
@@ -163,17 +168,23 @@ class Fangorn extends Forest {
 
   @override
   BoolJudgment literalBool(bool value, Token token) {
-    return new BoolJudgment(token, value)..fileOffset = offsetForToken(token);
+    return new BoolJudgment(
+        typeInferenceTokensSaver?.boolLiteralTokens(token), value)
+      ..fileOffset = offsetForToken(token);
   }
 
   @override
   DoubleJudgment literalDouble(double value, Token token) {
-    return new DoubleJudgment(token, value)..fileOffset = offsetForToken(token);
+    return new DoubleJudgment(
+        typeInferenceTokensSaver?.doubleLiteralTokens(token), value)
+      ..fileOffset = offsetForToken(token);
   }
 
   @override
   IntJudgment literalInt(int value, Token token) {
-    return new IntJudgment(token, value)..fileOffset = offsetForToken(token);
+    return new IntJudgment(
+        typeInferenceTokensSaver?.intLiteralTokens(token), value)
+      ..fileOffset = offsetForToken(token);
   }
 
   @override
@@ -188,8 +199,11 @@ class Fangorn extends Forest {
     // TODO(brianwilkerson): The file offset computed below will not be correct
     // if there are type arguments but no `const` keyword.
     return new ListLiteralJudgment(
-        constKeyword, leftBracket, expressions, rightBracket,
-        typeArgument: typeArgument, isConst: isConst)
+        typeInferenceTokensSaver?.listLiteralTokens(
+            constKeyword, leftBracket, rightBracket),
+        expressions,
+        typeArgument: typeArgument,
+        isConst: isConst)
       ..fileOffset = offsetForToken(constKeyword ?? leftBracket);
   }
 
@@ -206,19 +220,25 @@ class Fangorn extends Forest {
     // TODO(brianwilkerson): The file offset computed below will not be correct
     // if there are type arguments but no `const` keyword.
     return new MapLiteralJudgment(
-        constKeyword, leftBracket, entries, rightBracket,
-        keyType: keyType, valueType: valueType, isConst: isConst)
+        typeInferenceTokensSaver?.mapLiteralTokens(
+            constKeyword, leftBracket, rightBracket),
+        entries,
+        keyType: keyType,
+        valueType: valueType,
+        isConst: isConst)
       ..fileOffset = offsetForToken(constKeyword ?? leftBracket);
   }
 
   @override
   NullJudgment literalNull(Token token) {
-    return new NullJudgment(token)..fileOffset = offsetForToken(token);
+    return new NullJudgment(typeInferenceTokensSaver?.nullLiteralTokens(token))
+      ..fileOffset = offsetForToken(token);
   }
 
   @override
   StringLiteralJudgment literalString(String value, Token token) {
-    return new StringLiteralJudgment(token, value)
+    return new StringLiteralJudgment(
+        typeInferenceTokensSaver?.stringLiteralTokens(token), value)
       ..fileOffset = offsetForToken(token);
   }
 
@@ -268,7 +288,8 @@ class Fangorn extends Forest {
 
   @override
   Expression asExpression(Expression expression, covariant type, Token token) {
-    return new AsJudgment(expression, token, type)
+    return new AsJudgment(
+        expression, typeInferenceTokensSaver?.asExpressionTokens(token), type)
       ..fileOffset = offsetForToken(token);
   }
 
@@ -282,10 +303,8 @@ class Fangorn extends Forest {
     return new AssertInitializerJudgment(
         assertStatement(
             assertKeyword, leftParenthesis, condition, comma, message, null),
-        assertKeyword,
-        leftParenthesis,
-        comma,
-        leftParenthesis.endGroup);
+        typeInferenceTokensSaver?.assertInitializerTokens(
+            assertKeyword, leftParenthesis, comma, leftParenthesis.endGroup));
   }
 
   @override
@@ -324,8 +343,10 @@ class Fangorn extends Forest {
         endOffset = conditionLastToken.offset + conditionLastToken.length;
       }
     }
-    return new AssertStatementJudgment(assertKeyword, leftParenthesis,
-        condition, comma, leftParenthesis.endGroup, semicolon,
+    return new AssertStatementJudgment(
+        typeInferenceTokensSaver?.assertStatementTokens(assertKeyword,
+            leftParenthesis, comma, leftParenthesis.endGroup, semicolon),
+        condition,
         conditionStartOffset: startOffset,
         conditionEndOffset: endOffset,
         message: message);
@@ -333,7 +354,8 @@ class Fangorn extends Forest {
 
   @override
   Expression awaitExpression(Expression operand, Token token) {
-    return new AwaitJudgment(token, operand)
+    return new AwaitJudgment(
+        typeInferenceTokensSaver?.awaitExpressionTokens(token), operand)
       ..fileOffset = offsetForToken(token);
   }
 
@@ -350,13 +372,17 @@ class Fangorn extends Forest {
         copy.add(statement);
       }
     }
-    return new BlockJudgment(openBrace, copy ?? statements, closeBrace)
+    return new BlockJudgment(
+        typeInferenceTokensSaver?.blockTokens(openBrace, closeBrace),
+        copy ?? statements)
       ..fileOffset = offsetForToken(openBrace);
   }
 
   @override
   Statement breakStatement(Token breakKeyword, Object label, Token semicolon) {
-    return new BreakJudgment(breakKeyword, null, semicolon)
+    return new BreakJudgment(
+        typeInferenceTokensSaver?.breakStatementTokens(breakKeyword, semicolon),
+        null)
       ..fileOffset = breakKeyword.charOffset;
   }
 
@@ -372,8 +398,12 @@ class Fangorn extends Forest {
     exceptionType ??= const DynamicType();
     // TODO(brianwilkerson) Get the left and right parentheses and the comma.
     return new CatchJudgment(
-        onKeyword, catchKeyword, null, exceptionParameter, null, null, body,
-        guard: exceptionType, stackTrace: stackTraceParameter)
+        typeInferenceTokensSaver?.catchStatementTokens(
+            onKeyword, catchKeyword, null, null, null),
+        exceptionParameter,
+        body,
+        guard: exceptionType,
+        stackTrace: stackTraceParameter)
       ..fileOffset = offsetForToken(onKeyword ?? catchKeyword);
   }
 
@@ -381,14 +411,20 @@ class Fangorn extends Forest {
   Expression conditionalExpression(Expression condition, Token question,
       Expression thenExpression, Token colon, Expression elseExpression) {
     return new ConditionalJudgment(
-        condition, question, thenExpression, colon, elseExpression)
+        condition,
+        typeInferenceTokensSaver?.conditionalExpressionTokens(question, colon),
+        thenExpression,
+        elseExpression)
       ..fileOffset = offsetForToken(question);
   }
 
   @override
   Statement continueStatement(
       Token continueKeyword, Object label, Token semicolon) {
-    return new ContinueJudgment(continueKeyword, null, semicolon)
+    return new ContinueJudgment(
+        typeInferenceTokensSaver?.continueStatementTokens(
+            continueKeyword, semicolon),
+        null)
       ..fileOffset = continueKeyword.charOffset;
   }
 
@@ -397,17 +433,22 @@ class Fangorn extends Forest {
       Expression condition, Token semicolon) {
     // TODO(brianwilkerson): Plumb through the left-and right parentheses.
     return new DoJudgment(
-        doKeyword, body, whileKeyword, null, condition, null, semicolon)
+        typeInferenceTokensSaver?.doStatementTokens(
+            doKeyword, whileKeyword, null, null, semicolon),
+        body,
+        condition)
       ..fileOffset = doKeyword.charOffset;
   }
 
   Statement expressionStatement(Expression expression, Token semicolon) {
-    return new ExpressionStatementJudgment(expression, semicolon);
+    return new ExpressionStatementJudgment(expression,
+        typeInferenceTokensSaver?.expressionStatementTokens(semicolon));
   }
 
   @override
   Statement emptyStatement(Token semicolon) {
-    return new EmptyStatementJudgment(semicolon);
+    return new EmptyStatementJudgment(
+        typeInferenceTokensSaver?.emptyStatementTokens(semicolon));
   }
 
   @override
@@ -424,15 +465,12 @@ class Fangorn extends Forest {
       Statement body) {
     // TODO(brianwilkerson): Plumb through the right separator.
     return new ForJudgment(
-        forKeyword,
-        leftParenthesis,
+        typeInferenceTokensSaver?.forStatementTokens(forKeyword,
+            leftParenthesis, leftSeparator, null, leftParenthesis.endGroup),
         variableList,
         initializers,
-        leftSeparator,
         condition,
-        null,
         updaters,
-        leftParenthesis.endGroup,
         body)
       ..fileOffset = forKeyword.charOffset;
   }
@@ -441,8 +479,12 @@ class Fangorn extends Forest {
   Statement ifStatement(Token ifKeyword, Expression condition,
       Statement thenStatement, Token elseKeyword, Statement elseStatement) {
     // TODO(brianwilkerson) Plumb through the left and right parentheses.
-    return new IfJudgment(ifKeyword, null, condition, null, thenStatement,
-        elseKeyword, elseStatement)
+    return new IfJudgment(
+        typeInferenceTokensSaver?.ifStatementTokens(
+            ifKeyword, null, null, elseKeyword),
+        condition,
+        thenStatement,
+        elseStatement)
       ..fileOffset = ifKeyword.charOffset;
   }
 
@@ -451,10 +493,17 @@ class Fangorn extends Forest {
       Expression operand, isOperator, Token notOperator, covariant type) {
     int offset = offsetForToken(isOperator);
     if (notOperator != null) {
-      return new IsNotJudgment(operand, isOperator, notOperator, type, offset)
+      return new IsNotJudgment(
+          operand,
+          typeInferenceTokensSaver?.isNotExpressionTokens(
+              isOperator, notOperator),
+          type,
+          offset)
         ..fileOffset = offset;
     }
-    return new IsJudgment(operand, isOperator, type)..fileOffset = offset;
+    return new IsJudgment(
+        operand, typeInferenceTokensSaver?.isExpressionTokens(isOperator), type)
+      ..fileOffset = offset;
   }
 
   @override
@@ -469,13 +518,18 @@ class Fangorn extends Forest {
   @override
   Expression logicalExpression(
       Expression leftOperand, Token operator, Expression rightOperand) {
-    return new LogicalJudgment(leftOperand, operator, rightOperand)
+    return new LogicalJudgment(
+        leftOperand,
+        typeInferenceTokensSaver?.logicalExpressionTokens(operator),
+        operator.stringValue,
+        rightOperand)
       ..fileOffset = offsetForToken(operator);
   }
 
   @override
   Expression notExpression(Expression operand, Token token, bool isSynthetic) {
-    return new NotJudgment(isSynthetic, token, operand)
+    return new NotJudgment(
+        isSynthetic, typeInferenceTokensSaver?.notTokens(token), operand)
       ..fileOffset = offsetForToken(token);
   }
 
@@ -488,15 +542,20 @@ class Fangorn extends Forest {
   @override
   Statement rethrowStatement(Token rethrowKeyword, Token semicolon) {
     return new ExpressionStatementJudgment(
-        new RethrowJudgment(rethrowKeyword, null)
+        new RethrowJudgment(
+            typeInferenceTokensSaver?.rethrowTokens(rethrowKeyword), null)
           ..fileOffset = offsetForToken(rethrowKeyword),
-        semicolon);
+        typeInferenceTokensSaver?.expressionStatementTokens(semicolon));
   }
 
   @override
   Statement returnStatement(
       Token returnKeyword, Expression expression, Token semicolon) {
-    return new ReturnJudgment(returnKeyword, semicolon, expression)
+    return new ReturnJudgment(
+        typeInferenceTokensSaver?.returnStatementTokens(
+            returnKeyword, semicolon),
+        returnKeyword?.lexeme,
+        expression)
       ..fileOffset = returnKeyword.charOffset;
   }
 
@@ -514,12 +573,15 @@ class Fangorn extends Forest {
 
   @override
   Expression thisExpression(Token token) {
-    return new ThisJudgment(token)..fileOffset = offsetForToken(token);
+    return new ThisJudgment(
+        typeInferenceTokensSaver?.thisExpressionTokens(token))
+      ..fileOffset = offsetForToken(token);
   }
 
   @override
   Expression throwExpression(Token throwKeyword, Expression expression) {
-    return new ThrowJudgment(throwKeyword, expression)
+    return new ThrowJudgment(
+        typeInferenceTokensSaver?.throwTokens(throwKeyword), expression)
       ..fileOffset = offsetForToken(throwKeyword);
   }
 
@@ -528,7 +590,11 @@ class Fangorn extends Forest {
       List<Catch> catchClauses, Token finallyKeyword, Statement finallyBlock) {
     if (finallyBlock != null) {
       return new TryFinallyJudgment(
-          tryKeyword, body, catchClauses, finallyKeyword, finallyBlock);
+          typeInferenceTokensSaver?.tryFinallyTokens(
+              tryKeyword, finallyKeyword),
+          body,
+          catchClauses,
+          finallyBlock);
     }
     return new TryCatchJudgment(body, catchClauses ?? const <CatchJudgment>[]);
   }
@@ -548,10 +614,10 @@ class Fangorn extends Forest {
   @override
   Statement wrapVariables(Statement statement) {
     if (statement is _VariablesDeclaration) {
-      return new BlockJudgment(null, statement.declarations, null)
+      return new BlockJudgment(null, statement.declarations)
         ..fileOffset = statement.fileOffset;
     } else if (statement is VariableDeclaration) {
-      return new BlockJudgment(null, <Statement>[statement], null)
+      return new BlockJudgment(null, <Statement>[statement])
         ..fileOffset = statement.fileOffset;
     } else {
       return statement;
@@ -562,14 +628,22 @@ class Fangorn extends Forest {
   Statement whileStatement(
       Token whileKeyword, Expression condition, Statement body) {
     // TODO(brianwilkerson) Plumb through the left and right parentheses.
-    return new WhileJudgment(whileKeyword, null, condition, null, body)
+    return new WhileJudgment(
+        typeInferenceTokensSaver?.whileStatementTokens(
+            whileKeyword, null, null),
+        condition,
+        body)
       ..fileOffset = whileKeyword.charOffset;
   }
 
   @override
   Statement yieldStatement(
       Token yieldKeyword, Token star, Expression expression, Token semicolon) {
-    return new YieldJudgment(yieldKeyword, star, expression, semicolon)
+    return new YieldJudgment(
+        typeInferenceTokensSaver?.yieldStatementTokens(
+            yieldKeyword, star, semicolon),
+        star != null,
+        expression)
       ..fileOffset = yieldKeyword.charOffset;
   }
 

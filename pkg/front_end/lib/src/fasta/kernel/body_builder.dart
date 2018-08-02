@@ -65,6 +65,9 @@ import '../source/scope_listener.dart'
 
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
 
+import '../type_inference/type_inference_listener.dart'
+    show TypeInferenceTokensSaver;
+
 import '../type_inference/type_promotion.dart'
     show TypePromoter, TypePromotionFact, TypePromotionScope;
 
@@ -161,6 +164,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   final TypePromoter typePromoter;
 
+  final TypeInferenceTokensSaver tokensSaver;
+
   /// Only used when [member] is a constructor. It tracks if an implicit super
   /// initializer is needed.
   ///
@@ -240,6 +245,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         needsImplicitSuperInitializer =
             coreTypes?.objectClass != classBuilder?.cls,
         typePromoter = _typeInferrer?.typePromoter,
+        tokensSaver = _typeInferrer?.tokensSaver,
         super(enclosingScope);
 
   BodyBuilder.withParents(KernelFieldBuilder field, KernelLibraryBuilder part,
@@ -1187,7 +1193,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     VariableDeclaration variable = new VariableDeclaration.forValue(a);
     push(new IfNullJudgment(
         variable,
-        token,
+        tokensSaver?.ifNullTokens(token),
         forest.conditionalExpression(
             buildIsNull(new VariableGet(variable), offsetForToken(token), this),
             token,
@@ -2336,7 +2342,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           throwToken.length);
     }
 
-    push(new ThrowJudgment(throwToken, expression, desugaredError: error)
+    push(new ThrowJudgment(tokensSaver?.throwTokens(throwToken), expression,
+        desugaredError: error)
       ..fileOffset = offsetForToken(throwToken));
   }
 
@@ -3130,7 +3137,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("NamedArgument");
     Expression value = popForValue();
     Identifier identifier = pop();
-    push(new NamedExpressionJudgment(identifier.token, colon, value)
+    push(new NamedExpressionJudgment(
+        tokensSaver?.namedExpressionTokens(identifier.token, colon),
+        identifier.token.lexeme,
+        value)
       ..fileOffset = offsetForToken(identifier.token));
   }
 
@@ -3403,13 +3413,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
               message, offsetForToken(token), lengthForToken(token))));
     }
     Statement result = new ForInJudgment(
-        awaitToken,
-        forToken,
-        leftParenthesis,
+        tokensSaver?.forInStatementTokens(awaitToken, forToken, leftParenthesis,
+            inKeyword, leftParenthesis.endGroup),
         variable,
-        inKeyword,
         expression,
-        leftParenthesis.endGroup,
         kernelBody,
         declaresVariable,
         syntheticAssignment,
@@ -3475,9 +3482,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         : buildCompileTimeError(fasta.messageRethrowNotCatch,
             offsetForToken(rethrowToken), lengthForToken(rethrowToken));
     push(new ExpressionStatementJudgment(
-        new RethrowJudgment(rethrowToken, error)
+        new RethrowJudgment(tokensSaver?.rethrowTokens(rethrowToken), error)
           ..fileOffset = offsetForToken(rethrowToken),
-        endToken));
+        tokensSaver?.expressionStatementTokens(endToken)));
   }
 
   @override
@@ -3621,8 +3628,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     for (Expression expression in expressions) {
       expressionOffsets.add(forest.readOffset(expression));
     }
-    push(new SwitchCaseJudgment(defaultKeyword, expressions, expressionOffsets,
-        colonAfterDefault, block,
+    push(new SwitchCaseJudgment(
+        tokensSaver?.switchCaseTokens(defaultKeyword, colonAfterDefault),
+        expressions,
+        expressionOffsets,
+        block,
         isDefault: defaultKeyword != null)
       ..fileOffset = firstToken.charOffset);
     push(labels);
@@ -3640,7 +3650,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     // TODO(brianwilkerson): Plumb through the left and right parentheses and
     // the left and right curly braces.
     Statement result = new SwitchStatementJudgment(
-        switchKeyword, null, expression, null, null, cases, null)
+        tokensSaver?.switchStatementTokens(
+            switchKeyword, null, null, null, null),
+        expression,
+        cases)
       ..fileOffset = switchKeyword.charOffset;
     if (target.hasUsers) {
       result = new LabeledStatementJudgment(result);
@@ -3767,9 +3780,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
       if (target.isGotoTarget &&
           target.functionNestingLevel == functionNestingLevel) {
-        ContinueSwitchStatement statement =
-            new ContinueSwitchJudgment(continueKeyword, null, endToken)
-              ..fileOffset = continueKeyword.charOffset;
+        ContinueSwitchStatement statement = new ContinueSwitchJudgment(
+            tokensSaver?.continueSwitchStatementTokens(
+                continueKeyword, endToken),
+            null)
+          ..fileOffset = continueKeyword.charOffset;
         target.addGoto(statement);
         push(statement);
         return;
@@ -4195,7 +4210,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     // TODO(brianwilkerson): Plumb through the `super`, period, and constructor
     // name tokens.
     return new SuperInitializerJudgment(
-        null, null, null, constructor, forest.castArguments(arguments))
+        null, constructor, forest.castArguments(arguments))
       ..fileOffset = charOffset
       ..isSynthetic = isSynthetic;
   }

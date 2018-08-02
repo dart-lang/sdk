@@ -47,7 +47,8 @@ class ResolutionData {
 
 /// Type inference listener that records inferred types for later use by
 /// [ResolutionApplier].
-class ResolutionStorer implements TypeInferenceListener<int, Node, int> {
+class ResolutionStorer
+    implements TypeInferenceListener<int, Node, int>, TypeInferenceTokensSaver {
   final Map<int, ResolutionData> _data;
 
   final Map<TypeParameter, int> _typeVariableDeclarations;
@@ -57,34 +58,53 @@ class ResolutionStorer implements TypeInferenceListener<int, Node, int> {
       : _data = data,
         _typeVariableDeclarations = typeVariableDeclarations;
 
+  @override
+  TypeInferenceTokensSaver get typeInferenceTokensSaver => this;
+
+  @override
+  AsExpressionTokens asExpressionTokens(Token asOperator) {
+    return new AsExpressionTokens(asOperator);
+  }
+
   void asExpression(ExpressionJudgment judgment, int location, void expression,
-      Token asOperator, void literalType, DartType inferredType) {
+      AsExpressionTokens tokens, void literalType, DartType inferredType) {
     _store(location, inferredType: inferredType);
   }
 
-  void assertInitializer(
-      InitializerJudgment judgment,
-      int location,
-      Token assertKeyword,
-      Token leftParenthesis,
-      void condition,
-      Token comma,
-      void message,
-      Token rightParenthesis) {}
+  @override
+  AssertInitializerTokens assertInitializerTokens(Token assertKeyword,
+      Token leftParenthesis, Token comma, Token rightParenthesis) {
+    return new AssertInitializerTokens(
+        assertKeyword, leftParenthesis, comma, rightParenthesis);
+  }
 
-  void assertStatement(
-      StatementJudgment judgment,
-      int location,
+  void assertInitializer(InitializerJudgment judgment, int location,
+      AssertInitializerTokens tokens, void condition, void message) {}
+
+  @override
+  AssertStatementTokens assertStatementTokens(
       Token assertKeyword,
       Token leftParenthesis,
-      void condition,
       Token comma,
-      void message,
       Token rightParenthesis,
-      Token semicolon) {}
+      Token semicolon) {
+    return new AssertStatementTokens(
+        assertKeyword, leftParenthesis, comma, rightParenthesis, semicolon);
+  }
 
-  void awaitExpression(ExpressionJudgment judgment, int location,
-          Token awaitKeyword, void expression, DartType inferredType) =>
+  void assertStatement(StatementJudgment judgment, int location,
+      AssertStatementTokens Tokens, void condition, void message) {}
+
+  AwaitExpressionTokens awaitExpressionTokens(Token awaitKeyword) {
+    return new AwaitExpressionTokens(awaitKeyword);
+  }
+
+  void awaitExpression(
+          ExpressionJudgment judgment,
+          int location,
+          AwaitExpressionTokens tokens,
+          void expression,
+          DartType inferredType) =>
       genericExpression("awaitExpression", location, inferredType);
 
   Object binderForFunctionDeclaration(
@@ -108,20 +128,28 @@ class ResolutionStorer implements TypeInferenceListener<int, Node, int> {
     return new VariableDeclarationBinder(fileOffset, forSyntheticToken);
   }
 
-  void block(StatementJudgment judgment, int location, Token leftBracket,
-      List<void> statements, Token rightBracket) {}
+  BlockTokens blockTokens(Token leftBracket, Token rightBracket) {
+    return new BlockTokens(leftBracket, rightBracket);
+  }
 
-  void boolLiteral(ExpressionJudgment judgment, int location, Token literal,
-          bool value, DartType inferredType) =>
+  void block(StatementJudgment judgment, int location, BlockTokens tokens,
+      List<void> statements) {}
+
+  BoolLiteralTokens boolLiteralTokens(Token literal) {
+    return new BoolLiteralTokens(literal);
+  }
+
+  void boolLiteral(ExpressionJudgment judgment, int location,
+          BoolLiteralTokens tokens, bool value, DartType inferredType) =>
       genericExpression("boolLiteral", location, inferredType);
 
-  void breakStatement(
-      StatementJudgment judgment,
-      int location,
-      Token breakKeyword,
-      void label,
-      Token semicolon,
-      covariant Object labelBinder) {}
+  BreakStatementTokens breakStatementTokens(
+      Token breakKeyword, Token semicolon) {
+    return new BreakStatementTokens(breakKeyword, semicolon);
+  }
+
+  void breakStatement(StatementJudgment judgment, int location,
+      BreakStatementTokens tokens, void label, covariant Object labelBinder) {}
 
   void cascadeExpression(
       ExpressionJudgment judgment, int location, DartType inferredType) {
@@ -131,17 +159,17 @@ class ResolutionStorer implements TypeInferenceListener<int, Node, int> {
     // correctly apply the type even if we recorded it.
   }
 
+  CatchStatementTokens catchStatementTokens(Token onKeyword, Token catchKeyword,
+      Token leftParenthesis, Token comma, Token rightParenthesis) {
+    return new CatchStatementTokens(
+        onKeyword, catchKeyword, leftParenthesis, comma, rightParenthesis);
+  }
+
   void catchStatement(
       Catch judgment,
       int location,
-      Token onKeyword,
+      CatchStatementTokens tokens,
       void type,
-      Token catchKeyword,
-      Token leftParenthesis,
-      Token exceptionParameter,
-      Token comma,
-      Token stackTraceParameter,
-      Token rightParenthesis,
       void body,
       covariant VariableDeclarationBinder exceptionBinder,
       DartType exceptionType,
@@ -158,13 +186,17 @@ class ResolutionStorer implements TypeInferenceListener<int, Node, int> {
     }
   }
 
+  ConditionalExpressionTokens conditionalExpressionTokens(
+      Token question, Token colon) {
+    return new ConditionalExpressionTokens(question, colon);
+  }
+
   void conditionalExpression(
           ExpressionJudgment judgment,
           int location,
           void condition,
-          Token question,
+          ConditionalExpressionTokens tokens,
           void thenExpression,
-          Token colon,
           void elseExpression,
           DartType inferredType) =>
       genericExpression("conditionalExpression", location, inferredType);
@@ -178,20 +210,28 @@ class ResolutionStorer implements TypeInferenceListener<int, Node, int> {
     _store(location, inferredType: inferredType, reference: expressionTarget);
   }
 
+  ContinueStatementTokens continueStatementTokens(
+      Token continueKeyword, Token semicolon) {
+    return new ContinueStatementTokens(continueKeyword, semicolon);
+  }
+
   void continueStatement(
       StatementJudgment judgment,
       int location,
-      Token continueKeyword,
+      ContinueStatementTokens tokens,
       void label,
-      Token semicolon,
       covariant Object labelBinder) {}
+
+  ContinueSwitchStatementTokens continueSwitchStatementTokens(
+      Token continueKeyword, Token semicolon) {
+    return new ContinueSwitchStatementTokens(continueKeyword, semicolon);
+  }
 
   void continueSwitchStatement(
       StatementJudgment judgment,
       int location,
-      Token continueKeyword,
+      ContinueSwitchStatementTokens tokens,
       void label,
-      Token semicolon,
       covariant Object labelBinder) {}
 
   void deferredCheck(
@@ -199,25 +239,35 @@ class ResolutionStorer implements TypeInferenceListener<int, Node, int> {
     // This judgment has no semantic value for Analyzer.
   }
 
-  void doStatement(
-      StatementJudgment judgment,
-      int location,
-      Token doKeyword,
-      void body,
-      Token whileKeyword,
-      Token leftParenthesis,
-      void condition,
-      Token rightParenthesis,
-      Token semicolon) {}
+  DoStatementTokens doStatementTokens(Token doKeyword, Token whileKeyword,
+      Token leftParenthesis, Token rightParenthesis, Token semicolon) {
+    return new DoStatementTokens(
+        doKeyword, whileKeyword, leftParenthesis, rightParenthesis, semicolon);
+  }
 
-  void doubleLiteral(ExpressionJudgment judgment, int location, Token literal,
-          double value, DartType inferredType) =>
+  void doStatement(StatementJudgment judgment, int location,
+      DoStatementTokens tokens, void body, void condition) {}
+
+  DoubleLiteralTokens doubleLiteralTokens(Token literal) {
+    return new DoubleLiteralTokens(literal);
+  }
+
+  void doubleLiteral(ExpressionJudgment judgment, int location,
+          DoubleLiteralTokens tokens, double value, DartType inferredType) =>
       genericExpression("doubleLiteral", location, inferredType);
 
-  void emptyStatement(Token semicolon) {}
+  EmptyStatementTokens emptyStatementTokens(Token semicolon) {
+    return new EmptyStatementTokens(semicolon);
+  }
+
+  void emptyStatement(EmptyStatementTokens tokens) {}
+
+  ExpressionStatementTokens expressionStatementTokens(Token semicolon) {
+    return new ExpressionStatementTokens(semicolon);
+  }
 
   void expressionStatement(StatementJudgment judgment, int location,
-      void expression, Token semicolon) {}
+      void expression, ExpressionStatementTokens tokens) {}
 
   void fieldInitializer(
       InitializerJudgment judgment,
@@ -231,17 +281,22 @@ class ResolutionStorer implements TypeInferenceListener<int, Node, int> {
     _store(location, reference: initializerField);
   }
 
-  void forInStatement(
-      StatementJudgment judgment,
-      int location,
+  ForInStatementTokens forInStatementTokens(
       Token awaitKeyword,
       Token forKeyword,
       Token leftParenthesis,
-      Object loopVariable,
-      Token identifier,
       Token inKeyword,
+      Token rightParenthesis) {
+    return new ForInStatementTokens(
+        awaitKeyword, forKeyword, leftParenthesis, inKeyword, rightParenthesis);
+  }
+
+  void forInStatement(
+      StatementJudgment judgment,
+      int location,
+      ForInStatementTokens tokens,
+      Object loopVariable,
       void iterator,
-      Token rightParenthesis,
       void body,
       covariant VariableDeclarationBinder loopVariableBinder,
       DartType loopVariableType,
@@ -265,18 +320,25 @@ class ResolutionStorer implements TypeInferenceListener<int, Node, int> {
     }
   }
 
+  ForStatementTokens forStatementTokens(
+    Token forKeyword,
+    Token leftParenthesis,
+    Token leftSeparator,
+    Token rightSeparator,
+    Token rightParenthesis,
+  ) {
+    return new ForStatementTokens(forKeyword, leftParenthesis, leftSeparator,
+        rightSeparator, rightParenthesis);
+  }
+
   void forStatement(
       StatementJudgment judgment,
       int location,
-      Token forKeyword,
-      Token leftParenthesis,
+      ForStatementTokens tokens,
       void variableDeclarationList,
       void initialization,
-      Token leftSeparator,
       void condition,
-      Token rightSeparator,
       void updaters,
-      Token rightParenthesis,
       void body) {}
 
   void functionDeclaration(
@@ -303,19 +365,26 @@ class ResolutionStorer implements TypeInferenceListener<int, Node, int> {
     _store(location, inferredType: inferredType);
   }
 
+  IfNullTokens ifNullTokens(Token operator) {
+    return new IfNullTokens(operator);
+  }
+
   void ifNull(ExpressionJudgment judgment, int location, void leftOperand,
-          Token operator, void rightOperand, DartType inferredType) =>
+          IfNullTokens tokens, void rightOperand, DartType inferredType) =>
       genericExpression('ifNull', location, inferredType);
+
+  IfStatementTokens ifStatementTokens(Token ifKeyword, Token leftParenthesis,
+      Token rightParenthesis, Token elseKeyword) {
+    return new IfStatementTokens(
+        ifKeyword, leftParenthesis, rightParenthesis, elseKeyword);
+  }
 
   void ifStatement(
       StatementJudgment judgment,
       int location,
-      Token ifKeyword,
-      Token leftParenthesis,
+      IfStatementTokens tokens,
       void condition,
-      Token rightParenthesis,
       void thenStatement,
-      Token elseKeyword,
       void elseStatement) {}
 
   void indexAssign(ExpressionJudgment judgment, int location, Node writeMember,
@@ -324,8 +393,12 @@ class ResolutionStorer implements TypeInferenceListener<int, Node, int> {
         reference: writeMember, inferredType: inferredType, combiner: combiner);
   }
 
-  void intLiteral(ExpressionJudgment judgment, int location, Token literal,
-          num value, DartType inferredType) =>
+  IntLiteralTokens intLiteralTokens(Token literal) {
+    return new IntLiteralTokens(literal);
+  }
+
+  void intLiteral(ExpressionJudgment judgment, int location,
+          IntLiteralTokens tokens, num value, DartType inferredType) =>
       genericExpression("intLiteral", location, inferredType);
 
   @override
@@ -335,17 +408,25 @@ class ResolutionStorer implements TypeInferenceListener<int, Node, int> {
 
   void invalidInitializer(InitializerJudgment judgment, int location) {}
 
+  IsExpressionTokens isExpressionTokens(Token isOperator) {
+    return new IsExpressionTokens(isOperator);
+  }
+
   void isExpression(ExpressionJudgment judgment, int location, void expression,
-      Token isOperator, void literalType, DartType inferredType) {
+      IsExpressionTokens tokens, void literalType, DartType inferredType) {
     _store(location, inferredType: inferredType);
+  }
+
+  IsNotExpressionTokens isNotExpressionTokens(
+      Token isOperator, Token notOperator) {
+    return new IsNotExpressionTokens(isOperator, notOperator);
   }
 
   void isNotExpression(
       ExpressionJudgment judgment,
       int location,
       void expression,
-      Token isOperator,
-      Token notOperator,
+      IsNotExpressionTokens tokens,
       void literalType,
       DartType inferredType) {
     _store(location, inferredType: inferredType);
@@ -353,14 +434,17 @@ class ResolutionStorer implements TypeInferenceListener<int, Node, int> {
 
   void labeledStatement(List<Object> labels, void statement) {}
 
+  ListLiteralTokens listLiteralTokens(
+      Token constKeyword, Token leftBracket, Token rightBracket) {
+    return new ListLiteralTokens(constKeyword, leftBracket, rightBracket);
+  }
+
   void listLiteral(
           ExpressionJudgment judgment,
           int location,
-          Token constKeyword,
+          ListLiteralTokens tokens,
           Object typeArguments,
-          Token leftBracket,
           void elements,
-          Token rightBracket,
           DartType inferredType) =>
       genericExpression("listLiteral", location, inferredType);
 
@@ -379,23 +463,30 @@ class ResolutionStorer implements TypeInferenceListener<int, Node, int> {
     _store(location, loadLibrary: library, inferredType: inferredType);
   }
 
+  LogicalExpressionTokens logicalExpressionTokens(Token operatorToken) {
+    return new LogicalExpressionTokens(operatorToken);
+  }
+
   void logicalExpression(
           ExpressionJudgment judgment,
           int location,
           void leftOperand,
-          Token operator,
+          LogicalExpressionTokens tokens,
           void rightOperand,
           DartType inferredType) =>
       genericExpression("logicalExpression", location, inferredType);
 
+  MapLiteralTokens mapLiteralTokens(
+      Token constKeyword, Token leftBracket, Token rightBracket) {
+    return new MapLiteralTokens(constKeyword, leftBracket, rightBracket);
+  }
+
   void mapLiteral(
           ExpressionJudgment judgment,
           int location,
-          Token constKeyword,
+          MapLiteralTokens tokens,
           Object typeArguments,
-          Token leftBracket,
           List<Object> entries,
-          Token rightBracket,
           DartType inferredType) =>
       genericExpression("mapLiteral", location, inferredType);
 
@@ -449,12 +540,20 @@ class ResolutionStorer implements TypeInferenceListener<int, Node, int> {
       genericExpression(
           "namedFunctionExpression", binder.fileOffset, inferredType);
 
-  void not(ExpressionJudgment judgment, int location, Token operator,
+  NotTokens notTokens(Token operator) {
+    return new NotTokens(operator);
+  }
+
+  void not(ExpressionJudgment judgment, int location, NotTokens tokens,
           void operand, DartType inferredType) =>
       genericExpression("not", location, inferredType);
 
-  void nullLiteral(ExpressionJudgment judgment, int location, Token literal,
-      bool isSynthetic, DartType inferredType) {
+  NullLiteralTokens nullLiteralTokens(Token literal) {
+    return new NullLiteralTokens(literal);
+  }
+
+  void nullLiteral(ExpressionJudgment judgment, int location,
+      NullLiteralTokens tokens, bool isSynthetic, DartType inferredType) {
     if (isSynthetic) return null;
     genericExpression("nullLiteral", location, inferredType);
   }
@@ -498,12 +597,21 @@ class ResolutionStorer implements TypeInferenceListener<int, Node, int> {
     _store(location, reference: initializerTarget);
   }
 
-  void rethrow_(ExpressionJudgment judgment, int location, Token rethrowKeyword,
+  RethrowTokens rethrowTokens(Token rethrowKeyword) {
+    return new RethrowTokens(rethrowKeyword);
+  }
+
+  void rethrow_(ExpressionJudgment judgment, int location, RethrowTokens tokens,
           DartType inferredType) =>
       genericExpression('rethrow', location, inferredType);
 
+  ReturnStatementTokens returnStatementTokens(
+      Token returnKeyword, Token semicolon) {
+    return new ReturnStatementTokens(returnKeyword, semicolon);
+  }
+
   void returnStatement(StatementJudgment judgment, int location,
-      Token returnKeyword, void expression, Token semicolon) {}
+      ReturnStatementTokenstokens, void expression) {}
 
   void statementLabel(covariant void binder, Token label, Token colon) {}
 
@@ -561,49 +669,76 @@ class ResolutionStorer implements TypeInferenceListener<int, Node, int> {
     // Moreover, the file offset for StringConcatenation is `-1`.
   }
 
-  void stringLiteral(ExpressionJudgment judgment, int location, Token literal,
-          String value, DartType inferredType) =>
+  StringLiteralTokens stringLiteralTokens(Token literal) {
+    return new StringLiteralTokens(literal);
+  }
+
+  void stringLiteral(ExpressionJudgment judgment, int location,
+          StringLiteralTokens tokens, String value, DartType inferredType) =>
       genericExpression("StringLiteral", location, inferredType);
 
-  void superInitializer(
-      InitializerJudgment judgment,
-      int location,
-      Token superKeyword,
-      Token period,
-      Token constructorName,
-      covariant Object argumentList) {}
+  SuperInitializerTokens superInitializerTokens(
+      Token superKeyword, Token period, Token constructorName) {
+    return new SuperInitializerTokens(superKeyword, period, constructorName);
+  }
+
+  void superInitializer(InitializerJudgment judgment, int location,
+      SuperInitializerTokens tokens, covariant Object argumentList) {}
+
+  SwitchCaseTokens switchCaseTokens(Token keyword, Token colon) {
+    return new SwitchCaseTokens(keyword, colon);
+  }
 
   void switchCase(SwitchCaseJudgment judgment, List<Object> labels,
       Token keyword, void expression, Token colon, List<void> statements) {}
 
   void switchLabel(covariant void binder, Token label, Token colon) {}
 
-  void switchStatement(
-      StatementJudgment judgment,
-      int location,
+  SwitchStatementTokens switchStatementTokens(
       Token switchKeyword,
       Token leftParenthesis,
-      void expression,
       Token rightParenthesis,
       Token leftBracket,
-      void members,
-      Token rightBracket) {}
+      Token rightBracket) {
+    return new SwitchStatementTokens(switchKeyword, leftParenthesis,
+        rightParenthesis, leftBracket, rightBracket);
+  }
+
+  void switchStatement(StatementJudgment judgment, int location,
+      SwitchStatementTokens tokens, void expression, void members) {}
 
   void symbolLiteral(ExpressionJudgment judgment, int location, Token poundSign,
           List<Token> components, String value, DartType inferredType) =>
       genericExpression("symbolLiteral", location, inferredType);
 
-  void thisExpression(ExpressionJudgment judgment, int location,
-      Token thisKeyword, DartType inferredType) {}
+  ThisExpressionTokens thisExpressionTokens(Token thisKeyword) {
+    return new ThisExpressionTokens(thisKeyword);
+  }
 
-  void throw_(ExpressionJudgment judgment, int location, Token throwKeyword,
+  void thisExpression(ExpressionJudgment judgment, int location,
+      ThisExpressionTokens token, DartType inferredType) {}
+
+  ThrowTokens throwTokens(Token throwKeyword) {
+    return new ThrowTokens(throwKeyword);
+  }
+
+  void throw_(ExpressionJudgment judgment, int location, ThrowTokens tokens,
           void expression, DartType inferredType) =>
       genericExpression('throw', location, inferredType);
 
   void tryCatch(StatementJudgment judgment, int location) {}
 
-  void tryFinally(StatementJudgment judgment, int location, Token tryKeyword,
-      void body, void catchClauses, Token finallyKeyword, void finallyBlock) {}
+  TryFinallyTokens tryFinallyTokens(Token tryKeyword, Token finallyKeyword) {
+    return new TryFinallyTokens(tryKeyword, finallyKeyword);
+  }
+
+  void tryFinally(
+      StatementJudgment judgment,
+      int location,
+      TryFinallyTokens tokens,
+      void body,
+      void catchClauses,
+      void finallyBlock) {}
 
   void typeLiteral(ExpressionJudgment judgment, int location,
       Node expressionType, DartType inferredType) {
@@ -674,17 +809,22 @@ class ResolutionStorer implements TypeInferenceListener<int, Node, int> {
     _store(location, inferredType: type);
   }
 
-  void whileStatement(
-      StatementJudgment judgment,
-      int location,
-      Token whileKeyword,
-      Token leftParenthesis,
-      void condition,
-      Token rightParenthesis,
-      void body) {}
+  WhileStatementTokens whileStatementTokens(
+      Token whileKeyword, Token leftParenthesis, Token rightParenthesis) {
+    return new WhileStatementTokens(
+        whileKeyword, leftParenthesis, rightParenthesis);
+  }
+
+  void whileStatement(StatementJudgment judgment, int location,
+      WhileStatementTokens tokens, void condition, void body) {}
+
+  YieldStatementTokens yieldStatementTokens(
+      Token yieldKeyword, Token star, Token semicolon) {
+    return new YieldStatementTokens(yieldKeyword, star, semicolon);
+  }
 
   void yieldStatement(StatementJudgment judgment, int location,
-      Token yieldKeyword, Token star, void expression, Token semicolon) {}
+      YieldStatementTokens tokens, void expression) {}
 
   void _store(int location,
       {List<DartType> argumentTypes,
@@ -750,6 +890,10 @@ class ResolutionStorer implements TypeInferenceListener<int, Node, int> {
     if (location < 0) {
       throw new StateError('Invalid location: $location');
     }
+  }
+
+  NamedExpressionTokens namedExpressionTokens(Token nameToken, Token colon) {
+    return new NamedExpressionTokens(nameToken, colon);
   }
 }
 

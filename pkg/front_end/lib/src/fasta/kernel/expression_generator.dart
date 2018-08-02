@@ -769,7 +769,8 @@ abstract class ErroneousExpressionGenerator implements Generator {
             <Expression>[forest.literalInt(1, null)..fileOffset = offset],
             token),
         isGetter: true);
-    return new UnresolvedVariableUnaryJudgment(error, token)
+    return new UnresolvedVariableUnaryJudgment(
+        error, token?.offset, token?.isSynthetic)
       ..fileOffset = offset;
   }
 
@@ -781,7 +782,8 @@ abstract class ErroneousExpressionGenerator implements Generator {
             <Expression>[forest.literalInt(1, null)..fileOffset = offset],
             token),
         isGetter: true);
-    return new UnresolvedVariableUnaryJudgment(error, token)
+    return new UnresolvedVariableUnaryJudgment(
+        error, token?.offset, token?.isSynthetic)
       ..fileOffset = offset;
   }
 

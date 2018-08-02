@@ -126,7 +126,8 @@ import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 import 'type_inference_engine.dart'
     show IncludesTypeParametersCovariantly, TypeInferenceEngine;
 
-import 'type_inference_listener.dart' show TypeInferenceListener;
+import 'type_inference_listener.dart'
+    show TypeInferenceListener, TypeInferenceTokensSaver;
 
 import 'type_promotion.dart' show TypePromoter, TypePromoterDisabled;
 
@@ -429,6 +430,8 @@ abstract class TypeInferrer {
       int offset, Object binder, TypeParameter typeParameter);
 
   void voidType(int offset, Token token, DartType type);
+
+  TypeInferenceTokensSaver get tokensSaver;
 }
 
 /// Implementation of [TypeInferrer] which doesn't do any type inference.
@@ -505,6 +508,8 @@ class TypeInferrerDisabled extends TypeInferrer {
 
   @override
   void voidType(int offset, Token token, DartType type) {}
+
+  TypeInferenceTokensSaver get tokensSaver => null;
 }
 
 /// Derived class containing generic implementations of [TypeInferrer].
@@ -2055,6 +2060,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     return false;
   }
+
+  TypeInferenceTokensSaver get tokensSaver =>
+      listener?.typeInferenceTokensSaver;
 }
 
 class LegacyModeMixinInferrer implements MixinInferrer {
