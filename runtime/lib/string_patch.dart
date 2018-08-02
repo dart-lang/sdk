@@ -96,6 +96,7 @@ abstract class _StringBase implements String {
   }
 
   int get hashCode native "String_getHashCode";
+  int get _identityHashCode native "String_getHashCode";
 
   bool get _isOneByte {
     // Alternatively return false and override it on one-byte string classes.

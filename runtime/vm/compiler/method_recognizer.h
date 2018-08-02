@@ -183,6 +183,7 @@ namespace dart {
   V(Object, get:runtimeType, ObjectRuntimeType, Type, 0x00e8ab29)              \
   V(Object, _haveSameRuntimeType, ObjectHaveSameRuntimeType, Bool, 0x4dc50799) \
   V(_StringBase, get:hashCode, String_getHashCode, Smi, 0x78c3d446)            \
+  V(_StringBase, get:_identityHashCode, String_identityHash, Smi, 0x0472b1d8)  \
   V(_StringBase, get:isEmpty, StringBaseIsEmpty, Bool, 0x4a8b29c8)             \
   V(_StringBase, _substringMatches, StringBaseSubstringMatches, Bool,          \
     0x46de4f10)                                                                \
