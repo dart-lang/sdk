@@ -503,7 +503,7 @@ Still need entries for all changes to dart:web_audio,web_gl,web_sql since 1.x
     code-generation instead. Conditional imports indicate that mirrors are not
     supported, and any API in the mirrors library will throw at runtime.
 
-*   The generated output of dart2js can now be run as webworker.
+*   The generated output of dart2js can now be run as a webworker.
 
 *   `dart:isolate` support was removed. To launch background tasks, please
     use webworkers instead. APIs for webworkers can be accessed from `dart:html`
