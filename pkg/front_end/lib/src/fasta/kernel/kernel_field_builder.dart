@@ -35,7 +35,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   final ShadowField field;
   final List<MetadataBuilder> metadata;
   final KernelTypeBuilder type;
-  final Token initializerTokenForInference;
+  Token initializerTokenForInference;
   final bool hasInitializer;
 
   KernelFieldBuilder(
@@ -101,6 +101,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       initializer = new KernelBodyBuilder.forField(this, typeInferrer)
           .parseFieldInitializer(initializerTokenForInference);
     }
+    initializerTokenForInference = null;
   }
 
   @override
