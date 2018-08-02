@@ -14,7 +14,7 @@ significant changes across all areas of the platform. Large changes include:
 
 *   **(Breaking)** Functions marked `async` now run synchronously to the first
     `await` statement instead of returning to the event loop once at the top of
-    the function body before any code runs ([issue ][30345]).
+    the function body before any code runs ([issue 30345][]).
 
 *   **(Breaking)** Constants in the core libraries have been renamed from
     `SCREAMING_CAPS` to `lowercaseWithUnderscores`.
@@ -61,7 +61,7 @@ significant changes across all areas of the platform. Large changes include:
     file. The Dart 1.0 syntax is supported but deprecated.
 
 *   Added support for starting `async` functions synchronously. All tools (VM,
-    dart2js, DDC) support this ([issue ][30345]).
+    dart2js, DDC) support this ([issue 30345][]).
 
 *   The type `void` is now a Top type like `dynamic`, and `Object`. It also now
     has new errors for being used where not allowed (such as being assigned to
@@ -80,7 +80,7 @@ significant changes across all areas of the platform. Large changes include:
     }
     ```
 
-*   Invocations of noSuchMethod receive default values for optional args. The
+*   Invocations of `noSuchMethod()` receive default values for optional args. The
     following program used to print "No arguments passed", and now prints "First
     argument is 3".
 
@@ -104,7 +104,7 @@ significant changes across all areas of the platform. Large changes include:
     }
     ```
 
-*   Bounds on generic functions are invariant The following program now issues
+*   Bounds on generic functions are invariant. The following program now issues
     an invalid override error ([issue 29014][sdk#29014]):
 
     ```dart
