@@ -1847,8 +1847,7 @@
     {
       "builders": [
         "analyzer-use-cfe-linux",
-        "analyzer-use-cfe-mac",
-        "analyzer-use-cfe-win"
+        "analyzer-use-cfe-mac"
       ],
       "meta": {
         "description": "The configuration used by the analyzer builders running --use-cfe."
@@ -1867,6 +1866,82 @@
             "--fatal-warnings",
             "--use-cfe",
             "pkg/analyzer_cli"
+          ]
+        },
+        {
+          "name": "analyze pkg/analysis_server --use-cfe",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "pkg/analyzer_cli/bin/analyzer.dart",
+            "--fatal-warnings",
+            "--use-cfe",
+            "pkg/analysis_server"
+          ]
+        },
+        {
+          "name": "analyze pkg/analyzer --use-cfe",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "pkg/analyzer_cli/bin/analyzer.dart",
+            "--fatal-warnings",
+            "--use-cfe",
+            "pkg/analyzer"
+          ]
+        },
+        {
+          "name": "benchmarks analysis-server-cold --use-cfe",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "pkg/analysis_server/benchmark/benchmarks.dart",
+            "run",
+            "--use-cfe",
+            "--repeat=1",
+            "analysis-server-cold"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "analyzer-use-cfe-win"
+      ],
+      "meta": {
+        "description": "TODO(devoncarew): Temporarily duplicated from above due to #33540"
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["create_sdk"]
+        },
+        {
+          "name": "analyze pkg/analyzer_cli --use-cfe",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "pkg/analyzer_cli/bin/analyzer.dart",
+            "--fatal-warnings",
+            "--use-cfe",
+            "pkg/analyzer_cli"
+          ]
+        },
+        {
+          "name": "analyze pkg/analysis_server --use-cfe",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "pkg/analyzer_cli/bin/analyzer.dart",
+            "--fatal-warnings",
+            "--use-cfe",
+            "pkg/analysis_server"
+          ]
+        },
+        {
+          "name": "analyze pkg/analyzer --use-cfe",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "pkg/analyzer_cli/bin/analyzer.dart",
+            "--fatal-warnings",
+            "--use-cfe",
+            "pkg/analyzer"
           ]
         }
       ]
@@ -2074,36 +2149,6 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
             "--use-fasta-parser",
-            "pkg/analyzer_cli"
-          ]
-        },
-        {
-          "name": "analyze pkg/analysis_server --use-cfe",
-          "description": "TODO(devoncarew): move to a --use-cfe bot when one exists",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": [
-            "--fatal-warnings",
-            "--use-cfe",
-            "pkg/analysis_server"
-          ]
-        },
-        {
-          "name": "analyze pkg/analyzer --use-cfe",
-          "description": "TODO(devoncarew): move to a --use-cfe bot when one exists",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": [
-            "--fatal-warnings",
-            "--use-cfe",
-            "pkg/analyzer"
-          ]
-        },
-        {
-          "name": "analyze pkg/analyzer_cli --use-cfe",
-          "description": "TODO(devoncarew): move to a --use-cfe bot when one exists",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": [
-            "--fatal-warnings",
-            "--use-cfe",
             "pkg/analyzer_cli"
           ]
         },
