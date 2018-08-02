@@ -5,6 +5,7 @@
 #include "vm/compiler/frontend/bytecode_reader.h"
 
 #include "vm/bootstrap.h"
+#include "vm/class_finalizer.h"
 #include "vm/code_descriptors.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/constants_kbc.h"
@@ -423,6 +424,13 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         function_node_helper.SetJustRead(FunctionNodeHelper::kReturnType);
         // The closure has no body.
         function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
+
+        // Finalize function type.
+        Type& signature_type =
+            Type::Handle(helper_->zone_, closure.SignatureType());
+        signature_type ^= ClassFinalizer::FinalizeType(*(active_class_->klass),
+                                                       signature_type);
+        closure.SetSignatureType(signature_type);
 
         pool.SetTypeAt(i, ObjectPool::kTaggedObject);
         pool.SetObjectAt(i, closure);

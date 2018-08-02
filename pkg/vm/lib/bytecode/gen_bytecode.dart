@@ -6,7 +6,6 @@ library vm.bytecode.gen_bytecode;
 
 import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/external_name.dart' show getExternalName;
 import 'package:kernel/library_index.dart' show LibraryIndex;
@@ -818,8 +817,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     List<Label> savedYieldPoints = yieldPoints;
     yieldPoints = locals.isSyncYieldingFrame ? <Label>[] : null;
 
-    final int closureFunctionIndex = cp.add(new ConstantClosureFunction(
-        name, new CloneWithoutBody().visitFunctionNode(function)));
+    final int closureFunctionIndex =
+        cp.add(new ConstantClosureFunction(name, function));
 
     _genPrologue(node, function);
 

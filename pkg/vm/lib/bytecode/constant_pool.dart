@@ -984,20 +984,32 @@ class ConstantClosureFunction extends ConstantPoolEntry {
 
   @override
   void writeValueToBinary(BinarySink sink) {
-    assert(function.body == null);
     sink.writeStringReference(name);
-    sink.writeNode(function);
+    _withoutFunctionBody(() {
+      sink.writeNode(function);
+    });
   }
 
   ConstantClosureFunction.readFromBinary(BinarySource source)
       : name = source.readStringReference(),
-        function = source.readFunctionNode();
+        function = source.readFunctionNode() {
+    assert(function.body == null);
+  }
 
   @override
   String toString() {
     StringBuffer buffer = new StringBuffer();
-    new Printer(buffer).writeFunction(function);
+    _withoutFunctionBody(() {
+      new Printer(buffer).writeFunction(function);
+    });
     return 'ClosureFunction $name ${buffer.toString().trim()}';
+  }
+
+  _withoutFunctionBody(action()) {
+    final savedBody = function.body;
+    function.body = null;
+    action();
+    function.body = savedBody;
   }
 
   // ConstantClosureFunction entries are created per closure and should not
