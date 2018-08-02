@@ -1514,7 +1514,7 @@ class A {}
 
   test_writeParameters_named() async {
     String path = provider.convertPath('/test.dart');
-    String content = 'f(int i, {String s}) {}';
+    String content = 'f(int a, {bool b = false, String c}) {}';
     addSource(path, content);
 
     CompilationUnit unit = (await driver.getResult(path))?.unit;
@@ -1530,12 +1530,13 @@ class A {}
       });
     });
     SourceEdit edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('(int i, {String s})'));
+    expect(edit.replacement,
+        equalsIgnoringWhitespace('(int a, {bool b = false, String c})'));
   }
 
   test_writeParameters_positional() async {
     String path = provider.convertPath('/test.dart');
-    String content = 'f(int i, [String s]) {}';
+    String content = 'f(int a, [bool b = false, String c]) {}';
     addSource(path, content);
     CompilationUnit unit = (await driver.getResult(path))?.unit;
     FunctionDeclaration f = unit.declarations[0];
@@ -1550,7 +1551,8 @@ class A {}
       });
     });
     SourceEdit edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('(int i, [String s])'));
+    expect(edit.replacement,
+        equalsIgnoringWhitespace('(int a, [bool b = false, String c])'));
   }
 
   test_writeParameters_required() async {

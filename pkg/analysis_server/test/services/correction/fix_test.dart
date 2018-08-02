@@ -3852,7 +3852,7 @@ abstract class A {
   String m3(int p1, double p2, Map<int, List<String>> p3);
   String m4(p1, p2);
   String m5(p1, [int p2 = 2, int p3, p4 = 4]);
-  String m6(p1, {int p2: 2, int p3, p4: 4});
+  String m6(p1, {int p2 = 2, int p3, p4: 4});
 }
 
 class B extends A {
@@ -3865,7 +3865,7 @@ abstract class A {
   String m3(int p1, double p2, Map<int, List<String>> p3);
   String m4(p1, p2);
   String m5(p1, [int p2 = 2, int p3, p4 = 4]);
-  String m6(p1, {int p2: 2, int p3, p4: 4});
+  String m6(p1, {int p2 = 2, int p3, p4: 4});
 }
 
 class B extends A {
@@ -3895,7 +3895,7 @@ class B extends A {
   }
 
   @override
-  String m6(p1, {int p2: 2, int p3, p4: 4}) {
+  String m6(p1, {int p2 = 2, int p3, p4 = 4}) {
     // TODO: implement m6
   }
 }

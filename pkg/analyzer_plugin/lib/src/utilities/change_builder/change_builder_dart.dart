@@ -573,11 +573,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       // default value
       String defaultCode = parameter.defaultValueCode;
       if (defaultCode != null) {
-        if (sawPositional) {
-          write(' = ');
-        } else {
-          write(': ');
-        }
+        write(' = ');
         write(defaultCode);
       }
     }
