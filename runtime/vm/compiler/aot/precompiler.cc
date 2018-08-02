@@ -2819,7 +2819,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
     LongJumpScope jump;
     const intptr_t val = setjmp(*jump.Set());
     if (val == 0) {
-      FlowGraph* flow_graph = NULL;
+      FlowGraph* flow_graph = nullptr;
+      ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
 
       // Class hierarchy analysis is registered with the thread in the
       // constructor and unregisters itself upon destruction.
@@ -2829,8 +2830,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       // LongJump.
       {
         CSTAT_TIMER_SCOPE(thread(), graphbuilder_timer);
-        ZoneGrowableArray<const ICData*>* ic_data_array =
-            new (zone) ZoneGrowableArray<const ICData*>();
+        ic_data_array = new (zone) ZoneGrowableArray<const ICData*>();
 #ifndef PRODUCT
         TimelineDurationScope tds(thread(), compiler_timeline,
                                   "BuildFlowGraph");
@@ -2897,7 +2897,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           &assembler, flow_graph, *parsed_function(), optimized(),
           &speculative_policy, pass_state.inline_id_to_function,
           pass_state.inline_id_to_token_pos, pass_state.caller_inline_id,
-          function_stats);
+          ic_data_array, function_stats);
       {
         CSTAT_TIMER_SCOPE(thread(), graphcompiler_timer);
 #ifndef PRODUCT

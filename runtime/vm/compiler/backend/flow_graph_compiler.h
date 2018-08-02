@@ -322,6 +322,7 @@ class FlowGraphCompiler : public ValueObject {
                     const GrowableArray<const Function*>& inline_id_to_function,
                     const GrowableArray<TokenPosition>& inline_id_to_token_pos,
                     const GrowableArray<intptr_t>& caller_inline_id,
+                    ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
                     CodeStatistics* stats = NULL);
 
   ~FlowGraphCompiler();

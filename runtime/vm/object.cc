@@ -7948,6 +7948,7 @@ void Function::SaveICDataMap(
   count = 1;
   for (intptr_t i = 0; i < deopt_id_to_ic_data.length(); i++) {
     if (deopt_id_to_ic_data[i] != NULL) {
+      ASSERT(i == deopt_id_to_ic_data[i]->deopt_id());
       array.SetAt(count++, *deopt_id_to_ic_data[i]);
     }
   }
@@ -7987,6 +7988,7 @@ void Function::RestoreICDataMap(
         ic_data = ICData::Clone(ic_data);
         ic_data.SetOriginal(original_ic_data);
       }
+      ASSERT(deopt_id_to_ic_data->At(ic_data.deopt_id()) == nullptr);
       (*deopt_id_to_ic_data)[ic_data.deopt_id()] = &ic_data;
     }
   }

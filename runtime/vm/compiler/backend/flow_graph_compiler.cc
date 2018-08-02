@@ -106,6 +106,7 @@ FlowGraphCompiler::FlowGraphCompiler(
     const GrowableArray<const Function*>& inline_id_to_function,
     const GrowableArray<TokenPosition>& inline_id_to_token_pos,
     const GrowableArray<intptr_t>& caller_inline_id,
+    ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
     CodeStatistics* stats /* = NULL */)
     : thread_(Thread::Current()),
       zone_(Thread::Current()->zone()),
@@ -140,27 +141,16 @@ FlowGraphCompiler::FlowGraphCompiler(
                                         .LookupClass(Symbols::List()))),
       parallel_move_resolver_(this),
       pending_deoptimization_env_(NULL),
-      deopt_id_to_ic_data_(NULL),
+      deopt_id_to_ic_data_(deopt_id_to_ic_data),
       edge_counters_array_(Array::ZoneHandle()) {
   ASSERT(flow_graph->parsed_function().function().raw() ==
          parsed_function.function().raw());
-  if (!is_optimizing) {
+  if (is_optimizing) {
+    // No need to collect extra ICData objects created during compilation.
+    deopt_id_to_ic_data_ = nullptr;
+  } else {
     const intptr_t len = thread()->deopt_id();
-    deopt_id_to_ic_data_ = new (zone()) ZoneGrowableArray<const ICData*>(len);
-    deopt_id_to_ic_data_->SetLength(len);
-    for (intptr_t i = 0; i < len; i++) {
-      (*deopt_id_to_ic_data_)[i] = NULL;
-    }
-    // TODO(fschneider): Abstract iteration into ICDataArrayIterator.
-    const Array& old_saved_ic_data =
-        Array::Handle(zone(), flow_graph->function().ic_data_array());
-    const intptr_t saved_len =
-        old_saved_ic_data.IsNull() ? 0 : old_saved_ic_data.Length();
-    for (intptr_t i = 1; i < saved_len; i++) {
-      ICData& ic_data = ICData::ZoneHandle(zone());
-      ic_data ^= old_saved_ic_data.At(i);
-      (*deopt_id_to_ic_data_)[ic_data.deopt_id()] = &ic_data;
-    }
+    deopt_id_to_ic_data_->EnsureLength(len, nullptr);
   }
   ASSERT(assembler != NULL);
   ASSERT(!list_class_.IsNull());
