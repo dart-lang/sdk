@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/pending_error.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
@@ -1145,7 +1146,8 @@ class _ResolutionApplierContext implements TypeContext {
   Element translateReference(kernel.Node referencedNode,
       {bool isWriteReference = false,
       bool isTypeReference = false,
-      kernel.DartType inferredType}) {
+      kernel.DartType inferredType,
+      kernel.DartType receiverType}) {
     if (referencedNode == null) {
       if (isTypeReference && inferredType is kernel.DynamicType) {
         return typeProvider.dynamicType.element;
@@ -1179,10 +1181,26 @@ class _ResolutionApplierContext implements TypeContext {
           'TODO(paulberry): ${referencedNode.runtimeType}');
     }
     if (element is PropertyInducingElement) {
-      return isWriteReference ? element.setter : element.getter;
-    } else {
-      return element;
+      PropertyInducingElement property = element;
+      element = isWriteReference ? property.setter : property.getter;
     }
+    if (element is ConstructorElement &&
+        inferredType is kernel.InterfaceType &&
+        inferredType.typeArguments.isNotEmpty) {
+      InterfaceType type = translateType(inferredType);
+      return ConstructorMember.from(element, type);
+    }
+    if (receiverType is kernel.InterfaceType &&
+        receiverType.typeArguments.isNotEmpty) {
+      InterfaceType type = translateType(receiverType);
+      if (element is MethodElement) {
+        return MethodMember.from(element, type);
+      }
+      if (element is PropertyAccessorElement) {
+        return PropertyAccessorMember.from(element, type);
+      }
+    }
+    return element;
   }
 
   @override

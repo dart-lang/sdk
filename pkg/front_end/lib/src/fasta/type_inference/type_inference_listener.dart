@@ -545,8 +545,13 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
       void thenStatement,
       void elseStatement);
 
-  void indexAssign(ExpressionJudgment judgment, Location location,
-      Reference writeMember, Reference combiner, DartType inferredType);
+  void indexAssign(
+      ExpressionJudgment judgment,
+      Location location,
+      DartType receiverType,
+      Reference writeMember,
+      Reference combiner,
+      DartType inferredType);
 
   void intLiteral(ExpressionJudgment judgment, Location location,
       IntLiteralTokens tokens, num value, DartType inferredType);
@@ -609,6 +614,7 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   void methodInvocation(
       ExpressionJudgment judgment,
       Location resultOffset,
+      DartType receiverType,
       List<DartType> argumentsTypes,
       bool isImplicitCall,
       Reference interfaceMember,
@@ -637,13 +643,19 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   void propertyAssign(
       ExpressionJudgment judgment,
       Location location,
+      DartType receiverType,
       Reference writeMember,
       DartType writeContext,
       Reference combiner,
       DartType inferredType);
 
-  void propertyGet(ExpressionJudgment judgment, Location location,
-      bool forSyntheticToken, Reference member, DartType inferredType);
+  void propertyGet(
+      ExpressionJudgment judgment,
+      Location location,
+      bool forSyntheticToken,
+      DartType receiverType,
+      Reference member,
+      DartType inferredType);
 
   void propertyGetCall(
       ExpressionJudgment judgment, Location location, DartType inferredType);
@@ -950,8 +962,8 @@ class KernelTypeInferenceListener
       void elseStatement) {}
 
   @override
-  void indexAssign(ExpressionJudgment judgment, location, writeMember, combiner,
-      DartType inferredType) {}
+  void indexAssign(ExpressionJudgment judgment, location, receiverType,
+      writeMember, combiner, DartType inferredType) {}
 
   @override
   void intLiteral(ExpressionJudgment judgment, location,
@@ -1016,6 +1028,7 @@ class KernelTypeInferenceListener
   void methodInvocation(
       ExpressionJudgment judgment,
       resultOffset,
+      DartType receiverType,
       List<DartType> argumentsTypes,
       bool isImplicitCall,
       interfaceMember,
@@ -1046,12 +1059,12 @@ class KernelTypeInferenceListener
       NullLiteralTokens tokens, bool isSynthetic, DartType inferredType) {}
 
   @override
-  void propertyAssign(ExpressionJudgment judgment, location, writeMember,
-      DartType writeContext, combiner, DartType inferredType) {}
+  void propertyAssign(ExpressionJudgment judgment, location, receiverType,
+      writeMember, DartType writeContext, combiner, DartType inferredType) {}
 
   @override
   void propertyGet(ExpressionJudgment judgment, location,
-      bool forSyntheticToken, member, DartType inferredType) {}
+      bool forSyntheticToken, receiverType, member, DartType inferredType) {}
 
   @override
   void propertyGetCall(

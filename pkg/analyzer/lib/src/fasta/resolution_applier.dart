@@ -378,16 +378,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   void visitIndexExpression(IndexExpression node) {
     node.target?.accept(this);
 
-    DartType targetType = node.realTarget.staticType;
     var data = _get(node.leftBracket);
-    MethodElement element = _translateReference(data);
-
-    // Convert the raw element into a member.
-    if (targetType is InterfaceType) {
-      MethodElement member = MethodMember.from(element, targetType);
-      node.staticElement = member;
-    }
-
+    node.staticElement = _translateReference(data);
     node.staticType = _translateType(data.inferredType);
 
     node.index.accept(this);
@@ -541,7 +533,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     }
 
     if (invokeElement is ConstructorElement) {
-      _rewriteInfoInstanceCreation(node, invokeElement, invokeType, resultType);
+      _rewriteIntoInstanceCreation(node, invokeElement, invokeType, resultType);
     }
   }
 
@@ -769,7 +761,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   /// Rewrite AST if the [node] represents an instance creation.
-  void _rewriteInfoInstanceCreation(
+  void _rewriteIntoInstanceCreation(
       MethodInvocation node,
       ConstructorElement invokeElement,
       DartType invokeType,
@@ -891,7 +883,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     return _typeContext.translateReference(data.reference,
         isWriteReference: data.isWriteReference,
         isTypeReference: data.isTypeReference,
-        inferredType: data.inferredType);
+        inferredType: data.inferredType,
+        receiverType: data.receiverType);
   }
 
   DartType _translateType(kernel.DartType type) {
@@ -948,7 +941,8 @@ abstract class TypeContext {
   Element translateReference(kernel.Node referencedNode,
       {bool isWriteReference = false,
       bool isTypeReference = false,
-      kernel.DartType inferredType});
+      kernel.DartType inferredType,
+      kernel.DartType receiverType});
 
   /// Return the Analyzer [DartType] for the given [kernelType].
   DartType translateType(kernel.DartType kernelType);

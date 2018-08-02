@@ -65,6 +65,10 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
 
   InterfaceType get mapType => typeProvider.mapType;
 
+  ClassElement get numElement => typeProvider.numType.element;
+
+  InterfaceType get numType => typeProvider.numType;
+
   ClassElement get stringElement => typeProvider.stringType.element;
 
   TypeProvider get typeProvider =>
@@ -2576,6 +2580,31 @@ class C<T> {
     expect(fElement.type, typeProvider.listType.instantiate([tElement.type]));
   }
 
+  test_field_generic() async {
+    addTestFile(r'''
+class C<T> {
+  T f;
+}
+main(C<int> c) {
+  c.f; // ref
+  c.f = 1;
+}
+''');
+    await resolveTestFile();
+
+    {
+      var fRef = findNode.simple('f; // ref');
+      assertMember(fRef, 'C<int>', findElement.getter('f'));
+      assertType(fRef, 'int');
+    }
+
+    {
+      var fRef = findNode.simple('f = 1;');
+      assertMember(fRef, 'C<int>', findElement.setter('f'));
+      assertType(fRef, 'int');
+    }
+  }
+
   test_formalParameter_functionTyped() async {
     addTestFile(r'''
 class A {
@@ -3266,90 +3295,57 @@ class C<T> {
   }
 
   test_instanceCreation_withTypeArguments() async {
-    String content = r'''
+    addTestFile(r'''
 class C<K, V> {
   C(K k, V v);
   C.named(K k, V v);
 }
 var a = new C<int, double>(1, 2.3);
 var b = new C<num, String>.named(4, 'five');
-''';
-    addTestFile(content);
-
+''');
     await resolveTestFile();
-    CompilationUnit unit = result.unit;
-    var typeProvider = unit.declaredElement.context.typeProvider;
 
-    ClassDeclaration cNode = unit.declarations[0];
-    ClassElement cElement = cNode.declaredElement;
-    ConstructorElement defaultConstructor = cElement.constructors[0];
-    ConstructorElement namedConstructor = cElement.constructors[1];
+    var cElement = findElement.class_('C');
+    var defaultConstructor = cElement.unnamedConstructor;
+    var namedConstructor = cElement.getNamedConstructor('named');
 
     {
-      TopLevelVariableDeclaration aDeclaration = unit.declarations[1];
-      VariableDeclaration aNode = aDeclaration.variables.variables[0];
+      var creation = findNode.instanceCreation('new C<int, double>(1, 2.3);');
 
-      InstanceCreationExpression value = aNode.initializer;
-      InterfaceType instantiatedType = cElement.type
-          .instantiate([typeProvider.intType, typeProvider.doubleType]);
+      assertMember(creation, 'C<int, double>', defaultConstructor);
+      assertType(creation, 'C<int, double>');
 
-      expect(value.staticElement, defaultConstructor);
-      expect(value.staticType, instantiatedType);
+      var typeName = creation.constructorName.type;
+      assertTypeName(typeName, cElement, 'C<int, double>');
 
-      TypeName typeName = value.constructorName.type;
+      var typeArguments = typeName.typeArguments.arguments;
+      assertTypeName(typeArguments[0], intElement, 'int');
+      assertTypeName(typeArguments[1], doubleElement, 'double');
 
-      Identifier typeIdentifier = typeName.name;
-      expect(typeIdentifier.staticElement, cElement);
-      expect(typeIdentifier.staticType, instantiatedType);
+      expect(creation.constructorName.name, isNull);
 
-      TypeName typeArgument1 = typeName.typeArguments.arguments[0];
-      expect(typeArgument1.type, typeProvider.intType);
-      expect(typeArgument1.name.staticType, typeProvider.intType);
-      expect(typeArgument1.name.staticElement, typeProvider.intType.element);
-
-      TypeName typeArgument2 = typeName.typeArguments.arguments[1];
-      expect(typeArgument2.type, typeProvider.doubleType);
-      expect(typeArgument2.name.staticType, typeProvider.doubleType);
-      expect(typeArgument2.name.staticElement, typeProvider.doubleType.element);
-
-      expect(value.constructorName.name, isNull);
-
-      Expression argument = value.argumentList.arguments[0];
+      Expression argument = creation.argumentList.arguments[0];
       _assertArgumentToParameter(argument, defaultConstructor.parameters[0]);
     }
 
     {
-      TopLevelVariableDeclaration bDeclaration = unit.declarations[2];
-      VariableDeclaration bNode = bDeclaration.variables.variables[0];
+      var creation = findNode.instanceCreation('new C<num, String>.named');
 
-      InstanceCreationExpression value = bNode.initializer;
-      InterfaceType instantiatedType = cElement.type
-          .instantiate([typeProvider.numType, typeProvider.stringType]);
+      assertMember(creation, 'C<num, String>', namedConstructor);
+      assertType(creation, 'C<num, String>');
 
-      expect(value.staticElement, namedConstructor);
-      expect(value.staticType, instantiatedType);
+      var typeName = creation.constructorName.type;
+      assertTypeName(typeName, cElement, 'C<num, String>');
 
-      TypeName typeName = value.constructorName.type;
+      var typeArguments = typeName.typeArguments.arguments;
+      assertTypeName(typeArguments[0], numElement, 'num');
+      assertTypeName(typeArguments[1], stringElement, 'String');
 
-      SimpleIdentifier typeIdentifier = typeName.name;
-      expect(typeIdentifier.staticElement, cElement);
-      expect(typeIdentifier.staticType, instantiatedType);
+      var constructorName = creation.constructorName.name;
+      assertMember(constructorName, 'C<num, String>', namedConstructor);
+      assertType(constructorName, null);
 
-      TypeName typeArgument1 = typeName.typeArguments.arguments[0];
-      expect(typeArgument1.type, typeProvider.numType);
-      expect(typeArgument1.name.staticType, typeProvider.numType);
-      expect(typeArgument1.name.staticElement, typeProvider.numType.element);
-
-      TypeName typeArgument2 = typeName.typeArguments.arguments[1];
-      expect(typeArgument2.type, typeProvider.stringType);
-      expect(typeArgument2.name.staticType, typeProvider.stringType);
-      expect(typeArgument2.name.staticElement, typeProvider.stringType.element);
-
-      SimpleIdentifier constructorName = value.constructorName.name;
-      expect(constructorName.staticElement, namedConstructor);
-      expect(constructorName.staticType, isNull);
-
-      Expression argument = value.argumentList.arguments[0];
+      var argument = creation.argumentList.arguments[0];
       _assertArgumentToParameter(argument, namedConstructor.parameters[0]);
     }
   }
@@ -6247,26 +6243,18 @@ class C<T, U> {
 }
 ''');
     await resolveTestFile();
-    List<Statement> mainStatements = _getMainStatements(result);
-
-    ClassDeclaration cNode = result.unit.declarations[1];
-    MethodDeclaration mNode = cNode.members[0];
-    MethodElement mElement = mNode.declaredElement;
+    MethodElement mElement = findElement.method('m');
 
     {
-      ExpressionStatement statement = mainStatements[0];
-      MethodInvocation invocation = statement.expression;
+      var invocation = findNode.methodInvocation('m(1)');
       List<Expression> arguments = invocation.argumentList.arguments;
 
       var invokeTypeStr = '(int) → void';
-      expect(invocation.staticType.toString(), 'void');
-      expect(invocation.staticInvokeType.toString(), invokeTypeStr);
-      if (useCFE) {
-        expect(invocation.methodName.staticElement, same(mElement));
-        expect(invocation.methodName.staticType.toString(), invokeTypeStr);
-      } else {
-        expect(invocation.staticInvokeType.element, same(mElement));
-      }
+      assertType(invocation, 'void');
+      assertInvokeType(invocation, invokeTypeStr);
+
+      assertMember(invocation.methodName, 'C<int, double>', mElement);
+      assertType(invocation.methodName, invokeTypeStr);
 
       _assertArgumentToParameter(arguments[0], mElement.parameters[0]);
     }
@@ -6282,40 +6270,22 @@ class C<T> {
 }
 ''');
     await resolveTestFile();
-
-    List<Statement> mainStatements = _getMainStatements(result);
-
-    ClassDeclaration cNode = result.unit.declarations[1];
-    MethodDeclaration mNode = cNode.members[0];
-    MethodElement mElement = mNode.declaredElement;
+    MethodElement mElement = findElement.method('m');
 
     {
-      ExpressionStatement statement = mainStatements[0];
-      MethodInvocation invocation = statement.expression;
+      var invocation = findNode.methodInvocation('m(1, 2.3)');
       List<Expression> arguments = invocation.argumentList.arguments;
 
       var invokeTypeStr = '(int, double) → Map<int, double>';
-      expect(invocation.staticType.toString(), 'Map<int, double>');
-      expect(invocation.staticInvokeType.toString(), invokeTypeStr);
-      if (useCFE) {
-        expect(invocation.methodName.staticElement, same(mElement));
-        expect(invocation.methodName.staticType.toString(), invokeTypeStr);
-      }
+      assertType(invocation, 'Map<int, double>');
+      assertInvokeType(invocation, invokeTypeStr);
 
-      if (useCFE) {
-        expect(arguments[0].staticParameterElement, isNull);
-        expect(arguments[1].staticParameterElement, isNull);
-      } else {
-        Expression aArgument = arguments[0];
-        ParameterMember aArgumentParameter = aArgument.staticParameterElement;
-        ParameterElement aElement = mElement.parameters[0];
-        expect(aArgumentParameter.type, typeProvider.intType);
-        expect(aArgumentParameter.baseElement, same(aElement));
+      assertMember(invocation.methodName, 'C<int>', mElement);
+      assertType(invocation.methodName,
+          useCFE ? invokeTypeStr : '<U>(int, U) → Map<int, U>');
 
-        Expression bArgument = arguments[1];
-        ParameterMember bArgumentParameter = bArgument.staticParameterElement;
-        expect(bArgumentParameter.type, typeProvider.doubleType);
-      }
+      _assertArgumentToParameter(arguments[0], mElement.parameters[0]);
+      _assertArgumentToParameter(arguments[1], mElement.parameters[1]);
     }
   }
 
@@ -10194,7 +10164,7 @@ class FindElement {
   PropertyAccessorElement getter(String name) {
     for (var class_ in unitElement.types) {
       for (var accessor in class_.accessors) {
-        if (accessor.isGetter && accessor.name == name) {
+        if (accessor.isGetter && accessor.displayName == name) {
           return accessor;
         }
       }
@@ -10272,6 +10242,17 @@ class FindElement {
       }
     }
     fail('Prefix not found: $name');
+  }
+
+  PropertyAccessorElement setter(String name) {
+    for (var class_ in unitElement.types) {
+      for (var accessor in class_.accessors) {
+        if (accessor.isSetter && accessor.displayName == name) {
+          return accessor;
+        }
+      }
+    }
+    fail('Not found class accessor: $name');
   }
 
   FunctionElement topFunction(String name) {

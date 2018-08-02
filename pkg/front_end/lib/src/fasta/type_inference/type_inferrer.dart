@@ -1697,6 +1697,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       listener.methodInvocation(
           expression,
           resultOffset,
+          receiverType,
           arguments.types,
           isImplicitCall,
           getRealTarget(interfaceMember),
@@ -1771,7 +1772,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       listener.propertyGetCall(expression, expression.fileOffset, inferredType);
     } else {
       listener.propertyGet(expression, expression.fileOffset, forSyntheticToken,
-          interfaceMember, inferredType);
+          receiverType, interfaceMember, inferredType);
     }
     expression.inferredType = inferredType;
   }

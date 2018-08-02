@@ -623,14 +623,4 @@ class AnalysisHoverTest_UseCFE extends AnalysisHoverTest {
   @override
   test_expression_literal_noElement() async =>
       super.test_expression_literal_noElement();
-
-  @failingTest
-  @override
-  test_expression_method_invocation_genericMethod() async =>
-      super.test_expression_method_invocation_genericMethod();
-
-  @failingTest
-  @override
-  test_instanceCreation_implicit_withTypeArgument() async =>
-      super.test_instanceCreation_implicit_withTypeArgument();
 }

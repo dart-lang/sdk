@@ -24,6 +24,7 @@ class ResolutionData {
   final bool isWriteReference;
   final Node loadLibrary;
   final int prefixInfo;
+  final DartType receiverType;
   final Node reference;
   final DartType writeContext;
 
@@ -41,6 +42,7 @@ class ResolutionData {
       this.isWriteReference = false,
       this.loadLibrary,
       this.prefixInfo,
+      this.receiverType,
       this.reference,
       this.writeContext});
 }
@@ -387,10 +389,18 @@ class ResolutionStorer
       void thenStatement,
       void elseStatement) {}
 
-  void indexAssign(ExpressionJudgment judgment, int location, Node writeMember,
-      Node combiner, DartType inferredType) {
+  void indexAssign(
+      ExpressionJudgment judgment,
+      int location,
+      DartType receiverType,
+      Node writeMember,
+      Node combiner,
+      DartType inferredType) {
     _store(location,
-        reference: writeMember, inferredType: inferredType, combiner: combiner);
+        reference: writeMember,
+        inferredType: inferredType,
+        combiner: combiner,
+        receiverType: receiverType);
   }
 
   IntLiteralTokens intLiteralTokens(Token literal) {
@@ -498,6 +508,7 @@ class ResolutionStorer
   void methodInvocation(
       ExpressionJudgment judgment,
       int resultOffset,
+      DartType receiverType,
       List<DartType> argumentsTypes,
       bool isImplicitCall,
       Node interfaceMember,
@@ -513,6 +524,7 @@ class ResolutionStorer
         argumentTypes: argumentsTypes,
         invokeType: invokeType,
         isImplicitCall: isImplicitCall,
+        receiverType: receiverType,
         reference: interfaceMember);
   }
 
@@ -561,6 +573,7 @@ class ResolutionStorer
   void propertyAssign(
       ExpressionJudgment judgment,
       int location,
+      DartType receiverType,
       Node writeMember,
       DartType writeContext,
       Node combiner,
@@ -570,15 +583,22 @@ class ResolutionStorer
         reference: writeMember,
         writeContext: writeContext,
         combiner: combiner,
-        inferredType: inferredType);
+        inferredType: inferredType,
+        receiverType: receiverType);
   }
 
-  void propertyGet(ExpressionJudgment judgment, int location,
-      bool forSyntheticToken, Node member, DartType inferredType) {
+  void propertyGet(
+      ExpressionJudgment judgment,
+      int location,
+      bool forSyntheticToken,
+      DartType receiverType,
+      Node member,
+      DartType inferredType) {
     _store(location,
         reference: member,
         inferredType: inferredType,
-        isSynthetic: forSyntheticToken);
+        isSynthetic: forSyntheticToken,
+        receiverType: receiverType);
   }
 
   void propertyGetCall(
@@ -840,6 +860,7 @@ class ResolutionStorer
       bool isWriteReference = false,
       Node loadLibrary,
       int prefixInfo,
+      DartType receiverType,
       Node reference,
       bool replace = false,
       DartType writeContext}) {
@@ -868,6 +889,7 @@ class ResolutionStorer
         isWriteReference: isWriteReference,
         loadLibrary: loadLibrary,
         prefixInfo: prefixInfo,
+        receiverType: receiverType,
         reference: reference,
         writeContext: writeContext);
   }

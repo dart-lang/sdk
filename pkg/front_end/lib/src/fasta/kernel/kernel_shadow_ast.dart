@@ -1578,8 +1578,8 @@ class IndexAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
       _storeLetType(inferrer, replacedRead, readType);
     }
     var inferredResult = _inferRhs(inferrer, readType, writeContext);
-    inferrer.listener.indexAssign(this, write.fileOffset, writeMember,
-        inferredResult.combiner, inferredType);
+    inferrer.listener.indexAssign(this, write.fileOffset, receiverType,
+        writeMember, inferredResult.combiner, inferredType);
     _replaceWithDesugared();
     return null;
   }
@@ -2249,6 +2249,7 @@ class PropertyAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
     inferrer.listener.propertyAssign(
         this,
         write.fileOffset,
+        receiverType,
         inferrer.getRealTarget(writeMember),
         writeContext,
         inferredResult.combiner,
@@ -2780,7 +2781,7 @@ class InvalidPropertyGetJudgment extends SyntheticExpressionJudgment {
       ShadowTypeInferrer inferrer, DartType typeContext) {
     var inferredType = member?.getterType ?? const DynamicType();
     inferrer.listener
-        .propertyGet(this, fileOffset, false, member, inferredType);
+        .propertyGet(this, fileOffset, false, null, member, inferredType);
     return super.infer(inferrer, typeContext);
   }
 }
