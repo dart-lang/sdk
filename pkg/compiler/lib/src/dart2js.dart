@@ -706,7 +706,9 @@ Supported options:
 
     -O3
        Enables optimizations that respect the language semantics only on
-       programs that don't ever throw any subtype of `Error`. To use this
+       programs that don't ever throw any subtype of `Error`.  These
+       optimizations improve the generated code, but they may cause programs to
+       behave unexpectedly if this assumption is not met.  To use this
        option, we recommend that you properly test your application first
        without it, and ensure that no subtype of `Error` (such as `TypeError`)
        is ever thrown.
@@ -725,10 +727,12 @@ Supported options:
          -O3
          --trust-primitives
 
-    In the future, new safe optimizations may be added on any level, and
-    optimizations that only work on some programs may move up from one level to
-    the next (for instance, we may move `omit-implicit-checks` to the O3 level
-    in the future).
+    While some of the individual optimizations and flags may change with time,
+    we intend to keep the -O* flags stable. New safe optimizations may be added
+    on any level, and optimizations that only work on some programs may move up
+    from one level to the next (for instance, once alternative safe
+    optimizations are implemented, `omit-implicit-checks` may be removed of may
+    move to the O4 level).
 
 The following individual options are included in some of the -O optimization
 levels above. They help reduce the size of the generated code, but they may
