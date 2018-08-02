@@ -649,7 +649,7 @@ main() {
   test_local_override() {
     newFile('/libA.dart', content: 'class A {m() {}}');
     addTestFile('''
-import '/libA.dart';
+import '../../libA.dart';
 class B extends A {
   m() {}
   x() {^}
@@ -720,7 +720,7 @@ main() {
   test_overrides() {
     newFile('/libA.dart', content: 'class A {m() {}}');
     addTestFile('''
-import '/libA.dart';
+import '../../libA.dart';
 class B extends A {m() {^}}
 ''');
     return getSuggestions().then((_) {
