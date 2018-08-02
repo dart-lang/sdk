@@ -150,8 +150,6 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
       assertElement(name.identifier, expectedElement);
       if (useCFE) {
         assertType(name.identifier, expectedType);
-      } else {
-        expect(name.identifier.staticType, isNull);
       }
     }
   }
@@ -192,6 +190,8 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
     } else if (node is Identifier) {
       return node.staticElement;
     } else if (node is IndexExpression) {
+      return node.staticElement;
+    } else if (node is InstanceCreationExpression) {
       return node.staticElement;
     } else if (node is PostfixExpression) {
       return node.staticElement;
@@ -6713,6 +6713,112 @@ void f<T, U>(T a, U b) {}
           parameterMemberType: typeProvider.intType);
       _assertArgumentToParameter(arguments[1], fElement.parameters[1],
           parameterMemberType: typeProvider.doubleType);
+    }
+  }
+
+  test_optionalConst() async {
+    addTestFile(r'''
+class C {
+  const C();
+  const C.named();
+}
+const a = C(); // ref
+const b = C.named(); // ref
+''');
+    await resolveTestFile();
+    expect(result.errors, isEmpty);
+    var c = findElement.class_('C');
+
+    {
+      var creation = findNode.instanceCreation('C(); // ref');
+      assertElement(creation, c.unnamedConstructor);
+      assertType(creation, 'C');
+
+      assertTypeName(creation.constructorName.type, c, 'C');
+    }
+
+    {
+      var creation = findNode.instanceCreation('C.named(); // ref');
+      var namedConstructor = c.getNamedConstructor('named');
+      assertElement(creation, namedConstructor);
+      assertType(creation, 'C');
+
+      assertTypeName(creation.constructorName.type, c, 'C');
+      assertElement(creation.constructorName.name, namedConstructor);
+    }
+  }
+
+  test_optionalConst_prefixed() async {
+    provider.newFile(_p('/test/lib/a.dart'), r'''
+class C {
+  const C();
+  const C.named();
+}
+''');
+    addTestFile(r'''
+import 'a.dart' as p;
+const a = p.C(); // ref
+const b = p.C.named(); // ref
+''');
+    await resolveTestFile();
+    expect(result.errors, isEmpty);
+    var import = findElement.import('package:test/a.dart');
+    var c = import.importedLibrary.getType('C');
+
+    {
+      var creation = findNode.instanceCreation('C(); // ref');
+      assertElement(creation, c.unnamedConstructor);
+      assertType(creation, 'C');
+
+      assertTypeName(creation.constructorName.type, c, 'C',
+          expectedPrefix: import.prefix);
+    }
+
+    {
+      var creation = findNode.instanceCreation('C.named(); // ref');
+      var namedConstructor = c.getNamedConstructor('named');
+      assertElement(creation, namedConstructor);
+      assertType(creation, 'C');
+
+      assertTypeName(creation.constructorName.type, c, 'C',
+          expectedPrefix: import.prefix);
+      assertElement(creation.constructorName.name, namedConstructor);
+    }
+  }
+
+  test_optionalConst_typeArguments() async {
+    addTestFile(r'''
+class C<T> {
+  const C();
+  const C.named();
+}
+const a = C<int>(); // ref
+const b = C<String>.named(); // ref
+''');
+    await resolveTestFile();
+    expect(result.errors, isEmpty);
+    var c = findElement.class_('C');
+
+    {
+      var creation = findNode.instanceCreation('C<int>(); // ref');
+      assertMember(creation, 'C<int>', c.unnamedConstructor);
+      assertType(creation, 'C<int>');
+
+      assertTypeName(creation.constructorName.type, c, 'C<int>');
+      assertTypeName(findNode.typeName('int>'), intElement, 'int');
+    }
+
+    {
+      var creation = findNode.instanceCreation('C<String>.named(); // ref');
+      var namedConstructor = c.getNamedConstructor('named');
+      assertMember(creation, 'C<String>', namedConstructor);
+      assertType(creation, 'C<String>');
+
+      assertTypeName(creation.constructorName.type, c, 'C<String>');
+      assertTypeName(findNode.typeName('String>'), stringElement, 'String');
+
+      assertMember(
+          creation.constructorName.name, 'C<String>', namedConstructor);
     }
   }
 

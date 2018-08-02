@@ -734,13 +734,6 @@ class LibraryAnalyzer {
     new DeclarationResolver(enableKernelDriver: true, applyKernelTypes: true)
         .resolve(unit, unitElement);
 
-    // TODO(paulberry): need to find a better way to do this.
-    // See dartbug.com/33506.
-//    if (_libraryElement.context.analysisOptions.previewDart2) {
-//      unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
-//          file.source, _typeProvider, AnalysisErrorListener.NULL_LISTENER));
-//    }
-
     var applierContext = new _ResolutionApplierContext(_resynthesizer,
         _typeProvider, _libraryElement, resolution, unit.localDeclarations);
     var applier = applierContext.applier;

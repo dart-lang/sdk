@@ -633,14 +633,4 @@ class AnalysisHoverTest_UseCFE extends AnalysisHoverTest {
   @override
   test_instanceCreation_implicit_withTypeArgument() async =>
       super.test_instanceCreation_implicit_withTypeArgument();
-
-  @failingTest
-  @override
-  test_instanceCreation_noKeyword_const() async =>
-      super.test_instanceCreation_noKeyword_const();
-
-  @failingTest
-  @override
-  test_instanceCreation_noKeyword_new() async =>
-      super.test_instanceCreation_noKeyword_new();
 }

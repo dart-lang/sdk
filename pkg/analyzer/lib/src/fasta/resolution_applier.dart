@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/fasta/resolution_storer.dart';
@@ -538,6 +539,10 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         _resolveNamedArguments(argumentList, parameters);
       }
     }
+
+    if (invokeElement is ConstructorElement) {
+      _rewriteInfoInstanceCreation(node, invokeElement, invokeType, resultType);
+    }
   }
 
   @override
@@ -761,6 +766,65 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         }
       }
     }
+  }
+
+  /// Rewrite AST if the [node] represents an instance creation.
+  void _rewriteInfoInstanceCreation(
+      MethodInvocation node,
+      ConstructorElement invokeElement,
+      DartType invokeType,
+      DartType resultType) {
+    if (node.isCascaded) {
+      return;
+    }
+
+    Identifier typeIdentifier;
+    Token constructorIdentifierPeriod;
+    SimpleIdentifier constructorIdentifier;
+    var target = node.target;
+    if (target == null) {
+      SimpleIdentifier simpleTypeIdentifier = node.methodName;
+      simpleTypeIdentifier.staticElement = resultType.element;
+      simpleTypeIdentifier.staticType = resultType;
+
+      typeIdentifier = simpleTypeIdentifier;
+    } else if (target is SimpleIdentifier) {
+      if (target.staticElement is PrefixElement) {
+        SimpleIdentifier simpleTypeIdentifier = node.methodName;
+        simpleTypeIdentifier.staticElement = resultType.element;
+        simpleTypeIdentifier.staticType = resultType;
+
+        typeIdentifier = astFactory.prefixedIdentifier(
+            target, node.operator, simpleTypeIdentifier);
+      } else {
+        typeIdentifier = target;
+
+        constructorIdentifierPeriod = node.operator;
+        constructorIdentifier = node.methodName;
+      }
+    } else {
+      PrefixedIdentifier prefixed = target;
+      typeIdentifier = prefixed;
+
+      constructorIdentifierPeriod = prefixed.period;
+      constructorIdentifier = node.methodName;
+    }
+
+    var typeName = astFactory.typeName(typeIdentifier, node.typeArguments);
+    typeName.type = resultType;
+
+    var creation = astFactory.instanceCreationExpression(
+      null,
+      astFactory.constructorName(
+        typeName,
+        constructorIdentifierPeriod,
+        constructorIdentifier,
+      ),
+      node.argumentList,
+    );
+    creation.staticElement = invokeElement;
+    creation.staticType = resultType;
+    NodeReplacer.replace(node, creation);
   }
 
   void _storeFunctionType(DartType type, FunctionTypedElementImpl element) {

@@ -51,6 +51,13 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
 
   @override
   @failingTest
+  test_optionalConst_typeArguments() async {
+    // We should get ConstructorMember, but convert to just ConstructorElement.
+    await super.test_optionalConst_typeArguments();
+  }
+
+  @override
+  @failingTest
   test_unresolved_assignment_left_indexed1_simple() async {
     await super.test_unresolved_assignment_left_indexed1_simple();
   }
