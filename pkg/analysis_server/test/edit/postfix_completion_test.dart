@@ -14,6 +14,7 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PostfixCompletionTest);
+    defineReflectiveTests(PostfixCompletionTest_UseCFE);
   });
 }
 
@@ -90,4 +91,10 @@ main() {
     var result = new EditGetPostfixCompletionResult.fromResponse(response);
     change = result.change;
   }
+}
+
+@reflectiveTest
+class PostfixCompletionTest_UseCFE extends PostfixCompletionTest {
+  @override
+  bool get useCFE => true;
 }

@@ -103,6 +103,11 @@ class CompletionTestCase extends CompletionDomainHandlerTest {
   }
 }
 
+class CompletionTestCase_UseCFE extends CompletionTestCase {
+  @override
+  bool get useCFE => true;
+}
+
 /**
  * A specification of the completion results expected at a given location.
  */

@@ -16,6 +16,7 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetTypeHierarchyTest);
+    defineReflectiveTests(GetTypeHierarchyTest);
   });
 }
 
@@ -1050,4 +1051,10 @@ class D extends C {}
       return item.classElement.name;
     }).toSet();
   }
+}
+
+@reflectiveTest
+class GetTypeHierarchyTest_UseCFE extends GetTypeHierarchyTest {
+  @override
+  bool get useCFE => true;
 }

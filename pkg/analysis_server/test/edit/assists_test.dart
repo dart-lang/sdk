@@ -20,6 +20,7 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssistsTest);
+    defineReflectiveTests(AssistsTest_UseCFE);
   });
 }
 
@@ -131,4 +132,10 @@ main() {
     }
     fail("Expected to find |$message| in\n" + changes.join('\n'));
   }
+}
+
+@reflectiveTest
+class AssistsTest_UseCFE extends AssistsTest {
+  @override
+  bool get useCFE => true;
 }

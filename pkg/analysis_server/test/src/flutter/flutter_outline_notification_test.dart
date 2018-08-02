@@ -18,6 +18,7 @@ import '../utilities/flutter_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterNotificationOutlineTest);
+    defineReflectiveTests(FlutterNotificationOutlineTest_UseCFE);
   });
 }
 
@@ -117,4 +118,15 @@ class MyWidget extends StatelessWidget {
     expect(textOutlineB.className, 'Text');
     expect(textOutlineB.offset, code.indexOf("const Text('bbb')"));
   }
+}
+
+@reflectiveTest
+class FlutterNotificationOutlineTest_UseCFE
+    extends FlutterNotificationOutlineTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_children() async => callFailingTest(super.test_children());
 }

@@ -26,8 +26,11 @@ import 'mocks.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisDomainTest);
+    defineReflectiveTests(AnalysisDomainTest_UseCFE);
     defineReflectiveTests(AnalysisDomainHandlerTest);
+    defineReflectiveTests(AnalysisDomainHandlerTest_UseCFE);
     defineReflectiveTests(SetSubscriptionsTest);
+    defineReflectiveTests(SetSubscriptionsTest_UseCFE);
   });
 }
 
@@ -302,6 +305,12 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
 }
 
 @reflectiveTest
+class AnalysisDomainHandlerTest_UseCFE extends AnalysisDomainHandlerTest {
+  @override
+  bool get useCFE => true;
+}
+
+@reflectiveTest
 class AnalysisDomainTest extends AbstractAnalysisTest {
   Map<String, List<AnalysisError>> filesErrors = {};
 
@@ -333,6 +342,12 @@ main(A a) {
       expect(filesErrors[pkgFile], isNull);
     });
   }
+}
+
+@reflectiveTest
+class AnalysisDomainTest_UseCFE extends AnalysisDomainTest {
+  @override
+  bool get useCFE => true;
 }
 
 /**
@@ -700,4 +715,15 @@ class A {}
     List<String> files = subscriptions[plugin.AnalysisService.HIGHLIGHTS];
     expect(files, [testFile]);
   }
+}
+
+@reflectiveTest
+class SetSubscriptionsTest_UseCFE extends SetSubscriptionsTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_afterAnalysis_noSuchFile() async =>
+      callFailingTest(super.test_afterAnalysis_noSuchFile());
 }
