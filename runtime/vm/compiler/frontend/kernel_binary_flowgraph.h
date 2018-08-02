@@ -242,7 +242,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                       intptr_t* num_context_variables = NULL);
   Fragment ExitScope(intptr_t kernel_offset);
 
-  Fragment TranslateCondition(bool* negate);
+  TestFragment TranslateConditionForControl();
+
   const TypeArguments& BuildTypeArguments();
   Fragment BuildArguments(Array* argument_names,
                           intptr_t* argument_count,
@@ -280,6 +281,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildConstructorInvocation(bool is_const, TokenPosition* position);
   Fragment BuildNot(TokenPosition* position);
   Fragment BuildLogicalExpression(TokenPosition* position);
+  Fragment TranslateLogicalExpressionForValue(bool negated,
+                                              TestFragment* side_exits);
   Fragment BuildConditionalExpression(TokenPosition* position);
   Fragment BuildStringConcatenation(TokenPosition* position);
   Fragment BuildIsExpression(TokenPosition* position);

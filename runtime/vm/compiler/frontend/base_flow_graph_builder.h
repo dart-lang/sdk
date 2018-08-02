@@ -19,16 +19,17 @@ class InlineExitCollector;
 
 namespace kernel {
 
+class BaseFlowGraphBuilder;
 class TryCatchBlock;
 
 class Fragment {
  public:
-  Instruction* entry;
-  Instruction* current;
+  Instruction* entry = nullptr;
+  Instruction* current = nullptr;
 
-  Fragment() : entry(NULL), current(NULL) {}
+  Fragment() {}
 
-  Fragment(std::initializer_list<Fragment> list) : entry(NULL), current(NULL) {
+  Fragment(std::initializer_list<Fragment> list) {
     for (Fragment i : list) {
       *this += i;
     }
@@ -40,7 +41,7 @@ class Fragment {
   Fragment(Instruction* entry, Instruction* current)
       : entry(entry), current(current) {}
 
-  bool is_open() { return entry == NULL || current != NULL; }
+  bool is_open() { return entry == nullptr || current != nullptr; }
   bool is_closed() { return !is_open(); }
 
   void Prepend(Instruction* start);
@@ -53,6 +54,58 @@ class Fragment {
 
 Fragment operator+(const Fragment& first, const Fragment& second);
 Fragment operator<<(const Fragment& fragment, Instruction* next);
+
+// IL fragment that performs some sort of test (comparison) and
+// has a single entry and multiple true and false exits.
+class TestFragment {
+ public:
+  BlockEntryInstr* CreateTrueSuccessor(BaseFlowGraphBuilder* builder);
+  BlockEntryInstr* CreateFalseSuccessor(BaseFlowGraphBuilder* builder);
+
+  void IfTrueGoto(BaseFlowGraphBuilder* builder, JoinEntryInstr* join) {
+    ConnectBranchesTo(builder, *true_successor_addresses, join);
+  }
+
+  // If negate is true then return negated fragment by flipping
+  // true and false successors. Otherwise return this fragment
+  // without change.
+  TestFragment Negate(bool negate) {
+    if (negate) {
+      return TestFragment(entry, false_successor_addresses,
+                          true_successor_addresses);
+    } else {
+      return *this;
+    }
+  }
+
+  typedef ZoneGrowableArray<TargetEntryInstr**> SuccessorAddressArray;
+
+  // Create an empty fragment.
+  TestFragment() {}
+
+  // Create a fragment with the given entry and true/false exits.
+  TestFragment(Instruction* entry,
+               SuccessorAddressArray* true_successor_addresses,
+               SuccessorAddressArray* false_successor_addresses)
+      : entry(entry),
+        true_successor_addresses(true_successor_addresses),
+        false_successor_addresses(false_successor_addresses) {}
+
+  // Create a fragment with the given entry and a single branch as an exit.
+  TestFragment(Instruction* entry, BranchInstr* branch);
+
+  void ConnectBranchesTo(BaseFlowGraphBuilder* builder,
+                         const TestFragment::SuccessorAddressArray& branches,
+                         JoinEntryInstr* join);
+
+  BlockEntryInstr* CreateSuccessorFor(
+      BaseFlowGraphBuilder* builder,
+      const TestFragment::SuccessorAddressArray& branches);
+
+  Instruction* entry = nullptr;
+  SuccessorAddressArray* true_successor_addresses = nullptr;
+  SuccessorAddressArray* false_successor_addresses = nullptr;
+};
 
 typedef ZoneGrowableArray<PushArgumentInstr*>* ArgumentArray;
 
@@ -93,6 +146,7 @@ class BaseFlowGraphBuilder {
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
 
   void Push(Definition* definition);
+  Definition* Peek();
   Value* Pop();
   Fragment Drop();
   // Drop given number of temps from the stack but preserve top of the stack.

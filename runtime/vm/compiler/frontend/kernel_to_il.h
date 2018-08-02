@@ -22,6 +22,7 @@ class InlineExitCollector;
 
 namespace kernel {
 
+class BaseFlowGraphBuilder;
 class StreamingFlowGraphBuilder;
 struct InferredTypeMetadata;
 class BreakableBlock;
