@@ -1499,7 +1499,11 @@ DART_FORCE_INLINE void Interpreter::PrepareForTailCall(
     FP = reinterpret_cast<RawObject**>(fp_);                                   \
     pc = reinterpret_cast<uint32_t*>(pc_);                                     \
     if ((reinterpret_cast<uword>(pc) & 2) != 0) { /* Entry frame? */           \
-      uword exit_fp = reinterpret_cast<uword>(fp_[0]);                         \
+      pp_ = reinterpret_cast<RawObjectPool*>(fp_[kKBCSavedPpSlotFromEntryFp]); \
+      argdesc_ =                                                               \
+          reinterpret_cast<RawArray*>(fp_[kKBCSavedArgDescSlotFromEntryFp]);   \
+      uword exit_fp =                                                          \
+          reinterpret_cast<uword>(fp_[kKBCExitLinkSlotFromEntryFp]);           \
       thread->set_top_exit_frame_info(exit_fp);                                \
       thread->set_top_resource(top_resource);                                  \
       thread->set_vm_tag(vm_tag);                                              \
@@ -1524,7 +1528,11 @@ DART_FORCE_INLINE void Interpreter::PrepareForTailCall(
     FP = reinterpret_cast<RawObject**>(fp_);                                   \
     pc = reinterpret_cast<uint32_t*>(pc_);                                     \
     if ((reinterpret_cast<uword>(pc) & 2) != 0) { /* Entry frame? */           \
-      uword exit_fp = reinterpret_cast<uword>(fp_[0]);                         \
+      pp_ = reinterpret_cast<RawObjectPool*>(fp_[kKBCSavedPpSlotFromEntryFp]); \
+      argdesc_ =                                                               \
+          reinterpret_cast<RawArray*>(fp_[kKBCSavedArgDescSlotFromEntryFp]);   \
+      uword exit_fp =                                                          \
+          reinterpret_cast<uword>(fp_[kKBCExitLinkSlotFromEntryFp]);           \
       thread->set_top_exit_frame_info(exit_fp);                                \
       thread->set_top_resource(top_resource);                                  \
       thread->set_vm_tag(vm_tag);                                              \
@@ -1744,14 +1752,17 @@ RawObject* Interpreter::Call(RawFunction* function,
   //
   //                        ^
   //                        |  previous Dart frames
-  //       ~~~~~~~~~~~~~~~  |
+  //                        |
   //       | ........... | -+
-  // fp_ > |             |     saved top_exit_frame_info
+  // fp_ > | exit fp_    |     saved top_exit_frame_info
+  //       | argdesc_    |     saved argdesc_ (for reentering interpreter)
+  //       | pp_         |     saved pp_ (for reentering interpreter)
   //       | arg 0       | -+
-  //       ~~~~~~~~~~~~~~~  |
+  //       | arg 1       |  |
+  //         ...            |
   //                         > incoming arguments
-  //       ~~~~~~~~~~~~~~~  |
-  //       | arg 1       | -+
+  //                        |
+  //       | arg argc-1  | -+
   //       | function    | -+
   //       | code        |  |
   //       | caller PC   | ---> special fake PC marking an entry frame
@@ -1762,16 +1773,19 @@ RawObject* Interpreter::Call(RawFunction* function,
   //
   // A negative argc indicates reverse memory order of arguments.
   const intptr_t arg_count = argc < 0 ? -argc : argc;
-  FP = fp_ + 1 + arg_count + kKBCDartFrameFixedSize;
+  FP = fp_ + kKBCEntrySavedSlots + arg_count + kKBCDartFrameFixedSize;
   SP = FP - 1;
 
-  // Save outer top_exit_frame_info.
-  fp_[0] = reinterpret_cast<RawObject*>(thread->top_exit_frame_info());
+  // Save outer top_exit_frame_info, current argdesc, and current pp.
+  fp_[kKBCExitLinkSlotFromEntryFp] =
+      reinterpret_cast<RawObject*>(thread->top_exit_frame_info());
   thread->set_top_exit_frame_info(0);
+  fp_[kKBCSavedArgDescSlotFromEntryFp] = reinterpret_cast<RawObject*>(argdesc_);
+  fp_[kKBCSavedPpSlotFromEntryFp] = reinterpret_cast<RawObject*>(pp_);
 
   // Copy arguments and setup the Dart frame.
   for (intptr_t i = 0; i < arg_count; i++) {
-    fp_[1 + i] = argv[argc < 0 ? -i : i];
+    fp_[kKBCEntrySavedSlots + i] = argv[argc < 0 ? -i : i];
   }
 
   RawCode* bytecode = function->ptr()->bytecode_;
@@ -3404,7 +3418,10 @@ RawObject* Interpreter::Call(RawFunction* function,
       // Pop entry frame.
       fp_ = SavedCallerFP(FP);
       // Restore exit frame info saved in entry frame.
-      uword exit_fp = reinterpret_cast<uword>(fp_[0]);
+      pp_ = reinterpret_cast<RawObjectPool*>(fp_[kKBCSavedPpSlotFromEntryFp]);
+      argdesc_ =
+          reinterpret_cast<RawArray*>(fp_[kKBCSavedArgDescSlotFromEntryFp]);
+      uword exit_fp = reinterpret_cast<uword>(fp_[kKBCExitLinkSlotFromEntryFp]);
       thread->set_top_exit_frame_info(exit_fp);
       thread->set_top_resource(top_resource);
       thread->set_vm_tag(vm_tag);
@@ -3418,7 +3435,7 @@ RawObject* Interpreter::Call(RawFunction* function,
       }
       ASSERT(reinterpret_cast<uword>(fp_) < stack_limit());
       const intptr_t argc = reinterpret_cast<uword>(pc) >> 2;
-      ASSERT(fp_ == FrameArguments(FP, argc + 1));
+      ASSERT(fp_ == FrameArguments(FP, argc + kKBCEntrySavedSlots));
       // Exception propagation should have been done.
       ASSERT(!result->IsHeapObject() ||
              result->GetClassId() != kUnhandledExceptionCid);
@@ -3812,7 +3829,9 @@ RawObject* Interpreter::Call(RawFunction* function,
       RawSubtypeTestCache* cache =
           static_cast<RawSubtypeTestCache*>(LOAD_CONSTANT(rD));
 
-      AssertAssignable(thread, pc, FP, SP, args, cache);
+      if (!AssertAssignable(thread, pc, FP, SP, args, cache)) {
+        HANDLE_EXCEPTION;
+      }
     }
 
     SP -= 4;  // Instance remains on stack.
@@ -4623,8 +4642,9 @@ RawObject* Interpreter::Call(RawFunction* function,
     const bool has_dart_caller = (reinterpret_cast<uword>(pc) & 2) == 0;
     const intptr_t argc = has_dart_caller ? KernelBytecode::DecodeArgc(pc[-1])
                                           : (reinterpret_cast<uword>(pc) >> 2);
-    const bool has_function_type_args =
-        has_dart_caller && InterpreterHelpers::ArgDescTypeArgsLen(argdesc_) > 0;
+    const intptr_t type_args_len =
+        InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
+    const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
 
     SP = FrameArguments(FP, 0);
     RawObject** args = SP - argc;
@@ -4634,7 +4654,7 @@ RawObject* Interpreter::Call(RawFunction* function,
     }
 
     *++SP = null_value;
-    *++SP = args[has_function_type_args ? 1 : 0];  // Closure object.
+    *++SP = args[receiver_idx];  // Closure object.
     *++SP = argdesc_;
     *++SP = null_value;  // Array of arguments (will be filled).
 

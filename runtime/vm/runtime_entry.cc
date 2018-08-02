@@ -524,6 +524,14 @@ DEFINE_RUNTIME_ENTRY(ExtractMethod, 2) {
 #endif  // defined(DART_USE_INTERPRETER)
 }
 
+// Result of an invoke may be an unhandled exception, in which case we
+// rethrow it.
+static void CheckResultError(const Object& result) {
+  if (result.IsError()) {
+    Exceptions::PropagateError(Error::Cast(result));
+  }
+}
+
 // Invoke field getter before dispatch.
 // Arg0: instance.
 // Arg1: field name.
@@ -546,6 +554,7 @@ DEFINE_RUNTIME_ENTRY(GetFieldForDispatch, 2) {
   args.SetAt(0, receiver);
   const Object& result =
       Object::Handle(zone, DartEntry::InvokeFunction(getter, args));
+  CheckResultError(result);
   arguments.SetReturn(result);
 #else
   UNREACHABLE();
@@ -1047,14 +1056,6 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
 #else
   UNREACHABLE();
 #endif
-}
-
-// Result of an invoke may be an unhandled exception, in which case we
-// rethrow it.
-static void CheckResultError(const Object& result) {
-  if (result.IsError()) {
-    Exceptions::PropagateError(Error::Cast(result));
-  }
 }
 
 #if defined(PRODUCT) || defined(DART_PRECOMPILED_RUNTIME)
