@@ -2457,6 +2457,12 @@ class ConstantEmitter extends ConstantVisitor<int> {
   @override
   int visitTypeLiteralConstant(TypeLiteralConstant node) =>
       cp.add(new ConstantType(node.type));
+
+  @override
+  int visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
+      cp.add(new ConstantPartialTearOffInstantiation(
+          node.tearOffConstant.accept(this),
+          cp.add(new ConstantTypeArguments(node.types))));
 }
 
 class UnsupportedOperationError {

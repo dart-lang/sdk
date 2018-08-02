@@ -162,6 +162,12 @@ type ConstantSubtypeTestCache extends ConstantPoolEntry {
   Byte tag = 24;
 }
 
+type ConstantPartialTearOffInstantiation extends ConstantPoolEntry {
+  Byte tag = 25;
+  ConstantIndex tearOffConstant;
+  ConstantIndex typeArguments;
+}
+
 */
 
 enum ConstantTag {
@@ -190,6 +196,7 @@ enum ConstantTag {
   kEndClosureFunctionScope,
   kNativeEntry,
   kSubtypeTestCache,
+  kPartialTearOffInstantiation
 }
 
 abstract class ConstantPoolEntry {
@@ -258,6 +265,8 @@ abstract class ConstantPoolEntry {
         return new ConstantNativeEntry.readFromBinary(source);
       case ConstantTag.kSubtypeTestCache:
         return new ConstantSubtypeTestCache.readFromBinary(source);
+      case ConstantTag.kPartialTearOffInstantiation:
+        return new ConstantPartialTearOffInstantiation.readFromBinary(source);
     }
     throw 'Unexpected constant tag $tag';
   }
@@ -1086,6 +1095,42 @@ class ConstantSubtypeTestCache extends ConstantPoolEntry {
 
   @override
   bool operator ==(other) => identical(this, other);
+}
+
+class ConstantPartialTearOffInstantiation extends ConstantPoolEntry {
+  final int tearOffConstantIndex;
+  final int typeArgumentsConstantIndex;
+
+  ConstantPartialTearOffInstantiation(
+      this.tearOffConstantIndex, this.typeArgumentsConstantIndex);
+
+  @override
+  ConstantTag get tag => ConstantTag.kPartialTearOffInstantiation;
+
+  @override
+  void writeValueToBinary(BinarySink sink) {
+    sink.writeUInt30(tearOffConstantIndex);
+    sink.writeUInt30(typeArgumentsConstantIndex);
+  }
+
+  ConstantPartialTearOffInstantiation.readFromBinary(BinarySource source)
+      : tearOffConstantIndex = source.readUInt(),
+        typeArgumentsConstantIndex = source.readUInt();
+
+  @override
+  String toString() {
+    return 'PartialTearOffInstantiation tear-off CP#$tearOffConstantIndex type-args CP#$typeArgumentsConstantIndex';
+  }
+
+  @override
+  int get hashCode =>
+      _combineHashes(tearOffConstantIndex, typeArgumentsConstantIndex);
+
+  @override
+  bool operator ==(other) =>
+      other is ConstantPartialTearOffInstantiation &&
+      this.tearOffConstantIndex == other.tearOffConstantIndex &&
+      this.typeArgumentsConstantIndex == other.typeArgumentsConstantIndex;
 }
 
 class ConstantPool {

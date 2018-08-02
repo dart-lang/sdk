@@ -113,6 +113,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
     kEndClosureFunctionScope,
     kNativeEntry,
     kSubtypeTestCache,
+    kPartialTearOffInstantiation,
   };
 
   enum InvocationKind {
@@ -457,6 +458,25 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
       } break;
       case ConstantPoolTag::kSubtypeTestCache: {
         obj = SubtypeTestCache::New();
+      } break;
+      case ConstantPoolTag::kPartialTearOffInstantiation: {
+        intptr_t tearoff_index = helper_->ReadUInt();
+        ASSERT(tearoff_index < i);
+        const Closure& old_closure = Closure::CheckedHandle(
+            helper_->zone_, pool.ObjectAt(tearoff_index));
+
+        intptr_t type_args_index = helper_->ReadUInt();
+        ASSERT(type_args_index < i);
+        type_args ^= pool.ObjectAt(type_args_index);
+
+        obj = Closure::New(
+            TypeArguments::Handle(helper_->zone_,
+                                  old_closure.instantiator_type_arguments()),
+            TypeArguments::Handle(helper_->zone_,
+                                  old_closure.function_type_arguments()),
+            type_args, Function::Handle(helper_->zone_, old_closure.function()),
+            Context::Handle(helper_->zone_, old_closure.context()), Heap::kOld);
+        obj = H.Canonicalize(Instance::Cast(obj));
       } break;
       default:
         UNREACHABLE();
