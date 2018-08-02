@@ -327,8 +327,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _genStaticCall(target, argDesc, totalArgCount);
   }
 
-  bool hasTypeParameters(List<DartType> typeArgs) {
-    final findTypeParams = new FindTypeParametersVisitor();
+  bool hasFreeTypeParameters(List<DartType> typeArgs) {
+    final findTypeParams = new FindFreeTypeParametersVisitor();
     return typeArgs.any((t) => t.accept(findTypeParams));
   }
 
@@ -342,7 +342,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       }
     }
 
-    if (typeArgs.isEmpty || !hasTypeParameters(typeArgs)) {
+    if (typeArgs.isEmpty || !hasFreeTypeParameters(typeArgs)) {
       asm.emitPushConstant(typeArgsCPIndex());
     } else {
       if (_canReuseInstantiatorTypeArguments(typeArgs, instantiatingClass)) {
@@ -547,7 +547,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     // TODO(alexmarkov): generate _simpleInstanceOf if possible
 
-    if (hasTypeParameters([type])) {
+    if (hasFreeTypeParameters([type])) {
       _genPushInstantiatorAndFunctionTypeArguments([type]);
     } else {
       _genPushNull(); // Instantiator type arguments.
@@ -1674,7 +1674,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   visitTypeLiteral(TypeLiteral node) {
     final DartType type = node.type;
     final int typeCPIndex = cp.add(new ConstantType(type));
-    if (!hasTypeParameters([type])) {
+    if (!hasFreeTypeParameters([type])) {
       asm.emitPushConstant(typeCPIndex);
     } else {
       _genPushInstantiatorAndFunctionTypeArguments([type]);
@@ -2453,7 +2453,9 @@ class UnsupportedOperationError {
   String toString() => message;
 }
 
-class FindTypeParametersVisitor extends DartTypeVisitor<bool> {
+class FindFreeTypeParametersVisitor extends DartTypeVisitor<bool> {
+  Set<TypeParameter> _declaredTypeParameters;
+
   bool visit(DartType type) => type.accept(this);
 
   @override
@@ -2476,7 +2478,9 @@ class FindTypeParametersVisitor extends DartTypeVisitor<bool> {
   bool visitVectorType(VectorType node) => false;
 
   @override
-  bool visitTypeParameterType(TypeParameterType node) => true;
+  bool visitTypeParameterType(TypeParameterType node) =>
+      _declaredTypeParameters == null ||
+      !_declaredTypeParameters.contains(node.parameter);
 
   @override
   bool visitInterfaceType(InterfaceType node) =>
@@ -2487,10 +2491,21 @@ class FindTypeParametersVisitor extends DartTypeVisitor<bool> {
       node.typeArguments.any((t) => t.accept(this));
 
   @override
-  bool visitFunctionType(FunctionType node) =>
-      node.typeParameters.isNotEmpty ||
-      node.positionalParameters.any((t) => t.accept(this)) ||
-      node.namedParameters.any((p) => p.type.accept(this));
+  bool visitFunctionType(FunctionType node) {
+    if (node.typeParameters.isNotEmpty) {
+      _declaredTypeParameters ??= new Set<TypeParameter>();
+      _declaredTypeParameters.addAll(node.typeParameters);
+    }
+
+    final bool result = node.positionalParameters.any((t) => t.accept(this)) ||
+        node.namedParameters.any((p) => p.type.accept(this));
+
+    if (node.typeParameters.isNotEmpty) {
+      _declaredTypeParameters.removeAll(node.typeParameters);
+    }
+
+    return result;
+  }
 }
 
 // Drop kernel AST for members with bytecode.

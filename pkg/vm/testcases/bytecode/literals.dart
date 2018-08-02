@@ -82,4 +82,7 @@ class F<P, Q> extends E<Map<P, Q>> {
 
 testGenericConstInstance() => const F<int, String>();
 
+typedef GenericFunctionType = X Function<X>(X);
+testGenericFunctionTypeLiteral() => GenericFunctionType;
+
 main() {}

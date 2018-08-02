@@ -2,6 +2,7 @@ library #lib;
 import self as self;
 import "dart:core" as core;
 
+typedef GenericFunctionType = <X extends core::Object = dynamic>(X) → X;
 class A extends core::Object {
   final field core::int index;
   final field core::String _name;
@@ -722,6 +723,21 @@ ConstantPool {
 }
 ]static method testGenericConstInstance() → dynamic
   return const self::F::•<core::int, core::String>();
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#0
+  ReturnTOS
+  PushConstant         CP#1
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Type <X extends dart.core::Object = dynamic>(X) → X
+  [1] = Null
+}
+]static method testGenericFunctionTypeLiteral() → dynamic
+  return <X extends core::Object = dynamic>(X) → X;
 [@vm.bytecode=
 Bytecode {
   Entry                0
