@@ -55,12 +55,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @failingTest
   @override
-  test_deprecatedAnnotationUse_Deprecated() async {
-    return super.test_deprecatedAnnotationUse_Deprecated();
-  }
-
-  @failingTest
-  @override
   test_deprecatedAnnotationUse_positional() async {
     return super.test_deprecatedAnnotationUse_positional();
   }
@@ -171,24 +165,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   @override
   test_mustCallSuper_indirect() async {
     return super.test_mustCallSuper_indirect();
-  }
-
-  @override
-  @failingTest
-  test_required_constructor_param() async {
-    return super.test_required_constructor_param();
-  }
-
-  @override
-  @failingTest
-  test_required_constructor_param_null_reason() async {
-    return super.test_required_constructor_param_null_reason();
-  }
-
-  @override
-  @failingTest
-  test_required_constructor_param_super_call() async {
-    return super.test_required_constructor_param_super_call();
   }
 
   @override

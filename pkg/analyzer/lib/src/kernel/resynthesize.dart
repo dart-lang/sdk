@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:front_end/src/base/resolve_relative_uri.dart';
@@ -437,6 +438,9 @@ class _ExprBuilder {
 
   _ExprBuilder(this._context, this._contextElement);
 
+  TypeProvider get typeProvider =>
+      _context.libraryContext.resynthesizer._typeProvider;
+
   Expression build(kernel.Expression expr) {
     if (_hasInvalidExpression(expr)) {
       return AstTestFactory.identifier3('#invalidConst');
@@ -536,15 +540,17 @@ class _ExprBuilder {
 
     if (expr is kernel.ListLiteral) {
       Keyword keyword = expr.isConst ? Keyword.CONST : null;
-      var typeArguments = _buildTypeArgumentList([expr.typeArgument]);
+      var typeArguments = _getTypes([expr.typeArgument]);
+      var typeArgumentNodes = _buildTypeArgumentList(typeArguments);
       var elements = expr.expressions.map(_build).toList();
-      return AstTestFactory.listLiteral2(keyword, typeArguments, elements);
+      return AstTestFactory.listLiteral2(keyword, typeArgumentNodes, elements)
+        ..staticType = typeProvider.listType.instantiate(typeArguments);
     }
 
     if (expr is kernel.MapLiteral) {
       Keyword keyword = expr.isConst ? Keyword.CONST : null;
-      var typeArguments =
-          _buildTypeArgumentList([expr.keyType, expr.valueType]);
+      var typeArguments = _getTypes([expr.keyType, expr.valueType]);
+      var typeArgumentNodes = _buildTypeArgumentList(typeArguments);
 
       int numberOfEntries = expr.entries.length;
       var entries = new List<MapLiteralEntry>(numberOfEntries);
@@ -555,7 +561,7 @@ class _ExprBuilder {
         entries[i] = AstTestFactory.mapLiteralEntry2(key, value);
       }
 
-      return AstTestFactory.mapLiteral(keyword, typeArguments, entries);
+      return AstTestFactory.mapLiteral(keyword, typeArgumentNodes, entries);
     }
 
     if (expr is kernel.StaticGet) {
@@ -661,12 +667,12 @@ class _ExprBuilder {
     }
 
     if (expr is kernel.ConstructorInvocation) {
-      var element = _getElement(expr.targetReference);
+      ConstructorElementImpl element = _getElement(expr.targetReference);
 
       // It's safe to pass null for the TypeEnvironment because it isn't
       // needed to compute the type of a constructor invocation.
       var kernelType = expr.getStaticType(null);
-      var type = _context.getType(_contextElement, kernelType);
+      var type = _getType(kernelType);
       TypeName typeName = _buildType(type);
 
       var constructorName = AstTestFactory.constructorName(
@@ -675,8 +681,11 @@ class _ExprBuilder {
 
       var keyword = expr.isConst ? Keyword.CONST : Keyword.NEW;
       var arguments = _toArguments(expr.arguments);
-      return AstTestFactory.instanceCreationExpression(
+      var creation = AstTestFactory.instanceCreationExpression(
           keyword, constructorName, arguments);
+      creation.staticElement = element;
+      creation.staticType = type;
+      return creation;
     }
 
     if (expr is kernel.Instantiation) {
@@ -689,7 +698,7 @@ class _ExprBuilder {
       if (kernelType is kernel.FunctionType) {
         element = _getElement(kernelType.typedefReference);
       } else {
-        var type = _context.getType(_contextElement, kernelType);
+        var type = _getType(kernelType);
         element = type.element;
       }
       var identifier = AstTestFactory.identifier3(element.name);
@@ -739,15 +748,15 @@ class _ExprBuilder {
     return node;
   }
 
-  TypeArgumentList _buildTypeArgumentList(List<kernel.DartType> kernels) {
-    int length = kernels.length;
-    var types = new List<TypeAnnotation>(length);
+  TypeArgumentList _buildTypeArgumentList(List<DartType> types) {
+    int length = types.length;
+    var typeAnnotations = new List<TypeAnnotation>(length);
     for (int i = 0; i < length; i++) {
-      DartType type = _context.getType(_contextElement, kernels[i]);
+      DartType type = types[i];
       TypeAnnotation typeAnnotation = _buildType(type);
-      types[i] = typeAnnotation;
+      typeAnnotations[i] = typeAnnotation;
     }
-    return AstTestFactory.typeArgumentList(types);
+    return AstTestFactory.typeArgumentList(typeAnnotations);
   }
 
   List<TypeAnnotation> _buildTypeArguments(List<DartType> types) {
@@ -758,6 +767,20 @@ class _ExprBuilder {
   ElementImpl _getElement(kernel.Reference reference) {
     return _context.libraryContext.resynthesizer
         .getElementFromCanonicalName(reference?.canonicalName);
+  }
+
+  DartType _getType(kernel.DartType kernel) {
+    return _context.getType(_contextElement, kernel);
+  }
+
+  List<DartType> _getTypes(List<kernel.DartType> kernels) {
+    int length = kernels.length;
+    var types = new List<DartType>(length);
+    for (int i = 0; i < length; i++) {
+      DartType type = _getType(kernels[i]);
+      types[i] = type;
+    }
+    return types;
   }
 
   InterpolationElement _newInterpolationElement(Expression expr) {
