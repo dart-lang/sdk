@@ -935,7 +935,10 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
     }
   }
 
-  ASSERT(await_to_token_map_index < await_to_token_map.Length());
+  if (await_to_token_map_index >= await_to_token_map.Length()) {
+    return;
+  }
+
   const Object& token_pos =
       Object::Handle(await_to_token_map.At(await_to_token_map_index));
   if (token_pos.IsNull()) {
