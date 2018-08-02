@@ -85,4 +85,7 @@ testGenericConstInstance() => const F<int, String>();
 typedef GenericFunctionType = X Function<X>(X);
 testGenericFunctionTypeLiteral() => GenericFunctionType;
 
+double fieldWithDoubleLiteralInitializer = 1.0;
+testFieldWithDoubleLiteralInitializer() => fieldWithDoubleLiteralInitializer;
+
 main() {}

@@ -127,28 +127,8 @@ ConstantPool {
 }
 class B extends self::A {
   field core::int foo6 = 46;
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = Int 47
-}
-]  static field core::int foo7 = 47;
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = Int 48
-}
-]  static const field core::int foo8 = 48;
+  static field core::int foo7 = 47;
+  static const field core::int foo8 = 48;
 [@vm.bytecode=
 Bytecode {
   Entry                0

@@ -281,17 +281,7 @@ ConstantPool {
   [3] = Instance #lib::A type-args CP#0 {index: CP#1, _name: CP#2}
 }
 ]static const field self::A c1 = self::A::elem3;
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = String 'hello!'
-}
-]static const field core::String c2 = "hello!";
+static const field core::String c2 = "hello!";
 [@vm.bytecode=
 Bytecode {
   Entry                0
@@ -331,6 +321,7 @@ ConstantPool {
   [3] = Instance #lib::D type-args CP#0 {x: CP#2, y: CP#0}
 }
 ]static const field self::D c5 = const self::D::•(const self::B::•(4));
+static field core::double fieldWithDoubleLiteralInitializer = 1.0;
 [@vm.bytecode=
 Bytecode {
   Entry                0
@@ -738,6 +729,22 @@ ConstantPool {
 }
 ]static method testGenericFunctionTypeLiteral() → dynamic
   return <X extends core::Object = dynamic>(X) → X;
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#0
+  PushStatic           CP#0
+  ReturnTOS
+  PushConstant         CP#1
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Field #lib::fieldWithDoubleLiteralInitializer
+  [1] = Null
+}
+]static method testFieldWithDoubleLiteralInitializer() → dynamic
+  return self::fieldWithDoubleLiteralInitializer;
 [@vm.bytecode=
 Bytecode {
   Entry                0

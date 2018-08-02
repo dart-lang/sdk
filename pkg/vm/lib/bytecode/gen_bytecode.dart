@@ -114,7 +114,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return;
     }
     if (node is Field) {
-      if (node.isStatic && node.initializer != null) {
+      if (node.isStatic && !_hasTrivialInitializer(node)) {
         start(node);
         if (node.isConst) {
           _genPushConstExpr(node.initializer);
@@ -1554,6 +1554,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       (field.initializer is StringLiteral) ||
       (field.initializer is BoolLiteral) ||
       (field.initializer is IntLiteral) ||
+      (field.initializer is DoubleLiteral) ||
       (field.initializer is NullLiteral);
 
   @override

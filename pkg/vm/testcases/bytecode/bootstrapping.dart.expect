@@ -5,17 +5,7 @@ import "dart:_internal" as _in;
 
 typedef _ScheduleImmediateClosure = (() → void) → void;
 class _ScheduleImmediate extends core::Object {
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = Null
-}
-]  static field (() → void) → void _closure = null;
+  static field (() → void) → void _closure = null;
 [@vm.bytecode=
 Bytecode {
   Entry                0
@@ -37,17 +27,7 @@ ConstantPool {
     ;
 }
 class _NamespaceImpl extends core::Object implements self::_Namespace {
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = Null
-}
-]  static field self::_NamespaceImpl _cachedNamespace = null;
+  static field self::_NamespaceImpl _cachedNamespace = null;
 [@vm.bytecode=
 Bytecode {
   Entry                0
@@ -281,127 +261,17 @@ ConstantPool {
     return self::_NamespaceImpl::_namespacePointer;
 }
 class VMLibraryHooks extends core::Object {
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = Null
-}
-]  static field dynamic timerFactory = null;
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = Null
-}
-]  static field dynamic eventHandlerSendData = null;
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = Null
-}
-]  static field dynamic timerMillisecondClock = null;
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = Null
-}
-]  static field dynamic resourceReadAsBytes = null;
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = Null
-}
-]  static field dynamic packageRootString = null;
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = Null
-}
-]  static field dynamic packageConfigString = null;
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = Null
-}
-]  static field dynamic packageRootUriFuture = null;
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = Null
-}
-]  static field dynamic packageConfigUriFuture = null;
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = Null
-}
-]  static field dynamic resolvePackageUriFuture = null;
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = Null
-}
-]  static field dynamic _computeScriptUri = null;
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = Null
-}
-]  static field dynamic _cachedScript = null;
+  static field dynamic timerFactory = null;
+  static field dynamic eventHandlerSendData = null;
+  static field dynamic timerMillisecondClock = null;
+  static field dynamic resourceReadAsBytes = null;
+  static field dynamic packageRootString = null;
+  static field dynamic packageConfigString = null;
+  static field dynamic packageRootUriFuture = null;
+  static field dynamic packageConfigUriFuture = null;
+  static field dynamic resolvePackageUriFuture = null;
+  static field dynamic _computeScriptUri = null;
+  static field dynamic _cachedScript = null;
 [@vm.bytecode=
 Bytecode {
   Entry                0
@@ -500,39 +370,9 @@ ConstantPool {
     return self::VMLibraryHooks::_cachedScript;
   }
 }
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = Int 0
-}
-]static field core::int _stdinFD = 0;
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = Int 1
-}
-]static field core::int _stdoutFD = 1;
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = Int 2
-}
-]static field core::int _stderrFD = 2;
+static field core::int _stdinFD = 0;
+static field core::int _stdoutFD = 1;
+static field core::int _stderrFD = 2;
 static field core::String _rawScript;
 [@vm.bytecode=
 Bytecode {
