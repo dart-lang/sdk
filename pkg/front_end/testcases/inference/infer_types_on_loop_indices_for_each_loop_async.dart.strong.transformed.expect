@@ -31,6 +31,7 @@ class Bar<T extends asy::Stream<core::String> = asy::Stream<core::String>> exten
         {
           {
             dynamic :stream = t;
+            asy::_asyncStarListenHelper(:stream, :async_op);
             asy::_StreamIterator<core::String> :for-iterator = new asy::_StreamIterator::•<core::String>(:stream);
             const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
             try
@@ -92,6 +93,7 @@ class Baz<T extends core::Object = dynamic, E extends asy::Stream<self::Baz::T> 
         {
           {
             dynamic :stream = t;
+            asy::_asyncStarListenHelper(:stream, :async_op);
             asy::_StreamIterator<self::Baz::T> :for-iterator = new asy::_StreamIterator::•<self::Baz::T>(:stream);
             const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
             try
@@ -155,6 +157,7 @@ static method test() → dynamic /* originally async */ {
         self::MyStream<self::Foo> myStream = self::MyStream::•<self::Foo>();
         {
           dynamic :stream = myStream;
+          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<self::Foo> :for-iterator = new asy::_StreamIterator::•<self::Foo>(:stream);
           const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
@@ -182,6 +185,7 @@ Try changing the type of the left hand side, or casting the right hand side to '
         }
         {
           dynamic :stream = myStream;
+          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic> :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
@@ -206,6 +210,7 @@ Try changing the type of the left hand side, or casting the right hand side to '
         }
         {
           dynamic :stream = myStream;
+          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<self::Foo> :for-iterator = new asy::_StreamIterator::•<self::Foo>(:stream);
           const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
@@ -235,6 +240,7 @@ Try changing the type of the variable.
         dynamic z;
         {
           dynamic :stream = myStream;
+          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<self::Foo> :for-iterator = new asy::_StreamIterator::•<self::Foo>(:stream);
           const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
@@ -261,6 +267,7 @@ Try changing the type of the variable.
         asy::Stream<dynamic> stream = myStream;
         {
           dynamic :stream = stream;
+          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic> :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
@@ -287,6 +294,7 @@ Try changing the type of the variable.
         dynamic stream2 = myStream;
         {
           dynamic :stream = stream2 as{TypeError} asy::Stream<dynamic>;
+          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic> :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
@@ -315,6 +323,7 @@ Try changing the type of the variable.
           dynamic :stream = let<BottomType> _ = null in let final dynamic #t37 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:66:74: Error: The type 'dart.core::Map<dart.core::String, test::Foo>' used in the 'for' loop must implement 'dart.async::Stream<dynamic>'.
   await for (var /*@type=dynamic*/ x in /*error:FOR_IN_OF_INVALID_TYPE*/ map) {
                                                                          ^" in let final core::Map<core::String, self::Foo> #t38 = map in null;
+          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic> :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try

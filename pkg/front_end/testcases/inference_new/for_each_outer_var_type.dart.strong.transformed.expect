@@ -41,6 +41,7 @@ static method test() → dynamic /* originally async */ {
         }
         {
           dynamic :stream = stream;
+          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<self::A> :for-iterator = new asy::_StreamIterator::•<self::A>(:stream);
           const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
@@ -68,6 +69,7 @@ static method test() → dynamic /* originally async */ {
         }
         {
           dynamic :stream = stream;
+          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<self::A> :for-iterator = new asy::_StreamIterator::•<self::A>(:stream);
           const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
@@ -98,6 +100,7 @@ Try changing the type of the variable.
         }
         {
           dynamic :stream = stream;
+          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<self::A> :for-iterator = new asy::_StreamIterator::•<self::A>(:stream);
           const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
@@ -128,6 +131,7 @@ Try changing the type of the variable.
         }
         {
           dynamic :stream = self::f<asy::Stream<self::A>>();
+          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<self::A> :for-iterator = new asy::_StreamIterator::•<self::A>(:stream);
           const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try

@@ -703,6 +703,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       //
       //   {
       //     :stream = <stream-expression>;
+      //     _asyncStarListenHelper(:stream, :async_op);
       //     _StreamIterator<T> :for-iterator = new _StreamIterator<T>(:stream);
       //     const bool :product-mode =
       //         const bool.fromEnvironment("dart.vm.product");
@@ -722,6 +723,13 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
 
       var streamVariable =
           new VariableDeclaration(':stream', initializer: stmt.iterable);
+
+      var asyncStarListenHelper = new ExpressionStatement(new StaticInvocation(
+          helper.asyncStarListenHelper,
+          new Arguments([
+            new VariableGet(streamVariable),
+            new VariableGet(nestedClosureVariable)
+          ])));
 
       var iteratorVariable = new VariableDeclaration(':for-iterator',
           initializer: new ConstructorInvocation(
@@ -767,7 +775,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       valueVariable.initializer = new PropertyGet(
           new VariableGet(iteratorVariable),
           new Name('current'),
-          helper.streamIteratorCurrent);
+          helper.streamIteratorCurrent)
+        ..fileOffset = stmt.bodyOffset;
       valueVariable.initializer.parent = valueVariable;
 
       var whileBody = new Block(<Statement>[valueVariable, stmt.body]);
@@ -794,6 +803,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
 
       var block = new Block(<Statement>[
         streamVariable,
+        asyncStarListenHelper,
         iteratorVariable,
         productMode,
         tryFinally
@@ -905,6 +915,11 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
             helper.asyncStarStreamControllerClass, [elementType]));
     statements.add(controllerVariable);
 
+    // dynamic :controller_stream;
+    VariableDeclaration controllerStreamVariable =
+        new VariableDeclaration(":controller_stream");
+    statements.add(controllerStreamVariable);
+
     setupAsyncContinuations(statements);
 
     // :controller = new _AsyncStarStreamController<T>(:async_op);
@@ -918,12 +933,16 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
         new VariableSet(controllerVariable, buildController));
     statements.add(setController);
 
-    // return :controller.stream;
+    // :controller_stream = :controller.stream;
     var completerGet = new VariableGet(controllerVariable);
-    var returnStatement = new ReturnStatement(new PropertyGet(
-        completerGet,
-        new Name('stream', helper.asyncLibrary),
-        helper.asyncStarStreamControllerStream));
+    statements.add(new ExpressionStatement(new VariableSet(
+        controllerStreamVariable,
+        new PropertyGet(completerGet, new Name('stream', helper.asyncLibrary),
+            helper.asyncStarStreamControllerStream))));
+
+    // return :controller_stream;
+    var returnStatement =
+        new ReturnStatement(new VariableGet(controllerStreamVariable));
     statements.add(returnStatement);
 
     enclosingFunction.body = new Block(statements);
@@ -1125,6 +1144,7 @@ class HelperNodes {
   final Member asyncStarStreamControllerClose;
   final Constructor asyncStarStreamControllerConstructor;
   final Member asyncStarStreamControllerStream;
+  final Member asyncStarListenHelper;
   final Member asyncStarMoveNextHelper;
   final Procedure asyncThenWrapper;
   final Procedure awaitHelper;
@@ -1168,6 +1188,7 @@ class HelperNodes {
       this.asyncStarStreamControllerClose,
       this.asyncStarStreamControllerConstructor,
       this.asyncStarStreamControllerStream,
+      this.asyncStarListenHelper,
       this.asyncStarMoveNextHelper,
       this.asyncThenWrapper,
       this.awaitHelper,
@@ -1212,6 +1233,7 @@ class HelperNodes {
         coreTypes.asyncStarStreamControllerClose,
         coreTypes.asyncStarStreamControllerDefaultConstructor,
         coreTypes.asyncStarStreamControllerStream,
+        coreTypes.asyncStarListenHelper,
         coreTypes.asyncStarMoveNextHelper,
         coreTypes.asyncThenWrapperHelperProcedure,
         coreTypes.awaitHelperProcedure,

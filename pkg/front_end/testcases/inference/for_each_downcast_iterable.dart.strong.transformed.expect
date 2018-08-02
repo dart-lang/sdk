@@ -24,6 +24,7 @@ static method test() → dynamic /* originally async */ {
         }
         {
           dynamic :stream = o as{TypeError} asy::Stream<dynamic>;
+          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic> :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
@@ -50,6 +51,7 @@ static method test() → dynamic /* originally async */ {
         }
         {
           dynamic :stream = o as{TypeError} asy::Stream<dynamic>;
+          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic> :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           const core::bool :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try

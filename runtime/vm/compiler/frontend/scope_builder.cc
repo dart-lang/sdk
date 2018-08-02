@@ -553,6 +553,13 @@ void ScopeBuilder::VisitFunctionNode() {
         scope_->CaptureVariable(temp);
       }
     }
+    {
+      LocalVariable* temp =
+          scope_->LookupVariable(Symbols::ControllerStream(), true);
+      if (temp != NULL) {
+        scope_->CaptureVariable(temp);
+      }
+    }
     if (FLAG_causal_async_stacks) {
       LocalVariable* temp =
           scope_->LookupVariable(Symbols::AsyncStackTraceVar(), true);
