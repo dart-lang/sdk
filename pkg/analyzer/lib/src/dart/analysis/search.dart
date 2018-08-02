@@ -674,7 +674,7 @@ class Search {
       for (Directive directive in unit.directives) {
         if (directive is PartOfDirective && directive.element == element) {
           results.add(new SearchResult._(
-              unit.element,
+              unit.declaredElement,
               SearchResultKind.REFERENCE,
               directive.libraryName.offset,
               directive.libraryName.length,
@@ -716,7 +716,7 @@ class Search {
 
     // Find the matches.
     _LocalReferencesVisitor visitor =
-        new _LocalReferencesVisitor(element, unit.element);
+        new _LocalReferencesVisitor(element, unit.declaredElement);
     enclosingNode.accept(visitor);
     return visitor.results;
   }

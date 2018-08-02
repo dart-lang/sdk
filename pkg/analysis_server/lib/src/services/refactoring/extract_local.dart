@@ -66,7 +66,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
 
   CompilationUnit get unit => resolveResult.unit;
 
-  CompilationUnitElement get unitElement => unit.element;
+  CompilationUnitElement get unitElement => unit.declaredElement;
 
   String get _declarationKeyword {
     if (_isPartOfConstantExpression(rootExpression)) {

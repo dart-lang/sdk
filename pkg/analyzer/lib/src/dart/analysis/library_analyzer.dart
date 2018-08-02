@@ -216,7 +216,7 @@ class LibraryAnalyzer {
             _computePendingMissingRequiredParameters(file, unit);
 
             // Invalid part URIs can result in an element with a null source
-            if (unit.element.source != null) {
+            if (unit.declaredElement.source != null) {
               var reporter = new FastaErrorReporter(_getErrorReporter(file));
               var fileResult = libraryResult.files[file.fileUri];
               if (fileResult?.errors != null) {
@@ -664,7 +664,7 @@ class LibraryAnalyzer {
 
     RecordingErrorListener errorListener = _getErrorListener(file);
 
-    CompilationUnitElement unitElement = unit.element;
+    CompilationUnitElement unitElement = unit.declaredElement;
 
     // TODO(scheglov) Hack: set types for top-level variables
     // Otherwise TypeResolverVisitor will set declared types, and because we
@@ -730,7 +730,7 @@ class LibraryAnalyzer {
 
   void _resolveFile2(FileState file, CompilationUnitImpl unit,
       CollectedResolution resolution) {
-    CompilationUnitElement unitElement = unit.element;
+    CompilationUnitElement unitElement = unit.declaredElement;
     new DeclarationResolver(enableKernelDriver: true, applyKernelTypes: true)
         .resolve(unit, unitElement);
 
@@ -749,7 +749,7 @@ class LibraryAnalyzer {
           applier.applyToAnnotations(declaration);
         }
 
-        var context = declaration.element as ClassElementImpl;
+        var context = declaration.declaredElement as ClassElementImpl;
         applierContext.setContext(context);
         declaration.typeParameters?.accept(applier);
         declaration.extendsClause?.accept(applier);
@@ -758,7 +758,7 @@ class LibraryAnalyzer {
 
         for (var member in declaration.members) {
           if (member is ConstructorDeclaration) {
-            var context = member.element as ConstructorElementImpl;
+            var context = member.declaredElement as ConstructorElementImpl;
             applierContext.setContext(context);
             ConstructorName redirectName = member.redirectedConstructor;
             if (redirectName != null) {
@@ -789,7 +789,7 @@ class LibraryAnalyzer {
           } else if (member is FieldDeclaration) {
             VariableDeclarationList fieldList = member.fields;
             List<VariableDeclaration> fields = fieldList.variables;
-            var element = fields[0].element;
+            var element = fields[0].declaredElement;
             var context = (element.initializer ?? element) as ElementImpl;
             applierContext.setContext(context);
             fieldList.type?.accept(applier);
@@ -798,7 +798,7 @@ class LibraryAnalyzer {
             }
             applier.applyToAnnotations(member);
           } else if (member is MethodDeclaration) {
-            ExecutableElementImpl context = member.element;
+            ExecutableElementImpl context = member.declaredElement;
             applierContext.setContext(context);
             member.typeParameters?.accept(applier);
             member.returnType?.accept(applier);
@@ -810,7 +810,7 @@ class LibraryAnalyzer {
           }
         }
       } else if (declaration is ClassTypeAlias) {
-        applierContext.setContext(declaration.element);
+        applierContext.setContext(declaration.declaredElement);
         declaration.typeParameters?.accept(applier);
         declaration.superclass.accept(applier);
         declaration.withClause?.accept(applier);
@@ -818,7 +818,7 @@ class LibraryAnalyzer {
       } else if (declaration is EnumDeclaration) {
         // No bodies to resolve.
       } else if (declaration is FunctionDeclaration) {
-        var context = declaration.element as ExecutableElementImpl;
+        var context = declaration.declaredElement as ExecutableElementImpl;
         applierContext.setContext(context);
         declaration.returnType?.accept(applier);
         declaration.functionExpression.typeParameters?.accept(applier);
@@ -826,7 +826,7 @@ class LibraryAnalyzer {
         declaration.functionExpression.body.accept(applier);
         applier.applyToAnnotations(declaration);
       } else if (declaration is FunctionTypeAlias) {
-        applierContext.setContext(declaration.element);
+        applierContext.setContext(declaration.declaredElement);
         declaration.typeParameters?.accept(applier);
         declaration.returnType?.accept(applier);
       } else if (declaration is GenericTypeAlias) {
@@ -840,7 +840,7 @@ class LibraryAnalyzer {
       } else if (declaration is TopLevelVariableDeclaration) {
         VariableDeclarationList variableList = declaration.variables;
         List<VariableDeclaration> variables = variableList.variables;
-        var element = variables[0].element;
+        var element = variables[0].declaredElement;
         var context = (element.initializer ?? element) as ElementImpl;
         applierContext.setContext(context);
         variableList.type?.accept(applier);
@@ -1119,15 +1119,15 @@ class _ResolutionApplierContext implements TypeContext {
     var declaration = localDeclarations[declarationOffset];
     Element element;
     if (declaration is VariableDeclaration) {
-      element = declaration.element;
+      element = declaration.declaredElement;
     } else if (declaration is FormalParameter) {
-      element = declaration.element;
+      element = declaration.declaredElement;
     } else if (declaration is DeclaredSimpleIdentifier) {
       element = declaration.staticElement;
     } else if (declaration is FunctionDeclaration) {
-      element = declaration.element;
+      element = declaration.declaredElement;
     } else if (declaration is TypeParameter) {
-      element = declaration.element;
+      element = declaration.declaredElement;
     } else {
       throw new UnimplementedError('${declaration.runtimeType}');
     }

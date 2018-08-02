@@ -124,7 +124,7 @@ class OpType {
     // If a value should be suggested, suggest also constructors.
     if (optype.includeReturnValueSuggestions) {
       // Careful: in angular plugin, `target.unit` may be null!
-      CompilationUnitElement unitElement = target.unit?.element;
+      CompilationUnitElement unitElement = target.unit?.declaredElement;
       if (unitElement != null &&
           unitElement.context.analysisOptions.previewDart2) {
         optype.includeConstructorSuggestions = true;
@@ -198,7 +198,7 @@ class OpType {
         _requiredType = parent.expression?.staticType;
       }
     } else if (node is VariableDeclaration && node.initializer == entity) {
-      _requiredType = node.element?.type;
+      _requiredType = node.declaredElement?.type;
     } else if (entity is Expression && entity.staticParameterElement != null) {
       _requiredType = entity.staticParameterElement.type;
     }

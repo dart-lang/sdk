@@ -1373,7 +1373,7 @@ void f() {
     VariableDeclarationStatement a = body.block.statements[0];
     InstanceCreationExpression init = a.variables.variables[0].initializer;
     expect(init.staticType,
-        classA.element.type.instantiate([typeProvider.intType]));
+        classA.declaredElement.type.instantiate([typeProvider.intType]));
   }
 
   test_equalKeysInMap() async {
@@ -3288,7 +3288,7 @@ void f() {
     VariableDeclarationStatement a = body.block.statements[0];
     InstanceCreationExpression init = a.variables.variables[0].initializer;
     expect(init.staticType,
-        classA.element.type.instantiate([typeProvider.intType]));
+        classA.declaredElement.type.instantiate([typeProvider.intType]));
   }
 
   test_newWithInvalidTypeParameters() async {

@@ -1750,7 +1750,11 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     ..add(rightBracket);
 
   @override
-  ClassElement get element => _name?.staticElement as ClassElement;
+  ClassElement get declaredElement => _name?.staticElement as ClassElement;
+
+  @deprecated
+  @override
+  ClassElement get element => declaredElement;
 
   @override
   Token get endToken => rightBracket;
@@ -1981,7 +1985,11 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     ..add(semicolon);
 
   @override
-  ClassElement get element => _name?.staticElement as ClassElement;
+  ClassElement get declaredElement => _name?.staticElement as ClassElement;
+
+  @deprecated
+  @override
+  ClassElement get element => declaredElement;
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -2316,7 +2324,7 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
    * structure has not been resolved.
    */
   @override
-  CompilationUnitElement element;
+  CompilationUnitElement declaredElement;
 
   /**
    * The line information for this compilation unit.
@@ -2360,6 +2368,15 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
 
   @override
   NodeList<Directive> get directives => _directives;
+
+  @deprecated
+  @override
+  CompilationUnitElement get element => declaredElement;
+
+  @override
+  set element(CompilationUnitElement element) {
+    declaredElement = element;
+  }
 
   @override
   int get length {
@@ -2788,7 +2805,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
    * resolved.
    */
   @override
-  ConstructorElement element;
+  ConstructorElement declaredElement;
 
   /**
    * Initialize a newly created constructor declaration. The [externalKeyword]
@@ -2850,6 +2867,16 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
     ..addAll(initializers)
     ..add(_redirectedConstructor)
     ..add(_body);
+
+  @deprecated
+  @override
+  ConstructorElement get element => declaredElement;
+
+  @deprecated
+  @override
+  set element(ConstructorElement element) {
+    declaredElement = element;
+  }
 
   @override
   Token get endToken {
@@ -3241,12 +3268,15 @@ class DeclaredIdentifierImpl extends DeclarationImpl
       super._childEntities..add(keyword)..add(_type)..add(_identifier);
 
   @override
-  LocalVariableElement get element {
+  LocalVariableElement get declaredElement {
     if (_identifier == null) {
       return null;
     }
     return _identifier.staticElement as LocalVariableElement;
   }
+
+  @override
+  LocalVariableElement get element => declaredElement;
 
   @override
   Token get endToken => _identifier.endToken;
@@ -3750,7 +3780,11 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
       super._childEntities..add(_name);
 
   @override
-  FieldElement get element => _name?.staticElement as FieldElement;
+  FieldElement get declaredElement => _name?.staticElement as FieldElement;
+
+  @deprecated
+  @override
+  FieldElement get element => declaredElement;
 
   @override
   Token get endToken => _name.endToken;
@@ -3839,7 +3873,11 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   NodeList<EnumConstantDeclaration> get constants => _constants;
 
   @override
-  ClassElement get element => _name?.staticElement as ClassElement;
+  ClassElement get declaredElement => _name?.staticElement as ClassElement;
+
+  @deprecated
+  @override
+  ClassElement get element => declaredElement;
 
   @override
   Token get endToken => rightBracket;
@@ -4303,6 +4341,10 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
       super._childEntities..add(staticKeyword)..add(_fieldList)..add(semicolon);
 
   @override
+  Element get declaredElement => null;
+
+  @deprecated
+  @override
   Element get element => null;
 
   @override
@@ -4656,13 +4698,17 @@ class ForEachStatementImpl extends StatementImpl implements ForEachStatement {
 abstract class FormalParameterImpl extends AstNodeImpl
     implements FormalParameter {
   @override
-  ParameterElement get element {
+  ParameterElement get declaredElement {
     SimpleIdentifier identifier = this.identifier;
     if (identifier == null) {
       return null;
     }
     return identifier.staticElement as ParameterElement;
   }
+
+  @deprecated
+  @override
+  ParameterElement get element => declaredElement;
 
   @override
   bool get isNamed => kind == ParameterKind.NAMED;
@@ -4789,7 +4835,7 @@ class FormalParameterListImpl extends AstNodeImpl
     int count = _parameters.length;
     List<ParameterElement> types = new List<ParameterElement>(count);
     for (int i = 0; i < count; i++) {
-      types[i] = _parameters[i].element;
+      types[i] = _parameters[i].declaredElement;
     }
     return types;
   }
@@ -5103,7 +5149,12 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     ..add(_functionExpression);
 
   @override
-  ExecutableElement get element => _name?.staticElement as ExecutableElement;
+  ExecutableElement get declaredElement =>
+      _name?.staticElement as ExecutableElement;
+
+  @deprecated
+  @override
+  ExecutableElement get element => declaredElement;
 
   @override
   Token get endToken => _functionExpression.endToken;
@@ -5228,12 +5279,8 @@ class FunctionExpressionImpl extends ExpressionImpl
    */
   FunctionBodyImpl _body;
 
-  /**
-   * The element associated with the function, or `null` if the AST structure
-   * has not been resolved.
-   */
   @override
-  ExecutableElement element;
+  ExecutableElement declaredElement;
 
   /**
    * Initialize a newly created function declaration.
@@ -5270,6 +5317,16 @@ class FunctionExpressionImpl extends ExpressionImpl
   @override
   Iterable<SyntacticEntity> get childEntities =>
       new ChildEntities()..add(_parameters)..add(_body);
+
+  @deprecated
+  @override
+  ExecutableElement get element => declaredElement;
+
+  @deprecated
+  @override
+  set element(ExecutableElement element) {
+    declaredElement = element;
+  }
 
   @override
   Token get endToken {
@@ -5450,8 +5507,12 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
     ..add(semicolon);
 
   @override
-  FunctionTypeAliasElement get element =>
+  FunctionTypeAliasElement get declaredElement =>
       _name?.staticElement as FunctionTypeAliasElement;
+
+  @deprecated
+  @override
+  FunctionTypeAliasElement get element => declaredElement;
 
   @override
   FormalParameterList get parameters => _parameters;
@@ -5773,7 +5834,11 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
     ..add(_functionType);
 
   @override
-  Element get element => name.staticElement;
+  Element get declaredElement => name.staticElement;
+
+  @deprecated
+  @override
+  Element get element => declaredElement;
 
   @override
   GenericFunctionType get functionType => _functionType;
@@ -7480,7 +7545,12 @@ class MethodDeclarationImpl extends ClassMemberImpl
    * getter or a setter.
    */
   @override
-  ExecutableElement get element => _name?.staticElement as ExecutableElement;
+  ExecutableElement get declaredElement =>
+      _name?.staticElement as ExecutableElement;
+
+  @deprecated
+  @override
+  ExecutableElement get element => declaredElement;
 
   @override
   Token get endToken => _body.endToken;
@@ -9214,7 +9284,10 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   TypeAnnotationImpl _type;
 
   @override
-  ParameterElement element;
+  // TODO(brianwilkerson) This overrides a concrete implementation in which the
+  // element is assumed to be stored in the `identifier`, but there is no
+  // corresponding inherited setter. This seems inconsistent and error prone.
+  ParameterElement declaredElement;
 
   /**
    * Initialize a newly created formal parameter. Either or both of the
@@ -10344,6 +10417,10 @@ class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
       super._childEntities..add(_variableList)..add(semicolon);
 
   @override
+  Element get declaredElement => null;
+
+  @deprecated
+  @override
   Element get element => null;
 
   @override
@@ -10770,8 +10847,12 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
       super._childEntities..add(_name)..add(extendsKeyword)..add(_bound);
 
   @override
-  TypeParameterElement get element =>
+  TypeParameterElement get declaredElement =>
       _name?.staticElement as TypeParameterElement;
+
+  @deprecated
+  @override
+  TypeParameterElement get element => declaredElement;
 
   @override
   Token get endToken {
@@ -11024,6 +11105,10 @@ class VariableDeclarationImpl extends DeclarationImpl
   Iterable<SyntacticEntity> get childEntities =>
       super._childEntities..add(_name)..add(equals)..add(_initializer);
 
+  @override
+  VariableElement get declaredElement =>
+      _name?.staticElement as VariableElement;
+
   /**
    * This overridden implementation of [documentationComment] looks in the
    * grandparent node for Dartdoc comments if no documentation is specifically
@@ -11041,8 +11126,9 @@ class VariableDeclarationImpl extends DeclarationImpl
     return comment;
   }
 
+  @deprecated
   @override
-  VariableElement get element => _name?.staticElement as VariableElement;
+  VariableElement get element => declaredElement;
 
   @override
   Token get endToken {

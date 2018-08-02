@@ -1021,7 +1021,7 @@ class MyClass {}''';
         (builder as DartEditBuilder).writeLocalVariableDeclaration('foo',
             initializerWriter: () {
           builder.write('null');
-        }, type: A.element.type);
+        }, type: A.declaredElement.type);
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -1044,7 +1044,7 @@ class MyClass {}''';
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(11, (EditBuilder builder) {
         (builder as DartEditBuilder).writeLocalVariableDeclaration('foo',
-            type: A.element.type, typeGroupName: 'type');
+            type: A.declaredElement.type, typeGroupName: 'type');
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -1074,7 +1074,7 @@ class MyClass {}''';
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(11, (EditBuilder builder) {
         (builder as DartEditBuilder).writeLocalVariableDeclaration('foo',
-            isFinal: true, type: A.element.type, typeGroupName: 'type');
+            isFinal: true, type: A.declaredElement.type, typeGroupName: 'type');
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -2287,7 +2287,7 @@ class C extends B {}
     CompilationUnit unit = (await driver.getResult(path))?.unit;
     ClassDeclaration classC = unit.declarations[2];
     DartLinkedEditBuilderImpl builder = new DartLinkedEditBuilderImpl(null);
-    builder.addSuperTypesAsSuggestions(classC.element.type);
+    builder.addSuperTypesAsSuggestions(classC.declaredElement.type);
     List<LinkedEditSuggestion> suggestions = builder.suggestions;
     expect(suggestions, hasLength(4));
     expect(suggestions.map((s) => s.value),

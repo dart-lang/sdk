@@ -303,7 +303,7 @@ class CodeGenerator extends Object
   List<int> _summarizeModule(List<CompilationUnit> units) {
     if (!options.summarizeApi) return null;
 
-    if (!units.any((u) => u.element.source.isInSystemLibrary)) {
+    if (!units.any((u) => u.declaredElement.source.isInSystemLibrary)) {
       var sdk = context.sourceFactory.dartSdk;
       summaryData.addBundle(
           null,
@@ -315,9 +315,10 @@ class CodeGenerator extends Object
     var assembler = PackageBundleAssembler();
 
     var uriToUnit = Map<String, UnlinkedUnit>.fromIterables(
-        units.map((u) => u.element.source.uri.toString()), units.map((unit) {
+        units.map((u) => u.declaredElement.source.uri.toString()),
+        units.map((unit) {
       var unlinked = serializeAstUnlinked(unit);
-      assembler.addUnlinkedUnit(unit.element.source, unlinked);
+      assembler.addUnlinkedUnit(unit.declaredElement.source, unlinked);
       return unlinked;
     }));
 
@@ -351,8 +352,8 @@ class CodeGenerator extends Object
     var root = JS.Identifier('_root');
     items.add(js.statement('const # = Object.create(null)', [root]));
 
-    var isBuildingSdk =
-        compilationUnits.any((u) => isSdkInternalRuntime(u.element.library));
+    var isBuildingSdk = compilationUnits
+        .any((u) => isSdkInternalRuntime(u.declaredElement.library));
     if (isBuildingSdk) {
       // Don't allow these to be renamed when we're building the SDK.
       // There is JS code in dart:* that depends on their names.
@@ -373,8 +374,8 @@ class CodeGenerator extends Object
     }
 
     for (var unit in compilationUnits) {
-      var library = unit.element.library;
-      if (unit.element != library.definingCompilationUnit) continue;
+      var library = unit.declaredElement.library;
+      if (unit.declaredElement != library.definingCompilationUnit) continue;
 
       var libraryTemp = isSdkInternalRuntime(library)
           ? runtimeModule
@@ -394,7 +395,7 @@ class CodeGenerator extends Object
     _declarationNodes = HashMap<TypeDefiningElement, AstNode>.identity();
     for (var unit in compilationUnits) {
       for (var declaration in unit.declarations) {
-        var element = declaration.element;
+        var element = declaration.declaredElement;
         if (element is TypeDefiningElement) {
           _declarationNodes[element] = declaration;
         }
@@ -655,7 +656,7 @@ class CodeGenerator extends Object
     //
     // See _emitTypeDeclaration.
     var savedElement = _currentElement;
-    _currentElement = unit.element;
+    _currentElement = unit.declaredElement;
     var isInternalSdk = isSdkInternalRuntime(currentLibrary);
     List<VariableDeclaration> fields;
     for (var declaration in unit.declarations) {
@@ -675,7 +676,7 @@ class CodeGenerator extends Object
         fields = null;
       }
 
-      var element = declaration.element;
+      var element = declaration.declaredElement;
       if (element is TypeDefiningElement) {
         _emitTypeDeclaration(element);
         continue;
@@ -855,7 +856,7 @@ class CodeGenerator extends Object
   visitGenericTypeAlias(GenericTypeAlias node) => _emitTypedef(node);
 
   JS.Statement _emitTypedef(TypeAlias node) {
-    var element = node.element as FunctionTypeAliasElement;
+    var element = node.declaredElement as FunctionTypeAliasElement;
     FunctionType type;
     var typeFormals = element.typeParameters;
     if (element is GenericTypeAliasElement) {
@@ -901,12 +902,13 @@ class CodeGenerator extends Object
 
   @override
   JS.Statement visitClassTypeAlias(ClassTypeAlias node) {
-    return _emitClassDeclaration(node, node.element as ClassElement, []);
+    return _emitClassDeclaration(
+        node, node.declaredElement as ClassElement, []);
   }
 
   @override
   JS.Statement visitClassDeclaration(ClassDeclaration node) {
-    return _emitClassDeclaration(node, node.element, node.members);
+    return _emitClassDeclaration(node, node.declaredElement, node.members);
   }
 
   JS.Statement _emitClassDeclaration(Declaration classNode,
@@ -938,10 +940,10 @@ class CodeGenerator extends Object
     for (var m in members) {
       if (m is FieldDeclaration) {
         for (var f in m.fields.variables) {
-          memberMap[f.element as FieldElement] = f;
+          memberMap[f.declaredElement as FieldElement] = f;
         }
       } else {
-        memberMap[m.element] = m;
+        memberMap[m.declaredElement] = m;
       }
     }
 
@@ -1228,7 +1230,7 @@ class CodeGenerator extends Object
 
   @override
   JS.Statement visitEnumDeclaration(EnumDeclaration node) {
-    return _emitClassDeclaration(node, node.element, []);
+    return _emitClassDeclaration(node, node.declaredElement, []);
   }
 
   /// Wraps a possibly generic class in its type arguments.
@@ -1452,7 +1454,7 @@ class CodeGenerator extends Object
     var jsMethods = <JS.Method>[];
     if (!node.isStatic) {
       for (var decl in node.fields.variables) {
-        var field = decl.element as FieldElement;
+        var field = decl.declaredElement as FieldElement;
         var name = getAnnotationName(field, isJSName) ?? field.name;
         // Generate getter
         var fn = JS.Fun([], js.block('{ return this.#; }', [name]));
@@ -1514,7 +1516,7 @@ class CodeGenerator extends Object
       } else if (m is MethodDeclaration) {
         jsMethods.add(_emitMethodDeclaration(m));
 
-        if (m.element is PropertyAccessorElement) {
+        if (m.declaredElement is PropertyAccessorElement) {
           jsMethods.add(_emitSuperAccessorWrapper(m, type));
         }
 
@@ -1529,7 +1531,7 @@ class CodeGenerator extends Object
         }
         if (m.isStatic) continue;
         for (VariableDeclaration field in m.fields.variables) {
-          if (virtualFields.containsKey(field.element)) {
+          if (virtualFields.containsKey(field.declaredElement)) {
             jsMethods.addAll(_emitVirtualFieldAccessor(field));
           }
         }
@@ -1637,7 +1639,7 @@ class CodeGenerator extends Object
   JS.Method _emitFactoryConstructor(ConstructorDeclaration node) {
     if (isUnsupportedFactoryConstructor(node)) return null;
 
-    var element = node.element;
+    var element = node.declaredElement;
     var name = _constructorName(element.name);
     JS.Fun fun;
 
@@ -1767,7 +1769,7 @@ class CodeGenerator extends Object
   /// exist, resulting in a runtime error. Even if they did exist, that's the
   /// wrong behavior if a new field was declared.
   List<JS.Method> _emitVirtualFieldAccessor(VariableDeclaration field) {
-    var element = field.element as FieldElement;
+    var element = field.declaredElement as FieldElement;
     var virtualField = _classProperties.virtualFields[element];
     var result = <JS.Method>[];
     var name = _declareMemberName(element.getter);
@@ -1807,7 +1809,7 @@ class CodeGenerator extends Object
   /// setter (alternatively, the getter) that does nothing.
   JS.Method _emitSuperAccessorWrapper(
       MethodDeclaration method, InterfaceType type) {
-    var methodElement = method.element as PropertyAccessorElement;
+    var methodElement = method.declaredElement as PropertyAccessorElement;
     var field = methodElement.variable;
     if (!field.isSynthetic) return null;
 
@@ -1912,7 +1914,8 @@ class CodeGenerator extends Object
     }
 
     var fields = List<VariableDeclaration>.from(memberMap.values.where((m) =>
-        m is VariableDeclaration && !(m.element as FieldElement).isStatic));
+        m is VariableDeclaration &&
+        !(m.declaredElement as FieldElement).isStatic));
 
     // Iff no constructor is specified for a class C, it implicitly has a
     // default constructor `C() : super() {}`, unless C is class Object.
@@ -2301,7 +2304,7 @@ class CodeGenerator extends Object
     // nice to do them first.
     // Also for const constructors we need to ensure default values are
     // available for use by top-level constant initializers.
-    var init = _emitArgumentInitializers(node.element, node.parameters);
+    var init = _emitArgumentInitializers(node.declaredElement, node.parameters);
     if (init != null) body.add(init);
 
     // Redirecting constructors: these are not allowed to have initializers,
@@ -2328,14 +2331,14 @@ class CodeGenerator extends Object
     // enclosing class is class Object.
     var superCallArgs =
         superCall != null ? _emitArgumentList(superCall.argumentList) : null;
-    var jsSuper = _emitSuperConstructorCallIfNeeded(
-        cls.element, className, superCall?.staticElement, superCallArgs);
+    var jsSuper = _emitSuperConstructorCallIfNeeded(cls.declaredElement,
+        className, superCall?.staticElement, superCallArgs);
     if (jsSuper != null) {
       if (superCall != null) jsSuper.sourceInformation = _nodeStart(superCall);
       body.add(jsSuper);
     }
 
-    body.add(_emitFunctionScopedBody(node.body, node.element));
+    body.add(_emitFunctionScopedBody(node.body, node.declaredElement));
     return JS.Block(body);
   }
 
@@ -2421,7 +2424,7 @@ class CodeGenerator extends Object
 
       // Run constructor parameter initializers such as `this.foo`
       for (var p in ctor.parameters.parameters) {
-        var element = p.element;
+        var element = p.declaredElement;
         if (element is FieldFormalParameterElement) {
           body.add(emitFieldInit(element.field, p.identifier, p.identifier));
         }
@@ -2447,7 +2450,7 @@ class CodeGenerator extends Object
     // like `field = value`, or via a `this.field` parameter).
     var fieldInit = <JS.Statement>[];
     for (var field in fieldDecls) {
-      var f = field.element as FieldElement;
+      var f = field.declaredElement as FieldElement;
       if (f.isStatic) continue;
       if (ctorFields != null &&
           ctorFields.contains(f) &&
@@ -2556,8 +2559,8 @@ class CodeGenerator extends Object
   }
 
   JS.Fun _emitNativeFunctionBody(MethodDeclaration node) {
-    String name =
-        getAnnotationName(node.element, isJSAnnotation) ?? node.name.name;
+    String name = getAnnotationName(node.declaredElement, isJSAnnotation) ??
+        node.name.name;
     if (node.isGetter) {
       return JS.Fun([], js.block('{ return this.#; }', [name]));
     } else if (node.isSetter) {
@@ -2582,10 +2585,10 @@ class CodeGenerator extends Object
       }
       fn = _emitNativeFunctionBody(node);
     } else {
-      fn = _emitFunction(node.element, node.parameters, node.body);
+      fn = _emitFunction(node.declaredElement, node.parameters, node.body);
     }
 
-    return JS.Method(_declareMemberName(node.element), fn,
+    return JS.Method(_declareMemberName(node.declaredElement), fn,
         isGetter: node.isGetter,
         isSetter: node.isSetter,
         isStatic: node.isStatic)
@@ -2602,7 +2605,7 @@ class CodeGenerator extends Object
     }
 
     if (node.isGetter || node.isSetter) {
-      PropertyAccessorElement element = node.element;
+      PropertyAccessorElement element = node.declaredElement;
       var pairAccessor = node.isGetter
           ? element.correspondingSetter
           : element.correspondingGetter;
@@ -2716,13 +2719,13 @@ class CodeGenerator extends Object
     assert(node.parent is! FunctionDeclaration &&
         node.parent is! MethodDeclaration);
     var fn = _emitArrowFunction(node);
-    if (!_reifyFunctionType(node.element)) return fn;
+    if (!_reifyFunctionType(node.declaredElement)) return fn;
     return _emitFunctionTagged(fn, getStaticType(node) as FunctionType,
         topLevel: _executesAtTopLevel(node));
   }
 
   JS.ArrowFun _emitArrowFunction(FunctionExpression node) {
-    var f = _emitFunction(node.element, node.parameters, node.body);
+    var f = _emitFunction(node.declaredElement, node.parameters, node.body);
     JS.Node body = f.body;
 
     // Simplify `=> { return e; }` to `=> e`
@@ -2747,7 +2750,7 @@ class CodeGenerator extends Object
   ///
   /// Contrast with [visitFunctionExpression].
   JS.Fun _emitFunctionExpression(FunctionExpression node) {
-    return _emitFunction(node.element, node.parameters, node.body);
+    return _emitFunction(node.declaredElement, node.parameters, node.body);
   }
 
   JS.Fun _emitFunction(ExecutableElement element,
@@ -2760,8 +2763,11 @@ class CodeGenerator extends Object
     var typeFormals = _emitTypeFormals(type.typeFormals);
     if (_reifyGeneric(element)) formals.insertAll(0, typeFormals);
 
-    super.enterFunction(element.name, formals,
-        () => isPotentiallyMutated(body, parameters.parameters.last.element));
+    super.enterFunction(
+        element.name,
+        formals,
+        () => isPotentiallyMutated(
+            body, parameters.parameters.last.declaredElement));
 
     JS.Block code = isSync
         ? _emitFunctionBody(element, parameters, body)
@@ -2884,7 +2890,7 @@ class CodeGenerator extends Object
       var params = parameters?.parameters;
 
       var jsParams = _emitParameters(
-          params?.where((p) => isPotentiallyMutated(body, p.element)));
+          params?.where((p) => isPotentiallyMutated(body, p.declaredElement)));
 
       var gen = emitGeneratorFn(jsParams);
       if (jsParams.isNotEmpty) gen = js.call('() => #(#)', [gen, jsParams]);
@@ -2940,7 +2946,7 @@ class CodeGenerator extends Object
     } else {
       declareFn = JS.FunctionDeclaration(name, fn);
     }
-    var element = func.element;
+    var element = func.declaredElement;
     if (_reifyFunctionType(element)) {
       declareFn = JS.Block(
           [declareFn, _emitFunctionTagged(name, element.type).toStatement()]);
@@ -4187,7 +4193,7 @@ class CodeGenerator extends Object
       if (initializer != null) {
         var name = _emitVariableDef(variable.name);
         JS.Expression value;
-        if (_annotatedNullCheck(variable.element)) {
+        if (_annotatedNullCheck(variable.declaredElement)) {
           value = notNull(initializer);
         } else if (initializer is FunctionExpression) {
           // This improve stack traces for the pattern:
@@ -4226,7 +4232,7 @@ class CodeGenerator extends Object
 
   @override
   JS.VariableInitialization visitVariableDeclaration(VariableDeclaration node) {
-    if (node.element is PropertyInducingElement) {
+    if (node.declaredElement is PropertyInducingElement) {
       // All fields are handled elsewhere.
       assert(false);
       return null;
@@ -4234,7 +4240,7 @@ class CodeGenerator extends Object
 
     var name = _emitVariableDef(node.name);
     return JS.VariableInitialization(
-        name, _visitInitializer(node.initializer, node.element));
+        name, _visitInitializer(node.initializer, node.declaredElement));
   }
 
   /// Emits a list of top-level field.
@@ -4250,7 +4256,7 @@ class CodeGenerator extends Object
     var lazyFields = <VariableDeclaration>[];
     for (var field in fields) {
       // Skip our magic undefined constant.
-      var element = field.element as TopLevelVariableElement;
+      var element = field.declaredElement as TopLevelVariableElement;
       if (element.name == 'undefined') continue;
 
       var init = field.initializer;
@@ -4260,8 +4266,8 @@ class CodeGenerator extends Object
           init is InstanceCreationExpression &&
               isSdkInternalRuntime(init.staticElement.library)) {
         moduleItems.add(js.statement('# = #;', [
-          _emitTopLevelName(field.element),
-          _visitInitializer(field.initializer, field.element)
+          _emitTopLevelName(field.declaredElement),
+          _visitInitializer(field.initializer, field.declaredElement)
         ]));
       } else {
         lazyFields.add(field);
@@ -4286,7 +4292,7 @@ class CodeGenerator extends Object
     var accessors = <JS.Method>[];
 
     for (var node in fields) {
-      var element = node.element;
+      var element = node.declaredElement;
       var access = emitFieldName(element);
       accessors.add(JS.Method(
           access,
@@ -5115,10 +5121,10 @@ class CodeGenerator extends Object
       _visitExpression(node.expression);
 
   JS.Parameter _emitFormalParameter(FormalParameter node) {
-    var id = _emitParameter(node.element, declaration: true)
+    var id = _emitParameter(node.declaredElement, declaration: true)
       ..sourceInformation = _nodeSpan(node);
     var isRestArg = node is! DefaultFormalParameter &&
-        findAnnotation(node.element, isJsRestAnnotation) != null;
+        findAnnotation(node.declaredElement, isJsRestAnnotation) != null;
     return isRestArg ? JS.RestParameter(id) : id;
   }
 
@@ -5403,7 +5409,7 @@ class CodeGenerator extends Object
     if (init == null) {
       var id = node.loopVariable.identifier;
       init = js.call('let #', _emitVariableDef(id));
-      if (_annotatedNullCheck(node.loopVariable.element)) {
+      if (_annotatedNullCheck(node.loopVariable.declaredElement)) {
         body = JS.Block([_nullParameterCheck(JS.Identifier(id.name)), body]);
       }
     }

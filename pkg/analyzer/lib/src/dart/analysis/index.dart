@@ -519,14 +519,14 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordRelationOffset(objectElement, IndexRelationKind.IS_EXTENDED_BY,
           node.name.offset, 0, true);
     }
-    recordIsAncestorOf(node.element);
+    recordIsAncestorOf(node.declaredElement);
     super.visitClassDeclaration(node);
   }
 
   @override
   visitClassTypeAlias(ClassTypeAlias node) {
     _addSubtypeForClassTypeAlis(node);
-    recordIsAncestorOf(node.element);
+    recordIsAncestorOf(node.declaredElement);
     super.visitClassTypeAlias(node);
   }
 

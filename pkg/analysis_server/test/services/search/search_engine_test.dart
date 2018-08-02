@@ -76,7 +76,7 @@ class C extends A {
     await scheduler.waitForIdle();
 
     var resultA = await driver1.getResult(a);
-    ClassElement elementA = resultA.unit.element.types[0];
+    ClassElement elementA = resultA.unit.declaredElement.types[0];
 
     var searchEngine = new SearchEngineImpl([driver1, driver2]);
     Set<String> members = await searchEngine.membersOfSubtypes(elementA);
@@ -103,7 +103,7 @@ class B extends A {}
     await scheduler.waitForIdle();
 
     var resultA = await driver.getResult(a);
-    ClassElement elementA = resultA.unit.element.types[0];
+    ClassElement elementA = resultA.unit.declaredElement.types[0];
 
     var searchEngine = new SearchEngineImpl([driver]);
     Set<String> members = await searchEngine.membersOfSubtypes(elementA);
@@ -132,7 +132,7 @@ class B {
     await scheduler.waitForIdle();
 
     var resultA = await driver.getResult(a);
-    ClassElement elementA = resultA.unit.element.types[0];
+    ClassElement elementA = resultA.unit.declaredElement.types[0];
 
     var searchEngine = new SearchEngineImpl([driver]);
     Set<String> members = await searchEngine.membersOfSubtypes(elementA);
@@ -169,7 +169,7 @@ class D extends B {
     await scheduler.waitForIdle();
 
     var resultA = await driver1.getResult(a);
-    ClassElement elementA = resultA.unit.element.types[0];
+    ClassElement elementA = resultA.unit.declaredElement.types[0];
 
     var searchEngine = new SearchEngineImpl([driver1, driver2]);
     Set<String> members = await searchEngine.membersOfSubtypes(elementA);
@@ -188,7 +188,7 @@ class C implements B {}
     driver.addFile(p);
 
     var resultA = await driver.getResult(p);
-    ClassElement element = resultA.unit.element.types[0];
+    ClassElement element = resultA.unit.declaredElement.types[0];
 
     var searchEngine = new SearchEngineImpl([driver]);
     Set<ClassElement> subtypes = await searchEngine.searchAllSubtypes(element);
@@ -216,7 +216,7 @@ class C extends B {}
     driver2.addFile(b);
 
     var resultA = await driver1.getResult(a);
-    ClassElement element = resultA.unit.element.types[0];
+    ClassElement element = resultA.unit.declaredElement.types[0];
 
     var searchEngine = new SearchEngineImpl([driver1, driver2]);
     Set<ClassElement> subtypes = await searchEngine.searchAllSubtypes(element);
@@ -325,7 +325,7 @@ T b;
     driver2.addFile(b);
 
     var resultA = await driver1.getResult(a);
-    ClassElement element = resultA.unit.element.types[0];
+    ClassElement element = resultA.unit.declaredElement.types[0];
 
     var searchEngine = new SearchEngineImpl([driver1, driver2]);
     List<SearchMatch> matches = await searchEngine.searchReferences(element);

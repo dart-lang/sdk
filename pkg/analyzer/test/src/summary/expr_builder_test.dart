@@ -446,50 +446,6 @@ class C {
     checkSimpleExpression('({x}) => 0');
   }
 
-  void xtest_pushLocalFunctionReference_nested() {
-    // TODO(devoncarew): This test fails when run in strong mode.
-    // Failed assertion: line 5116 pos 16:
-    //   'Linker._initializerTypeInferenceCycle == null': is not true.
-    prepareAnalysisContext(new AnalysisOptionsImpl()..previewDart2 = false);
-    var expr =
-        checkSimpleExpression('(x) => (y) => x + y') as FunctionExpression;
-    var outerFunctionElement = expr.element;
-    var xElement = outerFunctionElement.parameters[0];
-    var x = expr.parameters.parameters[0];
-    expect(x.element, same(xElement));
-    var outerBody = expr.body as ExpressionFunctionBody;
-    var outerBodyExpr = outerBody.expression as FunctionExpression;
-    var innerFunctionElement = outerBodyExpr.element;
-    var yElement = innerFunctionElement.parameters[0];
-    var y = outerBodyExpr.parameters.parameters[0];
-    expect(y.element, same(yElement));
-    var innerBody = outerBodyExpr.body as ExpressionFunctionBody;
-    var innerBodyExpr = innerBody.expression as BinaryExpression;
-    var xRef = innerBodyExpr.leftOperand as SimpleIdentifier;
-    var yRef = innerBodyExpr.rightOperand as SimpleIdentifier;
-    expect(xRef.staticElement, same(xElement));
-    expect(yRef.staticElement, same(yElement));
-  }
-
-  void xtest_pushLocalFunctionReference_paramReference() {
-    // TODO(devoncarew): This test fails when run in strong mode.
-    prepareAnalysisContext(new AnalysisOptionsImpl()..previewDart2 = false);
-    var expr = checkSimpleExpression('(x, y) => x + y') as FunctionExpression;
-    var localFunctionElement = expr.element;
-    var xElement = localFunctionElement.parameters[0];
-    var yElement = localFunctionElement.parameters[1];
-    var x = expr.parameters.parameters[0];
-    var y = expr.parameters.parameters[1];
-    expect(x.element, same(xElement));
-    expect(y.element, same(yElement));
-    var body = expr.body as ExpressionFunctionBody;
-    var bodyExpr = body.expression as BinaryExpression;
-    var xRef = bodyExpr.leftOperand as SimpleIdentifier;
-    var yRef = bodyExpr.rightOperand as SimpleIdentifier;
-    expect(xRef.staticElement, same(xElement));
-    expect(yRef.staticElement, same(yElement));
-  }
-
   void test_pushLocalFunctionReference_positionalParam_untyped() {
     checkSimpleExpression('([x]) => 0');
   }
@@ -497,7 +453,7 @@ class C {
   void test_pushLocalFunctionReference_requiredParam_typed() {
     var expr = checkSimpleExpression('(int x) => 0', expectedText: '(x) => 0')
         as FunctionExpression;
-    var functionElement = expr.element;
+    var functionElement = expr.declaredElement;
     var xElement = functionElement.parameters[0] as ParameterElementImpl;
     expect(xElement.type.toString(), 'int');
   }
@@ -565,5 +521,49 @@ class B {
 
   void test_typeCheck_negated() {
     checkSimpleExpression('0 is! num', expectedText: '!(0 is num)');
+  }
+
+  void xtest_pushLocalFunctionReference_nested() {
+    // TODO(devoncarew): This test fails when run in strong mode.
+    // Failed assertion: line 5116 pos 16:
+    //   'Linker._initializerTypeInferenceCycle == null': is not true.
+    prepareAnalysisContext(new AnalysisOptionsImpl()..previewDart2 = false);
+    var expr =
+        checkSimpleExpression('(x) => (y) => x + y') as FunctionExpression;
+    var outerFunctionElement = expr.declaredElement;
+    var xElement = outerFunctionElement.parameters[0];
+    var x = expr.parameters.parameters[0];
+    expect(x.declaredElement, same(xElement));
+    var outerBody = expr.body as ExpressionFunctionBody;
+    var outerBodyExpr = outerBody.expression as FunctionExpression;
+    var innerFunctionElement = outerBodyExpr.declaredElement;
+    var yElement = innerFunctionElement.parameters[0];
+    var y = outerBodyExpr.parameters.parameters[0];
+    expect(y.declaredElement, same(yElement));
+    var innerBody = outerBodyExpr.body as ExpressionFunctionBody;
+    var innerBodyExpr = innerBody.expression as BinaryExpression;
+    var xRef = innerBodyExpr.leftOperand as SimpleIdentifier;
+    var yRef = innerBodyExpr.rightOperand as SimpleIdentifier;
+    expect(xRef.staticElement, same(xElement));
+    expect(yRef.staticElement, same(yElement));
+  }
+
+  void xtest_pushLocalFunctionReference_paramReference() {
+    // TODO(devoncarew): This test fails when run in strong mode.
+    prepareAnalysisContext(new AnalysisOptionsImpl()..previewDart2 = false);
+    var expr = checkSimpleExpression('(x, y) => x + y') as FunctionExpression;
+    var localFunctionElement = expr.declaredElement;
+    var xElement = localFunctionElement.parameters[0];
+    var yElement = localFunctionElement.parameters[1];
+    var x = expr.parameters.parameters[0];
+    var y = expr.parameters.parameters[1];
+    expect(x.declaredElement, same(xElement));
+    expect(y.declaredElement, same(yElement));
+    var body = expr.body as ExpressionFunctionBody;
+    var bodyExpr = body.expression as BinaryExpression;
+    var xRef = bodyExpr.leftOperand as SimpleIdentifier;
+    var yRef = bodyExpr.rightOperand as SimpleIdentifier;
+    expect(xRef.staticElement, same(xElement));
+    expect(yRef.staticElement, same(yElement));
   }
 }

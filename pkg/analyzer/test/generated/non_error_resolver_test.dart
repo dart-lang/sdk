@@ -3655,7 +3655,7 @@ void main() {
 }
 ''');
     var result = await computeAnalysisResult(source);
-    var z = result.unit.element.topLevelVariables
+    var z = result.unit.declaredElement.topLevelVariables
         .where((e) => e.name == 'z')
         .single;
     expect(z.type.toString(), 'List<String>');

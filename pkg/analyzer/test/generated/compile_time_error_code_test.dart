@@ -4698,7 +4698,7 @@ class C<T> extends B<T> {}
 ''');
     var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
-    var mixins = analysisResult.unit.element.getType('A').mixins;
+    var mixins = analysisResult.unit.declaredElement.getType('A').mixins;
     expect(mixins[1].toString(), 'C<String>');
   }
 
@@ -4875,7 +4875,8 @@ abstract class DirectoryAddOnsMixin implements Directory {}
 ''');
     var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
-    var mixins = analysisResult.unit.element.getType('_LocalDirectory').mixins;
+    var mixins =
+        analysisResult.unit.declaredElement.getType('_LocalDirectory').mixins;
     expect(mixins[0].toString(), 'ForwardingDirectory<_LocalDirectory>');
   }
 

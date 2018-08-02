@@ -199,7 +199,7 @@ class LocalLibraryContributor extends DartCompletionContributor {
     }
 
     List<CompilationUnitElement> libraryUnits =
-        request.result.unit.element.library.units;
+        request.result.unit.declaredElement.library.units;
     if (libraryUnits == null) {
       return EMPTY_LIST;
     }

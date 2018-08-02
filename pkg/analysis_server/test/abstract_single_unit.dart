@@ -28,12 +28,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   CompilationUnitElement testUnitElement;
   LibraryElement testLibraryElement;
 
-  @override
-  void setUp() {
-    super.setUp();
-    testFile = resourceProvider.convertPath('/project/test.dart');
-  }
-
   void addTestSource(String code, [Uri uri]) {
     testCode = code;
     testSource = addSource(testFile, code, uri);
@@ -131,8 +125,14 @@ class AbstractSingleUnitTest extends AbstractContextTest {
             error.errorCode != HintCode.UNUSED_LOCAL_VARIABLE;
       }), isEmpty);
     }
-    testUnitElement = testUnit.element;
+    testUnitElement = testUnit.declaredElement;
     testLibraryElement = testUnitElement.library;
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    testFile = resourceProvider.convertPath('/project/test.dart');
   }
 }
 

@@ -159,7 +159,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     ParameterElement element =
         _match(normalParameter.identifier, _walker.getParameter());
     if (normalParameter is SimpleFormalParameterImpl) {
-      normalParameter.element = element;
+      normalParameter.declaredElement = element;
       _setGenericFunctionType(normalParameter.type, element.type);
     }
     if (normalParameter is FieldFormalParameterImpl) {
@@ -242,7 +242,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitFieldDeclaration(FieldDeclaration node) {
     super.visitFieldDeclaration(node);
-    FieldElement firstFieldElement = node.fields.variables[0].element;
+    FieldElement firstFieldElement = node.fields.variables[0].declaredElement;
     resolveMetadata(node, node.metadata, firstFieldElement);
     return null;
   }
@@ -483,7 +483,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     if (node.parent is! DefaultFormalParameter) {
       ParameterElement element =
           _match(node.identifier, _walker.getParameter());
-      (node as SimpleFormalParameterImpl).element = element;
+      (node as SimpleFormalParameterImpl).declaredElement = element;
       _setGenericFunctionType(node.type, element.type);
       _walk(new ElementWalker.forParameter(element, false), () {
         super.visitSimpleFormalParameter(node);
@@ -510,7 +510,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     super.visitTopLevelVariableDeclaration(node);
-    VariableElement firstElement = node.variables.variables[0].element;
+    VariableElement firstElement = node.variables.variables[0].declaredElement;
     resolveMetadata(node, node.metadata, firstElement);
     return null;
   }
@@ -559,7 +559,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       return _walker.elementBuilder.visitVariableDeclarationList(node);
     } else {
       node.variables.accept(this);
-      VariableElement firstVariable = node.variables[0].element;
+      VariableElement firstVariable = node.variables[0].declaredElement;
       _setGenericFunctionType(node.type, firstVariable.type);
       node.type?.accept(this);
       if (node.parent is! FieldDeclaration &&
@@ -721,7 +721,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       assert(normalParameter != null);
 
       if (normalParameter is SimpleFormalParameterImpl) {
-        normalParameter.element = element;
+        normalParameter.declaredElement = element;
       }
 
       if (normalParameter.identifier != null) {

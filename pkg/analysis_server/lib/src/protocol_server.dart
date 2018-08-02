@@ -164,7 +164,7 @@ Location newLocation_fromMatch(engine.SearchMatch match) {
 Location newLocation_fromNode(engine.AstNode node) {
   engine.CompilationUnit unit =
       node.getAncestor((node) => node is engine.CompilationUnit);
-  engine.CompilationUnitElement unitElement = unit.element;
+  engine.CompilationUnitElement unitElement = unit.declaredElement;
   engine.SourceRange range = new engine.SourceRange(node.offset, node.length);
   return _locationForArgs(unitElement, range);
 }
@@ -174,7 +174,7 @@ Location newLocation_fromNode(engine.AstNode node) {
  */
 Location newLocation_fromUnit(
     engine.CompilationUnit unit, engine.SourceRange range) {
-  return _locationForArgs(unit.element, range);
+  return _locationForArgs(unit.declaredElement, range);
 }
 
 /**

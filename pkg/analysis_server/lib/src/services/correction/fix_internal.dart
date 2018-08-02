@@ -239,7 +239,7 @@ class FixProcessor {
 
     // unit
     unit = dartContext.unit;
-    unitElement = unit.element;
+    unitElement = unit.declaredElement;
     unitSource = unitElement.source;
     // file
     file = unitSource.fullName;
@@ -1265,7 +1265,7 @@ class FixProcessor {
       return;
     }
     String className = classDeclaration.name.name;
-    InterfaceType superType = classDeclaration.element.supertype;
+    InterfaceType superType = classDeclaration.declaredElement.supertype;
 
     // prepare names of uninitialized final fields
     List<String> fieldNames = <String>[];
@@ -1446,7 +1446,7 @@ class FixProcessor {
         node.parent as ConstructorDeclaration;
     ClassDeclaration targetClassNode =
         targetConstructor.parent as ClassDeclaration;
-    ClassElement targetClassElement = targetClassNode.element;
+    ClassElement targetClassElement = targetClassNode.declaredElement;
     InterfaceType superType = targetClassElement.supertype;
     // add proposals for all super constructors
     for (ConstructorElement superConstructor in superType.constructors) {
@@ -1510,7 +1510,7 @@ class FixProcessor {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     ClassDeclaration targetClassNode = node.parent as ClassDeclaration;
-    ClassElement targetClassElement = targetClassNode.element;
+    ClassElement targetClassElement = targetClassNode.declaredElement;
     InterfaceType superType = targetClassElement.supertype;
     String targetClassName = targetClassElement.name;
     // add proposals for all super constructors
@@ -1709,7 +1709,7 @@ class FixProcessor {
         } else {
           ClassDeclaration enclosingClass =
               node.getAncestor((node) => node is ClassDeclaration);
-          targetElement = enclosingClass?.element;
+          targetElement = enclosingClass?.declaredElement;
           argument = nameNode;
         }
       }
@@ -1903,7 +1903,7 @@ class FixProcessor {
       return;
     }
     ClassDeclaration targetClass = node.parent as ClassDeclaration;
-    ClassElement targetClassElement = targetClass.element;
+    ClassElement targetClassElement = targetClass.declaredElement;
     utils.targetClassElement = targetClassElement;
     List<ExecutableElement> elements = ErrorVerifier.computeMissingOverrides(
             typeProvider,
@@ -3037,7 +3037,7 @@ class FixProcessor {
         ClassDeclaration clazz =
             node.getAncestor((node) => node is ClassDeclaration);
         if (clazz != null) {
-          ClassElement classElement = clazz.element;
+          ClassElement classElement = clazz.declaredElement;
           _updateFinderWithClassMembers(finder, classElement);
         }
       } else {
@@ -3174,7 +3174,7 @@ class FixProcessor {
         ClassMember enclosingMember =
             node.getAncestor((node) => node is ClassMember);
         targetClassNode = enclosingMember.parent;
-        utils.targetClassElement = targetClassNode.element;
+        utils.targetClassElement = targetClassNode.declaredElement;
         staticModifier = _inStaticContext();
       } else {
         // prepare target interface type
@@ -3283,7 +3283,7 @@ class FixProcessor {
     List<FormalParameter> parameters = constructor.parameters.parameters;
 
     ClassDeclaration classNode = constructor.parent;
-    InterfaceType superType = classNode.element.supertype;
+    InterfaceType superType = classNode.declaredElement.supertype;
 
     // Compute uninitialized final fields.
     List<FieldElement> fields =
@@ -3641,14 +3641,14 @@ class FixProcessor {
   CorrectionUtils _getUtilsFor(AstNode node) {
     CompilationUnit targetUnit =
         node.getAncestor((node) => node is CompilationUnit);
-    CompilationUnitElement targetUnitElement = targetUnit?.element;
+    CompilationUnitElement targetUnitElement = targetUnit?.declaredElement;
     CorrectionUtils realUtils = utils;
-    if (targetUnitElement != utils.unit.element) {
+    if (targetUnitElement != utils.unit.declaredElement) {
       realUtils = new CorrectionUtils(targetUnit);
       ClassDeclaration targetClass =
           node.getAncestor((node) => node is ClassDeclaration);
       if (targetClass != null) {
-        realUtils.targetClassElement = targetClass.element;
+        realUtils.targetClassElement = targetClass.declaredElement;
       }
     }
     return realUtils;
@@ -3675,7 +3675,7 @@ class FixProcessor {
     if (parent is VariableDeclaration) {
       VariableDeclaration variableDeclaration = parent;
       if (variableDeclaration.initializer == expression) {
-        VariableElement variableElement = variableDeclaration.element;
+        VariableElement variableElement = variableDeclaration.declaredElement;
         if (variableElement != null) {
           return variableElement.type;
         }

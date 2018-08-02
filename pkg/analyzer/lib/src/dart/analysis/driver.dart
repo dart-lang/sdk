@@ -2122,14 +2122,14 @@ class AnalysisResult extends FileResult implements results.ResolveResult {
       : super(driver?.currentSession, path, uri, lineInfo, isPart);
 
   @override
-  LibraryElement get libraryElement => unit.element.library;
+  LibraryElement get libraryElement => unit.declaredElement.library;
 
   @override
   results.ResultState get state =>
       exists ? results.ResultState.VALID : results.ResultState.NOT_A_FILE;
 
   @override
-  TypeProvider get typeProvider => unit.element.context.typeProvider;
+  TypeProvider get typeProvider => unit.declaredElement.context.typeProvider;
 }
 
 abstract class BaseAnalysisResult implements results.AnalysisResult {

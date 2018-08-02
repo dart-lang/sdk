@@ -1201,6 +1201,10 @@ abstract class ClassDeclaration extends NamedCompilationUnitMember {
   void set classKeyword(Token token);
 
   @override
+  ClassElement get declaredElement;
+
+  @deprecated
+  @override
   ClassElement get element;
 
   /**
@@ -1545,6 +1549,13 @@ abstract class CompilationUnit extends AstNode {
    * Return the element associated with this compilation unit, or `null` if the
    * AST structure has not been resolved.
    */
+  CompilationUnitElement get declaredElement;
+
+  /**
+   * Return the element associated with this compilation unit, or `null` if the
+   * AST structure has not been resolved.
+   */
+  @deprecated
   CompilationUnitElement get element;
 
   /**
@@ -1837,6 +1848,10 @@ abstract class ConstructorDeclaration extends ClassMember {
   void set constKeyword(Token token);
 
   @override
+  ConstructorElement get declaredElement;
+
+  @override
+  @deprecated
   ConstructorElement get element;
 
   /**
@@ -2153,6 +2168,14 @@ abstract class Declaration extends AnnotatedNode {
    * this node corresponds to a list of declarations or if the AST structure has
    * not been resolved.
    */
+  Element get declaredElement;
+
+  /**
+   * Return the element associated with this declaration, or `null` if either
+   * this node corresponds to a list of declarations or if the AST structure has
+   * not been resolved.
+   */
+  @deprecated
   Element get element;
 }
 
@@ -2165,6 +2188,10 @@ abstract class Declaration extends AnnotatedNode {
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class DeclaredIdentifier extends Declaration {
+  @override
+  LocalVariableElement get declaredElement;
+
+  @deprecated
   @override
   LocalVariableElement get element;
 
@@ -2504,6 +2531,10 @@ abstract class EnumDeclaration extends NamedCompilationUnitMember {
    */
   NodeList<EnumConstantDeclaration> get constants;
 
+  @override
+  ClassElement get declaredElement;
+
+  @deprecated
   @override
   ClassElement get element;
 
@@ -3038,6 +3069,13 @@ abstract class FormalParameter extends AstNode {
    * Return the element representing this parameter, or `null` if this parameter
    * has not been resolved.
    */
+  ParameterElement get declaredElement;
+
+  /**
+   * Return the element representing this parameter, or `null` if this parameter
+   * has not been resolved.
+   */
+  @deprecated
   ParameterElement get element;
 
   /**
@@ -3388,6 +3426,10 @@ abstract class FunctionBody extends AstNode {
  */
 abstract class FunctionDeclaration extends NamedCompilationUnitMember {
   @override
+  ExecutableElement get declaredElement;
+
+  @deprecated
+  @override
   ExecutableElement get element;
 
   /**
@@ -3486,6 +3528,13 @@ abstract class FunctionExpression extends Expression {
    * Return the element associated with the function, or `null` if the AST
    * structure has not been resolved.
    */
+  ExecutableElement get declaredElement;
+
+  /**
+   * Return the element associated with the function, or `null` if the AST
+   * structure has not been resolved.
+   */
+  @deprecated
   ExecutableElement get element;
 
   /**
@@ -4860,6 +4909,10 @@ abstract class MethodDeclaration extends ClassMember {
    */
   void set body(FunctionBody functionBody);
 
+  @override
+  ExecutableElement get declaredElement;
+
+  @deprecated
   @override
   ExecutableElement get element;
 
@@ -6893,6 +6946,10 @@ abstract class UriBasedDirective extends Directive {
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class VariableDeclaration extends Declaration {
+  @override
+  VariableElement get declaredElement;
+
+  @deprecated
   @override
   VariableElement get element;
 

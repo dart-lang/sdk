@@ -76,7 +76,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   ExtractWidgetRefactoringImpl(this.searchEngine, AnalysisSession session,
       this.unit, this.offset, this.length)
       : sessionHelper = new AnalysisSessionHelper(session) {
-    unitElement = unit.element;
+    unitElement = unit.declaredElement;
     libraryElement = unitElement.library;
     utils = new CorrectionUtils(unit);
   }
@@ -186,7 +186,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
     // Find the enclosing class.
     _enclosingClassNode = node?.getAncestor((n) => n is ClassDeclaration);
-    _enclosingClassElement = _enclosingClassNode?.element;
+    _enclosingClassElement = _enclosingClassNode?.declaredElement;
 
     // new MyWidget(...)
     InstanceCreationExpression newExpression = identifyNewExpression(node);
@@ -313,7 +313,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
         }
         if (parameter is NormalFormalParameter) {
           _parameters.add(new _Parameter(
-              parameter.identifier.name, parameter.element.type,
+              parameter.identifier.name, parameter.declaredElement.type,
               isMethodParameter: true));
         }
       }
@@ -373,7 +373,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   /// Replace invocations of the [_method] with instantiations of the new
   /// widget class.
   void _replaceInvocationsWithInstantiations(DartFileEditBuilder builder) {
-    var collector = new _MethodInvocationsCollector(_method.element);
+    var collector = new _MethodInvocationsCollector(_method.declaredElement);
     _enclosingClassNode.accept(collector);
     for (var invocation in collector.invocations) {
       List<Expression> arguments = invocation.argumentList.arguments;

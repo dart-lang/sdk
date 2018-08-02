@@ -115,7 +115,7 @@ class _Visitor extends LocalDeclarationVisitor {
         classElement?.type, DART_RELEVANCE_DEFAULT);
     if (constructorDecl != null) {
       // Build a suggestion for explicitly declared constructor
-      ConstructorElement element = constructorDecl.element;
+      ConstructorElement element = constructorDecl.declaredElement;
       if (element == null) {
         return;
       }

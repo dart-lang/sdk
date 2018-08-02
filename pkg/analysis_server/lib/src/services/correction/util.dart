@@ -242,7 +242,7 @@ ClassElement getEnclosingClassElement(AstNode node) {
   ClassDeclaration enclosingClassNode =
       node.getAncestor((node) => node is ClassDeclaration);
   if (enclosingClassNode != null) {
-    return enclosingClassNode.element;
+    return enclosingClassNode.declaredElement;
   }
   return null;
 }
@@ -271,13 +271,13 @@ AstNode getEnclosingClassOrUnitMember(AstNode node) {
 ExecutableElement getEnclosingExecutableElement(AstNode node) {
   while (node != null) {
     if (node is FunctionDeclaration) {
-      return node.element;
+      return node.declaredElement;
     }
     if (node is ConstructorDeclaration) {
-      return node.element;
+      return node.declaredElement;
     }
     if (node is MethodDeclaration) {
-      return node.element;
+      return node.declaredElement;
     }
     node = node.parent;
   }
@@ -497,7 +497,7 @@ CompilationUnit getParsedUnit(CompilationUnitElement unitElement) {
   AnalysisContext context = unitElement.context;
   Source source = unitElement.source;
   CompilationUnit unit = context.parseCompilationUnit(source);
-  if (unit.element == null) {
+  if (unit.declaredElement == null) {
     unit.element = unitElement;
   }
   return unit;
@@ -655,7 +655,7 @@ class CorrectionUtils {
   String _endOfLine;
 
   CorrectionUtils(this.unit, {String buffer}) {
-    CompilationUnitElement unitElement = unit.element;
+    CompilationUnitElement unitElement = unit.declaredElement;
     AnalysisContext context = unitElement.context;
     if (context == null) {
       throw new CancelCorrectionException();

@@ -194,7 +194,7 @@ class A {
     expect(parameter, isNotNull);
     expect(parameter.displayName, "x");
     // validate
-    ClassElement classA = unit.element.types[0];
+    ClassElement classA = unit.declaredElement.types[0];
     PropertyAccessorElement setter = classA.accessors[0];
     expect(setter.parameters[0], same(parameter));
   }
@@ -224,7 +224,7 @@ class B {
     expect(parameter, isNotNull);
     expect(parameter.displayName, "x");
     // validate
-    ClassElement classB = unit.element.types[1];
+    ClassElement classB = unit.declaredElement.types[1];
     PropertyAccessorElement setter = classB.accessors[0];
     expect(setter.parameters[0], same(parameter));
   }
@@ -631,10 +631,10 @@ class A {
     FieldDeclaration field = classA.members[0];
     ConstructorDeclaration constructor = classA.members[2];
     ParameterElement paramElement =
-        constructor.parameters.parameters[0].element;
+        constructor.parameters.parameters[0].declaredElement;
     expect(paramElement, new TypeMatcher<FieldFormalParameterElement>());
     expect((paramElement as FieldFormalParameterElement).field,
-        field.fields.variables[0].element);
+        field.fields.variables[0].declaredElement);
     ConstructorFieldInitializer initializer = constructor.initializers[0];
     SimpleIdentifier identifierX = initializer.expression;
     expect(identifierX.staticElement, paramElement);

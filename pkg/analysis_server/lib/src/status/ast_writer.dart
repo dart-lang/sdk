@@ -49,19 +49,19 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       properties['static element'] = node.staticElement;
       properties['static type'] = node.staticType;
     } else if (node is ClassDeclaration) {
-      properties['element'] = node.element;
+      properties['declaredElement'] = node.declaredElement;
       properties['abstract keyword'] = node.abstractKeyword;
     } else if (node is ClassTypeAlias) {
-      properties['element'] = node.element;
+      properties['declaredElement'] = node.declaredElement;
       properties['abstract keyword'] = node.abstractKeyword;
     } else if (node is CompilationUnit) {
-      properties['element'] = node.element;
+      properties['declaredElement'] = node.declaredElement;
     } else if (node is Configuration) {
       properties['uriSource'] = node.uriSource;
     } else if (node is ConstructorName) {
       properties['static element'] = node.staticElement;
     } else if (node is DeclaredIdentifier) {
-      properties['element'] = node.element;
+      properties['element'] = node.declaredElement;
       properties['keyword'] = node.keyword;
     } else if (node is ExportDirective) {
       properties['element'] = node.element;
@@ -70,7 +70,7 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
     } else if (node is FieldDeclaration) {
       properties['static keyword'] = node.staticKeyword;
     } else if (node is FormalParameter) {
-      properties['element'] = node.element;
+      properties['declaredElement'] = node.declaredElement;
       if (node.isNamed) {
         properties['kind'] = 'named';
       } else if (node.isOptionalPositional) {
@@ -79,7 +79,7 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
         properties['kind'] = 'required';
       }
     } else if (node is FunctionDeclaration) {
-      properties['element'] = node.element;
+      properties['declaredElement'] = node.declaredElement;
       properties['external keyword'] = node.externalKeyword;
       properties['property keyword'] = node.propertyKeyword;
     } else if (node is FunctionExpressionInvocation) {
@@ -101,7 +101,7 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
     } else if (node is LibraryDirective) {
       properties['element'] = node.element;
     } else if (node is MethodDeclaration) {
-      properties['element'] = node.element;
+      properties['declaredElement'] = node.declaredElement;
       properties['external keyword'] = node.externalKeyword;
       properties['modifier keyword'] = node.modifierKeyword;
       properties['operator keyword'] = node.operatorKeyword;
@@ -134,7 +134,7 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
     } else if (node is VariableDeclarationList) {
       properties['keyword'] = node.keyword;
     } else if (node is Declaration) {
-      properties['element'] = node.element;
+      properties['declaredElement'] = node.declaredElement;
     } else if (node is Expression) {
       properties['static type'] = node.staticType;
     } else if (node is FunctionBody) {

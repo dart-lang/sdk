@@ -562,7 +562,7 @@ class ResolutionCopierTest extends EngineTestCase {
     fromNode.element = element;
     CompilationUnit toNode = AstTestFactory.compilationUnit();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.element, same(element));
+    expect(toNode.declaredElement, same(element));
   }
 
   void test_visitConditionalExpression() {
@@ -597,7 +597,7 @@ class ResolutionCopierTest extends EngineTestCase {
         AstTestFactory.formalParameterList(),
         null);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.element, same(element));
+    expect(toNode.declaredElement, same(element));
   }
 
   void test_visitConstructorName() {
@@ -643,7 +643,7 @@ class ResolutionCopierTest extends EngineTestCase {
         AstTestFactory.formalParameterList(),
         AstTestFactory.emptyFunctionBody());
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.element, same(element));
+    expect(toNode.declaredElement, same(element));
     expect(toNode.staticType, same(staticType));
   }
 

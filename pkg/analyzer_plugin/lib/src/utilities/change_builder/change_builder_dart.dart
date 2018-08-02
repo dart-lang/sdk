@@ -1120,7 +1120,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
    */
   DartFileEditBuilderImpl(DartChangeBuilderImpl changeBuilder, String path,
       int timeStamp, this.unit)
-      : libraryElement = unit.element.library,
+      : libraryElement = unit.declaredElement.library,
         super(changeBuilder, path, timeStamp);
 
   @override
@@ -1160,7 +1160,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     if (librariesToImport.isNotEmpty) {
       CompilationUnitElement definingUnitElement =
           libraryElement.definingCompilationUnit;
-      if (definingUnitElement == unit.element) {
+      if (definingUnitElement == unit.declaredElement) {
         _addLibraryImports(librariesToImport.values);
       } else {
         await (changeBuilder as DartChangeBuilder).addFileEdit(
@@ -1493,13 +1493,13 @@ class _EnclosingElementFinder {
     AstNode node = new NodeLocator2(offset).searchWithin(target);
     while (node != null) {
       if (node is ClassDeclaration) {
-        enclosingClass = node.element;
+        enclosingClass = node.declaredElement;
       } else if (node is ConstructorDeclaration) {
-        enclosingExecutable = node.element;
+        enclosingExecutable = node.declaredElement;
       } else if (node is MethodDeclaration) {
-        enclosingExecutable = node.element;
+        enclosingExecutable = node.declaredElement;
       } else if (node is FunctionDeclaration) {
-        enclosingExecutable = node.element;
+        enclosingExecutable = node.declaredElement;
       }
       node = node.parent;
     }

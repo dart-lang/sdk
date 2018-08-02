@@ -347,7 +347,7 @@ enum E2 { three, four }''');
     }
     {
       analyzer.FieldElement engineElement =
-          unit.element.enums[1].getField('index');
+          unit.declaredElement.enums[1].getField('index');
       // create notification Element
       plugin.Element element = converter.convertElement(engineElement);
       expect(element.kind, plugin.ElementKind.FIELD);
@@ -366,7 +366,7 @@ enum E2 { three, four }''');
     }
     {
       analyzer.FieldElement engineElement =
-          unit.element.enums[1].getField('values');
+          unit.declaredElement.enums[1].getField('values');
 
       // create notification Element
       plugin.Element element = converter.convertElement(engineElement);

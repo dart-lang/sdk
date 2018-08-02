@@ -122,7 +122,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
   Object visitCompilationUnit(CompilationUnit node) {
     node.visitChildren(this);
     return _checkResolved(
-        node, node.element, (node) => node is CompilationUnitElement);
+        node, node.declaredElement, (node) => node is CompilationUnitElement);
   }
 
   @override
@@ -132,7 +132,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     node.visitChildren(this);
-    if (node.element is LibraryElement) {
+    if (node.declaredElement is LibraryElement) {
       _wrongTypedNodes.add(node);
     }
     return null;
@@ -282,7 +282,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
       AstNode root = node.root;
       if (root is CompilationUnit) {
         CompilationUnit rootCU = root;
-        if (rootCU.element != null) {
+        if (rootCU.declaredElement != null) {
           return resolutionMap
               .elementDeclaredByCompilationUnit(rootCU)
               .source
@@ -365,7 +365,8 @@ class ResolverTestCase extends EngineTestCase {
       if (analysisResults.isEmpty) {
         fail('typeProvider can be called after computing an analysis result.');
       }
-      return analysisResults.values.first.unit.element.context.typeProvider;
+      return analysisResults
+          .values.first.unit.declaredElement.context.typeProvider;
     } else {
       return analysisContext2.typeProvider;
     }

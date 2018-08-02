@@ -292,7 +292,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    FunctionElementImpl element = node.element;
+    FunctionElementImpl element = node.declaredElement;
     _typeContext.enterLocalFunction(element);
 
     node.returnType?.accept(this);
@@ -330,7 +330,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   void visitFunctionExpression(FunctionExpression node) {
     FormalParameterList parameterList = node.parameters;
 
-    FunctionElementImpl element = node.element;
+    FunctionElementImpl element = node.declaredElement;
     _typeContext.enterLocalFunction(element);
 
     // Apply resolution to default values.

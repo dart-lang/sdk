@@ -216,7 +216,7 @@ class C {
     TestAnalysisResult analysisResult = await computeAnalysisResult(source);
     assertErrors(source, [ParserErrorCode.GETTER_IN_FUNCTION]);
 
-    CompilationUnitElement unit = analysisResult.unit.element;
+    CompilationUnitElement unit = analysisResult.unit.declaredElement;
     LibraryElement library = unit.library;
     expect(library, isNotNull);
     expect(unit.enclosingElement, same(library));
@@ -576,7 +576,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<Object> {
       AstNode root = node.root;
       if (root is CompilationUnit) {
         CompilationUnit rootCU = root;
-        if (rootCU.element != null) {
+        if (rootCU.declaredElement != null) {
           return resolutionMap
               .elementDeclaredByCompilationUnit(rootCU)
               .source
@@ -2182,7 +2182,7 @@ A v = new A();
     String aName = 'a';
     SimpleFormalParameterImpl aNode =
         AstTestFactory.simpleFormalParameter3(aName);
-    aNode.element = aNode.identifier.staticElement =
+    aNode.declaredElement = aNode.identifier.staticElement =
         ElementFactory.requiredParameter(aName);
 
     String pName = 'p';
@@ -2193,7 +2193,7 @@ A v = new A();
 
     FunctionType pType = new FunctionTypeImpl(
         new GenericFunctionTypeElementImpl.forOffset(-1)
-          ..parameters = [aNode.element]);
+          ..parameters = [aNode.declaredElement]);
     pElement.type = pType;
 
     _resolveFormalParameter(pNode, [intType.element]);
@@ -2323,7 +2323,7 @@ A v = new A();
 
     SimpleFormalParameterImpl eNode = AstTestFactory.simpleFormalParameter4(
         AstTestFactory.typeName4('E'), 'e');
-    eNode.element = ElementFactory.requiredParameter('e');
+    eNode.declaredElement = ElementFactory.requiredParameter('e');
 
     FunctionTypedFormalParameter gNode =
         AstTestFactory.functionTypedFormalParameter(
@@ -2334,7 +2334,7 @@ A v = new A();
     FunctionTypeImpl gType =
         new FunctionTypeImpl(new GenericFunctionTypeElementImpl.forOffset(-1)
           ..typeParameters = [elementE]
-          ..parameters = [eNode.element]);
+          ..parameters = [eNode.declaredElement]);
     gElement.type = gType;
 
     FunctionDeclaration fNode = AstTestFactory.functionDeclaration(
@@ -2414,7 +2414,7 @@ A v = new A();
   test_visitSimpleFormalParameter_noType() async {
     // p
     SimpleFormalParameterImpl node = AstTestFactory.simpleFormalParameter3("p");
-    node.element = node.identifier.staticElement =
+    node.declaredElement = node.identifier.staticElement =
         new ParameterElementImpl.forNode(AstTestFactory.identifier3("p"));
     expect(_resolveFormalParameter(node), same(_typeProvider.dynamicType));
     _listener.assertNoErrors();
@@ -2428,7 +2428,7 @@ A v = new A();
         AstTestFactory.typeName(intElement), "p");
     SimpleIdentifier identifier = node.identifier;
     ParameterElementImpl element = new ParameterElementImpl.forNode(identifier);
-    node.element = identifier.staticElement = element;
+    node.declaredElement = identifier.staticElement = element;
     expect(_resolveFormalParameter(node, [intElement]), same(intType));
     _listener.assertNoErrors();
   }

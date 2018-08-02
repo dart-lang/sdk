@@ -69,7 +69,7 @@ enum C {C1, C2, C3}
       ClassDeclaration nodeA = elementA.computeNode();
       expect(nodeA, isNotNull);
       expect(nodeA.name.name, "A");
-      expect(nodeA.element, same(elementA));
+      expect(nodeA.declaredElement, same(elementA));
     }
     // B
     {
@@ -79,7 +79,7 @@ enum C {C1, C2, C3}
       ClassDeclaration nodeB = elementB.computeNode();
       expect(nodeB, isNotNull);
       expect(nodeB.name.name, "B");
-      expect(nodeB.element, same(elementB));
+      expect(nodeB.declaredElement, same(elementB));
     }
     // C
     {
@@ -89,7 +89,7 @@ enum C {C1, C2, C3}
       EnumDeclaration nodeC = elementC.computeNode();
       expect(nodeC, isNotNull);
       expect(nodeC.name.name, "C");
-      expect(nodeC.element, same(elementC));
+      expect(nodeC.declaredElement, same(elementC));
     }
     // D
     {
@@ -99,7 +99,7 @@ enum C {C1, C2, C3}
       EnumDeclaration nodeC = elementD.computeNode();
       expect(nodeC, isNotNull);
       expect(nodeC.name.name, "D");
-      expect(nodeC.element, same(elementD));
+      expect(nodeC.declaredElement, same(elementD));
     }
   }
 
@@ -118,7 +118,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
       ClassTypeAlias nodeA = elementA.computeNode();
       expect(nodeA, isNotNull);
       expect(nodeA.name.name, "A");
-      expect(nodeA.element, same(elementA));
+      expect(nodeA.declaredElement, same(elementA));
     }
   }
 
@@ -1214,7 +1214,7 @@ enum B {B1, B2, B3}''');
       VariableDeclaration nodeA = elementA.computeNode();
       expect(nodeA, isNotNull);
       expect(nodeA.name.name, "a");
-      expect(nodeA.element, same(elementA));
+      expect(nodeA.declaredElement, same(elementA));
     }
     // B
     {
@@ -1222,7 +1222,7 @@ enum B {B1, B2, B3}''');
       EnumConstantDeclaration nodeB = elementB.computeNode();
       expect(nodeB, isNotNull);
       expect(nodeB.name.name, "B2");
-      expect(nodeB.element, same(elementB));
+      expect(nodeB.declaredElement, same(elementB));
     }
   }
 
@@ -3820,7 +3820,7 @@ abstract class A {
       MethodDeclaration m1Node = m1Element.computeNode();
       expect(m1Node, isNotNull);
       expect(m1Node.name.name, "m1");
-      expect(m1Node.element, same(m1Element));
+      expect(m1Node.declaredElement, same(m1Element));
     }
     // m2
     {
@@ -3828,7 +3828,7 @@ abstract class A {
       MethodDeclaration m2Node = m2Element.computeNode();
       expect(m2Node, isNotNull);
       expect(m2Node.name.name, "m2");
-      expect(m2Node.element, same(m2Element));
+      expect(m2Node.declaredElement, same(m2Element));
     }
   }
 
@@ -3852,7 +3852,7 @@ abstract class A {
       MethodDeclaration m1Node = m1Element.computeNode();
       expect(m1Node, isNotNull);
       expect(m1Node.name.name, "m1");
-      expect(m1Node.element, same(m1Element));
+      expect(m1Node.declaredElement, same(m1Element));
     }
     // m2
     {
@@ -3860,7 +3860,7 @@ abstract class A {
       MethodDeclaration m2Node = m2Element.computeNode();
       expect(m2Node, isNotNull);
       expect(m2Node.name.name, "m2");
-      expect(m2Node.element, same(m2Element));
+      expect(m2Node.declaredElement, same(m2Element));
     }
   }
 }
@@ -3988,7 +3988,7 @@ main([int p = 42]) {
       DefaultFormalParameter node = element.computeNode();
       expect(node, isNotNull);
       expect(node.identifier.name, 'p');
-      expect(node.element, same(element));
+      expect(node.declaredElement, same(element));
     }
   }
 
@@ -4012,7 +4012,7 @@ class A {
       FieldFormalParameter node = element.computeNode();
       expect(node, isNotNull);
       expect(node.identifier.name, 'p');
-      expect(node.element, same(element));
+      expect(node.declaredElement, same(element));
     }
   }
 
@@ -4031,7 +4031,7 @@ main(p(int a, int b)) {
       FunctionTypedFormalParameter node = element.computeNode();
       expect(node, isNotNull);
       expect(node.identifier.name, 'p');
-      expect(node.element, same(element));
+      expect(node.declaredElement, same(element));
     }
   }
 
@@ -4050,7 +4050,7 @@ main(int p) {
       SimpleFormalParameter node = element.computeNode();
       expect(node, isNotNull);
       expect(node.identifier.name, 'p');
-      expect(node.element, same(element));
+      expect(node.declaredElement, same(element));
     }
   }
 }

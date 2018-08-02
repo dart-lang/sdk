@@ -2627,20 +2627,21 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
   Element visitBinaryExpression(BinaryExpression node) => node.staticElement;
 
   @override
-  Element visitClassDeclaration(ClassDeclaration node) => node.element;
+  Element visitClassDeclaration(ClassDeclaration node) => node.declaredElement;
 
   @override
-  Element visitCompilationUnit(CompilationUnit node) => node.element;
+  Element visitCompilationUnit(CompilationUnit node) => node.declaredElement;
 
   @override
   Element visitConstructorDeclaration(ConstructorDeclaration node) =>
-      node.element;
+      node.declaredElement;
 
   @override
   Element visitExportDirective(ExportDirective node) => node.element;
 
   @override
-  Element visitFunctionDeclaration(FunctionDeclaration node) => node.element;
+  Element visitFunctionDeclaration(FunctionDeclaration node) =>
+      node.declaredElement;
 
   @override
   Element visitIdentifier(Identifier node) {
@@ -2692,7 +2693,8 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
   Element visitLibraryDirective(LibraryDirective node) => node.element;
 
   @override
-  Element visitMethodDeclaration(MethodDeclaration node) => node.element;
+  Element visitMethodDeclaration(MethodDeclaration node) =>
+      node.declaredElement;
 
   @override
   Element visitMethodInvocation(MethodInvocation node) =>
@@ -2721,7 +2723,8 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
-  Element visitVariableDeclaration(VariableDeclaration node) => node.element;
+  Element visitVariableDeclaration(VariableDeclaration node) =>
+      node.declaredElement;
 }
 
 /**
@@ -5557,7 +5560,7 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualNodeLists(node.directives, toNode.directives),
         _isEqualNodeLists(node.declarations, toNode.declarations),
         _isEqualTokens(node.endToken, toNode.endToken))) {
-      toNode.element = node.element;
+      toNode.element = node.declaredElement;
       return true;
     }
     return false;
@@ -5611,7 +5614,7 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualNodeLists(node.initializers, toNode.initializers),
         _isEqualNodes(node.redirectedConstructor, toNode.redirectedConstructor),
         _isEqualNodes(node.body, toNode.body))) {
-      toNode.element = node.element;
+      toNode.element = node.declaredElement;
       return true;
     }
     return false;
@@ -5870,7 +5873,7 @@ class ResolutionCopier implements AstVisitor<bool> {
     FunctionExpression toNode = this._toNode as FunctionExpression;
     if (_and(_isEqualNodes(node.parameters, toNode.parameters),
         _isEqualNodes(node.body, toNode.body))) {
-      toNode.element = node.element;
+      toNode.element = node.declaredElement;
       toNode.staticType = node.staticType;
       return true;
     }
@@ -6366,7 +6369,8 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualTokens(node.keyword, toNode.keyword),
         _isEqualNodes(node.type, toNode.type),
         _isEqualNodes(node.identifier, toNode.identifier))) {
-      (toNode as SimpleFormalParameterImpl).element = node.element;
+      (toNode as SimpleFormalParameterImpl).declaredElement =
+          node.declaredElement;
       return true;
     }
     return false;

@@ -4405,7 +4405,7 @@ class InferredTypeTest extends AbstractStrongTest with InferredTypeMixin {
   @override
   Future<CompilationUnitElement> checkFileElement(String content) async {
     CompilationUnit unit = await checkFile(content);
-    return unit.element;
+    return unit.declaredElement;
   }
 }
 
@@ -4416,6 +4416,16 @@ class InferredTypeTest_Driver extends InferredTypeTest {
 
   @override
   bool get hasExtraTaskModelPass => false;
+
+  @override
+  test_circularReference_viaClosures() async {
+    await super.test_circularReference_viaClosures();
+  }
+
+  @override
+  test_circularReference_viaClosures_initializerTypes() async {
+    await super.test_circularReference_viaClosures_initializerTypes();
+  }
 
   @override
   test_instantiateToBounds_typeName_OK_hasBound_definedAfter() async {
@@ -4436,18 +4446,8 @@ class InferredTypeTest_Driver extends InferredTypeTest {
   }
 
   @override
-  test_circularReference_viaClosures() async {
-    await super.test_circularReference_viaClosures();
-  }
-
-  @override
   test_unsafeBlockClosureInference_closureCall() async {
     await super.test_unsafeBlockClosureInference_closureCall();
-  }
-
-  @override
-  test_circularReference_viaClosures_initializerTypes() async {
-    await super.test_circularReference_viaClosures_initializerTypes();
   }
 
   @failingTest

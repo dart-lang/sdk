@@ -470,12 +470,12 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
     Iterable<ParameterElement> requiredParameters = paramList
         .where((FormalParameter param) => param.isRequired)
-        .map((p) => p.element);
+        .map((p) => p.declaredElement);
     suggestion.requiredParameterCount = requiredParameters.length;
 
     Iterable<ParameterElement> namedParameters = paramList
         .where((FormalParameter param) => param.isNamed)
-        .map((p) => p.element);
+        .map((p) => p.declaredElement);
     suggestion.hasNamedParameters = namedParameters.isNotEmpty;
 
     addDefaultArgDetails(suggestion, null, requiredParameters, namedParameters);

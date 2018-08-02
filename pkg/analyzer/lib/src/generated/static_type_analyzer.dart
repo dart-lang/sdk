@@ -435,7 +435,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     FunctionExpression function = node.functionExpression;
     ExecutableElementImpl functionElement =
-        node.element as ExecutableElementImpl;
+        node.declaredElement as ExecutableElementImpl;
     if (node.parent is FunctionDeclarationStatement) {
       // TypeResolverVisitor sets the return type for top-level functions, so
       // we only need to handle local functions.
@@ -1382,7 +1382,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       ForEachStatement loop = loopVariable.parent;
       if (loop.iterable != null) {
         Expression expr = loop.iterable;
-        LocalVariableElementImpl element = loopVariable.element;
+        LocalVariableElementImpl element = loopVariable.declaredElement;
         DartType exprType = expr.staticType;
         DartType targetType = (loop.awaitKeyword == null)
             ? _typeProvider.iterableType
@@ -1531,7 +1531,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   void _inferLocalFunctionReturnType(FunctionExpression node) {
     ExecutableElementImpl functionElement =
-        node.element as ExecutableElementImpl;
+        node.declaredElement as ExecutableElementImpl;
 
     FunctionBody body = node.body;
 
@@ -1556,7 +1556,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       if (parent is VariableDeclarationList && parent.type == null) {
         DartType type = resolutionMap.staticTypeForExpression(initializer);
         if (type != null && !type.isBottom && !type.isDartCoreNull) {
-          VariableElement element = node.element;
+          VariableElement element = node.declaredElement;
           if (element is LocalVariableElementImpl) {
             element.type = initializer.staticType;
             node.name.staticType = initializer.staticType;

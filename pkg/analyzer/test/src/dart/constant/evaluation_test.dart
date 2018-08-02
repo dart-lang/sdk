@@ -1201,7 +1201,7 @@ const int s2 = 'beta';
 const int i = (true ? s1 : s2).length;
 ''');
     ConstTopLevelVariableElementImpl element =
-        findTopLevelDeclaration(compilationUnit, 'i').element;
+        findTopLevelDeclaration(compilationUnit, 'i').declaredElement;
     EvaluationResultImpl result = element.evaluationResult;
     expect(_assertValidInt(result), 5);
   }
@@ -1214,7 +1214,7 @@ const int s = 'alpha';
 const int i = s.length;
 ''');
     ConstTopLevelVariableElementImpl element =
-        findTopLevelDeclaration(compilationUnit, 'i').element;
+        findTopLevelDeclaration(compilationUnit, 'i').declaredElement;
     EvaluationResultImpl result = element.evaluationResult;
     expect(_assertValidInt(result), 5);
   }
@@ -1243,7 +1243,7 @@ const A a = const A();
     VariableDeclaration voidSymbol =
         findTopLevelDeclaration(compilationUnit, "voidSymbol");
     EvaluationResultImpl voidSymbolResult =
-        (voidSymbol.element as VariableElementImpl).evaluationResult;
+        (voidSymbol.declaredElement as VariableElementImpl).evaluationResult;
     DartObjectImpl value = voidSymbolResult.value;
     expect(value.type, typeProvider.symbolType);
     expect(value.toSymbolValue(), "void");
@@ -1469,7 +1469,7 @@ class A {
       CompilationUnit compilationUnit, String name) {
     VariableDeclaration varDecl =
         findTopLevelDeclaration(compilationUnit, name);
-    ConstTopLevelVariableElementImpl varElement = varDecl.element;
+    ConstTopLevelVariableElementImpl varElement = varDecl.declaredElement;
     return varElement.evaluationResult;
   }
 
@@ -1486,7 +1486,8 @@ class A {
 
   void _validate(bool shouldBeValid, VariableDeclarationList declarationList) {
     for (VariableDeclaration declaration in declarationList.variables) {
-      VariableElementImpl element = declaration.element as VariableElementImpl;
+      VariableElementImpl element =
+          declaration.declaredElement as VariableElementImpl;
       expect(element, isNotNull);
       EvaluationResultImpl result = element.evaluationResult;
       if (shouldBeValid) {

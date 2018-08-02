@@ -1493,7 +1493,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     // Process inputs.
     //
     CompilationUnitElementImpl definingCompilationUnitElement =
-        definingCompilationUnit.element;
+        definingCompilationUnit.declaredElement;
     Map<Source, CompilationUnit> partUnitMap =
         new HashMap<Source, CompilationUnit>();
     int partLength = partUnits.length;
@@ -1526,7 +1526,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
         Source partSource = directive.uriSource;
         CompilationUnit partUnit = partUnitMap[partSource];
         if (partUnit != null) {
-          CompilationUnitElementImpl partElement = partUnit.element;
+          CompilationUnitElementImpl partElement = partUnit.declaredElement;
           partElement.uriOffset = partUri.offset;
           partElement.uriEnd = partUri.end;
           partElement.uri = directive.uriContent;
@@ -2668,7 +2668,7 @@ class GatherUsedImportedElementsTask extends SourceBasedAnalysisTask {
   @override
   void internalPerform() {
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
-    CompilationUnitElement unitElement = unit.element;
+    CompilationUnitElement unitElement = unit.declaredElement;
     LibraryElement libraryElement = unitElement.library;
     //
     // Prepare used imported elements.
@@ -2730,7 +2730,7 @@ class GatherUsedLocalElementsTask extends SourceBasedAnalysisTask {
   @override
   void internalPerform() {
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
-    CompilationUnitElement unitElement = unit.element;
+    CompilationUnitElement unitElement = unit.declaredElement;
     LibraryElement libraryElement = unitElement.library;
     //
     // Prepare used local elements.
@@ -2821,7 +2821,7 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
         getRequiredInput(USED_IMPORTED_ELEMENTS_INPUT);
     List<UsedLocalElements> usedLocalElementsList =
         getRequiredInput(USED_LOCAL_ELEMENTS_INPUT);
-    CompilationUnitElement unitElement = unit.element;
+    CompilationUnitElement unitElement = unit.declaredElement;
     LibraryElement libraryElement = unitElement.library;
     TypeSystem typeSystem = context.typeSystem;
 
@@ -3153,7 +3153,7 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
     InstanceMemberInferrer inferrer = new InstanceMemberInferrer(
         typeProvider, (_) => inheritanceManager,
         typeSystem: context.typeSystem);
-    inferrer.inferCompilationUnit(unit.element);
+    inferrer.inferCompilationUnit(unit.declaredElement);
     //
     // Record outputs.
     //
@@ -4017,7 +4017,7 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
     //
     LibraryElement libraryElement = getRequiredInput(LIBRARY_INPUT);
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
-    CompilationUnitElement unitElement = unit.element;
+    CompilationUnitElement unitElement = unit.declaredElement;
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     //
     // Resolve references and record outputs.
@@ -4552,7 +4552,7 @@ class ResolveInstanceFieldsInUnitTask extends SourceBasedAnalysisTask {
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
 
-    CompilationUnitElement unitElement = unit.element;
+    CompilationUnitElement unitElement = unit.declaredElement;
     //
     // Resolve references.
     //
@@ -4902,7 +4902,7 @@ class ResolveTopLevelUnitTypeBoundsTask extends SourceBasedAnalysisTask {
     //
     LibraryElement library = getRequiredInput(LIBRARY_INPUT);
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
-    CompilationUnitElement unitElement = unit.element;
+    CompilationUnitElement unitElement = unit.declaredElement;
     //
     // Resolve TypeName nodes.
     //
@@ -4996,7 +4996,7 @@ class ResolveUnitTask extends SourceBasedAnalysisTask {
     //
     // Resolve everything.
     //
-    CompilationUnitElement unitElement = unit.element;
+    CompilationUnitElement unitElement = unit.declaredElement;
     RecordingErrorListener errorListener = new RecordingErrorListener();
     ResolverVisitor visitor = new ResolverVisitor(
         libraryElement, unitElement.source, typeProvider, errorListener);
@@ -5098,7 +5098,7 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
     //
     LibraryElement library = getRequiredInput(LIBRARY_INPUT);
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
-    CompilationUnitElement unitElement = unit.element;
+    CompilationUnitElement unitElement = unit.declaredElement;
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     //
     // Resolve TypeName nodes.
@@ -5114,7 +5114,7 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
       unit.accept(new AstRewriteVisitor(
           context.typeSystem,
           library,
-          unit.element.source,
+          unit.declaredElement.source,
           typeProvider,
           AnalysisErrorListener.NULL_LISTENER));
     }
@@ -5199,7 +5199,7 @@ class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
     //
     LibraryElement libraryElement = getRequiredInput(LIBRARY_INPUT);
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
-    CompilationUnitElement unitElement = unit.element;
+    CompilationUnitElement unitElement = unit.declaredElement;
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     //
     // Resolve local variables.
@@ -5539,7 +5539,7 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     // Prepare inputs.
     //
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
-    CompilationUnitElement unitElement = unit.element;
+    CompilationUnitElement unitElement = unit.declaredElement;
     LibraryElement libraryElement = unitElement.library;
     if (libraryElement == null) {
       throw new AnalysisException(

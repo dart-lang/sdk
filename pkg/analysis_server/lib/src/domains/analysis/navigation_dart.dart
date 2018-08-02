@@ -155,7 +155,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
       }
       if (firstNode != null && lastNode != null) {
         computer._addRegion_nodeStart_nodeEnd(
-            firstNode, lastNode, node.element);
+            firstNode, lastNode, node.declaredElement);
       }
     }
     super.visitConstructorDeclaration(node);

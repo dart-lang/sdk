@@ -639,8 +639,10 @@ enum MyEnum {
     // validate nodes
     EnumDeclaration enumNode = unit.declarations[0];
     expect(enumNode.name.staticElement, same(enumElement));
-    expect(enumNode.constants[0].element, same(enumElement.getField('A')));
-    expect(enumNode.constants[1].element, same(enumElement.getField('B')));
+    expect(
+        enumNode.constants[0].declaredElement, same(enumElement.getField('A')));
+    expect(
+        enumNode.constants[1].declaredElement, same(enumElement.getField('B')));
   }
 
   static void _assertGetter(FieldElement field) {
@@ -776,8 +778,10 @@ part of 'lib.dart';
     expect(libraryElement.entryPoint, isNull);
     expect(libraryElement.source, same(librarySource));
     expect(libraryElement.definingCompilationUnit, libraryUnitElement);
-    expect(libraryElement.parts,
-        unorderedEquals([partUnits[0].element, partUnits[1].element]));
+    expect(
+        libraryElement.parts,
+        unorderedEquals(
+            [partUnits[0].declaredElement, partUnits[1].declaredElement]));
     // LibraryElement references
     expect((libraryUnit.directives[0] as LibraryDirective).element,
         same(libraryElement));
@@ -793,11 +797,11 @@ part of 'lib.dart';
             .source
             .shortName ==
         'part1.dart') {
-      firstPart = partUnits[0].element;
-      secondPart = partUnits[1].element;
+      firstPart = partUnits[0].declaredElement;
+      secondPart = partUnits[1].declaredElement;
     } else {
-      firstPart = partUnits[1].element;
-      secondPart = partUnits[0].element;
+      firstPart = partUnits[1].declaredElement;
+      secondPart = partUnits[0].declaredElement;
     }
     expect(firstPart.source.shortName, 'part1.dart');
     expect(
@@ -958,13 +962,13 @@ void set test(_) {}
             .elementDeclaredByCompilationUnit(u)
             .name
             .endsWith('part1.dart'))
-        .element;
+        .declaredElement;
     CompilationUnitElement unitElement2 = partUnits
         .singleWhere((u) => resolutionMap
             .elementDeclaredByCompilationUnit(u)
             .name
             .endsWith('part2.dart'))
-        .element;
+        .declaredElement;
     PropertyAccessorElement getter = unitElement1.accessors[0];
     PropertyAccessorElement setter = unitElement2.accessors[0];
     PropertyInducingElement variable = getter.variable;
@@ -989,7 +993,7 @@ void set test(_) {}
     libraryUnit = context
         .getCacheEntry(new LibrarySpecificUnit(libSource, libSource))
         .getValue(RESOLVED_UNIT1);
-    libraryUnitElement = libraryUnit.element;
+    libraryUnitElement = libraryUnit.declaredElement;
     librarySource = libraryUnitElement.source;
     libraryElement = outputs[LIBRARY_ELEMENT1];
     partUnits = task.inputs[BuildLibraryElementTask.PARTS_UNIT_INPUT]
@@ -1191,7 +1195,7 @@ enum E {A, B, C}
     // Find the element for 'A'
     EnumDeclaration enumDeclaration = unit.declarations[0];
     EnumConstantDeclaration constantDeclaration = enumDeclaration.constants[0];
-    FieldElement constantElement = constantDeclaration.element;
+    FieldElement constantElement = constantDeclaration.declaredElement;
     // Now compute the dependencies for the constant and check that there are
     // none.
     computeResult(constantElement, CONSTANT_DEPENDENCIES,
@@ -1701,7 +1705,7 @@ class B extends A {
     computeResult(lib2Target, RESOLVED_UNIT);
     computeResult(lib3Target, RESOLVED_UNIT);
     CompilationUnit unit = outputs[RESOLVED_UNIT];
-    ClassElement b = unit.declarations[1].element;
+    ClassElement b = unit.declarations[1].declaredElement;
     expect(b.getMethod('foo').returnType.toString(), 'int');
 
     // add a dummy edit.
@@ -1718,7 +1722,7 @@ var foo = 123;
     computeResult(lib2Target, RESOLVED_UNIT);
     computeResult(lib3Target, RESOLVED_UNIT);
     unit = outputs[RESOLVED_UNIT];
-    b = unit.declarations[1].element;
+    b = unit.declarations[1].declaredElement;
     expect(b.getMethod('foo').returnType.toString(), 'int',
         reason: 'edit should not affect member inference');
   }
@@ -2026,7 +2030,7 @@ const x = const C();
     computeResult(target, RESOLVED_UNIT12,
         matcher: isEvaluateUnitConstantsTask);
     CompilationUnit unit = outputs[RESOLVED_UNIT12];
-    CompilationUnitElement unitElement = unit.element;
+    CompilationUnitElement unitElement = unit.declaredElement;
     expect(
         (unitElement.types[0].constructors[0] as ConstructorElementImpl)
             .isCycleFree,
@@ -3198,7 +3202,7 @@ main() {
     expect(unit, isNotNull);
 
     FunctionDeclaration mainFunction = unit.declarations[0];
-    expect(mainFunction.element, isNotNull);
+    expect(mainFunction.declaredElement, isNotNull);
     BlockFunctionBody body = mainFunction.functionExpression.body;
     List<Statement> statements = body.block.statements;
     ExpressionStatement statement = statements[0];
@@ -3898,7 +3902,7 @@ typedef String G(int p);
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
     FunctionTypeAlias nodeF = unit.declarations[0];
     FunctionTypeAlias nodeG = unit.declarations[1];
-    GenericTypeAliasElement elementG = nodeG.element;
+    GenericTypeAliasElement elementG = nodeG.declaredElement;
     {
       FormalParameter parameter = nodeF.parameters.parameters[0];
       DartType parameterType =
@@ -4016,7 +4020,7 @@ main(p1, p2, p3, p4) {
     CompilationUnit unit = outputs[RESOLVED_UNIT6];
     FunctionDeclaration mainDeclaration = unit.declarations[0];
     FunctionBody body = mainDeclaration.functionExpression.body;
-    FunctionElement main = mainDeclaration.element;
+    FunctionElement main = mainDeclaration.declaredElement;
     expectMutated(body, main.parameters[0], false, false);
     expectMutated(body, main.parameters[1], false, true);
     expectMutated(body, main.parameters[2], true, true);

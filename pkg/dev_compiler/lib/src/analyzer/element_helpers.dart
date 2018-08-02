@@ -103,11 +103,11 @@ bool isLibraryPrefix(Expression node) =>
 ExecutableElement getFunctionBodyElement(FunctionBody body) {
   var f = body.parent;
   if (f is FunctionExpression) {
-    return f.element;
+    return f.declaredElement;
   } else if (f is MethodDeclaration) {
-    return f.element;
+    return f.declaredElement;
   } else {
-    return (f as ConstructorDeclaration).element;
+    return (f as ConstructorDeclaration).declaredElement;
   }
 }
 
@@ -309,7 +309,7 @@ Uri uriForCompilationUnit(CompilationUnitElement unit) {
 /// `dart:html` has many of these.
 bool isUnsupportedFactoryConstructor(ConstructorDeclaration node) {
   var ctorBody = node.body;
-  var element = node.element;
+  var element = node.declaredElement;
   if (element.isPrivate &&
       element.librarySource.isInSystemLibrary &&
       ctorBody is BlockFunctionBody) {

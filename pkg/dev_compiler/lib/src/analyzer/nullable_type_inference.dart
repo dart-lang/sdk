@@ -338,7 +338,7 @@ class _NullableLocalInference extends RecursiveAstVisitor {
 
   @override
   visitVariableDeclaration(VariableDeclaration node) {
-    var element = node.element;
+    var element = node.declaredElement;
     var initializer = node.initializer;
     if (element is LocalVariableElement) {
       _locals.add(element);
@@ -355,7 +355,7 @@ class _NullableLocalInference extends RecursiveAstVisitor {
   visitForEachStatement(ForEachStatement node) {
     if (node.identifier == null) {
       var declaration = node.loopVariable;
-      var element = declaration.element;
+      var element = declaration.declaredElement;
       _locals.add(element);
       if (!_assertedNotNull(element)) {
         _nullableLocals.add(element);

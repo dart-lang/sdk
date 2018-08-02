@@ -77,7 +77,7 @@ class ResolutionContextBuilder {
     Scope scope = _scopeForAstNode(parent);
     if (node is ClassDeclaration) {
       _enclosingClassDeclaration = node;
-      _enclosingClass = node.element;
+      _enclosingClass = node.declaredElement;
       if (_enclosingClass == null) {
         throw new AnalysisException(
             "Cannot build a scope for an unresolved class");
@@ -85,14 +85,14 @@ class ResolutionContextBuilder {
       scope = new ClassScope(
           new TypeParameterScope(scope, _enclosingClass), _enclosingClass);
     } else if (node is ClassTypeAlias) {
-      ClassElement element = node.element;
+      ClassElement element = node.declaredElement;
       if (element == null) {
         throw new AnalysisException(
             "Cannot build a scope for an unresolved class type alias");
       }
       scope = new ClassScope(new TypeParameterScope(scope, element), element);
     } else if (node is ConstructorDeclaration) {
-      ConstructorElement element = node.element;
+      ConstructorElement element = node.declaredElement;
       if (element == null) {
         throw new AnalysisException(
             "Cannot build a scope for an unresolved constructor");
@@ -101,7 +101,7 @@ class ResolutionContextBuilder {
       functionScope.defineParameters();
       scope = functionScope;
     } else if (node is FunctionDeclaration) {
-      ExecutableElement element = node.element;
+      ExecutableElement element = node.declaredElement;
       if (element == null) {
         throw new AnalysisException(
             "Cannot build a scope for an unresolved function");
@@ -110,9 +110,9 @@ class ResolutionContextBuilder {
       functionScope.defineParameters();
       scope = functionScope;
     } else if (node is FunctionTypeAlias) {
-      scope = new FunctionTypeScope(scope, node.element);
+      scope = new FunctionTypeScope(scope, node.declaredElement);
     } else if (node is MethodDeclaration) {
-      ExecutableElement element = node.element;
+      ExecutableElement element = node.declaredElement;
       if (element == null) {
         throw new AnalysisException(
             "Cannot build a scope for an unresolved method");
@@ -125,7 +125,7 @@ class ResolutionContextBuilder {
   }
 
   Scope _scopeForCompilationUnit(CompilationUnit node) {
-    _enclosingUnit = node.element;
+    _enclosingUnit = node.declaredElement;
     if (_enclosingUnit == null) {
       throw new AnalysisException(
           "Cannot create scope: compilation unit is not resolved");

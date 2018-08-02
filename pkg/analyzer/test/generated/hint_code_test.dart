@@ -3259,7 +3259,7 @@ var b = new A().g;
     var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     TopLevelVariableDeclaration b = analysisResult.unit.declarations[1];
-    expect(b.variables.variables[0].element.type.toString(), 'int');
+    expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
     verify([source]);
   }
 
@@ -3274,7 +3274,7 @@ var b = a.g();
     var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     TopLevelVariableDeclaration b = analysisResult.unit.declarations[2];
-    expect(b.variables.variables[0].element.type.toString(), 'int');
+    expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
     verify([source]);
   }
 
@@ -3288,7 +3288,7 @@ var b = new A().g;
     var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     TopLevelVariableDeclaration b = analysisResult.unit.declarations[1];
-    expect(b.variables.variables[0].element.type.toString(), 'int');
+    expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
     verify([source]);
   }
 
@@ -3303,7 +3303,7 @@ var b = a.g();
     var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     TopLevelVariableDeclaration b = analysisResult.unit.declarations[2];
-    expect(b.variables.variables[0].element.type.toString(), 'int');
+    expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
     verify([source]);
   }
 
@@ -3318,7 +3318,7 @@ var b = a.g;
     var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     TopLevelVariableDeclaration b = analysisResult.unit.declarations[2];
-    expect(b.variables.variables[0].element.type.toString(), 'int');
+    expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
     verify([source]);
   }
 
@@ -3808,7 +3808,7 @@ var b = a.g;
     var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     TopLevelVariableDeclaration b = analysisResult.unit.declarations[2];
-    expect(b.variables.variables[0].element.type.toString(), 'int');
+    expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
     verify([source]);
   }
 

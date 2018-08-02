@@ -303,7 +303,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     super.visitConstructorDeclaration(node);
-    ConstructorElement element = node.element;
+    ConstructorElement element = node.declaredElement;
     if (element is ConstructorElementImpl) {
       ConstructorName redirectedNode = node.redirectedConstructor;
       if (redirectedNode != null) {
