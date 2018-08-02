@@ -21,6 +21,7 @@ import 'mocks.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExecutionDomainTest);
+    defineReflectiveTests(ExecutionDomainTest_UseCFE);
   });
   group('ExecutionDomainHandler', () {
     MemoryResourceProvider provider = new MemoryResourceProvider();
@@ -258,6 +259,12 @@ void contextFunction() {
     expect(response, isResponseSuccess('2'));
     return new ExecutionMapUriResult.fromResponse(response);
   }
+}
+
+@reflectiveTest
+class ExecutionDomainTest_UseCFE extends ExecutionDomainTest {
+  @override
+  bool get useCFE => true;
 }
 
 /**

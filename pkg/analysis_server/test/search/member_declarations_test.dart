@@ -15,6 +15,7 @@ import 'abstract_search_domain.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MemberDeclarationsTest);
+    defineReflectiveTests(MemberDeclarationsTest_UseCFE);
   });
 }
 
@@ -154,4 +155,10 @@ class B {
     assertHasDeclaration(ElementKind.METHOD, 'A');
     assertHasDeclaration(ElementKind.SETTER, 'B');
   }
+}
+
+@reflectiveTest
+class MemberDeclarationsTest_UseCFE extends MemberDeclarationsTest {
+  @override
+  bool get useCFE => true;
 }

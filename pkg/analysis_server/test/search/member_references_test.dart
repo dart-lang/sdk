@@ -14,6 +14,9 @@ import 'abstract_search_domain.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MemberReferencesTest);
+    // TODO(brianwilkerson) Enable these tests. Currently they cause this file
+    // to hang, even though the individual tests fail as expected.
+//    defineReflectiveTests(MemberReferencesTest_UseCFE);
   });
 }
 
@@ -111,4 +114,22 @@ mainUnresolved(a, b) {
     assertHasRef(SearchResultKind.INVOCATION, 'foo(10)', true);
     assertHasRef(SearchResultKind.INVOCATION, 'foo(20)', true);
   }
+}
+
+@reflectiveTest
+class MemberReferencesTest_UseCFE extends MemberReferencesTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_fields_explicit() async => callFailingTest(super.test_fields_explicit());
+
+  @failingTest
+  @override
+  test_fields_implicit() async => callFailingTest(super.test_fields_implicit());
+
+  @failingTest
+  @override
+  test_methods() async => callFailingTest(super.test_methods());
 }

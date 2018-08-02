@@ -15,6 +15,9 @@ import 'abstract_search_domain.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementReferencesTest);
+    // TODO(brianwilkerson) Enable these tests. Currently they cause this file
+    // to hang, even though the individual tests fail as expected.
+//    defineReflectiveTests(ElementReferencesTest_UseCFE);
   });
 }
 
@@ -695,4 +698,159 @@ class A<T> {
     assertHasResult(SearchResultKind.REFERENCE, 'T f;');
     assertHasResult(SearchResultKind.REFERENCE, 'T m()');
   }
+}
+
+@reflectiveTest
+class ElementReferencesTest_UseCFE extends ElementReferencesTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_constructor_named() async =>
+      callFailingTest(super.test_constructor_named());
+
+  @failingTest
+  @override
+  test_constructor_named_potential() async =>
+      callFailingTest(super.test_constructor_named_potential());
+
+  @failingTest
+  @override
+  test_constructor_unnamed() async =>
+      callFailingTest(super.test_constructor_unnamed());
+
+  @failingTest
+  @override
+  test_constructor_unnamed_potential() async =>
+      callFailingTest(super.test_constructor_unnamed_potential());
+
+  @failingTest
+  @override
+  test_field_explicit() async => callFailingTest(super.test_field_explicit());
+
+  @failingTest
+  @override
+  test_field_implicit() async => callFailingTest(super.test_field_implicit());
+
+  @failingTest
+  @override
+  test_field_inFormalParameter() async =>
+      callFailingTest(super.test_field_inFormalParameter());
+
+  @failingTest
+  @override
+  test_function() async => callFailingTest(super.test_function());
+
+  @failingTest
+  @override
+  test_hierarchy_field_explicit() async =>
+      callFailingTest(super.test_hierarchy_field_explicit());
+
+  @failingTest
+  @override
+  test_hierarchy_method() async =>
+      callFailingTest(super.test_hierarchy_method());
+
+  @failingTest
+  @override
+  test_hierarchy_method_static() async =>
+      callFailingTest(super.test_hierarchy_method_static());
+
+  @failingTest
+  @override
+  test_hierarchy_namedParameter() async =>
+      callFailingTest(super.test_hierarchy_namedParameter());
+
+  @failingTest
+  @override
+  test_label() async => callFailingTest(super.test_label());
+
+  @failingTest
+  @override
+  test_localVariable() async => callFailingTest(super.test_localVariable());
+
+  @failingTest
+  @override
+  test_method() async => callFailingTest(super.test_method());
+
+  @failingTest
+  @override
+  test_method_propagatedType() async =>
+      callFailingTest(super.test_method_propagatedType());
+
+  @failingTest
+  @override
+  test_noElement() async => callFailingTest(super.test_noElement());
+
+  @failingTest
+  @override
+  test_oneUnit_zeroLibraries() async =>
+      callFailingTest(super.test_oneUnit_zeroLibraries());
+
+  @failingTest
+  @override
+  test_parameter() async => callFailingTest(super.test_parameter());
+
+  @failingTest
+  @override
+  test_path_inConstructor_named() async =>
+      callFailingTest(super.test_path_inConstructor_named());
+
+  @failingTest
+  @override
+  test_path_inConstructor_unnamed() async =>
+      callFailingTest(super.test_path_inConstructor_unnamed());
+
+  @failingTest
+  @override
+  test_path_inFunction() async => callFailingTest(super.test_path_inFunction());
+
+  @failingTest
+  @override
+  test_potential_disabled() async =>
+      callFailingTest(super.test_potential_disabled());
+
+  @failingTest
+  @override
+  test_potential_field() async => callFailingTest(super.test_potential_field());
+
+  @failingTest
+  @override
+  test_potential_method() async =>
+      callFailingTest(super.test_potential_method());
+
+  @failingTest
+  @override
+  test_potential_method_definedInSubclass() async =>
+      callFailingTest(super.test_label());
+
+  @failingTest
+  @override
+  test_prefix() async => callFailingTest(super.test_prefix());
+
+  @failingTest
+  @override
+  test_topLevelVariable_explicit() async =>
+      callFailingTest(super.test_topLevelVariable_explicit());
+
+  @failingTest
+  @override
+  test_topLevelVariable_implicit() async =>
+      callFailingTest(super.test_topLevelVariable_implicit());
+
+  @failingTest
+  @override
+  test_typeReference_class() async =>
+      callFailingTest(super.test_typeReference_class());
+
+  @failingTest
+  @override
+  test_typeReference_functionType() async =>
+      callFailingTest(super.test_typeReference_functionType());
+
+  @failingTest
+  @override
+  test_typeReference_typeVariable() async =>
+      callFailingTest(super.test_typeReference_typeVariable());
 }

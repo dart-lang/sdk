@@ -18,7 +18,6 @@ main() {
     defineReflectiveTests(AnalysisNotificationHighlightsTest);
     defineReflectiveTests(AnalysisNotificationHighlightsTest_UseCFE);
     defineReflectiveTests(HighlightTypeTest);
-    defineReflectiveTests(HighlightTypeTest_UseCFE);
   });
 }
 
@@ -1169,10 +1168,4 @@ class HighlightTypeTest {
       new HighlightRegionType('no-such-type');
     }, throwsException);
   }
-}
-
-@reflectiveTest
-class HighlightTypeTest_UseCFE extends HighlightTypeTest {
-  @override
-  bool get useCFE => true;
 }

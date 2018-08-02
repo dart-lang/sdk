@@ -12,6 +12,7 @@ import 'analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DiagnosticDomainTest);
+    defineReflectiveTests(DiagnosticDomainTest_UseCFE);
   });
 }
 
@@ -54,4 +55,10 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
     var result = new DiagnosticGetDiagnosticsResult.fromResponse(response);
     expect(result.contexts, isEmpty);
   }
+}
+
+@reflectiveTest
+class DiagnosticDomainTest_UseCFE extends DiagnosticDomainTest {
+  @override
+  bool get useCFE => true;
 }
