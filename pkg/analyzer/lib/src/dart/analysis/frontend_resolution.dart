@@ -475,6 +475,9 @@ class _AnalyzerSourceLoader<L> extends SourceLoader<L> {
     return new _AnalyzerOutlineListener(fileUri, resolution);
   }
 
+  @override
+  Severity rewriteSeverity(severity, message, fileUri) => severity;
+
   CollectedResolution _fileResolution(Uri fileUri) {
     CollectedResolution resolution = _fileResolutions[fileUri];
     if (resolution == null) {
