@@ -1102,6 +1102,8 @@ abstract class CompilationUnitElementForLink
           return new FunctionTypeAliasElementForLink(this, t);
         } else if (t.style == TypedefStyle.genericFunctionType) {
           return new GenericTypeAliasElementForLink(this, t);
+        } else {
+          throw new StateError('Unhandled style of typedef: ${t.style}');
         }
       }).toList();
 

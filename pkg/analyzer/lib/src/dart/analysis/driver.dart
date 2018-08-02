@@ -52,7 +52,7 @@ import 'package:meta/meta.dart';
  * but this breaks `AnalysisContext` and code generation. So, for now let's
  * work around them, and rewrite generators to [AnalysisDriver].
  */
-typedef Future<Null> WorkToWaitAfterComputingResult(String path);
+typedef Future<void> WorkToWaitAfterComputingResult(String path);
 
 /**
  * This class computes [AnalysisResult]s for Dart files.

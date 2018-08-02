@@ -594,7 +594,7 @@ part 'part.dart';
     // We also request a new result, which must include the change.
     Future<AnalysisResult> future2;
     bool asyncWorkExecuted = false;
-    driver.test.workToWaitAfterComputingResult = (path) {
+    driver.test.workToWaitAfterComputingResult = (path) async {
       provider.updateFile(path, 'class B {}');
       driver.changeFile(path);
       future2 = driver.getResult(testFile);
@@ -622,7 +622,7 @@ part 'part.dart';
 
     // Simulate a change that happens during computing the result.
     bool asyncWorkExecuted = false;
-    driver.test.workToWaitAfterComputingResult = (p) {
+    driver.test.workToWaitAfterComputingResult = (p) async {
       if (p == path && !asyncWorkExecuted) {
         provider.updateFile(path, 'class B');
         driver.changeFile(path);
@@ -645,7 +645,7 @@ part 'part.dart';
 
     // Simulate a change that happens during computing the result.
     bool asyncWorkExecuted = false;
-    driver.test.workToWaitAfterComputingResult = (p) {
+    driver.test.workToWaitAfterComputingResult = (p) async {
       if (p == path && !asyncWorkExecuted) {
         provider.updateFile(path, 'class B {}');
         driver.changeFile(path);
