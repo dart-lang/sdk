@@ -9,27 +9,28 @@ significant changes across all areas of the platform. Large changes include:
     products. Now it is the one official static type system for the entire
     platform and replaces the previous "checked" and "production" modes.
 
-*   The `new` keyword is optional and can be omitted. Likewise, `const` can be
-    omitted inside a const context ([issue 30921][].
-
-*   **(Breaking)** Functions marked `async` now run synchronously to the first
-    `await` statement instead of returning to the event loop once at the top of
-    the function body before any code runs ([issue 30345][]).
+*   **(Breaking)** Functions marked `async` now run synchronously until the
+    first `await` statement. Previously, they would return to the event loop
+    once at the top of the function body before any code runs ([issue 30345][]).
 
 *   **(Breaking)** Constants in the core libraries have been renamed from
-    `SCREAMING_CAPS` to `lowercaseWithUnderscores`.
+    `SCREAMING_CAPS` to `lowerCamelCase`.
 
 *   **(Breaking)** Many new methods have been added to core library classes. If
     you implement the interfaces of these classes, you will need to implement
     the new methods.
 
-*   "dart:isolate" and "dart:mirrors" are no longer supported when using Dart
-    for the web. They are still supported in the command-line VM.
-
-*   Dartium is no longer maintained or supported.
+*   **(Breaking)** "dart:isolate" and "dart:mirrors" are no longer supported
+    when using Dart for the web. They are still supported in the command-line
+    VM.
 
 *   **(Breaking)** Pub's transformer-based build system has been [replaced by a
     new build system][transformers].
+
+*   The `new` keyword is optional and can be omitted. Likewise, `const` can be
+    omitted inside a const context ([issue 30921][]).
+
+*   Dartium is no longer maintained or supported.
 
 [issue 30345]: https://github.com/dart-lang/sdk/issues/30345
 [issue 30921]: https://github.com/dart-lang/sdk/issues/30921
@@ -60,8 +61,9 @@ significant changes across all areas of the platform. Large changes include:
     to have parts, and it allows tools to easily find the library of a part
     file. The Dart 1.0 syntax is supported but deprecated.
 
-*   Added support for starting `async` functions synchronously. All tools (VM,
-    dart2js, DDC) support this ([issue 30345][]).
+*   Functions marked `async` now run synchronously until the first `await`
+    statement. Previously, they would return to the event loop once at the top
+    of the function body before any code runs ([issue 30345][]).
 
 *   The type `void` is now a Top type like `dynamic`, and `Object`. It also now
     has new errors for being used where not allowed (such as being assigned to
@@ -80,9 +82,9 @@ significant changes across all areas of the platform. Large changes include:
     }
     ```
 
-*   Invocations of `noSuchMethod()` receive default values for optional args. The
-    following program used to print "No arguments passed", and now prints "First
-    argument is 3".
+*   Invocations of `noSuchMethod()` receive default values for optional args.
+    The following program used to print "No arguments passed", and now prints
+    "First argument is 3".
 
     ```dart
     abstract class B {
@@ -117,19 +119,6 @@ significant changes across all areas of the platform. Large changes include:
       void f<T extends num>() {}
     }
     ```
-
-*   Inference chooses `void` when combining `Object` or `dynamic` and `void`
-    ([issue 33341][]).  When combining with other top types, inference now
-    prefers `void`.  For example, given:
-
-    ```dart
-    void foo() {};
-    dynamic bar() {};
-    var a = [foo(), bar()];
-    ```
-
-    The variable `a` would previously have been inferred as `List<dynamic>`, and
-    is now be inferred as `List<void>`.
 
 *   Numerous corner case bugs around return statements in synchronous and
     asynchronous functions fixed. Specifically:
@@ -320,7 +309,7 @@ Still need entries for all changes to dart:html since 1.x
 #### `dart:html`
 
 *   Removed deprecated `query` and `queryAll`. Use `querySelector` and
-    `queryAllSelector`.
+    `querySelectorAll`.
 
 #### `dart:io`
 
