@@ -572,7 +572,8 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
       case Token::kADD:
       case Token::kSUB:
       case Token::kMUL:
-#ifdef TARGET_ARCH_X64  // TODO(ajcbik): support all
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+      // TODO(ajcbik): 32-bit archs too?
       case Token::kMOD:
       case Token::kTRUNCDIV:
 #endif

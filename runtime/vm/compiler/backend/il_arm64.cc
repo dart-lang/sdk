@@ -5042,16 +5042,119 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+class Int64DivideSlowPath : public ThrowErrorSlowPathCode {
+ public:
+  static const intptr_t kNumberOfArguments = 0;
+
+  Int64DivideSlowPath(BinaryInt64OpInstr* instruction,
+                      Register right,
+                      Register tmp,
+                      Register out,
+                      intptr_t try_index)
+      : ThrowErrorSlowPathCode(instruction,
+                               kIntegerDivisionByZeroExceptionRuntimeEntry,
+                               kNumberOfArguments,
+                               try_index),
+        is_mod_(instruction->op_kind() == Token::kMOD),
+        right_(right),
+        tmp_(tmp),
+        out_(out),
+        adjust_sign_label_() {}
+
+  void EmitNativeCode(FlowGraphCompiler* compiler) override {
+    // Main entry throws, use code of superclass.
+    ThrowErrorSlowPathCode::EmitNativeCode(compiler);
+    // Adjust modulo for negative sign.
+    // if (right < 0)
+    //   out -= right;
+    // else
+    //   out += right;
+    if (is_mod_) {
+      __ Bind(adjust_sign_label());
+      __ CompareRegisters(right_, ZR);
+      __ sub(tmp_, out_, Operand(right_));
+      __ add(out_, out_, Operand(right_));
+      __ csel(out_, tmp_, out_, LT);
+      __ b(exit_label());
+    }
+  }
+
+  const char* name() override { return "int64 divide"; }
+
+  Label* adjust_sign_label() { return &adjust_sign_label_; }
+
+ private:
+  bool is_mod_;
+  Register right_;
+  Register tmp_;
+  Register out_;
+  Label adjust_sign_label_;
+};
+
+static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
+                                 BinaryInt64OpInstr* instruction,
+                                 Token::Kind op_kind,
+                                 Register left,
+                                 Register right,
+                                 Register tmp,
+                                 Register out) {
+  ASSERT(op_kind == Token::kMOD || op_kind == Token::kTRUNCDIV);
+
+  // Set up a slow path.
+  Int64DivideSlowPath* slow_path = new (Z) Int64DivideSlowPath(
+      instruction, right, tmp, out, compiler->CurrentTryIndex());
+  compiler->AddSlowPathCode(slow_path);
+
+  // Handle modulo/division by zero exception on slow path.
+  __ CompareRegisters(right, ZR);
+  __ b(slow_path->entry_label(), EQ);
+
+  // Perform actual operation
+  //   out = left % right
+  // or
+  //   out = left / right.
+  if (op_kind == Token::kMOD) {
+    __ sdiv(tmp, left, right);
+    __ msub(out, tmp, right, left);
+    // For the % operator, the sdiv instruction does not
+    // quite do what we want. Adjust for sign on slow path.
+    __ CompareRegisters(out, ZR);
+    __ b(slow_path->adjust_sign_label(), LT);
+  } else {
+    __ sdiv(out, left, right);
+  }
+
+  __ Bind(slow_path->exit_label());
+}
+
 LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RegisterOrConstant(right()));
-  summary->set_out(0, Location::RequiresRegister());
-  return summary;
+  switch (op_kind()) {
+    case Token::kMOD:
+    case Token::kTRUNCDIV: {
+      const intptr_t kNumInputs = 2;
+      const intptr_t kNumTemps = (op_kind() == Token::kMOD) ? 1 : 0;
+      LocationSummary* summary = new (zone) LocationSummary(
+          zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+      summary->set_in(0, Location::RequiresRegister());
+      summary->set_in(1, Location::RequiresRegister());
+      summary->set_out(0, Location::RequiresRegister());
+      if (kNumTemps == 1) {
+        summary->set_temp(0, Location::RequiresRegister());
+      }
+      return summary;
+    }
+    default: {
+      const intptr_t kNumInputs = 2;
+      const intptr_t kNumTemps = 0;
+      LocationSummary* summary = new (zone) LocationSummary(
+          zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+      summary->set_in(0, Location::RequiresRegister());
+      summary->set_in(1, Location::RegisterOrConstant(right()));
+      summary->set_out(0, Location::RequiresRegister());
+      return summary;
+    }
+  }
 }
 
 void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -5062,7 +5165,13 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Location right = locs()->in(1);
   const Register out = locs()->out(0).reg();
 
-  if (op_kind() == Token::kMUL) {
+  if (op_kind() == Token::kMOD || op_kind() == Token::kTRUNCDIV) {
+    Register tmp =
+        (op_kind() == Token::kMOD) ? locs()->temp(0).reg() : kNoRegister;
+    EmitInt64ModTruncDiv(compiler, this, op_kind(), left, right.reg(), tmp,
+                         out);
+    return;
+  } else if (op_kind() == Token::kMUL) {
     Register r = TMP;
     if (right.IsConstant()) {
       ConstantInstr* constant_instr = right.constant_instruction();
