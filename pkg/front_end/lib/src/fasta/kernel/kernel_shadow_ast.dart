@@ -1597,16 +1597,21 @@ abstract class InitializerJudgment implements Initializer {
 /// Concrete shadow object representing an integer literal in kernel form.
 class IntJudgment extends IntLiteral implements ExpressionJudgment {
   IntLiteralTokens tokens;
+  final kernel.Expression desugaredError;
 
   DartType inferredType;
 
-  IntJudgment(this.tokens, int value) : super(value);
+  IntJudgment(this.tokens, int value, {this.desugaredError}) : super(value);
 
   @override
   Expression infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer, DartType typeContext) {
     inferredType = inferrer.coreTypes.intClass.rawType;
     inferrer.listener.intLiteral(this, fileOffset, tokens, value, inferredType);
+    if (desugaredError != null) {
+      parent.replaceChild(this, desugaredError);
+      parent = null;
+    }
     return null;
   }
 }

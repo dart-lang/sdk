@@ -562,18 +562,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_integerLiteralOutOfRange_negative() async {
-    await super.test_integerLiteralOutOfRange_negative();
-  }
-
-  @override
-  @failingTest
-  test_integerLiteralOutOfRange_positive() async {
-    await super.test_integerLiteralOutOfRange_positive();
-  }
-
-  @override
-  @failingTest
   test_invalidAnnotation_importWithPrefix_notVariableOrConstructorInvocation() {
     return super
         .test_invalidAnnotation_importWithPrefix_notVariableOrConstructorInvocation();

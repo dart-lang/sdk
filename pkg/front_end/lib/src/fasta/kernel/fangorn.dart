@@ -181,9 +181,10 @@ class Fangorn extends Forest {
   }
 
   @override
-  IntJudgment literalInt(int value, Token token) {
+  IntJudgment literalInt(int value, Token token, {Expression desugaredError}) {
     return new IntJudgment(
-        typeInferenceTokensSaver?.intLiteralTokens(token), value)
+        typeInferenceTokensSaver?.intLiteralTokens(token), value,
+        desugaredError: desugaredError)
       ..fileOffset = offsetForToken(token);
   }
 

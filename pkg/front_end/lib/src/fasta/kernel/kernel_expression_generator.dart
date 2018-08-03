@@ -1427,23 +1427,30 @@ class KernelLargeIntAccessGenerator extends KernelGenerator
       : super(helper, token);
 
   @override
-  Expression _makeSimpleRead() => new SyntheticExpressionJudgment(buildError());
+  Expression _makeSimpleRead() {
+    return _buildErrorIntLiteral();
+  }
 
   @override
   Expression _makeSimpleWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
-    return new SyntheticExpressionJudgment(buildError());
+    return _buildErrorIntLiteral();
   }
 
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    return new SyntheticExpressionJudgment(buildError());
+    return _buildErrorIntLiteral();
   }
 
   @override
   Expression _makeWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
-    return new SyntheticExpressionJudgment(buildError());
+    return _buildErrorIntLiteral();
+  }
+
+  Expression _buildErrorIntLiteral() {
+    var error = buildError();
+    return forest.literalInt(0, token, desugaredError: error);
   }
 }
 
