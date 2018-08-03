@@ -2840,6 +2840,10 @@ void TypeTranslator::BuildTypeParameterType() {
           result_ ^=
               TypeArguments::Handle(Z, active_class_->member->type_parameters())
                   .TypeAt(parameter_index);
+          if (finalize_) {
+            result_ =
+                ClassFinalizer::FinalizeType(*active_class_->klass, result_);
+          }
         } else {
           result_ ^= Type::DynamicType();
         }
@@ -2856,6 +2860,9 @@ void TypeTranslator::BuildTypeParameterType() {
             active_class_->local_type_parameters->TypeAt(parameter_index);
       } else {
         result_ ^= Type::DynamicType();
+      }
+      if (finalize_) {
+        result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
       }
       return;
     }
