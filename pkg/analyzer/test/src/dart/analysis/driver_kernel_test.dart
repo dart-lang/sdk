@@ -72,12 +72,6 @@ class B {
     await driver.getResult(b);
   }
 
-  @failingTest
-  @override
-  test_const_externalConstFactory() async {
-    await super.test_const_externalConstFactory();
-  }
-
   @override
   @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/33719')

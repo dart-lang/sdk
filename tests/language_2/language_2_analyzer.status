@@ -4,6 +4,10 @@
 
 # Sections in this file should contain "$compiler == dart2analyzer".
 
+[ $compiler == dart2analyzer ]
+mock_writable_final_private_field_test: CompileTimeError # Issue 30848
+vm/reflect_core_vm_test: CompileTimeError # Issue 30848
+
 [ $compiler == dart2analyzer && $runtime == none && !$fasta ]
 error_stacktrace_test/00: MissingCompileTimeError
 vm/lazy_deopt_with_exception_test: CompileTimeError
@@ -86,7 +90,6 @@ mixin_supertype_subclass4_test/04: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass4_test/05: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass_test/02: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass_test/05: MissingStaticWarning # Issue 25614
-mock_writable_final_private_field_test: CompileTimeError # Issue 30848
 nested_generic_closure_test: CompileTimeError
 no_main_test/01: Fail # Issue 20030
 no_such_constructor2_test: StaticWarning
@@ -124,7 +127,6 @@ type_variable_scope_test/none: Fail # Issue 11578
 vm/debug_break_enabled_vm_test: Skip
 vm/debug_break_vm_test/*: Skip
 vm/lazy_deopt_with_exception_test: Pass
-vm/reflect_core_vm_test: CompileTimeError
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
 vm/regress_33469_test/01: Crash # http://dartbug.com/33481
 vm/regress_33469_test/02: Crash # http://dartbug.com/33481

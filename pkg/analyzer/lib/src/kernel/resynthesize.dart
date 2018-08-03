@@ -688,7 +688,7 @@ class _ExprBuilder {
       var arguments = _toArguments(expr.arguments);
       var creation = AstTestFactory.instanceCreationExpression(
           keyword, constructorName, arguments);
-      creation.staticElement = element;
+      creation.staticElement = ConstructorMember.from(element, type);
       creation.staticType = type;
       return creation;
     }

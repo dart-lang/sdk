@@ -33,14 +33,11 @@ type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 [ $compiler != app_jitk && $compiler != dartk && $compiler != dartkp && $mode == debug && $runtime == vm ]
 built_in_identifier_type_annotation_test/set: Crash # Not supported by legacy VM front-end.
 
-[ $compiler != dart2js && $compiler != dartdevc && !$fasta && $strong ]
-type_promotion_functions_test: CompileTimeError # Issue 30895: This test requires a complete rewrite for 2.0.
-
 # Detection of compile-time errors that are related to constants can't be fully
 # done at the front end, because constants are evaluated at back ends.  So, some
 # errors aren't detected by fasta, but reported by back ends as compile-time
 # errors.
-[ $compiler != dart2js && $runtime != dart_precompiled && $runtime != vm && $fasta ]
+[ $compiler != dart2analyzer && $compiler != dart2js && $runtime != dart_precompiled && $runtime != vm && $fasta ]
 function_type_parameter2_negative_test: Fail
 function_type_parameter_negative_test: Fail
 implicit_creation/implicit_const_not_default_values_test/e12: MissingCompileTimeError
@@ -53,6 +50,9 @@ implicit_creation/implicit_const_not_default_values_test/e3: MissingCompileTimeE
 implicit_creation/implicit_const_not_default_values_test/e30: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e6: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e9: MissingCompileTimeError
+
+[ $compiler != dart2js && $compiler != dartdevc && !$fasta && $strong ]
+type_promotion_functions_test: CompileTimeError # Issue 30895: This test requires a complete rewrite for 2.0.
 
 [ $compiler != dart2js && !$fasta && $strong ]
 compile_time_constant_static5_test/11: CompileTimeError # Issue 30546

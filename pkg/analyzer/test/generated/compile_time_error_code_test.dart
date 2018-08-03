@@ -1218,7 +1218,10 @@ class A {
 const a = new A();''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+        CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION
+      ]);
     } else {
       assertErrors(source,
           [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
@@ -1263,7 +1266,10 @@ final a = const A();
 const C = a.m;''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+        CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION
+      ]);
     } else {
       assertErrors(source,
           [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
@@ -1348,7 +1354,10 @@ var x = const C(2);
     Source source = addSource("const C = ~null;");
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        StaticTypeWarningCode.UNDEFINED_METHOD
+      ]);
     } else {
       assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
     }
@@ -1359,7 +1368,10 @@ var x = const C(2);
     Source source = addSource("const C = -null;");
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        StaticTypeWarningCode.UNDEFINED_METHOD
+      ]);
     } else {
       assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
     }
@@ -1495,7 +1507,10 @@ f(p) {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+        CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION
+      ]);
     } else {
       assertErrors(source,
           [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
@@ -1706,7 +1721,10 @@ class T {
 f() { return const T(0, 1, c: 2, d: 3); }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_WITH_NON_CONST,
+        CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION
+      ]);
     } else {
       assertErrors(source, [CompileTimeErrorCode.CONST_WITH_NON_CONST]);
     }
@@ -1726,7 +1744,11 @@ main() {
 ''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+      assertErrors(source, [
+        CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION,
+        CompileTimeErrorCode.CONST_WITH_NON_CONST,
+        CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
+      ]);
     } else {
       // TODO(a14n): the error CONST_WITH_NON_CONSTANT_ARGUMENT is redundant and
       // ought to be suppressed.
@@ -1752,7 +1774,11 @@ main() {
 ''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+      assertErrors(source, [
+        CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION,
+        CompileTimeErrorCode.CONST_WITH_NON_CONST,
+        CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+      ]);
     } else {
       // TODO(a14n): the error CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE is
       // redundant and ought to be suppressed.
@@ -1775,7 +1801,10 @@ main() {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
+        CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION
+      ]);
     } else {
       assertErrors(
           source, [CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT]);
@@ -1791,7 +1820,11 @@ class A {
 f(p) { return const A(p); }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+      assertErrors(source, [
+        CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION,
+        CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
+        CompileTimeErrorCode.INVALID_CONSTANT
+      ]);
     } else {
       // TODO(paulberry): the error INVALID_CONSTANT is redundant and ought to be
       // suppressed.
@@ -4462,7 +4495,11 @@ f() {
     Source source = addSource("const int i = (1 ? 'alpha' : 'beta').length;");
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+        StaticTypeWarningCode.INVALID_ASSIGNMENT
+      ]);
     } else {
       assertErrors(source, [
         CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
@@ -5498,7 +5535,10 @@ main() {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+      assertErrors(source, [
+        CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR,
+        CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION
+      ]);
     } else {
       assertErrors(
           source, [CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR]);
@@ -5516,7 +5556,10 @@ main() {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+      assertErrors(source, [
+        CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR,
+        CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION
+      ]);
     } else {
       assertErrors(
           source, [CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR]);
@@ -5624,7 +5667,10 @@ f(int p, int q) {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+      assertErrors(source, [
+        CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION,
+        CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION
+      ]);
     } else {
       assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION]);
     }
@@ -5648,7 +5694,11 @@ main (int p) {
 }'''
         ],
         useCFE
-            ? <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]
+            ? <ErrorCode>[
+                CompileTimeErrorCode
+                    .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY,
+                CompileTimeErrorCode.CONST_DEFERRED_CLASS
+              ]
             : <ErrorCode>[
                 CompileTimeErrorCode
                     .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY
@@ -5672,7 +5722,11 @@ main (int p) {
 }'''
         ],
         useCFE
-            ? <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]
+            ? <ErrorCode>[
+                CompileTimeErrorCode
+                    .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY,
+                CompileTimeErrorCode.CONST_DEFERRED_CLASS
+              ]
             : <ErrorCode>[
                 CompileTimeErrorCode
                     .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY
@@ -5686,7 +5740,10 @@ f(a) {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+      assertErrors(source, [
+        CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION,
+        CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT
+      ]);
     } else {
       assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
     }
@@ -5707,7 +5764,11 @@ f() {
 }'''
         ],
         useCFE
-            ? <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]
+            ? <ErrorCode>[
+                CompileTimeErrorCode.CONST_DEFERRED_CLASS,
+                CompileTimeErrorCode
+                    .NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY
+              ]
             : <ErrorCode>[
                 CompileTimeErrorCode
                     .NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY
@@ -5728,7 +5789,11 @@ f() {
 }'''
         ],
         useCFE
-            ? <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]
+            ? <ErrorCode>[
+                CompileTimeErrorCode.CONST_DEFERRED_CLASS,
+                CompileTimeErrorCode
+                    .NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY
+              ]
             : <ErrorCode>[
                 CompileTimeErrorCode
                     .NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY
@@ -5838,7 +5903,10 @@ f(a) {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+      assertErrors(source, [
+        CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION,
+        CompileTimeErrorCode.NON_CONSTANT_MAP_KEY
+      ]);
     } else {
       assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]);
     }
@@ -5859,7 +5927,10 @@ f() {
 }'''
         ],
         useCFE
-            ? <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]
+            ? <ErrorCode>[
+                CompileTimeErrorCode.CONST_DEFERRED_CLASS,
+                CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY
+              ]
             : <ErrorCode>[
                 CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY
               ]);
@@ -5879,7 +5950,10 @@ f() {
 }'''
         ],
         useCFE
-            ? <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]
+            ? <ErrorCode>[
+                CompileTimeErrorCode.CONST_DEFERRED_CLASS,
+                CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY
+              ]
             : <ErrorCode>[
                 CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY
               ]);
@@ -5892,7 +5966,10 @@ f(a) {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+      assertErrors(source, [
+        CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION,
+        CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE
+      ]);
     } else {
       assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
     }
@@ -5913,7 +5990,11 @@ f() {
 }'''
         ],
         useCFE
-            ? <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]
+            ? <ErrorCode>[
+                CompileTimeErrorCode.CONST_DEFERRED_CLASS,
+                CompileTimeErrorCode
+                    .NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY
+              ]
             : <ErrorCode>[
                 CompileTimeErrorCode
                     .NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY
@@ -5934,7 +6015,11 @@ f() {
 }'''
         ],
         useCFE
-            ? <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]
+            ? <ErrorCode>[
+                CompileTimeErrorCode.CONST_DEFERRED_CLASS,
+                CompileTimeErrorCode
+                    .NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY
+              ]
             : <ErrorCode>[
                 CompileTimeErrorCode
                     .NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY
@@ -5948,7 +6033,10 @@ class A {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+      assertErrors(source, [
+        CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION,
+        CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER
+      ]);
     } else {
       assertErrors(
           source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
@@ -5963,7 +6051,10 @@ class A {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+      assertErrors(source, [
+        CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION,
+        CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER
+      ]);
     } else {
       assertErrors(
           source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
@@ -5979,7 +6070,10 @@ class A {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+        StaticTypeWarningCode.INVALID_ASSIGNMENT
+      ]);
     } else {
       assertErrors(source, [
         CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
@@ -5997,7 +6091,10 @@ class A {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+      assertErrors(source, [
+        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+        StaticTypeWarningCode.INVALID_ASSIGNMENT
+      ]);
     } else {
       assertErrors(source, [
         CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
@@ -6044,7 +6141,10 @@ class A {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+      assertErrors(source, [
+        CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION,
+        CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER
+      ]);
     } else {
       assertErrors(
           source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
@@ -6066,7 +6166,11 @@ var b = const B();''');
     // ought to be suppressed. Or not?
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+      assertErrors(source, [
+        CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION,
+        CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER,
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION
+      ]);
     } else {
       assertErrors(source, [
         CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER,
@@ -6091,6 +6195,7 @@ class MyClass {
     await computeAnalysisResult(sourceB);
     if (useCFE) {
       assertErrors(sourceB, [
+        CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE,
         StaticTypeWarningCode.UNDEFINED_GETTER,
         StaticTypeWarningCode.UNDEFINED_GETTER
       ]);
@@ -6111,7 +6216,10 @@ class A {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+      assertErrors(source, [
+        CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION,
+        CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER
+      ]);
     } else {
       assertErrors(
           source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
@@ -6130,7 +6238,10 @@ class B extends A {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION]);
+      assertErrors(source, [
+        CompileTimeErrorCode.NOT_CONSTANT_EXPRESSION,
+        CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER
+      ]);
     } else {
       assertErrors(
           source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
@@ -6729,10 +6840,17 @@ class A {
 const x = y + 1;
 const y = x + 1;''');
     await computeAnalysisResult(source);
-    if (!enableNewAnalysisDriver || enableKernelDriver) {
+    if (enableKernelDriver) {
       assertErrors(source, [
         CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
         CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT
+      ]);
+    } else if (!enableNewAnalysisDriver) {
+      assertErrors(source, [
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
       ]);
     } else {
       assertErrors(source, [
@@ -6764,7 +6882,12 @@ class C {
 const x = x;
 ''');
     await computeAnalysisResult(source);
-    if (!enableNewAnalysisDriver || enableKernelDriver) {
+    if (enableKernelDriver) {
+      assertErrors(source, [
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+      ]);
+    } else if (!enableNewAnalysisDriver) {
       assertErrors(source, [
         CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
       ]);

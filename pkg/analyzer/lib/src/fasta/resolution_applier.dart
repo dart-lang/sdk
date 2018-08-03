@@ -695,8 +695,14 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         node.name.staticElement = element;
         element.type = type;
       }
+
+      node.initializer?.accept(this);
+
+      if (element is ConstVariableElement) {
+        (element as ConstVariableElement).constantInitializer =
+            node.initializer;
+      }
     }
-    node.initializer?.accept(this);
   }
 
   @override

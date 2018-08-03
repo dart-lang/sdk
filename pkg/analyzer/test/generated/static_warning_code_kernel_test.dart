@@ -108,12 +108,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
-  test_argumentTypeNotAssignable_const() async {
-    return super.test_argumentTypeNotAssignable_const();
-  }
-
-  @override
-  @failingTest
   test_argumentTypeNotAssignable_const_super() async {
     return super.test_argumentTypeNotAssignable_const_super();
   }
@@ -255,18 +249,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @failingTest
   test_conflictingInstanceSetterAndSuperclassMember() async {
     return super.test_conflictingInstanceSetterAndSuperclassMember();
-  }
-
-  @override
-  @failingTest
-  test_equalKeysInMap() async {
-    return super.test_equalKeysInMap();
-  }
-
-  @override
-  @failingTest
-  test_equalKeysInMap_withEqualTypeParams() async {
-    return super.test_equalKeysInMap_withEqualTypeParams();
   }
 
   @override
@@ -608,6 +590,11 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   }
 
   @override
+  test_useOfVoidResult_await() async {
+    return super.test_useOfVoidResult_await();
+  }
+
+  @override
   test_useOfVoidResult_inForLoop_ok() async {
     return super.test_useOfVoidResult_inForLoop_ok();
   }
@@ -615,10 +602,5 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   test_useOfVoidResult_variableDeclaration_method_ok() async {
     return super.test_useOfVoidResult_variableDeclaration_method_ok();
-  }
-
-  @override
-  test_useOfVoidResult_await() async {
-    return super.test_useOfVoidResult_await();
   }
 }

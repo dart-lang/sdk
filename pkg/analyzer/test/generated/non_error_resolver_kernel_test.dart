@@ -180,20 +180,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   }
 
   @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31628')
-  test_nonConstCaseExpression_constField() async {
-    return super.test_nonConstCaseExpression_constField();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31627')
-  test_nonConstMapKey_constField() async {
-    return super.test_nonConstMapKey_constField();
-  }
-
-  @override
   test_null_callMethod() async {
     return super.test_null_callMethod();
   }
@@ -205,8 +191,8 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_optionalNew_rewrite_instantiatesToBounds() {
-    return super.test_optionalNew_rewrite_instantiatesToBounds();
+  test_optionalNew_rewrite() {
+    return super.test_optionalNew_rewrite();
   }
 
   @override

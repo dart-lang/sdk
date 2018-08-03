@@ -54,12 +54,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
     await super.test_async_used_as_identifier_in_break_statement();
   }
 
-  @override
-  @failingTest
-  test_caseExpressionTypeImplementsEquals() async {
-    await super.test_caseExpressionTypeImplementsEquals();
-  }
-
   @override // Test passes with CFE but fails with the original analyzer.
   test_conflictingConstructorNameAndMember_field() async {
     await super.test_conflictingConstructorNameAndMember_field();
@@ -90,26 +84,8 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_const_invalid_constructorFieldInitializer_fromLibrary() {
-    return super.test_const_invalid_constructorFieldInitializer_fromLibrary();
-  }
-
-  @override
-  @failingTest
-  test_constConstructorWithFieldInitializedByNonConst() async {
-    await super.test_constConstructorWithFieldInitializedByNonConst();
-  }
-
-  @override
-  @failingTest
   test_constConstructorWithNonFinalField_super() async {
     await super.test_constConstructorWithNonFinalField_super();
-  }
-
-  @override
-  @failingTest
-  test_constEval_nonStaticField_inGenericClass() async {
-    await super.test_constEval_nonStaticField_inGenericClass();
   }
 
   @override
@@ -122,12 +98,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @failingTest
   test_constEvalThrowsException_binaryPlus_null() async {
     await super.test_constEvalThrowsException_binaryPlus_null();
-  }
-
-  @override
-  @failingTest
-  test_constEvalThrowsException_divisionByZero() async {
-    await super.test_constEvalThrowsException_divisionByZero();
   }
 
   @override
@@ -145,38 +115,8 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_constEvalThrowsException_unaryNot_null() async {
-    await super.test_constEvalThrowsException_unaryNot_null();
-  }
-
-  @override
-  @failingTest
   test_constEvalTypeBool_binary() async {
     await super.test_constEvalTypeBool_binary();
-  }
-
-  @override
-  @failingTest
-  test_constEvalTypeBoolNumString_equal() async {
-    await super.test_constEvalTypeBoolNumString_equal();
-  }
-
-  @override
-  @failingTest
-  test_constEvalTypeBoolNumString_notEqual() async {
-    await super.test_constEvalTypeBoolNumString_notEqual();
-  }
-
-  @override
-  @failingTest
-  test_constEvalTypeInt_binary() async {
-    await super.test_constEvalTypeInt_binary();
-  }
-
-  @override
-  @failingTest
-  test_constEvalTypeNum_binary() async {
-    await super.test_constEvalTypeNum_binary();
   }
 
   @override
@@ -189,12 +129,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @failingTest
   test_constFormalParameter_simpleFormalParameter() async {
     await super.test_constFormalParameter_simpleFormalParameter();
-  }
-
-  @override
-  @failingTest
-  test_constInitializedWithNonConstValue_finalField() async {
-    await super.test_constInitializedWithNonConstValue_finalField();
   }
 
   @override
@@ -214,30 +148,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @failingTest
   test_constInstanceField() async {
     await super.test_constInstanceField();
-  }
-
-  @override
-  @failingTest
-  test_constMapKeyTypeImplementsEquals_direct() async {
-    await super.test_constMapKeyTypeImplementsEquals_direct();
-  }
-
-  @override
-  @failingTest
-  test_constMapKeyTypeImplementsEquals_dynamic() async {
-    await super.test_constMapKeyTypeImplementsEquals_dynamic();
-  }
-
-  @override
-  @failingTest
-  test_constMapKeyTypeImplementsEquals_factory() async {
-    await super.test_constMapKeyTypeImplementsEquals_factory();
-  }
-
-  @override
-  @failingTest
-  test_constMapKeyTypeImplementsEquals_super() async {
-    await super.test_constMapKeyTypeImplementsEquals_super();
   }
 
   @override
@@ -413,18 +323,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @failingTest
   test_fieldInitializingFormalRedirectingConstructor() async {
     return super.test_fieldInitializingFormalRedirectingConstructor();
-  }
-
-  @override
-  @failingTest
-  test_fromEnvironment_bool_badArgs() async {
-    await super.test_fromEnvironment_bool_badArgs();
-  }
-
-  @override
-  @failingTest
-  test_fromEnvironment_bool_badDefault_whenDefined() async {
-    await super.test_fromEnvironment_bool_badDefault_whenDefined();
   }
 
   @override
@@ -630,24 +528,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30959')
   test_importOfNonLibrary() async {
     return super.test_importOfNonLibrary();
-  }
-
-  @override
-  @failingTest
-  test_inconsistentCaseExpressionTypes() async {
-    await super.test_inconsistentCaseExpressionTypes();
-  }
-
-  @override
-  @failingTest
-  test_inconsistentCaseExpressionTypes_dynamic() async {
-    await super.test_inconsistentCaseExpressionTypes_dynamic();
-  }
-
-  @override
-  @failingTest
-  test_inconsistentCaseExpressionTypes_repeated() async {
-    await super.test_inconsistentCaseExpressionTypes_repeated();
   }
 
   @override
@@ -1076,42 +956,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_nonConstantDefaultValue_function_named() async {
-    await super.test_nonConstantDefaultValue_function_named();
-  }
-
-  @override
-  @failingTest
-  test_nonConstantDefaultValue_function_positional() async {
-    await super.test_nonConstantDefaultValue_function_positional();
-  }
-
-  @override
-  @failingTest
-  test_nonConstantDefaultValue_inConstructor_named() async {
-    await super.test_nonConstantDefaultValue_inConstructor_named();
-  }
-
-  @override
-  @failingTest
-  test_nonConstantDefaultValue_inConstructor_positional() async {
-    await super.test_nonConstantDefaultValue_inConstructor_positional();
-  }
-
-  @override
-  @failingTest
-  test_nonConstantDefaultValue_method_named() async {
-    await super.test_nonConstantDefaultValue_method_named();
-  }
-
-  @override
-  @failingTest
-  test_nonConstantDefaultValue_method_positional() async {
-    await super.test_nonConstantDefaultValue_method_positional();
-  }
-
-  @override
-  @failingTest
   test_nonConstantDefaultValueFromDeferredLibrary() async {
     await super.test_nonConstantDefaultValueFromDeferredLibrary();
   }
@@ -1120,18 +964,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @failingTest
   test_nonConstantDefaultValueFromDeferredLibrary_nested() async {
     await super.test_nonConstantDefaultValueFromDeferredLibrary_nested();
-  }
-
-  @override
-  @failingTest
-  test_nonConstValueInInitializer_binary_notInt() async {
-    await super.test_nonConstValueInInitializer_binary_notInt();
-  }
-
-  @override
-  @failingTest
-  test_nonConstValueInInitializer_binary_notNum() async {
-    await super.test_nonConstValueInInitializer_binary_notNum();
   }
 
   @override
@@ -1286,21 +1118,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   test_privateCollisionInMixinApplication_superclassAndMixin_same() async {
     await super
         .test_privateCollisionInMixinApplication_superclassAndMixin_same();
-  }
-
-  @override
-  @failingTest
-  @override
-  @failingTest
-  test_recursiveCompileTimeConstant() async {
-    await super.test_recursiveCompileTimeConstant();
-  }
-
-  @override
-  @failingTest
-  test_recursiveCompileTimeConstant_initializer_after_toplevel_var() async {
-    await super
-        .test_recursiveCompileTimeConstant_initializer_after_toplevel_var();
   }
 
   @override
@@ -1548,12 +1365,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_symbol_constructor_badArgs() async {
-    await super.test_symbol_constructor_badArgs();
-  }
-
-  @override
-  @failingTest
   test_typeArgumentNotMatchingBounds_const() async {
     await super.test_typeArgumentNotMatchingBounds_const();
   }
@@ -1627,6 +1438,20 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @override
   @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
+  test_wrongNumberOfParametersForSetter_function_named() async {
+    return super.test_wrongNumberOfParametersForSetter_function_named();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
+  test_wrongNumberOfParametersForSetter_function_optional() async {
+    return super.test_wrongNumberOfParametersForSetter_function_optional();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
   test_wrongNumberOfParametersForSetter_function_tooFew() async {
     return super.test_wrongNumberOfParametersForSetter_function_tooFew();
   }
@@ -1636,6 +1461,20 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
   test_wrongNumberOfParametersForSetter_function_tooMany() async {
     return super.test_wrongNumberOfParametersForSetter_function_tooMany();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
+  test_wrongNumberOfParametersForSetter_method_named() async {
+    return super.test_wrongNumberOfParametersForSetter_method_named();
+  }
+
+  @override
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31096')
+  test_wrongNumberOfParametersForSetter_method_optional() async {
+    return super.test_wrongNumberOfParametersForSetter_method_optional();
   }
 
   @override

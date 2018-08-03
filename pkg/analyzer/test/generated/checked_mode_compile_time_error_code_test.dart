@@ -419,10 +419,19 @@ const int y = 1;
 var v = const C<String>();
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
-      StaticTypeWarningCode.INVALID_ASSIGNMENT
-    ]);
+    assertErrors(
+      source,
+      useCFE
+          ? [
+              CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+              StaticTypeWarningCode.INVALID_ASSIGNMENT
+            ]
+          : [
+              CheckedModeCompileTimeErrorCode
+                  .CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
+              StaticTypeWarningCode.INVALID_ASSIGNMENT
+            ],
+    );
     verify([source]);
   }
 
@@ -451,7 +460,15 @@ const int y = 1;
 var v = const C<int>();
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    assertErrors(
+      source,
+      useCFE
+          ? [
+              CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+              StaticTypeWarningCode.INVALID_ASSIGNMENT
+            ]
+          : [StaticTypeWarningCode.INVALID_ASSIGNMENT],
+    );
     verify([source]);
   }
 

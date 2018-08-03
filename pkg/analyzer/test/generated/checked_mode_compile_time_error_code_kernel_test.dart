@@ -26,40 +26,10 @@ class CheckedModeCompileTimeErrorCodeTest_Kernel
 
   @failingTest
   @override
-  test_assertion_throws() async {
-    // Not yet generating errors in kernel mode.
-    await super.test_assertion_throws();
-  }
-
-  @failingTest
-  @override
   test_fieldFormalParameterAssignableToField_fieldType_unresolved_null() async {
     // Expected 1 errors of type StaticWarningCode.UNDEFINED_CLASS, found 0
     await super
         .test_fieldFormalParameterAssignableToField_fieldType_unresolved_null();
-  }
-
-  @failingTest
-  @override
-  test_fieldFormalParameterNotAssignableToField() async {
-    // Expected 1 errors of type CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, found 0;
-    //          1 errors of type StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0
-    await super.test_fieldFormalParameterNotAssignableToField();
-  }
-
-  @failingTest
-  @override
-  test_fieldFormalParameterNotAssignableToField_extends() async {
-    // Expected 1 errors of type CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, found 0
-    await super.test_fieldFormalParameterNotAssignableToField_extends();
-  }
-
-  @failingTest
-  @override
-  test_fieldFormalParameterNotAssignableToField_fieldType() async {
-    // Expected 1 errors of type CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, found 0;
-    //          1 errors of type StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0
-    await super.test_fieldFormalParameterNotAssignableToField_fieldType();
   }
 
   @failingTest
@@ -73,67 +43,9 @@ class CheckedModeCompileTimeErrorCodeTest_Kernel
 
   @failingTest
   @override
-  test_fieldFormalParameterNotAssignableToField_implements() async {
-    // Expected 1 errors of type CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, found 0
-    await super.test_fieldFormalParameterNotAssignableToField_implements();
-  }
-
-  @failingTest
-  @override
-  test_fieldFormalParameterNotAssignableToField_list() async {
-    // Expected 1 errors of type CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, found 0
-    await super.test_fieldFormalParameterNotAssignableToField_list();
-  }
-
-  @failingTest
-  @override
-  test_fieldFormalParameterNotAssignableToField_map_keyMismatch() async {
-    // Expected 1 errors of type CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, found 0
-    await super.test_fieldFormalParameterNotAssignableToField_map_keyMismatch();
-  }
-
-  @failingTest
-  @override
-  test_fieldFormalParameterNotAssignableToField_map_valueMismatch() async {
-    // Expected 1 errors of type CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, found 0
-    await super
-        .test_fieldFormalParameterNotAssignableToField_map_valueMismatch();
-  }
-
-  @failingTest
-  @override
-  test_fieldFormalParameterNotAssignableToField_optional() async {
-    // UnimplementedError: kernel: (Let) let final dynamic #t1 = "foo" in let ...
-    await super.test_fieldFormalParameterNotAssignableToField_optional();
-  }
-
-  @failingTest
-  @override
-  test_fieldFormalParameterNotAssignableToField_typedef() async {
-    // Expected 1 errors of type CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, found 0;
-    //          1 errors of type StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0
-    await super.test_fieldFormalParameterNotAssignableToField_typedef();
-  }
-
-  @failingTest
-  @override
   test_fieldInitializerNotAssignable() async {
     // UnimplementedError: kernel: (Let) let final dynamic #t2 = "" in let ...
     await super.test_fieldInitializerNotAssignable();
-  }
-
-  @failingTest
-  @override
-  test_fieldTypeMismatch() async {
-    // UnimplementedError: kernel: (AsExpression) x as{TypeError} dart.core::int
-    await super.test_fieldTypeMismatch();
-  }
-
-  @failingTest
-  @override
-  test_fieldTypeMismatch_generic() async {
-    // UnimplementedError: kernel: (Let) let final dynamic #t3 = #lib1::y in let ...
-    await super.test_fieldTypeMismatch_generic();
   }
 
   @failingTest
@@ -159,30 +71,12 @@ class CheckedModeCompileTimeErrorCodeTest_Kernel
   }
 
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31936')
-  @override
-  test_listLiteral_inferredElementType() async =>
-      super.test_listLiteral_inferredElementType();
-
-  @failingTest
   @override
   test_mapKeyTypeNotAssignable() async {
     // Expected 1 errors of type CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, found 0;
     //          1 errors of type StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, found 0
     await super.test_mapKeyTypeNotAssignable();
   }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31936')
-  @override
-  test_mapLiteral_inferredKeyType() async =>
-      super.test_mapLiteral_inferredKeyType();
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31936')
-  @override
-  test_mapLiteral_inferredValueType() async =>
-      super.test_mapLiteral_inferredValueType();
 
   @failingTest
   @override
@@ -201,22 +95,6 @@ class CheckedModeCompileTimeErrorCodeTest_Kernel
 
   @failingTest
   @override
-  test_parameterNotAssignable() async {
-    // Expected 1 errors of type CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, found 0;
-    //          1 errors of type StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0
-    await super.test_parameterNotAssignable();
-  }
-
-  @failingTest
-  @override
-  test_parameterNotAssignable_typeSubstitution() async {
-    // Expected 1 errors of type CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, found 0;
-    //          1 errors of type StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0
-    await super.test_parameterNotAssignable_typeSubstitution();
-  }
-
-  @failingTest
-  @override
   test_parameterNotAssignable_undefined() async {
     // Expected 1 errors of type CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, found 0;
     //          1 errors of type StaticWarningCode.UNDEFINED_CLASS, found 0
@@ -225,30 +103,9 @@ class CheckedModeCompileTimeErrorCodeTest_Kernel
 
   @failingTest
   @override
-  test_redirectingConstructor_paramTypeMismatch() async {
-    // Bad state: Expected element reference for analyzer offset 33; got one for kernel offset 36
-    await super.test_redirectingConstructor_paramTypeMismatch();
-  }
-
-  @failingTest
-  @override
-  test_superConstructor_paramTypeMismatch() async {
-    // UnimplementedError: kernel: (AsExpression) d as{TypeError} dart.core::double
-    await super.test_superConstructor_paramTypeMismatch();
-  }
-
-  @failingTest
-  @override
   test_topLevelVarAssignable_undefined_null() async {
     // Expected 1 errors of type StaticWarningCode.UNDEFINED_CLASS, found 0
     await super.test_topLevelVarAssignable_undefined_null();
-  }
-
-  @failingTest
-  @override
-  test_topLevelVarNotAssignable() async {
-    // UnimplementedError: kernel: (Let) let final dynamic #t5 = "foo" in let ...
-    await super.test_topLevelVarNotAssignable();
   }
 
   @failingTest

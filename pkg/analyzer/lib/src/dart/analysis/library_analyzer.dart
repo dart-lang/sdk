@@ -132,6 +132,7 @@ class LibraryAnalyzer {
         _computePendingMissingRequiredParameters(file, unit);
       });
 
+      units.values.forEach(_findConstants);
       _computeConstants();
 
       PerformanceStatistics.errors.makeCurrentWhile(() {
@@ -229,7 +230,13 @@ class LibraryAnalyzer {
           });
         });
 
+        units.values.forEach(_findConstants);
         _computeConstants();
+
+        units.forEach((file, unit) {
+          ErrorReporter errorReporter = _getErrorReporter(file);
+          _computeConstantErrors(errorReporter, unit);
+        });
 
         if (_analysisOptions.hint) {
           PerformanceStatistics.hints.makeCurrentWhile(() {
@@ -273,6 +280,13 @@ class LibraryAnalyzer {
       });
       return results;
     });
+  }
+
+  void _computeConstantErrors(
+      ErrorReporter errorReporter, CompilationUnit unit) {
+    ConstantVerifier constantVerifier = new ConstantVerifier(
+        errorReporter, _libraryElement, _typeProvider, _declaredVariables);
+    unit.accept(constantVerifier);
   }
 
   /**
@@ -428,9 +442,7 @@ class LibraryAnalyzer {
     //
     // Use the ConstantVerifier to compute errors.
     //
-    ConstantVerifier constantVerifier = new ConstantVerifier(
-        errorReporter, _libraryElement, _typeProvider, _declaredVariables);
-    unit.accept(constantVerifier);
+    _computeConstantErrors(errorReporter, unit);
 
     //
     // Use the ErrorVerifier to compute errors.
@@ -468,6 +480,17 @@ class LibraryAnalyzer {
     }
 
     return errors.where((AnalysisError e) => !isIgnored(e)).toList();
+  }
+
+  /// Find constants to compute.
+  void _findConstants(CompilationUnit unit) {
+    ConstantFinder constantFinder = new ConstantFinder();
+    unit.accept(constantFinder);
+    _constants.addAll(constantFinder.constantsToCompute);
+
+    var dependenciesFinder = new ConstantExpressionsDependenciesFinder();
+    unit.accept(dependenciesFinder);
+    _constants.addAll(dependenciesFinder.dependencies);
   }
 
   RecordingErrorListener _getErrorListener(FileState file) =>
@@ -709,24 +732,6 @@ class LibraryAnalyzer {
 
     unit.accept(new ResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener));
-
-    //
-    // Find constants to compute.
-    //
-    {
-      ConstantFinder constantFinder = new ConstantFinder();
-      unit.accept(constantFinder);
-      _constants.addAll(constantFinder.constantsToCompute);
-    }
-
-    //
-    // Find constant dependencies to compute.
-    //
-    {
-      var finder = new ConstantExpressionsDependenciesFinder();
-      unit.accept(finder);
-      _constants.addAll(finder.dependencies);
-    }
   }
 
   void _resolveFile2(FileState file, CompilationUnitImpl unit,
@@ -847,29 +852,16 @@ class LibraryAnalyzer {
         variableList.type?.accept(applier);
         for (var variable in variables.reversed) {
           variable.initializer?.accept(applier);
+          var element = variable.declaredElement;
+          if (element is ConstVariableElement) {
+            (element as ConstVariableElement).constantInitializer =
+                variable.initializer;
+          }
         }
         applier.applyToAnnotations(declaration);
       } else {
         throw new StateError('(${declaration.runtimeType}) $declaration');
       }
-    }
-
-    //
-    // Find constants to compute.
-    //
-    {
-      ConstantFinder constantFinder = new ConstantFinder();
-      unit.accept(constantFinder);
-      _constants.addAll(constantFinder.constantsToCompute);
-    }
-
-    //
-    // Find constant dependencies to compute.
-    //
-    {
-      var finder = new ConstantExpressionsDependenciesFinder();
-      unit.accept(finder);
-      _constants.addAll(finder.dependencies);
     }
   }
 
