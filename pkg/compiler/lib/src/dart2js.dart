@@ -731,7 +731,7 @@ Supported options:
     we intend to keep the -O* flags stable. New safe optimizations may be added
     on any level, and optimizations that only work on some programs may move up
     from one level to the next (for instance, once alternative safe
-    optimizations are implemented, `omit-implicit-checks` may be removed of may
+    optimizations are implemented, `omit-implicit-checks` may be removed or may
     move to the O4 level).
 
 The following individual options are included in some of the -O optimization
