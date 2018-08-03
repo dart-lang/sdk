@@ -82,8 +82,6 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     // the interceptor is already available in a local variable, but it is
     // possible that all uses can be rewritten to use different constants.
 
-    // TODO(sra): Also do self-interceptor rewrites on a per-use basis.
-
     HInstruction constant = tryComputeConstantInterceptor(
         invoke.inputs[1], interceptor.interceptedClasses);
     if (constant != null) {
@@ -92,16 +90,18 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     return false;
   }
 
-  bool canUseSelfForInterceptor(
-      HInstruction receiver, Set<ClassEntity> interceptedClasses) {
+  bool canUseSelfForInterceptor(HInstruction receiver,
+      {Set<ClassEntity> interceptedClasses}) {
     if (receiver.canBePrimitive(_abstractValueDomain)) {
       // Primitives always need interceptors.
       return false;
     }
-    if (receiver.canBeNull(_abstractValueDomain) &&
-        interceptedClasses.contains(_commonElements.jsNullClass)) {
-      // Need the JSNull interceptor.
-      return false;
+    if (receiver.canBeNull(_abstractValueDomain)) {
+      if (interceptedClasses == null ||
+          interceptedClasses.contains(_commonElements.jsNullClass)) {
+        // Need the JSNull interceptor.
+        return false;
+      }
     }
 
     // All intercepted classes extend `Interceptor`, so if the receiver can't be
@@ -111,13 +111,6 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
   HInstruction tryComputeConstantInterceptor(
       HInstruction input, Set<ClassEntity> interceptedClasses) {
-    if (input == _graph.explicitReceiverParameter) {
-      // If `explicitReceiverParameter` is set it means the current method is an
-      // interceptor method, and `this` is the interceptor.  The caller just did
-      // `getInterceptor(foo).currentMethod(foo)` to enter the current method.
-      return _graph.thisInstruction;
-    }
-
     ClassEntity constantInterceptor = tryComputeConstantInterceptorFromType(
         input.instructionType, interceptedClasses);
 
@@ -191,8 +184,21 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     return result;
   }
 
+  static int useCount(HInstruction user, HInstruction used) =>
+      user.inputs.where((input) => input == used).length;
+
   bool visitInterceptor(HInterceptor node) {
-    if (node.isConstant()) return false;
+    if (node.receiver.nonCheck() == _graph.explicitReceiverParameter) {
+      // If `explicitReceiverParameter` is set it means the current method is an
+      // interceptor method, and `this` is the interceptor.  The caller just did
+      // `getInterceptor(foo).currentMethod(foo)` to enter the current method.
+      node.block.rewrite(node, _graph.thisInstruction);
+      return true;
+    }
+
+    rewriteSelfInterceptorUses(node);
+
+    if (node.usedBy.isEmpty) return true;
 
     // Specialize the interceptor with set of classes it intercepts, considering
     // all uses.  (The specialized interceptor has a shorter dispatch chain).
@@ -208,9 +214,6 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     // implement `hashCode`. But in this example, `a.hashCode` is only reached
     // if `a.length` succeeds, which is indicated by the hashCode receiver being
     // a HTypeKnown instruction.
-
-    int useCount(HInstruction user, HInstruction used) =>
-        user.inputs.where((input) => input == used).length;
 
     Set<ClassEntity> interceptedClasses;
     HInstruction dominator = findDominator(node.usedBy);
@@ -281,18 +284,6 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     node.interceptedClasses = interceptedClasses;
 
     HInstruction receiver = node.receiver;
-
-    // TODO(sra): We should consider each use individually and then all uses
-    // together.  Each use might permit a different rewrite due to a refined
-    // receiver type.  Self-interceptor rewrites are always beneficial since the
-    // receiver is live at a invocation.  Constant-interceptor rewrites are only
-    // guaranteed to be beneficial if they can eliminate the need for the
-    // interceptor or reduce the uses to one that can be simplified with a
-    // one-shot interceptor or optimized is-check.
-
-    if (canUseSelfForInterceptor(receiver, interceptedClasses)) {
-      return rewriteToUseSelfAsInterceptor(node, receiver);
-    }
 
     // Try computing a constant interceptor.
     HInstruction constantInterceptor =
@@ -381,23 +372,62 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     return false;
   }
 
-  bool rewriteToUseSelfAsInterceptor(HInterceptor node, HInstruction receiver) {
-    for (HInstruction user in node.usedBy.toList()) {
-      if (user is HIs) {
-        user.changeUse(node, receiver);
-      } else {
-        // Use the potentially self-argument as new receiver. Note that the
-        // self-argument could potentially have a tighter type than the
-        // receiver which was the input to the interceptor.
-        assert(user.inputs[0] == node);
-        assert(receiver.nonCheck() == user.inputs[1].nonCheck());
-        user.changeUse(node, user.inputs[1]);
+  void rewriteSelfInterceptorUses(HInterceptor node) {
+    HInstruction receiver = node.receiver;
+
+    // At instructions that use the interceptor and its receiver, the receiver
+    // might be refined at the use site.
+
+    //     dynamic x = ...
+    //     if (x is Mumble) {
+    //       print(x.length);  // Self-interceptor here.
+    //     } else {
+    //       print(x.length);  //
+    //     }
+
+    finishInvoke(HInvoke invoke, Selector selector) {
+      HInstruction callReceiver = invoke.getDartReceiver(_closedWorld);
+      if (receiver.nonCheck() == callReceiver.nonCheck()) {
+        Set<ClassEntity> interceptedClasses = _interceptorData
+            .getInterceptedClassesOn(selector.name, _closedWorld);
+
+        if (canUseSelfForInterceptor(callReceiver,
+            interceptedClasses: interceptedClasses)) {
+          invoke.changeUse(node, callReceiver);
+        }
       }
     }
-    return false;
+
+    for (HInstruction user in node.usedBy.toList()) {
+      if (user is HIs) {
+        if (user.interceptor == node) {
+          HInstruction expression = user.expression;
+          if (canUseSelfForInterceptor(expression)) {
+            user.changeUse(node, expression);
+          }
+        }
+      } else if (user is HInvokeDynamic) {
+        if (user.isCallOnInterceptor(_closedWorld) &&
+            node == user.inputs[0] &&
+            useCount(user, node) == 1) {
+          finishInvoke(user, user.selector);
+        }
+      } else if (user is HInvokeSuper) {
+        if (user.isCallOnInterceptor(_closedWorld) &&
+            node == user.inputs[0] &&
+            useCount(user, node) == 1) {
+          finishInvoke(user, user.selector);
+        }
+      } else {
+        // TODO(sra): Are there other paired uses of the receiver and
+        // interceptor where we can make use of a strengthened receiver?
+      }
+    }
   }
 
   bool visitOneShotInterceptor(HOneShotInterceptor node) {
+    // 'Undo' the one-shot transformation if the receiver has a constant
+    // interceptor.
     HInstruction constant =
         tryComputeConstantInterceptor(node.inputs[1], node.interceptedClasses);
 
