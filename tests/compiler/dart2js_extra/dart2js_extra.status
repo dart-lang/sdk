@@ -117,10 +117,10 @@ int_index_test/02: MissingCompileTimeError
 local_signature_test: RuntimeError # Test against function type variables is only supported in strong mode.
 switch_test/00: MissingCompileTimeError
 
-[ $compiler == dart2js && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == ff || $runtime == safari) ]
+[ $compiler == dart2js && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == ff || $runtime == safari) ]
 isolate2_test/01: Fail # Issue 14458.
 
-[ $compiler == dart2js && ($runtime == drt || $runtime == ff || $runtime == jsshell || $runtime == safari) ]
+[ $compiler == dart2js && ($runtime == ff || $runtime == jsshell || $runtime == safari) ]
 code_motion_exception_test: Skip # Required V8 specific format of JavaScript errors.
 
 [ $compiler == dart2js && ($browser || $host_checked) ]

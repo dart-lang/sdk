@@ -104,9 +104,6 @@ initializer_super_last_test/cc32: MissingCompileTimeError # Was valid in Dart 1.
 [ $compiler != dartdevc && !$checked ]
 function_type/*: Skip # Needs checked mode.
 
-[ $compiler == none && $runtime == drt && !$checked ]
-assertion_initializer_const_error_test/01: Fail
-
 [ $compiler != spec_parser && $runtime != none && !$checked && !$strong ]
 closure_type_test: RuntimeError
 map_literal1_test/01: MissingCompileTimeError

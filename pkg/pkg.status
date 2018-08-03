@@ -209,9 +209,6 @@ front_end/test/src/base/uri_resolver_test: SkipByDesign # Relies on access to fi
 [ $compiler == dart2js && $runtime != d8 ]
 front_end/test/mixin_export_test: RuntimeError # Issue 30576
 
-[ $compiler == dart2js && $runtime == drt ]
-async/test/stream_zip_test: RuntimeError, Pass # Issue 18548
-
 [ $compiler == dart2js && $browser ]
 crypto/test/sha1_test: Slow, Pass
 crypto/test/sha256_test: Slow, Pass
@@ -228,11 +225,6 @@ status_file/test/status_expression_dnf_test: RuntimeError # not strong-clean
 [ $compiler == dart2js && ($runtime == chrome || $runtime == ff) ]
 async/test/stream_zip_test: SkipSlow # Times out. Issue 22050
 collection/test/unmodifiable_collection_test: SkipSlow # Times out. Issue 22050
-
-[ $compiler == none && $runtime == drt ]
-front_end/*: SkipByDesign
-mutation_observer: Skip # Issue 21149
-unittest/*: Skip # Issue 21949
 
 [ $runtime == vm && $system == windows ]
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180

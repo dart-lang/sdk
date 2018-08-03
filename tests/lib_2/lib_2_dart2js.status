@@ -349,9 +349,6 @@ html/js_extend_class_test: RuntimeError
 [ $compiler == dart2js && $runtime != d8 && !$strong ]
 html/js_dart_functions_test: RuntimeError # does not implement Dart 2 implicit `.call` tearoff
 
-[ $compiler == dart2js && $runtime == drt && !$checked ]
-html/audiocontext_test/functional: Pass, Fail
-
 [ $compiler == dart2js && $runtime == ff ]
 async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 22050

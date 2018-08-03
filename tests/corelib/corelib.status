@@ -126,12 +126,6 @@ string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
 [ $compiler == dart2js && $runtime != d8 ]
 main_test: RuntimeError
 
-[ $compiler == dart2js && $runtime == drt ]
-string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
-
-[ $compiler == dart2js && $runtime == drt && $csp && $minified ]
-core_runtime_types_test: Pass, Fail # Issue 27913
-
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
@@ -425,10 +419,6 @@ symbol_test/01: MissingCompileTimeError
 [ $runtime != d8 && $runtime != dart_precompiled && $runtime != vm ]
 regexp/*: Skip # The regexp tests are not verified to work on non d8/vm platforms yet.
 
-[ $runtime != drt && ($compiler == app_jit || $compiler == none || $compiler == precompiler) ]
-symbol_test/02: MissingCompileTimeError # bug 11669
-symbol_test/03: MissingCompileTimeError # bug 11669
-
 [ $arch == simdbc || $arch == simdbc64 ]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
 
@@ -445,6 +435,8 @@ symbol_reserved_word_test/09: RuntimeError # bug 11669
 symbol_reserved_word_test/10: MissingCompileTimeError # bug 11669, 19972
 symbol_reserved_word_test/12: RuntimeError # bug 11669
 symbol_test/01: Fail, Pass # bug 11669
+symbol_test/02: MissingCompileTimeError # bug 11669
+symbol_test/03: MissingCompileTimeError # bug 11669
 symbol_test/none: Fail # bug 11669
 unicode_test: Fail # Bug 6706
 

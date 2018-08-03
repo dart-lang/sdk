@@ -20,11 +20,6 @@ html/element_animate_test/timing_dict: RuntimeError # Issue 29922
 html/element_types_keygen_test: CompileTimeError # Issue 29055
 html/js_dispatch_property_test: Skip # Timeout Issue 31030
 
-[ $runtime == drt && ($compiler == dartdevc || $compiler == dartdevk) ]
-html/svg_test: RuntimeError # Issue 29922
-math/math2_test: RuntimeError # Issue 29922
-math/math_test: RuntimeError # Issue 29922
-
 [ $system == linux && ($compiler == dartdevc || $compiler == dartdevk) ]
 html/interactive_geolocation_test: Skip # Requires allowing geo location.
 

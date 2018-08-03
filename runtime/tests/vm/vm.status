@@ -252,9 +252,6 @@ dart/issue32950_test: SkipByDesign # uses spawnUri.
 dart/redirection_type_shuffling_test: SkipByDesign # Includes dart:mirrors.
 dart/spawn_shutdown_test: SkipSlow
 
-[ $compiler == none && $runtime == drt ]
-dart/truncating_ints_test: Skip # Issue 14651
-
 [ $mode == debug && $system == windows ]
 dart/spawn_shutdown_test: Skip # Flaky crashes unable to start thread; likely low memory on the bot.
 
