@@ -598,14 +598,24 @@ class Server {
    */
   void listenToOutput(NotificationProcessor notificationProcessor) {
     _process.stdout
-        .transform((new Utf8Codec()).decoder)
+        .transform(utf8.decoder)
         .transform(new LineSplitter())
         .listen((String line) {
       lastCommunicationTime = currentElapseTime;
       String trimmedLine = line.trim();
-      if (trimmedLine.startsWith('Observatory listening on ')) {
+
+      // Guard against lines like:
+      //   {"event":"server.connected","params":{...}}Observatory listening on ...
+      final String observatoryMessage = 'Observatory listening on ';
+      if (trimmedLine.contains(observatoryMessage)) {
+        trimmedLine = trimmedLine
+            .substring(0, trimmedLine.indexOf(observatoryMessage))
+            .trim();
+      }
+      if (trimmedLine.isEmpty) {
         return;
       }
+
       _recordStdio('<== $trimmedLine');
       var message;
       try {
