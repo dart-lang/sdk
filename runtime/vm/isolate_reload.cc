@@ -594,7 +594,7 @@ void IsolateReloadContext::Reload(bool force_reload,
       intptr_t modified_scripts_count = 0;
 
       FindModifiedSources(thread, force_reload, &modified_scripts,
-                          &modified_scripts_count);
+                          &modified_scripts_count, packages_url_);
 
       Dart_KernelCompilationResult retval;
       {
@@ -1014,7 +1014,8 @@ void IsolateReloadContext::FindModifiedSources(
     Thread* thread,
     bool force_reload,
     Dart_SourceFile** modified_sources,
-    intptr_t* count) {
+    intptr_t* count,
+    const char* packages_url) {
   Zone* zone = thread->zone();
   int64_t last_reload = I->last_reload_timestamp();
   GrowableArray<const char*> modified_sources_uris;
@@ -1043,6 +1044,15 @@ void IsolateReloadContext::FindModifiedSources(
       if (force_reload || ScriptModifiedSince(script, last_reload)) {
         modified_sources_uris.Add(uri.ToCString());
       }
+    }
+  }
+
+  // In addition to all sources, we need to check if the .packages file
+  // contents have been modified.
+  if (packages_url != NULL) {
+    if (file_modified_callback_ == NULL ||
+        (*file_modified_callback_)(packages_url, last_reload)) {
+      modified_sources_uris.Add(packages_url);
     }
   }
 
