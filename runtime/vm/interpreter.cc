@@ -1038,7 +1038,9 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
           }
         }
       }
-      reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words] = value;
+      instance->StorePointer(
+          reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
+          value);
       *SP = call_base;
       **SP = null_value;
       *invoked = true;
