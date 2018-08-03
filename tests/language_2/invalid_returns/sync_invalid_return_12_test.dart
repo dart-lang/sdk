@@ -4,11 +4,15 @@
 
 import 'dart:async';
 
-void main() {
-  test();
+/*
+* `return exp;` where `exp` has static type `S` is an error if `S` is `void` and
+  `T` is not `void`, or `dynamic` or `Null`.
+*/
+void v = null;
+int test() {
+  return /*@compile-error=unspecified*/ v;
 }
 
-// Testing that a block bodied async function may not return FutureOr<void>
-void test() async {
-  return /*@compile-error=unspecified*/ null as FutureOr<void>;
+void main() {
+  test();
 }

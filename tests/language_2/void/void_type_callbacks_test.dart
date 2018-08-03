@@ -9,8 +9,7 @@ import 'package:expect/expect.dart';
 class A<T> {
   T x;
 
-  foo(T x) {
-  }
+  foo(T x) {}
 
   T bar(T f()) {
     T tmp = f();
@@ -29,10 +28,10 @@ int intFun() => 42;
 
 main() {
   A<void> a = new A<void>();
-  a.foo(a.x);  //# 00: compile-time error
+  a.foo(a.x);
   a.bar(voidFun);
   Expect.equals(null, a.xAsObject());
-  a.x = a.bar(voidFun);  //# 01: compile-time error
+  a.x = a.bar(voidFun);
   a.gee(voidFun);
   Expect.equals(499, a.xAsObject());
   a.gee(intFun);

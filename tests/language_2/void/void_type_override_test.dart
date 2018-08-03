@@ -59,7 +59,7 @@ class C implements A<void> {
   void foo() {}
   void bar() {}
   void gee(void x) {
-    use(x);  //# 03: compile-time error
+    use(x);
   }
 
   f(covariant C c) {}

@@ -5,6 +5,18 @@
 // Testing that the reserved word `void` is allowed to occur as a type, not
 // just as a return type.
 
+typedef F = void Function(Object);
+typedef F2 = void Function([Object]);
+typedef F3 = void Function({Object x});
+
+typedef G = void Function(void);
+typedef G2 = void Function([void]);
+typedef G3 = void Function({void x});
+
+typedef H = int Function(void);
+typedef H2 = int Function([void]);
+typedef H3 = int Function({void x});
+
 class A<T> {
   final T t;
   const A(this.t);
