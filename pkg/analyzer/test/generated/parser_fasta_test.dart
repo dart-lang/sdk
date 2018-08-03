@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart' as analyzer;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -420,6 +421,22 @@ class FastaParserTestCase extends Object
     return cascadeExpression.cascadeSections.first;
   }
 
+  CommentReference parseCommentReference(
+      String referenceSource, int sourceOffset) {
+    String padding = ' '.padLeft(sourceOffset - 4, 'a');
+    String source = '/**$padding[$referenceSource] */ class C { }';
+    CompilationUnit unit = parseCompilationUnit(source);
+    ClassDeclaration clazz = unit.declarations[0];
+    Comment comment = clazz.documentationComment;
+    List<CommentReference> references = comment.references;
+    if (references.isEmpty) {
+      return null;
+    } else {
+      expect(references, hasLength(1));
+      return references[0];
+    }
+  }
+
   @override
   CompilationUnit parseCompilationUnit(String content,
       {List<ErrorCode> codes, List<ExpectedError> errors}) {
@@ -829,6 +846,22 @@ class ParserProxy extends analyzer.ParserAdapter {
   }
 
   @override
+  List<CommentReference> parseCommentReferences(
+      List<DocumentationCommentToken> tokens) {
+    for (int index = 0; index < tokens.length - 1; ++index) {
+      analyzer.Token next = tokens[index].next;
+      if (next == null) {
+        tokens[index].setNext(tokens[index + 1]);
+      } else {
+        expect(next, tokens[index + 1]);
+      }
+    }
+    expect(tokens[tokens.length - 1].next, isNull);
+    // TODO(danrubel): Implement this
+    return null;
+  }
+
+  @override
   CompilationUnit parseCompilationUnit2() {
     CompilationUnit result = super.parseCompilationUnit2();
     expect(currentToken.isEof, isTrue, reason: currentToken.lexeme);
@@ -980,7 +1013,97 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
 @reflectiveTest
 class SimpleParserTest_Fasta extends FastaParserTestCase
-    with SimpleParserTestMixin {}
+    with SimpleParserTestMixin {
+  @override
+  @failingTest
+  void test_parseCommentReferences_multiLine() {
+    super.test_parseCommentReferences_multiLine();
+  }
+
+  @override
+  @failingTest
+  void test_parseCommentReferences_notClosed_noIdentifier() {
+    super.test_parseCommentReferences_notClosed_noIdentifier();
+  }
+
+  @override
+  @failingTest
+  void test_parseCommentReferences_notClosed_withIdentifier() {
+    super.test_parseCommentReferences_notClosed_withIdentifier();
+  }
+
+  @override
+  @failingTest
+  void test_parseCommentReferences_singleLine() {
+    super.test_parseCommentReferences_singleLine();
+  }
+
+  @override
+  @failingTest
+  void test_parseCommentReferences_skipCodeBlock_4spaces_block() {
+    super.test_parseCommentReferences_skipCodeBlock_4spaces_block();
+  }
+
+  @override
+  @failingTest
+  void test_parseCommentReferences_skipCodeBlock_4spaces_lines() {
+    super.test_parseCommentReferences_skipCodeBlock_4spaces_lines();
+  }
+
+  @override
+  @failingTest
+  void test_parseCommentReferences_skipCodeBlock_bracketed() {
+    super.test_parseCommentReferences_skipCodeBlock_bracketed();
+  }
+
+  @override
+  @failingTest
+  void test_parseCommentReferences_skipCodeBlock_gitHub() {
+    super.test_parseCommentReferences_skipCodeBlock_gitHub();
+  }
+
+  @override
+  @failingTest
+  void test_parseCommentReferences_skipCodeBlock_gitHub_multiLine() {
+    super.test_parseCommentReferences_skipCodeBlock_gitHub_multiLine();
+  }
+
+  @override
+  @failingTest
+  void test_parseCommentReferences_skipCodeBlock_gitHub_multiLine_lines() {
+    super.test_parseCommentReferences_skipCodeBlock_gitHub_multiLine_lines();
+  }
+
+  @override
+  @failingTest
+  void test_parseCommentReferences_skipCodeBlock_gitHub_notTerminated() {
+    super.test_parseCommentReferences_skipCodeBlock_gitHub_notTerminated();
+  }
+
+  @override
+  @failingTest
+  void test_parseCommentReferences_skipCodeBlock_spaces() {
+    super.test_parseCommentReferences_skipCodeBlock_spaces();
+  }
+
+  @override
+  @failingTest
+  void test_parseCommentReferences_skipLinkDefinition() {
+    super.test_parseCommentReferences_skipLinkDefinition();
+  }
+
+  @override
+  @failingTest
+  void test_parseCommentReferences_skipLinked() {
+    super.test_parseCommentReferences_skipLinked();
+  }
+
+  @override
+  @failingTest
+  void test_parseCommentReferences_skipReferenceLink() {
+    super.test_parseCommentReferences_skipReferenceLink();
+  }
+}
 
 /**
  * Tests of the fasta parser based on [StatementParserTestMixin].
