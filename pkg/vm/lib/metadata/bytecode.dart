@@ -5,9 +5,9 @@
 library vm.metadata.bytecode;
 
 import 'package:kernel/ast.dart';
-import 'package:vm/bytecode/constant_pool.dart' show ConstantPool;
-import 'package:vm/bytecode/disassembler.dart' show BytecodeDisassembler;
-import 'package:vm/bytecode/exceptions.dart' show ExceptionsTable;
+import '../bytecode/constant_pool.dart' show ConstantPool;
+import '../bytecode/disassembler.dart' show BytecodeDisassembler;
+import '../bytecode/exceptions.dart' show ExceptionsTable;
 
 /// Metadata containing bytecode.
 ///

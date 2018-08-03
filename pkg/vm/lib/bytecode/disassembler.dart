@@ -6,8 +6,8 @@ library vm.bytecode.disassembler;
 
 import 'dart:typed_data';
 
-import 'package:vm/bytecode/dbc.dart';
-import 'package:vm/bytecode/exceptions.dart';
+import 'dbc.dart';
+import 'exceptions.dart';
 
 class _Instruction {
   final Opcode opcode;

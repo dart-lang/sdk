@@ -20,23 +20,14 @@ import 'package:front_end/src/api_prototype/compilation_message.dart'
     show Severity;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-import 'package:kernel/ast.dart'
-    show
-        Component,
-        Constant,
-        DartType,
-        Field,
-        FileUriNode,
-        IntConstant,
-        Procedure,
-        StaticGet,
-        TreeNode;
+import 'package:kernel/ast.dart' show Component, Field, StaticGet;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/transformations/constants.dart' as constants;
 import 'package:kernel/vm/constants_native_effects.dart' as vm_constants;
 
 import 'bytecode/gen_bytecode.dart' show generateBytecode;
 
+import 'constants_error_reporter.dart' show ForwardConstantEvaluationErrors;
 import 'transformations/devirtualization.dart' as devirtualization
     show transformComponent;
 import 'transformations/mixin_deduplication.dart' as mixin_deduplication
@@ -82,13 +73,15 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
         errorDetector);
   }
 
+  if (genBytecode && !errorDetector.hasCompilationErrors && component != null) {
+    await runWithFrontEndCompilerContext(source, options, component, () {
+      generateBytecode(component,
+          strongMode: options.strongMode, dropAST: dropAST);
+    });
+  }
+
   // Restore error handler (in case 'options' are reused).
   options.onProblem = errorDetector.previousErrorHandler;
-
-  if (!errorDetector.hasCompilationErrors && genBytecode && component != null) {
-    generateBytecode(component,
-        strongMode: options.strongMode, dropAST: dropAST);
-  }
 
   return component;
 }
@@ -135,6 +128,23 @@ Future _runGlobalTransformations(
   }
 }
 
+/// Runs given [action] with [CompilerContext]. This is needed to
+/// be able to report compile-time errors.
+Future<T> runWithFrontEndCompilerContext<T>(Uri source,
+    CompilerOptions compilerOptions, Component component, T action()) async {
+  final processedOptions = new ProcessedOptions(compilerOptions, [source]);
+
+  // Run within the context, so we have uri source tokens...
+  return await CompilerContext.runWithOptions(processedOptions,
+      (CompilerContext context) async {
+    // To make the fileUri/fileOffset -> line/column mapping, we need to
+    // pre-fill the map.
+    context.uriToSource.addAll(component.uriToSource);
+
+    return action();
+  });
+}
+
 Future _performConstantEvaluation(
     Uri source,
     CompilerOptions compilerOptions,
@@ -146,15 +156,7 @@ Future _performConstantEvaluation(
   final vmConstants =
       new vm_constants.VmConstantsBackend(environmentDefines, coreTypes);
 
-  final processedOptions = new ProcessedOptions(compilerOptions, [source]);
-
-  // Run within the context, so we have uri source tokens...
-  await CompilerContext.runWithOptions(processedOptions,
-      (CompilerContext context) async {
-    // To make the fileUri/fileOffset -> line/column mapping, we need to
-    // pre-fill the map.
-    context.uriToSource.addAll(component.uriToSource);
-
+  await runWithFrontEndCompilerContext(source, compilerOptions, component, () {
     final hierarchy = new ClassHierarchy(component);
     final typeEnvironment =
         new TypeEnvironment(coreTypes, hierarchy, strongMode: strongMode);
@@ -166,8 +168,7 @@ Future _performConstantEvaluation(
         strongMode: true,
         evaluateAnnotations: true,
         enableAsserts: enableAsserts,
-        errorReporter:
-            new ForwardConstantEvaluationErrors(context, typeEnvironment));
+        errorReporter: new ForwardConstantEvaluationErrors(typeEnvironment));
   });
 }
 
@@ -230,126 +231,6 @@ class ErrorPrinter {
         }
       }
     }
-  }
-}
-
-class ForwardConstantEvaluationErrors implements constants.ErrorReporter {
-  final CompilerContext compilerContext;
-  final TypeEnvironment typeEnvironment;
-
-  ForwardConstantEvaluationErrors(this.compilerContext, this.typeEnvironment);
-
-  duplicateKey(List<TreeNode> context, TreeNode node, Constant key) {
-    final message = codes.templateConstEvalDuplicateKey.withArguments(key);
-    reportIt(context, message, node);
-  }
-
-  invalidDartType(List<TreeNode> context, TreeNode node, Constant receiver,
-      DartType expectedType) {
-    final message = codes.templateConstEvalInvalidType.withArguments(
-        receiver, expectedType, receiver.getType(typeEnvironment));
-    reportIt(context, message, node);
-  }
-
-  invalidBinaryOperandType(
-      List<TreeNode> context,
-      TreeNode node,
-      Constant receiver,
-      String op,
-      DartType expectedType,
-      DartType actualType) {
-    final message = codes.templateConstEvalInvalidBinaryOperandType
-        .withArguments(op, receiver, expectedType, actualType);
-    reportIt(context, message, node);
-  }
-
-  invalidMethodInvocation(
-      List<TreeNode> context, TreeNode node, Constant receiver, String op) {
-    final message = codes.templateConstEvalInvalidMethodInvocation
-        .withArguments(op, receiver);
-    reportIt(context, message, node);
-  }
-
-  invalidStaticInvocation(
-      List<TreeNode> context, TreeNode node, Procedure target) {
-    final message = codes.templateConstEvalInvalidStaticInvocation
-        .withArguments(target.name.toString());
-    reportIt(context, message, node);
-  }
-
-  invalidStringInterpolationOperand(
-      List<TreeNode> context, TreeNode node, Constant constant) {
-    final message = codes.templateConstEvalInvalidStringInterpolationOperand
-        .withArguments(constant);
-    reportIt(context, message, node);
-  }
-
-  zeroDivisor(
-      List<TreeNode> context, TreeNode node, IntConstant receiver, String op) {
-    final message = codes.templateConstEvalZeroDivisor
-        .withArguments(op, '${receiver.value}');
-    reportIt(context, message, node);
-  }
-
-  negativeShift(List<TreeNode> context, TreeNode node, IntConstant receiver,
-      String op, IntConstant argument) {
-    final message = codes.templateConstEvalNegativeShift
-        .withArguments(op, '${receiver.value}', '${argument.value}');
-    reportIt(context, message, node);
-  }
-
-  nonConstLiteral(List<TreeNode> context, TreeNode node, String klass) {
-    final message =
-        codes.templateConstEvalNonConstantLiteral.withArguments(klass);
-    reportIt(context, message, node);
-  }
-
-  failedAssertion(List<TreeNode> context, TreeNode node, String string) {
-    final message = string == null
-        ? codes.messageConstEvalFailedAssertion
-        : codes.templateConstEvalFailedAssertionWithMessage
-            .withArguments(string);
-    reportIt(context, message, node);
-  }
-
-  nonConstantVariableGet(
-      List<TreeNode> context, TreeNode node, String variableName) {
-    final message = codes.templateConstEvalNonConstantVariableGet
-        .withArguments(variableName);
-    reportIt(context, message, node);
-  }
-
-  reportIt(List<TreeNode> context, codes.Message message, TreeNode node) {
-    final Uri uri = getFileUri(node);
-    final int fileOffset = getFileOffset(node);
-
-    final contextMessages = <codes.LocatedMessage>[];
-    for (final TreeNode node in context) {
-      final Uri uri = getFileUri(node);
-      final int fileOffset = getFileOffset(node);
-      contextMessages.add(codes.messageConstEvalContext
-          .withLocation(uri, fileOffset, codes.noLength));
-    }
-
-    final locatedMessage =
-        message.withLocation(uri, fileOffset, codes.noLength);
-
-    compilerContext.options
-        .report(locatedMessage, Severity.error, context: contextMessages);
-  }
-
-  getFileUri(TreeNode node) {
-    while (node is! FileUriNode) {
-      node = node.parent;
-    }
-    return (node as FileUriNode).fileUri;
-  }
-
-  getFileOffset(TreeNode node) {
-    while (node?.fileOffset == TreeNode.noOffset) {
-      node = node.parent;
-    }
-    return node == null ? TreeNode.noOffset : node.fileOffset;
   }
 }
 

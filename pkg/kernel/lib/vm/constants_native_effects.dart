@@ -59,7 +59,7 @@ class VmConstantsBackend implements ConstantsBackend {
         } else {
           value = new bool.fromEnvironment(name, defaultValue: defaultValue);
         }
-        return new BoolConstant(value);
+        return value != null ? new BoolConstant(value) : new NullConstant();
       case 'Integer_fromEnvironment':
         final String name = (positionalArguments[0] as StringConstant).value;
         final Constant constant = namedArguments['defaultValue'];

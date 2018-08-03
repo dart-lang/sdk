@@ -10,18 +10,23 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/external_name.dart' show getExternalName;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/transformations/constants.dart'
-    show ConstantEvaluator, ConstantsBackend, EvaluationEnvironment;
+    show
+        ConstantEvaluator,
+        ConstantsBackend,
+        EvaluationEnvironment,
+        ErrorReporter;
 import 'package:kernel/type_algebra.dart'
     show Substitution, containsTypeVariable;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/vm/constants_native_effects.dart'
     show VmConstantsBackend;
-import 'package:vm/bytecode/assembler.dart';
-import 'package:vm/bytecode/constant_pool.dart';
-import 'package:vm/bytecode/dbc.dart';
-import 'package:vm/bytecode/exceptions.dart';
-import 'package:vm/bytecode/local_vars.dart' show LocalVariables;
-import 'package:vm/metadata/bytecode.dart';
+import 'assembler.dart';
+import 'constant_pool.dart';
+import 'dbc.dart';
+import 'exceptions.dart';
+import 'local_vars.dart' show LocalVariables;
+import '../constants_error_reporter.dart' show ForwardConstantEvaluationErrors;
+import '../metadata/bytecode.dart';
 
 /// Flag to toggle generation of bytecode in kernel files.
 const bool isKernelBytecodeEnabled = false;
@@ -32,16 +37,20 @@ const bool isKernelBytecodeEnabledForPlatform = isKernelBytecodeEnabled;
 void generateBytecode(Component component,
     {bool strongMode: true,
     bool dropAST: false,
-    bool omitSourcePositions: false}) {
+    bool omitSourcePositions: false,
+    Map<String, String> environmentDefines,
+    ErrorReporter errorReporter}) {
   final coreTypes = new CoreTypes(component);
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   final hierarchy = new ClassHierarchy(component,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
   final typeEnvironment =
       new TypeEnvironment(coreTypes, hierarchy, strongMode: strongMode);
-  final constantsBackend = new VmConstantsBackend(null, coreTypes);
+  final constantsBackend =
+      new VmConstantsBackend(environmentDefines, coreTypes);
+  final errorReporter = new ForwardConstantEvaluationErrors(typeEnvironment);
   new BytecodeGenerator(component, coreTypes, hierarchy, typeEnvironment,
-          constantsBackend, strongMode, omitSourcePositions)
+          constantsBackend, strongMode, omitSourcePositions, errorReporter)
       .visitComponent(component);
   if (dropAST) {
     new DropAST().visitComponent(component);
@@ -56,6 +65,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   final ConstantsBackend constantsBackend;
   final bool strongMode;
   final bool omitSourcePositions;
+  final ErrorReporter errorReporter;
   final BytecodeMetadataRepository metadata = new BytecodeMetadataRepository();
 
   Class enclosingClass;
@@ -78,6 +88,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   ConstantEmitter constantEmitter;
   BytecodeAssembler asm;
   List<BytecodeAssembler> savedAssemblers;
+  bool hasErrors;
 
   BytecodeGenerator(
       this.component,
@@ -86,7 +97,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       this.typeEnvironment,
       this.constantsBackend,
       this.strongMode,
-      this.omitSourcePositions) {
+      this.omitSourcePositions,
+      this.errorReporter) {
     component.addMetadataRepository(metadata);
   }
 
@@ -288,8 +300,19 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     asm.emitPushConstant(cpIndex);
   }
 
-  void _genPushConstExpr(Expression expr) {
+  Constant _evaluateConstantExpression(Expression expr) {
     final constant = constantEvaluator.evaluate(expr);
+    if (constant == null) {
+      // Compile-time error is already reported. Proceed with compilation
+      // in order to report as many errors as possible.
+      hasErrors = true;
+      return new NullConstant();
+    }
+    return constant;
+  }
+
+  void _genPushConstExpr(Expression expr) {
+    final constant = _evaluateConstantExpression(expr);
     asm.emitPushConstant(constant.accept(constantEmitter));
   }
 
@@ -526,7 +549,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (param.initializer == null) {
       return cp.add(const ConstantNull());
     }
-    final constant = constantEvaluator.evaluate(param.initializer);
+    final constant = _evaluateConstantExpression(param.initializer);
     return constant.accept(constantEmitter);
   }
 
@@ -567,6 +590,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     enclosingMember = node;
     enclosingFunction = node.function;
     parentFunction = null;
+    hasErrors = false;
     if (node.isInstanceMember ||
         node is Constructor ||
         (node is Procedure && node.isFactory)) {
@@ -595,7 +619,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     locals = new LocalVariables(node);
     // TODO(alexmarkov): improve caching in ConstantEvaluator and reuse it
     constantEvaluator = new ConstantEvaluator(constantsBackend, typeEnvironment,
-        coreTypes, strongMode, /* enableAsserts = */ true)
+        coreTypes, strongMode, /* enableAsserts = */ true, errorReporter)
       ..env = new EvaluationEnvironment();
     labeledStatements = <LabeledStatement, Label>{};
     switchCases = <SwitchCase, Label>{};
@@ -642,8 +666,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   void end(Member node) {
-    metadata.mapping[node] =
-        new BytecodeMetadata(cp, asm.bytecode, asm.exceptionsTable, closures);
+    if (!hasErrors) {
+      metadata.mapping[node] =
+          new BytecodeMetadata(cp, asm.bytecode, asm.exceptionsTable, closures);
+    }
 
     enclosingClass = null;
     enclosingMember = null;
@@ -665,6 +691,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     constantEmitter = null;
     asm = null;
     savedAssemblers = null;
+    hasErrors = false;
   }
 
   void _genPrologue(Node node, FunctionNode function) {
@@ -2269,7 +2296,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   @override
   visitVariableDeclaration(VariableDeclaration node) {
     if (node.isConst) {
-      final Constant constant = constantEvaluator.evaluate(node.initializer);
+      final Constant constant = _evaluateConstantExpression(node.initializer);
       constantEvaluator.env.addVariableValue(node, constant);
     } else {
       final bool isCaptured = locals.isCaptured(node);

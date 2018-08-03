@@ -6,8 +6,8 @@ library vm.bytecode.assembler;
 
 import 'dart:typed_data';
 
-import 'package:vm/bytecode/dbc.dart';
-import 'package:vm/bytecode/exceptions.dart' show ExceptionsTable;
+import 'dbc.dart';
+import 'exceptions.dart' show ExceptionsTable;
 
 class Label {
   List<int> _jumps = <int>[];

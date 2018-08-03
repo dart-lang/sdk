@@ -369,10 +369,10 @@ compile_time_constant_c_test/02: MissingCompileTimeError
 const_constructor_nonconst_field_test/01: MissingCompileTimeError
 const_syntax_test/05: MissingCompileTimeError
 
-# The precomilation configuration uses a kernel2kernel constants evaluator
+# The precomilation and bytecode configurations use a kernel2kernel constants evaluator
 # which is is more correct than fasta/vm in JIT mode (i.e. it catches more
 # compile-time errors).
-[ $compiler != dart2analyzer && $compiler != dartkp && $fasta ]
+[ $compiler != dart2analyzer && $compiler != dartkb && $compiler != dartkp && $fasta ]
 compile_time_constant_o_test/01: MissingCompileTimeError # Issue 32983
 compile_time_constant_o_test/02: MissingCompileTimeError # Issue 32983
 const_dynamic_type_literal_test/02: MissingCompileTimeError # Issue 32983
@@ -381,10 +381,10 @@ identical_const_test/02: MissingCompileTimeError # Issue 32983
 identical_const_test/03: MissingCompileTimeError # Issue 32983
 identical_const_test/04: MissingCompileTimeError # Issue 32983
 
-# The precomilation configuration uses a kernel2kernel constants evaluator
+# The precomilation and bytecode configurations use a kernel2kernel constants evaluator
 # which is is more correct than fasta/vm in JIT mode (i.e. it catches more
 # compile-time errors).
-[ $compiler != dart2analyzer && $compiler != dartkp && $fasta && $strong ]
+[ $compiler != dart2analyzer && $compiler != dartkb && $compiler != dartkp && $fasta && $strong ]
 compile_time_constant_k_test/01: MissingCompileTimeError
 compile_time_constant_k_test/02: MissingCompileTimeError
 compile_time_constant_k_test/03: MissingCompileTimeError
@@ -1382,9 +1382,6 @@ call_method_implicit_tear_off_implements_function_test/05: RuntimeError
 call_method_implicit_tear_off_implements_function_test/06: RuntimeError
 call_method_must_not_be_field_test/03: RuntimeError # Issue 32265
 call_method_must_not_be_getter_test/03: RuntimeError # Issue 32265
-compile_time_constant_k_test/01: MissingCompileTimeError
-compile_time_constant_k_test/02: MissingCompileTimeError
-compile_time_constant_k_test/03: MissingCompileTimeError
 compile_time_constant_o_test/01: RuntimeError # KernelVM bug: Constant map duplicated key.
 compile_time_constant_o_test/02: RuntimeError # KernelVM bug: Constant map duplicated key.
 compile_time_constant_static5_test/11: CompileTimeError # Issue 31537
@@ -1434,8 +1431,7 @@ generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Issue 31533
 generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
-generic_tearoff_test: CompileTimeError
-generic_tearoff_test: RuntimeError
+generic_tearoff_test: CompileTimeError, RuntimeError
 if_null_evaluation_order_test: Pass
 instantiate_tearoff_of_call_test: CompileTimeError
 issue18628_2_test/01: MissingCompileTimeError
@@ -1476,8 +1472,7 @@ parser_quirks_test: CompileTimeError # Issue 31533
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 regress_22443_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
-regress_23408_test: RuntimeError
-regress_23408_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
+regress_23408_test: RuntimeError, CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 regress_29025_test: CompileTimeError # Issue 31402 (Variable declaration)
 regress_29405_test: CompileTimeError # Issue 31402 (Invocation arguments)
 regress_30339_test: CompileTimeError # Issue 31402 (Variable declaration)

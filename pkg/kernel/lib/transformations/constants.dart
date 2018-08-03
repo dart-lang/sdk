@@ -343,19 +343,11 @@ class ConstantsTransformer extends Transformer {
 
   tryEvaluateWithContext(TreeNode treeContext, Expression node) {
     if (treeContext == node) {
-      try {
-        return constantEvaluator.evaluate(node);
-      } on _AbortCurrentEvaluation catch (_) {
-        return null;
-      }
+      return constantEvaluator.evaluate(node);
     }
 
     return constantEvaluator.runInsideContext(treeContext, () {
-      try {
-        return constantEvaluator.evaluate(node);
-      } on _AbortCurrentEvaluation catch (_) {
-        return null;
-      }
+      return constantEvaluator.evaluate(node);
     });
   }
 }
@@ -387,7 +379,18 @@ class ConstantEvaluator extends RecursiveVisitor {
         nodeCache = <Node, Constant>{};
 
   /// Evaluates [node] and possibly cache the evaluation result.
+  /// Returns `null` if expression can't be evaluated.
   Constant evaluate(Expression node) {
+    try {
+      return _evaluateSubexpression(node);
+    } on _AbortCurrentEvaluation catch (_) {
+      return null;
+    }
+  }
+
+  /// Evaluates [node] and possibly cache the evaluation result.
+  /// @throws _AbortCurrentEvaluation if expression can't be evaluated.
+  Constant _evaluateSubexpression(Expression node) {
     if (node == null) return nullConstant;
     if (env.isEmpty) {
       // We only try to evaluate the same [node] *once* within an empty
@@ -572,27 +575,30 @@ class ConstantEvaluator extends RecursiveVisitor {
               function.positionalParameters[i];
           final Constant value = (i < positionalArguments.length)
               ? positionalArguments[i]
-              : evaluate(parameter.initializer);
+              : _evaluateSubexpression(parameter.initializer);
           env.addVariableValue(parameter, value);
         }
         for (final VariableDeclaration parameter in function.namedParameters) {
-          final Constant value =
-              namedArguments[parameter.name] ?? evaluate(parameter.initializer);
+          final Constant value = namedArguments[parameter.name] ??
+              _evaluateSubexpression(parameter.initializer);
           env.addVariableValue(parameter, value);
         }
 
         // Step 2) Run all initializers (including super calls) with environment setup.
         for (final Field field in klass.fields) {
           if (!field.isStatic) {
-            instanceBuilder.setFieldValue(field, evaluate(field.initializer));
+            instanceBuilder.setFieldValue(
+                field, _evaluateSubexpression(field.initializer));
           }
         }
         for (final Initializer init in constructor.initializers) {
           if (init is FieldInitializer) {
-            instanceBuilder.setFieldValue(init.field, evaluate(init.value));
+            instanceBuilder.setFieldValue(
+                init.field, _evaluateSubexpression(init.value));
           } else if (init is LocalInitializer) {
             final VariableDeclaration variable = init.variable;
-            env.addVariableValue(variable, evaluate(variable.initializer));
+            env.addVariableValue(
+                variable, _evaluateSubexpression(variable.initializer));
           } else if (init is SuperInitializer) {
             handleConstructorInvocation(
                 init.target,
@@ -653,7 +659,7 @@ class ConstantEvaluator extends RecursiveVisitor {
     // We have no support for generic method invocation atm.
     assert(node.arguments.named.isEmpty);
 
-    final Constant receiver = evaluate(node.receiver);
+    final Constant receiver = _evaluateSubexpression(node.receiver);
     final List<Constant> arguments =
         evaluatePositionalArguments(node.arguments);
 
@@ -810,13 +816,13 @@ class ConstantEvaluator extends RecursiveVisitor {
   }
 
   visitLogicalExpression(LogicalExpression node) {
-    final Constant left = evaluate(node.left);
+    final Constant left = _evaluateSubexpression(node.left);
     switch (node.operator) {
       case '||':
         if (left is BoolConstant) {
           if (left.value) return trueConstant;
 
-          final Constant right = evaluate(node.right);
+          final Constant right = _evaluateSubexpression(node.right);
           if (right is BoolConstant) {
             return right;
           }
@@ -836,7 +842,7 @@ class ConstantEvaluator extends RecursiveVisitor {
         if (left is BoolConstant) {
           if (!left.value) return falseConstant;
 
-          final Constant right = evaluate(node.right);
+          final Constant right = _evaluateSubexpression(node.right);
           if (right is BoolConstant) {
             return right;
           }
@@ -853,7 +859,9 @@ class ConstantEvaluator extends RecursiveVisitor {
             contextChain, node, left, '${node.operator}');
         throw const _AbortCurrentEvaluation();
       case '??':
-        return (left is! NullConstant) ? left : evaluate(node.right);
+        return (left is! NullConstant)
+            ? left
+            : _evaluateSubexpression(node.right);
       default:
         errorReporter.invalidMethodInvocation(
             contextChain, node, left, '${node.operator}');
@@ -862,11 +870,11 @@ class ConstantEvaluator extends RecursiveVisitor {
   }
 
   visitConditionalExpression(ConditionalExpression node) {
-    final Constant constant = evaluate(node.condition);
+    final Constant constant = _evaluateSubexpression(node.condition);
     if (constant == trueConstant) {
-      return evaluate(node.then);
+      return _evaluateSubexpression(node.then);
     } else if (constant == falseConstant) {
-      return evaluate(node.otherwise);
+      return _evaluateSubexpression(node.otherwise);
     } else {
       errorReporter.invalidDartType(
           contextChain, node, constant, typeEnvironment.boolType);
@@ -885,7 +893,7 @@ class ConstantEvaluator extends RecursiveVisitor {
       throw 'Could not evaluate field get ${node.name} on incomplete instance';
     }
 
-    final Constant receiver = evaluate(node.receiver);
+    final Constant receiver = _evaluateSubexpression(node.receiver);
     if (receiver is StringConstant && node.name.name == 'length') {
       return canonicalize(new IntConstant(receiver.value.length));
     } else if (receiver is InstanceConstant) {
@@ -899,7 +907,8 @@ class ConstantEvaluator extends RecursiveVisitor {
   }
 
   visitLet(Let node) {
-    env.addVariableValue(node.variable, evaluate(node.variable.initializer));
+    env.addVariableValue(
+        node.variable, _evaluateSubexpression(node.variable.initializer));
     return node.body.accept(this);
   }
 
@@ -920,7 +929,7 @@ class ConstantEvaluator extends RecursiveVisitor {
       return constant;
     }
     if (variable.isConst) {
-      return evaluate(variable.initializer);
+      return _evaluateSubexpression(variable.initializer);
     }
     throw new Exception('The front-end should ensure we do not encounter a '
         'variable get of a non-const variable.');
@@ -931,7 +940,7 @@ class ConstantEvaluator extends RecursiveVisitor {
       final Member target = node.target;
       if (target is Field && target.isConst) {
         return runInsideContext(target, () {
-          return evaluate(target.initializer);
+          return _evaluateSubexpression(target.initializer);
         });
       } else if (target is Procedure) {
         if (target.kind == ProcedureKind.Method) {
@@ -1021,7 +1030,7 @@ class ConstantEvaluator extends RecursiveVisitor {
   }
 
   visitInstantiation(Instantiation node) {
-    final Constant constant = evaluate(node.expression);
+    final Constant constant = _evaluateSubexpression(node.expression);
     if (constant is TearOffConstant) {
       if (node.typeArguments.length ==
           constant.procedure.function.typeParameters.length) {
