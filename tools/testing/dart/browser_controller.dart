@@ -1362,13 +1362,12 @@ class BrowserTestingServer {
       } else {
         textResponse = new Future<String>.value("");
       }
-      request.response.done.catchError((error) {
+      request.response.done.catchError((error) async {
         if (!underTermination) {
-          return textResponse.then((String text) {
-            print("URI ${request.uri}");
-            print("textResponse $textResponse");
-            throw "Error returning content to browser: $error";
-          });
+          String text = await textResponse;
+          print("URI ${request.uri}");
+          print("text $text");
+          throw "Error returning content to browser: $error";
         }
       });
       textResponse.then((String text) async {

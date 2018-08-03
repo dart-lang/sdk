@@ -951,7 +951,5 @@ abstract class _RecursiveMatcher extends Matcher {
    * Create a [MismatchDescriber] describing a mismatch with a simple string.
    */
   MismatchDescriber simpleDescription(String description) =>
-      (Description mismatchDescription) {
-        mismatchDescription.add(description);
-      };
+      (Description mismatchDescription) => mismatchDescription.add(description);
 }

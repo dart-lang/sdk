@@ -656,7 +656,7 @@ class MakeSymlinkCommand extends ScriptCommand {
       var link = new io.Link(_link);
 
       return link.exists().then((bool exists) {
-        if (exists) return link.delete();
+        if (exists) link.deleteSync();
       }).then((_) => link.create(_target));
     }).then((_) {
       return new ScriptCommandOutput(this, Expectation.pass, "", watch.elapsed);
