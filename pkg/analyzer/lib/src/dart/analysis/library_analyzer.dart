@@ -801,6 +801,10 @@ class LibraryAnalyzer {
             fieldList.type?.accept(applier);
             for (var field in fields.reversed) {
               field.initializer?.accept(applier);
+              if (element is ConstVariableElement) {
+                (element as ConstVariableElement).constantInitializer =
+                    field.initializer;
+              }
             }
             applier.applyToAnnotations(member);
           } else if (member is MethodDeclaration) {
