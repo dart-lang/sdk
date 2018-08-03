@@ -5047,7 +5047,8 @@ class Int64DivideSlowPath : public ThrowErrorSlowPathCode {
   static const intptr_t kNumberOfArguments = 0;
 
   Int64DivideSlowPath(BinaryInt64OpInstr* instruction,
-                      Register right,
+                      Register divisor,
+                      Range* divisor_range,
                       Register tmp,
                       Register out,
                       intptr_t try_index)
@@ -5056,36 +5057,63 @@ class Int64DivideSlowPath : public ThrowErrorSlowPathCode {
                                kNumberOfArguments,
                                try_index),
         is_mod_(instruction->op_kind() == Token::kMOD),
-        right_(right),
+        divisor_(divisor),
+        divisor_range_(divisor_range),
         tmp_(tmp),
         out_(out),
         adjust_sign_label_() {}
 
   void EmitNativeCode(FlowGraphCompiler* compiler) override {
-    // Main entry throws, use code of superclass.
-    ThrowErrorSlowPathCode::EmitNativeCode(compiler);
-    // Adjust modulo for negative sign.
-    // if (right < 0)
-    //   out -= right;
+    // Handle modulo/division by zero, if needed. Use superclass code.
+    if (has_divide_by_zero()) {
+      ThrowErrorSlowPathCode::EmitNativeCode(compiler);
+    } else {
+      __ Bind(entry_label());  // not used, but keeps destructor happy
+      if (Assembler::EmittingComments()) {
+        __ Comment("slow path %s operation (no throw)", name());
+      }
+    }
+    // Adjust modulo for negative sign, optimized for known ranges.
+    // if (divisor < 0)
+    //   out -= divisor;
     // else
-    //   out += right;
-    if (is_mod_) {
+    //   out += divisor;
+    if (has_adjust_sign()) {
       __ Bind(adjust_sign_label());
-      __ CompareRegisters(right_, ZR);
-      __ sub(tmp_, out_, Operand(right_));
-      __ add(out_, out_, Operand(right_));
-      __ csel(out_, tmp_, out_, LT);
+      if (RangeUtils::Overlaps(divisor_range_, -1, 1)) {
+        // General case.
+        __ CompareRegisters(divisor_, ZR);
+        __ sub(tmp_, out_, Operand(divisor_));
+        __ add(out_, out_, Operand(divisor_));
+        __ csel(out_, tmp_, out_, LT);
+      } else if (divisor_range_->IsPositive()) {
+        // Always positive.
+        __ add(out_, out_, Operand(divisor_));
+      } else {
+        // Always negative.
+        __ sub(out_, out_, Operand(divisor_));
+      }
       __ b(exit_label());
     }
   }
 
   const char* name() override { return "int64 divide"; }
 
-  Label* adjust_sign_label() { return &adjust_sign_label_; }
+  bool has_divide_by_zero() { return RangeUtils::CanBeZero(divisor_range_); }
+
+  bool has_adjust_sign() { return is_mod_; }
+
+  bool is_needed() { return has_divide_by_zero() || has_adjust_sign(); }
+
+  Label* adjust_sign_label() {
+    ASSERT(has_adjust_sign());
+    return &adjust_sign_label_;
+  }
 
  private:
   bool is_mod_;
-  Register right_;
+  Register divisor_;
+  Range* divisor_range_;
   Register tmp_;
   Register out_;
   Label adjust_sign_label_;
@@ -5100,14 +5128,16 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
                                  Register out) {
   ASSERT(op_kind == Token::kMOD || op_kind == Token::kTRUNCDIV);
 
-  // Set up a slow path.
+  // Prepare a slow path.
+  Range* right_range = instruction->right()->definition()->range();
   Int64DivideSlowPath* slow_path = new (Z) Int64DivideSlowPath(
-      instruction, right, tmp, out, compiler->CurrentTryIndex());
-  compiler->AddSlowPathCode(slow_path);
+      instruction, right, right_range, tmp, out, compiler->CurrentTryIndex());
 
   // Handle modulo/division by zero exception on slow path.
-  __ CompareRegisters(right, ZR);
-  __ b(slow_path->entry_label(), EQ);
+  if (slow_path->has_divide_by_zero()) {
+    __ CompareRegisters(right, ZR);
+    __ b(slow_path->entry_label(), EQ);
+  }
 
   // Perform actual operation
   //   out = left % right
@@ -5124,7 +5154,10 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
     __ sdiv(out, left, right);
   }
 
-  __ Bind(slow_path->exit_label());
+  if (slow_path->is_needed()) {
+    __ Bind(slow_path->exit_label());
+    compiler->AddSlowPathCode(slow_path);
+  }
 }
 
 LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
@@ -5571,11 +5604,18 @@ LocationSummary* UnaryInt64OpInstr::MakeLocationSummary(Zone* zone,
 }
 
 void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(op_kind() == Token::kBIT_NOT);
   const Register left = locs()->in(0).reg();
   const Register out = locs()->out(0).reg();
-  ASSERT(out == left);
-  __ mvn(out, left);
+  switch (op_kind()) {
+    case Token::kBIT_NOT:
+      __ mvn(out, left);
+      break;
+    case Token::kNEGATE:
+      __ sub(out, ZR, Operand(left));
+      break;
+    default:
+      UNREACHABLE();
+  }
 }
 
 CompileType BinaryUint32OpInstr::ComputeType() const {

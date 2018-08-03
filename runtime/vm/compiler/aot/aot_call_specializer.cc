@@ -565,7 +565,6 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
         }
         break;
       }
-      // TODO(dartbug.com/30480): Enable 64-bit integer shifts (SHL, SHR).
       case Token::kBIT_OR:
       case Token::kBIT_XOR:
       case Token::kBIT_AND:
@@ -608,7 +607,6 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
         }
         break;
       }
-
       case Token::kSHL:
       case Token::kSHR: {
         Value* left_value = instr->PushArgumentAt(receiver_index)->value();
@@ -622,7 +620,6 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
         }
         break;
       }
-
       default:
         break;
     }

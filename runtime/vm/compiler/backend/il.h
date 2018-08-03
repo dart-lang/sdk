@@ -6076,9 +6076,13 @@ class UnaryUint32OpInstr : public UnaryIntegerOpInstr {
 
 class UnaryInt64OpInstr : public UnaryIntegerOpInstr {
  public:
-  UnaryInt64OpInstr(Token::Kind op_kind, Value* value, intptr_t deopt_id)
-      : UnaryIntegerOpInstr(op_kind, value, deopt_id) {
-    ASSERT(op_kind == Token::kBIT_NOT);
+  UnaryInt64OpInstr(Token::Kind op_kind,
+                    Value* value,
+                    intptr_t deopt_id,
+                    SpeculativeMode speculative_mode = kGuardInputs)
+      : UnaryIntegerOpInstr(op_kind, value, deopt_id),
+        speculative_mode_(speculative_mode) {
+    ASSERT(op_kind == Token::kBIT_NOT || op_kind == Token::kNEGATE);
   }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
@@ -6092,9 +6096,17 @@ class UnaryInt64OpInstr : public UnaryIntegerOpInstr {
     return kUnboxedInt64;
   }
 
+  virtual bool AttributesEqual(Instruction* other) const {
+    return UnaryIntegerOpInstr::AttributesEqual(other) &&
+           (speculative_mode() == other->speculative_mode());
+  }
+
+  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
+
   DECLARE_INSTRUCTION(UnaryInt64Op)
 
  private:
+  const SpeculativeMode speculative_mode_;
   DISALLOW_COPY_AND_ASSIGN(UnaryInt64OpInstr);
 };
 

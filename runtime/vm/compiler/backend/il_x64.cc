@@ -5201,54 +5201,96 @@ class Int64DivideSlowPath : public ThrowErrorSlowPathCode {
   static const intptr_t kNumberOfArguments = 0;
 
   Int64DivideSlowPath(BinaryInt64OpInstr* instruction,
-                      Register right,
+                      Register divisor,
+                      Range* divisor_range,
                       intptr_t try_index)
       : ThrowErrorSlowPathCode(instruction,
                                kIntegerDivisionByZeroExceptionRuntimeEntry,
                                kNumberOfArguments,
                                try_index),
         is_mod_(instruction->op_kind() == Token::kMOD),
-        right_(right),
+        divisor_(divisor),
+        divisor_range_(divisor_range),
         div_by_minus_one_label_(),
         adjust_sign_label_() {}
 
   void EmitNativeCode(FlowGraphCompiler* compiler) override {
-    // Main entry throws, use code of superclass.
-    ThrowErrorSlowPathCode::EmitNativeCode(compiler);
-    // Handle modulo/division by minus one.
-    __ Bind(div_by_minus_one_label());
-    if (is_mod_) {
-      __ xorq(RDX, RDX);  // x % -1 =  0
+    // Handle modulo/division by zero, if needed. Use superclass code.
+    if (has_divide_by_zero()) {
+      ThrowErrorSlowPathCode::EmitNativeCode(compiler);
     } else {
-      __ negq(RAX);  // x / -1 = -x
+      __ Bind(entry_label());  // not used, but keeps destructor happy
+      if (Assembler::EmittingComments()) {
+        __ Comment("slow path %s operation (no throw)", name());
+      }
     }
-    __ jmp(exit_label());
-    // Adjust modulo for negative sign.
-    // if (right < 0)
-    //   out -= right;
-    // else
-    //   out += right;
-    if (is_mod_) {
-      Label subtract;
-      __ Bind(adjust_sign_label());
-      __ testq(right_, right_);
-      __ j(LESS, &subtract, Assembler::kNearJump);
-      __ addq(RDX, right_);
+    // Handle modulo/division by minus one, if needed.
+    // Note: an exact -1 divisor is best optimized prior to codegen.
+    if (has_divide_by_minus_one()) {
+      __ Bind(div_by_minus_one_label());
+      if (is_mod_) {
+        __ xorq(RDX, RDX);  // x % -1 =  0
+      } else {
+        __ negq(RAX);  // x / -1 = -x
+      }
       __ jmp(exit_label());
-      __ Bind(&subtract);
-      __ subq(RDX, right_);
+    }
+    // Adjust modulo for negative sign, optimized for known ranges.
+    // if (divisor < 0)
+    //   out -= divisor;
+    // else
+    //   out += divisor;
+    if (has_adjust_sign()) {
+      __ Bind(adjust_sign_label());
+      if (RangeUtils::Overlaps(divisor_range_, -1, 1)) {
+        // General case.
+        Label subtract;
+        __ testq(divisor_, divisor_);
+        __ j(LESS, &subtract, Assembler::kNearJump);
+        __ addq(RDX, divisor_);
+        __ jmp(exit_label());
+        __ Bind(&subtract);
+        __ subq(RDX, divisor_);
+      } else if (divisor_range_->IsPositive()) {
+        // Always positive.
+        __ addq(RDX, divisor_);
+      } else {
+        // Always negative.
+        __ subq(RDX, divisor_);
+      }
       __ jmp(exit_label());
     }
   }
 
   const char* name() override { return "int64 divide"; }
 
-  Label* div_by_minus_one_label() { return &div_by_minus_one_label_; }
-  Label* adjust_sign_label() { return &adjust_sign_label_; }
+  bool has_divide_by_zero() { return RangeUtils::CanBeZero(divisor_range_); }
+
+  bool has_divide_by_minus_one() {
+    return RangeUtils::Overlaps(divisor_range_, -1, -1);
+  }
+
+  bool has_adjust_sign() { return is_mod_; }
+
+  bool is_needed() {
+    return has_divide_by_zero() || has_divide_by_minus_one() ||
+           has_adjust_sign();
+  }
+
+  Label* div_by_minus_one_label() {
+    ASSERT(has_divide_by_minus_one());
+    return &div_by_minus_one_label_;
+  }
+
+  Label* adjust_sign_label() {
+    ASSERT(has_adjust_sign());
+    return &adjust_sign_label_;
+  }
 
  private:
   bool is_mod_;
-  Register right_;
+  Register divisor_;
+  Range* divisor_range_;
   Label div_by_minus_one_label_;
   Label adjust_sign_label_;
 };
@@ -5262,19 +5304,23 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
                                  Register out) {
   ASSERT(op_kind == Token::kMOD || op_kind == Token::kTRUNCDIV);
 
-  // Set up a slow path.
-  Int64DivideSlowPath* slow_path = new (Z)
-      Int64DivideSlowPath(instruction, right, compiler->CurrentTryIndex());
-  compiler->AddSlowPathCode(slow_path);
+  // Prepare a slow path.
+  Range* right_range = instruction->right()->definition()->range();
+  Int64DivideSlowPath* slow_path = new (Z) Int64DivideSlowPath(
+      instruction, right, right_range, compiler->CurrentTryIndex());
 
   // Handle modulo/division by zero exception on slow path.
-  __ testq(right, right);
-  __ j(EQUAL, slow_path->entry_label());
+  if (slow_path->has_divide_by_zero()) {
+    __ testq(right, right);
+    __ j(EQUAL, slow_path->entry_label());
+  }
 
   // Handle modulo/division by minus one explicitly on slow path
   // (to avoid arithmetic exception on 0x8000000000000000 / -1).
-  __ cmpq(right, Immediate(-1));
-  __ j(EQUAL, slow_path->div_by_minus_one_label());
+  if (slow_path->has_divide_by_minus_one()) {
+    __ cmpq(right, Immediate(-1));
+    __ j(EQUAL, slow_path->div_by_minus_one_label());
+  }
 
   // Perform actual operation
   //   out = left % right
@@ -5294,7 +5340,11 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
     ASSERT(out == RAX);
     ASSERT(tmp == RDX);
   }
-  __ Bind(slow_path->exit_label());
+
+  if (slow_path->is_needed()) {
+    __ Bind(slow_path->exit_label());
+    compiler->AddSlowPathCode(slow_path);
+  }
 }
 
 template <typename OperandType>
@@ -5393,11 +5443,19 @@ LocationSummary* UnaryInt64OpInstr::MakeLocationSummary(Zone* zone,
 }
 
 void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(op_kind() == Token::kBIT_NOT);
   const Register left = locs()->in(0).reg();
   const Register out = locs()->out(0).reg();
   ASSERT(out == left);
-  __ notq(left);
+  switch (op_kind()) {
+    case Token::kBIT_NOT:
+      __ notq(left);
+      break;
+    case Token::kNEGATE:
+      __ negq(left);
+      break;
+    default:
+      UNREACHABLE();
+  }
 }
 
 static void EmitShiftInt64ByConstant(FlowGraphCompiler* compiler,
