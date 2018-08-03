@@ -13,7 +13,8 @@ import 'package:kernel/ast.dart'
         LibraryDependency,
         LibraryPart,
         Node,
-        TreeNode;
+        TreeNode,
+        VariableDeclaration;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -34,6 +35,12 @@ import '../fasta_codes.dart'
     show Message, messageExpectedBlockToSkip, templateInternalProblemNotFound;
 
 import '../kernel/kernel_body_builder.dart' show KernelBodyBuilder;
+
+import '../kernel/kernel_formal_parameter_builder.dart'
+    show KernelFormalParameterBuilder;
+
+import '../kernel/kernel_function_type_alias_builder.dart'
+    show KernelFunctionTypeAliasBuilder;
 
 import '../kernel/kernel_procedure_builder.dart'
     show KernelRedirectingFactoryBuilder;
@@ -220,6 +227,38 @@ class DietListener extends StackListener {
 
     Declaration typedefBuilder = lookupBuilder(typedefKeyword, null, name);
     parseMetadata(typedefBuilder, metadata, typedefBuilder.target);
+    if (typedefBuilder is KernelFunctionTypeAliasBuilder &&
+        typedefBuilder.type != null &&
+        typedefBuilder.type.formals != null) {
+      for (int i = 0; i < typedefBuilder.type.formals.length; ++i) {
+        KernelFormalParameterBuilder formal = typedefBuilder.type.formals[i];
+        List<MetadataBuilder> metadata = formal.metadata;
+        if (metadata != null && metadata.length > 0) {
+          // [parseMetadata] is using [Parser.parseMetadataStar] under the hood,
+          // so we only need the offset of the first annotation.
+          Token metadataToken =
+              tokenForOffset(typedefKeyword, endToken, metadata[0].charOffset);
+          List<Expression> annotations =
+              parseMetadata(typedefBuilder, metadataToken, null);
+          if (formal.isPositional) {
+            VariableDeclaration parameter =
+                typedefBuilder.target.positionalParameters[i];
+            for (Expression annotation in annotations) {
+              parameter.addAnnotation(annotation);
+            }
+          } else {
+            for (VariableDeclaration named
+                in typedefBuilder.target.namedParameters) {
+              if (named.name == formal.name) {
+                for (Expression annotation in annotations) {
+                  named.addAnnotation(annotation);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
 
     checkEmpty(typedefKeyword.charOffset);
   }
@@ -829,6 +868,22 @@ class DietListener extends StackListener {
       var parser = new Parser(listener);
       parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
       return listener.finishMetadata(parent);
+    }
+    return null;
+  }
+
+  /// Returns [Token] found between [start] (inclusive) and [end]
+  /// (non-inclusive) that has its [Token.charOffset] equal to [offset].  If
+  /// there is no such token, null is returned.
+  Token tokenForOffset(Token start, Token end, int offset) {
+    if (offset < start.charOffset || offset >= end.charOffset) {
+      return null;
+    }
+    while (start != end) {
+      if (offset == start.charOffset) {
+        return start;
+      }
+      start = start.next;
     }
     return null;
   }

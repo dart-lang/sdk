@@ -700,6 +700,67 @@ class Printer extends Visitor<Null> {
     }
   }
 
+  writeFunctionType(FunctionType node,
+      {List<VariableDeclaration> typedefPositional,
+      List<VariableDeclaration> typedefNamed}) {
+    if (state == WORD) {
+      ensureSpace();
+    }
+    writeTypeParameterList(node.typeParameters);
+    writeSymbol('(');
+    List<DartType> positional = node.positionalParameters;
+
+    bool parametersAnnotated = false;
+    if (typedefPositional != null) {
+      for (VariableDeclaration formal in typedefPositional) {
+        parametersAnnotated =
+            parametersAnnotated || formal.annotations.length > 0;
+      }
+    }
+    if (typedefNamed != null) {
+      for (VariableDeclaration formal in typedefNamed) {
+        parametersAnnotated =
+            parametersAnnotated || formal.annotations.length > 0;
+      }
+    }
+
+    if (parametersAnnotated && typedefPositional != null) {
+      writeList(typedefPositional.take(node.requiredParameterCount),
+          writeVariableDeclaration);
+    } else {
+      writeList(positional.take(node.requiredParameterCount), writeType);
+    }
+
+    if (node.requiredParameterCount < positional.length) {
+      if (node.requiredParameterCount > 0) {
+        writeComma();
+      }
+      writeSymbol('[');
+      if (parametersAnnotated && typedefPositional != null) {
+        writeList(typedefPositional.skip(node.requiredParameterCount),
+            writeVariableDeclaration);
+      } else {
+        writeList(positional.skip(node.requiredParameterCount), writeType);
+      }
+      writeSymbol(']');
+    }
+    if (node.namedParameters.isNotEmpty) {
+      if (node.positionalParameters.isNotEmpty) {
+        writeComma();
+      }
+      writeSymbol('{');
+      if (parametersAnnotated && typedefNamed != null) {
+        writeList(typedefNamed, writeVariableDeclaration);
+      } else {
+        writeList(node.namedParameters, visitNamedType);
+      }
+      writeSymbol('}');
+    }
+    writeSymbol(')');
+    writeSpaced('→');
+    writeType(node.returnType);
+  }
+
   void writeBody(Statement body) {
     if (body is Block) {
       endLine(' {');
@@ -1021,7 +1082,13 @@ class Printer extends Visitor<Null> {
     writeWord(node.name);
     writeTypeParameterList(node.typeParameters);
     writeSpaced('=');
-    writeNode(node.type);
+    if (node.type is FunctionType) {
+      writeFunctionType(node.type,
+          typedefPositional: node.positionalParameters,
+          typedefNamed: node.namedParameters);
+    } else {
+      writeNode(node.type);
+    }
     endLine(';');
   }
 
@@ -1793,32 +1860,7 @@ class Printer extends Visitor<Null> {
   }
 
   visitFunctionType(FunctionType node) {
-    if (state == WORD) {
-      ensureSpace();
-    }
-    writeTypeParameterList(node.typeParameters);
-    writeSymbol('(');
-    var positional = node.positionalParameters;
-    writeList(positional.take(node.requiredParameterCount), writeType);
-    if (node.requiredParameterCount < positional.length) {
-      if (node.requiredParameterCount > 0) {
-        writeComma();
-      }
-      writeSymbol('[');
-      writeList(positional.skip(node.requiredParameterCount), writeType);
-      writeSymbol(']');
-    }
-    if (node.namedParameters.isNotEmpty) {
-      if (node.positionalParameters.isNotEmpty) {
-        writeComma();
-      }
-      writeSymbol('{');
-      writeList(node.namedParameters, visitNamedType);
-      writeSymbol('}');
-    }
-    writeSymbol(')');
-    writeSpaced('→');
-    writeType(node.returnType);
+    writeFunctionType(node);
   }
 
   visitNamedType(NamedType node) {

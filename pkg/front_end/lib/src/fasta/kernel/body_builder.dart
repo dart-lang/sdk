@@ -855,6 +855,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   List<Expression> finishMetadata(TreeNode parent) {
     List<Expression> expressions = pop();
     _typeInferrer.inferMetadata(this, expressions);
+
+    // The invocation of [resolveRedirectingFactoryTargets] below may change the
+    // root nodes of the annotation expressions.  We need to have a parent of
+    // the annotation nodes before the resolution is performed, to collect and
+    // return them later.  If [parent] is not provided, [temporaryParent] is
+    // used.
+    ListLiteral temporaryParent;
+
     if (parent is Class) {
       for (Expression expression in expressions) {
         parent.addAnnotation(expression);
@@ -887,9 +895,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       for (Expression expression in expressions) {
         parent.addAnnotation(expression);
       }
+    } else {
+      temporaryParent = new ListLiteral(expressions);
     }
     resolveRedirectingFactoryTargets();
-    return expressions;
+    return temporaryParent != null ? temporaryParent.expressions : expressions;
   }
 
   @override
