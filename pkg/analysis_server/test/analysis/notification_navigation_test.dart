@@ -697,7 +697,7 @@ library my.lib;
     assertHasTargetString('my.lib');
   }
 
-  test_multiplyDefinedElement() async {
+  Future<void> test_multiplyDefinedElement() async {
     newFile('$projectPath/bin/libA.dart', content: 'library A; int TEST = 1;');
     newFile('$projectPath/bin/libB.dart', content: 'library B; int TEST = 2;');
     addTestFile('''
@@ -816,7 +816,7 @@ class A {
     assertHasFileTarget(libFile, libCode.indexOf('lib;'), 'lib'.length);
   }
 
-  test_string_export_unresolvedUri() async {
+  Future<void> test_string_export_unresolvedUri() async {
     addTestFile('export "no.dart";');
     await prepareNavigation();
     assertNoRegionString('"no.dart"');
@@ -837,7 +837,7 @@ class A {
     assertNoRegionAt('import ;');
   }
 
-  test_string_import_unresolvedUri() async {
+  Future<void> test_string_import_unresolvedUri() async {
     addTestFile('import "no.dart";');
     await prepareNavigation();
     assertNoRegionString('"no.dart"');
@@ -856,7 +856,7 @@ part "test_unit.dart";
     assertHasFileTarget(unitFile, 0, 0);
   }
 
-  test_string_part_unresolvedUri() async {
+  Future<void> test_string_part_unresolvedUri() async {
     addTestFile('''
 library lib;
 part "test_unit.dart";
@@ -1062,8 +1062,10 @@ class AnalysisNotificationNavigationTest_UseCFE
 
   @failingTest
   @override
-  test_multiplyDefinedElement() async =>
-      callFailingTest(super.test_multiplyDefinedElement());
+  test_multiplyDefinedElement() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_multiplyDefinedElement);
+  }
 
   @failingTest
   @override
@@ -1075,8 +1077,10 @@ class AnalysisNotificationNavigationTest_UseCFE
 
   @failingTest
   @override
-  test_string_export_unresolvedUri() async =>
-      callFailingTest(super.test_string_export_unresolvedUri());
+  test_string_export_unresolvedUri() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_string_export_unresolvedUri);
+  }
 
   @failingTest
   @override
@@ -1084,11 +1088,15 @@ class AnalysisNotificationNavigationTest_UseCFE
 
   @failingTest
   @override
-  test_string_import_unresolvedUri() async =>
-      callFailingTest(super.test_string_import_unresolvedUri());
+  test_string_import_unresolvedUri() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_string_import_unresolvedUri);
+  }
 
   @failingTest
   @override
-  test_string_part_unresolvedUri() async =>
-      callFailingTest(super.test_string_part_unresolvedUri());
+  test_string_part_unresolvedUri() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_string_part_unresolvedUri);
+  }
 }

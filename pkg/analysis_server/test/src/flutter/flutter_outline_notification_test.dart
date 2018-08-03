@@ -70,7 +70,7 @@ class FlutterNotificationOutlineTest extends AbstractAnalysisTest {
     flutterFolder = configureFlutterPackage(resourceProvider);
   }
 
-  test_children() async {
+  Future<void> test_children() async {
     newFile('$projectPath/.packages', content: '''
 flutter:${flutterFolder.toUri()}
 ''');
@@ -128,5 +128,8 @@ class FlutterNotificationOutlineTest_UseCFE
 
   @failingTest
   @override
-  test_children() async => callFailingTest(super.test_children());
+  test_children() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_children);
+  }
 }

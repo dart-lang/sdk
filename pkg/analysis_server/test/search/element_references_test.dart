@@ -15,9 +15,7 @@ import 'abstract_search_domain.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementReferencesTest);
-    // TODO(brianwilkerson) Enable these tests. Currently they cause this file
-    // to hang, even though the individual tests fail as expected.
-//    defineReflectiveTests(ElementReferencesTest_UseCFE);
+    defineReflectiveTests(ElementReferencesTest_UseCFE);
   });
 }
 
@@ -47,7 +45,7 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
     expect(serverErrors, isEmpty);
   }
 
-  test_constructor_named() async {
+  Future<void> test_constructor_named() async {
     addTestFile('''
 class A {
   A.named(p);
@@ -64,7 +62,7 @@ main() {
     assertHasResult(SearchResultKind.REFERENCE, '.named(2)', 6);
   }
 
-  test_constructor_named_potential() async {
+  Future<void> test_constructor_named_potential() async {
     // Constructors in other classes shouldn't be considered potential matches,
     // nor should unresolved method calls, since constructor call sites are
     // statically bound to their targets).
@@ -87,7 +85,7 @@ f(x) {
     assertHasResult(SearchResultKind.REFERENCE, '.named(1)', 6);
   }
 
-  test_constructor_unnamed() async {
+  Future<void> test_constructor_unnamed() async {
     addTestFile('''
 class A {
   A(p);
@@ -104,7 +102,7 @@ main() {
     assertHasResult(SearchResultKind.REFERENCE, '(2)', 0);
   }
 
-  test_constructor_unnamed_potential() async {
+  Future<void> test_constructor_unnamed_potential() async {
     // Constructors in other classes shouldn't be considered potential matches,
     // even if they are also unnamed (since constructor call sites are
     // statically bound to their targets).
@@ -132,7 +130,7 @@ main() {
     assertHasResult(SearchResultKind.REFERENCE, '(1)', 0);
   }
 
-  test_field_explicit() async {
+  Future<void> test_field_explicit() async {
     addTestFile('''
 class A {
   var fff; // declaration
@@ -169,7 +167,7 @@ main(A a) {
     assertHasResult(SearchResultKind.INVOCATION, 'fff(); // in main()');
   }
 
-  test_field_implicit() async {
+  Future<void> test_field_implicit() async {
     addTestFile('''
 class A {
   var  get fff => null;
@@ -203,7 +201,7 @@ main(A a) {
     }
   }
 
-  test_field_inFormalParameter() async {
+  Future<void> test_field_inFormalParameter() async {
     addTestFile('''
 class A {
   var fff; // declaration
@@ -222,7 +220,7 @@ class A {
     assertHasResult(SearchResultKind.READ, 'fff); // in m()');
   }
 
-  test_function() async {
+  Future<void> test_function() async {
     addTestFile('''
 fff(p) {}
 main() {
@@ -237,7 +235,7 @@ main() {
     assertHasResult(SearchResultKind.REFERENCE, 'fff);');
   }
 
-  test_hierarchy_field_explicit() async {
+  Future<void> test_hierarchy_field_explicit() async {
     addTestFile('''
   class A {
     int fff; // in A
@@ -261,7 +259,7 @@ main() {
     assertHasResult(SearchResultKind.WRITE, 'fff = 30;');
   }
 
-  test_hierarchy_method() async {
+  Future<void> test_hierarchy_method() async {
     addTestFile('''
 class A {
   mmm(_) {} // in A
@@ -285,7 +283,7 @@ main(A a, B b, C c) {
     assertHasResult(SearchResultKind.INVOCATION, 'mmm(30)');
   }
 
-  test_hierarchy_method_static() async {
+  Future<void> test_hierarchy_method_static() async {
     addTestFile('''
 class A {
   static void mmm(_) {} // in A
@@ -308,7 +306,7 @@ main() {
     assertHasResult(SearchResultKind.INVOCATION, 'mmm(20)');
   }
 
-  test_hierarchy_namedParameter() async {
+  Future<void> test_hierarchy_namedParameter() async {
     addTestFile('''
 class A {
   m({p}) {} // in A
@@ -332,7 +330,7 @@ main(A a, B b, C c) {
     assertHasResult(SearchResultKind.REFERENCE, 'p: 3');
   }
 
-  test_label() async {
+  Future<void> test_label() async {
     addTestFile('''
 main() {
 myLabel:
@@ -351,7 +349,7 @@ myLabel:
     assertHasResult(SearchResultKind.REFERENCE, 'myLabel; // break');
   }
 
-  test_localVariable() async {
+  Future<void> test_localVariable() async {
     addTestFile('''
 main() {
   var vvv = 1;
@@ -370,7 +368,7 @@ main() {
     assertHasResult(SearchResultKind.INVOCATION, 'vvv();');
   }
 
-  test_method() async {
+  Future<void> test_method() async {
     addTestFile('''
 class A {
   mmm(p) {}
@@ -393,7 +391,7 @@ main(A a) {
     assertHasResult(SearchResultKind.REFERENCE, 'mmm); // in main()');
   }
 
-  test_method_propagatedType() async {
+  Future<void> test_method_propagatedType() async {
     addTestFile('''
 class A {
   mmm(p) {}
@@ -411,7 +409,7 @@ main() {
     assertHasResult(SearchResultKind.REFERENCE, 'mmm);');
   }
 
-  test_noElement() async {
+  Future<void> test_noElement() async {
     addTestFile('''
 main() {
   print(noElement);
@@ -421,7 +419,7 @@ main() {
     expect(searchId, isNull);
   }
 
-  test_oneUnit_zeroLibraries() async {
+  Future<void> test_oneUnit_zeroLibraries() async {
     addTestFile('''
 part of lib;
 fff(p) {}
@@ -434,7 +432,7 @@ main() {
     assertHasResult(SearchResultKind.INVOCATION, 'fff(10);');
   }
 
-  test_parameter() async {
+  Future<void> test_parameter() async {
     addTestFile('''
 main(ppp) {
   print(ppp);
@@ -453,7 +451,7 @@ main(ppp) {
   }
 
   @failingTest
-  test_path_inConstructor_named() async {
+  Future<void> test_path_inConstructor_named() async {
     // The path does not contain the first expected element.
     addTestFile('''
 library my_lib;
@@ -475,7 +473,7 @@ LIBRARY my_lib''');
   }
 
   @failingTest
-  test_path_inConstructor_unnamed() async {
+  Future<void> test_path_inConstructor_unnamed() async {
     // The path does not contain the first expected element.
     addTestFile('''
 library my_lib;
@@ -497,7 +495,7 @@ LIBRARY my_lib''');
   }
 
   @failingTest
-  test_path_inFunction() async {
+  Future<void> test_path_inFunction() async {
     // The path does not contain the first expected element.
     addTestFile('''
 library my_lib;
@@ -515,7 +513,7 @@ COMPILATION_UNIT test.dart
 LIBRARY my_lib''');
   }
 
-  test_potential_disabled() async {
+  Future<void> test_potential_disabled() async {
     addTestFile('''
 class A {
   test(p) {}
@@ -530,7 +528,7 @@ main(A a, p) {
     assertNoResult(SearchResultKind.INVOCATION, 'test(2);');
   }
 
-  test_potential_field() async {
+  Future<void> test_potential_field() async {
     addTestFile('''
 class A {
   var test; // declaration
@@ -556,7 +554,7 @@ main(A a, p) {
     }
   }
 
-  test_potential_method() async {
+  Future<void> test_potential_method() async {
     addTestFile('''
 class A {
   test(p) {}
@@ -577,7 +575,7 @@ main(A a, p) {
     }
   }
 
-  test_potential_method_definedInSubclass() async {
+  Future<void> test_potential_method_definedInSubclass() async {
     addTestFile('''
 class Base {
   methodInBase() {
@@ -600,7 +598,7 @@ globalFunction(Base b) {
     assertHasRef(SearchResultKind.INVOCATION, 'test(3);', true);
   }
 
-  test_prefix() async {
+  Future<void> test_prefix() async {
     addTestFile('''
 import 'dart:async' as ppp;
 main() {
@@ -617,7 +615,7 @@ main() {
     assertHasResult(SearchResultKind.REFERENCE, 'ppp.Stream');
   }
 
-  test_topLevelVariable_explicit() async {
+  Future<void> test_topLevelVariable_explicit() async {
     addTestFile('''
 var vvv = 1;
 main() {
@@ -636,7 +634,7 @@ main() {
     assertHasResult(SearchResultKind.INVOCATION, 'vvv();');
   }
 
-  test_topLevelVariable_implicit() async {
+  Future<void> test_topLevelVariable_implicit() async {
     addTestFile('''
 get vvv => null;
 set vvv(x) {}
@@ -660,7 +658,7 @@ main() {
     }
   }
 
-  test_typeReference_class() async {
+  Future<void> test_typeReference_class() async {
     addTestFile('''
 main() {
   int a = 1;
@@ -673,7 +671,7 @@ main() {
     assertHasResult(SearchResultKind.REFERENCE, 'int b');
   }
 
-  test_typeReference_functionType() async {
+  Future<void> test_typeReference_functionType() async {
     addTestFile('''
 typedef F();
 main(F f) {
@@ -685,7 +683,7 @@ main(F f) {
     assertHasResult(SearchResultKind.REFERENCE, 'F f');
   }
 
-  test_typeReference_typeVariable() async {
+  Future<void> test_typeReference_typeVariable() async {
     addTestFile('''
 class A<T> {
   T f;
@@ -707,150 +705,218 @@ class ElementReferencesTest_UseCFE extends ElementReferencesTest {
 
   @failingTest
   @override
-  test_constructor_named() async =>
-      callFailingTest(super.test_constructor_named());
+  test_constructor_named() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_constructor_named);
+  }
 
   @failingTest
   @override
-  test_constructor_named_potential() async =>
-      callFailingTest(super.test_constructor_named_potential());
+  test_constructor_named_potential() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_constructor_named_potential);
+  }
 
   @failingTest
   @override
-  test_constructor_unnamed() async =>
-      callFailingTest(super.test_constructor_unnamed());
+  test_constructor_unnamed() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_constructor_unnamed);
+  }
 
   @failingTest
   @override
-  test_constructor_unnamed_potential() async =>
-      callFailingTest(super.test_constructor_unnamed_potential());
+  test_constructor_unnamed_potential() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_constructor_unnamed_potential);
+  }
 
   @failingTest
   @override
-  test_field_explicit() async => callFailingTest(super.test_field_explicit());
+  test_field_explicit() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_field_explicit);
+  }
 
   @failingTest
   @override
-  test_field_implicit() async => callFailingTest(super.test_field_implicit());
+  test_field_implicit() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_field_implicit);
+  }
 
   @failingTest
   @override
-  test_field_inFormalParameter() async =>
-      callFailingTest(super.test_field_inFormalParameter());
+  test_field_inFormalParameter() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_field_inFormalParameter);
+  }
 
   @failingTest
   @override
-  test_function() async => callFailingTest(super.test_function());
+  test_function() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_function);
+  }
 
   @failingTest
   @override
-  test_hierarchy_field_explicit() async =>
-      callFailingTest(super.test_hierarchy_field_explicit());
+  test_hierarchy_field_explicit() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_hierarchy_field_explicit);
+  }
 
   @failingTest
   @override
-  test_hierarchy_method() async =>
-      callFailingTest(super.test_hierarchy_method());
+  test_hierarchy_method() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_hierarchy_method);
+  }
 
   @failingTest
   @override
-  test_hierarchy_method_static() async =>
-      callFailingTest(super.test_hierarchy_method_static());
+  test_hierarchy_method_static() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_hierarchy_method_static);
+  }
 
   @failingTest
   @override
-  test_hierarchy_namedParameter() async =>
-      callFailingTest(super.test_hierarchy_namedParameter());
+  test_hierarchy_namedParameter() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_hierarchy_namedParameter);
+  }
 
   @failingTest
   @override
-  test_label() async => callFailingTest(super.test_label());
+  test_label() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_label);
+  }
 
   @failingTest
   @override
-  test_localVariable() async => callFailingTest(super.test_localVariable());
+  test_localVariable() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_localVariable);
+  }
 
   @failingTest
   @override
-  test_method() async => callFailingTest(super.test_method());
+  test_method() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_method);
+  }
 
   @failingTest
   @override
-  test_method_propagatedType() async =>
-      callFailingTest(super.test_method_propagatedType());
+  test_method_propagatedType() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_method_propagatedType);
+  }
 
   @failingTest
   @override
-  test_noElement() async => callFailingTest(super.test_noElement());
+  test_oneUnit_zeroLibraries() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_oneUnit_zeroLibraries);
+  }
 
   @failingTest
   @override
-  test_oneUnit_zeroLibraries() async =>
-      callFailingTest(super.test_oneUnit_zeroLibraries());
+  test_parameter() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_parameter);
+  }
 
   @failingTest
   @override
-  test_parameter() async => callFailingTest(super.test_parameter());
+  test_path_inConstructor_named() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_path_inConstructor_named);
+  }
 
   @failingTest
   @override
-  test_path_inConstructor_named() async =>
-      callFailingTest(super.test_path_inConstructor_named());
+  test_path_inConstructor_unnamed() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_path_inConstructor_unnamed);
+  }
 
   @failingTest
   @override
-  test_path_inConstructor_unnamed() async =>
-      callFailingTest(super.test_path_inConstructor_unnamed());
+  test_path_inFunction() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_path_inFunction);
+  }
 
   @failingTest
   @override
-  test_path_inFunction() async => callFailingTest(super.test_path_inFunction());
+  test_potential_disabled() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_potential_disabled);
+  }
 
   @failingTest
   @override
-  test_potential_disabled() async =>
-      callFailingTest(super.test_potential_disabled());
+  test_potential_field() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_potential_field);
+  }
 
   @failingTest
   @override
-  test_potential_field() async => callFailingTest(super.test_potential_field());
+  test_potential_method() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_potential_method);
+  }
 
   @failingTest
   @override
-  test_potential_method() async =>
-      callFailingTest(super.test_potential_method());
+  test_potential_method_definedInSubclass() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_potential_method_definedInSubclass);
+  }
 
   @failingTest
   @override
-  test_potential_method_definedInSubclass() async =>
-      callFailingTest(super.test_label());
+  test_prefix() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_prefix);
+  }
 
   @failingTest
   @override
-  test_prefix() async => callFailingTest(super.test_prefix());
+  test_topLevelVariable_explicit() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_topLevelVariable_explicit);
+  }
 
   @failingTest
   @override
-  test_topLevelVariable_explicit() async =>
-      callFailingTest(super.test_topLevelVariable_explicit());
+  test_topLevelVariable_implicit() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_topLevelVariable_implicit);
+  }
 
   @failingTest
   @override
-  test_topLevelVariable_implicit() async =>
-      callFailingTest(super.test_topLevelVariable_implicit());
+  test_typeReference_class() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_typeReference_class);
+  }
 
   @failingTest
   @override
-  test_typeReference_class() async =>
-      callFailingTest(super.test_typeReference_class());
+  test_typeReference_functionType() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_typeReference_functionType);
+  }
 
   @failingTest
   @override
-  test_typeReference_functionType() async =>
-      callFailingTest(super.test_typeReference_functionType());
-
-  @failingTest
-  @override
-  test_typeReference_typeVariable() async =>
-      callFailingTest(super.test_typeReference_typeVariable());
+  test_typeReference_typeVariable() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_typeReference_typeVariable);
+  }
 }

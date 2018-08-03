@@ -589,7 +589,7 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
     expect(filesHighlights[testFile], isNotEmpty);
   }
 
-  test_afterAnalysis_noSuchFile() async {
+  Future<void> test_afterAnalysis_noSuchFile() async {
     String file = convertPath('/no-such-file.dart');
     addTestFile('// no matter');
     createProject();
@@ -724,6 +724,8 @@ class SetSubscriptionsTest_UseCFE extends SetSubscriptionsTest {
 
   @failingTest
   @override
-  test_afterAnalysis_noSuchFile() async =>
-      callFailingTest(super.test_afterAnalysis_noSuchFile());
+  test_afterAnalysis_noSuchFile() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_afterAnalysis_noSuchFile);
+  }
 }

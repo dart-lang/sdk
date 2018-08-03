@@ -16,7 +16,7 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetTypeHierarchyTest);
-    defineReflectiveTests(GetTypeHierarchyTest);
+    defineReflectiveTests(GetTypeHierarchyTest_UseCFE);
   });
 }
 
@@ -52,7 +52,7 @@ main() {
     expect(items, isNull);
   }
 
-  test_bad_recursion() async {
+  Future<void> test_bad_recursion() async {
     addTestFile('''
 class A extends B {
 }
@@ -103,7 +103,7 @@ class B extends A<int> {
     expect(itemA.displayName, 'A<int>');
   }
 
-  test_class_double_subclass() async {
+  Future<void> test_class_double_subclass() async {
     addTestFile('''
 class AAA {} // A
 
@@ -163,7 +163,7 @@ class CCC extends BBB implements AAA {}
     ]);
   }
 
-  test_class_extends_fileAndPackageUris() async {
+  Future<void> test_class_extends_fileAndPackageUris() async {
     // prepare packages
     newFile('/packages/pkgA/lib/libA.dart', content: '''
 library lib_a;
@@ -192,7 +192,7 @@ class C extends A {}
     expect(names, contains('C'));
   }
 
-  test_class_extendsTypeA() async {
+  Future<void> test_class_extendsTypeA() async {
     addTestFile('''
 class A {}
 class B extends A {
@@ -252,7 +252,7 @@ class C extends B {
     ]);
   }
 
-  test_class_extendsTypeB() async {
+  Future<void> test_class_extendsTypeB() async {
     addTestFile('''
 class A {
 }
@@ -496,7 +496,7 @@ class T extends Object with MA, MB {
     ]);
   }
 
-  test_fromField_toMixinGetter() async {
+  Future<void> test_fromField_toMixinGetter() async {
     addTestFile('''
 abstract class A {
   var test = 1;
@@ -517,7 +517,7 @@ class B extends A with Mixin {}
     expect(memberB.location.offset, findOffset('test => 2;'));
   }
 
-  test_fromField_toMixinSetter() async {
+  Future<void> test_fromField_toMixinSetter() async {
     addTestFile('''
 abstract class A {
   var test = 1;
@@ -628,7 +628,7 @@ class B extends A {
     expect(itemB.memberElement.location.offset, findOffset('test = 2;'));
   }
 
-  test_member_getter() async {
+  Future<void> test_member_getter() async {
     addTestFile('''
 class A {
   get test => null; // in A
@@ -661,7 +661,7 @@ class D extends C {
         findOffset('test => null; // in D'));
   }
 
-  test_member_method() async {
+  Future<void> test_member_method() async {
     addTestFile('''
 class A {
   test() {} // in A
@@ -694,7 +694,7 @@ class D extends C {
         itemD.memberElement.location.offset, findOffset('test() {} // in D'));
   }
 
-  test_member_method_private_differentLib() async {
+  Future<void> test_member_method_private_differentLib() async {
     newFile(join(testFolder, 'lib.dart'), content: r'''
 import 'test.dart';
 class A {
@@ -728,7 +728,7 @@ class D extends C {
     expect(itemD.memberElement, isNotNull);
   }
 
-  test_member_method_private_sameLib() async {
+  Future<void> test_member_method_private_sameLib() async {
     addTestFile('''
 class A {
   _m() {} // in A
@@ -752,7 +752,7 @@ class C extends B {
     expect(itemC.memberElement.location.offset, findOffset('_m() {} // in C'));
   }
 
-  test_member_ofMixin2_method() async {
+  Future<void> test_member_ofMixin2_method() async {
     addTestFile('''
 class M1 {
   void test() {} // in M1
@@ -802,7 +802,7 @@ class D4 extends Object with M2, M1 {
     }
   }
 
-  test_member_ofMixin_getter() async {
+  Future<void> test_member_ofMixin_getter() async {
     addTestFile('''
 abstract class Base {
   get test; // in Base
@@ -830,7 +830,7 @@ class Derived2 extends Base {
     expect(member2.location.offset, findOffset('test => null; // in Derived2'));
   }
 
-  test_member_ofMixin_method() async {
+  Future<void> test_member_ofMixin_method() async {
     addTestFile('''
 abstract class Base {
   void test(); // in Base
@@ -859,7 +859,7 @@ class Derived2 extends Base {
     expect(member2.location.offset, findOffset('test() {} // in Derived2'));
   }
 
-  test_member_ofMixin_setter() async {
+  Future<void> test_member_ofMixin_setter() async {
     addTestFile('''
 abstract class Base {
   set test(x); // in Base
@@ -888,7 +888,7 @@ class Derived2 extends Base {
     expect(member2.location.offset, findOffset('test(x) {} // in Derived2'));
   }
 
-  test_member_operator() async {
+  Future<void> test_member_operator() async {
     addTestFile('''
 class A {
   operator ==(x) => null; // in A
@@ -921,7 +921,7 @@ class D extends C {
         findOffset('==(x) => null; // in D'));
   }
 
-  test_member_setter() async {
+  Future<void> test_member_setter() async {
     addTestFile('''
 class A {
   set test(x) {} // in A
@@ -1014,7 +1014,7 @@ class D extends C {}
     ]);
   }
 
-  test_superOnly_fileDoesNotExist() async {
+  Future<void> test_superOnly_fileDoesNotExist() async {
     Request request = new SearchGetTypeHierarchyParams(
             '/does/not/exist.dart', 0,
             superOnly: true)
@@ -1057,4 +1057,149 @@ class D extends C {}
 class GetTypeHierarchyTest_UseCFE extends GetTypeHierarchyTest {
   @override
   bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_bad_recursion() => super.test_bad_recursion();
+
+  @failingTest
+  @override
+  test_class_double_subclass() {
+    fail('Timeout');
+//    return callFailingTest(super.test_class_double_subclass);
+  }
+
+  @failingTest
+  @override
+  test_class_extends_fileAndPackageUris() {
+    fail('Timeout');
+//    return callFailingTest(super.test_class_extends_fileAndPackageUris);
+  }
+
+  @failingTest
+  @override
+  test_class_extendsTypeA() {
+    fail('Timeout');
+//    return callFailingTest(super.test_class_extendsTypeA);
+  }
+
+  @failingTest
+  @override
+  test_class_extendsTypeB() {
+    fail('Timeout');
+//    return callFailingTest(super.test_class_extendsTypeB);
+  }
+
+  @failingTest
+  @override
+  test_fromField_toMixinGetter() {
+    fail('Timeout');
+//    return callFailingTest(super.test_fromField_toMixinGetter);
+  }
+
+  @failingTest
+  @override
+  test_fromField_toMixinSetter() {
+    fail('Timeout');
+//    return callFailingTest(super.test_fromField_toMixinSetter);
+  }
+
+  @failingTest
+  @override
+  test_member_fromField_toField() => super.test_member_fromField_toField();
+
+  @failingTest
+  @override
+  test_member_fromField_toGetter() => super.test_member_fromField_toGetter();
+
+  @failingTest
+  @override
+  test_member_fromField_toSetter() => super.test_member_fromField_toSetter();
+
+  @failingTest
+  @override
+  test_member_fromFinalField_toGetter() =>
+      super.test_member_fromFinalField_toGetter();
+
+  @failingTest
+  @override
+  test_member_fromFinalField_toSetter() =>
+      super.test_member_fromFinalField_toSetter();
+
+  @failingTest
+  @override
+  test_member_getter() {
+    fail('Timeout');
+//    return callFailingTest(super.test_member_getter);
+  }
+
+  @failingTest
+  @override
+  test_member_method() {
+    fail('Timeout');
+//    return callFailingTest(super.test_member_method);
+  }
+
+  @failingTest
+  @override
+  test_member_method_private_differentLib() {
+    fail('Timeout');
+//    return callFailingTest(super.test_member_method_private_differentLib);
+  }
+
+  @failingTest
+  @override
+  test_member_method_private_sameLib() {
+    fail('Timeout');
+//    return callFailingTest(super.test_member_method_private_sameLib);
+  }
+
+  @failingTest
+  @override
+  test_member_ofMixin2_method() {
+    fail('Timeout');
+//    return callFailingTest(super.test_member_ofMixin2_method);
+  }
+
+  @failingTest
+  @override
+  test_member_ofMixin_getter() {
+    fail('Timeout');
+//    return callFailingTest(super.test_member_ofMixin_getter);
+  }
+
+  @failingTest
+  @override
+  test_member_ofMixin_method() {
+    fail('Timeout');
+//    return callFailingTest(super.test_member_ofMixin_method);
+  }
+
+  @failingTest
+  @override
+  test_member_ofMixin_setter() {
+    fail('Timeout');
+//    return callFailingTest(super.test_member_ofMixin_setter);
+  }
+
+  @failingTest
+  @override
+  test_member_operator() {
+    fail('Timeout');
+//    return callFailingTest(super.test_member_operator);
+  }
+
+  @failingTest
+  @override
+  test_member_setter() {
+    fail('Timeout');
+//    return callFailingTest(super.test_member_setter);
+  }
+
+  @failingTest
+  @override
+  test_superOnly_fileDoesNotExist() {
+    fail('Timeout');
+//    return callFailingTest(super.test_superOnly_fileDoesNotExist);
+  }
 }

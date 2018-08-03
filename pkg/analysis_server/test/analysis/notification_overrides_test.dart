@@ -597,7 +597,7 @@ class B extends A {
     assertNoInterfaceMembers();
   }
 
-  test_super_method_superTypeCycle() async {
+  Future<void> test_super_method_superTypeCycle() async {
     addTestFile('''
 class A extends B {
   m() {} // in A
@@ -646,6 +646,8 @@ class AnalysisNotificationOverridesTest_UseCFE
 
   @failingTest
   @override
-  test_super_method_superTypeCycle() async =>
-      callFailingTest(super.test_super_method_superTypeCycle());
+  test_super_method_superTypeCycle() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_super_method_superTypeCycle);
+  }
 }

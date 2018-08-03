@@ -14,9 +14,7 @@ import 'abstract_search_domain.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MemberReferencesTest);
-    // TODO(brianwilkerson) Enable these tests. Currently they cause this file
-    // to hang, even though the individual tests fail as expected.
-//    defineReflectiveTests(MemberReferencesTest_UseCFE);
+    defineReflectiveTests(MemberReferencesTest_UseCFE);
   });
 }
 
@@ -35,7 +33,7 @@ class MemberReferencesTest extends AbstractSearchDomainTest {
     return waitForSearchResults();
   }
 
-  test_fields_explicit() async {
+  Future<void> test_fields_explicit() async {
     addTestFile('''
 class A {
   var foo;
@@ -67,7 +65,7 @@ mainUnresolved(a, b) {
     assertHasRef(SearchResultKind.READ, 'foo); // unresolved B', true);
   }
 
-  test_fields_implicit() async {
+  Future<void> test_fields_implicit() async {
     addTestFile('''
 class A {
   get foo => null;
@@ -91,7 +89,7 @@ mainUnresolved(a, b) {
     assertHasRef(SearchResultKind.READ, 'foo); // unresolved B', true);
   }
 
-  test_methods() async {
+  Future<void> test_methods() async {
     addTestFile('''
 class A {
   foo() {}
@@ -123,13 +121,22 @@ class MemberReferencesTest_UseCFE extends MemberReferencesTest {
 
   @failingTest
   @override
-  test_fields_explicit() async => callFailingTest(super.test_fields_explicit());
+  test_fields_explicit() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_fields_explicit);
+  }
 
   @failingTest
   @override
-  test_fields_implicit() async => callFailingTest(super.test_fields_implicit());
+  test_fields_implicit() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_fields_implicit);
+  }
 
   @failingTest
   @override
-  test_methods() async => callFailingTest(super.test_methods());
+  test_methods() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_methods);
+  }
 }

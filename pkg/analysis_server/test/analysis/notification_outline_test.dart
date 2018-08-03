@@ -84,7 +84,7 @@ library my.lib;
   }
 
   @failingTest
-  test_libraryName_hasLibraryPartOfDirectives() async {
+  Future<void> test_libraryName_hasLibraryPartOfDirectives() async {
     // This appears to have broken with the move to the new analysis driver.
     addTestFile('''
 part of lib.in.part.of;
@@ -95,7 +95,7 @@ library my.lib;
     expect(libraryName, 'my.lib');
   }
 
-  test_libraryName_hasPartOfDirective() async {
+  Future<void> test_libraryName_hasPartOfDirective() async {
     addTestFile('''
 part of my.lib;
 ''');
@@ -143,11 +143,15 @@ class AnalysisNotificationOutlineTest_UseCFE
 
   @failingTest
   @override
-  test_libraryName_hasLibraryPartOfDirectives() async =>
-      callFailingTest(super.test_libraryName_hasLibraryPartOfDirectives());
+  test_libraryName_hasLibraryPartOfDirectives() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_libraryName_hasLibraryPartOfDirectives);
+  }
 
   @failingTest
   @override
-  test_libraryName_hasPartOfDirective() async =>
-      callFailingTest(super.test_libraryName_hasPartOfDirective());
+  test_libraryName_hasPartOfDirective() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_libraryName_hasPartOfDirective);
+  }
 }
